@@ -433,7 +433,7 @@ func TestRevealBurnOnReadPostsForUser(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.FeatureFlags.BurnOnRead = true
-		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
 	})
 
 	t.Run("skips deleted burn-on-read post", func(t *testing.T) {

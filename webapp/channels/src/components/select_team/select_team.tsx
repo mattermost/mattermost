@@ -6,7 +6,7 @@ import type {ReactNode, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import type {CloudUsage} from '@mattermost/types/cloud';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -25,7 +25,6 @@ import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 
 import SelectTeamItem from './components/select_team_item';
 
@@ -36,10 +35,10 @@ const TEAM_MEMBERSHIP_DENIAL_ERROR_ID = 'api.team.add_members.user_denied';
 const MATTERMOST_ACADEMY_TEAM_TRAINING_LINK = 'https://mattermost.com/pl/mattermost-academy-team-training';
 
 type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => Promise<ActionResult<unknown>>;
+    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean, forDirectory?: boolean) => Promise<ActionResult<unknown>>;
     loadRolesIfNeeded: (roles: Iterable<string>) => void;
     addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult<unknown>>;
-}
+};
 
 type Props = {
     currentUserId: string;
@@ -56,9 +55,6 @@ type Props = {
     history?: any;
     actions: Actions;
     totalTeamsCount: number;
-    isCloud: boolean;
-    isFreeTrial: boolean;
-    usageDeltas: CloudUsage;
 };
 
 type State = {
@@ -67,7 +63,7 @@ type State = {
     endofTeamsData: boolean;
     currentPage: number;
     currentListableTeams: Team[];
-}
+};
 
 export default class SelectTeam extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -102,7 +98,10 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         const {currentPage} = this.state;
         const {actions} = this.props;
 
-        const response = await actions.getTeams(currentPage, TEAMS_PER_PAGE, true);
+        // for_directory: this is the discovery directory, so policy-governed teams
+        // the user can't join are hidden even for admins (who are otherwise exempt
+        // so the System Console list stays complete).
+        const response = await actions.getTeams(currentPage, TEAMS_PER_PAGE, true, false, true);
 
         // We don't want to increase the page number if no data came back previously
         if (!response.error && !(response.error instanceof Error)) {
@@ -182,17 +181,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             canJoinPublicTeams,
             canJoinPrivateTeams,
             totalTeamsCount,
-            isCloud,
-            isFreeTrial,
-            usageDeltas: {
-                teams: {
-                    active: usageDeltaTeams,
-                },
-            },
         } = this.props;
-
-        const teamsLimitReached = usageDeltaTeams >= 0;
-        const createTeamRestricted = isCloud && !isFreeTrial && teamsLimitReached;
 
         let openContent;
         if (this.state.loadingTeamId) {
@@ -242,17 +231,10 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
                 joinableTeamContents = (
                     <div className='signup-team-dir-err'>
                         <div>
-                            {createTeamRestricted ? (
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams'
-                                    defaultMessage='No teams are available to join. Please ask your administrator for an invite.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='signup_team.no_open_teams_canCreate'
-                                    defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
-                                />
-                            )}
+                            <FormattedMessage
+                                id='signup_team.no_open_teams_canCreate'
+                                defaultMessage='No teams are available to join. Please create a new team or ask your administrator for an invite.'
+                            />
                         </div>
                     </div>
                 );
@@ -322,7 +304,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
             );
         }
 
-        const teamSignUp = !createTeamRestricted && (
+        const teamSignUp = (
             <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
                 <div
                     className='margin--extra'
@@ -343,7 +325,7 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
         );
 
         let adminConsoleLink;
-        if (!UserAgent.isMobileApp()) {
+        if (!UserAgent.isMobile()) {
             adminConsoleLink = (
                 <SystemPermissionGate permissions={[Permissions.MANAGE_SYSTEM]}>
                     <div className='mt-8 hidden-xs'>

@@ -58,7 +58,7 @@ type Props = {
     channel: Channel;
     canChange: boolean;
     filter?: string;
-}
+};
 
 export default class InstalledOutgoingWebhook extends React.PureComponent<Props> {
     handleRegenToken = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

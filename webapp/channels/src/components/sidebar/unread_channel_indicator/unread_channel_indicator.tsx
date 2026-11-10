@@ -34,7 +34,7 @@ type Props = {
      * The name of the indicator
      */
     name?: string;
-}
+};
 
 function UnreadChannelIndicator({
     onClick,

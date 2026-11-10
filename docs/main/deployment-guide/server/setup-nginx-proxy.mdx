@@ -1,0 +1,528 @@
+---
+title: "(Recommended) Set up an NGINX proxy"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+A proxy server is a server (a computer system or an application) that acts as an intermediary for requests from clients seeking resources from other servers. Mattermost recommends using a proxy in front of Mattermost to increase security, performance and the ability to monitor and shape traffic connecting to Mattermost:
+
+- **Security:** A proxy server can manage Secure Socket Layer (TLS/SSL) encryption and set policy on how network traffic will be routed to the Mattermost server.
+- **Performance:** In a High Availability configuration, the proxy server balances the network load across multiple Mattermost servers for optimized performance. A hardware proxy with dedicated devices for processing SSL encryption and decryption can also be used to increase performance.
+- **Monitoring**: A proxy server can monitor connection traffic and record traffic in standard audit logs that common monitoring tools like Kibana and Splunk can consume and report on. Some of the events that can be captured include file uploads and downloads, which are not tracked by the Mattermost server logging process.
+
+Mattermost supports the [NGINX proxy](https://www.f5.com/go/product/welcome-to-nginx)
+
+![Mattermost architecture with NGINX proxy](/images/architecture_with_proxy.png)
+
+## Install NGINX server
+
+NGINX is a popular web server and is responsible for hosting some of the largest and highest-traffic sites on the internet. It's more resource-friendly than Apache in most cases, and can be used as a web server or reverse proxy.
+
+In a production setting, we recommend using a proxy server for greater security and performance of Mattermost:
+
+- Encrypted connections: users connect to NGINX with HTTPS on port 443, and NGINX handles the encryption.
+- Redirecting HTTP requests to HTTPS.
+- Forwarding requests to Mattermost Server, which listens on port 8065.
+- Standard request logs.
+
+### Install NGINX on Ubuntu, Debian or RHEL/CentOS
+
+1.  Log in to the server that will host the proxy and open a terminal window.
+2.  Install NGINX.
+
+    On Ubuntu and Debian, update your local `apt` package index, then install `nginx`:
+
+    ```sh
+    sudo apt update
+    sudo apt install nginx
+    ```
+
+    On RHEL/CentOS, install `nginx` with `dnf`, then start it and enable it at boot:
+
+    ```sh
+    sudo dnf install nginx
+    sudo systemctl enable --now nginx
+    ```
+
+    If firewalld is running, open the web ports:
+
+    ```sh
+    sudo firewall-cmd --permanent --add-service=http --add-service=https
+    sudo firewall-cmd --reload
+    ```
+
+3.  Point your browser to your server IP address. You should see the default NGINX landing page:
+
+    ![Example of the default NGINX landing page.](/images/install_nginx_welcome.png)
+
+    You can also verify it by running `curl http://localhost`. If NGINX is running, you see output similar to the following:
+
+    ```html
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Welcome to nginx!</title>
+    .
+    .
+    .
+    <p><em>Thank you for using nginx.</em></p>
+    </body>
+    </html>
+    ```
+
+### Manage the NGINX process
+
+Now that you have your web server up and running, let's review some basic management commands. These are all run in the command line interface.
+
+To stop your web server, use: `sudo systemctl stop nginx`
+
+To start the web server when it's stopped, use: `sudo systemctl start nginx`
+
+To stop and then start the service again, use: `sudo systemctl restart nginx`
+
+When you only change configuration, NGINX can reload without dropping connections. To do this, use: `sudo systemctl reload nginx`
+
+By default, NGINX on Ubuntu and Debian is configured to start automatically when the server boots. If this isn't what you want, you can disable this behavior using: `sudo systemctl disable nginx`
+
+To re-enable the service to start up at boot, use: `sudo systemctl enable nginx`
+
+### What to do next
+
+1.  Map a fully qualified domain name (FQDN) such as `mattermost.example.com` on your DNS server/service, to point to the NGINX server.
+2.  Get a TLS certificate and private key for that FQDN.
+3.  Configure NGINX to proxy connections from the internet to the Mattermost server.
+
+## Configure NGINX with SSL and HTTP/2
+
+Using SSL encrypts the communication between Mattermost clients and Mattermost Server. It also lets NGINX use HTTP/2.
+
+Before you begin, make sure that you have:
+
+- The address of your Mattermost Server.
+- Your FQDN, such as `mattermost.example.com`, with a DNS record that points to the NGINX server.
+- A TLS certificate and private key for that FQDN, from a source that you choose. The configuration expects them in `/etc/ssl/mattermost/fullchain.pem` (the certificate followed by its intermediate certificates) and `/etc/ssl/mattermost/privkey.pem`. For a free Let's Encrypt certificate, see [Use Certbot to obtain and renew certificates](#use-certbot-to-obtain-and-renew-certificates).
+
+1.  Log in to the server that hosts NGINX and open a terminal window.
+
+2.  Choose a TLS profile. Select one of the tabs below and copy its lines. You paste them into the site file in the next step.
+
+    - **Compatible:** TLS 1.2 and 1.3. It works with all current browsers and Mattermost apps, and with older devices such as Android 4.4.2 or later, Safari 9 or later, Chrome 49 or later and Firefox 31 or later. Use it unless you know that all your clients support TLS 1.3, in which case the modern profile is recommended to achieve the best security.
+    - **Modern:** TLS 1.3 only. It needs Android 10 or later, Safari 12.1 or later, Chrome 70 or later, Firefox 63 or later or Edge 75 or later. The Mattermost mobile apps (Android 11 or later, iOS 18 or later) support it. Older clients and integrations can't connect.
+
+<Tabs>
+<TabItem value="compatible" label="Compatible (TLS 1.2 + 1.3)" default>
+
+Adapted from the Mozilla Intermediate profile.
+
+```nginx
+ssl_protocols TLSv1.2 TLSv1.3;        # allow TLS 1.2 and TLS 1.3 only
+# TLS 1.2 ciphers (TLS 1.3 ones are built in)
+ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+ssl_session_cache shared:MozSSL:10m;  # session cache shared by all workers
+ssl_session_timeout 1d;               # resume TLS sessions for one day
+ssl_session_tickets off;              # no session tickets, resume via the cache
+```
+
+</TabItem>
+<TabItem value="modern" label="Modern (TLS 1.3 only)">
+
+Adapted from the Mozilla Modern profile.
+
+```nginx
+ssl_protocols TLSv1.3;                # allow TLS 1.3 only
+ssl_session_cache shared:MozSSL:10m;  # session cache shared by all workers
+ssl_session_timeout 1d;               # resume TLS sessions for one day
+ssl_session_tickets off;              # no session tickets, resume via the cache
+```
+
+</TabItem>
+</Tabs>
+
+<Note>
+
+OCSP stapling is optional. Let's Encrypt stopped supporting it in 2025, but other certificate authorities may still offer it. If the following command prints a URL, yours does:
+
+```sh
+openssl x509 -noout -ocsp_uri -in /etc/ssl/mattermost/fullchain.pem
+```
+
+To enable stapling, save the root and intermediate certificates of your certificate authority in one file, such as `/etc/ssl/mattermost/ca-bundle.pem`. Then add these lines to your TLS profile and replace `<your DNS server>` with the IP address of a DNS server that NGINX can use:
+
+```nginx
+ssl_stapling on;                                            # send OCSP responses with the certificate
+ssl_stapling_verify on;                                     # verify the responses
+ssl_trusted_certificate /etc/ssl/mattermost/ca-bundle.pem;  # CA root and intermediates to verify the responses
+resolver <your DNS server>;                                 # DNS server for reaching the OCSP responder
+```
+
+</Note>
+
+3.  Create the site file as *root* in a text editor: `/etc/nginx/sites-available/mattermost` on Ubuntu and Debian, or `/etc/nginx/conf.d/mattermost.conf` on RHEL/CentOS. Copy the following configuration into the empty file, then make these changes:
+
+    - Paste the TLS profile lines that you copied in the previous step into the HTTPS server, where the comment says so. If other HTTPS sites share port 443 on this NGINX, NGINX before 1.29.2 takes the TLS versions from the default HTTPS server. In that case, add `default_server` to both `listen 443` lines of the Mattermost server, or give it its own IP address.
+    - Replace `127.0.0.1:8065` with the address of your Mattermost Server if it runs on another machine.
+    - Replace `mattermost.example.com` with your FQDN in both `server_name` lines.
+    - Replace `/etc/ssl/mattermost/fullchain.pem` and `/etc/ssl/mattermost/privkey.pem` with the paths of your certificate chain and your private key.
+
+    ```nginx
+    # cache for static files, used by location /
+    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=mattermost_cache:10m max_size=3g inactive=120m use_temp_path=off;
+
+    upstream backend {
+        server 127.0.0.1:8065;                                            # Mattermost Server address and port
+        keepalive 32;                                                     # reuse up to 32 idle connections to Mattermost
+        keepalive_timeout 55s;                                            # close idle ones before Mattermost's 60s limit
+    }
+
+    server {
+        listen 80;                                                        # plain HTTP on IPv4
+        listen [::]:80;                                                   # plain HTTP on IPv6
+        server_name mattermost.example.com;                               # your domain name
+
+        # Uncomment this location if Certbot answers Let's Encrypt challenges with its webroot method.
+        # See "Use Certbot to obtain and renew certificates" below.
+        # location /.well-known/acme-challenge/ {
+        #     root /var/www/letsencrypt;
+        # }
+
+        location / {
+            return 301 https://$host$request_uri;                         # send all HTTP requests to HTTPS
+        }
+    }
+
+    server {
+        listen 443 ssl http2;                                             # HTTPS and HTTP/2 on IPv4
+        listen [::]:443 ssl http2;                                        # HTTPS and HTTP/2 on IPv6
+        server_name mattermost.example.com;                               # your domain name
+
+        # -----------------------------------------
+        # PASTE THE TLS PROFILE THAT YOU CHOSE HERE
+        # -----------------------------------------
+
+        ssl_certificate /etc/ssl/mattermost/fullchain.pem;                # your certificate and its chain
+        ssl_certificate_key /etc/ssl/mattermost/privkey.pem;              # your private key
+
+        add_header Strict-Transport-Security "max-age=63072000" always;   # browsers must use HTTPS for 2 years
+
+        location ~ /api/v[0-9]+/websocket/?$ {
+            proxy_http_version 1.1;                                       # WebSocket upgrade needs HTTP/1.1
+            proxy_set_header Upgrade $http_upgrade;                       # forward the WebSocket upgrade request
+            proxy_set_header Connection "upgrade";                        # switch the connection to WebSocket
+            proxy_set_header Host $host;                                  # pass the original host name
+            proxy_set_header X-Real-IP $remote_addr;                      # the user's real IP address
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
+            proxy_set_header X-Forwarded-Proto $scheme;                   # tell Mattermost the user used HTTPS
+            proxy_connect_timeout 10s;                                    # give up after 10s, then try the next node
+            proxy_read_timeout 120s;                                      # longer than Mattermost's 60s WebSocket ping
+            proxy_pass http://backend;                                    # forward to Mattermost
+        }
+
+        location / {
+            proxy_set_header Host $host;                                  # pass the original host name
+            proxy_set_header X-Real-IP $remote_addr;                      # the user's real IP address
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
+            proxy_set_header X-Forwarded-Proto $scheme;                   # tell Mattermost the user used HTTPS
+            proxy_set_header Connection "";                               # lets NGINX reuse upstream connections
+            proxy_http_version 1.1;                                       # needed for upstream connection reuse
+            proxy_connect_timeout 10s;                                    # give up after 10s, then try the next node
+            proxy_read_timeout 300s;                                      # Mattermost ends requests after 5 minutes
+            proxy_buffer_size 16k;                                        # fits large OAuth and SAML response headers
+            proxy_buffers 8 16k;                                          # required with a 16k proxy_buffer_size
+            client_max_body_size 101M;                                    # allow uploads up to Mattermost's 100 MiB limit
+            proxy_pass http://backend;                                    # forward to Mattermost
+            proxy_cache mattermost_cache;                                 # cache static files
+            proxy_cache_revalidate on;                                    # refresh stale entries with conditional requests
+            proxy_cache_min_uses 2;                                       # cache a file after its second request
+            proxy_cache_use_stale timeout;                                # serve the cached file if Mattermost times out
+            proxy_cache_lock on;                                          # one request fills the cache for a file
+        }
+    }
+    ```
+
+4.  On Ubuntu and Debian, enable the Mattermost site and remove the default site. On RHEL/CentOS, skip this step, because NGINX loads every file in `conf.d` automatically.
+
+    ```sh
+    sudo rm /etc/nginx/sites-enabled/default
+    sudo ln -s /etc/nginx/sites-available/mattermost /etc/nginx/sites-enabled/mattermost
+    ```
+
+5.  Test the configuration and restart NGINX. This also starts NGINX if it is stopped:
+
+    ```sh
+    sudo nginx -t && sudo systemctl restart nginx
+    ```
+
+    On NGINX 1.25.1 and later, `nginx -t` warns that the `http2` parameter of `listen` is deprecated. The configuration still works. On RHEL/CentOS with SELinux enforcing, also allow NGINX to connect to Mattermost: `sudo setsebool -P httpd_can_network_connect 1`.
+
+6.  Restrict access to port 8065. Use your firewall to block it for every machine except the NGINX server. Administer Mattermost through NGINX as well, so that nobody can send a trusted `X-Real-IP` header directly. On Amazon Web Services, use Security Groups.
+
+7.  Tell Mattermost to read the user's IP address from the header that NGINX sets. Set [`ServiceSettings.TrustedProxyIPHeader`](/administration-guide/configure/environment-configuration-settings#trusted-proxy-ip-header) to `["X-Real-IP"]` in `config.json`. Without it, Mattermost sees every user with the IP address of NGINX, which affects rate limiting and logs. Don't use `X-Forwarded-For`, because clients can fake it.
+
+8.  Verify that Mattermost responds through the proxy with status 200 and sends the HSTS header:
+
+    ```sh
+    curl -sI https://mattermost.example.com | grep -iE '^HTTP|strict-transport-security'
+    ```
+
+    The output shows `HTTP/2 200` and `strict-transport-security: max-age=63072000`.
+
+9.  Test the TLS setup with a service such as [SSL Labs](https://www.ssllabs.com/ssltest/index.html). If it reports a missing chain, point `ssl_certificate` to a file that contains the certificate followed by its intermediate certificates.
+
+### Mattermost settings behind NGINX
+
+Adjust the configuration in these cases:
+
+- **Larger uploads:** NGINX allows uploads up to 101 MiB. If you raise Mattermost's [Maximum file size](/administration-guide/configure/environment-configuration-settings#maximum-file-size), raise `client_max_body_size` too.
+- **Public port other than 443:** If users reach NGINX on another port, such as `https://mattermost.example.com:8443`, use `$http_host` instead of `$host` in both `proxy_set_header Host` lines. Also change the redirect in the port 80 server so it keeps the port, for example `return 301 https://$host:8443$request_uri;`. Otherwise users are sent to port 443.
+- **Another load balancer in front of NGINX:** Use the NGINX `real_ip` module, so that `$remote_addr` holds the user's address. Limit `set_real_ip_from` to the addresses of the load balancer.
+
+## Use Certbot to obtain and renew certificates
+
+This section uses Certbot to get a free certificate from [Let's Encrypt](https://letsencrypt.org/). Certbot only obtains and renews the certificate and never changes your NGINX configuration. The steps use `mattermost.example.com` as the FQDN.
+
+NGINX can't start with the HTTPS server before the certificate files exist, and Certbot needs port 80 to validate your domain. You therefore request the first certificate before you finish the NGINX setup, and then switch renewals to a method that keeps NGINX running.
+
+1.  Install Certbot. Follow the [Certbot instructions](https://certbot.eff.org) for your operating system.
+
+2.  Stop NGINX if it is running, so that Certbot can use port 80:
+
+    ```sh
+    sudo systemctl stop nginx
+    ```
+
+3.  Obtain the first certificate. Certbot prompts for your email address and the terms of service.
+
+    ```sh
+    sudo certbot certonly --standalone -d mattermost.example.com
+    ```
+
+    Certbot saves `fullchain.pem` and `privkey.pem` in `/etc/letsencrypt/live/mattermost.example.com/`.
+
+4.  Complete the steps in [Configure NGINX with SSL and HTTP/2](#configure-nginx-with-ssl-and-http2). In the site file, use these two Certbot files as the certificate and the private key. NGINX starts in step 5 of that section.
+
+5.  Switch renewals to the webroot method, so that NGINX keeps running when Certbot renews. Uncomment the `acme-challenge` location in the port 80 server of your site file, create the webroot directory, and reload NGINX:
+
+    ```sh
+    sudo mkdir -p /var/www/letsencrypt
+    sudo nginx -t
+    sudo systemctl reload nginx
+    ```
+
+6.  Change the renewal settings of the certificate (requires Certbot 2.3.0 or later). NGINX reloads after every renewal:
+
+    ```sh
+    sudo certbot reconfigure --cert-name mattermost.example.com --webroot --webroot-path /var/www/letsencrypt --deploy-hook "systemctl reload nginx"
+    ```
+
+7.  Confirm that renewal works:
+
+    ```sh
+    sudo certbot renew --dry-run
+    ```
+
+If step 6 or the dry run fails, use the standalone method and let Certbot stop NGINX briefly while it renews. Open connections drop for those seconds, and clients reconnect automatically. This command saves the settings for all future renewals. It also removes the NGINX reload from step 6, because NGINX loads the new certificate when it starts. Its test run also stops NGINX briefly:
+
+```sh
+sudo certbot reconfigure --cert-name mattermost.example.com --authenticator standalone --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" --deploy-hook ""
+```
+
+## High-performance scaling configuration
+
+For high-scale deployments with multiple Mattermost servers and heavy traffic loads, additional NGINX optimizations are recommended. This configuration is based on performance testing with large-scale Mattermost deployments.
+
+<Note>
+
+These settings are designed for high-performance environments. For standard deployments, the basic configuration above should be sufficient.
+
+</Note>
+
+### NGINX main configuration optimizations
+
+Update your main NGINX configuration file (`/etc/nginx/nginx.conf`) with the following performance optimizations. The example uses Ubuntu and Debian paths and user; on RHEL/CentOS, keep the `user`, module `include` and site `include` lines from your stock file.
+
+```nginx
+user www-data;                                    # run workers as this user (RHEL/CentOS: nginx)
+worker_processes auto;                            # one worker per CPU core
+worker_rlimit_nofile 100000;                      # open files per worker, at least 2x worker_connections
+worker_shutdown_timeout 300s;                     # after a reload, old workers stop within 5 minutes
+pid /run/nginx.pid;                               # file that holds the NGINX process ID
+include /etc/nginx/modules-enabled/*.conf;        # load installed NGINX modules
+
+events {
+  worker_connections 20000;                       # max connections per worker
+}
+
+http {
+  sendfile on;                                    # faster delivery of static files
+  tcp_nopush on;                                  # fewer packets when sending files
+  keepalive_timeout 75s;                          # keep idle browser connections open for 75s
+  keepalive_requests 16384;                       # close a browser connection after this many requests
+  types_hash_max_size 2048;                       # size of the file type lookup table
+  include /etc/nginx/mime.types;                  # maps file extensions to content types
+  default_type application/octet-stream;          # content type if the extension is unknown
+  access_log /var/log/nginx/access.log combined;  # log every request for auditing
+  error_log /var/log/nginx/error.log;             # log errors here
+  gzip on;                                        # compress HTML responses
+  include /etc/nginx/sites-enabled/*;             # load site files, such as the Mattermost one
+}
+```
+
+### Multi-node backend configuration
+
+For deployments with multiple Mattermost application servers, use the following `upstream` block in your site file (`/etc/nginx/sites-available/mattermost` or `/etc/nginx/conf.d/mattermost.conf`) in place of the single-server `upstream` block. Keep the rest of the configuration from the sections above.
+
+```nginx
+upstream backend {
+  server 172.27.205.186:8065 max_fails=3 fail_timeout=10s;  # first node, skipped after three failures
+  server 172.27.213.167:8065 max_fails=3 fail_timeout=10s;  # second node, same failure handling
+  keepalive 32;                                             # reuse up to 32 idle connections to Mattermost
+  keepalive_timeout 55s;                                    # close idle ones before Mattermost's 60s limit
+}
+```
+
+Add a `server` line for each additional Mattermost Server node.
+
+### Distribute connections across workers
+
+On busy servers, add `reuseport` to the `listen 443` lines of the HTTPS server. Each worker process then accepts connections on its own socket, and the kernel distributes the connections between the workers:
+
+```nginx
+listen 443 ssl http2 reuseport;       # HTTPS and HTTP/2 on IPv4, one socket per worker
+listen [::]:443 ssl http2 reuseport;  # HTTPS and HTTP/2 on IPv6, one socket per worker
+```
+
+### Implementation notes
+
+1.  **Replace IP addresses**: Update the backend server IPs (172.27.205.186, 172.27.213.167) with your actual Mattermost server addresses.
+
+2.  **Create cache directory**: Ensure the cache directory exists and has proper permissions. Use `nginx` instead of `www-data` on RHEL/CentOS:
+
+    ``` sh
+    sudo mkdir -p /var/cache/nginx
+    sudo chown -R www-data:www-data /var/cache/nginx
+    ```
+
+3.  **Test configuration**: Always test your configuration before applying:
+
+    ```sh
+    sudo nginx -t
+    ```
+
+4.  **Monitor performance**: Use NGINX access logs and monitoring tools to verify the performance improvements.
+
+5.  **Scale incrementally**: Apply these optimizations gradually and monitor their impact on your specific deployment.
+
+## NGINX configuration FAQ
+
+### Why am I seeing the error "Too many redirects?"
+
+You may see this error if you serve Mattermost under a subpath, such as `https://mattermost.example.com/sub-path`. The base configuration already works under a subpath: set the Site URL to include the subpath, and the WebSocket location matches under any subpath.
+
+To resolve this error, answer `HEAD` requests for the subpath in NGINX. Add the following location to the Mattermost HTTPS server, next to `location /`. It uses the same proxy settings as `location /`, without the cache lines.
+
+```nginx
+location /sub-path {
+    if ($request_method = HEAD) {
+        return 200;                                               # answer HEAD without proxying
+    }
+    proxy_set_header Host $host;                                  # pass the original host name
+    proxy_set_header X-Real-IP $remote_addr;                      # the user's real IP address
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
+    proxy_set_header X-Forwarded-Proto $scheme;                   # tell Mattermost the user used HTTPS
+    proxy_set_header Connection "";                               # lets NGINX reuse upstream connections
+    proxy_http_version 1.1;                                       # needed for upstream connection reuse
+    proxy_connect_timeout 10s;                                    # give up after 10s, then try the next node
+    proxy_read_timeout 300s;                                      # Mattermost ends requests after 5 minutes
+    proxy_buffer_size 16k;                                        # fits large OAuth and SAML response headers
+    proxy_buffers 8 16k;                                          # required with a 16k proxy_buffer_size
+    client_max_body_size 101M;                                    # allow uploads up to Mattermost's 100 MiB limit
+    proxy_pass http://backend;                                    # forward to Mattermost
+}
+```
+
+Use a prefix location as shown, not a regular expression location. NGINX then still sends WebSocket requests under the subpath to the WebSocket location.
+
+### Why are WebSocket connections returning a 403 error?
+
+This is likely due to a failing origin check. When the [Site URL](/administration-guide/configure/environment-configuration-settings#site-url) is set, Mattermost Server compares the `Origin` header of the WebSocket request with the scheme and host of the Site URL. When the Site URL is empty, it compares the `Origin` host with the request `Host` header. If they don't match, Mattermost Server returns 403.
+
+Set the Site URL to the exact public URL that clients use, including `https://` and any non-default port:
+
+```json
+"SiteURL": "https://mattermost.example.com",
+```
+
+If clients load Mattermost from other origins, add those origins to the `AllowCorsFrom` setting.
+
+The default `combined` access log doesn't record `Origin` and `Host`. To see which values clients send, add a temporary log to your site file and reload NGINX. Add the `log_format` line above the `upstream` block and the `access_log` line to the HTTPS server. Remove both lines when you're done.
+
+```nginx
+# log format with the Origin and Host headers
+log_format origin_check '$remote_addr "$request" $status origin="$http_origin" host="$http_host"';
+# write requests to a separate log file in that format
+access_log /var/log/nginx/origin-check.log origin_check;
+```
+
+### How do I set up an NGINX proxy with the Mattermost Docker installation?
+
+See [Deploy Mattermost using containers](/deployment-guide/server/deploy-containers) for container deployments with NGINX.
+
+### Why does NGINX fail when installing GitLab CE with Mattermost on Azure?
+
+You may need to update the Callback URLs for the Application entry of Mattermost inside your GitLab instance.
+
+1.  Log in to your GitLab instance as the admin.
+2.  Go to **Admin \> Applications**.
+3.  Select **Edit** on GitLab-Mattermost.
+4.  Update the callback URLs to your new domain/URL.
+5.  Save the changes.
+6.  Update the external URL for GitLab and Mattermost in the `/etc/gitlab/gitlab.rb` configuration file.
+
+### Why does Certbot fail the http-01 challenge?
+
+```text
+Requesting a certificate for yourdomain.com
+Performing the following challenges:
+http-01 challenge for yourdomain.com
+Waiting for verification...
+Challenge failed for domain yourdomain.com
+http-01 challenge for yourdomain.com
+Cleaning up challenges
+Some challenges have failed.
+```
+
+If you see the above errors, Let's Encrypt couldn't fetch the challenge file from your server over port 80. Check the following:
+
+- Your A and AAAA DNS records point to this server, and a firewall doesn't block port 80.
+- For the first certificate with `--standalone`, NGINX or another program isn't using port 80.
+- For webroot renewals, the `/.well-known/acme-challenge/` location is uncommented in the port 80 Mattermost server, and its `root` matches the directory you passed to Certbot with `--webroot-path`.
+
+<Note>
+
+If you're using Cloudflare you'll need to disable `force traffic to https`.
+
+</Note>
+
+#### Certbot rate limiting
+
+If Let's Encrypt rate limits your requests, Certbot shows this error:
+
+```text
+Error: Could not issue a Let's Encrypt SSL/TLS certificate for example.com.
+One of the Let's Encrypt rate limits has been exceeded for example.com.
+See the related Knowledge Base article for details.
+Details
+Invalid response from https://acme-v02.api.letsencrypt.org/acme/new-order.
+Details:
+Type: urn:ietf:params:acme:error:rateLimited
+Status: 429
+Detail: Error creating new order :: too many failed authorizations recently: see https://letsencrypt.org/docs/rate-limits/
+```
+
+If you're running Let's Encrypt within Mattermost you'll see this error:
+
+```json
+{"level":"error","ts":1609092001.752515,"caller":"http/server.go:3088","msg":"http: TLS handshake error from ip:port: 429 urn:ietf:params:acme:error:rateLimited: Error creating new order :: too many failed authorizations recently: see https://letsencrypt.org/docs/rate-limits/","source":"httpserver"}
+```
+
+This means that you've attempted to generate a certificate too many times. See the [Let's Encrypt rate limits documentation](https://letsencrypt.org/docs/rate-limits) for details.

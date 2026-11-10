@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent} from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -41,15 +43,15 @@ type State = {
     };
     thumbnailCheckComplete: boolean;
     thumbnailRejected: boolean;
-}
+};
 
-export default class SingleImageView extends React.PureComponent<Props, State> {
+class SingleImageView extends React.PureComponent<Props & WrappedComponentProps, State> {
     private mounted = false;
     static defaultProps = {
         compactDisplay: false,
     };
 
-    constructor(props: Props) {
+    constructor(props: Props & WrappedComponentProps) {
         super(props);
         this.state = {
             loaded: false,
@@ -57,7 +59,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 width: props.fileInfo?.width || 0,
                 height: props.fileInfo?.height || 0,
             },
-            thumbnailCheckComplete: false,
+            thumbnailCheckComplete: !props.fileInfo?.has_preview_image,
             thumbnailRejected: false,
         };
     }
@@ -164,23 +166,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
             return <></>;
         }
 
-        // If thumbnail check not complete yet, don't render the preview
-        // This prevents flashing the image before we know if it should be hidden
-        if (!thumbnailCheckComplete) {
-            return (
-                <div className={classNames('file-view--single')}>
-                    <div className='file__image'>
-                        <div className='image-header'>
-                            <div className='image-name'>{fileInfo.name}</div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
         // If thumbnail was rejected, treat this file as rejected
         // Show it collapsed with file icon instead of inline preview
-        const effectivelyRejected = this.props.isFileRejected || thumbnailRejected;
+        const thumbnailRejectedByPlugin = thumbnailCheckComplete && thumbnailRejected;
+        const effectivelyRejected = this.props.isFileRejected || thumbnailRejectedByPlugin;
         if (effectivelyRejected) {
             // Don't show inline preview - return minimal view
             // User can still click to attempt opening in modal (which will be controlled by preview rejection)
@@ -203,6 +192,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         const {has_preview_image: hasPreviewImage, id} = fileInfo;
         const fileURL = getFileUrl(id);
         const previewURL = hasPreviewImage ? getFilePreviewUrl(id) : fileURL;
+        const renderPlaceholderOnly = !thumbnailCheckComplete;
 
         const previewHeight = fileInfo.height;
         const previewWidth = fileInfo.width;
@@ -230,7 +220,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 key='toggle'
                 className='style--none single-image-view__toggle'
                 data-expanded={this.props.isEmbedVisible}
-                aria-label='Toggle Embed Visibility'
+                aria-label={this.props.intl.formatMessage({id: 'accessibility.toggle_embed_visibility', defaultMessage: 'Toggle Embed Visibility'})}
                 onClick={this.toggleEmbedVisibility}
             >
                 <span
@@ -281,9 +271,12 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                     width: '100%',
                 };
             } else {
+                // A dimensionless SVG has no intrinsic size, so reserving a fixed 350px height left
+                // the browser-default preview floating in a tall, mostly empty box. Let the
+                // container shrink to the rendered SVG instead.
                 imageContainerStyle = {
-                    height: 350,
-                    maxWidth: '100%',
+                    height: 'auto',
+                    width: '100%',
                 };
             }
         }
@@ -323,6 +316,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     fileURL={fileURL}
                                     onImageLoaded={this.imageLoaded}
                                     showLoader={this.props.isEmbedVisible}
+                                    renderPlaceholderOnly={renderPlaceholderOnly}
                                     handleSmallImageContainer={true}
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
@@ -338,3 +332,5 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(SingleImageView);

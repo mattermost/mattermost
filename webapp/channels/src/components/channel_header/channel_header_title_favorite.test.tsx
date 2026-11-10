@@ -138,8 +138,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(button).toHaveClass('inactive');
         expect(button).toHaveAttribute('aria-label', ADD_TO_FAVORITES_LABEL);
 
-        const icon = button.querySelector('i');
-        expect(icon).toHaveClass('icon-star-outline');
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     it('should render "Remove from Favorites" button when favorite', () => {
@@ -153,8 +152,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(button).toHaveClass('active');
         expect(button).toHaveAttribute('aria-label', REMOVE_FROM_FAVORITES_LABEL);
 
-        const icon = button.querySelector('i');
-        expect(icon).toHaveClass('icon-star');
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     it('should have correct aria-label and icon based on isFavorite', () => {
@@ -166,8 +164,7 @@ describe('ChannelHeaderTitleFavorite Component', () => {
 
         let button = screen.getByRole('button', {name: ADD_TO_FAVORITES_REGEX});
         expect(button).toHaveAttribute('aria-label', ADD_TO_FAVORITES_LABEL);
-        let icon = button.querySelector('i');
-        expect(icon).toHaveClass('icon-star-outline');
+        expect(button.querySelector('svg')).toBeInTheDocument();
 
         // Reset mocks to simulate favorite state
         jest.clearAllMocks();
@@ -182,8 +179,18 @@ describe('ChannelHeaderTitleFavorite Component', () => {
 
         button = screen.getByRole('button', {name: REMOVE_FROM_FAVORITES_REGEX});
         expect(button).toHaveAttribute('aria-label', REMOVE_FROM_FAVORITES_LABEL);
-        icon = button.querySelector('i');
-        expect(icon).toHaveClass('icon-star');
+        expect(button.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('should render button as disabled when channel is in a managed category', () => {
+        isCurrentChannelFavoriteMock.mockReturnValue(false);
+        getCurrentChannelMock.mockReturnValue(activeChannel);
+        jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
+
+        renderComponent();
+
+        const button = screen.getByRole('button');
+        expect(button).toBeDisabled();
     });
 
     it('should dispatch A11yFocusEvent after toggling favorite', async () => {

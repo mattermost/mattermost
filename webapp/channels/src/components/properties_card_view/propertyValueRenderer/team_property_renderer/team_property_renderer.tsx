@@ -16,7 +16,7 @@ import './team_property_renderer.scss';
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: TeamFieldMetadata;
-}
+};
 
 export default function TeamPropertyRenderer({value, metadata}: Props) {
     const intl = useIntl();

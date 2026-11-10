@@ -10,17 +10,17 @@
 // Stage: @prod
 // Group: @channels @accessibility @smoke
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in Channel Sidebar Navigation', () => {
-    let testUser;
-    let testTeam;
-    let testChannel;
-    let offTopicUrl;
+    let testUser: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
+    let offTopicUrl: string;
 
     before(() => {
-        let otherUser;
-        let otherChannel;
+        let otherUser: Cypress.UserProfile;
+        let otherChannel: Cypress.Channel;
 
         cy.apiInitSetup({promoteNewUserAsAdmin: true}).then(({team, channel, user, offTopicUrl: url}) => {
             testUser = user;
@@ -198,8 +198,9 @@ describe('Accessibility tests for RHS getting focus after buttons actions', () =
         // * Verify RHS is open
         cy.get('#sidebar-right').should('be.visible');
 
-        // * Check that the RHS container is focused
-        cy.findByLabelText('Expand Sidebar Icon').should('be.focused');
+        // * Check that the RHS container is focused. Opening the RHS focuses its first control, and
+        // the mentions panel leads with Filters where the other panels lead with Expand.
+        cy.findByRole('button', {name: 'Filters'}).should('be.focused');
     });
 
     it('Focus should be on RHS when opening Saved Messages', () => {
@@ -238,7 +239,7 @@ describe('Accessibility tests for RHS getting focus after buttons actions', () =
     });
 });
 
-function markAsFavorite(channelName) {
+function markAsFavorite(channelName: string) {
     // # Visit the channel
     cy.get(`#sidebarItem_${channelName}`).click();
     cy.get('#postListContent').should('be.visible');

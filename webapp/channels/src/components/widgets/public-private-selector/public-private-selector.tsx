@@ -2,23 +2,30 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import CheckCircleIcon from 'components/widgets/icons/check_circle_icon';
 import GlobeCircleSolidIcon from 'components/widgets/icons/globe_circle_solid_icon';
 import LockCircleSolidIcon from 'components/widgets/icons/lock_circle_solid_icon';
 import UpgradeBadge from 'components/widgets/icons/upgrade_badge_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants} from 'utils/constants';
 
 import './public-private-selector.scss';
 
+export type PluginOptionButtonProps = {
+    id: string;
+    label: React.ReactNode;
+    description: React.ReactNode;
+    icon: React.ReactNode;
+};
+
 type BigButtonSelectorProps = {
-    id: ChannelType;
+    id: string;
     title: string | React.ReactNode;
     description: string | React.ReactNode;
     iconSVG: (props: React.HTMLAttributes<HTMLSpanElement>) => JSX.Element;
@@ -29,7 +36,7 @@ type BigButtonSelectorProps = {
     selected?: boolean;
     disabled?: boolean;
     locked?: boolean;
-    onClick: (id: ChannelType) => void;
+    onClick: (id: string) => void;
 };
 
 const BigButtonSelector = ({
@@ -100,11 +107,15 @@ type ButtonSelectorProps = {
 };
 
 type PublicPrivateSelectorProps = {
-    selected: ChannelType;
+    selected: string;
     className?: string;
     publicButtonProps?: ButtonSelectorProps;
     privateButtonProps?: ButtonSelectorProps;
-    onChange: (selected: ChannelType) => void;
+    pluginOptions?: PluginOptionButtonProps[];
+
+    /** Shows only `pluginOptions`, for a modal opened for one plugin's channel types. */
+    hideBuiltInOptions?: boolean;
+    onChange: (selected: string) => void;
 };
 
 const PublicPrivateSelector = ({
@@ -130,6 +141,8 @@ const PublicPrivateSelector = ({
         disabled: disabledPrivate,
         locked: lockedPrivate,
     } = {} as ButtonSelectorProps,
+    pluginOptions,
+    hideBuiltInOptions = false,
     onChange,
 }: PublicPrivateSelectorProps) => {
     const {formatMessage} = useIntl();
@@ -138,7 +151,7 @@ const PublicPrivateSelector = ({
     const canSelectPrivate = !disabledPrivate && !lockedPrivate;
 
     const handleOnClick = useCallback(
-        (selection: ChannelType) => {
+        (selection: string) => {
             if (
                 selection === selected ||
                 (selection === Constants.OPEN_CHANNEL && !canSelectPublic) ||
@@ -154,34 +167,51 @@ const PublicPrivateSelector = ({
 
     return (
         <div className={classNames('public-private-selector', className)}>
-            <BigButtonSelector
-                id={Constants.OPEN_CHANNEL as ChannelType}
-                title={titlePublic || formatMessage({id: 'public_private_selector.public.title', defaultMessage: 'Public'})}
-                description={descriptionPublic || formatMessage({id: 'public_private_selector.public.description', defaultMessage: 'Anyone'})}
-                iconSVG={GlobeCircleSolidIcon}
-                titleClassName={titleClassNamePublic}
-                descriptionClassName={descriptionClassNamePublic}
-                iconClassName={iconClassNamePublic}
-                tooltip={tooltipPublic}
-                selected={selected === Constants.OPEN_CHANNEL}
-                disabled={disabledPublic}
-                locked={lockedPublic}
-                onClick={handleOnClick}
-            />
-            <BigButtonSelector
-                id={Constants.PRIVATE_CHANNEL as ChannelType}
-                title={titlePrivate || formatMessage({id: 'public_private_selector.private.title', defaultMessage: 'Private'})}
-                description={descriptionPrivate || formatMessage({id: 'public_private_selector.private.description', defaultMessage: 'Only invited members'})}
-                iconSVG={LockCircleSolidIcon}
-                titleClassName={titleClassNamePrivate}
-                descriptionClassName={descriptionClassNamePrivate}
-                iconClassName={iconClassNamePrivate}
-                tooltip={tooltipPrivate}
-                selected={selected === Constants.PRIVATE_CHANNEL}
-                disabled={disabledPrivate}
-                locked={lockedPrivate}
-                onClick={handleOnClick}
-            />
+            {!hideBuiltInOptions && (
+                <>
+                    <BigButtonSelector
+                        id={Constants.OPEN_CHANNEL as ChannelType}
+                        title={titlePublic || formatMessage({id: 'public_private_selector.public.title', defaultMessage: 'Public'})}
+                        description={descriptionPublic || formatMessage({id: 'public_private_selector.public.description', defaultMessage: 'Anyone'})}
+                        iconSVG={GlobeCircleSolidIcon}
+                        titleClassName={titleClassNamePublic}
+                        descriptionClassName={descriptionClassNamePublic}
+                        iconClassName={iconClassNamePublic}
+                        tooltip={tooltipPublic}
+                        selected={selected === Constants.OPEN_CHANNEL}
+                        disabled={disabledPublic}
+                        locked={lockedPublic}
+                        onClick={handleOnClick}
+                    />
+                    <BigButtonSelector
+                        id={Constants.PRIVATE_CHANNEL as ChannelType}
+                        title={titlePrivate || formatMessage({id: 'public_private_selector.private.title', defaultMessage: 'Private'})}
+                        description={descriptionPrivate || formatMessage({id: 'public_private_selector.private.description', defaultMessage: 'Only invited members'})}
+                        iconSVG={LockCircleSolidIcon}
+                        titleClassName={titleClassNamePrivate}
+                        descriptionClassName={descriptionClassNamePrivate}
+                        iconClassName={iconClassNamePrivate}
+                        tooltip={tooltipPrivate}
+                        selected={selected === Constants.PRIVATE_CHANNEL}
+                        disabled={disabledPrivate}
+                        locked={lockedPrivate}
+                        onClick={handleOnClick}
+                    />
+                </>
+            )}
+            {pluginOptions?.map((option) => (
+                <BigButtonSelector
+                    key={option.id}
+                    id={option.id}
+                    title={option.label}
+                    description={option.description}
+                    iconSVG={({className: cls}) => <span className={cls}>{option.icon}</span>}
+                    selected={selected === option.id}
+                    disabled={false}
+                    locked={false}
+                    onClick={handleOnClick}
+                />
+            ))}
         </div>
     );
 };

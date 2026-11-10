@@ -1,0 +1,42 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Indented child rows inside the per-user unfold. The bullet ("—")
+// column gives the eye an explicit anchor that "this is a session
+// under the row above"; without it the device label can read like a
+// primary user row.
+.SimulateAccessModal__sessionRow {
+    background: rgba(var(--center-channel-color-rgb), 0.03);
+
+    td {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+
+.SimulateAccessModal__sessionMeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.SimulateAccessModal__sessionDot {
+    width: 36px;
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.32);
+    font-size: 14px;
+    text-align: center;
+}
+
+.SimulateAccessModal__sessionDevice {
+    color: var(--center-channel-color);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.SimulateAccessModal__sessionLastActive {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    line-height: 16px;
+}

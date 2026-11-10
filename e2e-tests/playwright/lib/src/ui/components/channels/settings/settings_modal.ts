@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import AdvancedSettings from './advanced_settings';
 import DisplaySettings from './display_settings';
@@ -13,6 +14,9 @@ export default class SettingsModal {
 
     readonly content;
     readonly closeButton;
+
+    /** Every tab, including the ones plugins register after the built-in four. */
+    readonly tabs;
 
     readonly notificationsTab;
     readonly displayTab;
@@ -27,9 +31,10 @@ export default class SettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.content = container.locator('.modal-content');
+        this.content = container;
         this.closeButton = container.getByRole('button', {name: 'Close'});
 
+        this.tabs = container.getByRole('tab');
         this.notificationsTab = container.getByRole('tab', {name: 'notifications'});
         this.displayTab = container.getByRole('tab', {name: 'display'});
         this.sidebarTab = container.getByRole('tab', {name: 'sidebar'});

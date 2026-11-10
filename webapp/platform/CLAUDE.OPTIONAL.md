@@ -11,6 +11,7 @@
 | `@mattermost/types` | `types/` | TypeScript type definitions |
 | `@mattermost/client` | `client/` | REST and WebSocket API client |
 | `@mattermost/components` | `components/` | Shared React components |
+| `@mattermost/shared` | `shared/` | Cross-product components and utilities for the web app and plugins (e.g. `WithTooltip`, `Emoji`). Use where `webapp/AGENTS.md` specifies them |
 | `@mattermost/eslint-plugin` | `eslint-plugin/` | Custom ESLint rules |
 
 ## Workspace Basics

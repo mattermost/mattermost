@@ -27,12 +27,12 @@ h6.markdown__heading {
 }
 
 .markdown__heading {
-    margin: 10px 0;
+    margin: 4px 0;
     font-weight: 700;
     line-height: 1.5;
 
     &:first-child {
-        margin: 5px 0 10px;
+        margin: 0 0 4px;
     }
 
     .emoticon {
@@ -52,9 +52,10 @@ h6.markdown__heading {
 
 #post-list,
 #rhsContainer,
-.textbox-preview-area {
+.textbox-preview-area,
+.WysiwygEditor {
     .markdown-inline-img {
-        max-height: 500px;
+        max-height: 350px;
         border-radius: 4px;
         -moz-force-broken-image-icon: 1;
     }
@@ -75,14 +76,10 @@ h6.markdown__heading {
         }
     }
 
-    .markdown-inline-img,
-    .markdown-inline-img__container {
-        margin: 5px 2px;
-    }
-
     .markdown-inline-img__container {
         display: inline-block;
         width: calc(100% - 5px);
+        margin: 5px 2px;
 
         .markdown-image-expand__collapse-button {
             z-index: 3;
@@ -107,17 +104,11 @@ h6.markdown__heading {
     }
 
     .markdown-inline-img--hover {
-        border: 1px solid transparent;
-
         &:hover {
             z-index: 2;
             box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
-    }
-
-    .markdown-inline-img--no-border {
-        border: unset;
     }
 
     .markdown-inline-img--scaled-down {
@@ -163,7 +154,7 @@ h6.markdown__heading {
     overflow-x: auto;
     overflow-y: hidden;
 
-    code {
+    .hljs code {
         position: relative;
         display: block;
         padding: 0;
@@ -173,7 +164,8 @@ h6.markdown__heading {
         white-space: pre;
     }
 
-    &:hover .post-code__clipboard {
+    &:hover .post-code__clipboard,
+    &:hover .post-code__markdown-toggle {
         opacity: 1;
     }
 
@@ -190,19 +182,50 @@ h6.markdown__heading {
     }
 
     &.post-code--wrap {
-        code {
+        .hljs code {
             white-space: pre-wrap;
         }
     }
 
-    .post-code__line-numbers {
+    .post-code__line-numbers,
+    .post-code__line::before {
         min-width: 36px;
-        padding: 0 4px 4px;
-        border-right: 1px solid #ccc;
+        border-right: 1px solid rgba(204, 204, 204, 0.24);
         margin-right: 12px;
         color: #ccc;
         font-family: Menlo, Monaco, Consolas, "Courier New", monospace; // Match the fonts that code elements use
+        text-align: right;
         user-select: none;
+    }
+
+    .post-code__line-numbers {
+        padding: 0 8px 4px 4px;
+    }
+
+    // Markdown source wraps, so each line is its own row with its number (a counter, so it isn't part of the text)
+    // on the first row it takes up
+    .post-code__wrapped-lines {
+        display: block;
+        min-width: 0;
+        flex: 1;
+        counter-reset: post-code-line;
+    }
+
+    .post-code__line {
+        display: flex;
+        counter-increment: post-code-line;
+
+        &::before {
+            flex-shrink: 0;
+            padding: 0 8px 0 4px;
+            content: counter(post-code-line);
+        }
+    }
+
+    .post-code__line-text {
+        min-width: 0;
+        flex: 1;
+        white-space: pre-wrap;
     }
 
     .hljs {
@@ -218,6 +241,18 @@ h6.markdown__heading {
         overflow-x: auto;
         visibility: visible;
         white-space: pre;
+    }
+
+    .post-code__rendered {
+        padding: 20px 24px;
+        border: 1px solid rgba(functions.v(center-channel-color-rgb), 0.2);
+        border-radius: 0.25em;
+        margin: 5px 0;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        overflow-x: auto;
+        text-align: left;
+        white-space: normal;
     }
 }
 
@@ -237,6 +272,18 @@ h6.markdown__heading {
         position: relative;
         padding: 4px;
         opacity: 0;
+    }
+
+    .post-code__markdown-toggle {
+        flex-shrink: 0;
+        align-self: flex-start;
+        margin-right: 4px;
+        opacity: 0;
+
+        // :focus-within would keep it visible after a click, since the clicked button stays focused
+        &:has(:focus-visible) {
+            opacity: 1;
+        }
     }
 
     .post-code__clipboard {
@@ -354,28 +401,33 @@ h6.markdown__heading {
 }
 
 ol.markdown__list {
-    display: table;
-    padding: 0;
-    counter-reset: list;
+    // This element has padding-left and counter-reset set by the MarkdownListOrdered component
+    list-style-type: decimal;
 
     >li {
-        display: table-row;
         counter-increment: list;
         word-break: break-word;
 
-        &::before {
-            display: table-cell;
-            padding-right: 8px;
-            content: counter(list) ".";
-            text-align: right;
-            word-break: keep-all;
+        &::marker {
+            /*
+             * The extra spaces are intentional to cause Chrome/Firefox to match the padding of Safari which doesn't
+             * support setting the content of the marker as of May 2026.
+             *
+             * Once it does, those extra spaces can be removed, a padding-left of 8px can be added to the li, and 1ch
+             * can be removed from --marker-width.
+             */
+            content: counter(list) ".  ";
         }
+
         // Special rules for task items within ordered lists
         &.list-item--task-list {
-            &::before {
+            list-style-type: none;
+
+            &::marker {
                 // The counter is erased for task items
                 content: "";
             }
+
             input[type="checkbox"] {
                 // Margins are adjusted to align better the checkbox with the text
                 margin-right: 2px;

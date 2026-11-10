@@ -19,9 +19,9 @@ describe('FileAttachmentList', () => {
         file_ids: ['file_id_1', 'file_id_2', 'file_id_3'],
     });
     const fileInfos = [
-        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, post_id: post.id}),
-        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, post_id: post.id}),
-        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3, delete_at: 0, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 0, post_id: post.id}),
+        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 0, post_id: post.id}),
     ];
     const baseProps = {
         post,
@@ -62,24 +62,24 @@ describe('FileAttachmentList', () => {
         },
     } as unknown as GlobalState;
 
-    test('should render a FileAttachment for a single file', () => {
+    test('should render a MediaGallery tile per file for multiple images', () => {
         const props = {
             ...baseProps,
         };
 
         renderWithContext(<FileAttachmentList {...props}/>, defaultState);
 
-        expect(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column').length).toBe(3);
+        expect(screen.getByTestId('fileAttachmentList').querySelectorAll('[data-testid="media-gallery-tile"]').length).toBe(3);
     });
 
-    test('should render multiple, sorted FileAttachments for multiple files', () => {
+    test('should render multiple, sorted MediaGallery tiles for multiple files', () => {
         renderWithContext(<FileAttachmentList {...baseProps}/>, defaultState);
 
-        const fileAttachments = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column'));
-        expect(fileAttachments.length).toBe(3);
-        expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
-        expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
-        expect(fileAttachments[2]?.textContent?.includes('image_3.png')).toBe(true);
+        const tiles = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('[data-testid="media-gallery-tile"]'));
+        expect(tiles.length).toBe(3);
+        expect(tiles[0]?.getAttribute('data-file-name')).toBe('image_1.png');
+        expect(tiles[1]?.getAttribute('data-file-name')).toBe('image_2.png');
+        expect(tiles[2]?.getAttribute('data-file-name')).toBe('image_3.png');
     });
 
     test('should render a SingleImageView for a single image', () => {

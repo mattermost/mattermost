@@ -1,0 +1,56 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AppliesToCard__rows {
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+}
+
+.AppliesToCard__footer {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
+// Align the leading icon; compass-ui Button owns display/padding.
+.AppliesToCard__addResource {
+    align-self: flex-start;
+}
+
+// Rows this card only reports on, so they sit flat above the editable Channels
+// row rather than inside its bordered container.
+.AppliesToCard__readOnlyResources {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0 0 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    gap: 8px;
+    line-height: 20px;
+    list-style: none;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    code {
+        padding: 0 4px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+}
+
+.AppliesToCard__empty {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+}

@@ -9,8 +9,8 @@
 
 // Group: @channels @plugin @not_cloud
 
-import * as MESSAGES from '../../../fixtures/messages';
-import {matterpollPlugin} from '../../../utils/plugins';
+import * as MESSAGES from '@/fixtures/messages';
+import {matterpollPlugin} from '@/utils/plugins';
 
 describe('/poll', () => {
     let user1;

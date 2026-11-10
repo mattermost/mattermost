@@ -8,13 +8,14 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
-import {isDesktopApp} from 'utils/user_agent';
 
 import './desktop_auth_token.scss';
 
@@ -32,7 +33,7 @@ enum DesktopAuthStatus {
 type Props = {
     href: string;
     onLogin: () => void;
-}
+};
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     const dispatch = useDispatch();

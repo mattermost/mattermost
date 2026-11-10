@@ -8,11 +8,11 @@ import MenuIcon from 'components/widgets/icons/menu_icon';
 
 type Actions = {
     toggleRhsMenu: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-}
+};
 
 type Props = {
     actions: Actions;
-}
+};
 
 const CollapseRhsButton: React.FunctionComponent<Props> = (props: Props) => (
     <button

@@ -5,6 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -12,8 +13,6 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
-
-import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 
@@ -25,7 +24,7 @@ export const isAppBinding = (x: Record<string, any> | undefined): x is AppBindin
 
 type BindingComponentProps = {
     binding: AppBinding;
-}
+};
 
 const AppBarBinding = (props: BindingComponentProps) => {
     const {binding} = props;

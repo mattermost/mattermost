@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {ArchiveArrowUpOutlineIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {AdminPanelFooter} from '@mattermost/compass-ui/components/admin-panel-footer';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -54,50 +57,49 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
             id='channel_profile'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.profileTitle', defaultMessage: 'Channel Profile'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.profileDescription', defaultMessage: 'Summary of the channel, including the channel name.'})}
-        >
-            <div className='group-teams-and-channels AdminChannelDetails'>
-                <div className='group-teams-and-channels--body channel-desc-col'>
-                    <div className='channel-name'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelName'
-                                defaultMessage='Name'
-                            />
-                        </b>
-                        <br/>
-                        {channel.display_name}
-                    </div>
-                    <div className='channel-team'>
-                        <b>
-                            <FormattedMessage
-                                id='admin.channelSettings.channelDetail.channelTeam'
-                                defaultMessage='Team'
-                            />
-                        </b>
-                        <br/>
-                        {team?.display_name}
-                    </div>
-                    {sharedBlock}
-                    <div className='AdminChannelDetails_archiveContainer'>
-                        <button
+            footer={
+                <AdminPanelFooter
+                    leftActions={
+                        <Button
                             type='button'
-                            className={
-                                classNames(
-                                    'btn',
-                                    'btn-secondary',
-                                    {'btn-danger': !isArchived},
-                                    {disabled: isDisabled},
-                                )
-                            }
+                            emphasis='secondary'
+                            destructive={!isArchived}
+                            disabled={isDisabled}
                             onClick={props.onToggleArchive}
+                            leadingIcon={(
+                                <Icon
+                                    glyph={isArchived ? <ArchiveArrowUpOutlineIcon/> : <ArchiveOutlineIcon/>}
+                                />
+                            )}
                         >
-                            {isArchived ?
-                                <i className='icon icon-archive-arrow-up-outline'/> :
-                                <i className='icon icon-archive-outline'/>}
                             <FormattedMessage {...archiveBtn}/>
-                        </button>
-                    </div>
+                        </Button>
+                    }
+                />
+            }
+        >
+            <div className='AdminChannelDetails channel-desc-col'>
+                <div className='channel-name'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelName'
+                            defaultMessage='Name'
+                        />
+                    </b>
+                    <br/>
+                    {channel.display_name}
                 </div>
+                <div className='channel-team'>
+                    <b>
+                        <FormattedMessage
+                            id='admin.channelSettings.channelDetail.channelTeam'
+                            defaultMessage='Team'
+                        />
+                    </b>
+                    <br/>
+                    {team?.display_name}
+                </div>
+                {sharedBlock}
             </div>
         </AdminPanel>
     );

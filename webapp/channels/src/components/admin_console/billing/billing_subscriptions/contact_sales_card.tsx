@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
 import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
@@ -14,15 +16,13 @@ import {CloudLinks, CloudProducts} from 'utils/constants';
 type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
-    onUpgradeMattermostCloud: () => void;
-}
+};
 
 const ContactSalesCard = (props: Props) => {
     const [openSalesLink, contactSalesLink] = useOpenSalesLink();
     const {
         isFreeTrial,
         subscriptionPlan,
-        onUpgradeMattermostCloud,
     } = props;
     let title;
     let description;
@@ -67,20 +67,6 @@ const ContactSalesCard = (props: Props) => {
         );
     } else {
         switch (subscriptionPlan) {
-        case CloudProducts.STARTER:
-            title = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.title'
-                    defaultMessage='Upgrade to Cloud Professional'
-                />
-            );
-            description = (
-                <FormattedMessage
-                    id='admin.billing.subscription.privateCloudCard.cloudFree.description'
-                    defaultMessage='Optimize your processes with Guest Accounts, Office365 suite integrations, GitLab SSO and advanced permissions.'
-                />
-            );
-            break;
         case CloudProducts.PROFESSIONAL:
             title = (
                 <FormattedMessage
@@ -138,45 +124,34 @@ const ContactSalesCard = (props: Props) => {
                     {description}
                 </div>
                 {(isFreeTrial || subscriptionPlan === CloudProducts.ENTERPRISE || isCloudLegacyPlan) &&
-                    <ExternalLink
-                        location='contact_sales_card'
-                        href={contactSalesLink}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        className='PrivateCloudCard__actionButton'
+                    >
+                        <ExternalLink
+                            location='contact_sales_card'
+                            href={contactSalesLink}
+                        >
+                            <FormattedMessage
+                                id='admin.billing.subscription.privateCloudCard.contactSales'
+                                defaultMessage='Contact Sales'
+                            />
+                        </ExternalLink>
+                    </Button>
+                }
+                {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
+                    <Button
+                        type='button'
+                        onClick={openSalesLink}
+                        emphasis='tertiary'
+                        className='PrivateCloudCard__actionButton'
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSales'
                             defaultMessage='Contact Sales'
                         />
-
-                    </ExternalLink>
-                }
-                {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
-                    <button
-                        type='button'
-                        onClick={() => {
-                            if (subscriptionPlan === CloudProducts.STARTER) {
-                                onUpgradeMattermostCloud();
-                            } else {
-                                openSalesLink();
-                            }
-                        }}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
-                    >
-                        {subscriptionPlan === CloudProducts.STARTER ? (
-                            <FormattedMessage
-                                id='admin.billing.subscription.privateCloudCard.upgradeNow'
-                                defaultMessage='Upgrade Now'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.billing.subscription.privateCloudCard.contactSales'
-                                defaultMessage='Contact Sales'
-                            />
-                        )
-
-                        }
-
-                    </button>
+                    </Button>
                 }
             </div>
             <div className='PrivateCloudCard__image'>

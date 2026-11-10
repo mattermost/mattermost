@@ -110,6 +110,12 @@ func RegisterJobsAccessControlSyncJobInterface(f func(*Server) ejobs.AccessContr
 	jobsAccessControlSyncJobInterface = f
 }
 
+var jobsAccessControlTeamSyncJobInterface func(*Server) ejobs.AccessControlSyncJobInterface
+
+func RegisterJobsAccessControlTeamSyncJobInterface(f func(*Server) ejobs.AccessControlSyncJobInterface) {
+	jobsAccessControlTeamSyncJobInterface = f
+}
+
 var pushProxyInterface func(*App) einterfaces.PushProxyInterface
 
 func RegisterPushProxyInterface(f func(*App) einterfaces.PushProxyInterface) {

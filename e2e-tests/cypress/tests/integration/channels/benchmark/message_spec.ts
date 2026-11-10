@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging @benchmark
 
-import {reportBenchmarkResults} from '../../../utils/benchmark';
+import {reportBenchmarkResults} from '@/utils/benchmark';
 
 describe('Message', () => {
     before(() => {

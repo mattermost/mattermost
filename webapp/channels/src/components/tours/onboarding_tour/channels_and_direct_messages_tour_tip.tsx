@@ -18,7 +18,7 @@ import OnboardingTourTip from './onboarding_tour_tip';
 
 type Props = {
     firstChannelName?: string;
-}
+};
 
 const FirstChannel = ({firstChannelName}: {firstChannelName: string}) => {
     return (

@@ -1,0 +1,103 @@
+---
+title: "Telemetry"
+---
+As described in the privacy policy in each Mattermost server, telemetry data optionally shared from your Mattermost servers is used to identify security and reliability issues, to analyze and fix software problems, to help improve the quality of Mattermost software and related services, and to make design decisions for future releases.
+
+Telemetry data is encrypted in transit, does not include personally identifiable information or message contents, and details of how the information is used and processed is available in our [Privacy Policy](https://mattermost.com/privacy-policy/).
+
+We use the data for the following purposes to:
+
+- Identify security and reliability issues.
+- Analyze and fix software problems.
+- Help improve the quality of Mattermost software and related services.
+- Make design decisions for future releases.
+
+<Note>
+
+Telemetry data collection is enabled by default for all Mattermost deployments. Self-hosted system admins can opt out of sharing telemetry data from Mattermost self-hosted servers within the System Console. Cloud system admins can't disable telemetry for Mattermost Cloud deployments.
+
+</Note>
+
+## Security update check feature
+
+New threats to system security constantly arise. To alert you of relevant, high priority security updates, Mattermost servers are configured to share diagnostic information with Mattermost Inc. so that we can provide appropriate alerts.
+
+The following data is collected once every 24 hours:
+
+- Mattermost server build number and version
+- Type of build (Enterprise Edition or Team Edition)
+- Server operating system
+- The server diagnostic ID (same as the ID accessing the push notification proxy, and is used to prevent double-counting of telemetry data)
+- Database type
+- Database version
+- Number of teams
+- Number of users
+- Number of activated users
+- Whether or not the unit tests have been run
+- Date and time of the last check for security updates
+
+### Opt out
+
+To opt out, you can disable this security update check feature for self-hosted deployments in the System Console by going to **Environment \> SMTP \> Enable Security Alerts**. See the [enable security alerts](/administration-guide/configure/environment-configuration-settings#enable-security-alerts) documentation for details. When this feature is disabled, you will not receive any security alerts.
+
+## Error and diagnostics reporting feature
+
+When enabled, server errors and panics are automatically sent to the Mattermost-hosted [Sentry](https://sentry.io/welcome/) endpoint for diagnosis. No message content or personally identifiable information is included.
+
+Mattermost error and diagnostic data is collected for the following purposes:
+
+- To add improvements that are specific to your usage, upgrade, and deployment patterns, including identifying security and reliability issues.
+- To analyze and fix software problems.
+- To help improve the quality of Mattermost software and related services.
+- To make design decisions for future releases.
+
+### Opt out
+
+To opt out, you can disable the error and diagnostics reporting feature for self-hosted deployments in the System Console by going to **Environment \> Logging \> Enable Diagnostics and Error Reporting**. See the [enable diagnostics and error reporting](/administration-guide/configure/environment-configuration-settings#enable-diagnostics-and-error-reporting) documentation for details.
+
+## Android Mobile App performance monitoring
+
+To improve Android app performance, we are collecting trace events and device information, collectively known as metrics, to identify slow performing key areas. Those metrics will be sent only from users using the Android app Beta build starting in version v1.20, who are logged in to servers that allow sending [diagnostic information](/administration-guide/configure/environment-configuration-settings#enable-diagnostics-and-error-reporting).
+
+Trace events  
+Includes duration on how long the action took place like startup, team/channel switch, posts loading/update and channel drawer open/close. The naming convention is interpreted as `[start observation]:[end observation]`, e.g. `start:overall` as from app start until fully rendered or `post_list:thread` as on press of post at post list until thread is opened. Complete list of trace events are the following:
+
+- start:overall
+- start:process_packages
+- start:content_appeared
+- start:select_server_screen
+- start:channel_screen
+- team:switch
+- channel:loading
+- channel:switch_loaded
+- channel:switch_initial
+- channel:close_drawer
+- channel:open_drawer
+- posts:loading
+- post_list:thread
+- post_list:permalink
+
+Device information  
+The information being collected is non-personally identifiable. Except for system_version, device information is based from [react-native-device-info](https://github.com/mattermost/react-native-device-info#react-native-device-info) library. Refer to the linked documentation to learn more. Complete list of device information are the following:
+
+- api_level
+- build_number
+- bundle_id
+- brand
+- country
+- device_id
+- device_locale
+- device_type
+- device_unique_id
+- height
+- is_emulator
+- is_tablet
+- manufacturer
+- max_memory
+- model
+- server_version
+- system_name
+- system_version
+- timezone
+- version
+- width

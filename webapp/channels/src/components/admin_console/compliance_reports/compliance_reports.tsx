@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedDate, FormattedMessage, FormattedTime, defineMessage} from 'react-intl';
+import React, {type JSX} from 'react';
+import {FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
 
+import {RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -12,7 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 type Props = {
 
@@ -51,19 +54,19 @@ type Props = {
             */
         createComplianceReport: (job: Partial<Compliance>) => Promise<ActionResult<Compliance>>;
     };
-}
+};
 
 type State = {
     loadingReports: boolean;
     runningReport?: boolean;
-}
+};
 
 export default class ComplianceReports extends React.PureComponent<Props, State> {
-    private descInput: React.RefObject<HTMLInputElement>;
-    private emailsInput: React.RefObject<HTMLInputElement>;
-    private fromInput: React.RefObject<HTMLInputElement>;
-    private keywordsInput: React.RefObject<HTMLInputElement>;
-    private toInput: React.RefObject<HTMLInputElement>;
+    private descInput: React.RefObject<HTMLInputElement | null>;
+    private emailsInput: React.RefObject<HTMLInputElement | null>;
+    private fromInput: React.RefObject<HTMLInputElement | null>;
+    private keywordsInput: React.RefObject<HTMLInputElement | null>;
+    private toInput: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -329,13 +332,11 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
         }
 
         return (
-            <div className='panel compliance-panel'>
-                <h4>
-                    <FormattedMessage
-                        id='admin.compliance_reports.title'
-                        defaultMessage='Compliance Reports'
-                    />
-                </h4>
+            <AdminPanel
+                id='compliance_reports'
+                className='compliance-panel'
+                title={messages.title}
+            >
                 <div className='row'>
                     <div className='col-sm-6 col-md-4 form-group'>
                         <label htmlFor='desc'>
@@ -421,10 +422,10 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                     </div>
                 </div>
                 <div className='clearfix'>
-                    <button
+                    <Button
                         id='run-button'
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={this.runReport}
                         disabled={this.props.readOnly}
                     >
@@ -432,30 +433,34 @@ export default class ComplianceReports extends React.PureComponent<Props, State>
                             id='admin.compliance_reports.run'
                             defaultMessage='Run Compliance Report'
                         />
-                    </button>
+                    </Button>
                 </div>
                 {serverError}
                 <div className='text-right'>
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         disabled={this.state.runningReport}
                         onClick={this.reload}
+                        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                     >
-                        <ReloadIcon/>
                         <FormattedMessage
                             id='admin.compliance_reports.reload'
                             defaultMessage='Reload Completed Compliance Reports'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <div className='compliance-panel__table'>
                     {content}
                 </div>
-            </div>
+            </AdminPanel>
         );
     }
 }
+
+const messages = defineMessages({
+    title: {id: 'admin.compliance_reports.title', defaultMessage: 'Compliance Reports'},
+});
 
 const style: Record<string, React.CSSProperties> = {
     content: {margin: 10},

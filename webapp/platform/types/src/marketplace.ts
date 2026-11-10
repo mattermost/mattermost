@@ -8,7 +8,7 @@ export type MarketplaceLabel = {
     name: string;
     description?: string;
     url?: string;
-}
+};
 
 export enum HostingType {
     OnPrem = 'on-prem',

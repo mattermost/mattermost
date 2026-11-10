@@ -1,0 +1,11 @@
+#addUsersToTeamModal {
+    .more-modal__row--disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .more-modal__error {
+        color: var(--error-text);
+        font-size: 12px;
+    }
+}

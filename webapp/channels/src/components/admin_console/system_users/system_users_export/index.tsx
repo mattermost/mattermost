@@ -5,6 +5,10 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
@@ -17,8 +21,6 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {startUsersBatchExport} from 'actions/views/admin';
 import {openModal} from 'actions/views/modals';
 import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
-
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {isMinimumProfessionalLicense} from 'utils/license_utils';
@@ -98,17 +100,18 @@ export function SystemUsersExport(props: Props) {
     }
 
     const button = (
-        <button
+        <Button
             onClick={handleExport}
-            className='btn btn-md btn-tertiary'
+            emphasis='tertiary'
+            size='medium'
             disabled={!props.usersLenght}
+            leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
         >
-            <span className='icon icon-download-outline'/>
             <FormattedMessage
                 id='admin.system_users.exportButton'
                 defaultMessage='Export'
             />
-        </button>
+        </Button>
     );
 
     if (!isLicensed) {

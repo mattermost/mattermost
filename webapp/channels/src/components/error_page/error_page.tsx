@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {useAppBodyClass, useUserTheme} from 'components/theme_provider';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {ErrorPageTypes, Constants} from 'utils/constants';
@@ -15,22 +16,29 @@ import ErrorTitle from './error_title';
 
 type Location = {
     search: string;
-}
+};
 
 type Props = {
     location: Location;
     asymmetricSigningPublicKey?: string;
     siteName?: string;
     isGuest?: boolean;
+};
+
+function ErrorPageTheme() {
+    useUserTheme();
+    useAppBodyClass();
+
+    return null;
 }
 
 export default class ErrorPage extends React.PureComponent<Props> {
     public componentDidMount() {
-        document.body.setAttribute('class', 'sticky error');
+        document.body.classList.add('sticky', 'error');
     }
 
     public componentWillUnmount() {
-        document.body.removeAttribute('class');
+        document.body.classList.remove('sticky', 'error');
     }
 
     public render() {
@@ -158,6 +166,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
 
         return (
             <>
+                <ErrorPageTheme/>
                 {errorPage}
             </>
         );

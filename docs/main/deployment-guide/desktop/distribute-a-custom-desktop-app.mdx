@@ -1,0 +1,56 @@
+---
+title: "Distribute a custom desktop app"
+---
+<PlanAvailability slug="all-commercial" />
+
+You can build and distribute your own Mattermost desktop app with built-in servers and settings by configuring [src/common/config/buildConfig.ts](https://github.com/mattermost/desktop/blob/master/src/common/config/buildConfig.ts).
+
+1.  Configure `buildConfig.ts` with the parameters below.
+2.  Set up your build environment by following the [Mattermost Desktop Development Guide](https://docs.mattermost.com/developers/contribute/more-info/desktop/developer-setup/).
+3.  Create installable packages with the `npm run package:<os>` scripts, such as `package:windows`, `package:mac`, or `package:linux`, and [sign them](/administration-guide/manage/code-signing-custom-builds).
+4.  Distribute the app to your users.
+
+## `defaultServers`
+
+Servers added to the app by default, which users can't modify. Users can still add their own servers unless [`enableServerManagement`](#enableservermanagement) is `false`. Expects an array of objects with `name` and `url`.
+
+``` text
+defaultServers: [
+  {
+    name: 'example',
+    url: 'https://example.com'
+  },
+  {
+    name: 'mattermost',
+    url: 'https://www.mattermost.com'
+  }
+]
+```
+
+## `helpLink`
+
+The URL opened by **Help \> User guide**. If the active server provides its own help link, that link takes precedence over this value. If neither is set, the menu item is hidden. Expects a string.
+
+``` text
+helpLink: 'https://docs.mattermost.com/messaging/managing-desktop-app-servers.html'
+```
+
+## `enableServerManagement`
+
+Controls whether users can add, edit, or remove servers. If it's `false`, set at least one server in [`defaultServers`](#defaultservers), or users can't use any servers. Expects `true` or `false`.
+
+``` text
+enableServerManagement: true
+```
+
+## `managedResources`
+
+Paths to services on the same protocol, hostname, and port as the Mattermost server, such as a video or conference service. Selecting a link to a managed resource opens it in a pop-up window in the app. Also configure the [Managed Resource Paths](/administration-guide/configure/environment-configuration-settings#managed-resource-paths) setting on the Mattermost server.
+
+``` text
+managedResources: ['trusted', 'video'],
+```
+
+For a server at `https://mattermost.my.org`, `https://mattermost.my.org/video` is a valid managed resource. `http://mattermost.my.org/video` (different protocol) and `https://conference.my.org` (different origin) aren't. A different port also makes it a different origin.
+
+For a server at `https://my.org/mattermost`, `https://my.org/mattermost/video` is a valid managed resource.

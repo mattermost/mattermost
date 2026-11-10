@@ -117,11 +117,31 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get file metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a file, but returns headers only.
+      operationId: HeadFile
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -154,11 +174,31 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get thumbnail metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a thumbnail, but returns headers only.
+      operationId: HeadFileThumbnail
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -191,11 +231,31 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get preview metadata headers
+      description: |
+        Performs the same permission and existence checks as getting a preview, but returns headers only.
+      operationId: HeadFilePreview
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -240,11 +300,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -283,11 +338,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
         "404":
           $ref: "#/components/responses/NotFound"
         "501":
@@ -325,11 +375,37 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-          headers:
-            First-Inaccessible-File-Time:
-              schema:
-                type: integer
-              description: This header is included with the value "1" if the file is past the cloud's plan limit.
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    head:
+      tags:
+        - files
+      summary: Get public file metadata headers
+      description: |
+        Performs the same validation checks as getting a public file, but returns headers only.
+      operationId: HeadFilePublic
+      parameters:
+        - name: file_id
+          in: path
+          description: The ID of the file to get
+          required: true
+          schema:
+            type: string
+        - name: h
+          in: query
+          description: File hash
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "501":

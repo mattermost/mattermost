@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultPostgresqlDSN = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+	defaultPostgresqlDSN = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 )
 
 func getDefaultPostgresqlDSN() string {
@@ -87,9 +87,9 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		ConnMaxLifetimeMilliseconds:       new(int),
 		ConnMaxIdleTimeMilliseconds:       new(int),
 		MaxOpenConns:                      new(int),
-		Trace:                             model.NewPointer(false),
-		AtRestEncryptKey:                  model.NewPointer(model.NewRandomString(32)),
+		Trace:                             new(false),
 		QueryTimeout:                      new(int),
+		AnalyticsQueryTimeout:             new(int),
 		MigrationsStatementTimeoutSeconds: new(int),
 	}
 	*settings.MaxIdleConns = 10
@@ -97,6 +97,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
+	*settings.AnalyticsQueryTimeout = 300
 	*settings.MigrationsStatementTimeoutSeconds = 60
 
 	return settings
@@ -152,7 +153,7 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 		panic("unsupported driver " + driver)
 	}
 
-	settings.ReplicaMonitorIntervalSeconds = model.NewPointer(5)
+	settings.ReplicaMonitorIntervalSeconds = new(5)
 
 	return settings
 }
@@ -169,6 +170,6 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 	}
 
 	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
-		panic("failed to drop temporary database " + dbName + ": " + err.Error())
+		mlog.Warn("failed to drop temporary database", mlog.String("database", dbName), mlog.Err(err))
 	}
 }

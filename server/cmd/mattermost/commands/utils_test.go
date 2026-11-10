@@ -5,7 +5,7 @@ package commands
 
 import (
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -61,8 +61,8 @@ func TestPrintMap(t *testing.T) {
 			slice1 := strings.Split(res, "\n")
 			slice2 := strings.Split(res, "\n")
 
-			sort.Strings(slice1)
-			sort.Strings(slice2)
+			slices.Sort(slice1)
+			slices.Sort(slice2)
 
 			if !reflect.DeepEqual(slice1, slice2) {
 				t.Errorf("got '%#v' want '%#v", slice1, slice2)

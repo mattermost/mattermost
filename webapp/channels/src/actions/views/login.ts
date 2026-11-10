@@ -11,6 +11,8 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
 
+import {loadPluginsIfNecessary} from 'plugins';
+
 import type {ActionFuncAsync, DispatchFunc} from 'types/store';
 
 async function handleLoginSuccess(dispatch: DispatchFunc, loggedInUserProfile: UserProfile) {
@@ -49,6 +51,10 @@ async function performLogin(
         return {error};
     }
 
+    // Logged out clients may only have received pre-auth plugins, so load the rest before the caller
+    // navigates to routes that plugins may register.
+    await loadPluginsIfNecessary();
+
     return {data: true};
 }
 
@@ -70,7 +76,7 @@ export function loginById(id: string, password: string): ActionFuncAsync {
     };
 }
 
-export function getUserLoginType(loginId: string): ActionFuncAsync<{auth_service: 'magic_link' | ''; is_deactivated: boolean }> {
+export function getUserLoginType(loginId: string): ActionFuncAsync<{auth_service: 'magic_link' | ''; is_deactivated: boolean}> {
     return async (dispatch) => {
         try {
             const response = await Client4.getUserLoginType(loginId);

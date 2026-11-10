@@ -27,7 +27,7 @@ import CenterChannel from './center_channel';
 
 type Params = {
     team: string;
-}
+};
 
 export type OwnProps = RouteComponentProps<Params>;
 

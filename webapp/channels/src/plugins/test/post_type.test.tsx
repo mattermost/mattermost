@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import PostMessageView from 'components/post_view/post_message_view/post_message_view';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 const PostTypePlugin = () => (
     <span id='pluginId'>{'PostTypePlugin'}</span>
@@ -18,7 +19,7 @@ jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_pr
 });
 
 describe('plugins/PostMessageView', () => {
-    const post = {type: 'testtype', message: 'this is some text', id: 'post_id'} as any;
+    const post = {type: 'testtype', message: 'this is some text', id: 'post_id', channel_id: 'channel_id'} as any;
 
     const requiredProps: ComponentProps<typeof PostMessageView> = {
         post,
@@ -38,20 +39,20 @@ describe('plugins/PostMessageView', () => {
     };
 
     test('should match snapshot with extended post type', () => {
-        const wrapper = mount(
+        const {baseElement} = renderWithContext(
             <PostMessageView {...requiredProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('#pluginId').text()).toBe('PostTypePlugin');
+        expect(baseElement).toMatchSnapshot();
+        expect(screen.getByText('PostTypePlugin')).toBeInTheDocument();
     });
 
     test('should match snapshot with no extended post type', () => {
         const props = {...requiredProps, pluginPostTypes: {}};
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <PostMessageView {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

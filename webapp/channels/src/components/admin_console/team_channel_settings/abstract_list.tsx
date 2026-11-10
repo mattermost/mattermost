@@ -3,15 +3,13 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {MouseEvent} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import type {JSX, MouseEvent} from 'react';
+import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import type {TeamWithMembership} from '../system_user_detail/team_list/types';
 
@@ -41,7 +39,7 @@ type State = {
     page: number;
 };
 
-export default class AbstractList extends React.PureComponent<Props, State> {
+class AbstractList extends React.PureComponent<Props, State> {
     static defaultProps = {
         data: [],
         noPadding: false,
@@ -154,25 +152,18 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                             }}
                         />
                     </div>
-                    <button
-                        type='button'
-                        className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
-                        onClick={firstPage ? undefined : this.previousPage}
-                        disabled={firstPage}
-                    >
-                        <PreviousIcon/>
-                    </button>
-                    <button
-                        type='button'
-                        className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
-                        onClick={lastPage ? undefined : this.nextPage}
-                        disabled={lastPage}
-                        data-testid='page-link-next'
-                    >
-                        <NextIcon/>
-                    </button>
+                    <PaginationButtons
+                        onPrevious={this.previousPage}
+                        onNext={this.nextPage}
+                        disablePrevious={firstPage}
+                        disableNext={lastPage}
+                        previousButtonTestId='page-link-prev'
+                        nextButtonTestId='page-link-next'
+                    />
                 </div>}
             </div>
         );
     };
 }
+
+export default AbstractList;

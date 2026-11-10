@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from './helpers';
 import {
-    CustomProfileAttribute,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
     deleteCustomProfileAttributes,
@@ -79,8 +79,8 @@ test.beforeEach(async ({pw}) => {
     ({team, user, adminClient, userClient} = await pw.initSetup({userOptions: {prefix: 'cpa-test-'}}));
     const channel = pw.random.channel({
         teamId: team.id,
-        name: `test-channel`,
-        displayName: `Test Channel`,
+        name: 'test-channel',
+        displayName: 'Test Channel',
     });
     testChannel = await adminClient.createChannel(channel);
 
@@ -360,9 +360,9 @@ test('MM-T5779 Verify phone and URL attributes are clickable in profile popover 
     // * Verify the Phone attribute has a clickable link with tel: protocol
     const popover = channelsPage.userProfilePopover.container;
     const phoneLink = popover.getByText(TEST_PHONE, {exact: false});
-    await expect(phoneLink).toHaveAttribute('href', new RegExp(`^tel:`));
+    await expect(phoneLink).toHaveAttribute('href', new RegExp('^tel:'));
 
     // * Verify the Website attribute has a clickable link with https: protocol
     const urlLink = popover.getByText(TEST_URL, {exact: false});
-    await expect(urlLink).toHaveAttribute('href', new RegExp(`^https:`));
+    await expect(urlLink).toHaveAttribute('href', new RegExp('^https:'));
 });

@@ -7,8 +7,22 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarDirectChannel from 'components/sidebar/sidebar_channel/sidebar_direct_channel/sidebar_direct_channel';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+// Suppress key prop warnings from child components rendered in full DOM
+const originalConsoleError = console.error;
+beforeAll(() => {
+    console.error = (...args: any[]) => {
+        if (typeof args[0] === 'string' && args[0].includes('Each child in a list should have a unique "key" prop')) {
+            return;
+        }
+        originalConsoleError(...args);
+    };
+});
+afterAll(() => {
+    console.error = originalConsoleError;
+});
 
 describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
     const baseProps = {
@@ -42,11 +56,11 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarDirectChannel {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot if DM is with current user', () => {
@@ -55,11 +69,11 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             currentUserId: baseProps.teammate.id,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot if DM is with deleted user', () => {
@@ -71,11 +85,11 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot if DM is with bot with custom icon', () => {
@@ -87,10 +101,10 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             },
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <SidebarDirectChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

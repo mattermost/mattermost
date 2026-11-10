@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, koreanTestPhrase, test, typeKoreanWithIme} from '@mattermost/playwright-lib';
+import {expect, koreanTestPhrase, test, typeHangulWithIme} from '@mattermost/playwright-lib';
 
 test('Search box handles Korean IME correctly', async ({pw, browserName}) => {
     test.skip(browserName !== 'chromium', 'The API used to test this is only available in Chrome');
@@ -31,7 +31,7 @@ test('Search box handles Korean IME correctly', async ({pw, browserName}) => {
 
     // # Type into the textbox
     const searchText = 'in:' + koreanTestPhrase.substring(0, 3);
-    await typeKoreanWithIme(page, searchText);
+    await typeHangulWithIme(page, searchText);
 
     // * Verify that the text was typed correctly into the search box
     await expect(searchInput).toHaveValue(searchText);

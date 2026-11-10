@@ -6,7 +6,7 @@ import {getData, overwrite} from 'country-list';
 type Country = {
     name: string;
     code: string;
-}
+};
 
 overwrite([{
     code: 'TW',

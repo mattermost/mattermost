@@ -6,6 +6,12 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
@@ -27,16 +33,21 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonClassName?: string;
+    isConfirmLoading?: boolean;
+    destructive?: boolean;
+
+    /**
+     * @deprecated Use `destructive` instead. Kept temporarily for out-of-repo consumers
+     * of `@mattermost/components` that still pass the pre-Compass prop name.
+     */
+    confirmButtonVariant?: 'primary' | 'secondary' | 'tertiary' | 'destructive' | string;
     cancelButtonText?: React.ReactNode;
-    cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
-    isDeleteModal?: boolean;
     id?: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
     enforceFocus?: boolean;
-    container?: React.ReactNode | React.ReactNodeArray;
+    container?: React.ReactNode | readonly React.ReactNode[];
     ariaLabel?: string;
     ariaLabelledby?: string;
     errorText?: string | React.ReactNode;
@@ -115,11 +126,11 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
-    confirmButtonClassName,
+    isConfirmLoading,
+    destructive,
+    confirmButtonVariant,
     cancelButtonText,
-    cancelButtonClassName,
     isConfirmDisabled,
-    isDeleteModal,
     container,
     ariaLabel,
     ariaLabelledby,
@@ -159,12 +170,16 @@ export const GenericModal: React.FC<Props> = ({
         delayMs: delayFocusTrap ? 500 : undefined,
     });
 
-    // Use stacked modal hook to manage backdrop and z-index
-    // Only pass isStacked=true when it's explicitly set to true
+    // Use stacked modal hook to manage backdrop and z-index. Pass the
+    // portal container (when it resolves to a DOM element) so backdrop
+    // discovery stays scoped to this modal's own stack rather than every
+    // backdrop in the document.
+    const stackedModalContainer = container instanceof HTMLElement ? container : undefined;
     const {
         shouldRenderBackdrop,
         modalStyle,
-    } = useStackedModal(Boolean(isStacked), showState);
+        backdropStyle,
+    } = useStackedModal(Boolean(isStacked), showState, stackedModalContainer);
 
     useEffect(() => {
         setShowState(show);
@@ -202,7 +217,8 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = isDeleteModal ? 'delete' : 'confirm';
+        const isDestructive = destructive ?? confirmButtonVariant === 'destructive';
+        const buttonTypeClass = isDestructive ? 'delete' : 'confirm';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -213,17 +229,20 @@ export const GenericModal: React.FC<Props> = ({
             confirmButtonTextContent = confirmButtonText;
         }
         confirmButtonElement = (
-            <button
+            <Button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('GenericModal__button btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                emphasis='primary'
+                destructive={isDestructive}
+                className={classNames('GenericModal__button', buttonTypeClass, {
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
+                loading={isConfirmLoading}
             >
                 {confirmButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -240,13 +259,13 @@ export const GenericModal: React.FC<Props> = ({
             cancelButtonTextContent = cancelButtonText;
         }
         cancelButtonElement = (
-            <button
+            <Button
                 type='button'
-                className={classNames('GenericModal__button btn btn-tertiary', cancelButtonClassName)}
+                emphasis='tertiary'
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -300,7 +319,7 @@ export const GenericModal: React.FC<Props> = ({
             onHide={onHideCallback}
             onExited={onExited}
             backdrop={shouldRenderBackdrop ? backdrop : false}
-            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
+            backdropStyle={backdropStyle}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}
@@ -331,17 +350,15 @@ export const GenericModal: React.FC<Props> = ({
                             )}
                         </div>
                         {showCloseButton && (
-                            <button
-                                type='button'
-                                className='close'
-                                onClick={onHideCallback}
-                                aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
-                            >
-                                <span aria-hidden='true'>{'×'}</span>
-                                <span className='sr-only'>
-                                    <FormattedMessage id='generic_modal.close' defaultMessage='Close' />
-                                </span>
-                            </button>
+                            <WithTooltip title={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}>
+                                <IconButton
+                                    className='GenericModal__close'
+                                    size='medium'
+                                    icon={<Icon glyph={<CloseIcon/>}/>}
+                                    onClick={onHideCallback}
+                                    aria-label={intl.formatMessage({id: 'generic_modal.close', defaultMessage: 'Close'})}
+                                />
+                            </WithTooltip>
                         )}
                     </Modal.Header>
                 )}

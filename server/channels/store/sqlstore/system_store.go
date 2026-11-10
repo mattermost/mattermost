@@ -114,7 +114,7 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, error
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
 func (s SqlSystemStore) InsertIfExists(system *model.System) (_ *model.System, err error) {
-	tx, err := s.GetMaster().BeginXWithIsolation(&sql.TxOptions{
+	tx, err := s.GetMaster().BeginWithIsolation(&sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {

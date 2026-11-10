@@ -21,7 +21,7 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods(http.MethodPost)
 
 	// DCR (Dynamic Client Registration) endpoints as per RFC 7591
-	api.BaseRoutes.OAuthApps.Handle("/register", api.RateLimitedHandler(api.APIHandler(registerOAuthClient), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
+	api.BaseRoutes.OAuthApps.Handle("/register", api.RateLimitedHandler(api.APIHandler(registerOAuthClient), model.RateLimitSettings{PerSec: new(2), MaxBurst: new(1)})).Methods(http.MethodPost)
 
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods(http.MethodGet)
 }
@@ -47,6 +47,12 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
+
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionManageOAuth)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
@@ -316,7 +322,7 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}

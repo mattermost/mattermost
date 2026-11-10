@@ -10,17 +10,20 @@
 // Stage: @prod
 // Group: @channels @enterprise @ldap_group
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 // # Function to get all the teams associated to group and unlink them
-const getTeamsAssociatedToGroupAndUnlink = (groupId) => {
+const getTeamsAssociatedToGroupAndUnlink = (groupId: string) => {
     cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupId}/teams`,
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
-        response.body.forEach((element) => {
+        response.body.forEach((element: {group_id: string; team_id?: string}) => {
+            if (!element.team_id) {
+                throw new Error(`Missing team_id for group ${element.group_id}`);
+            }
             cy.request({
                 headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/teams/${element.team_id}/link`,
@@ -31,14 +34,17 @@ const getTeamsAssociatedToGroupAndUnlink = (groupId) => {
 };
 
 // # Function to get all the channels associated to group and unlink them
-const getChannelsAssociatedToGroupAndUnlink = (groupId) => {
+const getChannelsAssociatedToGroupAndUnlink = (groupId: string) => {
     cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupId}/channels`,
         method: 'GET',
     }).then((response) => {
         expect(response.status).to.equal(200);
-        response.body.forEach((element) => {
+        response.body.forEach((element: {group_id: string; channel_id?: string}) => {
+            if (!element.channel_id) {
+                throw new Error(`Missing channel_id for group ${element.group_id}`);
+            }
             cy.request({
                 headers: {'X-Requested-With': 'XMLHttpRequest'},
                 url: `/api/v4/groups/${element.group_id}/channels/${element.channel_id}/link`,
@@ -70,7 +76,7 @@ describe('LDAP Group Sync', () => {
                 cy.get('#developers_edit').then((buttonEl) => {
                     // # Get the Group ID and remove all the teams and channels currently attached to it then click the button
                     const anchorElement = buttonEl[0] as HTMLAnchorElement;
-                    const groupId = anchorElement.href.match(/\/(?:.(?!\/))+$/)[0].substring(1);
+                    const groupId = anchorElement.href.match(/\/(?:.(?!\/))+$/)![0].substring(1);
                     getTeamsAssociatedToGroupAndUnlink(groupId);
                     getChannelsAssociatedToGroupAndUnlink(groupId);
                     cy.get('#developers_edit').click();
@@ -84,7 +90,7 @@ describe('LDAP Group Sync', () => {
                 // # Get the Group ID and remove all the teams and channels currently attached to it then click the button
                 cy.get('#developers_configure').then((buttonEl) => {
                     const anchorElement = buttonEl[0] as HTMLAnchorElement;
-                    const groupId = anchorElement.href.match(/\/(?:.(?!\/))+$/)[0].substring(1);
+                    const groupId = anchorElement.href.match(/\/(?:.(?!\/))+$/)![0].substring(1);
                     getTeamsAssociatedToGroupAndUnlink(groupId);
                     getChannelsAssociatedToGroupAndUnlink(groupId);
                     cy.get('#developers_configure').click();

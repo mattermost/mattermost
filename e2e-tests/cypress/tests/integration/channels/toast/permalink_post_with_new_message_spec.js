@@ -9,7 +9,7 @@
 
 // Group: @channels @toast
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Toast', () => {
     let testTeam;

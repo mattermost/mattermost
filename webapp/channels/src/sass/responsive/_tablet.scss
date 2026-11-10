@@ -431,15 +431,6 @@
             -o-transform: translateX(0) !important;
             transform: translateX(0) !important;
 
-            .browser--ie & {
-                display: block;
-                -webkit-transform: none !important;
-                -moz-transform: none !important;
-                -ms-transform: none !important;
-                -o-transform: none !important;
-                transform: none !important;
-            }
-
             .search-bar__container {
                 z-index: 5;
                 display: block !important;

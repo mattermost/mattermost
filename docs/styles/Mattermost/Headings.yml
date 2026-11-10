@@ -1,0 +1,43 @@
+extends: capitalization
+message: "Use sentence case for '%s' (capitalize only the first word and proper nouns)."
+level: warning
+match: $sentence
+scope: heading
+indicators:
+  - ":"
+exceptions:
+  - Mattermost
+  - Channels
+  - Playbooks
+  - Boards
+  - Copilot
+  - Calls
+  - GitHub
+  - GitLab
+  - Kubernetes
+  - PostgreSQL
+  - MySQL
+  - LDAP
+  - SAML
+  - OAuth
+  - API
+  - APIs
+  - REST
+  - JSON
+  - YAML
+  - SSH
+  - TLS
+  - HTTP
+  - HTTPS
+  - URL
+  - URLs
+  - WebSocket
+  - WebSockets
+  - Markdown
+  - Cloud
+  - Server
+  - Enterprise
+  - Free
+  - Professional
+  - Zero Trust
+  - Mission in Motion

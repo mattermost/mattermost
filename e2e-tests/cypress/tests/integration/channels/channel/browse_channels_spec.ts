@@ -10,12 +10,13 @@
 // Stage: @prod
 // Group: @channels @channel
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {createPrivateChannel} from '../enterprise/elasticsearch_autocomplete/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const channelType = {
     all: 'Channel Type: All',
@@ -244,11 +245,21 @@ describe('Channels', () => {
             cy.wrap(el).should('contain', channelType.all);
         });
 
-        // * Users should be able to type and search
+        // * Hide Archived is on by default, so search only returns active matches
+        cy.get('#hideArchivedPreferenceCheckbox').should('be.visible').and('have.attr', 'aria-checked', 'true');
         cy.get('#searchChannelsTextbox').should('be.visible').type('iv').wait(TIMEOUTS.HALF_SEC);
+        cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 1);
+        cy.get('#moreChannelsList').should('be.visible').within(() => {
+            cy.findByText(newChannel.display_name).should('be.visible');
+            cy.findByText(testArchivedChannel.display_name).should('not.exist');
+        });
+
+        // # Uncheck Hide Archived so archived matches appear in All search results
+        cy.get('#hideArchivedPreferenceCheckbox').click();
         cy.get('#moreChannelsList').should('be.visible').children().should('have.length', 2);
         cy.get('#moreChannelsList').should('be.visible').within(() => {
             cy.findByText(newChannel.display_name).should('be.visible');
+            cy.findByText(testArchivedChannel.display_name).should('be.visible');
         });
 
         cy.get('#browseChannelsModal').should('be.visible');

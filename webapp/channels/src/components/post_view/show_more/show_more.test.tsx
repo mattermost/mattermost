@@ -82,6 +82,36 @@ describe('components/post_view/ShowMore', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should match snapshot, PostMessageView on collapsed view with ellipsis overflow', () => {
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
+            <ShowMore
+                {...baseProps}
+                overflowType='ellipsis'
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: true});
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, PostMessageView on expanded view with ellipsis overflow', () => {
+        const ref = React.createRef<ShowMore>();
+        const {container} = renderWithContext(
+            <ShowMore
+                {...baseProps}
+                overflowType='ellipsis'
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({isOverflow: true, isCollapsed: false});
+        });
+        expect(container).toMatchSnapshot();
+    });
+
     test('should match snapshot, PostMessageView on expanded view with compactDisplay', () => {
         const ref = React.createRef<ShowMore>();
         const {container} = renderWithContext(

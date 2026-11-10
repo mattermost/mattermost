@@ -12,7 +12,7 @@ import {renderLabel} from '../schema_admin_settings';
 
 type ExpandableSettingProps = {
     buildSettingFunction: (setting: LDAPDefinitionSetting) => React.ReactNode;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPExpandableSetting = (props: ExpandableSettingProps) => {
     const intl = useIntl();

@@ -9,6 +9,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     makeGetCategoriesForTeam,
+    makeGetNonManagedCategoriesForTeam,
     makeGetChannelsByCategory,
     makeGetChannelIdsForCategory,
 } from 'mattermost-redux/selectors/entities/channel_categories';
@@ -19,14 +20,28 @@ import {
     getUnreadChannelIds,
     sortUnreadChannels,
 } from 'mattermost-redux/selectors/entities/channels';
-import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
+
+import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter} from 'selectors/views/product_rail';
+
+import {Preferences} from 'utils/constants';
 
 import type {DraggingState, GlobalState} from 'types/store';
 
 export function isUnreadFilterEnabled(state: GlobalState): boolean {
     return state.views.channelSidebar.unreadFilterEnabled && !shouldShowUnreadsCategory(state);
+}
+
+// When enabled, collapsing a category hides its unread channels too. Only the current channel stays visible.
+export function shouldCollapseCategoryWithUnreads(state: GlobalState): boolean {
+    return getBool(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.COLLAPSE_CATEGORY_WITH_UNREADS,
+        Preferences.COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT === 'true',
+    );
 }
 
 export const getCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategory[] = (() => {
@@ -35,6 +50,15 @@ export const getCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategor
     return memoizeResult((state: GlobalState) => {
         const currentTeamId = getCurrentTeamId(state);
         return getCategoriesForTeam(state, currentTeamId);
+    });
+})();
+
+export const getNonManagedCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategory[] = (() => {
+    const getNonManagedCategoriesForTeam = makeGetNonManagedCategoriesForTeam();
+
+    return memoizeResult((state: GlobalState) => {
+        const currentTeamId = getCurrentTeamId(state);
+        return getNonManagedCategoriesForTeam(state, currentTeamId);
     });
 })();
 
@@ -75,11 +99,18 @@ export const getChannelsInCategoryOrder = (() => {
         getCurrentChannelId,
         getUnreadChannelIdsSet,
         shouldShowUnreadsCategory,
-        (categories, channelsByCategory, currentChannelId, unreadChannelIds, showUnreadsCategory) => {
+        getProductRailFilter,
+        getBoardChannelIds,
+        shouldCollapseCategoryWithUnreads,
+        (categories, channelsByCategory, currentChannelId, unreadChannelIds, showUnreadsCategory, railSection, boardChannelIds, collapseCategoryWithUnreads) => {
             return categories.map((category) => {
                 const channels = channelsByCategory[category.id];
 
                 return channels.filter((channel: Channel) => {
+                    if (railSection && boardChannelIds.has(channel.id) !== (railSection === 'boards')) {
+                        return false;
+                    }
+
                     const isUnread = unreadChannelIds.has(channel.id);
 
                     if (showUnreadsCategory) {
@@ -91,7 +122,7 @@ export const getChannelsInCategoryOrder = (() => {
 
                     if (category.collapsed) {
                         // Filter out channels that would be hidden by a collapsed category
-                        if (!isUnread && currentChannelId !== channel.id) {
+                        if (currentChannelId !== channel.id && (collapseCategoryWithUnreads || !isUnread)) {
                             return false;
                         }
                     }
@@ -112,13 +143,20 @@ export const getUnreadChannels = (() => {
         getUnreadChannelIdsSet,
         getCurrentChannelId,
         isUnreadFilterEnabled,
-        (allChannels, unreadChannelIds, currentChannelId, unreadFilterEnabled) => {
+        getProductRailFilter,
+        getBoardChannelIds,
+        (allChannels, unreadChannelIds, currentChannelId, unreadFilterEnabled, railSection, boardChannelIds) => {
             const unreadChannels: Channel[] = [];
 
             for (const channelId of unreadChannelIds) {
                 const channel = allChannels[channelId];
 
                 if (channel) {
+                    // Only include channels in the product rail's current section
+                    if (railSection && boardChannelIds.has(channel.id) !== (railSection === 'boards')) {
+                        continue;
+                    }
+
                     // Only include an archived channel if it's the current channel
                     if (channel.delete_at > 0 && channel.id !== currentChannelId) {
                         continue;
@@ -134,7 +172,9 @@ export const getUnreadChannels = (() => {
                 // The current channel is already in unreadChannels if it was previously unread but we need to add it
                 // if it wasn't previously unread
                 if (currentChannelId && unreadChannels.findIndex((channel) => channel.id === currentChannelId) === -1) {
-                    if (allChannels[currentChannelId]) {
+                    // ...as long as it belongs in the product rail's current section
+                    const inRailSection = !railSection || boardChannelIds.has(currentChannelId) === (railSection === 'boards');
+                    if (allChannels[currentChannelId] && inRailSection) {
                         unreadChannels.push(allChannels[currentChannelId]);
                     }
                 }
@@ -198,7 +238,11 @@ export function makeGetFilteredChannelIdsForCategory(): (state: GlobalState, cat
         getChannelIdsForCategory,
         getUnreadChannelIdsSet,
         (state: GlobalState) => shouldShowUnreadsCategory(state),
-        (channelIds, unreadChannelIdsSet, showUnreadsCategory) => {
+        getProductRailFilter,
+        getBoardChannelIds,
+        (allChannelIds, unreadChannelIdsSet, showUnreadsCategory, railSection, boardChannelIds) => {
+            const channelIds = filterChannelIdsForSection(allChannelIds, railSection, boardChannelIds);
+
             if (!showUnreadsCategory) {
                 return channelIds;
             }
@@ -221,10 +265,14 @@ export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: Ch
         getChannelIdsForCategory,
         getUnreadChannelIdsSet,
         (state: GlobalState) => shouldShowUnreadsCategory(state),
-        (channelIds, unreadChannelIdsSet, showUnreadsCategory) => {
+        getProductRailFilter,
+        getBoardChannelIds,
+        (allChannelIds, unreadChannelIdsSet, showUnreadsCategory, railSection, boardChannelIds) => {
             if (showUnreadsCategory) {
                 return emptyList;
             }
+
+            const channelIds = filterChannelIdsForSection(allChannelIds, railSection, boardChannelIds);
 
             const filtered = channelIds.filter((id) => unreadChannelIdsSet.has(id));
 
@@ -236,6 +284,39 @@ export function makeGetUnreadIdsForCategory(): (state: GlobalState, category: Ch
         },
     );
 }
+
+const emptyCategoryIds = new Set<string>();
+
+// The ids of the current team's categories that the product rail's Channels or Boards section
+// leaves with nothing to show, which the sidebar hides: in Boards, any category without boards;
+// in Channels, one holding only boards. The sidebar list and each category read this one answer,
+// so the list can number the categories it shows without gaps for dragging.
+export const getCategoryIdsHiddenByProductRail: (state: GlobalState) => Set<string> = createSelector(
+    'getCategoryIdsHiddenByProductRail',
+    getCategoriesForCurrentTeam,
+    getChannelsByCategoryForCurrentTeam,
+    getUnreadChannelIdsSet,
+    shouldShowUnreadsCategory,
+    getProductRailFilter,
+    getBoardChannelIds,
+    (categories, channelsByCategory, unreadChannelIds, showUnreadsCategory, railFilter, boardChannelIds) => {
+        if (!railFilter) {
+            return emptyCategoryIds;
+        }
+
+        const hidden = new Set<string>();
+        for (const category of categories) {
+            const channelIds = (channelsByCategory[category.id] ?? []).map((channel) => channel.id);
+            const shown = filterChannelIdsForSection(channelIds, railFilter, boardChannelIds).
+                filter((id) => !showUnreadsCategory || !unreadChannelIds.has(id));
+
+            if (shown.length === 0 && (railFilter === 'boards' || channelIds.length > 0)) {
+                hidden.add(category.id);
+            }
+        }
+        return hidden;
+    },
+);
 
 export function getDraggingState(state: GlobalState): DraggingState {
     return state.views.channelSidebar.draggingState;

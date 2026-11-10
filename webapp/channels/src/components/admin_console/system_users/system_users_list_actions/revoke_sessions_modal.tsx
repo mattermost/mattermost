@@ -19,7 +19,7 @@ type Props = {
     currentUser: UserProfile;
     onExited: () => void;
     onError: (error: ServerError) => void;
-}
+};
 
 export default function RevokeSessionsModal({user, currentUser, onExited, onError}: Props) {
     const dispatch = useDispatch();
@@ -64,7 +64,7 @@ export default function RevokeSessionsModal({user, currentUser, onExited, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonClass='btn btn-danger'
+            destructive={true}
             confirmButtonText={revokeUserButtonButton}
             onConfirm={confirm}
             onExited={onExited}

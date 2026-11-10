@@ -6,12 +6,12 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {TranslateIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostTranslation, PostType} from '@mattermost/types/posts';
 
 import {openModal} from 'actions/views/modals';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -19,7 +19,7 @@ type Props = {
     postId: string;
     translationState: PostTranslation['state'] | undefined;
     postType: PostType;
-}
+};
 function PostHeaderTranslateIcon({
     postId,
     translationState,
@@ -70,7 +70,10 @@ function PostHeaderTranslateIcon({
         return (
             <div>
                 <i className='post__translation-icon-processing'>
-                    <LoadingSpinner text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}/>
+                    <LoadingSpinner
+                        size='10'
+                        text={formatMessage({id: 'post_info.translation_icon_processing', defaultMessage: 'Translating...'})}
+                    />
                 </i>
             </div>
         );

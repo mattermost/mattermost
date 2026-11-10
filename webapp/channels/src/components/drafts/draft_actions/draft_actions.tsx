@@ -5,12 +5,15 @@ import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+
 import {openModal} from 'actions/views/modals';
 
 import ScheduledPostCustomTimeModal
     from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import Action from './action';
 import DeleteDraftModal from './delete_draft_modal';
@@ -30,9 +33,10 @@ type Props = {
     onSend: () => void;
     canEdit: boolean;
     canSend: boolean;
-    onSchedule: (timestamp: number) => Promise<{error?: string}>;
+    onSchedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     channelId: string;
-}
+    repeatDisabledReason?: RepeatDisabledReason;
+};
 
 function DraftActions({
     displayName,
@@ -43,6 +47,7 @@ function DraftActions({
     canSend,
     onSchedule,
     channelId,
+    repeatDisabledReason,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -75,9 +80,10 @@ function DraftActions({
             dialogProps: {
                 channelId,
                 onConfirm: onSchedule,
+                repeatDisabledReason,
             },
         }));
-    }, [channelId, dispatch, onSchedule]);
+    }, [repeatDisabledReason, channelId, dispatch, onSchedule]);
 
     return (
         <>

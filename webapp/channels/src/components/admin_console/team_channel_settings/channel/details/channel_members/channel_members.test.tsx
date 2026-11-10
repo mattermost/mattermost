@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelMembers from './channel_members';
@@ -40,24 +40,24 @@ describe('admin_console/team_channel_settings/channel/ChannelMembers', () => {
         searchTerm: '',
         enableGuestAccounts: true,
         actions: {
-            getChannelStats: jest.fn(),
-            loadProfilesAndReloadChannelMembers: jest.fn(),
-            searchProfilesAndChannelMembers: jest.fn(),
-            getFilteredUsersStats: jest.fn(),
+            getChannelStats: jest.fn().mockResolvedValue({}),
+            loadProfilesAndReloadChannelMembers: jest.fn().mockResolvedValue({}),
+            searchProfilesAndChannelMembers: jest.fn().mockResolvedValue({}),
+            getFilteredUsersStats: jest.fn().mockResolvedValue({}),
             setUserGridSearch: jest.fn(),
             setUserGridFilters: jest.fn(),
         },
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ChannelMembers {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot loading no users', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ChannelMembers
                 {...baseProps}
                 users={[]}
@@ -66,6 +66,6 @@ describe('admin_console/team_channel_settings/channel/ChannelMembers', () => {
                 loading={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

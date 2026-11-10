@@ -4,7 +4,7 @@
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/general';
 
-type ReducerState = ReturnType<typeof reducer>
+type ReducerState = ReturnType<typeof reducer>;
 
 describe('reducers.entities.general', () => {
     describe('firstAdminVisitMarketplaceStatus', () => {

@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
-
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';

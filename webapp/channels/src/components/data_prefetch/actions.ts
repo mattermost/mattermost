@@ -10,7 +10,7 @@ import {memoizeResult} from 'mattermost-redux/utils/helpers';
 enum Priority {
     high = 1,
     medium,
-    low
+    low,
 }
 
 enum PrefetchLimits {

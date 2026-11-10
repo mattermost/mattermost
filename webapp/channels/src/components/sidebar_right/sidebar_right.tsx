@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ProductIdentifier} from '@mattermost/types/products';
 import type {Team} from '@mattermost/types/teams';
@@ -24,7 +25,6 @@ import a11yController from 'utils/a11y_controller_instance';
 import {focusElement, getFirstFocusableChild} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
-import {isMac} from 'utils/user_agent';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -61,16 +61,17 @@ export type Props = {
         updateSearchTerms: (terms: string) => void;
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
+        loadPostAttributeFields: (channelId?: string) => void;
     };
-}
+};
 
 type State = {
     isOpened: boolean;
-}
+};
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
-    sidebarRight: React.RefObject<HTMLDivElement>;
-    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
+    sidebarRight: React.RefObject<HTMLDivElement | null>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement | null>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
     private previousActiveElement: HTMLElement | null = null;
@@ -197,6 +198,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.handleShortcut);
         document.addEventListener('mousedown', this.handleClickOutside);
+
+        // Lazy-loaded, so the RHS can already be showing a channel by the time
+        // this mounts; componentDidUpdate only catches a later change.
+        if (this.props.rhsChannel) {
+            this.props.actions.loadPostAttributeFields(this.props.rhsChannel.id);
+        }
     }
 
     componentWillUnmount() {
@@ -208,6 +215,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
+
+        if (rhsChannel?.id !== prevProps.rhsChannel?.id) {
+            actions.loadPostAttributeFields(rhsChannel?.id);
+        }
+
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }

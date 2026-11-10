@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {hexToRgbArray, rgbArrayToString} from '../../../../../utils';
+import {hexToRgbArray, rgbArrayToString} from '@/utils';
 
 describe('Settings > Display > Theme', () => {
     before(() => {
@@ -33,9 +33,9 @@ describe('Settings > Display > Theme', () => {
             scrollIntoView().
             should('be.visible').
             click();
-        cy.get('#customThemes').
-            should('be.visible').
-            click();
+
+        // Compass Radio hides the native input; interact via the label.
+        cy.get('#customThemes').closest('label').should('be.visible').click();
     });
 
     it('MM-T280_1 Theme Colors - Color Picker (Sidebar styles)', () => {
@@ -83,14 +83,13 @@ function verifyColorPickerChange(stylesText, iconButtonId, inputId, iconValueId)
     cy.get(iconButtonId).click();
 
     // # Toggle theme colors the custom theme
+    // Compass Radio hides the native input (opacity:0); force check.
     cy.get('#standardThemes').
         scrollIntoView().
-        should('be.visible').
-        check();
+        check({force: true});
     cy.get('#customThemes').
         scrollIntoView().
-        should('be.visible').
-        check();
+        check({force: true});
 
     // # Re-open styles section
     cy.findByText(stylesText).

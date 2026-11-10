@@ -6,10 +6,10 @@ import React from 'react';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getAllLanguages} from 'i18n/i18n';
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
-import ManageLanguages from './manage_languages';
-import type {ManageLanguage as ManageLanguageClass} from './manage_languages';
+import {ManageLanguage} from './manage_languages';
 
 describe('components/user_settings/display/manage_languages/manage_languages', () => {
     const user = {
@@ -17,6 +17,7 @@ describe('components/user_settings/display/manage_languages/manage_languages', (
     };
 
     const requiredProps = {
+        intl: defaultIntl,
         user: user as UserProfile,
         locale: 'en',
         locales: getAllLanguages(),
@@ -30,10 +31,15 @@ describe('components/user_settings/display/manage_languages/manage_languages', (
     test('submitUser() should have called updateMe', async () => {
         const updateMe = jest.fn(() => Promise.resolve({data: true}));
         const props = {...requiredProps, actions: {...requiredProps.actions, updateMe}};
-        const wrapper = shallowWithIntl(<ManageLanguages {...props}/>);
-        const instance = wrapper.instance() as ManageLanguageClass;
+        const ref = React.createRef<ManageLanguage>();
+        renderWithContext(
+            <ManageLanguage
+                {...props}
+                ref={ref}
+            />,
+        );
 
-        await instance.submitUser(requiredProps.user);
+        await ref.current!.submitUser(requiredProps.user);
 
         expect(props.actions.updateMe).toHaveBeenCalledTimes(1);
         expect(props.actions.updateMe).toHaveBeenCalledWith(requiredProps.user);

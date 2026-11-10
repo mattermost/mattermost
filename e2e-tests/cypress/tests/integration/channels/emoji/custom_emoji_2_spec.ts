@@ -10,15 +10,15 @@
 // Stage: @prod
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getCustomEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
     let otherUser;
-    let townsquareLink;
+    let townsquareLink: string;
 
     const largeEmojiFile = 'gif-image-file.gif';
     before(() => {
@@ -120,7 +120,7 @@ describe('Custom emojis', () => {
 
         cy.get('#emojiPicker').should('be.visible').within(() => {
             // # Scroll to start of custom category section
-            cy.get('i.icon-emoticon-custom-outline').as('customSection');
+            cy.findByRole('button', {name: 'Custom'}).as('customSection');
             cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
             cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
 

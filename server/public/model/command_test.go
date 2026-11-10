@@ -72,6 +72,31 @@ func TestCommandIsValid(t *testing.T) {
 	o.Trigger = strings.Repeat("1", 128)
 	require.Nil(t, o.IsValid())
 
+	validTriggers := []string{"abc", "ABC", "abc123", "a_b-c.d/e"}
+	for _, trigger := range validTriggers {
+		o.Trigger = trigger
+		require.Nil(t, o.IsValid(), "trigger should be valid: %q", trigger)
+	}
+
+	invalidTriggers := []string{
+		" trigger",
+		"tri gger",
+		"tri\tger",
+		"tri\nger",
+		"tri\rger",
+		"tri\x00ger",
+		"/trigger",
+		"tri?ger",
+		"tri*ger",
+		"trígger",
+		"trigger😀",
+	}
+	for _, trigger := range invalidTriggers {
+		o.Trigger = trigger
+		require.NotNil(t, o.IsValid(), "trigger should be invalid: %q", trigger)
+	}
+
+	o.Trigger = "trigger"
 	o.URL = ""
 	require.NotNil(t, o.IsValid(), "should be invalid")
 

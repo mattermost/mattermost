@@ -30,9 +30,9 @@ info:
 
       * [Authentication](#/#authentication-1)
 
-      * [Websocket Events](#/#websocket-events)
+      * [WebSocket Events](#/#websocket-events)
 
-      * [Websocket API](#/#websocket-api)
+      * [WebSocket API](#/#websocket-api)
 
     ### Drivers
 
@@ -110,7 +110,7 @@ info:
       ```bash
       curl -i -H 'Authorization: Bearer ckh3t4knu3fzujt76o57f5jo4w' http://localhost:8065/api/v4/users/me
       ```
-      Alternatively, include the `Token` as your `MMAUTHTOKEN` cookie value on you future API requests:
+      Alternatively, include the `Token` as your `MMAUTHTOKEN` cookie value on your future API requests:
 
       ```bash
       curl -i -H 'Cookie: MMAUTHTOKEN=ckh3t4knu3fzujt76o57f5jo4w' http://localhost:8065/api/v4/users/me
@@ -213,7 +213,7 @@ info:
 
       Once successfully authenticated, the server will pass a `hello` WebSocket event containing server version over the connection.
 
-    ### Websocket Events
+    ### WebSocket Events
 
       WebSocket events are primarily used to alert the client to changes in Mattermost, such as delivering new posts or alerting the client that another user is typing in a channel.
 
@@ -272,6 +272,7 @@ info:
       - reaction_removed
       - response
       - role_updated
+      - shared_channel_remote_updated
       - status_change
       - typing
       - update_team
@@ -283,8 +284,12 @@ info:
       - thread_updated
       - thread_follow_changed
       - thread_read_changed
+      - property_field_created
+      - property_field_updated
+      - property_field_deleted
+      - property_values_updated
 
-    ### Websocket API
+    ### WebSocket API
 
       Mattermost has some basic support for WebSocket APIs. A connected WebSocket can make requests by sending the following over the connection:
 
@@ -401,6 +406,10 @@ tags:
     description: Endpoints for creating and performing file uploads.
   - name: bookmarks
     description: Endpoints for creating, getting and interacting with channel bookmarks.
+  - name: views
+    description: Endpoints for creating, getting and interacting with channel views.
+  - name: boards
+    description: Endpoints for creating and managing board channels (kanban-backed channels with linked properties). Gated behind the `IntegratedBoards` feature flag.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
@@ -429,7 +438,7 @@ tags:
   - name: LDAP
     description: Endpoints for configuring and interacting with LDAP.
   - name: groups
-    description: Endpoints related to LDAP groups.
+    description: Endpoints related to groups, including LDAP-synced and custom groups.
   - name: compliance
     description: Endpoints for creating, getting and downloading compliance reports.
   - name: cluster
@@ -448,6 +457,47 @@ tags:
     description: Endpoints for creating, getting and updating roles.
   - name: schemes
     description: Endpoints for creating, getting and updating and deleting schemes.
+  - name: permissions
+    description: Endpoints for getting information about permissions, such as the ancillary permissions that System Console subsections need.
+  - name: access control
+    description: >
+      Endpoints for attribute-based access control: creating, assigning and
+      searching access control policies, the CEL tools used to write and test
+      policy rules (CEL is the expression language the rules are written in),
+      simulating how permission policies apply to users, and checking whether
+      users can perform actions. Most endpoints that use the policy engine return
+      501 without an Entry or Enterprise Advanced license, and 406 while the
+      `EnableAttributeBasedAccessControl` setting is off. The action decisions
+      endpoint (`POST /api/v4/access_control/decisions/actions/search`)
+      instead allows every action while the setting is off. See [our
+      attribute-based access control documentation](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control)
+      for more information.
+  - name: properties
+    description: >
+      Endpoints for the property system, which attaches typed attributes to
+      objects such as users, channels and posts. Properties are organized in
+      groups; each group holds fields, which define an attribute and its
+      type, and values, which hold a field's value for one object. A field's
+      object type says what kind of object it applies to, and in the
+      `access_control` group a `template` field defines a global attribute
+      that user and channel fields link to. These endpoints replace the
+      custom profile attributes endpoints for managing user attributes.
+
+
+      In the `access_control` group, every endpoint requires an Entry,
+      Enterprise or Enterprise Advanced license (403 otherwise). Channel
+      fields and their values, and templates that channel fields link to,
+      require an Entry or Enterprise Advanced license (501 otherwise).
+  - name: custom profile attributes
+    description: >
+      Endpoints for managing user attributes (formerly custom profile
+      attributes) and their values. Deprecated since v12.0: use the
+      properties endpoints in the `access_control` group instead. These
+      endpoints will be removed in a future release.
+
+
+      Every endpoint requires an Entry, Enterprise or Enterprise Advanced
+      license (403 otherwise).
   - name: integration_actions
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels
@@ -462,10 +512,18 @@ tags:
     description: Endpoints related to metrics, including the Client Performance Monitoring feature.
   - name: audit_logs
     description: Endpoints for managing audit log certificates and configuration.
+  - name: ephemeral mode
+    description: Endpoints for logging client-side ephemeral mode audit events.
   - name: recaps
     description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
+  - name: scheduled recaps
+    description: Endpoints for creating and managing scheduled recaps that run automatically on a configured schedule.
   - name: agents
     description: Endpoints for interacting with AI agents and LLM services.
+  - name: Delivery Tracking
+    description: Endpoints for configuring post delivery audit logging.
+  - name: health
+    description: Endpoints for getting and muting the findings of the server's built-in health checks.
 servers:
   - url: "{your-mattermost-url}"
     variables:

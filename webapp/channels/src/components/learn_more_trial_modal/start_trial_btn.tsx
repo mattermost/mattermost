@@ -4,22 +4,28 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {Button, type ButtonAppearance, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
 import './start_trial_btn.scss';
 
 export type StartTrialBtnProps = {
     onClick?: () => void;
-    btnClass?: string;
-    renderAsButton?: boolean;
     disabled?: boolean;
+    className?: string;
+    renderAsButton?: boolean;
+    emphasis?: ButtonEmphasis;
+    appearance?: ButtonAppearance;
 };
 
 const StartTrialBtn = ({
-    btnClass,
+    className,
     onClick,
     disabled = false,
     renderAsButton = false,
+    emphasis,
+    appearance,
 }: StartTrialBtnProps) => {
     const {formatMessage} = useIntl();
     const openTrialForm = useOpenStartTrialFormModal();
@@ -40,23 +46,18 @@ const StartTrialBtn = ({
 
     const btnText = formatMessage({id: 'admin.ldap_feature_discovery.call_to_action.primary', defaultMessage: 'Start trial'});
 
-    return renderAsButton ? (
-        <button
+    return (
+        <Button
             id={id}
-            className={btnClass}
+            type='button'
+            emphasis={emphasis ?? (renderAsButton ? 'primary' : 'secondary')}
+            appearance={appearance}
+            className={className}
             onClick={startTrial}
             disabled={disabled}
         >
             {btnText}
-        </button>
-    ) : (
-        <a
-            id={id}
-            className='btn btn-secondary'
-            onClick={startTrial}
-        >
-            {btnText}
-        </a>
+        </Button>
     );
 };
 

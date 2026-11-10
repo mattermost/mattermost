@@ -5,7 +5,10 @@ import React, {PureComponent} from 'react';
 import type {CSSProperties, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
+import {RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import statusGreen from 'images/status_green.png';
@@ -20,13 +23,13 @@ type Props = {
         schema_version: string;
     }>;
     reload: (e: MouseEvent<HTMLButtonElement>) => void;
-}
+};
 
 type Style = {
     clusterTable: CSSProperties;
     clusterCell: CSSProperties;
     warning: CSSProperties;
-}
+};
 
 export default class ClusterTable extends PureComponent<Props> {
     render() {
@@ -166,17 +169,17 @@ export default class ClusterTable extends PureComponent<Props> {
                 style={style.clusterTable}
             >
                 <div className='text-right'>
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.props.reload}
+                        leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                     >
-                        <ReloadIcon/>
                         <FormattedMessage
                             id='admin.cluster.status_table.reload'
                             defaultMessage=' Reload Cluster Status'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <table className='table'>
                     <thead>

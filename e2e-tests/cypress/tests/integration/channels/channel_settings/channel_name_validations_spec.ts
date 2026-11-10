@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @channel @channel_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Channel routing', () => {
-    let testTeam: any;
-    let testUser: any;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {

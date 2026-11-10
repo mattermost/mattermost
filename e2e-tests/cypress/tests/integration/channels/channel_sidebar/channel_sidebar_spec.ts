@@ -10,19 +10,19 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
-function verifyChannelSwitch(displayName, url) {
+function verifyChannelSwitch(displayName: string, url: string) {
     cy.get('#channelHeaderTitle', {timeout: TIMEOUTS.HALF_MIN}).should('be.visible').should('contain', displayName);
     cy.url().should('include', url);
 }
 
 describe('Channel sidebar', () => {
     const sysadmin = getAdminAccount();
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Login as test user and visit town-square

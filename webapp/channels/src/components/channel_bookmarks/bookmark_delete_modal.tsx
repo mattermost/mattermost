@@ -11,7 +11,7 @@ type Props = {
     onConfirm: () => void;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const noop = () => {};
 
@@ -47,12 +47,12 @@ function BookmarkDeleteModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
+            destructive={true}
             handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
         >
             {message}
         </GenericModal>

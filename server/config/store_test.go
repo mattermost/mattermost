@@ -17,11 +17,8 @@ func TestNewStoreFromDSN(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, err := os.MkdirTemp("", "TestNewStore")
-	require.NoError(t, err)
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	tempDir := t.TempDir()
+	t.Chdir(tempDir)
 
 	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
 
@@ -45,11 +42,8 @@ func TestNewStoreReadOnly(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, tErr := os.MkdirTemp("", "TestNewStore")
-	require.NoError(t, tErr)
-
-	tErr = os.Chdir(tempDir)
-	require.NoError(t, tErr)
+	tempDir := t.TempDir()
+	t.Chdir(tempDir)
 
 	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
 

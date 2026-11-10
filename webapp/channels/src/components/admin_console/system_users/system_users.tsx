@@ -16,6 +16,7 @@ import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} f
 import type {TableMeta} from 'components/admin_console/list_table';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getDisplayName, imageURLForUser} from 'utils/utils';
 
@@ -49,7 +50,7 @@ export type TableOptions = {
     filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
     dateRange?: ReportDuration;
-}
+};
 
 type UserReportWithError = UserReport & {error?: ServerError};
 
@@ -59,7 +60,7 @@ const messages = defineMessages({
     title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
 });
 
-export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
+export const searchableStrings: Array<string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 function SystemUsers(props: Props) {
     const {formatMessage} = useIntl();
@@ -254,12 +255,14 @@ function SystemUsers(props: Props) {
                             <div className='profilePictureContainer'>
                                 <img
                                     className='profilePicture'
+                                    data-testid='profilePicture'
                                     src={imageURLForUser(info.row.original.id)}
                                     aria-hidden='true'
                                 />
                             </div>
                             <div
                                 className='displayName'
+                                data-testid='displayName'
                                 title={getDisplayName(info.row.original)}
                             >
                                 {getDisplayName(info.row.original) || ''}
@@ -275,6 +278,7 @@ function SystemUsers(props: Props) {
                             </div>
                             <div
                                 className='userName'
+                                data-testid='userName'
                                 title={info.row.original.username}
                             >
                                 {info.row.original.username}
@@ -384,6 +388,21 @@ function SystemUsers(props: Props) {
                 enableSorting: false,
             },
             {
+                id: ColumnNames.channelCount,
+                accessorKey: 'channel_count',
+                header: formatMessage({
+                    id: 'admin.system_users.list.channelCount',
+                    defaultMessage: 'Channel count',
+                }),
+                cell: (info: CellContext<UserReport, number | undefined>) => info.getValue() ?? null,
+                meta: {
+                    isNumeric: true,
+                },
+                enableHiding: true,
+                enablePinning: false,
+                enableSorting: false,
+            },
+            {
                 id: ColumnNames.actions,
                 accessorKey: 'actions',
                 header: formatMessage({
@@ -464,7 +483,7 @@ function SystemUsers(props: Props) {
 
     return (
         <div
-            className='wrapper--fixed'
+            className='wrapper--fixed SystemUsers'
             data-testid='systemUsersSection'
         >
             <AdminHeader>
@@ -479,7 +498,10 @@ function SystemUsers(props: Props) {
                 <RevokeSessionsButton/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-console__container ignore-marking'>
+                <AdminPanel
+                    id='system_users'
+                    className='ignore-marking SystemUsers__panel'
+                >
                     <div className='admin-console__filters-rows'>
                         <SystemUsersSearch
                             searchTerm={props.tablePropertySearchTerm}
@@ -505,7 +527,7 @@ function SystemUsers(props: Props) {
                     <AdminConsoleListTable<UserReport>
                         table={table}
                     />
-                </div>
+                </AdminPanel>
             </div>
         </div>
     );

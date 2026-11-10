@@ -18,7 +18,7 @@ import {A11yCustomEventTypes} from './constants';
  * @param resetOriginElement - Whether the original element stored data in the a11y controller should be reseted.
  */
 export function focusElement(
-    elementOrId: HTMLElement | React.RefObject<HTMLElement> | string,
+    elementOrId: HTMLElement | React.RefObject<HTMLElement | null> | string,
     keyboardOnly = true,
     resetOriginElement = false,
 ) {
@@ -31,6 +31,7 @@ export function focusElement(
         // It's an ID string
         target = document.getElementById(elementOrId);
     } else if (
+
         // It's a React ref object
         typeof elementOrId === 'object' &&
         'current' in elementOrId &&

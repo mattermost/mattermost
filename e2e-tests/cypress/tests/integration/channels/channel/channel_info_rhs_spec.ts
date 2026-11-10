@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @channel @rhs @channel_info
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {stubClipboard} from '../../../utils';
+import {stubClipboard} from '@/utils';
 
 describe('Channel Info RHS', () => {
     let testTeam: Team;
@@ -125,9 +125,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute on a channel', () => {
@@ -138,9 +138,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to add people', () => {
@@ -370,9 +370,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute', () => {
@@ -383,9 +383,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to add people', () => {
@@ -465,9 +465,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the favorite status
-                cy.uiGetRHS().findByText('Favorite').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorited').should('be.visible').click();
-                cy.uiGetRHS().findByText('Favorite').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Favorite'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should be able to toggle mute', () => {
@@ -478,9 +478,9 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // * Verify that we can toggle the mute status
-                cy.uiGetRHS().findByText('Mute').should('be.visible').click();
-                cy.uiGetRHS().findByText('Muted').should('be.visible').click();
-                cy.uiGetRHS().findByText('Mute').should('be.visible');
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'true').click();
+                cy.uiGetRHS().findByRole('button', {name: 'Mute'}).should('have.attr', 'aria-pressed', 'false');
             });
 
             it('should NOT be able to add people', () => {
@@ -533,7 +533,7 @@ describe('Channel Info RHS', () => {
     });
 });
 
-function ensureRHSIsOpenOnChannelInfo(testChannel) {
+function ensureRHSIsOpenOnChannelInfo(testChannel: Cypress.Channel) {
     cy.get('#rhsContainer').then((rhsContainer) => {
         cy.wrap(rhsContainer).findByText('Info').should('be.visible');
         cy.wrap(rhsContainer).find('.sidebar--right__title__subtitle').should('contain', testChannel.display_name);

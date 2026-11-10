@@ -22,7 +22,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockService.active = false
 		th.Service.SetSharedChannelService(mockService)
 
-		th.Service.SharedChannelSyncHandler(&model.WebSocketEvent{})
+		th.Service.SharedChannelSyncHandler(&model.WebSocketEvent{}, true)
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -36,7 +36,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, model.NewId(), channel.Id, "", nil, "")
 
-		th.Service.SharedChannelSyncHandler(websocketEvent)
+		th.Service.SharedChannelSyncHandler(websocketEvent, true)
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -49,7 +49,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), model.NewId(), "", nil, "")
 
-		th.Service.SharedChannelSyncHandler(websocketEvent)
+		th.Service.SharedChannelSyncHandler(websocketEvent, true)
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -63,7 +63,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, th.BasicTeam.Id, channel.Id, "", nil, "")
 
-		th.Service.SharedChannelSyncHandler(websocketEvent)
+		th.Service.SharedChannelSyncHandler(websocketEvent, true)
 		require.Len(t, mockService.channelNotifications, 1)
 		assert.Equal(t, channel.Id, mockService.channelNotifications[0])
 	})
@@ -76,7 +76,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockChannelStore := &mocks.ChannelStore{}
 		mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{
 			Id:     "channelID",
-			Shared: model.NewPointer(true),
+			Shared: new(true),
 		}, nil)
 
 		mockUserStore := &mocks.UserStore{}
@@ -98,8 +98,91 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		require.NotPanics(t, func() {
 			websocketEvent := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "teamID", "channelID", "userID", nil, "")
 			websocketEvent = websocketEvent.SetData(map[string]any{"creator_id": "creator", "teammate_id": "teammate"})
-			th.Service.SharedChannelSyncHandler(websocketEvent)
+			th.Service.SharedChannelSyncHandler(websocketEvent, true)
 			assert.Empty(t, mockService.channelNotifications)
 		})
+	})
+
+	t.Run("sync service inactive and event published on this node is sent best effort, it triggers a shared channel content sync", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil, MockOptionSharedChannelServiceWithActive(false))
+		th.Service.SetSharedChannelService(mockService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		for _, eventType := range []model.WebsocketEventType{
+			model.WebsocketEventReactionAdded,
+			model.WebsocketEventReactionRemoved,
+			model.WebsocketEventPostDeleted,
+			model.WebsocketEventAcknowledgementAdded,
+			model.WebsocketEventAcknowledgementRemoved,
+		} {
+			mockService.channelNotifications = nil
+			websocketEvent := model.NewWebSocketEvent(eventType, th.BasicTeam.Id, channel.Id, "", nil, "")
+
+			th.Service.SharedChannelSyncHandler(websocketEvent, true)
+			assert.Equal(t, []string{channel.Id}, mockService.channelNotifications, eventType)
+		}
+	})
+
+	t.Run("sync service inactive and event received from another node, it does nothing", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil, MockOptionSharedChannelServiceWithActive(false))
+		th.Service.SetSharedChannelService(mockService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventReactionAdded, th.BasicTeam.Id, channel.Id, "", nil, "")
+
+		th.Service.SharedChannelSyncHandler(websocketEvent, false)
+		assert.Empty(t, mockService.channelNotifications)
+	})
+
+	t.Run("sync service inactive and event published on this node is sent reliably, it does nothing", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil, MockOptionSharedChannelServiceWithActive(false))
+		th.Service.SetSharedChannelService(mockService)
+
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
+		for _, eventType := range []model.WebsocketEventType{model.WebsocketEventPosted, model.WebsocketEventPostEdited} {
+			websocketEvent := model.NewWebSocketEvent(eventType, th.BasicTeam.Id, channel.Id, "", nil, "")
+			th.Service.SharedChannelSyncHandler(websocketEvent, true)
+		}
+
+		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventReactionAdded, th.BasicTeam.Id, channel.Id, "", nil, "")
+		websocketEvent.GetBroadcast().ReliableClusterSend = true
+		th.Service.SharedChannelSyncHandler(websocketEvent, true)
+
+		assert.Empty(t, mockService.channelNotifications)
+	})
+
+	t.Run("sync service inactive, it does not auto-share a DM or send an invitation", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		mockService := NewMockSharedChannelService(nil, MockOptionSharedChannelServiceWithActive(false))
+		th.Service.SetSharedChannelService(mockService)
+
+		_, err := th.Service.Store.RemoteCluster().Save(&model.RemoteCluster{
+			Name:      "autoshare",
+			SiteURL:   "http://autoshare.example.com",
+			Token:     model.NewId(),
+			CreatorId: th.BasicUser.Id,
+			Options:   model.BitflagOptionAutoShareDMs,
+		})
+		require.NoError(t, err)
+
+		dm, err := th.Service.Store.Channel().CreateDirectChannel(th.Context, th.BasicUser, th.BasicUser2)
+		require.NoError(t, err)
+
+		reaction := model.NewWebSocketEvent(model.WebsocketEventReactionAdded, "", dm.Id, "", nil, "")
+		th.Service.SharedChannelSyncHandler(reaction, true)
+
+		directAdded := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", dm.Id, "", nil, "")
+		directAdded = directAdded.SetData(map[string]any{"creator_id": th.BasicUser.Id, "teammate_id": th.BasicUser2.Id})
+		th.Service.SharedChannelSyncHandler(directAdded, true)
+
+		assert.Empty(t, mockService.channelNotifications)
+		assert.Zero(t, mockService.NumInvitations())
 	})
 }

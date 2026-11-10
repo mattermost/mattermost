@@ -117,7 +117,7 @@ export const getThreadOrderInCurrentTeam: (state: GlobalState) => Array<UserThre
     },
 );
 
-export const getNewestThreadInTeam: (state: GlobalState, teamID: string,) => (UserThread | null) = createSelector(
+export const getNewestThreadInTeam: (state: GlobalState, teamID: string) => (UserThread | null) = createSelector(
     'getNewestThreadInTeam',
     getThreadsInTeam,
     getThreads,

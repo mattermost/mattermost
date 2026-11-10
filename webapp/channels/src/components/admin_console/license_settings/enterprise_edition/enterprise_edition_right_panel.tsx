@@ -4,9 +4,9 @@
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
@@ -49,28 +49,28 @@ const EnterpriseEditionRightPanel = ({
 
     const enterpriseToAdvancedAdvantages = [
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
-            defaultMessage: 'Attribute-based access control',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.dynamicAttributeBasedAccessControls',
+            defaultMessage: 'Dynamic attribute-based access controls',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
-            defaultMessage: 'Channel warning banners',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.dataSpillageHandling',
+            defaultMessage: 'Data spillage handling',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
-            defaultMessage: 'AD/LDAP group sync',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.burnOnReadMessages',
+            defaultMessage: 'Burn-on-read messages',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
-            defaultMessage: 'Advanced workflows with Playbooks',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.mobileBiometricsAndAdvancedSecurity',
+            defaultMessage: 'Mobile biometrics & advanced security',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
-            defaultMessage: 'High availability',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.automaticChannelTranslations',
+            defaultMessage: 'Automatic channel translations',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
-            defaultMessage: 'Advanced compliance',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelBanners',
+            defaultMessage: 'Channel banners',
         }),
         intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.andMore',
@@ -84,9 +84,15 @@ const EnterpriseEditionRightPanel = ({
     const isEntry = license?.SkuShortName === LicenseSkus.Entry;
 
     const contactSalesBtn = (
-        <div className='purchase-card'>
-            <ContactUsButton/>
-        </div>
+        <Button
+            emphasis='primary'
+            onClick={openContactSales}
+        >
+            <FormattedMessage
+                id='admin.license.trialCard.contactSales'
+                defaultMessage='Contact Sales'
+            />
+        </Button>
     );
 
     const title = () => {
@@ -220,15 +226,15 @@ const EnterpriseEditionRightPanel = ({
                     {subtitle()}
                 </div>
                 <div className='purchase_buttons'>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
                             id='admin.license.contactSales'
                             defaultMessage='Questions? Contact sales'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

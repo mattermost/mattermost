@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
+import type {ChangeEvent, ElementType, FocusEvent, JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Agent} from '@mattermost/types/agents';
@@ -36,8 +36,8 @@ export type Props = {
     tabIndex?: number;
     value: string;
     onChange: (e: ChangeEvent<TextboxElement>) => void;
-    onKeyPress: (e: KeyboardEvent<any>) => void;
-    onComposition?: () => void;
+    onKeyPress: (e: KeyboardEvent<TextboxElement>) => void;
+    onCompositionUpdate?: () => void;
     onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
     createMessage: string;
@@ -45,10 +45,10 @@ export type Props = {
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
-    onFocus?: (e: FocusEvent<TextboxElement>) => void;
+    onFocus?: () => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
-    onPaste?: (e: ClipboardEvent) => void;
+    onPaste?: (e: React.ClipboardEvent<TextboxElement>) => void;
     suggestionList?: React.ComponentProps<typeof SuggestionBox>['listComponent'];
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
@@ -64,7 +64,7 @@ export type Props = {
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
-        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+        searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string) => Promise<ActionResult>;
         fetchAgents: () => Promise<ActionResult>;
     };
     useChannelMentions: boolean;
@@ -76,14 +76,14 @@ export type Props = {
     hasError?: boolean;
 };
 
-const VISIBLE = {visibility: 'visible'};
-const HIDDEN = {visibility: 'hidden'};
+const VISIBLE = {visibility: 'visible'} as const;
+const HIDDEN = {visibility: 'hidden'} as const;
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
-    private readonly wrapper: React.RefObject<HTMLDivElement>;
-    private readonly message: React.RefObject<SuggestionBoxComponent>;
-    private readonly preview: React.RefObject<HTMLDivElement>;
+    private readonly wrapper: React.RefObject<HTMLDivElement | null>;
+    private readonly message: React.RefObject<SuggestionBoxComponent | null>;
+    private readonly preview: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         supportsCommands: true,
@@ -139,7 +139,7 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.actions.fetchAgents();
     }
 
-    handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.props.onChange(e);
     };
 
@@ -237,6 +237,11 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
+    // adding in the HTMLDivElement to support event handling in preview state
+    handleKeyPress = (e: KeyboardEvent<TextboxElement | HTMLDivElement>) => {
+        this.props.onKeyPress(e as KeyboardEvent<TextboxElement>);
+    };
+
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
@@ -298,7 +303,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     tabIndex={this.props.tabIndex}
                     ref={this.preview}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onBlur={this.handleBlur}
                 >
@@ -309,19 +314,17 @@ export default class Textbox extends React.PureComponent<Props> {
                     />
                 </div>
                 <SuggestionBox
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     ref={this.message}
                     id={this.props.id}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
-                    onComposition={this.props.onComposition}
+                    onCompositionUpdate={this.props.onCompositionUpdate}
                     onBlur={this.handleBlur}
                     onFocus={this.props.onFocus}
                     onHeightChange={this.props.onHeightChange}

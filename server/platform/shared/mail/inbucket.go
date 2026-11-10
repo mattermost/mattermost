@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -178,5 +179,5 @@ func getInbucketHost() (host string) {
 	if inbucket_port == "" {
 		inbucket_port = "9001"
 	}
-	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
+	return "http://" + net.JoinHostPort(inbucket_host, inbucket_port)
 }

@@ -15,8 +15,8 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     onClick?: (event: React.MouseEvent<HTMLElement>) => void;
     queryParams?: ExternalLinkQueryParams;
     location: string;
-    children: React.ReactNode;
-}
+    children?: React.ReactNode;
+};
 
 const ExternalLink = forwardRef<HTMLAnchorElement, Props>((props, ref) => {
     const [href] = useExternalLink(props.href, props.location, props.queryParams);

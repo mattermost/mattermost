@@ -128,25 +128,16 @@
 
         .profile-img__remove {
             position: absolute;
-            top: 4px;
-            right: 8px;
+            top: 0;
+            right: 4px;
             display: flex;
-            width: 26px;
-            height: 26px;
+            width: 32px;
+            height: 32px;
             align-items: center;
             justify-content: center;
-            padding: 0;
-            border: none;
             border-radius: 50%;
-            background: variables.$black;
-            color: variables.$white;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            span {
-                margin-top: -3px;
-                font-size: 22px;
-            }
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-2);
         }
 
         .team-img-preview,
@@ -181,22 +172,14 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: none;
+            display: flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
             border-radius: 50%;
-            background: variables.$black;
-            color: variables.$white;
-            line-height: 23px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.15s ease;
-
-            span {
-                margin-top: -3px;
-                font-size: 22px;
-            }
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-2);
         }
 
         .settings-table {
@@ -206,7 +189,7 @@
             min-height: 475px;
             min-height: 0;
             flex: 1;
-            margin: 0 auto;
+            margin: 0;
 
             .security-links {
                 margin-right: 20px;
@@ -237,6 +220,7 @@
                 overflow: auto;
                 flex: 1;
                 padding: 20px 30px;
+                scrollbar-gutter: stable;
 
                 .modal-header {
                     display: none;
@@ -270,6 +254,14 @@
                         .checkbox.single-checkbox {
                             min-height: unset;
                             padding: 0;
+
+                            // Compass Checkbox is itself a label; Bootstrap's
+                            // .checkbox label { padding-left: 20px } no longer cancels
+                            // (native inputs used margin-left: -20px). Prefer
+                            // .no-padding on wrappers; keep label reset here too.
+                            label {
+                                padding: 0;
+                            }
                         }
 
                         .inlineCheckboxSelect {
@@ -354,10 +346,6 @@
                             font: normal normal normal 14px/1 FontAwesome;
                             pointer-events: none;
                             text-rendering: auto;
-
-                            .browser--ie & {
-                                display: none;
-                            }
                         }
                     }
 
@@ -537,8 +525,51 @@
                     }
                 }
 
+                .setting-box__new-token {
+                    padding: 20px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    border-radius: 4px;
+                    margin-top: 20px;
+                    background: rgba(var(--center-channel-color-rgb), 0.04);
+                }
+
+                .setting-box__new-token-title {
+                    margin-bottom: 16px;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+
                 .setting-box__token-id {
                     margin: 4px 0;
+                }
+
+                .setting-box__token-expiry {
+                    margin: 4px 0;
+                }
+
+                .setting-box__token-status {
+                    display: inline-block;
+                    padding: 1px 6px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    line-height: 16px;
+                    text-transform: uppercase;
+
+                    &--active {
+                        background: rgba(var(--online-indicator-rgb), 0.16);
+                        color: var(--online-indicator);
+                    }
+
+                    &--expired,
+                    &--inactive {
+                        background: rgba(var(--error-text-color-rgb), 0.16);
+                        color: var(--error-text);
+                    }
+                }
+
+                .setting-box__token-expiry-warning {
+                    color: var(--away-indicator);
                 }
 
                 .setting-box__inline-error {
@@ -566,7 +597,7 @@
                 }
 
                 .has-error {
-                    color: #a94442;
+                    color: var(--error-text);
                 }
 
                 .file-status {
@@ -615,7 +646,9 @@
 
             img {
                 &.icon {
+                    width: 18px;
                     height: 18px;
+                    margin-right: 6px;
                     vertical-align: top;
                 }
             }
@@ -731,14 +764,36 @@
     resize: none;
 }
 
-.user-settings__radio-group-inline {
-    // Counteract the margin-left added by Bootstrap's radio-inline class
-    margin-left: -20px;
+// Stack Compass Radio options without Bootstrap .radio wrappers
+.settings-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+.settings-radio-group-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-xxl);
+
+    // Compass Radio defaults to width: 100%; keep Premade / Custom side-by-side
+    label {
+        width: auto;
+    }
+}
+
+.settings-radio-option-help {
+    padding-top: 5px;
+}
+
+// Space before Save/Cancel for Theme apply-to-all-teams.
+// Beat Bootstrap `.form-horizontal .checkbox { margin-bottom: 0 }` (0,2,0) and
+// survive `.checkbox.no-padding { padding: 0 }` which cleared the old padding-bottom.
+.form-horizontal .checkbox.user-settings__submit-checkbox,
 .user-settings__submit-checkbox {
     padding-top: 0;
-    padding-bottom: 20px;
+    margin-bottom: var(--spacing-xxl, 20px);
 }
 
 .section-min {

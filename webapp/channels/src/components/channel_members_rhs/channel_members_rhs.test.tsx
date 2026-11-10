@@ -5,10 +5,14 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import useAccessControlAttributes from 'components/common/hooks/useAccessControlAttributes';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
 
 import ChannelMembersRHS from './channel_members_rhs';
+import MemberList from './member_list';
 
 // Mock the Redux connected component
 jest.mock('react-redux', () => ({
@@ -148,6 +152,82 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByTestId('member-list')).toBeInTheDocument();
     });
 
+    test('reloads the first page authoritatively on mount so removed members are pruned', () => {
+        const loadProfilesAndReloadChannelMembers = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadProfilesAndReloadChannelMembers,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        // The trailing `true` enables reconciliation so the first-page reload prunes
+        // members the server no longer returns (e.g. ABAC access-rule removals).
+        expect(loadProfilesAndReloadChannelMembers).toHaveBeenCalledWith(0, 100, 'channel_id', 'admin', {}, true);
+    });
+
+    test('reloads the roster when the websocket reconnects with a new connection id', () => {
+        // Regression test for MM-67616: membership changes (e.g. a shared-channel
+        // sync) that happen while the client is disconnected are delivered as
+        // websocket events that are never replayed on a fresh, non-resumed
+        // connection. The roster must be reloaded when the connection id changes.
+        const loadProfilesAndReloadChannelMembers = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadProfilesAndReloadChannelMembers,
+            },
+        };
+
+        const {updateStoreState} = renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+            {websocket: {connectionId: 'connection1'}},
+        );
+
+        // Ignore the authoritative load that happens on mount.
+        loadProfilesAndReloadChannelMembers.mockClear();
+
+        updateStoreState({websocket: {connectionId: 'connection2'}});
+
+        expect(loadProfilesAndReloadChannelMembers).toHaveBeenCalledWith(0, 100, 'channel_id', 'admin', {}, true);
+    });
+
+    test('does not reload the roster when the connection id is unchanged', () => {
+        const loadProfilesAndReloadChannelMembers = jest.fn();
+        const props = {
+            ...baseProps,
+            actions: {
+                ...baseProps.actions,
+                loadProfilesAndReloadChannelMembers,
+            },
+        };
+
+        const {updateStoreState} = renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+            {websocket: {connectionId: 'connection1'}},
+        );
+
+        loadProfilesAndReloadChannelMembers.mockClear();
+
+        // An unrelated state change that keeps the same connection id must not
+        // trigger a reload.
+        updateStoreState({websocket: {connectionId: 'connection1'}});
+
+        expect(loadProfilesAndReloadChannelMembers).not.toHaveBeenCalled();
+    });
+
     test('should show search bar when there are more than 20 members', () => {
         const props = {
             ...baseProps,
@@ -209,11 +289,12 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByText(/channel admins/)).toBeInTheDocument();
     });
 
-    test('should show alert banner for policy-enforced channels', () => {
+    test('should show alert banner for policy-enforced private channels with "restricted" wording', () => {
         const props = {
             ...baseProps,
             channel: {
                 ...baseProps.channel,
+                type: 'P' as ChannelType,
                 policy_enforced: true,
             },
         };
@@ -225,7 +306,145 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         );
 
         expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" for readability.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+    });
+
+    test('should show advisory banner for policy-enforced public channels', () => {
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        expect(screen.getByText('This channel has recommended members based on user attributes')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" — same shape as the
+        // private-channel test above; only the banner copy differs.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+    });
+
+    test('should say board in the policy banners for a board', () => {
+        const privateProps = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        const {unmount} = renderWithContext(
+            <ChannelMembersRHS
+                {...privateProps as any}
+            />,
+            boardChannelsState('channel_id'),
+        );
+
+        expect(screen.getByText('Board access is restricted by user attributes')).toBeInTheDocument();
+        expect(screen.queryByText('Channel access is restricted by user attributes')).not.toBeInTheDocument();
+        unmount();
+
+        const publicProps = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...publicProps as any}
+            />,
+            boardChannelsState('channel_id'),
+        );
+
+        expect(screen.getByText('This board has recommended members based on user attributes')).toBeInTheDocument();
+        expect(screen.queryByText('This channel has recommended members based on user attributes')).not.toBeInTheDocument();
+    });
+
+    test('should title the admins section BOARD ADMINS for a board', () => {
+        renderWithContext(
+            <ChannelMembersRHS
+                {...baseProps as any}
+            />,
+            boardChannelsState('channel_id'),
+        );
+
+        const calls = (MemberList as unknown as jest.Mock).mock.calls;
+        const members = calls[calls.length - 1][0].members;
+        const firstSeparator = members.find((item: {type: string}) => item.type === 'first-separator');
+
+        renderWithContext(firstSeparator.data, boardChannelsState('channel_id'));
+
+        expect(screen.getByText('BOARD ADMINS')).toBeInTheDocument();
+        expect(screen.queryByText('CHANNEL ADMINS')).not.toBeInTheDocument();
+    });
+
+    test('requests access control attributes for membership-policy channels when indicators are enabled', () => {
+        (useAccessControlAttributes as jest.Mock).mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        expect(useAccessControlAttributes).toHaveBeenCalledWith('channel', 'channel_id', true);
+    });
+
+    test('does not request or render access control indicators when the setting is disabled', () => {
+        (useAccessControlAttributes as jest.Mock).mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnableChannelPolicyIndicators: 'false',
+                        },
+                    },
+                },
+            },
+        );
+
+        // The hook is invoked with hasAccessControl=false so no attribute
+        // fetch happens and no policy tags are surfaced.
+        expect(useAccessControlAttributes).toHaveBeenCalledWith('channel', 'channel_id', false);
     });
 });

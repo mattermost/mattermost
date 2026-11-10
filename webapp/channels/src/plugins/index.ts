@@ -9,6 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
@@ -21,15 +22,22 @@ import {getSiteURL} from 'utils/url';
 
 import type {GlobalState, ActionFuncAsync} from 'types/store';
 
-import {removeWebappPlugin} from './actions';
+import {logPluginLoadFailure, removeWebappPlugin} from './actions';
 
 // Including the fullscreen modal css to make it available to the plugins
 // (without lazy loading). This should be removed in the future whenever we
 // have all plugins migrated to common components that can be reused there.
 import 'components/widgets/modals/full_screen_modal.scss';
 
+const PLUGIN_LOAD_TIMEOUT_MS = 30000;
+
+// Removing a script doesn't cancel its asynchronous work. Keep failed plugins
+// disabled until reload so delayed registrations cannot reactivate them.
+const failedPlugins = new Set<string>();
+const pluginRegisteredHandlers = new Map<string, () => void>();
+
 interface Plugin {
-    initialize?: (registry: PluginRegistry, store: any) => void;
+    initialize?: (registry: PluginRegistry, store: any) => void | Promise<void>;
     uninitialize?: () => void;
 
     /**
@@ -61,6 +69,10 @@ window.plugins = {};
 // During the beta, plugins manipulated the global window.plugins data structure directly. This
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
+    if (failedPlugins.has(id)) {
+        return;
+    }
+
     const oldPlugin = window.plugins[id];
     if (oldPlugin && oldPlugin.uninitialize) {
         oldPlugin.uninitialize();
@@ -68,7 +80,14 @@ function registerPlugin(id: string, plugin: Plugin): void {
 
     window.plugins[id] = plugin;
 
-    onPluginRegistered(id);
+    const listener = pluginRegisteredHandlers.get(id);
+    if (listener) {
+        pluginRegisteredHandlers.delete(id);
+        listener();
+    } else {
+        // eslint-disable-next-line no-console
+        console.error('A plugin was registered, but no listener has been registered for it. It won\'t be loaded correctly.');
+    }
 }
 window.registerPlugin = registerPlugin;
 
@@ -110,16 +129,25 @@ export async function initializePlugins(): Promise<void> {
     }));
 }
 
+// lastFetchedForUserId records the user, or '' when logged out, whose session was used to last fetch
+// the plugin list. Logged out clients may only receive pre-auth plugins from the server.
+let lastFetchedForUserId: string | undefined;
+
 // getPlugins queries the server for all enabled plugins
 export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState()) || '';
+
         let plugins;
         try {
             plugins = await Client4.getWebappPlugins();
         } catch (error) {
+            // An unknown session makes ensureAuthenticatedPluginsLoaded fetch again.
+            lastFetchedForUserId = '';
             return {error};
         }
 
+        lastFetchedForUserId = userId;
         dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGINS, data: plugins});
 
         return {data: plugins};
@@ -127,7 +155,7 @@ export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
 }
 
 // loadedPlugins tracks which plugins have been added as script tags to the page
-const loadedPlugins: { [key: string]: PluginManifest } = {};
+const loadedPlugins: {[key: string]: PluginManifest} = {};
 
 // describePlugin takes a manifest and spits out a string suitable for console.log messages.
 const describePlugin = (manifest: PluginManifest): string => (
@@ -138,7 +166,8 @@ const describePlugin = (manifest: PluginManifest): string => (
 // load, and then ensures the plugin has been initialized.
 export function loadPlugin(manifest: PluginManifest): Promise<void> {
     return new Promise((resolve, reject) => {
-        if (!arePluginsEnabled(store.getState())) {
+        if (!arePluginsEnabled(store.getState()) || failedPlugins.has(manifest.id)) {
+            resolve();
             return;
         }
 
@@ -152,16 +181,74 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
         if (oldManifest) {
             // upgrading, perform cleanup
             store.dispatch(removeWebappPlugin(manifest));
+            document.getElementById('plugin_' + manifest.id)?.remove();
         }
 
-        function onLoad() {
-            initializePlugin(manifest);
+        let settled = false;
+
+        function cleanup() {
+            clearTimeout(timeout);
+            script.onerror = null;
+            window.removeEventListener('error', onScriptError);
+            if (pluginRegisteredHandlers.get(manifest.id) === onLoad) {
+                pluginRegisteredHandlers.delete(manifest.id);
+            }
+        }
+
+        function fail(reason: Parameters<typeof logPluginLoadFailure>[1], error: Error) {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            cleanup();
+            if (loadedPlugins[manifest.id] !== manifest) {
+                script.remove();
+                resolve();
+                return;
+            }
+            failedPlugins.add(manifest.id);
+            try {
+                store.dispatch(logPluginLoadFailure(manifest, reason, error.cause || error));
+            } catch {
+                // Telemetry must not interrupt recovery.
+            }
+            try {
+                removePlugin(manifest);
+            } catch (cleanupError) {
+                console.error(cleanupError); //eslint-disable-line no-console
+            }
+            script.remove();
+            delete window.plugins[manifest.id];
+            reject(error);
+        }
+
+        async function onLoad() {
+            if (settled) {
+                return;
+            }
+            try {
+                const registry = new PluginRegistry(
+                    manifest.id,
+                    () => script.isConnected && document.getElementById(script.id) === script,
+                );
+                await window.plugins[manifest.id]?.initialize?.(registry, store);
+            } catch (error) {
+                fail('initialization', new Error('Unable to initialize ' + describePlugin(manifest), {cause: error}));
+                return;
+            }
+            if (settled) {
+                return;
+            }
+            settled = true;
+            cleanup();
             console.log('Loaded ' + describePlugin(manifest)); //eslint-disable-line no-console
             resolve();
         }
 
-        function onError() {
-            reject(new Error('Unable to load bundle for ' + describePlugin(manifest)));
+        function onScriptError(event: ErrorEvent) {
+            if (event.filename === script.src) {
+                fail('execution', new Error('Unable to execute bundle for ' + describePlugin(manifest), {cause: event.error}));
+            }
         }
 
         // Backwards compatibility for old plugins
@@ -170,31 +257,27 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
             bundlePath = bundlePath.replace('/static/', '/static/plugins/');
         }
 
-        addPluginRegisteredHandler(manifest.id, onLoad);
+        pluginRegisteredHandlers.set(manifest.id, onLoad);
 
         console.log('Loading ' + describePlugin(manifest)); //eslint-disable-line no-console
 
         const script = document.createElement('script');
         script.id = 'plugin_' + manifest.id;
+        script.dataset.pluginVersion = manifest.version;
         script.type = 'text/javascript';
         script.src = getSiteURL() + bundlePath;
         script.defer = true;
-        script.onerror = onError;
+        script.onerror = () => fail('load', new Error('Unable to load bundle for ' + describePlugin(manifest)));
 
-        document.getElementsByTagName('head')[0].appendChild(script);
+        // Some plugins register after an asynchronous import, so script.onload is not sufficient.
+        const timeout = setTimeout(() => {
+            fail('timeout', new Error('Timed out waiting for ' + describePlugin(manifest) + ' to initialize'));
+        }, PLUGIN_LOAD_TIMEOUT_MS);
+        window.addEventListener('error', onScriptError);
+
         loadedPlugins[manifest.id] = manifest;
+        document.getElementsByTagName('head')[0].appendChild(script);
     });
-}
-
-// initializePlugin creates a registry specific to the plugin and invokes any initialize function
-// on the registered plugin class.
-function initializePlugin(manifest: PluginManifest): void {
-    // Initialize the plugin
-    const plugin = window.plugins[manifest.id];
-    const registry = new PluginRegistry(manifest.id);
-    if (plugin && plugin.initialize) {
-        plugin.initialize(registry, store);
-    }
 }
 
 // removePlugin triggers any uninitialize callback on the registered plugin, unregisters any
@@ -210,44 +293,23 @@ export function removePlugin(manifest: PluginManifest): void {
 
     store.dispatch(removeWebappPlugin(manifest));
 
-    const plugin = window.plugins[manifest.id];
-    if (plugin && plugin.uninitialize) {
-        plugin.uninitialize();
+    try {
+        const plugin = window.plugins[manifest.id];
+        if (plugin && plugin.uninitialize) {
+            plugin.uninitialize();
 
-        // Support the deprecated deinitialize callback from the plugins beta.
-    } else if (plugin && plugin.deinitialize) {
-        plugin.deinitialize();
+            // Support the deprecated deinitialize callback from the plugins beta.
+        } else if (plugin && plugin.deinitialize) {
+            plugin.deinitialize();
+        }
+    } finally {
+        unregisterAllPluginWebSocketEvents(manifest.id);
+        unregisterPluginReconnectHandler(manifest.id);
+        store.dispatch(unregisterAdminConsolePlugin(manifest.id));
+        unregisterPluginTranslationsSource(manifest.id);
+        document.getElementById('plugin_' + manifest.id)?.remove();
     }
-    unregisterAllPluginWebSocketEvents(manifest.id);
-    unregisterPluginReconnectHandler(manifest.id);
-    store.dispatch(unregisterAdminConsolePlugin(manifest.id));
-    unregisterPluginTranslationsSource(manifest.id);
-    const script = document.getElementById('plugin_' + manifest.id);
-    if (!script) {
-        return;
-    }
-    script.parentNode?.removeChild(script);
     console.log('Removed ' + describePlugin(manifest)); //eslint-disable-line no-console
-}
-
-type PluginRegisteredListener = () => void;
-
-const pluginRegisteredHandlers = new Map<string, PluginRegisteredListener>();
-
-function addPluginRegisteredHandler(pluginId: string, listener: PluginRegisteredListener) {
-    pluginRegisteredHandlers.set(pluginId, listener);
-}
-
-function onPluginRegistered(pluginId: string) {
-    const listener = pluginRegisteredHandlers.get(pluginId);
-
-    if (listener) {
-        pluginRegisteredHandlers.delete(pluginId);
-        listener();
-    } else {
-        // eslint-disable-next-line no-console
-        console.error('A plugin was registered, but no listener has been registered for it. It won\'t be loaded correctly.');
-    }
 }
 
 // loadPluginsIfNecessary synchronizes the current state of loaded plugins with that of the server,
@@ -257,7 +319,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const oldManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const oldManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     const {error} = await store.dispatch(getPlugins());
     if (error) {
@@ -265,15 +327,16 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const newManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const newManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     // Get new plugins and update existing plugins if version changed
+    const loads: Array<Promise<void>> = [];
     Object.values(newManifests).forEach((newManifest: PluginManifest) => {
         const oldManifest = oldManifests[newManifest.id];
         if (!oldManifest || oldManifest.version !== newManifest.version) {
-            loadPlugin(newManifest).catch((loadErr: Error) => {
+            loads.push(loadPlugin(newManifest).catch((loadErr: Error) => {
                 console.error(loadErr.message); //eslint-disable-line no-console
-            });
+            }));
         }
     });
 
@@ -284,4 +347,17 @@ export async function loadPluginsIfNecessary(): Promise<void> {
             removePlugin(oldManifest);
         }
     });
+
+    await Promise.all(loads);
+}
+
+// ensureAuthenticatedPluginsLoaded re-synchronizes plugins when the plugin list was last fetched
+// for a different session, such as on the login page before the user logged in.
+export async function ensureAuthenticatedPluginsLoaded(): Promise<void> {
+    const currentUserId = getCurrentUserId(store.getState());
+    if (!currentUserId || lastFetchedForUserId === undefined || lastFetchedForUserId === currentUserId) {
+        return;
+    }
+
+    await loadPluginsIfNecessary();
 }

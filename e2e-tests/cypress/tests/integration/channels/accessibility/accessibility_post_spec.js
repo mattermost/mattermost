@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @accessibility
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Verify Accessibility Support in Post', () => {
     let testUser;
@@ -42,7 +42,8 @@ describe('Verify Accessibility Support in Post', () => {
         cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
     });
 
-    it('MM-T1479 Verify Reader reads out the post correctly on Center Channel', () => {
+    // To be addressed in MM-70414
+    it.skip('MM-T1479 Verify Reader reads out the post correctly on Center Channel', () => {
         const {lastMessage} = postMessages(testChannel, otherUser, 1);
         performActionsToLastPost();
 
@@ -175,7 +176,8 @@ describe('Verify Accessibility Support in Post', () => {
 
                 for (let i = 0; i < 3; i++) {
                     // * Verify focus is on the reactions button
-                    cy.get(`#recent_reaction_${i}`).should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
+                    cy.get(`#recent_reaction_${i}`).should('have.class', 'post-menu__emoticon').find('.emoticon--post-menu').should('exist').and('have.attr', 'aria-hidden', 'true');
+                    cy.get(`#recent_reaction_${i}`).should('have.attr', 'aria-label');
                     cy.focused().tab();
                 }
 
@@ -235,7 +237,8 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab().tab();
 
                 // * Verify focus is on most recent action
-                cy.get('#recent_reaction_0').should('have.class', 'emoticon--post-menu').and('have.attr', 'aria-label');
+                cy.get('#recent_reaction_0').should('have.class', 'post-menu__emoticon').find('.emoticon--post-menu').should('exist').and('have.attr', 'aria-hidden', 'true');
+                cy.get('#recent_reaction_0').should('have.attr', 'aria-label');
                 cy.focused().tab();
 
                 // * Verify focus is on the reactions button

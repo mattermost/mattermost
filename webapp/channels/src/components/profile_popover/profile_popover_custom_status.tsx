@@ -5,6 +5,9 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {EmoticonPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -28,7 +31,7 @@ type Props = {
     returnFocus?: () => void;
     currentUserTimezone?: string;
     haveOverrideProp: boolean;
-}
+};
 
 const emojiStyles: React.CSSProperties = {
     marginRight: 8,
@@ -45,7 +48,7 @@ const ProfilePopoverCustomStatus = ({
     haveOverrideProp,
 }: Props) => {
     const dispatch = useDispatch();
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const customStatus = useSelector((state: GlobalState) => getCustomStatus(state, user.id));
     const isCustomStatusExpired = useSelector((state: GlobalState) => getIsCustomStatusExpired(state, customStatus));
     const isCustomStatusEnabled = useSelector((state: GlobalState) => getIsCustomStatusEnabled(state));
@@ -88,16 +91,18 @@ const ProfilePopoverCustomStatus = ({
         );
     } else if (canSetCustomStatus) {
         customStatusContent = (
-            <button
-                className='btn btn-sm btn-quaternary user-popover__set-status'
+            <Button
+                emphasis='quaternary'
+                size='small'
+                className='user-popover__set-status'
                 onClick={showCustomStatusModal}
+                leadingIcon={<Icon glyph={<EmoticonPlusOutlineIcon/>}/>}
             >
-                <i className='icon icon-emoticon-plus-outline'/>
                 <FormattedMessage
                     id='user_profile.custom_status.set_status'
                     defaultMessage='Set a status'
                 />
-            </button>
+            </Button>
         );
     }
 

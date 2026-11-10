@@ -173,6 +173,45 @@ func TestPropertyValue_IsValid(t *testing.T) {
 		}
 		require.NoError(t, pv.IsValid())
 	})
+
+	t.Run("system TargetType with system sentinel TargetID is valid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   PropertyValueSystemTargetID,
+			TargetType: PropertyValueTargetTypeSystem,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pv.IsValid())
+	})
+
+	t.Run("system TargetType with arbitrary TargetID is invalid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: PropertyValueTargetTypeSystem,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pv.IsValid())
+	})
+
+	t.Run("non-system TargetType with system sentinel TargetID is invalid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   PropertyValueSystemTargetID,
+			TargetType: PropertyValueTargetTypeChannel,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pv.IsValid())
+	})
 }
 
 func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
@@ -181,10 +220,18 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		assert.NoError(t, cursor.IsValid())
 	})
 
-	t.Run("valid cursor", func(t *testing.T) {
+	t.Run("valid cursor with CreateAt", func(t *testing.T) {
 		cursor := PropertyValueSearchCursor{
 			PropertyValueID: NewId(),
 			CreateAt:        GetMillis(),
+		}
+		assert.NoError(t, cursor.IsValid())
+	})
+
+	t.Run("valid cursor with UpdateAt", func(t *testing.T) {
+		cursor := PropertyValueSearchCursor{
+			PropertyValueID: NewId(),
+			UpdateAt:        GetMillis(),
 		}
 		assert.NoError(t, cursor.IsValid())
 	})
@@ -197,10 +244,18 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		assert.Error(t, cursor.IsValid())
 	})
 
-	t.Run("zero CreateAt", func(t *testing.T) {
+	t.Run("neither CreateAt nor UpdateAt set", func(t *testing.T) {
 		cursor := PropertyValueSearchCursor{
 			PropertyValueID: NewId(),
-			CreateAt:        0,
+		}
+		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("both CreateAt and UpdateAt set", func(t *testing.T) {
+		cursor := PropertyValueSearchCursor{
+			PropertyValueID: NewId(),
+			CreateAt:        GetMillis(),
+			UpdateAt:        GetMillis(),
 		}
 		assert.Error(t, cursor.IsValid())
 	})
@@ -212,4 +267,235 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		}
 		assert.Error(t, cursor.IsValid())
 	})
+}
+
+func TestPropertyValueSearchOpts_IsValid(t *testing.T) {
+	t.Run("empty opts is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("since without cursor is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{SinceUpdateAt: 1000}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delta mode with matching cursor_update_at is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			SinceUpdateAt: 1000,
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				UpdateAt:        1500,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("directory mode with matching cursor_create_at is valid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				CreateAt:        1500,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delta mode with cursor_create_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			SinceUpdateAt: 1000,
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				CreateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("directory mode with cursor_update_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+				UpdateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("invalid cursor surfaces error", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: "invalid",
+				CreateAt:        1500,
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+
+	t.Run("cursor with ID but neither create_at nor update_at is invalid", func(t *testing.T) {
+		opts := PropertyValueSearchOpts{
+			Cursor: PropertyValueSearchCursor{
+				PropertyValueID: NewId(),
+			},
+		}
+		assert.Error(t, opts.IsValid())
+	})
+}
+
+func TestSanitizePropertyValue(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"empty bytes", "", ""},
+		{"string trimmed", `"  hello  "`, `"hello"`},
+		{"string unchanged", `"hello"`, `"hello"`},
+		{"string all whitespace", `"   "`, `""`},
+		{"string already empty", `""`, `""`},
+		{"string array trimmed and filtered", `["  a  ", "", "  ", "b"]`, `["a","b"]`},
+		{"string array unchanged", `["a","b"]`, `["a","b"]`},
+		{"string array all empty", `["", "   ", ""]`, `[]`},
+		{"number passthrough", `42`, `42`},
+		{"boolean passthrough", `true`, `true`},
+		{"null passthrough", `null`, `null`},
+		{"object passthrough", `{"key":"  val  "}`, `{"key":"  val  "}`},
+		{"nested array passthrough", `[["a","b"]]`, `[["a","b"]]`},
+		{"mixed array passthrough", `["a",1]`, `["a",1]`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := SanitizePropertyValue(json.RawMessage(tc.in))
+			assert.Equal(t, tc.want, string(got))
+		})
+	}
+
+	t.Run("returns identity when no change", func(t *testing.T) {
+		raw := json.RawMessage(`"hello"`)
+		got := SanitizePropertyValue(raw)
+		assert.Equal(t, &raw[0], &got[0], "expected same backing array when unchanged")
+	})
+}
+
+func TestBroadcastValue(t *testing.T) {
+	value := json.RawMessage(`"secret"`)
+	withheld := json.RawMessage(PropertyValueWithheldJSON)
+
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	publicField := &PropertyField{Permissions: &Permissions{Restrictions: readable}}
+	sourceOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	sysadminField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelSysadmin},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	memberField := &PropertyField{Permissions: &Permissions{Restrictions: &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelMember},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}}}
+	sharedOnlyField := &PropertyField{Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	noPermissionsField := &PropertyField{}
+	templateID := NewId()
+	linkedField := &PropertyField{LinkedFieldID: &templateID, Permissions: &Permissions{Restrictions: readable}}
+
+	cases := []struct {
+		name  string
+		field *PropertyField
+		want  json.RawMessage
+	}{
+		{"public field returns value unchanged", publicField, value},
+		{"source_only field returns the marker", sourceOnlyField, withheld},
+		{"sysadmin value.read returns the marker", sysadminField, withheld},
+		{"member value.read returns the marker", memberField, withheld},
+		{"shared_only field returns the marker", sharedOnlyField, withheld},
+		{"nil field returns the marker", nil, withheld},
+		{"field with no permissions returns the marker", noPermissionsField, withheld},
+		// No template to read the masking from, whatever the template says.
+		{"linked field returns the marker", linkedField, withheld},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := BroadcastValue(tc.field, value)
+			assert.Equal(t, string(tc.want), string(got))
+		})
+	}
+
+	t.Run("marker is valid JSON that unmarshals to a non-null object", func(t *testing.T) {
+		got := BroadcastValue(sourceOnlyField, value)
+		var obj map[string]any
+		require.NoError(t, json.Unmarshal(got, &obj))
+		assert.NotNil(t, obj)
+	})
+}
+
+func TestValidatePropertyValueForFieldType(t *testing.T) {
+	t.Run("number", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, ` null `, `0`, `-3`, `2.5`, `1e3`, `-0.000001`, `1.7976931348623157e308`} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`"3"`, `""`, `"NaN"`, `"Infinity"`, `NaN`, `Infinity`, `true`, `[]`, `[1]`, `{}`, `1e400`, `-1e400`, `1 2`, `01x`, `1 ]`, `1}`, `1,`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeNumber, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
+	t.Run("checkbox", func(t *testing.T) {
+		for _, raw := range []string{``, `null`, `true`, `false`, ` true `} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+		for _, raw := range []string{`"true"`, `""`, `1`, `0`, `[]`, `{}`, `[true]`, `truefalse`} {
+			assert.Error(t, ValidatePropertyValueForFieldType(PropertyFieldTypeCheckbox, json.RawMessage(raw)), "value %q", raw)
+		}
+	})
+
+	t.Run("other types are not checked", func(t *testing.T) {
+		for _, fieldType := range []PropertyFieldType{PropertyFieldTypeText, PropertyFieldTypeSelect, PropertyFieldTypeDate, PropertyFieldType("bogus")} {
+			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`12`)), "type %q", fieldType)
+			assert.NoError(t, ValidatePropertyValueForFieldType(fieldType, json.RawMessage(`true`)), "type %q", fieldType)
+		}
+	})
+}
+
+func TestBroadcastValueWithTemplate(t *testing.T) {
+	value := json.RawMessage(`"secret"`)
+	withheld := json.RawMessage(PropertyValueWithheldJSON)
+
+	readable := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+	unmaskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable}}
+	maskedTemplate := &PropertyField{ID: NewId(), Permissions: &Permissions{Restrictions: readable, Masking: &Masking{}}}
+	linkedTo := func(template *PropertyField) *PropertyField {
+		return &PropertyField{LinkedFieldID: &template.ID, Permissions: &Permissions{Restrictions: readable}}
+	}
+	sysadminLinked := linkedTo(unmaskedTemplate)
+	sysadminLinked.Permissions.Restrictions = &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelSysadmin},
+		Option: ReadWrite{Read: PermissionLevelEveryone},
+	}
+
+	cases := []struct {
+		name     string
+		field    *PropertyField
+		template *PropertyField
+		want     json.RawMessage
+	}{
+		{"unlinked public field returns value unchanged", &PropertyField{Permissions: &Permissions{Restrictions: readable}}, nil, value},
+		{"linked field with an unmasked template returns value unchanged", linkedTo(unmaskedTemplate), unmaskedTemplate, value},
+		{"linked field with a masked template returns the marker", linkedTo(maskedTemplate), maskedTemplate, withheld},
+		{"linked field with a missing template returns the marker", linkedTo(unmaskedTemplate), nil, withheld},
+		{"linked field with a sysadmin value.read returns the marker", sysadminLinked, unmaskedTemplate, withheld},
+		{"field with no permissions returns the marker", &PropertyField{}, nil, withheld},
+		{"nil field returns the marker", nil, nil, withheld},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := BroadcastValueWithTemplate(tc.field, tc.template, value)
+			assert.Equal(t, string(tc.want), string(got))
+		})
+	}
 }

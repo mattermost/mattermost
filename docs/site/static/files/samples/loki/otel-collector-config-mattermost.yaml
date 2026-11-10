@@ -1,0 +1,50 @@
+# OpenTelemetry Collector configuration for Mattermost log collection
+
+receivers:
+  filelog/mattermost:
+    include: [ /opt/mattermost/logs/mattermost.log ]
+    start_at: beginning
+    operators:
+      - type: json_parser
+
+processors:
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+
+  resource:
+    attributes:
+      - key: host.name
+        value: "<HOSTNAME>"
+        action: upsert
+      - key: service.instance.id
+        value: "<HOSTNAME>"
+        action: upsert
+      - key: service.name
+        value: "<SERVICE_NAME>"
+        action: upsert
+
+  transform/severity:
+    log_statements:
+      - context: log
+        statements:
+          - set(log.severity_text, log.attributes["level"]) where log.attributes["level"] != nil
+          - set(log.severity_number, 9) where log.attributes["level"] == "info"
+          - set(log.severity_number, 13) where log.attributes["level"] == "warn" or log.attributes["level"] == "warning"
+          - set(log.severity_number, 17) where log.attributes["level"] == "error"
+
+exporters:
+  otlp_http/loki:
+    endpoint: "http://<LOKI_HOST>:3100/otlp"
+    tls:
+      insecure: true
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    logs/mattermost:
+      receivers: [ filelog/mattermost ]
+      processors: [ resource, transform/severity, batch ]
+      exporters: [ otlp_http/loki ]

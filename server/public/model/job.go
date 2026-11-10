@@ -29,12 +29,10 @@ const (
 	JobTypeResendInvitationEmail         = "resend_invitation_email"
 	JobTypeExtractContent                = "extract_content"
 	JobTypeLastAccessiblePost            = "last_accessible_post"
-	JobTypeLastAccessibleFile            = "last_accessible_file"
 	JobTypeUpgradeNotifyAdmin            = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin              = "trial_notify_admin"
 	JobTypePostPersistentNotifications   = "post_persistent_notifications"
 	JobTypeInstallPluginNotifyAdmin      = "install_plugin_notify_admin"
-	JobTypeHostedPurchaseScreening       = "hosted_purchase_screening"
 	JobTypeS3PathMigration               = "s3_path_migration"
 	JobTypeCleanupDesktopTokens          = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration    = "delete_empty_drafts_migration"
@@ -44,10 +42,14 @@ const (
 	JobTypeDeleteDmsPreferencesMigration = "delete_dms_preferences_migration"
 	JobTypeMobileSessionMetadata         = "mobile_session_metadata"
 	JobTypeAccessControlSync             = "access_control_sync"
+	JobTypeAccessControlTeamSync         = "access_control_team_sync"
 	JobTypePushProxyAuth                 = "push_proxy_auth"
 	JobTypeRecap                         = "recap"
+	JobTypeScheduledRecap                = "scheduled_recap"
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
+	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
+	JobTypeNotifyExpiringAccessTokens    = "notify_expiring_access_tokens"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -57,6 +59,12 @@ const (
 	JobStatusCanceled        = "canceled"
 	JobStatusWarning         = "warning"
 )
+
+// Deprecated: The hosted purchase screening job has been removed.
+const JobTypeHostedPurchaseScreening = "hosted_purchase_screening"
+
+// Deprecated: the Cloud file storage limit job no longer exists.
+const JobTypeLastAccessibleFile = "last_accessible_file"
 
 var AllJobTypes = [...]string{
 	JobTypeDataRetention,
@@ -76,10 +84,12 @@ var AllJobTypes = [...]string{
 	JobTypeCloud,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
-	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
+	JobTypeCleanupExpiredAccessTokens,
+	JobTypeNotifyExpiringAccessTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
+	JobTypeScheduledRecap,
 }
 
 type Job struct {

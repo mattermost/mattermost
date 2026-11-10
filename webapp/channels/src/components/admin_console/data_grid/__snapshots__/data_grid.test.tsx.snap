@@ -4,39 +4,46 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
+        <div
+          class="DataGrid_searchBar"
         >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
       </div>
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_loading"
@@ -47,8 +54,10 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot while
           id="loadingSpinner"
         >
           <span
-            class="fa fa-spinner fa-fw fa-pulse spinner"
-            title="Loading Icon"
+            aria-label="Loading Icon"
+            class="_spinner_3elm7_10 spinner"
+            role="status"
+            style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
           />
         </span>
         Loading
@@ -62,48 +71,58 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
+        <div
+          class="DataGrid_searchBar"
         >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
       </div>
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
     </div>
   </div>
@@ -114,48 +133,58 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid customTable"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
+        <div
+          class="DataGrid_searchBar"
         >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
       </div>
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
       <div
         class="DataGrid_row"
+        data-testid="dataGrid-row"
       />
     </div>
   </div>
@@ -166,39 +195,46 @@ exports[`components/admin_console/data_grid/DataGrid should match snapshot with 
 <div>
   <div
     class="DataGrid"
+    data-testid="dataGrid"
   >
     <div
       class="DataGrid_search"
     >
       <div
-        class="DataGrid_searchBar"
+        class="DataGrid_searchControls"
       >
-        <span
-          aria-hidden="true"
-          class="DataGrid_searchIcon"
+        <div
+          class="DataGrid_searchBar"
         >
-          <i
-            class="fa fa-search"
-            title="Search Icon"
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
           />
-        </span>
-        <input
-          data-testid="searchInput"
-          placeholder="Search"
-          type="text"
-          value=""
-        />
-        <i
-          class="DataGrid_clearButton fa fa-times-circle hidden"
-          data-testid="clear-search"
-        />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
       </div>
     </div>
     <div
       class="DataGrid_header"
+      data-testid="dataGrid-header"
     />
     <div
       class="DataGrid_rows"
+      data-testid="dataGrid-rows"
     >
       <div
         class="DataGrid_empty"

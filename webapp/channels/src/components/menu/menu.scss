@@ -1,5 +1,9 @@
 @use "utils/variables";
 
+a.MuiMenuItem-root {
+    text-decoration: none;
+}
+
 .MuiPopover-root.MuiModal-root.menu_menuStyled {
     z-index: variables.$z-index-menu;
 
@@ -7,7 +11,6 @@
         min-width: 114px;
         max-width: 496px;
         max-height: 80vh;
-        padding: 4px 0;
         background-color: var(--center-channel-bg);
         box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
         margin-block-start: 4px;
@@ -16,11 +19,32 @@
         pointer-events: none;
         & .MuiPaper-root {
             box-shadow: var(--elevation-5), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+            // Scrollbar lives on the paper; without this, hover passes through and closes the submenu.
+            pointer-events: auto;
         }
     }
 }
 
+.modal-dialog.menuModal {
+    pointer-events: none;
+}
+
+.modal-dialog.menuModal .modal-content {
+    pointer-events: auto;
+}
+
 .menuModal {
+    // On mobile the menu renders inside a full-height modal dialog, so the
+    // dialog would otherwise intercept clicks in the empty area around the
+    // menu. Letting those clicks pass through to the modal container restores
+    // the standard "click outside to dismiss" behavior, while the menu itself
+    // stays interactive.
+    pointer-events: none;
+
+    & .modal-content {
+        pointer-events: auto;
+    }
+
     & .modal-header {
         display: none;
     }

@@ -1,0 +1,279 @@
+.ChannelInfoAttributes {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    gap: 8px;
+
+    &__heading {
+        padding: 6px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.9);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.11px;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__row {
+        display: grid;
+        align-items: center;
+        padding: 2px 0;
+        gap: 10px;
+        grid-template-columns: 152px minmax(0, 1fr);
+    }
+
+    &__label {
+        display: inline-flex;
+        min-width: 0;
+        min-height: 28px;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 16px;
+
+        svg {
+            color: rgba(var(--center-channel-color-rgb), 0.48);
+        }
+    }
+
+    &__value {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__valueActive {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        flex: 1;
+        align-items: center;
+
+        > .ChannelInfoAttributes__valueTrigger {
+            width: auto;
+            min-width: 0;
+            flex: 1;
+        }
+    }
+
+    // Borderless inline chrome matching hierarchical-value-menu--inline so
+    // select, multiselect, and graph attributes read as one family in this list.
+    // min-height is a floor -- chips wrap and the trigger grows to fit them.
+    // Role is a div (not a button) so chip removes can be real <button>s.
+    &__valueTrigger {
+        display: inline-flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover:not([aria-disabled='true']),
+        &[aria-expanded='true'] {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:focus-visible {
+            background: transparent;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        &[aria-expanded='true']:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &[aria-disabled='true'] {
+            cursor: not-allowed;
+            opacity: 0.64;
+        }
+    }
+
+    &__triggerInner {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        align-items: center;
+        gap: 4px;
+    }
+
+    // Every selected value, wrapping. No "+N" and no cap, matching the graph
+    // attribute picker's chip list.
+    &__chips {
+        display: flex;
+        flex-grow: 1;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px;
+    }
+
+    // AttributeChip medium owns height/padding (22px). Do not inflate to 24px —
+    // that leftover graph-picker metric made solid-colour classification chips
+    // read taller than severity/multiselect chips sharing the same component.
+    &__chip.AttributeChip {
+        margin: 2px;
+    }
+
+    // Inside the pill, so it rides the chip's own (admin-chosen) background:
+    // colour is inherited rather than a fixed grey that could vanish on it.
+    &__chipRemove {
+        display: inline-flex;
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+        cursor: pointer;
+        line-height: 0;
+        opacity: 0.56;
+
+        &:hover:not(:disabled) {
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            opacity: 1;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 1px;
+        }
+    }
+
+    &__textInput {
+        // Match resting textValue so entering edit does not stretch to full
+        // row width or shift the text.
+        width: auto;
+        min-width: 1ch;
+        max-width: 100%;
+        min-height: 28px;
+        box-sizing: border-box;
+        padding: 0 6px;
+        border: none;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color);
+        field-sizing: content;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        outline: none;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:disabled {
+            opacity: 0.64;
+        }
+    }
+
+    // Select / multiselect option list — same 320px cap as hierarchical-value-menu.
+    &__valueMenu {
+        max-width: 320px;
+        overflow-x: hidden;
+
+        .MuiMenuItem-root {
+            max-width: 320px;
+            box-sizing: border-box;
+
+            > .label-elements {
+                overflow: hidden;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            > .trailing-elements {
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    &__optionLabel {
+        display: block;
+        overflow: hidden;
+        min-width: 0;
+        max-width: 100%;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__textValue {
+        overflow: hidden;
+        padding: 0 2px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__error {
+        color: var(--error-text);
+        font-size: 12px;
+        grid-column: 1 / -1;
+        line-height: 16px;
+    }
+
+    &__add {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 2px 0;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 6px;
+        line-height: 16px;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+}
+
+// Menu portals outside .ChannelInfoAttributes; keep the paper at the same
+// 320px cap as the value list so long option labels cannot widen it.
+.menu_menuStyled .MuiPaper-root:has(> .ChannelInfoAttributes__valueMenu) {
+    max-width: 320px;
+}

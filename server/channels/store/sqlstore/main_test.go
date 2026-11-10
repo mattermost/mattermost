@@ -17,6 +17,12 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+
+	if f := flag.Lookup("test.list"); f != nil && f.Value.String() != "" {
+		os.Exit(m.Run())
+	}
+
 	var parallelism int
 	if f := flag.Lookup("test.parallel"); f != nil {
 		parallelism, _ = strconv.Atoi(f.Value.String())

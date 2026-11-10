@@ -73,17 +73,17 @@ type Props = React.AriaAttributes & {
     setSearchTerms: (searchTerms: string) => void;
     onKeyDown: (e: React.KeyboardEvent<Element>) => void;
     focus: (newPosition: number) => void;
-}
+};
 
 const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchType, setSearchTerms, onKeyDown, focus, ...otherProps}, inputRef) => {
     const intl = useIntl();
     let searchPlaceholder = intl.formatMessage({id: 'search_bar.search', defaultMessage: 'Search'});
 
     if (searchType === 'messages' || searchType === '') {
-        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages'});
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_messages', defaultMessage: 'Search messages by keyword'});
     }
     if (searchType === 'files') {
-        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files'});
+        searchPlaceholder = intl.formatMessage({id: 'search_bar.search_files', defaultMessage: 'Search files by keyword'});
     }
 
     const dispatch = useDispatch();
@@ -121,6 +121,7 @@ const SearchInput = forwardRef<HTMLInputElement, Props>(({searchTerms, searchTyp
             />
             {searchTerms.length > 0 && (
                 <ClearButton
+                    data-testid='input-clear'
                     className='btn btn-sm input-clear-x'
                     onClick={clearSearch}
                 >

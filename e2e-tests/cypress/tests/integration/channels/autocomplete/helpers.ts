@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {newTestPassword} from '@/utils';
 
 export type SimpleUser = Pick<Cypress.UserProfile, 'username' | 'first_name' | 'last_name' | 'nickname' | 'password' | 'email'>;
 
-function createPrivateChannel(teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createPrivateChannel(teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a private channel as sysadmin
     return createChannel('P', teamId, userToAdd);
 }
 
-function createPublicChannel(teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createPublicChannel(teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a public channel as sysadmin
     return createChannel('O', teamId, userToAdd);
 }
@@ -37,8 +38,8 @@ function createSearchData(prefix: string) {
 }
 
 function getTestUsers(prefix = ''): Record<string, SimpleUser> {
-    if (Cypress.env('searchTestUsers')) {
-        return JSON.parse(Cypress.env('searchTestUsers'));
+    if (Cypress.expose('searchTestUsers')) {
+        return JSON.parse(Cypress.expose('searchTestUsers'));
     }
 
     return {
@@ -188,7 +189,7 @@ function verifySuggestionAtChannelSwitcher(...expectedUsers: SimpleUser[]) {
     });
 }
 
-function createChannel(channelType: string, teamId: string, userToAdd: Cypress.UserProfile = null) {
+function createChannel(channelType: string, teamId: string, userToAdd: Cypress.UserProfile | null = null) {
     // # Create a channel as sysadmin
     return cy.externalRequest({
         user: getAdminAccount(),
@@ -224,7 +225,7 @@ function createChannel(channelType: string, teamId: string, userToAdd: Cypress.U
 function generatePrefixedUser(user: Omit<SimpleUser, 'password' | 'email'>, prefix: string) {
     return {
         username: withPrefix(user.username, prefix),
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: withPrefix(user.first_name, prefix),
         last_name: withPrefix(user.last_name, prefix),
         email: createEmail(user.username, prefix),

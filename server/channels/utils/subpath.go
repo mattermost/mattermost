@@ -23,8 +23,8 @@ import (
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
 func getSubpathScript(subpath string) string {
-	if subpath == "" {
-		subpath = "/"
+	if subpath == "" || subpath == "/" {
+		return ""
 	}
 
 	newPath := path.Join(subpath, "static") + "/"
@@ -32,20 +32,28 @@ func getSubpathScript(subpath string) string {
 	return fmt.Sprintf("window.publicPath='%s'", newPath)
 }
 
-// GetSubpathScriptHash computes the script-src addition required for the subpath script to bypass CSP protections.
-func GetSubpathScriptHash(subpath string) string {
-	// No hash is required for the default subpath.
-	if subpath == "" || subpath == "/" {
+// GetScriptHash computes the script-src addition required for an inline script injected into the root.html.
+func GetScriptHash(script string) string {
+	// No hash is required when there's no script
+	if script == "" {
 		return ""
 	}
 
-	scriptHash := sha256.Sum256([]byte(getSubpathScript(subpath)))
+	scriptHash := sha256.Sum256([]byte(script))
 
 	return fmt.Sprintf(" 'sha256-%s'", base64.StdEncoding.EncodeToString(scriptHash[:]))
 }
 
-// UpdateAssetsSubpathInDir rewrites assets in the given directory to assume the application is
-// hosted at the given subpath instead of at the root. No changes are written unless necessary.
+// GetStaticScriptHashes computes the combined script-src additions required for the inline scripts injected
+// into root.html to bypass CSP protections.
+func GetStaticScriptHashes(subpath string) string {
+	return GetScriptHash(getSubpathScript(subpath))
+}
+
+// UpdateAssetsSubpathInDir rewrites static assets in the given directory so that HTML and CSS files assume the
+// application is hosted at the given subpath instead of at the root.
+//
+// No changes are written unless necessary.
 func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	if subpath == "" {
 		subpath = "/"
@@ -105,7 +113,7 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
 		`<meta http-equiv="Content-Security-Policy" content="script-src 'self'%s">`,
-		GetSubpathScriptHash(subpath),
+		GetStaticScriptHashes(subpath),
 	))
 
 	// Rewrite the root.html references to `/static/*` to include the given subpath.
@@ -114,7 +122,6 @@ func updateRootFile(oldRootHTML string, rootHTMLPath string, alreadyRewritten bo
 	newRootHTML = strings.Replace(newRootHTML, pathToReplace, newPath, -1)
 
 	publicPathInWindowsScriptRegex := regexp.MustCompile(`(?s)<script id="publicPathInWindowScript">(.*?)</script>`)
-
 	if alreadyRewritten && subpath == "/" {
 		// Remove window global publicPath definition if subpath is root
 		newRootHTML = publicPathInWindowsScriptRegex.ReplaceAllLiteralString(newRootHTML, "<script id=\"publicPathInWindowScript\"></script>")

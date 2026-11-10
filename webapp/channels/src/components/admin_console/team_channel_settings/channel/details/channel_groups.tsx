@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -43,7 +43,7 @@ export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props
             button={
                 <ToggleModalButton
                     id='addGroupsToChannelToggle'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     modalId={ModalIdentifiers.ADD_GROUPS_TO_CHANNEL}
                     dialogType={AddGroupsToChannelModal}
                     dialogProps={{

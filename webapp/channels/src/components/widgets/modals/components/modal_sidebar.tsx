@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import './modal_sidebar.scss';
 
 export type Tab = {
     icon: JSX.Element;
     name: string;
     uiName: string;
-}
+};
 
 export type Props = {
     activeTab?: string;
     tabs: Tab[];
     updateTab: (name: string) => void;
-}
+};
 
 function ModalSidebar({tabs, activeTab, updateTab}: Props) {
     const handleClick = (tab: Tab, e: React.MouseEvent) => {

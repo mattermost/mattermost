@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import BaseModal from '@/ui/components/system_console/base_modal';
 
@@ -10,10 +11,24 @@ import BaseModal from '@/ui/components/system_console/base_modal';
  */
 export class ManageRolesModal extends BaseModal {
     readonly saveButton: Locator;
+    readonly systemAdminRadio: Locator;
+    readonly delegatedRolesSection: Locator;
+    readonly delegatedRolesTitle: Locator;
 
     constructor(container: Locator) {
         super(container);
         this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.systemAdminRadio = container.locator('input[name="systemadmin"]');
+        this.delegatedRolesSection = container.locator('.manage-roles-modal__delegated-roles');
+        this.delegatedRolesTitle = container.getByText('Delegated Administration Roles', {exact: true});
+    }
+
+    /**
+     * Get the checkbox for a delegated administration role by its display name
+     * (e.g. "User Manager", "System Manager", "Viewer").
+     */
+    getDelegatedRoleCheckbox(roleDisplayName: string): Locator {
+        return this.delegatedRolesSection.locator('label').filter({hasText: roleDisplayName}).getByRole('checkbox');
     }
 
     async save() {
@@ -32,7 +47,7 @@ export class ResetPasswordModal extends BaseModal {
     constructor(container: Locator) {
         super(container);
         this.resetButton = container.getByRole('button', {name: 'Reset'});
-        this.passwordInput = container.locator('input[type="password"]');
+        this.passwordInput = container.getByLabel('New password');
     }
 
     async reset() {
@@ -55,7 +70,7 @@ export class UpdateEmailModal extends BaseModal {
     constructor(container: Locator) {
         super(container);
         this.updateButton = container.getByRole('button', {name: 'Update'});
-        this.emailInput = container.locator('input[type="email"]');
+        this.emailInput = container.getByLabel('New email');
     }
 
     async update() {

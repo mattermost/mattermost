@@ -6,7 +6,8 @@ package model
 import (
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
+	"strings"
 )
 
 const (
@@ -51,7 +52,7 @@ func makeReverseEmojiMap() map[string][]string {
 	for key, value := range SystemEmojis {
 		emojiNames := reverseEmojiMap[value]
 		emojiNames = append(emojiNames, key)
-		sort.Strings(emojiNames)
+		slices.Sort(emojiNames)
 		reverseEmojiMap[value] = emojiNames
 	}
 
@@ -104,6 +105,7 @@ func (emoji *Emoji) PreSave() {
 		emoji.Id = NewId()
 	}
 
+	emoji.Name = strings.ToLower(emoji.Name)
 	emoji.CreateAt = GetMillis()
 	emoji.UpdateAt = emoji.CreateAt
 }

@@ -13,7 +13,7 @@ type ColumnProps = {
     SVGElement?: React.ReactNode;
     extraContent?: React.ReactNode;
     onEnterKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-}
+};
 
 const Column = ({title, message, SVGElement, extraContent, onEnterKeyDown}: ColumnProps) => {
     const handleOnEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

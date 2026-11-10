@@ -11,7 +11,7 @@ import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
-import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {setNavigationBlocked} from 'actions/admin_actions';
 
 import PermissionSystemSchemeSettings from './permission_system_scheme_settings';
 

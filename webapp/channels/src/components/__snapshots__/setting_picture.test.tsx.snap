@@ -39,7 +39,9 @@ exports[`components/SettingItemMin should match snapshot with active Save button
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -50,27 +52,42 @@ exports[`components/SettingItemMin should match snapshot with active Save button
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               tabindex="0"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -107,7 +124,9 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -118,27 +137,42 @@ exports[`components/SettingItemMin should match snapshot with removeSrc state ac
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-primary"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               tabindex="0"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -185,7 +219,9 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -197,39 +233,55 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
               disabled=""
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Uploading..."
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
               <span
-                class="LoadingSpinner with-text"
-                data-testid="loadingSpinner"
-                id="loadingSpinner"
+                aria-hidden="true"
+                class="_button__icon-slot_we8pe_35"
               >
                 <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
+                  aria-label="Loading"
+                  class="_spinner_3elm7_10"
+                  role="status"
+                  style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
+              </span>
+              <span
+                class="_button__label_we8pe_31"
+              >
                 Uploading...
               </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -283,7 +335,9 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -294,28 +348,43 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -362,7 +431,9 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -373,28 +444,43 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -448,7 +534,9 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -459,28 +547,43 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -524,21 +627,43 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
                 src="http://localhost:8065/api/v4/users/src_id"
               />
             </div>
-            <button
+            <div
               class="team-img__remove"
-              data-testid="removeSettingPicture"
             >
-              <span
-                aria-hidden="true"
+              <button
+                aria-label="Remove This Icon"
+                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--padding-compact_ft92e_72 _icon-button--rounded_ft92e_126"
+                data-testid="removeSettingPicture"
+                type="button"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Remove This Icon
-              </span>
-            </button>
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_ft92e_41"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
         </li>
         <div
@@ -551,7 +676,9 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -562,28 +689,43 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -627,21 +769,43 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
                 src="http://localhost:8065/api/v4/users/src_id"
               />
             </div>
-            <button
+            <div
               class="profile-img__remove"
-              data-testid="removeSettingPicture"
             >
-              <span
-                aria-hidden="true"
+              <button
+                aria-label="Remove Profile Picture"
+                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--padding-compact_ft92e_72 _icon-button--rounded_ft92e_126"
+                data-testid="removeSettingPicture"
+                type="button"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Remove Profile Picture
-              </span>
-            </button>
+                <span
+                  aria-hidden="true"
+                  class="_icon-button__icon-slot_ft92e_41"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  >
+                    <div
+                      class="_icon__glyph-area_1i355_9"
+                    >
+                      <svg
+                        fill="currentColor"
+                        height="14"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="14"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </span>
+              </button>
+            </div>
           </div>
         </li>
         <div
@@ -654,7 +818,9 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
           class="setting-list-item"
         >
           <hr />
-          <span>
+          <div
+            class="setting-list-item__buttons"
+          >
             <input
               accept=".jpeg,.jpg,.png,.bmp"
               aria-hidden="true"
@@ -665,28 +831,43 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             />
             <button
               aria-label="Select"
-              class="btn btn-primary btn-file"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="inputSettingPictureButton"
+              type="button"
             >
-              Select
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Select
+              </span>
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
+              type="button"
             >
-              Save
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Save
+              </span>
             </button>
-          </span>
-          <button
-            aria-label="Cancel"
-            class="btn btn-tertiary theme ml-2"
-            data-testid="cancelSettingPicture"
-          >
-            Cancel
-          </button>
+            <button
+              aria-label="Cancel"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              data-testid="cancelSettingPicture"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

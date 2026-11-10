@@ -65,8 +65,8 @@ func TestDataIndexOp(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 
@@ -90,8 +90,8 @@ func TestDataIndexOp(t *testing.T) {
 		for range 5 {
 			post := createTestPost(t, "test message")
 			err := bulkClient.IndexOp(types.IndexOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(post.Id),
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
 			}, post)
 			require.NoError(t, err)
 		}
@@ -116,8 +116,8 @@ func TestDataIndexOp(t *testing.T) {
 		jsonData := []byte(`{"message": "test raw message"}`)
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		}, jsonData)
 		require.NoError(t, err)
 
@@ -141,8 +141,8 @@ func TestDataIndexOp(t *testing.T) {
 		data := []byte(`{"message": "test byte slice"}`)
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(docId),
+			Index_: new("testindex"),
+			Id_:    new(docId),
 		}, data)
 		require.NoError(t, err)
 
@@ -167,16 +167,16 @@ func TestDataDeleteOp(t *testing.T) {
 		// Index a new post and flush
 		post := createTestPost(t, "test message")
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 
 		require.NoError(t, bulkClient.Flush())
 
 		err = bulkClient.DeleteOp(types.DeleteOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		})
 		require.NoError(t, err)
 
@@ -204,8 +204,8 @@ func TestDataDeleteOp(t *testing.T) {
 		for i := range 3 {
 			post := createTestPost(t, "test message")
 			err := bulkClient.IndexOp(types.IndexOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(post.Id),
+				Index_: new("testindex"),
+				Id_:    new(post.Id),
 			}, post)
 			require.NoError(t, err)
 			posts[i] = post.Id
@@ -214,8 +214,8 @@ func TestDataDeleteOp(t *testing.T) {
 
 		for _, id := range posts {
 			err := bulkClient.DeleteOp(types.DeleteOperation{
-				Index_: model.NewPointer("testindex"),
-				Id_:    model.NewPointer(id),
+				Index_: new("testindex"),
+				Id_:    new(id),
 			})
 			require.NoError(t, err)
 		}
@@ -243,8 +243,8 @@ func TestDataFlush(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 
@@ -271,8 +271,8 @@ func TestDataStop(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 
@@ -293,8 +293,8 @@ func TestDataStop(t *testing.T) {
 		post := createTestPost(t, "test message")
 
 		err := bulkClient.IndexOp(types.IndexOperation{
-			Index_: model.NewPointer("testindex"),
-			Id_:    model.NewPointer(post.Id),
+			Index_: new("testindex"),
+			Id_:    new(post.Id),
 		}, post)
 		require.NoError(t, err)
 

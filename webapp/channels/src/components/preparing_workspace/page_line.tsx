@@ -8,7 +8,7 @@ import './page_line.scss';
 type Props = {
     style?: Record<string, string>;
     noLeft?: boolean;
-}
+};
 const PageLine = (props: Props) => {
     let className = 'PageLine';
     if (props.noLeft) {

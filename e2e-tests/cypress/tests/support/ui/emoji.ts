@@ -1,14 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
+import type {ChainableT} from '@/types';
 
 Cypress.Commands.add('uiGetEmojiPicker', (): ChainableT<JQuery> => {
     return cy.get('#emojiPicker').should('be.visible');
 });
 
 Cypress.Commands.add('uiOpenEmojiPicker', (): ChainableT<JQuery> => {
-    cy.findByRole('button', {name: 'select an emoji'}).click();
+    cy.get('body').then(($body) => {
+        if ($body.find('#emojiPicker:visible').length) {
+            cy.get('body').type('{esc}');
+        }
+    });
+    cy.get('#emojiPicker').should('not.exist');
+    cy.findByRole('button', {name: 'select an emoji'}).should('be.visible').click();
     return cy.get('#emojiPicker').should('be.visible');
 });
 

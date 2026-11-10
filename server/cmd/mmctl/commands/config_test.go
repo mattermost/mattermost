@@ -426,24 +426,58 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Should get an error if a string is passed while trying to set a slice", func() {
+	s.Run("Set a slice of string config value to a single value for a given key", func() {
 		printer.Clean()
-		args := []string{"SqlSettings.DataSourceReplicas", "[\"test1\", \"test2\"]"}
+		args := []string{"SqlSettings.DataSourceReplicas", "test1"}
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
 		inputConfig := &model.Config{}
 		inputConfig.SetDefaults()
-		inputConfig.SqlSettings.DataSourceReplicas = []string{"test1", "test2"}
+		inputConfig.SqlSettings.DataSourceReplicas = []string{"test1"}
 
 		s.client.
 			EXPECT().
 			GetConfig(context.TODO()).
 			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), inputConfig).
+			Return(inputConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should store a JSON array string as a single element since it is not parsed", func() {
+		printer.Clean()
+		args := []string{"SqlSettings.DataSourceReplicas", `["test1", "test2"]`}
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		inputConfig.SqlSettings.DataSourceReplicas = []string{`["test1", "test2"]`}
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(defaultConfig, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(context.TODO(), inputConfig).
+			Return(inputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Get error if the key doesn't exist", func() {
@@ -600,10 +634,10 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 	pluginFile, err := os.CreateTemp(os.TempDir(), "plugin_config_*.json")
 	s.Require().NoError(err)
 
-	_, err = tmpFile.Write([]byte(configFilePayload))
+	_, err = tmpFile.WriteString(configFilePayload)
 	s.Require().NoError(err)
 
-	_, err = pluginFile.Write([]byte(configFilePluginPayload))
+	_, err = pluginFile.WriteString(configFilePluginPayload)
 	s.Require().NoError(err)
 
 	defer func() {
@@ -896,8 +930,8 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 func TestCloudRestricted(t *testing.T) {
 	cfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			GoogleDeveloperKey: model.NewPointer("test"),
-			SiteURL:            model.NewPointer("test"),
+			GoogleDeveloperKey: new("test"),
+			SiteURL:            new("test"),
 		},
 	}
 
@@ -932,45 +966,46 @@ func TestSetConfigValue(t *testing.T) {
 		config         *model.Config
 		args           []string
 		expectedConfig *model.Config
+		expectedErr    string
 	}{
 		"bool": {
 			path: "LogSettings.EnableConsole",
 			args: []string{"true"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(false),
+				EnableConsole: new(false),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				EnableConsole: model.NewPointer(true),
+				EnableConsole: new(true),
 			}},
 		},
 		"string": {
 			path: "LogSettings.ConsoleLevel",
 			args: []string{"foo"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("ConsoleLevel"),
+				ConsoleLevel: new("ConsoleLevel"),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				ConsoleLevel: model.NewPointer("foo"),
+				ConsoleLevel: new("foo"),
 			}},
 		},
 		"int": {
 			path: "LogSettings.MaxFieldSize",
 			args: []string{"123"},
 			config: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(0),
+				MaxFieldSize: new(0),
 			}},
 			expectedConfig: &model.Config{LogSettings: model.LogSettings{
-				MaxFieldSize: model.NewPointer(123),
+				MaxFieldSize: new(123),
 			}},
 		},
 		"int64": {
 			path: "ServiceSettings.TLSStrictTransportMaxAge",
 			config: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(0)),
+				TLSStrictTransportMaxAge: new(int64(0)),
 			}},
 			args: []string{"123"},
 			expectedConfig: &model.Config{ServiceSettings: model.ServiceSettings{
-				TLSStrictTransportMaxAge: model.NewPointer(int64(123)),
+				TLSStrictTransportMaxAge: new(int64(123)),
 			}},
 		},
 		"string slice": {
@@ -982,6 +1017,66 @@ func TestSetConfigValue(t *testing.T) {
 			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
 				DataSourceReplicas: []string{"abc", "def"},
 			}},
+		},
+		"string slice with a single value": {
+			path: "SqlSettings.DataSourceReplicas",
+			args: []string{"abc"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"abc"},
+			}},
+		},
+		"string slice with a single value replacing existing entries": {
+			path: "SqlSettings.DataSourceSearchReplicas",
+			args: []string{"abc"},
+			config: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceSearchReplicas: []string{"old1", "old2"},
+			}},
+			expectedConfig: &model.Config{SqlSettings: model.SqlSettings{
+				DataSourceSearchReplicas: []string{"abc"},
+			}},
+		},
+		"pointer to string slice with a single value": {
+			path: "AutoTranslationSettings.TargetLanguages",
+			args: []string{"es"},
+			config: &model.Config{AutoTranslationSettings: model.AutoTranslationSettings{
+				TargetLanguages: &[]string{"en", "fr"},
+			}},
+			expectedConfig: &model.Config{AutoTranslationSettings: model.AutoTranslationSettings{
+				TargetLanguages: &[]string{"es"},
+			}},
+		},
+		"string slice inside a plugin settings map with a single value": {
+			path: "PluginSettings.Plugins.com.mattermost.testplugin.allowlist",
+			args: []string{"ghi"},
+			config: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"allowlist": []string{"abc", "def"}},
+				},
+			}},
+			// map entries are replaced through a newly allocated value, so the entry becomes a pointer
+			expectedConfig: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"allowlist": &[]string{"ghi"}},
+				},
+			}},
+		},
+		"slice of a type a single value cannot be converted to": {
+			path: "PluginSettings.Plugins.com.mattermost.testplugin.ports",
+			args: []string{"abc"},
+			config: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"ports": []int{1, 2}},
+				},
+			}},
+			expectedConfig: &model.Config{PluginSettings: model.PluginSettings{
+				Plugins: map[string]map[string]any{
+					"com.mattermost.testplugin": {"ports": []int{1, 2}},
+				},
+			}},
+			expectedErr: "target value is of type slice and provided value is string",
 		},
 		"json.RawMessage": {
 			path: "LogSettings.AdvancedLoggingJSON",
@@ -996,10 +1091,16 @@ func TestSetConfigValue(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
-		require.NoError(t, err)
+		t.Run(name, func(t *testing.T) {
+			err := setConfigValue(parseConfigPath(tc.path), tc.config, tc.args)
+			if tc.expectedErr != "" {
+				require.EqualError(t, err, tc.expectedErr)
+			} else {
+				require.NoError(t, err)
+			}
 
-		assert.Equal(t, tc.expectedConfig, tc.config, name)
+			assert.Equal(t, tc.expectedConfig, tc.config)
+		})
 	}
 }
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
@@ -34,6 +34,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
     const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames, location} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
+
+    // Bot/webhook posts should never show a GUEST tag, even if the underlying
+    // account (e.g. the webhook creator) has been demoted to a guest.
+    const hideGuestTag = isBot || isFromWebhook(post);
 
     let userProfile: ReactNode = null;
     let botIndicator = null;
@@ -69,6 +73,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     }
@@ -79,6 +84,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
     } else {
@@ -87,6 +93,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 userId={post.user_id}
                 channelId={post.channel_id}
                 colorize={colorize}
+                hideGuestTag={hideGuestTag}
             />
         );
 
@@ -100,6 +107,8 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
+                    fromWebhook={true}
                     overwriteName={overwriteName}
                     colorize={colorize}
                     overwriteIcon={overwriteIcon}
@@ -138,6 +147,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     userId={post.user_id}
                     channelId={post.channel_id}
                     hideStatus={true}
+                    hideGuestTag={hideGuestTag}
                     colorize={colorize}
                 />
             );

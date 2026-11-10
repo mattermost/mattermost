@@ -14,7 +14,7 @@ import YoutubeVideo from './youtube_video';
 type OwnProps = {
     postId: string;
     link: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
@@ -24,7 +24,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         googleDeveloperKey: config.GoogleDeveloperKey,
         hasImageProxy: config.HasImageProxy === 'true',
         metadata: getOpenGraphMetadataForUrl(state, ownProps.postId, ownProps.link),
-        youtubeReferrerPolicy: config.YoutubeReferrerPolicy === 'true',
     };
 }
 

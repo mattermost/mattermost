@@ -21,6 +21,7 @@ describe('RecapProcessing', () => {
         update_at: 1000,
         delete_at: 0,
         read_at: 0,
+        viewed_at: 0,
         channels: [],
         total_message_count: 0,
     };

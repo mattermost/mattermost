@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 
 import {closeModal} from 'actions/views/modals';
@@ -22,7 +23,7 @@ type Props = {
     currentLicenseSKU: string;
     onExited?: () => void;
     handleRemove?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
-}
+};
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();
@@ -77,26 +78,26 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
                     </div>
                 </div>
                 <div className='content-footer'>
-                    <button
+                    <Button
                         onClick={handleOnClose}
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         id='cancel-removal'
                     >
                         <FormattedMessage
                             id='admin.license.confirm-license-removal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleRemoval}
-                        className='btn btn-primary'
+                        emphasis='primary'
                         id='confirm-removal'
                     >
                         <FormattedMessage
                             id='admin.license.confirm-license-removal.confirm'
                             defaultMessage='Confirm'
                         />
-                    </button>
+                    </Button>
                 </div>
             </>
         </GenericModal>

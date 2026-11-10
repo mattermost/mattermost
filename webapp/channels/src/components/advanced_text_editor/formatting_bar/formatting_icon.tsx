@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import classNames from 'classnames';
+import React, {forwardRef, memo} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
-import styled from 'styled-components';
 
 import {
     FormatBoldIcon,
@@ -18,57 +18,17 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
-
-export const IconContainer = styled.button`
-    display: flex;
-    min-width: 32px;
-    height: 32px;
-    place-items: center;
-    place-content: center;
-    border: none;
-    background: transparent;
-    padding: 0 7px;
-    border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        fill: currentColor;
-    }
-
-    &:active,
-    &.active,
-    &.active:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-        fill: currentColor;
-    }
-
-    &[disabled] {
-        pointer-events: none;
-        cursor: not-allowed;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-
-        &:hover,
-        &:active,
-        &.active,
-        &.active:hover {
-            background: inherit;
-            color: inherit;
-            fill: inherit;
-        }
-    }
-`;
 
 interface FormattingIconProps {
     id?: string;
@@ -76,6 +36,7 @@ interface FormattingIconProps {
     onClick?: () => void;
     className?: string;
     disabled?: boolean;
+    isActive?: boolean;
 }
 
 const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<IconProps>> = {
@@ -114,35 +75,17 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
     ol: KEYBOARD_SHORTCUTS.msgMarkdownOl,
 };
 
-const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
-    /**
-     * by passing in the otherProps spread we guarantee that accessibility
-     * properties like aria-label, etc. get added to the DOM
-     */
-    const {mode, onClick, ...otherProps} = props;
+const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props, ref) => {
+    const {mode, onClick, isActive, className, ...otherProps} = props;
+    const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+    }, []);
 
-    /* get the correct Icon from the IconMap */
-    const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
+    const CompassIcon = MAP_MARKDOWN_MODE_TO_ICON[mode];
     const {formatMessage} = useIntl();
     const ariaLabelDefinition = MAP_MARKDOWN_MODE_TO_ARIA_LABEL[mode];
     const buttonAriaLabel = formatMessage(ariaLabelDefinition);
 
-    const bodyAction = (
-        <IconContainer
-            type='button'
-            id={props.id || `FormattingControl_${mode}`}
-            onClick={onClick}
-            aria-label={buttonAriaLabel}
-            {...otherProps}
-        >
-            <Icon
-                color={'currentColor'}
-                size={18}
-            />
-        </IconContainer>
-    );
-
-    /* get the correct tooltip from the ShortcutsMap */
     const shortcut = MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS[mode];
 
     return (
@@ -155,9 +98,23 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
                 />
             }
         >
-            {bodyAction}
+            <IconButton
+                ref={ref}
+                id={props.id || `FormattingControl_${mode}`}
+                size='small'
+                icon={<Icon glyph={<CompassIcon/>}/>}
+                onClick={onClick}
+                onMouseDown={handleMouseDown}
+                aria-label={buttonAriaLabel}
+                aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
+                toggled={isActive === true}
+                className={classNames(className)}
+                {...otherProps}
+            />
         </WithTooltip>
     );
-};
+});
+
+FormattingIcon.displayName = 'FormattingIcon';
 
 export default memo(FormattingIcon);

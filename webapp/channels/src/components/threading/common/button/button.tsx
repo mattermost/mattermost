@@ -14,9 +14,9 @@ type Props = {
     hasDot?: boolean;
     allowTextOverflow?: boolean;
     marginTop?: boolean;
-}
+};
 
-type Attrs = Exclude<ButtonHTMLAttributes<HTMLButtonElement>, Props>
+type Attrs = Exclude<ButtonHTMLAttributes<HTMLButtonElement>, Props>;
 
 const Button = React.forwardRef<HTMLButtonElement, Props & Attrs>((
     {

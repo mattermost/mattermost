@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import Setting from './setting';
 
 import './radio_setting.scss';
@@ -11,7 +13,7 @@ import './radio_setting.scss';
 interface Props {
     id: string;
     label: React.ReactNode;
-    values: Array<{ text: string; value: string }>;
+    values: Array<{text: string; value: string}>;
     value: string;
     setByEnv: boolean;
     disabled?: boolean;
@@ -36,28 +38,24 @@ const RadioSetting = ({
     const isDisabled = disabled || setByEnv;
 
     const options = values.map(({value: optionValue, text}) => {
-        const labelClasses = classNames('RadioSetting__label', {
-            'RadioSetting__label--disabled': isDisabled,
+        const radioClassName = classNames('RadioSetting__radio', {
+            'RadioSetting__radio--disabled': isDisabled,
         });
 
         return (
-            <label
+            <Radio
                 key={optionValue}
-                className={labelClasses}
+                className={radioClassName}
+                name={id}
+                value={optionValue}
+                checked={optionValue === value}
+                onChange={handleChange}
+                disabled={isDisabled}
             >
-                <input
-                    type='radio'
-                    className='RadioSetting__input'
-                    value={optionValue}
-                    name={id}
-                    checked={optionValue === value}
-                    onChange={handleChange}
-                    disabled={isDisabled}
-                />
                 <span className='RadioSetting__text'>
                     {text}
                 </span>
-            </label>
+            </Radio>
         );
     });
 

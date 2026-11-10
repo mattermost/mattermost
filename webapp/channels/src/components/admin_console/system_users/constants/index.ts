@@ -11,6 +11,7 @@ export enum ColumnNames {
     lastPostDate = 'lastPostDateColumn',
     daysActive = 'daysActiveColumn',
     totalPosts = 'totalPostsColumn',
+    channelCount = 'channelCountColumn',
     actions = 'actionsColumn',
 }
 
@@ -24,7 +25,9 @@ export enum RoleFilters {
     Any = 'any',
     Admin = 'system_admin',
     Member = 'system_user',
-    Guest = 'system_guest',
+    GuestAll = 'system_guest',
+    GuestSingleChannel = 'guest_single_channel',
+    GuestMultiChannel = 'guest_multi_channel',
 }
 
 export enum TeamFilters {

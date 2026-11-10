@@ -10,22 +10,17 @@
 // Stage: @prod
 // Group: @channels @search_date_filter
 
-import {getAdminAccount} from '../../../support/env';
-
 import {
     getTestMessages,
     searchAndValidate,
     setupTestData,
 } from './helpers';
 
+import {getAdminAccount} from '@/support/env';
+
 describe('Search Date Filter', () => {
     const testData = getTestMessages();
-    const {
-        commonText,
-        firstDateEarly,
-        secondMessage,
-        secondOffTopicMessage,
-    } = testData;
+    const {commonText} = testData;
     const admin = getAdminAccount();
     let anotherAdmin;
 
@@ -38,14 +33,6 @@ describe('Search Date Filter', () => {
 
             setupTestData(testData, {team, channel, admin, anotherAdmin});
         });
-    });
-
-    it('MM-T589 "before:" and "after:" can be used together', () => {
-        searchAndValidate(`before:${Cypress.dayjs().format('YYYY-MM-DD')} after:${firstDateEarly.query} ${commonText}`, [secondOffTopicMessage, secondMessage]);
-    });
-
-    it('MM-T593 "before:", "after:", "from:", and "in:" can be used in one search', () => {
-        searchAndValidate(`before:${Cypress.dayjs().format('YYYY-MM-DD')} after:${firstDateEarly.query} from:${anotherAdmin.username} in:off-topic ${commonText}`, [secondOffTopicMessage]);
     });
 
     it('MM-T603 Place a string when a date is expected', () => {

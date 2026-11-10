@@ -4,20 +4,21 @@
 import os from 'node:os';
 
 import chalk from 'chalk';
-import {TestInfo, expect} from '@playwright/test';
+import type {TestInfo} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import snapshotWithPercy from './percy';
 
 import {duration, illegalRe, wait} from '@/util';
 import {testConfig} from '@/test_config';
-import {ScreenshotOptions, TestArgs} from '@/types';
+import type {ScreenshotOptions, TestArgs} from '@/types';
 
 export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, options: ScreenshotOptions = {}) {
     if (os.platform() !== 'linux') {
         // eslint-disable-next-line no-console
         console.log(
             chalk.yellow(
-                `^ Warning: No visual test performed. Run in Linux or Playwright docker image to match snapshot.`,
+                '^ Warning: No visual test performed. Run in Linux or Playwright docker image to match snapshot.',
             ),
         );
         return;

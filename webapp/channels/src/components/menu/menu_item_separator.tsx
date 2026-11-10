@@ -14,7 +14,7 @@ import React from 'react';
  *   <Menu.Separator />
  * </Menu.Container>
  */
-export function MenuItemSeparator(props: DividerProps & {component?: ElementType }) {
+export function MenuItemSeparator(props: DividerProps & {component?: ElementType}) {
     return (
         <Divider
             aria-orientation='vertical'

@@ -16,7 +16,7 @@ jest.mock('utils/popouts/popout_windows', () => ({
     },
 }));
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 
@@ -49,9 +49,9 @@ describe('PopoutButton', () => {
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('type', 'button');
             expect(button).toHaveAttribute('aria-label', 'Open in new window');
-            expect(button).toHaveClass('btn', 'btn-icon', 'btn-sm', 'PopoutButton');
+            expect(button).toHaveClass('PopoutButton');
 
-            const icon = screen.getByRole('button').querySelector('.icon-dock-window');
+            const icon = screen.getByRole('button').querySelector('svg');
             expect(icon).toBeInTheDocument();
         });
     });

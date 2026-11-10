@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @accessibility @mfa
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
 
 describe('Verify Accessibility Support in different sections in Settings and Profile Dialog', () => {
     const accountSettings = {
@@ -34,6 +34,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'desktopAndMobile', label: 'Desktop and mobile notifications', type: 'radio'},
             {key: 'desktopNotificationSound', label: 'Desktop notification sounds', type: 'radio'},
             {key: 'email', label: 'Email notifications', type: 'radio'},
+            {key: 'channelMentionAutoFollow', label: 'Auto-follow threads on channel-wide mentions', type: 'radio'},
             {key: 'keywordsAndMentions', label: 'Keywords that trigger notifications', type: 'checkbox'},
             {key: 'keywordsAndHighlight', label: 'Keywords that get highlighted (without notifications)', type: 'checkbox'},
             {key: 'replyNotifications', label: 'Reply notifications', type: 'radio'},
@@ -49,6 +50,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'message_display', label: 'Message Display', type: 'radio'},
             {key: 'click_to_reply', label: 'Click to open threads', type: 'radio'},
             {key: 'channel_display_mode', label: 'Channel Display', type: 'radio'},
+            {key: 'collapse_category_with_unreads', label: 'Collapse category with unread channels', type: 'radio'},
             {key: 'one_click_reactions_enabled', label: 'Quick reactions on messages', type: 'radio'},
             {key: 'renderEmoticonsAsEmoji', label: 'Render emoticons as emojis', type: 'radio'},
             {key: 'languages', label: 'Language', type: 'dropdown'},
@@ -59,6 +61,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         ],
         advanced: [
             {key: 'advancedCtrlSend', label: `Send Messages on ${isMac() ? '⌘+ENTER' : 'CTRL+ENTER'}`, type: 'radio'},
+            {key: 'wysiwygEditor', label: 'Rich text editing (Beta)', type: 'radio', optional: true},
             {key: 'formatting', label: 'Enable Post Formatting', type: 'radio'},
             {key: 'joinLeave', label: 'Enable Join/Leave Messages', type: 'radio'},
         ],
@@ -174,13 +177,20 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('#changeInterfaceLanguageLabel').should('be.visible').and('have.text', 'Change interface language');
 
         // # When space key is pressed on dropdown, it should expand and should collapse when esc key is pressed
-        cy.get('@inputEl').typeWithForce(' ');
-        cy.findByRole('listbox').should('have.class', 'react-select__menu-list').as('listBox');
+        // Menu is portaled to document.body (outside the aria-modal dialog), so query by class
+        // and assert role=listbox rather than findByRole (inaccessible outside the modal).
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').
+            should('be.visible').
+            and('have.attr', 'role', 'listbox').
+            and('have.class', 'react-select__menu-list').
+            as('listBox');
         cy.get('@inputEl').typeWithForce('{esc}');
         cy.get('@listBox').should('not.exist');
 
         // # Press down arrow twice and check aria label
-        cy.get('@inputEl').typeWithForce(' ');
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').should('be.visible');
         cy.get('@inputEl').typeWithForce('{downarrow}{downarrow}');
         cy.get('#displayLanguage').within(($el) => {
             cy.wrap($el).findByRole('log').should('have.attr', 'aria-live', 'assertive').as('ariaEl');
@@ -244,9 +254,11 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
         // # Option to Remove Profile picture should be present
-        cy.findByTestId('removeSettingPicture').within(() => {
-            cy.get('.sr-only').should('have.text', 'Remove Profile Picture');
-        });
+        cy.findByTestId('removeSettingPicture').should(
+            'have.attr',
+            'aria-label',
+            'Remove Profile Picture',
+        );
 
         // # Check tab behavior
         cy.findByTestId('removeSettingPicture').focus().tab({shift: true}).tab();
@@ -274,7 +286,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // * Check Tab behavior in MFA section
         cy.get('#mfaEdit').click();
         cy.get('#passwordEdit').focus().tab({shift: true}).tab().tab();
-        cy.get('.setting-list a.btn').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.get('.setting-list').findByRole('button', {name: /Add|Remove/i}).should('have.class', 'a11y--active a11y--focused').tab();
         cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
 
         // * Check Tab behavior in Sign-In Method if its available
@@ -282,7 +294,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             if (el.find('#signinEdit').length) {
                 cy.get('#signinEdit').click();
                 cy.get('#mfaEdit').focus().tab({shift: true}).tab().tab();
-                cy.get('.setting-list a.btn').should('have.class', 'a11y--active a11y--focused').tab();
+                cy.get('.setting-list').findByRole('link').should('have.class', 'a11y--active a11y--focused').tab();
                 cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
             }
         });
@@ -291,6 +303,17 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
 function verifySettings(settings) {
     settings.forEach((setting) => {
+        if (setting.optional) {
+            cy.get('body').then(($body) => {
+                if ($body.find(`#${setting.key}Edit`).length === 0) {
+                    return;
+                }
+                cy.focused().should('have.id', `${setting.key}Edit`);
+                cy.findByText(setting.label);
+                cy.focused().tab();
+            });
+            return;
+        }
         cy.focused().should('have.id', `${setting.key}Edit`);
         cy.findByText(setting.label);
         cy.focused().tab();

@@ -1,0 +1,211 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {waitFor} from '@testing-library/react';
+import React from 'react';
+
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import BookmarksBarMenu from './bookmarks_bar_menu';
+
+const mockDropTargetForElements: jest.Mock = jest.fn(() => () => undefined);
+
+jest.mock('@atlaskit/pragmatic-drag-and-drop/element/adapter', () => ({
+    dropTargetForElements: (arg: unknown) => mockDropTargetForElements(arg),
+    draggable: () => () => undefined,
+}));
+
+function makeBookmark(id: string): ChannelBookmark {
+    return {
+        id,
+        channel_id: 'c1',
+        owner_id: 'u1',
+        type: 'link',
+        link_url: 'https://example.com',
+        display_name: `bm-${id}`,
+        sort_order: 0,
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+    } as ChannelBookmark;
+}
+
+const baseProps = {
+    channelId: 'c1',
+    bookmarks: {} as Record<string, ChannelBookmark>,
+    hasBookmarks: true,
+    limitReached: false,
+    canUploadFiles: true,
+    canReorder: true,
+    isDragging: false,
+    canAdd: true,
+};
+
+type DropTargetConfig = {
+    canDrop: (args: {source: {data: Record<string, unknown>}}) => boolean;
+    getData: () => Record<string, unknown>;
+};
+
+describe('BookmarksBarMenu — overflow drop target', () => {
+    beforeEach(() => {
+        mockDropTargetForElements.mockClear();
+    });
+
+    test('canDrop returns false when there is no overflow', () => {
+        renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+            />,
+        );
+
+        expect(mockDropTargetForElements).toHaveBeenCalledTimes(1);
+        const config = mockDropTargetForElements.mock.calls[0][0] as unknown as DropTargetConfig;
+        expect(config.getData()).toEqual({type: 'overflow-trigger'});
+        expect(config.canDrop({source: {data: {type: 'bookmark'}}})).toBe(false);
+    });
+
+    test('canDrop returns true for bookmark sources when overflow items exist', () => {
+        const overflowItems = ['a', 'b'];
+        const bookmarks = {a: makeBookmark('a'), b: makeBookmark('b')};
+
+        renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={overflowItems}
+                bookmarks={bookmarks}
+            />,
+        );
+
+        expect(mockDropTargetForElements).toHaveBeenCalledTimes(1);
+        const config = mockDropTargetForElements.mock.calls[0][0] as unknown as DropTargetConfig;
+        expect(config.canDrop({source: {data: {type: 'bookmark'}}})).toBe(true);
+    });
+
+    test('canDrop returns false for non-bookmark sources even with overflow', () => {
+        const overflowItems = ['a'];
+        const bookmarks = {a: makeBookmark('a')};
+
+        renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={overflowItems}
+                bookmarks={bookmarks}
+            />,
+        );
+
+        const config = mockDropTargetForElements.mock.calls[0][0] as unknown as DropTargetConfig;
+        expect(config.canDrop({source: {data: {type: 'something-else'}}})).toBe(false);
+    });
+});
+
+describe('BookmarksBarMenu — IconButton triggers', () => {
+    test('uses IconButton for the has-bookmarks add control', () => {
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+                hasBookmarks={true}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveAttribute('aria-label', 'Add a bookmark');
+        expect(button?.className).toContain('icon-button');
+        expect(button?.className).toContain('icon-button--size-x-small');
+        expect(button?.className).not.toContain('icon-button--padding-compact');
+        expect(button).not.toHaveClass('withLabel');
+    });
+
+    test('uses IconButton with count for the overflow control', () => {
+        const overflowItems = ['a', 'b'];
+        const bookmarks = {a: makeBookmark('a'), b: makeBookmark('b')};
+
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={overflowItems}
+                bookmarks={bookmarks}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toBeInTheDocument();
+        expect(button?.className).toContain('icon-button');
+        expect(button?.className).toContain('icon-button--size-x-small');
+        expect(button?.className).not.toContain('icon-button--padding-compact');
+        expect(button?.className).toContain('icon-button--has-count');
+        expect(button).toHaveTextContent('2');
+    });
+
+    test('keeps the labeled chip when there are no bookmarks', () => {
+        const {container} = renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+                hasBookmarks={false}
+            />,
+        );
+
+        const button = container.querySelector('#channelBookmarksBarMenuButton');
+        expect(button).toHaveClass('channelBookmarksBarMenuButton', 'withLabel');
+        expect(button).toHaveTextContent('Add a bookmark');
+        expect(button?.className).not.toContain('icon-button');
+    });
+});
+
+describe('BookmarksBarMenu — plugin items', () => {
+    const action = jest.fn();
+    const pluginState = {
+        plugins: {
+            components: {
+                ChannelBookmarksMenu: [{
+                    id: 'artifacts',
+                    pluginId: 'ai',
+                    text: 'Add channel artifact',
+                    action,
+                    icon: <i className='icon'/>,
+                }],
+            },
+        },
+    };
+
+    beforeEach(() => {
+        action.mockClear();
+    });
+
+    test('runs the plugin action when the bookmark limit is not reached', async () => {
+        renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={[]}
+                forceOpen={true}
+            />,
+            pluginState,
+        );
+
+        await userEvent.click(screen.getByRole('menuitem', {name: /Add channel artifact/}));
+        await waitFor(() => expect(action).toHaveBeenCalledWith('c1'));
+    });
+
+    test('does not run the plugin action when the bookmark limit is reached', async () => {
+        renderWithContext(
+            <BookmarksBarMenu
+                {...baseProps}
+                overflowItems={['a']}
+                bookmarks={{a: makeBookmark('a')}}
+                limitReached={true}
+                forceOpen={true}
+            />,
+            pluginState,
+        );
+
+        const item = screen.getByRole('menuitem', {name: /Add channel artifact/});
+        expect(item).toHaveAttribute('aria-disabled', 'true');
+        expect(item).toHaveStyle({pointerEvents: 'none'});
+        expect(action).not.toHaveBeenCalled();
+    });
+});

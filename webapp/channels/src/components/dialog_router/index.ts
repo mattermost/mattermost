@@ -6,28 +6,38 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'mattermost-redux/actions/integrations';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {submitInteractiveDialog, lookupInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
+
+import {getTopOpenDialogTriggerId} from 'utils/interactive_dialog';
 
 import type {GlobalState} from 'types/store';
 
 import DialogRouter from './dialog_router';
 
-function mapStateToProps(state: GlobalState) {
-    const data = state.entities.integrations.dialog;
+function mapStateToProps(state: GlobalState, ownProps: {triggerId?: string}) {
+    const data = ownProps.triggerId ? state.entities.integrations.dialogs[ownProps.triggerId] : undefined;
     const emojiMap = getEmojiMap(state);
-    const isAppsFormEnabled = interactiveDialogAppsFormEnabled(state);
     if (!data || !data.dialog) {
         return {
             emojiMap,
-            isAppsFormEnabled: false,
             hasUrl: false,
         };
     }
 
     return {
+
+        // The channel the trigger was created in, resolved by the server and sent with
+        // the dialog. The server is the only party that knows it for dialogs this client
+        // never initiated, such as a command a plugin ran server-side.
+        //
+        // Absent for a trigger minted by a node that predates it, and for dialogs a
+        // plugin injects client-side via window.openInteractiveDialog, which never
+        // round-trip the server. Both cases fall back to the current channel in the
+        // submit and lookup actions.
+        channelId: data.channel_id,
         url: data.url,
         callbackId: data.dialog.callback_id,
         elements: data.dialog.elements,
@@ -38,9 +48,16 @@ function mapStateToProps(state: GlobalState) {
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
         sourceUrl: data.dialog.source_url,
+        size: data.dialog.size,
+        submitButtons: data.dialog.submit_buttons,
+        refreshOnReturn: data.dialog.refresh_on_return,
+
+        // The adapter hides this dialog while another is open on top of it, and
+        // refreshes it (if refreshOnReturn is set) when it becomes the top dialog again.
+        isTopDialog: getTopOpenDialogTriggerId(state) === ownProps.triggerId,
         emojiMap,
-        isAppsFormEnabled,
         hasUrl: Boolean(data.url),
+        timezone: getCurrentTimezone(state) || undefined,
     };
 }
 

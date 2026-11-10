@@ -4,12 +4,14 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -192,6 +194,224 @@ func TestDeletePersistentNotification(t *testing.T) {
 	})
 }
 
+func TestForEachPersistentNotificationPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should cleanup posts whose channel no longer exists", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		profileMap := map[string]*model.User{user1.Id: user1}
+		team := &model.Team{Id: "tid"}
+		channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
+
+		// post1 belongs to an existing channel; post2 belongs to a deleted/missing channel
+		post1 := &model.Post{Id: "pid1", ChannelId: channel.Id, Message: "hello @user-1", UserId: user1.Id}
+		post2 := &model.Post{Id: "pid2", ChannelId: "deleted-channel-id", Message: "hello", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		// Only return channel for post1; post2's channel is missing
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{channel}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{team}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		// DeletePersistentNotification mocks - the cleanup path calls GetSingle then Delete
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+		mockPostPersistentNotification.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
+		mockPostPersistentNotification.On("Delete", []string{post2.Id}).Return(nil)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should only be called for post1 (valid channel)
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// post2 persistent notification should have been cleaned up
+		mockPostPersistentNotification.AssertCalled(t, "Delete", []string{post2.Id})
+	})
+
+	t.Run("should cleanup posts whose team no longer exists", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		team := &model.Team{Id: "tid"}
+		channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
+		// channelWithMissingTeam has a TeamId that won't be in teamsMap
+		channelWithMissingTeam := &model.Channel{Id: "chid2", TeamId: "deleted-team-id", Type: model.ChannelTypeOpen}
+
+		post1 := &model.Post{Id: "pid1", ChannelId: channel.Id, Message: "hello @user-1", UserId: user2.Id}
+		post2 := &model.Post{Id: "pid2", ChannelId: channelWithMissingTeam.Id, Message: "hello @user-1", UserId: user2.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		// Both channels exist, but only one team exists
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{channel, channelWithMissingTeam}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		// Only return the team for channel, not for channelWithMissingTeam
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{team}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+		mockPostPersistentNotification.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
+		mockPostPersistentNotification.On("Delete", []string{post2.Id}).Return(nil)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should only be called for post1 (valid team)
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// post2 persistent notification should have been cleaned up due to missing team
+		mockPostPersistentNotification.AssertCalled(t, "Delete", []string{post2.Id})
+	})
+
+	t.Run("should not cleanup DM posts that have no team", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		dmChannel := &model.Channel{Id: "dm-chid", TeamId: "", Type: model.ChannelTypeDirect, Name: model.GetDMNameFromIds(user1.Id, user2.Id)}
+
+		post1 := &model.Post{Id: "pid1", ChannelId: dmChannel.Id, Message: "hello", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{dmChannel}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should be called for the DM post even though there's no team
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// Delete should NOT have been called — DMs don't need a team
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+
+	t.Run("should not cleanup GM posts that have no team", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		user1 := &model.User{Id: "uid1", Username: "user-1"}
+		user2 := &model.User{Id: "uid2", Username: "user-2"}
+		user3 := &model.User{Id: "uid3", Username: "user-3"}
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2, user3.Id: user3}
+		gmChannel := &model.Channel{Id: "gm-chid", TeamId: "", Type: model.ChannelTypeGroup}
+
+		post1 := &model.Post{Id: "pid1", ChannelId: gmChannel.Id, Message: "hello @user-2", UserId: user1.Id}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockChannel := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return([]*model.Channel{gmChannel}, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		mockStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return([]*model.Team{}, nil)
+
+		mockUser := storemocks.UserStore{}
+		mockStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		mockStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPostPersistentNotification := storemocks.PostPersistentNotificationStore{}
+		mockStore.On("PostPersistentNotification").Return(&mockPostPersistentNotification)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		cfg := th.App.Config()
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		// The callback should be called for the GM post even though there's no team
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		// Delete should NOT have been called — GMs don't need a team
+		mockPostPersistentNotification.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+}
+
 func TestSendPersistentNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -231,7 +451,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
@@ -250,7 +470,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					PersistentNotifications: model.NewPointer(true),
+					PersistentNotifications: new(true),
 				},
 			},
 			// Simulate old timestamp so persistent notifications are sent right away
@@ -283,7 +503,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		// Make the bot a system admin so it can post to channels it's not a member of
@@ -302,7 +522,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
 					Priority:                model.NewPointer(model.PostPriorityUrgent),
-					PersistentNotifications: model.NewPointer(true),
+					PersistentNotifications: new(true),
 				},
 			},
 			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
@@ -319,5 +539,211 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 			require.NotNil(c, persistentPostNotification)
 			assert.Greater(c, persistentPostNotification.SentCount, int16(0))
 		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestSendPersistentNotificationsFileMetadataABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	runCase := func(t *testing.T, allowed bool) *model.Post {
+		t.Helper()
+
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       th.BasicUser.Id,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "notification-secret.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			FileIds:   model.StringArray{file.Id},
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			// Simulate old timestamp so persistent notifications are sent right away
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser2.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPersistentNotificationTriggered})
+		defer closeWS()
+
+		var received *model.WebSocketEvent
+		for range 10 {
+			require.NoError(t, th.App.SendPersistentNotifications())
+
+			select {
+			case msg := <-messages:
+				received = msg
+			case <-time.After(2 * time.Second):
+			}
+
+			if received != nil {
+				break
+			}
+		}
+		require.NotNil(t, received, "expected a persistent_notification_triggered event")
+
+		postJSON, ok := received.GetData()["post"].(string)
+		require.True(t, ok)
+
+		var notifiedPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(postJSON), &notifiedPost))
+		return &notifiedPost
+	}
+
+	t.Run("file metadata is stripped when the policy denies the download action", func(t *testing.T) {
+		notifiedPost := runCase(t, false)
+
+		assert.Empty(t, notifiedPost.FileIds, "file ids should be stripped")
+		require.NotNil(t, notifiedPost.Metadata)
+		assert.Empty(t, notifiedPost.Metadata.Files, "file metadata should be stripped")
+		assert.Equal(t, 1, notifiedPost.Metadata.RedactedFileCount)
+	})
+
+	t.Run("file metadata is delivered when the policy allows the download action", func(t *testing.T) {
+		notifiedPost := runCase(t, true)
+
+		assert.Len(t, notifiedPost.FileIds, 1)
+		require.NotNil(t, notifiedPost.Metadata)
+		require.Len(t, notifiedPost.Metadata.Files, 1)
+		assert.Equal(t, 0, notifiedPost.Metadata.RedactedFileCount)
+	})
+}
+
+func TestSendPersistentNotificationsFileHintsABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	runCase := func(t *testing.T, allowed bool) *model.WebSocketEvent {
+		t.Helper()
+
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       th.BasicUser.Id,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "notification-secret-hint.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			FileIds:   model.StringArray{file.Id},
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			// Simulate old timestamp so persistent notifications are sent right away
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser2.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPersistentNotificationTriggered})
+		defer closeWS()
+
+		var received *model.WebSocketEvent
+		for range 10 {
+			require.NoError(t, th.App.SendPersistentNotifications())
+
+			select {
+			case msg := <-messages:
+				received = msg
+			case <-time.After(2 * time.Second):
+			}
+
+			if received != nil {
+				break
+			}
+		}
+		require.NotNil(t, received, "expected a persistent_notification_triggered event")
+		return received
+	}
+
+	t.Run("otherFile/image hints are withheld when the policy denies the download action", func(t *testing.T) {
+		received := runCase(t, false)
+
+		assert.Nil(t, received.GetData()["otherFile"], "otherFile hint should not be disclosed to a denied recipient")
+		assert.Nil(t, received.GetData()["image"], "image hint should not be disclosed to a denied recipient")
+	})
+
+	t.Run("otherFile/image hints are delivered when the policy allows the download action", func(t *testing.T) {
+		received := runCase(t, true)
+
+		assert.Equal(t, "true", received.GetData()["otherFile"], "otherFile hint should still be sent to an allowed recipient")
+		assert.Equal(t, "true", received.GetData()["image"], "image hint should still be sent to an allowed recipient")
 	})
 }

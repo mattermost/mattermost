@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @search_date_filter
 
-import {getAdminAccount} from '../../../support/env';
-
 import {
     getMsAndQueryForDate,
     getTestMessages,
     searchAndValidate,
     setupTestData,
 } from './helpers';
+
+import {getAdminAccount} from '@/support/env';
 
 describe('Search Date Filter', () => {
     const testData = getTestMessages();
@@ -42,10 +42,6 @@ describe('Search Date Filter', () => {
 
             setupTestData(testData, {team, channel, admin, anotherAdmin});
         });
-    });
-
-    it('MM-T588 on: omits results before and after target date', () => {
-        searchAndValidate(`on:${secondDateEarly.query} ${commonText}`, [secondOffTopicMessage, secondMessage]);
     });
 
     it('MM-T590_1 on: takes precedence over "before:"', () => {

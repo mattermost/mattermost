@@ -1,215 +1,136 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_header/components/UserGuideDropdown should match snapshot 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className="userGuideHelp"
-  id="helpMenuPortal"
-  onToggle={[Function]}
->
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
   >
-    <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
-      aria-expanded={false}
+    <button
+      aria-controls="userHelpGuide"
+      aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
-      icon="help-circle-outline"
-      onClick={[Function]}
-    />
-  </WithTooltip>
-  <Menu
-    ariaLabel="Help"
-    id="AddChannelDropdown"
-    openLeft={false}
-    openUp={false}
-  >
-    <Memo(MenuGroup)>
-      <MenuItemExternalLink
-        iconClassName="icon-file-text-outline"
-        id="mattermostUserGuideLink"
-        show={true}
-        text="Mattermost user guide"
-        url="https://docs.mattermost.com/guides/use-mattermost.html"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-lightbulb-outline"
-        id="trainingResourcesLink"
-        show={true}
-        text="Training resources"
-        url="https://academy.mattermost.com/"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-help"
-        id="askTheCommunityLink"
-        show={true}
-        text="Ask the community"
-        url="https://mattermost.com/pl/default-ask-mattermost-community/"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-alert-outline"
-        id="reportAProblemLink"
-        show={true}
-        text="Report a problem"
-        url="reportAProblemLink"
-      />
-      <MenuItemAction
-        iconClassName="icon-keyboard-return"
-        id="keyboardShortcuts"
-        onClick={[Function]}
-        show={true}
-        text="Keyboard shortcuts"
-      />
-    </Memo(MenuGroup)>
-  </Menu>
-</MenuWrapper>
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/channel_header/components/UserGuideDropdown should match snapshot for false of enableAskCommunityLink 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className="userGuideHelp"
-  id="helpMenuPortal"
-  onToggle={[Function]}
->
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
   >
-    <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
-      aria-expanded={false}
+    <button
+      aria-controls="userHelpGuide"
+      aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
-      icon="help-circle-outline"
-      onClick={[Function]}
-    />
-  </WithTooltip>
-  <Menu
-    ariaLabel="Help"
-    id="AddChannelDropdown"
-    openLeft={false}
-    openUp={false}
-  >
-    <Memo(MenuGroup)>
-      <MenuItemExternalLink
-        iconClassName="icon-file-text-outline"
-        id="mattermostUserGuideLink"
-        show={true}
-        text="Mattermost user guide"
-        url="https://docs.mattermost.com/guides/use-mattermost.html"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-lightbulb-outline"
-        id="trainingResourcesLink"
-        show={true}
-        text="Training resources"
-        url="https://academy.mattermost.com/"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-alert-outline"
-        id="reportAProblemLink"
-        show={true}
-        text="Report a problem"
-        url="reportAProblemLink"
-      />
-      <MenuItemAction
-        iconClassName="icon-keyboard-return"
-        id="keyboardShortcuts"
-        onClick={[Function]}
-        show={true}
-        text="Keyboard shortcuts"
-      />
-    </Memo(MenuGroup)>
-  </Menu>
-</MenuWrapper>
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+  </div>
+</div>
 `;
 
 exports[`components/channel_header/components/UserGuideDropdown should match snapshot when have plugin menu items 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className="userGuideHelp"
-  id="helpMenuPortal"
-  onToggle={[Function]}
->
-  <WithTooltip
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Help"
-        id="channel_header.userHelpGuide"
-      />
-    }
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
   >
-    <HeaderIconButton
-      active={false}
-      aria-controls="AddChannelDropdown"
-      aria-expanded={false}
+    <button
+      aria-controls="userHelpGuide"
+      aria-expanded="false"
+      aria-haspopup="true"
       aria-label="Help"
-      icon="help-circle-outline"
-      onClick={[Function]}
-    />
-  </WithTooltip>
-  <Menu
-    ariaLabel="Help"
-    id="AddChannelDropdown"
-    openLeft={false}
-    openUp={false}
-  >
-    <Memo(MenuGroup)>
-      <MenuItemExternalLink
-        iconClassName="icon-file-text-outline"
-        id="mattermostUserGuideLink"
-        show={true}
-        text="Mattermost user guide"
-        url="https://docs.mattermost.com/guides/use-mattermost.html"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-lightbulb-outline"
-        id="trainingResourcesLink"
-        show={true}
-        text="Training resources"
-        url="https://academy.mattermost.com/"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-help"
-        id="askTheCommunityLink"
-        show={true}
-        text="Ask the community"
-        url="https://mattermost.com/pl/default-ask-mattermost-community/"
-      />
-      <MenuItemExternalLink
-        iconClassName="icon-alert-outline"
-        id="reportAProblemLink"
-        show={true}
-        text="Report a problem"
-        url="reportAProblemLink"
-      />
-      <MenuItemAction
-        iconClassName="icon-keyboard-return"
-        id="keyboardShortcuts"
-        onClick={[Function]}
-        show={true}
-        text="Keyboard shortcuts"
-      />
-      <MenuItemAction
-        iconClassName="icon-thumbs-up-down"
-        id="testId_pluginmenuitem"
-        key="testId_pluginmenuitem"
-        onClick={[Function]}
-        show={true}
-        text="Test Item"
-      />
-    </Memo(MenuGroup)>
-  </Menu>
-</MenuWrapper>
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+  </div>
+</div>
 `;

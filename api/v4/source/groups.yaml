@@ -307,9 +307,11 @@
         - groups
       summary: Link a team to a group
       description: |
-        Link a team to a group
+        Link a team to a group.
+
         ##### Permissions
-        Must have `manage_team` permission.
+        Requires `invite_user` on the target team, or `sysconsole_write_user_management_groups`.
+        If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
       operationId: LinkGroupSyncableForTeam
@@ -322,13 +324,13 @@
             type: string
         - name: team_id
           in: path
-          description: Team GUID
+          description: Team GUID.
           required: true
           schema:
             type: string
       responses:
         "201":
-          description: Team successfully linked to group
+          description: Team linked to group
           content:
             application/json:
               schema:
@@ -344,11 +346,13 @@
     delete:
       tags:
         - groups
-      summary: Delete a link from a team to a group
+      summary: Unlink a team from a group
       description: |
-        Delete a link from a team to a group
+        Delete a link between a team and a group.
+
         ##### Permissions
-        Must have `manage_team` permission.
+        Requires `invite_user` on the target team, or `sysconsole_write_user_management_groups`.
+        If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
       operationId: UnlinkGroupSyncableForTeam
@@ -361,13 +365,13 @@
             type: string
         - name: team_id
           in: path
-          description: Team GUID
+          description: Team GUID.
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: Successfully deleted link between team and group
+          description: Team unlinked from group
           content:
             application/json:
               schema:
@@ -385,15 +389,15 @@
       tags:
         - groups
       summary: Link a channel to a group
-      description: >
-        Link a channel to a group
+      description: |
+        Link a channel to a group.
 
         ##### Permissions
-
-        If the channel is private, you must have `manage_private_channel_members` permission.
-
-        Otherwise, you must have the `manage_public_channel_members` permission.
-
+        Requires `manage_private_channel_members` (private channel) or
+        `manage_public_channel_members` (public channel) on the target channel.
+        If this is the group's first linkage into the channel's team context, also
+        requires `invite_user` on the team, or `sysconsole_write_user_management_groups`.
+        If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
       operationId: LinkGroupSyncableForChannel
@@ -406,13 +410,13 @@
             type: string
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: Channel GUID.
           required: true
           schema:
             type: string
       responses:
         "201":
-          description: Channel successfully linked to group
+          description: Channel linked to group
           content:
             application/json:
               schema:
@@ -428,16 +432,16 @@
     delete:
       tags:
         - groups
-      summary: Delete a link from a channel to a group
-      description: >
-        Delete a link from a channel to a group
+      summary: Unlink a channel from a group
+      description: |
+        Delete a link between a channel and a group.
 
         ##### Permissions
-
-        If the channel is private, you must have `manage_private_channel_members` permission.
-
-        Otherwise, you must have the `manage_public_channel_members` permission.
-
+        Requires `manage_private_channel_members` (private channel) or
+        `manage_public_channel_members` (public channel) on the target channel.
+        If unlinking would leave the group with no remaining linkage in that channel's team context (last/only linkage for that team), also
+        requires `invite_user` on the team, or `sysconsole_write_user_management_groups`.
+        If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
       operationId: UnlinkGroupSyncableForChannel
@@ -450,13 +454,13 @@
             type: string
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: Channel GUID.
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: Successfully deleted link between channel and group
+          description: Channel unlinked from group
           content:
             application/json:
               schema:
@@ -473,9 +477,10 @@
     get:
       tags:
         - groups
-      summary: Get GroupSyncable from Team ID
+      summary: Get a team syncable for a group
       description: |
-        Get the GroupSyncable object with group_id and team_id from params
+        Get the GroupSyncableTeam object with the provided group and team identifiers.
+
         ##### Permissions
         Must have `manage_system` permission.
 
@@ -490,13 +495,13 @@
             type: string
         - name: team_id
           in: path
-          description: Team GUID
+          description: Team GUID.
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: GroupSyncable object retrieval successful
+          description: Team syncable retrieved
           content:
             application/json:
               schema:
@@ -515,9 +520,10 @@
     get:
       tags:
         - groups
-      summary: Get GroupSyncable from channel ID
+      summary: Get a channel syncable for a group
       description: |
-        Get the GroupSyncable object with group_id and channel_id from params
+        Get the GroupSyncableChannel object with the provided group and channel identifiers.
+
         ##### Permissions
         Must have `manage_system` permission.
 
@@ -532,13 +538,13 @@
             type: string
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: Channel GUID.
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: GroupSyncable object retrieval successful
+          description: Channel syncable retrieved
           content:
             application/json:
               schema:
@@ -557,9 +563,10 @@
     get:
       tags:
         - groups
-      summary: Get group teams
+      summary: Get team syncables for a group
       description: |
-        Retrieve the list of teams associated to the group
+        Retrieve the list of team syncables associated with the group.
+
         ##### Permissions
         Must have `manage_system` permission.
 
@@ -574,7 +581,7 @@
             type: string
       responses:
         "200":
-          description: Teams list retrieval successful
+          description: Team syncables retrieved
           content:
             application/json:
               schema:
@@ -595,9 +602,10 @@
     get:
       tags:
         - groups
-      summary: Get group channels
+      summary: Get channel syncables for a group
       description: |
-        Retrieve the list of channels associated to the group
+        Retrieve the list of channel syncables associated with the group.
+
         ##### Permissions
         Must have `manage_system` permission.
 
@@ -612,7 +620,7 @@
             type: string
       responses:
         "200":
-          description: Channel list retrieval successful
+          description: Channel syncables retrieved
           content:
             application/json:
               schema:
@@ -633,18 +641,13 @@
     put:
       tags:
         - groups
-      summary: Patch a GroupSyncable associated to Team
+      summary: Patch a team syncable for a group
       description: >
-        Partially update a GroupSyncable by providing only the fields you want
-        to update. Omitted fields will not be updated. The fields that can be
-        updated are defined in the request body, all other provided fields will
-        be ignored.
-
+        Partially update a GroupSyncableTeam by providing only the fields you want
+        to update. Omitted fields will not be updated.
 
         ##### Permissions
-
         Must have `manage_system` permission.
-
 
         __Minimum server version__: 5.11
       operationId: PatchGroupSyncableForTeam
@@ -657,24 +660,23 @@
             type: string
         - name: team_id
           in: path
-          description: Team GUID
+          description: Team GUID.
           required: true
           schema:
             type: string
       requestBody:
-          description: GroupSyncable object that is to be updated
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  auto_add:
-                    type: boolean
-
+        description: GroupSyncableTeam object that is to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auto_add:
+                  type: boolean
       responses:
         "200":
-          description: GroupSyncable patch successful
+          description: Team syncable patched
           content:
             application/json:
               schema:
@@ -691,18 +693,13 @@
     put:
       tags:
         - groups
-      summary: Patch a GroupSyncable associated to Channel
+      summary: Patch a channel syncable for a group
       description: >
-        Partially update a GroupSyncable by providing only the fields you want
-        to update. Omitted fields will not be updated. The fields that can be
-        updated are defined in the request body, all other provided fields will
-        be ignored.
-
+        Partially update a GroupSyncableChannel by providing only the fields you
+        want to update. Omitted fields will not be updated.
 
         ##### Permissions
-
         Must have `manage_system` permission.
-
 
         __Minimum server version__: 5.11
       operationId: PatchGroupSyncableForChannel
@@ -715,23 +712,23 @@
             type: string
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: Channel GUID.
           required: true
           schema:
             type: string
       requestBody:
-          description: GroupSyncable object that is to be updated
-          required: true
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  auto_add:
-                    type: boolean
+        description: GroupSyncableChannel object that is to be updated
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                auto_add:
+                  type: boolean
       responses:
         "200":
-          description: GroupSyncable patch successful
+          description: Channel syncable patched
           content:
             application/json:
               schema:
@@ -1102,68 +1099,69 @@
         "501":
           $ref: "#/components/responses/NotImplemented"
   "/api/v4/teams/{team_id}/groups_by_channels":
-      get:
-        tags:
-          - groups
-        summary: Get team groups by channels
-        description: |
-          Retrieve the set of groups associated with the channels in the given team grouped by channel.
+    get:
+      tags:
+        - groups
+      summary: Get team groups by channels
+      description: |
+        Retrieve the set of groups associated with the channels in the given team grouped by channel.
 
-          ##### Permissions
-          Must have the `list_team_channels` permission.
+        ##### Permissions
+        Must have the `list_team_channels` permission.
 
-          __Minimum server version__: 5.11
-        operationId: GetGroupsAssociatedToChannelsByTeam
-        parameters:
-          - name: team_id
-            in: path
-            description: Team GUID
-            required: true
-            schema:
-              type: string
-          - name: page
-            in: query
-            description: The page to select.
-            schema:
-              type: integer
-              default: 0
-          - name: per_page
-            in: query
-            description: The number of groups per page.
-            schema:
-              type: integer
-              default: 60
-          - name: filter_allow_reference
-            in: query
-            description: Boolean which filters in the group entries with the `allow_reference` attribute set.
-            schema:
-              type: boolean
-              default: false
-          - name: paginate
-            in: query
-            description: Boolean to determine whether the pagination should be applied or not
-            schema:
-              type: boolean
-              default: false
-        responses:
-          "200":
-            description: Group list retrieval successful
-            content:
-              application/json:
-                schema:
-                  type: object
-                  items:
+        __Minimum server version__: 5.11
+      operationId: GetGroupsAssociatedToChannelsByTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of groups per page.
+          schema:
+            type: integer
+            default: 60
+        - name: filter_allow_reference
+          in: query
+          description: Boolean which filters in the group entries with the `allow_reference` attribute set.
+          schema:
+            type: boolean
+            default: false
+        - name: paginate
+          in: query
+          description: Boolean to determine whether the pagination should be applied or not
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Group list retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
                     $ref: "#/components/schemas/GroupsAssociatedToChannels"
-          "400":
-            $ref: "#/components/responses/BadRequest"
-          "401":
-            $ref: "#/components/responses/Unauthorized"
-          "403":
-            $ref: "#/components/responses/Forbidden"
-          "500":
-            $ref: "#/components/responses/InternalServerError"
-          "501":
-            $ref: "#/components/responses/NotImplemented"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/groups":
     get:
       tags:

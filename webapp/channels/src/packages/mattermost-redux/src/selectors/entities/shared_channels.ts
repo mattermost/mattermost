@@ -12,8 +12,8 @@ export function getRemoteNamesForChannel(state: GlobalState, channelId: string):
     return [];
 }
 
-export function getRemotesForChannel(state: GlobalState, channelId: string): RemoteClusterInfo[] {
-    return state.entities?.sharedChannels?.remotes?.[channelId] || [];
+export function getRemotesForChannel(state: GlobalState, channelId: string): RemoteClusterInfo[] | undefined {
+    return state.entities?.sharedChannels?.remotes?.[channelId];
 }
 
 export function getRemoteClusterInfo(state: GlobalState, remoteId: string): RemoteClusterInfo | null {

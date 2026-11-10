@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -16,7 +16,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     className?: string;
-}
+};
 
 const InviteMembersButton = (props: Props): JSX.Element | null => {
     const intl = useIntl();

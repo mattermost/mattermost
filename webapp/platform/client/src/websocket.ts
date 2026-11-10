@@ -18,7 +18,7 @@ export type WebSocketClientConfig = {
     reconnectJitterRange: number;
     newWebSocketFn: (url: string) => WebSocket;
     clientPingInterval: number;
-}
+};
 
 // Custom close error codes must be in the range of 4000-4999
 const clientPingTimeoutErrCode = 4000;

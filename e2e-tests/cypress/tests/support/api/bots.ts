@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Bot, BotPatch} from '@mattermost/types/bots';
-import {ChainableT} from 'tests/types';
+import type {Bot, BotPatch} from '@mattermost/types/bots';
 
 import {getRandomId} from '../../utils';
+
+import type {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Bots
@@ -76,7 +77,7 @@ Cypress.Commands.add('apiGetBots', apiGetBots);
  * @example
  *   cy.apiDisableBot('user-id);
  */
-function apiDisableBot(userId) {
+function apiDisableBot(userId: string) {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/bots/${userId}/disable`,

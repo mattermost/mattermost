@@ -142,3 +142,14 @@ func (o *TeamMember) PreUpdate() {
 func (o *TeamMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
 }
+
+func (o *TeamMember) SanitizeRoleData(currentUserId string) {
+	if o.UserId != currentUserId {
+		o.Roles = ""
+		o.ExplicitRoles = ""
+		o.SchemeAdmin = false
+		o.SchemeGuest = false
+		o.SchemeUser = false
+		o.DeleteAt = -1
+	}
+}

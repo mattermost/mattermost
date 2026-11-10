@@ -71,7 +71,7 @@ const BurnOnReadConfirmationModal = ({show, onConfirm, onCancel, loading = false
             show={show}
             title={title}
             message={message}
-            confirmButtonClass='btn btn-danger'
+            destructive={true}
             confirmButtonText={confirmButtonText}
             cancelButtonText={cancelButtonText}
             onConfirm={handleConfirm}

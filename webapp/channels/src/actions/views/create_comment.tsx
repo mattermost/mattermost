@@ -172,15 +172,17 @@ export type OnSubmitOptions = {
     afterSubmit?: (response: SubmitPostReturnType) => void;
     afterOptimisticSubmit?: () => void;
     keepDraft?: boolean;
-}
+};
 
 export function onSubmit(
+    channelId: string,
+    rootId: string,
     draft: PostDraft,
     options: OnSubmitOptions,
     schedulingInfo?: SchedulingInfo,
 ): ActionFuncAsync<SubmitPostReturnType> {
     return async (dispatch, getState) => {
-        const {message, channelId, rootId} = draft;
+        const {message} = draft;
         const state = getState();
 
         dispatch(addMessageIntoHistory(message));

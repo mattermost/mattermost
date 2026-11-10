@@ -4,6 +4,7 @@
 package searchengine
 
 import (
+	"context"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -11,8 +12,15 @@ import (
 )
 
 type SearchEngineInterface interface {
-	Start() *model.AppError
+	// Start initializes the engine connection. Implementations must set the
+	// initial health state (e.g. healthy) before returning, because the broker
+	// may call IsHealthy() immediately after Start() returns.
+	Start(ctx context.Context) *model.AppError
+	// Stop tears down the engine connection. Implementations must clear the
+	// health flag (i.e. set unhealthy) during Stop so that the broker does not
+	// route queries to a stopped engine.
 	Stop() *model.AppError
+	HealthCheck(rctx request.CTX) *model.AppError
 	GetFullVersion() string
 	GetVersion() int
 	GetPlugins() []string
@@ -21,14 +29,27 @@ type SearchEngineInterface interface {
 	// IsEnabled returns a boolean indicating whether the engine is enabled in the settings
 	IsEnabled() bool
 	IsActive() bool
+	// IsHealthy reports whether the engine is reachable. The initial value is
+	// set by the engine itself during Start() and cleared during Stop(). After
+	// startup, only the watcher drives transitions by calling SetHealthy(false)
+	// on the first health-check failure and SetHealthy(true) on success,
+	// allowing the broker to skip unhealthy engines immediately instead of
+	// waiting for full stop/restart.
+	IsHealthy() bool
+	// SetHealthy is called by the watcher to update the engine's health status
+	// based on health-check results. Implementations should not call this
+	// themselves — Start() and Stop() set the initial/final state directly.
+	SetHealthy(healthy bool)
 	IsIndexingEnabled() bool
 	IsSearchEnabled() bool
 	IsAutocompletionEnabled() bool
 	IsIndexingSync() bool
-	IndexPost(post *model.Post, teamId string) *model.AppError
+	IndexPost(post *model.Post, teamId string, channelType string) *model.AppError
 	SearchPosts(channels model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
 	DeleteChannelPosts(rctx request.CTX, channelID string) *model.AppError
+	UpdatePostsChannelTypeByChannelId(rctx request.CTX, channelID string, channelType string) *model.AppError
+	BackfillPostsChannelType(rctx request.CTX, channelIDs []string, channelType string) *model.AppError
 	DeleteUserPosts(rctx request.CTX, userID string) *model.AppError
 	// IndexChannel indexes a given channel. The userIDs are only populated
 	// for private channels.

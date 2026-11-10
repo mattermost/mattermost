@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 
 import {closeModal} from 'actions/views/modals';
@@ -17,7 +18,7 @@ import './ee_license_modal.scss';
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     const dispatch = useDispatch();
@@ -58,12 +59,12 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
                     </div>
                 </div>
                 <div className='content-footer'>
-                    <button
+                    <Button
                         onClick={handleOnClose}
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         {'Close'}
-                    </button>
+                    </Button>
                 </div>
             </>
         </GenericModal>

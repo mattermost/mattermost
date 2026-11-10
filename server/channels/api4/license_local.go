@@ -30,9 +30,15 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m := r.MultipartForm
+	defer func() {
+		if r.MultipartForm != nil {
+			if err = r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
 
-	fileArray, ok := m.File["license"]
+	fileArray, ok := r.MultipartForm.File["license"]
 	if !ok {
 		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
@@ -97,18 +103,6 @@ func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("localGetClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	clientLicense := c.App.Srv().ClientLicense()
 
 	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {

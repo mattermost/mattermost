@@ -6,16 +6,38 @@ package opensearch
 import (
 	"context"
 	"io"
+	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchutil"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
+
+// createIndexerClient bounds each request attempt, since the bulk indexer
+// flushes with an uncancellable context and a stalled connection would
+// otherwise block its worker forever.
+func createIndexerClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend) (*opensearchapi.Client, *model.AppError) {
+	osCfg, appErr := createClientConfig(logger, cfg, fileBackend, true)
+	if appErr != nil {
+		return nil, appErr
+	}
+	osCfg.Client.RequestTimeout = time.Duration(*cfg.ElasticsearchSettings.RequestTimeoutSeconds) * time.Second
+
+	client, err := opensearchapi.NewClient(*osCfg)
+	if err != nil {
+		return nil, model.NewAppError("Opensearch.createIndexerClient", "ent.elasticsearch.create_client.connect_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return client, nil
+}
 
 type OpensearchIndexerInterfaceImpl struct {
 	Server        *app.Server
@@ -29,11 +51,13 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 	logger := esi.Server.Jobs.Logger().With(mlog.String("worker_name", workerName))
 
 	// Creating the client
-	client, appErr := createClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend(), true)
+	client, appErr := createIndexerClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend())
 	if appErr != nil {
 		logger.Error("Worker: Failed to Create Client", mlog.Err(appErr))
 		return nil
 	}
+
+	var realFailed atomic.Int64
 
 	return common.NewIndexerWorker(workerName, model.ElasticsearchSettingsOSBackend,
 		esi.Server.Jobs,
@@ -64,10 +88,46 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				Action:     indexOp,
 				DocumentID: docID,
 				Body:       body,
+				OnFailure: func(_ context.Context, item opensearchutil.BulkIndexerItem, resp opensearchapi.BulkRespItem, err error) {
+					if item.Action == "delete" && resp.Status == http.StatusNotFound {
+						return
+					}
+					realFailed.Add(1)
+					fields := []mlog.Field{
+						mlog.String("index", item.Index),
+						mlog.String("doc_id", item.DocumentID),
+						mlog.String("action", item.Action),
+						mlog.Int("status", resp.Status),
+					}
+					if resp.Error != nil {
+						fields = append(fields,
+							mlog.String("error_type", resp.Error.Type),
+							mlog.String("error_reason", resp.Error.Reason),
+						)
+					}
+					if err != nil {
+						fields = append(fields, mlog.Err(err))
+					}
+					logger.Warn("Bulk indexer: failed to index document", fields...)
+				},
 			})
 		},
-		// Closing the bulk processor
-		func() error {
-			return esi.bulkProcessor.Close(context.Background())
+		// Closing the bulk processor and returning the number of failed items.
+		func() (int64, error) {
+			err := esi.bulkProcessor.Close(context.Background())
+			stats := esi.bulkProcessor.Stats()
+			fields := []mlog.Field{
+				mlog.Uint("num_indexed", stats.NumIndexed),
+				mlog.Int("num_failed", realFailed.Load()),
+				mlog.Uint("stats_num_failed", stats.NumFailed),
+				mlog.Uint("num_added", stats.NumAdded),
+				mlog.Uint("num_flushed", stats.NumFlushed),
+			}
+			if err != nil {
+				logger.Warn("Bulk indexer closed with error", append(fields, mlog.Err(err))...)
+			} else {
+				logger.Info("Bulk indexer closed", fields...)
+			}
+			return realFailed.Load(), err
 		})
 }

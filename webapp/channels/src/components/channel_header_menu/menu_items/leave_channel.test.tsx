@@ -11,6 +11,7 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -43,6 +44,20 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         expect(channelActions.leaveChannel).toHaveBeenCalledWith(channel.id);
     });
 
+    test('says Leave Board for a board', () => {
+        const channel = TestHelper.getChannelMock({id: 'board1'});
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <LeaveChannel channel={channel}/>
+            </WithTestMenuContext>,
+            boardChannelsState('board1'),
+        );
+
+        expect(screen.getByText('Leave Board')).toBeInTheDocument();
+        expect(screen.queryByText('Leave Channel')).not.toBeInTheDocument();
+    });
+
     test('renders the component correctly, handle click event for manage groups', async () => {
         const channel = TestHelper.getChannelMock({type: 'P'});
 
@@ -57,6 +72,30 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
 
         await userEvent.click(menuItemMG); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
+        expect(modalActions.openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,
+            dialogType: LeaveChannelModal,
+            dialogProps: {
+                channel,
+            },
+        });
+    });
+
+    test('opens leave confirmation modal for a policy enforced public channel', async () => {
+        const channel = TestHelper.getChannelMock({type: 'O', policy_enforced: true});
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <LeaveChannel channel={channel}/>
+            </WithTestMenuContext>, {},
+        );
+
+        const menuItem = screen.getByText('Leave Channel');
+        expect(menuItem).toBeInTheDocument();
+
+        await userEvent.click(menuItem);
+        expect(channelActions.leaveChannel).not.toHaveBeenCalled();
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
         expect(modalActions.openModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,

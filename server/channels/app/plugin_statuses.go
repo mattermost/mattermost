@@ -40,6 +40,15 @@ func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) 
 	return a.ch.GetPluginStatus(id)
 }
 
+// IsInstalledPlugin reports whether id names a plugin installed on this
+// server. It is the one plugin-membership check shared by the property
+// access-control hook and the audit basis derivation, so the two cannot
+// disagree about which caller IDs are machine callers.
+func (a *App) IsInstalledPlugin(id string) bool {
+	_, err := a.GetPluginStatus(id)
+	return err == nil
+}
+
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
@@ -92,17 +101,17 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
-func (ch *Channels) notifyPluginStatusesChanged() error {
-	pluginStatuses, err := ch.getClusterPluginStatuses()
-	if err != nil {
-		return err
-	}
-
-	// Notify any system admins.
+// notifyPluginStatusesChanged signals system admins that plugin statuses have changed without
+// carrying the full status slice. That slice (status for every installed plugin, cluster-wide)
+// routinely overflows the best-effort (UDP) cluster transport, so admin clients refetch it on
+// demand instead. The signal is sent reliably (TCP) and only to system admins (ContainsSensitiveData).
+func (ch *Channels) notifyPluginStatusesChanged() {
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
-	message.Add("plugin_statuses", pluginStatuses)
+	// Compatibility shim: some clients (e.g. the Boards/Focalboard plugin) call array methods on
+	// plugin_statuses, so include an empty (non-nil, to serialize as [] rather than null) slice
+	// rather than omitting the field. The payload is intentionally always empty.
+	message.Add("plugin_statuses", model.PluginStatuses{})
 	message.GetBroadcast().ContainsSensitiveData = true
+	message.GetBroadcast().ReliableClusterSend = true
 	ch.srv.platform.Publish(message)
-
-	return nil
 }

@@ -4,55 +4,74 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
-    <div
+    <header
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
-      >
-        <span
-          class="profile-icon "
-        >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
       <div
-        class="AdminUserCard__user-info"
+        class="AdminUserCard__header-main"
       >
-        <span>
-          Jim
-           
-          Halpert
-        </span>
-        <span>
-           • 
-        </span>
-        <span
-          class="AdminUserCard__user-nickname"
+        <div
+          class="AdminUserCard__header-start"
         >
-          Big Tuna
-        </span>
+          <div
+            class="AdminUserCard__picture"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
+            >
+              <span
+                class="profile-icon "
+                data-testid="profile-icon"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                />
+              </span>
+            </button>
+          </div>
+          <div
+            class="AdminUserCard__title-stack"
+          >
+            <h2
+              class="AdminUserCard__user-info"
+              data-testid="adminUserCard-userInfo"
+            >
+              Jim Halpert
+            </h2>
+            <p
+              class="AdminUserCard__user-id"
+              data-testid="adminUserCard-userId"
+            >
+              <span
+                class="AdminUserCard__user-nickname"
+                data-testid="adminUserCard-userNickname"
+              >
+                Big Tuna
+              </span>
+               · 
+              User ID: 1234
+            </p>
+          </div>
+        </div>
       </div>
-      <div
-        class="AdminUserCard__user-id"
-      >
-        User ID: 1234
-      </div>
-    </div>
+    </header>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -62,50 +81,67 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
-    <div
+    <header
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
-      >
-        <span
-          class="profile-icon "
-        >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
       <div
-        class="AdminUserCard__user-info"
+        class="AdminUserCard__header-main"
       >
-        <span>
-           
-        </span>
-        <span
-          class="AdminUserCard__user-nickname"
+        <div
+          class="AdminUserCard__header-start"
         >
-          Big Tuna
-        </span>
+          <div
+            class="AdminUserCard__picture"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
+            >
+              <span
+                class="profile-icon "
+                data-testid="profile-icon"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                />
+              </span>
+            </button>
+          </div>
+          <div
+            class="AdminUserCard__title-stack"
+          >
+            <h2
+              class="AdminUserCard__user-info"
+              data-testid="adminUserCard-userInfo"
+            >
+              Big Tuna
+            </h2>
+            <p
+              class="AdminUserCard__user-id"
+              data-testid="adminUserCard-userId"
+            >
+              User ID: 1234
+            </p>
+          </div>
+        </div>
       </div>
-      <div
-        class="AdminUserCard__user-id"
-      >
-        User ID: 1234
-      </div>
-    </div>
+    </header>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -115,48 +151,67 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
-    <div
+    <header
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__header-main"
       >
-        <span
-          class="profile-icon "
+        <div
+          class="AdminUserCard__header-start"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
-      <div
-        class="AdminUserCard__user-info"
-      >
-        <span>
-           
-        </span>
-        <span
-          class="AdminUserCard__user-nickname"
-        />
+          <div
+            class="AdminUserCard__picture"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
+            >
+              <span
+                class="profile-icon "
+                data-testid="profile-icon"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                />
+              </span>
+            </button>
+          </div>
+          <div
+            class="AdminUserCard__title-stack"
+          >
+            <h2
+              class="AdminUserCard__user-info"
+              data-testid="adminUserCard-userInfo"
+            >
+              some-user
+            </h2>
+            <p
+              class="AdminUserCard__user-id"
+              data-testid="adminUserCard-userId"
+            >
+              User ID: 1234
+            </p>
+          </div>
+        </div>
       </div>
-      <div
-        class="AdminUserCard__user-id"
-      >
-        User ID: 1234
-      </div>
-    </div>
+    </header>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>
@@ -166,50 +221,67 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
 <div>
   <div
     class="AdminUserCard"
+    data-testid="adminUserCard"
   >
-    <div
+    <header
       class="AdminUserCard__header"
+      data-testid="adminUserCard-header"
     >
-      <button
-        aria-expanded="false"
-        aria-haspopup="dialog"
-        class="status-wrapper style--none admin-user-card"
-        style="border-radius: 50%; width: 128px; height: 128px;"
+      <div
+        class="AdminUserCard__header-main"
       >
-        <span
-          class="profile-icon "
+        <div
+          class="AdminUserCard__header-start"
         >
-          <img
-            alt="user profile image"
-            class="Avatar Avatar-xxl"
-            loading="lazy"
-            src="/api/v4/users/1234/image"
-          />
-        </span>
-      </button>
-      <div
-        class="AdminUserCard__user-info"
-      >
-        <span>
-          Jim
-           
-          Halpert
-        </span>
-        <span
-          class="AdminUserCard__user-nickname"
-        />
+          <div
+            class="AdminUserCard__picture"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="status-wrapper style--none admin-user-card"
+              style="border-radius: 50%; width: 128px; height: 128px;"
+              type="button"
+            >
+              <span
+                class="profile-icon "
+                data-testid="profile-icon"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-xxl"
+                  loading="lazy"
+                  src="/api/v4/users/1234/image"
+                />
+              </span>
+            </button>
+          </div>
+          <div
+            class="AdminUserCard__title-stack"
+          >
+            <h2
+              class="AdminUserCard__user-info"
+              data-testid="adminUserCard-userInfo"
+            >
+              Jim Halpert
+            </h2>
+            <p
+              class="AdminUserCard__user-id"
+              data-testid="adminUserCard-userId"
+            >
+              User ID: 1234
+            </p>
+          </div>
+        </div>
       </div>
-      <div
-        class="AdminUserCard__user-id"
-      >
-        User ID: 1234
-      </div>
-    </div>
+    </header>
     <div
       class="AdminUserCard__body"
+      data-testid="adminUserCard-body"
     />
     <div
       class="AdminUserCard__footer"
+      data-testid="adminUserCard-footer"
     />
   </div>
 </div>

@@ -12,9 +12,10 @@
 
 import {
     getPasswordResetEmailTemplate,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Signin/Authentication', () => {
     let testUser;
@@ -34,7 +35,7 @@ describe('Signin/Authentication', () => {
     });
 
     it('MM-T407 - Sign In Forgot password - Email address has account on server', () => {
-        const newPassword = 'newpasswd';
+        const newPassword = newTestPassword();
 
         // # Visit town-square
         cy.visit(`/${teamName.name}/channels/town-square`);

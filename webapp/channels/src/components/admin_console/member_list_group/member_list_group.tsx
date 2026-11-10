@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {GroupStats} from '@mattermost/types/groups';
@@ -30,12 +30,12 @@ export type Props = {
         searchProfiles: (term: string, options?: Record<string, unknown>) => Promise<ActionResult<UserProfile[]>>;
         setModalSearchTerm: (term: string) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
     page: number;
-}
+};
 
 export default class MemberListGroup extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;

@@ -1,0 +1,1885 @@
+{
+    "attachment": {
+        "fields_and_thumb": {
+            "message": "Fixture: attachment with fields, pretext, and thumbnail.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Summary: defect triage attachment",
+                        "color": "#7CD197",
+                        "mrkdwn_in": ["pretext"],
+                        "pretext": "Some *markdown* pretext for the attachment.",
+                        "title": "Sample attachment title",
+                        "title_link": "https://example.com/issue/123",
+                        "text": "Body text for the attachment. Appears above optional media.",
+                        "fields": [
+                            {
+                                "short": false,
+                                "title": "Area",
+                                "value": "Long-form field value that spans the full width of the attachment layout."
+                            },
+                            {
+                                "short": true,
+                                "title": "Iteration",
+                                "value": "2026.05"
+                            },
+                            {
+                                "short": true,
+                                "title": "State",
+                                "value": "New"
+                            },
+                            {
+                                "short": true,
+                                "title": "Link field",
+                                "value": "<https://example.com/path|Example link>"
+                            }
+                        ],
+                        "thumb_url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png"
+                    }
+                ]
+            }
+        },
+        "with_actions": {
+            "message": "Fixture: attachment buttons — legacy actions require `id` (maps to mm_blocks `action_id`) plus integration URL.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Deployment notification",
+                        "color": "#36a64f",
+                        "pretext": "Build finished.",
+                        "title": "Deployment #42",
+                        "title_link": "https://example.com/deployments/42",
+                        "text": "Deployed `main` to *staging*.",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_view_logs",
+                                "name": "View logs",
+                                "style": "primary",
+                                "integration": {
+                                    "url": "https://example.com/actions/view-logs",
+                                    "context": {
+                                        "deployment_id": "42"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_rollback",
+                                "name": "Rollback",
+                                "style": "danger",
+                                "integration": {
+                                    "url": "https://example.com/actions/rollback",
+                                    "context": {
+                                        "deployment_id": "42"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "button_semantic_styles": {
+            "message": "Fixture: attachment action button styles — default, primary, good, success, warning, danger, hex (translated to mm_blocks).",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Button style showcase",
+                        "color": "#439FE0",
+                        "text": "Legacy attachment actions with each supported `style` value.",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_default",
+                                "name": "Default",
+                                "style": "default",
+                                "integration": {
+                                    "url": "https://example.com/actions/default",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_primary",
+                                "name": "Primary",
+                                "style": "primary",
+                                "integration": {
+                                    "url": "https://example.com/actions/primary",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_good",
+                                "name": "Good",
+                                "style": "good",
+                                "integration": {
+                                    "url": "https://example.com/actions/good",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_success",
+                                "name": "Success",
+                                "style": "success",
+                                "integration": {
+                                    "url": "https://example.com/actions/success",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_warning",
+                                "name": "Warning",
+                                "style": "warning",
+                                "integration": {
+                                    "url": "https://example.com/actions/warning",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_danger",
+                                "name": "Danger",
+                                "style": "danger",
+                                "integration": {
+                                    "url": "https://example.com/actions/danger",
+                                    "context": {}
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_btn_hex",
+                                "name": "Hex #2d81ff",
+                                "style": "#2d81ff",
+                                "integration": {
+                                    "url": "https://example.com/actions/hex",
+                                    "context": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "with_select": {
+            "message": "Fixture: static select — requires `id` on the action for interactive translation.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Choose next step",
+                        "color": "#439FE0",
+                        "text": "Pick an option from the menu.",
+                        "actions": [
+                            {
+                                "type": "select",
+                                "id": "e2e_attach_static_menu",
+                                "name": "Select an option…",
+                                "options": [
+                                    {
+                                        "text": "Option A",
+                                        "value": "a"
+                                    },
+                                    {
+                                        "text": "Option B",
+                                        "value": "b"
+                                    },
+                                    {
+                                        "text": "Option C",
+                                        "value": "c"
+                                    }
+                                ],
+                                "integration": {
+                                    "url": "https://example.com/actions/menu",
+                                    "context": {
+                                        "fixture": "interactive_post"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "author_footer_image_timestamp": {
+            "message": "Fixture: author row, full-width `image_url`, footer + footer icon, timestamp.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Release notes digest",
+                        "color": "#439FE0",
+                        "author_name": "Release Bot",
+                        "author_link": "https://example.com/bot",
+                        "author_icon": "https://handbook.mattermost.com/~gitbook/image?url=https%3A%2F%2F4287631337-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-legacy-files%2Fo%2Fassets%252F-LorODNCmgMboJfZ7MPT%252Fsync%252F6c7ab89bca0b50a48f1d35edf13e76fd6faf5b43.svg%3Fgeneration%3D1614726374299388%26alt%3Dmedia&width=768&dpr=3&quality=100&sign=75d7e244&sv=2",
+                        "title": "v10.0.0 shipped",
+                        "title_link": "https://example.com/releases/v10",
+                        "text": "Highlights: interactive messages, performance fixes.",
+                        "image_url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "footer": "CI · main · build 9001",
+                        "footer_icon": "https://handbook.mattermost.com/~gitbook/image?url=https%3A%2F%2F4287631337-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-legacy-files%2Fo%2Fassets%252F-LorODNCmgMboJfZ7MPT%252Fsync%252F6c7ab89bca0b50a48f1d35edf13e76fd6faf5b43.svg%3Fgeneration%3D1614726374299388%26alt%3Dmedia&width=768&dpr=3&quality=100&sign=75d7e244&sv=2",
+                        "ts": 1715000000
+                    }
+                ]
+            }
+        },
+        "semantic_colors_stack": {
+            "message": "Fixture: multiple attachments using named colors `good`, `warning`, `danger`.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "OK",
+                        "color": "good",
+                        "text": "Health check **passed**."
+                    },
+                    {
+                        "fallback": "Warn",
+                        "color": "warning",
+                        "text": "Approaching rate limit."
+                    },
+                    {
+                        "fallback": "Error",
+                        "color": "danger",
+                        "text": "Worker queue stalled."
+                    }
+                ]
+            }
+        },
+        "buttons_tooltip_disabled": {
+            "message": "Fixture: attachment buttons with tooltip and disabled state.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Approval",
+                        "color": "#5F57FF",
+                        "text": "Approve this change request?",
+                        "actions": [
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_approve",
+                                "name": "Approve",
+                                "style": "primary",
+                                "tooltip": "Submits approval to the integration",
+                                "integration": {
+                                    "url": "https://example.com/actions/approve",
+                                    "context": {
+                                        "id": "cr-1"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_reject",
+                                "name": "Reject",
+                                "style": "danger",
+                                "integration": {
+                                    "url": "https://example.com/actions/reject",
+                                    "context": {
+                                        "id": "cr-1"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "id": "e2e_attach_escalate",
+                                "name": "Escalate (disabled)",
+                                "disabled": true,
+                                "integration": {
+                                    "url": "https://example.com/actions/escalate",
+                                    "context": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "select_dynamic_users": {
+            "message": "Fixture: select with `data_source: users` (user picker; options come from autocomplete).",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Assign reviewer",
+                        "color": "#FFBC1F",
+                        "text": "Pick a teammate:",
+                        "actions": [
+                            {
+                                "type": "select",
+                                "id": "e2e_attach_pick_user",
+                                "name": "Choose a user…",
+                                "data_source": "users",
+                                "integration": {
+                                    "url": "https://example.com/actions/assign-user",
+                                    "context": {
+                                        "ticket": "MM-1000"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "select_dynamic_channels": {
+            "message": "Fixture: select with `data_source: channels` (channel picker).",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Cross-post target",
+                        "color": "#3DB887",
+                        "text": "Select a channel to mirror this post:",
+                        "actions": [
+                            {
+                                "type": "select",
+                                "id": "e2e_attach_pick_channel",
+                                "name": "Choose a channel…",
+                                "data_source": "channels",
+                                "integration": {
+                                    "url": "https://example.com/actions/mirror-channel",
+                                    "context": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "select_default_option": {
+            "message": "Fixture: static select with `default_option` value.",
+            "props": {
+                "attachments": [
+                    {
+                        "fallback": "Priority",
+                        "color": "#B4B7BD",
+                        "text": "Set ticket priority:",
+                        "actions": [
+                            {
+                                "type": "select",
+                                "id": "e2e_attach_priority",
+                                "name": "Priority…",
+                                "default_option": "p2",
+                                "options": [
+                                    {
+                                        "text": "P1 — Urgent",
+                                        "value": "p1"
+                                    },
+                                    {
+                                        "text": "P2 — Normal",
+                                        "value": "p2"
+                                    },
+                                    {
+                                        "text": "P3 — Low",
+                                        "value": "p3"
+                                    }
+                                ],
+                                "integration": {
+                                    "url": "https://example.com/actions/priority",
+                                    "context": {}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "mm_blocks": {
+        "basic": {
+            "message": "Fixture: native `mm_blocks` — text, divider, buttons.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Hello **from** mm_blocks (canonical interactive messages)."
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "button",
+                        "text": "Primary action",
+                        "style": "primary",
+                        "action_id": "e2e_mm_blocks_primary"
+                    },
+                    {
+                        "type": "button",
+                        "text": "Secondary",
+                        "style": "default",
+                        "action_id": "e2e_mm_blocks_secondary"
+                    }
+                ]
+            }
+        },
+        "container_image_columns": {
+            "message": "Fixture: `mm_blocks` with container, image, and column layout.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "container",
+                        "accent_color": "#439FE0",
+                        "border": true,
+                        "gap": "small",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Container title area",
+                                "size": "default"
+                            },
+                            {
+                                "type": "text",
+                                "text": "Muted subtitle",
+                                "is_subtle": true,
+                                "size": "small"
+                            },
+                            {
+                                "type": "image",
+                                "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                                "alt_text": "Mattermost logo",
+                                "size": "medium"
+                            },
+                            {
+                                "type": "column_set",
+                                "columns": [
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "text",
+                                                "text": "Left column content."
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "text",
+                                                "text": "Right column content."
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "raw_metrics": {
+            "message": "Fixture: raw metrics — bordered container with accent; three columns of bordered gray metric tiles.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "container",
+                        "border": true,
+                        "accent_color": "primary",
+                        "gap": "small",
+                        "content": [
+                            {
+                                "type": "column_set",
+                                "columns": [
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**2.4k**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Messages today",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**187**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Active members",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "container",
+                                                "border": true,
+                                                "background": "gray",
+                                                "gap": "small",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "**99.2%**"
+                                                    },
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Uptime (30d)",
+                                                        "is_subtle": true,
+                                                        "size": "small"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "collapsible_select": {
+            "message": "Fixture: collapsible region and static select.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "collapsible",
+                        "collapsed": false,
+                        "header": [
+                            {
+                                "type": "text",
+                                "text": "**Details** (collapsible header)"
+                            }
+                        ],
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Hidden details go here until collapsed."
+                            },
+                            {
+                                "type": "static_select",
+                                "action_id": "e2e_mm_blocks_select",
+                                "placeholder": "Choose…",
+                                "options": [
+                                    {
+                                        "text": "One",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "text": "Two",
+                                        "value": "2"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "scrollable_content": {
+            "message": "Fixture: container with `max_height` preset and stacked text blocks.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Bounded** container demo — content overflows vertically."
+                    },
+                    {
+                        "type": "container",
+                        "max_height": "medium",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Line 1 — Lorem ipsum dolor sit amet."
+                            },
+                            {
+                                "type": "text",
+                                "text": "Line 2 — Consectetur adipiscing elit."
+                            },
+                            {
+                                "type": "text",
+                                "text": "Line 3 — Sed do eiusmod tempor incididunt."
+                            },
+                            {
+                                "type": "text",
+                                "text": "Line 4 — Ut labore et dolore magna aliqua."
+                            },
+                            {
+                                "type": "text",
+                                "text": "Line 5 — Ut enim ad minim veniam."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "nested_container_backgrounds": {
+            "message": "Fixture: nested containers — mixed `background` (`gray` vs omitted / `none`).",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Nested container backgrounds** — outer has no fill; inner blocks use `gray`, default, or explicit `none`."
+                    },
+                    {
+                        "type": "container",
+                        "border": true,
+                        "gap": "small",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Outer container (no `background` property)."
+                            },
+                            {
+                                "type": "container",
+                                "background": "gray",
+                                "gap": "small",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Level 2 — `background: gray`."
+                                    },
+                                    {
+                                        "type": "container",
+                                        "gap": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Level 3 — inside gray parent; this container has no background (transparent over gray)."
+                                            },
+                                            {
+                                                "type": "container",
+                                                "background": "gray",
+                                                "content": [
+                                                    {
+                                                        "type": "text",
+                                                        "text": "Level 4 — `gray` again (nested tint)."
+                                                    },
+                                                    {
+                                                        "type": "container",
+                                                        "background": "none",
+                                                        "content": [
+                                                            {
+                                                                "type": "text",
+                                                                "text": "Level 5 — explicit `background: none` (shows parent gray through)."
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "gap": "small",
+                                "content": [
+                                    {
+                                        "type": "text",
+                                        "text": "Sibling branch — no background, next to the gray subtree."
+                                    },
+                                    {
+                                        "type": "container",
+                                        "background": "gray",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Leaf — `gray` only in this subtree."
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "nested_scrollable_three_levels_small": {
+            "message": "Fixture: nested scrollable containers - root, 3 mids, 3 leaves each (9 leaves); all max_height small; 10 text lines per leaf.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Nested scroll regions** - root to 3 mids to 3 leaves each; every container uses max_height small (160px cap)."
+                    },
+                    {
+                        "type": "container",
+                        "max_height": "small",
+                        "content": [
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 1-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 2-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "container",
+                                "max_height": "small",
+                                "content": [
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-1 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-2 - line 10"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "container",
+                                        "max_height": "small",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 2"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 5"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 6"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 7"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 8"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 9"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": "Cell 3-3 - line 10"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "container_vertical_big_gap": {
+            "message": "Fixture: bordered container with vertical flow and large gap.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "container",
+                        "border": true,
+                        "accent_color": "warning",
+                        "flow": "vertical",
+                        "gap": "large",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "First row in vertical stack"
+                            },
+                            {
+                                "type": "divider"
+                            },
+                            {
+                                "type": "text",
+                                "text": "Second row after divider",
+                                "is_subtle": true,
+                                "size": "small"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "image_alignment_and_style": {
+            "message": "Fixture: image blocks — alignment, `image_style: person`, explicit max dimensions.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Centered avatar-style image:"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Brand mark",
+                        "size": "small",
+                        "image_style": "person",
+                        "horizontal_alignment": "center",
+                        "max_width": 120,
+                        "max_height": 120
+                    },
+                    {
+                        "type": "text",
+                        "text": "Left-aligned stretch banner:",
+                        "size": "small",
+                        "is_subtle": true
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Banner",
+                        "size": "stretch",
+                        "horizontal_alignment": "left"
+                    }
+                ]
+            }
+        },
+        "image_size_presets": {
+            "message": "Fixture: same image at each `mm_blocks` image `size` preset — auto through stretch.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "**Image size presets** — same logo URL below; each block uses a different `size` value."
+                    },
+                    {
+                        "type": "text",
+                        "text": "First: **`auto`** — natural dimensions (no preset max width/height).",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (auto)",
+                        "size": "auto"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`xsmall`** — capped at 108×64 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (xsmall)",
+                        "size": "xsmall"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`small`** — capped at 204×120 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (small)",
+                        "size": "small"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`medium`** — capped at 320×184 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (medium)",
+                        "size": "medium"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`large`** — capped at 428×240 px.",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (large)",
+                        "size": "large"
+                    },
+                    {
+                        "type": "text",
+                        "text": "Next: **`stretch`** — capped at 500×350 px (legacy attachment-style banner).",
+                        "size": "small"
+                    },
+                    {
+                        "type": "image",
+                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Mattermost logo (stretch)",
+                        "size": "stretch"
+                    }
+                ]
+            }
+        },
+        "static_select_initial_and_query": {
+            "message": "Fixture: static select with `initial_option` and optional `query` payload.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "static_select",
+                        "action_id": "e2e_mm_blocks_region",
+                        "placeholder": "Region…",
+                        "initial_option": "eu",
+                        "query": {
+                            "source": "signup_form"
+                        },
+                        "options": [
+                            {
+                                "text": "US East",
+                                "value": "us"
+                            },
+                            {
+                                "text": "EU Central",
+                                "value": "eu"
+                            },
+                            {
+                                "text": "APAC",
+                                "value": "apac"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "select_users_and_channels": {
+            "message": "Fixture: dynamic selects (`data_source` users / channels) in mm_blocks.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Assign and route:"
+                    },
+                    {
+                        "type": "container",
+                        "flow": "horizontal",
+                        "gap": "medium",
+                        "content": [
+                            {
+                                "type": "static_select",
+                                "action_id": "e2e_mm_blocks_users",
+                                "placeholder": "User…",
+                                "data_source": "users"
+                            },
+                            {
+                                "type": "static_select",
+                                "action_id": "e2e_mm_blocks_channels",
+                                "placeholder": "Channel…",
+                                "data_source": "channels"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "button_tooltip_disabled": {
+            "message": "Fixture: button tooltip and disabled flag.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "button",
+                        "text": "Runs integration",
+                        "style": "primary",
+                        "action_id": "e2e_mm_blocks_run",
+                        "tooltip": "POSTs to the configured outgoing integration"
+                    },
+                    {
+                        "type": "button",
+                        "text": "Unavailable",
+                        "style": "default",
+                        "action_id": "e2e_mm_blocks_na",
+                        "disabled": true,
+                        "tooltip": "This control is intentionally disabled"
+                    }
+                ]
+            }
+        },
+        "button_semantic_styles": {
+            "message": "Fixture: mm_blocks button styles — default, primary, good, success, warning, danger, and hex.",
+            "props": {
+                "mm_blocks": [
+                    {
+                        "type": "text",
+                        "text": "Attachment action colors ported to native mm_blocks buttons."
+                    },
+                    {
+                        "type": "container",
+                        "flow": "horizontal",
+                        "gap": "medium",
+                        "content": [
+                            {
+                                "type": "button",
+                                "text": "Default",
+                                "style": "default",
+                                "action_id": "e2e_btn_default"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Primary",
+                                "style": "primary",
+                                "action_id": "e2e_btn_primary"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Good",
+                                "style": "good",
+                                "action_id": "e2e_btn_good"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Success",
+                                "style": "success",
+                                "action_id": "e2e_btn_success"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Warning",
+                                "style": "warning",
+                                "action_id": "e2e_btn_warning"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Danger",
+                                "style": "danger",
+                                "action_id": "e2e_btn_danger"
+                            },
+                            {
+                                "type": "button",
+                                "text": "Hex #2d81ff",
+                                "style": "#2d81ff",
+                                "action_id": "e2e_btn_hex"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "block_kit": {
+        "section_actions": {
+            "message": "Fixture: Block Kit in `props.blocks` (translated client-side to mm_blocks).",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Hello* from Block Kit `props.blocks`."
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "OK"
+                                },
+                                "action_id": "e2e_block_kit_ok"
+                            },
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Cancel"
+                                },
+                                "style": "danger",
+                                "action_id": "e2e_block_kit_cancel"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "context_and_image": {
+            "message": "Fixture: Block Kit context block and section accessory image.",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Section with accessory image"
+                        },
+                        "accessory": {
+                            "type": "image",
+                            "image_url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                            "alt_text": "Logo"
+                        }
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "Context line one"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "Context line *two*"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "header_markdown_image": {
+            "message": "Fixture: `header`, `markdown`, standalone `image`, and `divider` blocks.",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Incident summary"
+                        }
+                    },
+                    {
+                        "type": "markdown",
+                        "text": "Freeform **markdown** block for longer copy."
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "image",
+                        "image_url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                        "alt_text": "Wide banner",
+                        "title": {
+                            "type": "plain_text",
+                            "text": "Diagram thumbnail"
+                        }
+                    }
+                ]
+            }
+        },
+        "section_with_fields": {
+            "message": "Fixture: `section` with `fields` (paired into two-column rows).",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Fields grid* (short pairs render side by side):"
+                        },
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*CPU*  \n32%"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Memory*  \n58%"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Region*  \n`us-east-1`"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Pods*  \n12 running"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "section_accessory_button": {
+            "message": "Fixture: section text + accessory **button** (not only image).",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Deploy finished — open dashboard?"
+                        },
+                        "accessory": {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Open"
+                            },
+                            "action_id": "e2e_block_kit_accessory_open",
+                            "style": "primary"
+                        }
+                    }
+                ]
+            }
+        },
+        "actions_select_and_buttons": {
+            "message": "Fixture: `actions` row with `static_select` and buttons.",
+            "props": {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Pick an environment, then confirm:"
+                        }
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "static_select",
+                                "action_id": "e2e_block_kit_env",
+                                "placeholder": {
+                                    "type": "plain_text",
+                                    "text": "Environment"
+                                },
+                                "options": [
+                                    {
+                                        "text": {
+                                            "type": "plain_text",
+                                            "text": "Staging"
+                                        },
+                                        "value": "staging"
+                                    },
+                                    {
+                                        "text": {
+                                            "type": "plain_text",
+                                            "text": "Production"
+                                        },
+                                        "value": "prod"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Apply"
+                                },
+                                "style": "primary",
+                                "action_id": "e2e_block_kit_apply"
+                            },
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Cancel"
+                                },
+                                "action_id": "e2e_block_kit_cancel_env"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "adaptive_card": {
+        "simple": {
+            "message": "Fixture: Adaptive Card body text — card-level `Action.OpenUrl` is stored but not translated to mm_blocks buttons (use Action.Submit for actions row).",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Hello from an Adaptive Card",
+                                "wrap": true,
+                                "weight": "Bolder"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "Supporting copy for E2E assertions.",
+                                "wrap": true,
+                                "isSubtle": true,
+                                "spacing": "Small"
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.OpenUrl",
+                                "title": "Documentation",
+                                "url": "https://developers.mattermost.com/"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "column_set_two_columns": {
+            "message": "Fixture: ColumnSet + TextBlock facts (Adaptive `FactSet` is not translated to mm_blocks; use TextBlock for portable facts).",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "ColumnSet",
+                                "columns": [
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "Column A",
+                                                "wrap": true
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "type": "Column",
+                                        "width": "stretch",
+                                        "items": [
+                                            {
+                                                "type": "TextBlock",
+                                                "text": "Column B",
+                                                "wrap": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "**Environment:** e2e  \n**Fixture:** interactive_post.json",
+                                "wrap": true,
+                                "spacing": "Medium"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "nested_container_and_image": {
+            "message": "Fixture: Adaptive `Container` nesting and `Image` with size / alignment / pixel dimensions.",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "Container",
+                                "items": [
+                                    {
+                                        "type": "TextBlock",
+                                        "text": "Inside a container",
+                                        "weight": "Bolder",
+                                        "wrap": true
+                                    },
+                                    {
+                                        "type": "Image",
+                                        "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                                        "altText": "Logo inside container",
+                                        "size": "Medium",
+                                        "horizontalAlignment": "Center",
+                                        "width": "200px",
+                                        "height": "80px"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "submit_button_styles": {
+            "message": "Fixture: `Action.Submit` maps to mm_blocks buttons (`positive` → primary, `destructive` → danger).",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Confirm destructive operation?",
+                                "wrap": true
+                            }
+                        ],
+                        "actions": [
+                            {
+                                "type": "Action.Submit",
+                                "title": "Confirm",
+                                "style": "positive",
+                                "id": "e2e_ac_confirm"
+                            },
+                            {
+                                "type": "Action.Submit",
+                                "title": "Delete",
+                                "style": "destructive",
+                                "id": "e2e_ac_delete"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "action_set_row": {
+            "message": "Fixture: `ActionSet` in the card body (same Submit translation as card `actions`).",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Quick actions:",
+                                "wrap": true
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Snooze",
+                                        "id": "e2e_ac_snooze"
+                                    },
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Ack",
+                                        "style": "positive",
+                                        "id": "e2e_ac_ack"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "image_person_style": {
+            "message": "Fixture: Adaptive `Image` with `style: person` and subtle caption.",
+            "props": {
+                "cards": [
+                    {
+                        "type": "AdaptiveCard",
+                        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "Image",
+                                "url": "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
+                                "altText": "Avatar-style crop",
+                                "size": "Small",
+                                "style": "person",
+                                "horizontalAlignment": "Right"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": "Caption under image",
+                                "isSubtle": true,
+                                "size": "Small",
+                                "wrap": true
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}

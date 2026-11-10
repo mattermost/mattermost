@@ -104,13 +104,13 @@ describe('components/ListModal', () => {
         expect(baseElement).toMatchSnapshot();
 
         // Verify title bar button is present
-        expect(screen.getByRole('link', {name: 'Add Foo'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Add Foo'})).toBeInTheDocument();
     });
 
     test('should have called onHide when handleExit is called', async () => {
         const onHide = jest.fn();
         const props = {...baseProps, onHide};
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -120,8 +120,7 @@ describe('components/ListModal', () => {
         });
 
         // Click the modal close button
-        const closeButton = baseElement.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for onHide to be called (called after exit animation)
         await waitFor(() => {

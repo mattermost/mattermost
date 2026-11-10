@@ -4,6 +4,8 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -17,7 +19,6 @@ import {
     NotificationPermissionNeverGranted,
     getNotificationPermission,
 } from 'utils/notifications';
-import * as UserAgent from 'utils/user_agent';
 
 export default function NotificationPermissionBar() {
     const isLoggedIn = Boolean(useSelector(getCurrentUserId));

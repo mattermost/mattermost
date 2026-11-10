@@ -58,71 +58,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/payment:
-    post:
-      tags:
-        - cloud
-      summary: Create a customer setup payment intent
-      description: |
-        Creates a customer setup payment intent for the given Mattermost cloud installation.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.28
-        __Note:__: This is intended for internal use and is subject to change.
-
-      operationId: CreateCustomerPayment
-      responses:
-        "201":
-          description: Payment setup intented created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PaymentSetupIntent"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/payment/confirm:
-    post:
-      tags:
-        - cloud
-      summary: Completes the payment setup intent
-      description: >
-        Confirms the payment setup intent initiated when posting to `/cloud/payment`.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.28
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: ConfirmCustomerPayment
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                stripe_setup_intent_id:
-                  type: string
-      responses:
-        "200":
-          description: Payment setup intent confirmed successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
   /api/v4/cloud/customer:
     get:
       tags:
@@ -153,45 +88,38 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-    put:
+  /api/v4/cloud/validate-business-email:
+    post:
       tags:
         - cloud
-      summary: Update cloud customer
+      summary: Validate business email
       description: >
-        Updates the customer information for the Mattermost Cloud customer bound to this installation.
+        Validate whether an email address is considered a business email by the cloud service.
 
         ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.29
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: UpdateCloudCustomer
+        Must be authenticated.
+      operationId: ValidateBusinessEmail
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - email
               properties:
-                name:
-                  type: string
                 email:
                   type: string
-                contact_first_name:
-                  type: string
-                contact_last_name:
-                  type: string
-                num_employees:
-                  type: string
-        description: Customer patch including information to update
-        required: true
       responses:
         "200":
-          description: Cloud customer updated successfully
+          description: Email validation successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CloudCustomer"
+                type: object
+                properties:
+                  is_valid:
+                    type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -200,37 +128,27 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/customer/address:
-    put:
+  /api/v4/cloud/validate-workspace-business-email:
+    post:
       tags:
         - cloud
-      summary: Update cloud customer address
+      summary: Validate workspace business email
       description: >
-        Updates the company address for the Mattermost Cloud customer bound to this installation.
+        Validate the current workspace customer/admin email as a business email.
 
         ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.29
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: UpdateCloudCustomerAddress
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Address"
-        description: Company address information to update
-        required: true
+        Must have `sysconsole_write_billing` permission and be licensed for Cloud.
+      operationId: ValidateWorkspaceBusinessEmail
       responses:
         "200":
-          description: Cloud customer address updated successfully
+          description: Workspace email validation successful
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CloudCustomer"
-        "400":
-          $ref: "#/components/responses/BadRequest"
+                type: object
+                properties:
+                  is_valid:
+                    type: boolean
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -289,69 +207,6 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/Installation"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/subscription/invoices:
-    get:
-      tags:
-        - cloud
-      summary: Get cloud subscription invoices
-      description: >
-        Retrieves the invoices for the subscription bound to this installation.
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.30
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: GetInvoicesForSubscription
-      responses:
-        "200":
-          description: Subscription invoices returned successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Invoice"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "501":
-          $ref: "#/components/responses/NotImplemented"
-  /api/v4/cloud/subscription/invoices/{invoice_id}/pdf:
-    get:
-      tags:
-        - cloud
-      summary: Get cloud invoice PDF
-      description: >
-        Retrieves the PDF for the invoice passed as parameter
-
-        ##### Permissions
-
-        Must have `manage_system` permission and be licensed for Cloud.
-
-        __Minimum server version__: 5.30
-        __Note:__ This is intended for internal use and is subject to change.
-      operationId: GetInvoiceForSubscriptionAsPdf
-      parameters:
-        - name: invoice_id
-          in: path
-          description: Invoice ID
-          required: true
-          schema:
-            type: string
-      responses:
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

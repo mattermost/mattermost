@@ -4,17 +4,21 @@
 package api4
 
 import (
+	"archive/tar"
 	"bytes"
+	"cmp"
+	"compress/gzip"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -286,6 +290,164 @@ func TestPlugin(t *testing.T) {
 	})
 }
 
+func makeWebappOnlyPluginBundle(t *testing.T, id string, preAuth bool) []byte {
+	t.Helper()
+
+	manifest := &model.Manifest{
+		Id:          id,
+		Name:        id,
+		Version:     "1.0.0",
+		Description: "description of " + id,
+		HomepageURL: "https://example.com/" + id,
+		Props:       map[string]any{"secret": "value"},
+		Webapp: &model.ManifestWebapp{
+			BundlePath: "webapp/main.js",
+			PreAuth:    preAuth,
+		},
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	require.NoError(t, err)
+
+	files := map[string]string{
+		"plugin.json":    string(manifestJSON),
+		"webapp/main.js": "window.registerPlugin('" + id + "', {});",
+	}
+
+	var buf bytes.Buffer
+	gzWriter := gzip.NewWriter(&buf)
+	tarWriter := tar.NewWriter(gzWriter)
+	for _, name := range []string{"plugin.json", "webapp/main.js"} {
+		require.NoError(t, tarWriter.WriteHeader(&tar.Header{Name: id + "/" + name, Mode: 0600, Size: int64(len(files[name]))}))
+		_, err = tarWriter.Write([]byte(files[name]))
+		require.NoError(t, err)
+	}
+	require.NoError(t, tarWriter.Close())
+	require.NoError(t, gzWriter.Close())
+
+	return buf.Bytes()
+}
+
+func TestGetWebappPluginsUnauthenticated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	const preAuthID = "com.mattermost.test-preauth"
+	const postAuthID = "com.mattermost.test-postauth"
+
+	for id, preAuth := range map[string]bool{preAuthID: true, postAuthID: false} {
+		manifest, _, err := th.SystemAdminClient.UploadPluginForced(context.Background(), bytes.NewReader(makeWebappOnlyPluginBundle(t, id, preAuth)))
+		require.NoError(t, err)
+		require.Equal(t, id, manifest.Id)
+		t.Cleanup(func() {
+			_, removeErr := th.SystemAdminClient.RemovePlugin(context.Background(), id)
+			require.NoError(t, removeErr)
+		})
+
+		_, err = th.SystemAdminClient.EnablePlugin(context.Background(), id)
+		require.NoError(t, err)
+	}
+
+	ids := func(manifests []*model.Manifest) []string {
+		result := []string{}
+		for _, m := range manifests {
+			if m.Id == preAuthID || m.Id == postAuthID {
+				result = append(result, m.Id)
+			}
+		}
+		slices.Sort(result)
+		return result
+	}
+
+	setRestricted := func(restricted bool) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.RestrictUnauthenticatedWebappPlugins = restricted
+		})
+	}
+
+	t.Run("unauthenticated with restriction enabled only gets trimmed pre-auth manifests", func(t *testing.T) {
+		setRestricted(true)
+
+		manifests, _, err := th.CreateClient().GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		require.Len(t, manifests, 1)
+
+		m := manifests[0]
+		assert.Equal(t, preAuthID, m.Id)
+		assert.Equal(t, preAuthID, m.Name)
+		assert.Equal(t, "1.0.0", m.Version)
+		require.NotNil(t, m.Webapp)
+		assert.True(t, m.Webapp.PreAuth)
+		assert.True(t, strings.HasPrefix(m.Webapp.BundlePath, "/static/"+preAuthID+"/"))
+		assert.Empty(t, m.Description)
+		assert.Empty(t, m.HomepageURL)
+		assert.Nil(t, m.Props)
+	})
+
+	t.Run("unauthenticated with restriction disabled gets all manifests", func(t *testing.T) {
+		setRestricted(false)
+		t.Cleanup(func() { setRestricted(true) })
+
+		manifests, _, err := th.CreateClient().GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{postAuthID, preAuthID}, ids(manifests))
+	})
+
+	t.Run("authenticated with restriction enabled gets all manifests", func(t *testing.T) {
+		setRestricted(true)
+
+		manifests, _, err := th.Client.GetWebappPlugins(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{postAuthID, preAuthID}, ids(manifests))
+
+		for _, m := range manifests {
+			if m.Id == postAuthID {
+				assert.Equal(t, map[string]any{"secret": "value"}, m.Props)
+			}
+		}
+	})
+}
+
+func TestUploadPluginConflictDetails(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.ServiceSettings.EnableDeveloper = false
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Equal(t, "testplugin", manifest.Id)
+
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.install_id.app_error")
+
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Empty(t, appErr.DetailedError, "detailed error must still be wiped with EnableDeveloper disabled")
+	require.NotEmpty(t, appErr.Props, "conflict props must survive with EnableDeveloper disabled")
+
+	assert.Equal(t, "testplugin", appErr.Props[model.PluginInstallConflictPropPluginID])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropExistingVersion])
+	assert.Equal(t, manifest.Version, appErr.Props[model.PluginInstallConflictPropUploadedVersion])
+	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, appErr.Props[model.PluginInstallConflictPropVersionDirection])
+}
+
 func TestPluginInstallDirectoryConflict(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -433,12 +595,17 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	// Successful remove
 	webSocketClient := th.CreateConnectedWebSocketClientWithClient(t, th.SystemAdminClient)
 
+	var statusesPresent bool
+	var receivedStatuses any
 	done := make(chan bool)
 	go func() {
 		for {
 			select {
 			case resp := <-webSocketClient.EventChannel:
-				if resp.EventType() == model.WebsocketEventPluginStatusesChanged && len(resp.GetData()["plugin_statuses"].([]any)) == 0 {
+				// The event only signals admins to refetch statuses; it carries an empty
+				// plugin_statuses array (compatibility shim), not the full slice.
+				if resp.EventType() == model.WebsocketEventPluginStatusesChanged {
+					receivedStatuses, statusesPresent = resp.GetData()["plugin_statuses"]
 					done <- true
 					return
 				}
@@ -455,6 +622,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	result := <-done
 	require.True(t, result, "plugin_statuses_changed websocket event was not received")
+	require.True(t, statusesPresent, "plugin_statuses field should be present")
+	assert.Empty(t, receivedStatuses, "plugin_statuses should be an empty array")
 
 	messages = testCluster.GetMessages()
 
@@ -873,8 +1042,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			},
 			InstalledVersion: manifest.Version,
 		})
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
@@ -911,8 +1080,8 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins := append(samplePlugins, newPlugin)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -1033,8 +1202,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			InstalledVersion: manifest.Version,
 		}
 		expectedPlugins = append(expectedPlugins, plugin2)
-		sort.SliceStable(expectedPlugins, func(i, j int) bool {
-			return strings.ToLower(expectedPlugins[i].Manifest.Name) < strings.ToLower(expectedPlugins[j].Manifest.Name)
+		slices.SortStableFunc(expectedPlugins, func(a, b *model.MarketplacePlugin) int {
+			return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 		})
 
 		plugins, _, err = th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})

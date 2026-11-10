@@ -3,7 +3,23 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
+jest.mock('utils/channel_utils', () => ({
+    ...jest.requireActual('utils/channel_utils'),
+    getArchiveIconComponent: jest.fn(() => (props: Record<string, unknown>) => (
+        <span
+            data-is-default-archive='true'
+            {...props}
+        />
+    )),
+}));
+
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+
+import {compassIconForName} from 'components/channel_type_icon';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -138,5 +154,102 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
         // GM channel renders header menu but no profile picture (unlike DM)
         expect(document.querySelector('#mock-header-menu')).toBeInTheDocument();
         expect(document.querySelector('#mock-profile-picture')).not.toBeInTheDocument();
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        // The archive icon is rendered directly (not inside ChannelHeaderMenu) for bot DM channels.
+        // Use a bot DM + archived channel to test the override path without fighting the mock.
+        test('renders override SVG icon in archive slot when plugin matcher matches', () => {
+            const StubIcon = (props: {'data-testid'?: string; size?: number; className?: string}) => (
+                <span
+                    data-testid={props['data-testid'] ?? 'stub-override-icon'}
+                    data-size={props.size}
+                    className={props.className}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const channel = TestHelper.getChannelMock({
+                id: 'channel_id',
+                type: 'D',
+                delete_at: 1000,
+            });
+            const botUser = TestHelper.getUserMock({
+                id: 'bot_id',
+                username: 'bot',
+                is_bot: true,
+            });
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            const stateWithOverride = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithOverride);
+
+            // Override branch passes data-testid='channel-header-archive-icon' to the stub
+            const overrideIcon = screen.getByTestId('channel-header-archive-icon');
+            expect(overrideIcon).toBeInTheDocument();
+
+            // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
+            expect(overrideIcon).toHaveClass('svg-text-color');
+            expect(overrideIcon).not.toHaveClass('channel-header-archived-icon');
+
+            // Default archive icon is absent when override wins
+            expect(document.querySelector('[data-is-default-archive]')).not.toBeInTheDocument();
+        });
+
+        test('renders default archive SVG icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const channel = TestHelper.getChannelMock({
+                id: 'channel_id',
+                type: 'D',
+                delete_at: 1000,
+            });
+            const botUser = TestHelper.getUserMock({
+                id: 'bot_id',
+                username: 'bot',
+                is_bot: true,
+            });
+            (getCurrentChannel as jest.Mock).mockReturnValue(channel);
+
+            const stateWithNoMatch = {
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithNoMatch);
+
+            // Default archive icon rendered with full archive chrome (spread props include className + data-testid)
+            const archiveIcon = screen.getByTestId('channel-header-archive-icon');
+            expect(archiveIcon).toBeInTheDocument();
+            expect(archiveIcon).toHaveAttribute('data-is-default-archive', 'true');
+            expect(archiveIcon).toHaveClass('channel-header-archived-icon', 'svg-text-color');
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+        });
     });
 });

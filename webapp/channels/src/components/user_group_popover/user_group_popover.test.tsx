@@ -1,37 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {BrowserRouter} from 'react-router-dom';
 
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UserGroupPopover from './user_group_popover';
-
-jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux'),
-    useDispatch: jest.fn().mockReturnValue(() => {}),
-}));
-
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
 
 describe('component/user_group_popover', () => {
     const profiles: Record<string, UserProfile> = {};
@@ -105,50 +84,35 @@ describe('component/user_group_popover', () => {
         returnFocus: jest.fn(),
     };
 
-    test('should match snapshot', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <UserGroupPopover
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
+    test('should match snapshot', () => {
+        const {baseElement} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+            />,
+            initialState as any,
         );
-        await actImmediate(wrapper);
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should not show search bar', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <UserGroupPopover
-                        {...baseProps}
-                        group={group2}
-                    />
-                </BrowserRouter>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+                group={group2}
+            />,
+            initialState as any,
         );
-        await actImmediate(wrapper);
 
-        expect(wrapper.find('.user-group-popover_search-bar').exists()).toBe(false);
+        expect(container.querySelector('.user-group-popover_search-bar')).not.toBeInTheDocument();
     });
 
     test('should show users', async () => {
-        const store = await mockStore(initialState);
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <BrowserRouter>
-                    <UserGroupPopover
-                        {...baseProps}
-                    />
-                </BrowserRouter>
-            </Provider>,
+        const {container} = renderWithContext(
+            <UserGroupPopover
+                {...baseProps}
+            />,
+            initialState as any,
         );
-        await actImmediate(wrapper);
-        expect(wrapper.find('.group-member-list_item').length).toBeGreaterThan(0);
+        expect(container.querySelectorAll('.group-member-list_item').length).toBeGreaterThan(0);
     });
 });

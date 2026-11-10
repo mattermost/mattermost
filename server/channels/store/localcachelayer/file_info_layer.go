@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -51,9 +52,13 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 	return fileInfos, nil
 }
 
-func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
+	if readFromMaster {
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, false, readFromMaster)
+	}
+
 	if !allowFromCache {
-		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
 	}
 
 	var fileIdsToFetch []string
@@ -71,7 +76,7 @@ func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFro
 	}
 
 	if len(fileIdsToFetch) > 0 {
-		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false)
+		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false, readFromMaster)
 		if err != nil {
 			return nil, err
 		}
@@ -102,6 +107,22 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
 	}
+}
+
+func (s LocalCacheFileInfoStore) invalidateFileInfoCache(fileId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, fmt.Sprintf("%s_%t", fileId, false), nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, fmt.Sprintf("%s_%t", fileId, true), nil)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.fileInfoCache.Name())
+	}
+}
+
+func (s LocalCacheFileInfoStore) Upsert(rctx request.CTX, info *model.FileInfo) (*model.FileInfo, error) {
+	result, err := s.FileInfoStore.Upsert(rctx, info)
+	if err == nil {
+		s.invalidateFileInfoCache(info.Id)
+	}
+	return result, err
 }
 
 func (s LocalCacheFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {

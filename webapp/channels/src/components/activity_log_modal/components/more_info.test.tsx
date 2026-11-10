@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
 import MoreInfo from 'components/activity_log_modal/components/more_info';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/activity_log_modal/MoreInfo', () => {
@@ -24,19 +24,19 @@ describe('components/activity_log_modal/MoreInfo', () => {
     };
 
     test('should match snapshot extra info toggled off', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MoreInfo {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, extra info toggled on', () => {
         const props = {...baseProps, moreInfo: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MoreInfo {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

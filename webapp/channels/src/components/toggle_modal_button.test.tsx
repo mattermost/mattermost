@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ToggleModalButton from './toggle_modal_button';
@@ -16,18 +15,15 @@ jest.mock('react-redux', () => ({
 }));
 
 const TestModal = () => (
-    <Modal
-        show={true}
-        onHide={jest.fn()}
-    >
-        <Modal.Header closeButton={true}/>
-        <Modal.Body/>
-    </Modal>
+    <div data-testid='test-modal'>
+        <div>{'Modal Header'}</div>
+        <div>{'Modal Body'}</div>
+    </div>
 );
 
 describe('components/ToggleModalButton', () => {
     test('component should match snapshot', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ToggleModalButton
                 ariaLabel={'Delete Channel'}
                 id='channelDelete'
@@ -42,7 +38,29 @@ describe('components/ToggleModalButton', () => {
             </ToggleModalButton>,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('button span').first().html()).toBe('<span>Delete Channel</span>');
+        expect(container).toMatchSnapshot();
+        const button = container.querySelector('button');
+        expect(button?.textContent).toBe('Delete Channel');
+        expect(button?.className).toContain('style--none');
+    });
+
+    test('renders compass-ui Button when emphasis is set', () => {
+        const {container} = renderWithContext(
+            <ToggleModalButton
+                id='addMembers'
+                emphasis='primary'
+                size='small'
+                modalId={ModalIdentifiers.INVITATION}
+                dialogType={TestModal}
+            >
+                {'Invite'}
+            </ToggleModalButton>,
+        );
+
+        const button = container.querySelector('button');
+        expect(button).not.toBeNull();
+        expect(button?.className).not.toContain('style--none');
+        expect(button?.className).not.toContain('btn-primary');
+        expect(button?.textContent).toBe('Invite');
     });
 });

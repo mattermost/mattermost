@@ -22,7 +22,7 @@ import ChannelList from './channel_list';
 type OwnProps = {
     policyId?: string;
     channelsToAdd: Record<string, ChannelWithTeamData>;
-}
+};
 
 function searchChannelsToAdd(channels: Record<string, Channel>, term: string, filters: ChannelSearchOpts): Record<string, Channel> {
     let filteredTeams = filterChannelsMatchingTerm(Object.keys(channels).map((key) => channels[key]), term);

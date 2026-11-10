@@ -1,103 +1,232 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    popupId="center_actions_dropdown_post_id_1"
-  />
-  <Menu
-    ariaLabel="Post extra options"
-    listId="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="Some text"
-    />
-    <Pluggable
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-  </Menu>
-</MenuWrapper>
+    <button
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="actions"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+      data-active="true"
+      id="center_actions_button_post_id_1"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
+        >
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    popupId="center_actions_dropdown_post_id_1"
-  />
-  <Menu
-    ariaLabel="Post extra options"
-    listId="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="Some text"
-    />
-    <Pluggable
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-    <li
-      className="MenuItem__divider"
-      id="divider_post_post_id_1_marketplace"
-      role="menuitem"
-    />
-    <MenuItemAction
-      icon={
-        <ActionsMenuIcon
-          name="icon-view-grid-plus-outline"
-        />
-      }
-      id="marketplace_icon_post_id_1"
-      key="marketplace_post_id_1"
-      onClick={[Function]}
-      show={true}
-      text="App Marketplace"
-    />
-  </Menu>
-</MenuWrapper>
+    <button
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="actions"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+      data-active="true"
+      id="center_actions_button_post_id_1"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+    <div>
+      <div
+        aria-label="Post extra options"
+        class="a11y__popup Menu"
+      >
+        <ul
+          class="Menu__content dropdown-menu openLeft"
+          id="center_actions_dropdown_post_id_1"
+          role="menu"
+        >
+          <li
+            class="MenuItem"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="undefined-button"
+              id="undefined-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                Some text
+              </span>
+            </button>
+          </li>
+          <li
+            class="MenuItem__divider"
+            id="divider_post_post_id_1_marketplace"
+            role="menuitem"
+          />
+          <li
+            class="MenuItem MenuItem--with-icon"
+            id="marketplace_icon_post_id_1"
+            role="menuitem"
+          >
+            <button
+              class="style--none"
+              data-testid="marketplace_icon_post_id_1-button"
+              id="marketplace_icon_post_id_1-button"
+            >
+              <span
+                class="MenuItem__primary-text"
+              >
+                <span
+                  class="icon"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="icon-view-grid-plus-outline MenuItem__compass-icon"
+                  />
+                </span>
+                <div
+                  class="text"
+                >
+                  App Marketplace
+                </div>
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
-exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `""`;
+exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `<div />`;
 
 exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should show visit marketplace 1`] = `
-<Fragment>
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    onClick={[Function]}
-    popupId="center_actions_dropdown_post_id_1"
+<div>
+  <button
+    aria-controls="center_actions_dropdown_post_id_1"
+    aria-expanded="true"
+    aria-haspopup="true"
+    aria-label="actions"
+    class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--active_ft92e_31 post-menu__item post-menu__item--active"
+    data-active="true"
+    id="center_actions_button_post_id_1"
+    type="button"
+  >
+    <span
+      aria-hidden="true"
+      class="_icon-button__icon-slot_ft92e_41"
+    >
+      <div
+        aria-hidden="true"
+        class="_icon_1i355_2 _icon--size-16_1i355_38"
+      >
+        <div
+          class="_icon__glyph-area_1i355_9"
+        >
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 11H11V3H3M5 5H9V9H5M13 21H21V13H13M15 15H19V19H15M3 21H11V13H3M5 15H9V19H5M13 3V11H21V3M19 9H15V5H19Z"
+            />
+          </svg>
+        </div>
+      </div>
+    </span>
+  </button>
+  <div
+    data-testid="mock-popover"
   />
-  <ActionsMenuEmptyPopover
-    anchorElement={null}
-    isOpen={true}
-    onOpenMarketplace={[Function]}
-    onToggle={[MockFunction]}
-  />
-</Fragment>
+</div>
 `;

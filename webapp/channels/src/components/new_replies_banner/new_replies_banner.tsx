@@ -19,7 +19,7 @@ type Props = {
     actions: {
         updateThreadToastStatus: (status: boolean) => void;
     };
-}
+};
 
 function NewRepliesBanner({
     hasNewReplies,

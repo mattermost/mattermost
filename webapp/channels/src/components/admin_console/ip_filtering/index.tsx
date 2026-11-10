@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -316,7 +316,7 @@ const IPFiltering = () => {
     return (
         <div className='IPFiltering wrapper--fixed'>
             <AdminHeader>
-                {formatMessage({id: 'admin.ip_filtering.ip_filtering', defaultMessage: 'IP Filtering'})}
+                <span>{formatMessage({id: 'admin.ip_filtering.ip_filtering', defaultMessage: 'IP Filtering'})}</span>
             </AdminHeader>
             <div className='MainPanel admin-console__wrapper'>
                 <>

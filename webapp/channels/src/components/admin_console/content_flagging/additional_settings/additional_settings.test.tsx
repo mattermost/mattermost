@@ -25,8 +25,8 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Additional Settings')).toBeInTheDocument();
-        expect(screen.getByText('Configure how you want the flagging to behave')).toBeInTheDocument();
-        expect(screen.getByText('Reasons for flagging')).toBeInTheDocument();
+        expect(screen.getByText('Configure how you want the quarantine to behave')).toBeInTheDocument();
+        expect(screen.getByText('Reasons for quarantine')).toBeInTheDocument();
         expect(screen.getByText('Require reporters to add comment')).toBeInTheDocument();
         expect(screen.getByText('Require reviewers to add comment')).toBeInTheDocument();
         expect(screen.getByText('Hide message from channel while it is being reviewed')).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
 
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsWithEmptyReasons}/>);
 
-        expect(screen.getByText('Reasons for flagging')).toBeInTheDocument();
+        expect(screen.getByText('Reasons for quarantine')).toBeInTheDocument();
         expect(screen.queryByText('Spam')).not.toBeInTheDocument();
         expect(screen.queryByText('Inappropriate')).not.toBeInTheDocument();
     });

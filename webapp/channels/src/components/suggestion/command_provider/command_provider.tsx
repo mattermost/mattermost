@@ -6,6 +6,7 @@ import {defineMessage} from 'react-intl';
 import type {Store} from 'redux';
 
 import {DockWindowIcon} from '@mattermost/compass-icons/components';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AutocompleteSuggestion, CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
@@ -17,7 +18,6 @@ import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
 
 import {Constants} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
-import * as UserAgent from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 

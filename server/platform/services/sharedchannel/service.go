@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
 	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -32,7 +34,9 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-	UnshareMessage               = "This channel is no longer shared."
+	SyncRetryDelay               = time.Second * 15
+	HandoffTaskTimeout           = time.Minute
+	SyncLoopStopTimeout          = time.Second * 10
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
@@ -46,6 +50,7 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
+	GetCluster() einterfaces.ClusterInterface
 }
 
 type PlatformIface interface {
@@ -64,6 +69,7 @@ type AppIface interface {
 	RemoveUserFromChannel(rctx request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError)
+	GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError)
 	UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError)
 	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
@@ -105,7 +111,11 @@ type Service struct {
 
 	connectionStateListenerId string
 	done                      chan struct{}
+	loopStopped               chan struct{}
+	catchUpDone               chan struct{}
+	stopped                   bool
 	tasks                     map[string]syncTask
+	handoffTasks              map[string]syncTask
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
@@ -144,6 +154,15 @@ func (scs *Service) Start() error {
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 	scs.globalSyncTopicListenerId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
+	if scs.done == nil {
+		scs.stopped = false
+		scs.done = make(chan struct{})
+		scs.loopStopped = make(chan struct{})
+		go func(done, stopped chan struct{}) {
+			defer close(stopped)
+			scs.syncLoop(done)
+		}(scs.done, scs.loopStopped)
+	}
 	scs.mux.Unlock()
 
 	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
@@ -168,10 +187,23 @@ func (scs *Service) Shutdown() error {
 	scs.inviteTopicListenerId = ""
 	rcs.RemoveConnectionStateListener(scs.connectionStateListenerId)
 	scs.connectionStateListenerId = ""
+	done, stopped := scs.done, scs.loopStopped
+	scs.done = nil
+	scs.stopped = true
 	scs.mux.Unlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()
+
+	if done != nil {
+		close(done)
+		select {
+		case <-stopped:
+		case <-time.After(SyncLoopStopTimeout):
+			scs.server.Log().Warn("Shared channel sync loop did not stop in time; handing off its queue anyway")
+		}
+	}
+	scs.handOffTasks()
 	return nil
 }
 
@@ -194,27 +226,91 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
+	handoffTasks := scs.takeHandoffTasks()
 	if scs.server.IsLeader() {
+		for _, task := range handoffTasks {
+			if time.Since(task.AddedAt) <= HandoffTaskTimeout {
+				scs.addTask(task)
+			}
+		}
 		scs.resume()
 	} else {
 		scs.pause()
 	}
 }
 
-func (scs *Service) resume() {
+func (scs *Service) takeHandoffTasks() map[string]syncTask {
 	scs.mux.Lock()
 	defer scs.mux.Unlock()
+	tasks := scs.handoffTasks
+	scs.handoffTasks = nil
+	return tasks
+}
 
+// holdHandoffTask keeps a handoff task until the next leader change. Must be called with mux held.
+func (scs *Service) holdHandoffTask(task syncTask) {
+	task.AddedAt = time.Now()
+	if scs.handoffTasks == nil {
+		scs.handoffTasks = make(map[string]syncTask)
+	}
+	maps.DeleteFunc(scs.handoffTasks, func(_ string, held syncTask) bool {
+		return time.Since(held.AddedAt) > HandoffTaskTimeout
+	})
+	scs.handoffTasks[task.id] = task
+}
+
+func (scs *Service) resume() {
+	scs.mux.Lock()
 	if scs.active {
+		scs.mux.Unlock()
 		return // already active
 	}
 
 	scs.active = true
-	scs.done = make(chan struct{})
+	catchUpDone := make(chan struct{})
+	scs.catchUpDone = catchUpDone
+	scs.mux.Unlock()
 
-	go scs.syncLoop(scs.done)
+	go scs.catchUpRemotes(catchUpDone)
 
 	scs.server.Log().Debug("Shared Channel Service active")
+}
+
+// catchUpRemotes queues a sync for every online remote, since tasks queued on a previous
+// leader are lost and a leader change does not trigger onConnectionStateChange.
+// Offline remotes are synced by onConnectionStateChange when they come back online.
+// Like onConnectionStateChange, this only covers channels that already have a SharedChannelRemote
+// row; auto-invited remotes get theirs on the next channel event.
+// It stops once done is closed, so a node that loses leadership stops sending invites and queuing tasks.
+func (scs *Service) catchUpRemotes(done <-chan struct{}) {
+	filter := model.RemoteClusterQueryFilter{
+		OnlyConfirmed:  true,
+		ExcludeOffline: true,
+	}
+	remotes, err := scs.server.GetStore().RemoteCluster().GetAll(0, 999999, filter)
+	if err != nil {
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch remote clusters for catch-up sync",
+			mlog.Err(err),
+		)
+		return
+	}
+
+	for _, rc := range remotes {
+		select {
+		case <-done:
+			return
+		default:
+		}
+
+		scs.SendPendingInvitesForRemote(rc)
+		scs.forceSyncForRemote(rc, true)
+		scs.scheduleGlobalUserSync(rc)
+
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Queued catch-up sync for remote",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remote_id", rc.RemoteId),
+		)
+	}
 }
 
 func (scs *Service) pause() {
@@ -226,8 +322,10 @@ func (scs *Service) pause() {
 	}
 
 	scs.active = false
-	close(scs.done)
-	scs.done = nil
+	if scs.catchUpDone != nil {
+		close(scs.catchUpDone)
+		scs.catchUpDone = nil
+	}
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }
@@ -245,8 +343,8 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 	createPostPermission := model.ChannelModeratedPermissionsMap[model.PermissionCreatePost.Id]
 	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PermissionAddReaction.Id]
 	updateMap := model.ChannelModeratedRolesPatch{
-		Guests:  model.NewPointer(false),
-		Members: model.NewPointer(false),
+		Guests:  new(false),
+		Members: new(false),
 	}
 
 	readonlyChannelModerations := []*model.ChannelModerationPatch{
@@ -279,7 +377,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
 		mlog.String("remote", rc.DisplayName),
-		mlog.String("remoteId", rc.RemoteId),
+		mlog.String("remote_id", rc.RemoteId),
 		mlog.Bool("online", online),
 	)
 }
@@ -289,7 +387,7 @@ func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channe
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
 	channelJSON, err := json.Marshal(channel)
 	if err != nil {
-		scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Cannot marshal channel to notify clients",
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(err),
 		)
@@ -306,28 +404,103 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	scs.app.Publish(messageWs)
 }
 
-// postUnshareNotification posts a system message to notify users that the channel is no longer shared.
-func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, rc *model.RemoteCluster) {
-	post := &model.Post{
-		UserId:    creatorID,
-		ChannelId: channelID,
-		Message:   UnshareMessage,
-		Type:      model.PostTypeSystemGeneric,
+func remoteClusterDisplayName(rc *model.RemoteCluster) string {
+	if rc == nil {
+		return ""
+	}
+	if rc.DisplayName != "" {
+		return rc.DisplayName
+	}
+	if rc.Name != "" {
+		return rc.Name
+	}
+	return rc.RemoteId
+}
+
+// messageForSharedChannelStatePost returns the server-default-locale (i18n.T) copy for Post.Message so clients
+// without a renderer still show the same sentence as the webapp (shared_channel.system_message.*).
+func messageForSharedChannelStatePost(props model.StringInterface) string {
+	raw := props[model.PostPropsSharedChannelState]
+	state, _ := raw.(string)
+	switch state {
+	case model.SharedChannelStatePostValueShared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		return i18n.T("shared_channel.system_message.now_shared", map[string]any{"WorkspaceName": wn})
+	case model.SharedChannelStatePostValueUnshared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		if wn == "" {
+			return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+		}
+		return i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": wn})
+	default:
+		return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+	}
+}
+
+// postSharedChannelStatePost creates a system_shared_chan_state post. Message uses the system locale (i18n.T);
+// capable clients still render from props in the viewer's language (not replicated via shared-channel post sync).
+func (scs *Service) postSharedChannelStatePost(channel *model.Channel, props model.StringInterface) {
+	if channel == nil {
+		return
 	}
 
-	logger := scs.server.Log()
-	_, _, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+	rctx := request.EmptyContext(scs.server.Log())
+	systemBot, botErr := scs.app.GetSystemBot(rctx)
+	if botErr != nil {
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
+			"Could not get system bot for shared channel state post",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(botErr),
+		)
+		return
+	}
 
+	post := &model.Post{
+		UserId:    systemBot.UserId,
+		ChannelId: channel.Id,
+		Message:   messageForSharedChannelStatePost(props),
+		Type:      model.PostTypeSharedChannelState,
+		Props:     props,
+	}
+
+	_, _, appErr := scs.app.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 	if appErr != nil {
-		scs.server.Log().Log(
-			mlog.LvlSharedChannelServiceError,
-			"Error creating unshare notification post",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.String("remote_name", rc.Name),
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
+			"Error creating shared channel state notification post",
+			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
 	}
+}
+
+func (scs *Service) postChannelSharedWithWorkspace(channel *model.Channel, peer *model.RemoteCluster) {
+	if channel == nil || peer == nil {
+		return
+	}
+	workspaceName := remoteClusterDisplayName(peer)
+	if workspaceName == "" {
+		workspaceName = peer.RemoteId
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState:         model.SharedChannelStatePostValueShared,
+		model.PostPropsSharedChannelWorkspaceName: workspaceName,
+	}
+	scs.postSharedChannelStatePost(channel, props)
+}
+
+func (scs *Service) postChannelUnsharedWithWorkspace(channel *model.Channel, workspaceName string) {
+	if channel == nil {
+		return
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState: model.SharedChannelStatePostValueUnshared,
+	}
+	if workspaceName != "" {
+		props[model.PostPropsSharedChannelWorkspaceName] = workspaceName
+	}
+	scs.postSharedChannelStatePost(channel, props)
 }
 
 // IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server
@@ -378,7 +551,7 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("remote_id", rc.RemoteId),
 		)
 	}()
 }

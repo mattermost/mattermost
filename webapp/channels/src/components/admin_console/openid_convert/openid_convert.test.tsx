@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import OpenIdConvert from 'components/admin_console/openid_convert/openid_convert';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/OpenIdConvert', () => {
     const baseProps = {
@@ -14,10 +15,10 @@ describe('components/OpenIdConvert', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <OpenIdConvert {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

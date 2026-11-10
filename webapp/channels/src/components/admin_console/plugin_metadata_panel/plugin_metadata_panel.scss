@@ -1,0 +1,181 @@
+.PluginMetadataPanel {
+    font-size: inherit;
+    line-height: inherit;
+
+    // Spacing to the next sibling comes from `.admin-console__content` flex gap.
+    &__settingsWrapper {
+        width: 100%;
+        max-width: 920px;
+        margin-bottom: 0;
+    }
+
+    // AdminPanel now supplies surface/border/radius/elevation/padding/sizing
+    // itself; only the internal content layout (actionsRow + optional error,
+    // stacked with spacing-m between them) stays here.
+    &__actionsPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-m);
+    }
+
+    &__actionsRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-xl);
+    }
+
+    &__identity {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        gap: var(--spacing-xxxxs);
+    }
+
+    &__details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xxs);
+
+        .PluginMetadataPanel__metadata {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-75);
+            font-weight: var(--font-weight-regular);
+            line-height: var(--line-height-75);
+        }
+
+        .PluginMetadataPanel__id {
+            color: var(--center-channel-color);
+            font-family: var(--font-family-heading);
+            font-size: var(--font-size-200);
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-200);
+        }
+    }
+
+    &__statusBadge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-xxxxs) var(--spacing-s);
+        border-radius: var(--radius-pill);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-75);
+        font-weight: var(--font-weight-semibold);
+        gap: var(--spacing-xxxxs);
+        letter-spacing: normal;
+        line-height: var(--line-height-75);
+        white-space: nowrap;
+
+        .admin-console__header & {
+            flex-shrink: 0;
+        }
+
+        &--running,
+        &--starting {
+            background: rgba(var(--semantic-color-success), 0.12);
+            color: rgb(var(--semantic-color-success));
+        }
+
+        &--info,
+        &--stopping,
+        &--not-running {
+            background: rgba(var(--semantic-color-info), 0.12);
+            color: rgb(var(--semantic-color-info));
+        }
+
+        &--warning {
+            background: rgba(var(--semantic-color-warning), 0.12);
+            color: rgb(var(--semantic-color-warning));
+        }
+    }
+
+    &__statusError {
+        min-width: 0;
+
+        p {
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &__description {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-100);
+    }
+
+    &__controls {
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        align-items: flex-end;
+    }
+
+    &__actions {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        padding: 0;
+        border: none;
+        margin: 0;
+        gap: var(--spacing-xs);
+    }
+
+    &__enable {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        gap: var(--spacing-s);
+        line-height: var(--line-height-100);
+
+        // Compass Switch root is a <label>. Bootstrap form labels add
+        // margin-bottom, and Switch defaults to width: 100%, which throws off
+        // vertical alignment next to the actions menu button.
+        > label {
+            width: auto;
+            margin-bottom: 0;
+        }
+    }
+
+    &__actionError {
+        margin-top: var(--spacing-xs);
+        color: var(--error-text);
+
+        .fa {
+            margin-right: var(--spacing-xxxxs);
+        }
+    }
+
+    &__metadata {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-family: var(--font-family-body);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-100);
+
+        a {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            &:hover {
+                color: var(--link-color);
+            }
+        }
+    }
+
+    &__id {
+        cursor: pointer;
+
+        &:hover {
+            color: var(--link-color);
+        }
+    }
+}

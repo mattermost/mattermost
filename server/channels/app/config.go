@@ -133,6 +133,66 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 	return nil
 }
 
+// ensureSamlRelayStateSigningKey ensures that the key for signing SAML RelayState exists
+// and future calls to SamlRelayStateSigningKey will always return a valid key, same on all
+// servers in the cluster
+func (ch *Channels) ensureSamlRelayStateSigningKey() error {
+	if ch.samlRelayStateSigningKey != nil {
+		return nil
+	}
+
+	var secret *model.SystemSamlRelayStateSigningKey
+
+	value, err := ch.srv.Store().System().GetByName(model.SystemSamlRelayStateSigningKeyKey)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
+			return err
+		}
+	}
+
+	// If we don't already have a key, try to generate one.
+	if secret == nil {
+		newSecret := &model.SystemSamlRelayStateSigningKey{
+			Secret: make([]byte, 32),
+		}
+		_, err := rand.Reader.Read(newSecret.Secret)
+		if err != nil {
+			return err
+		}
+
+		system := &model.System{
+			Name: model.SystemSamlRelayStateSigningKeyKey,
+		}
+		v, err := json.Marshal(newSecret)
+		if err != nil {
+			return err
+		}
+		system.Value = string(v)
+		// If we were able to save the key, use it, otherwise log the error.
+		if err = ch.srv.Store().System().Save(system); err != nil {
+			mlog.Warn("Failed to save SamlRelayStateSigningKey", mlog.Err(err))
+		} else {
+			secret = newSecret
+		}
+	}
+
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
+	if secret == nil {
+		value, err := ch.srv.Store().System().GetByName(model.SystemSamlRelayStateSigningKeyKey)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
+			return err
+		}
+	}
+
+	ch.samlRelayStateSigningKey = secret.Secret
+	return nil
+}
+
 func (s *Server) ensureInstallationDate() error {
 	_, appErr := s.platform.GetSystemInstallDate()
 	if appErr == nil {
@@ -186,6 +246,14 @@ func (ch *Channels) PostActionCookieSecret() []byte {
 
 func (a *App) PostActionCookieSecret() []byte {
 	return a.ch.PostActionCookieSecret()
+}
+
+func (ch *Channels) SamlRelayStateSigningKey() []byte {
+	return ch.samlRelayStateSigningKey
+}
+
+func (a *App) SamlRelayStateSigningKey() []byte {
+	return a.ch.SamlRelayStateSigningKey()
 }
 
 func (a *App) GetCookieDomain() string {
@@ -251,11 +319,11 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
 		if *cfg.MessageExportSettings.EnableExport && model.SafeDereference(cfg.MessageExportSettings.ExportFromTimestamp) == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(model.GetMillis())
+			cfg.MessageExportSettings.ExportFromTimestamp = new(model.GetMillis())
 		} else if !*cfg.MessageExportSettings.EnableExport {
 			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
 			// the feature is re-enabled from the System Console in future.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewPointer(int64(0))
+			cfg.MessageExportSettings.ExportFromTimestamp = new(int64(0))
 		}
 	}
 }

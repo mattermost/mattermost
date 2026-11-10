@@ -9,6 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
+import MarkdownToggleContext, {MarkdownPostIdContext} from 'components/markdown_view_toggle/markdown_toggle_context';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
@@ -49,6 +50,9 @@ export type OwnProps = {
     renderEmoticonsAsEmoji?: boolean;
 
     isRHS?: boolean;
+
+    /** Permalink previews and similar read-only surfaces. */
+    disableInteractions?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -81,7 +85,8 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 this.props.hideGuestTags,
                 this.props.isUserCanManageMembers,
                 this.props.isMilitaryTime,
-                this.props.timezone) : null;
+                this.props.timezone,
+                this.props.channelKind) : null;
             if (renderedSystemMessage) {
                 return <div>{renderedSystemMessage}</div>;
             }
@@ -111,8 +116,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             );
         }
 
-        // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
-        const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
         const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
         this.props.pluginHooks?.forEach((o) => {
@@ -126,6 +129,17 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
         }
 
+        const isBot = this.props.post?.props?.from_bot === 'true';
+        const isWebhook = this.props.post?.props?.from_webhook === 'true';
+        const isPlugin = this.props.post?.props?.from_plugin === 'true';
+
+        const allowInlineActions = !this.props.disableInteractions && (isBot || isWebhook || isPlugin);
+        const postProps = this.props.post?.props as Record<string, unknown> | undefined;
+        const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
+            postProps.mm_blocks_actions :
+            undefined;
+        const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
+
         const options = this.getOptions(
             this.props.options,
             this.props.post?.props?.disable_group_highlight === true,
@@ -135,24 +149,30 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         );
 
         let highlightKeys;
-        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) {
+        if (!this.props.isEnterpriseOrSKUStarterFree && this.props.isEnterpriseReady) {
             highlightKeys = this.props.highlightKeys;
         }
 
         return (
-            <Markdown
-                imageProps={this.props.imageProps}
-                message={message}
-                proxyImages={proxyImages}
-                mentionKeys={this.props.mentionKeys}
-                highlightKeys={highlightKeys}
-                options={options}
-                channelNamesMap={channelNamesMap}
-                hasPluginTooltips={this.props.hasPluginTooltips}
-                imagesMetadata={this.props.post?.metadata?.images}
-                postId={this.props.post?.id}
-                editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
-            />
+            <MarkdownToggleContext.Provider value={true}>
+                <MarkdownPostIdContext.Provider value={this.props.post?.id}>
+                    <Markdown
+                        imageProps={this.props.imageProps}
+                        message={message}
+                        mentionKeys={this.props.mentionKeys}
+                        highlightKeys={highlightKeys}
+                        options={options}
+                        channelNamesMap={channelNamesMap}
+                        hasPluginTooltips={this.props.hasPluginTooltips}
+                        imagesMetadata={this.props.post?.metadata?.images}
+                        postId={this.props.post?.id}
+                        editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                        allowInlineActions={allowInlineActions}
+                        mmBlocksActionCookie={mmBlocksActionsCookie}
+                        integrationFormat={integrationFormat}
+                    />
+                </MarkdownPostIdContext.Provider>
+            </MarkdownToggleContext.Provider>
         );
     }
 }

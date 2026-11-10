@@ -45,19 +45,6 @@ jest.mock('components/async_load', () => ({
     },
 }));
 
-// Mock WithTooltip to avoid complex tooltip testing
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children, title}: {children: React.ReactNode; title: string}) => (
-        <div
-            data-testid='with-tooltip'
-            title={title}
-        >
-            {children}
-        </div>
-    ),
-}));
-
 describe('CloudPreviewModal', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
 
@@ -301,7 +288,7 @@ describe('CloudPreviewModal', () => {
         expect(screen.queryByTestId('cloud-preview-fab')).not.toBeInTheDocument();
     });
 
-    it('should have proper tooltip on FAB button', () => {
+    it('should have proper tooltip on FAB button', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -310,8 +297,13 @@ describe('CloudPreviewModal', () => {
             stateWithModalShown,
         );
 
-        const tooltip = screen.getByTestId('with-tooltip');
-        expect(tooltip).toHaveAttribute('title', 'Open overview');
+        const button = screen.getByLabelText('Open cloud preview overview');
+
+        await userEvent.hover(button);
+
+        await waitFor(() => {
+            expect(button).toHaveAttribute('aria-describedby');
+        });
     });
 
     it('should have proper accessibility attributes on FAB button', () => {
@@ -409,6 +401,23 @@ describe('CloudPreviewModal', () => {
         const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
         expect(lastContentData).toHaveLength(missionOpsContent.length);
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
+    });
+
+    it('should show the mission-ops content for a team without its own content', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.teams.teams['mission-ops-hq'].name = 'nato';
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
+        expect(lastContentData).toEqual(missionOpsContent);
     });
 
     it('should not show modal when content is loading', () => {

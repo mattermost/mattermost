@@ -1,0 +1,131 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Styles for one user row inside the picker table — avatar + name
+// column on the left, decision chip + recent-activity column in the
+// middle, pencil/remove actions on the right. The chip itself lives
+// in decision_chip.scss; everything here is the row scaffolding
+// surrounding it.
+
+.SimulateAccessModal__row {
+    cursor: default;
+
+    &--expandable {
+        cursor: pointer;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &--expanded {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+}
+
+.SimulateAccessModal__rowUser {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.SimulateAccessModal__rowAvatar {
+    flex-shrink: 0;
+}
+
+.SimulateAccessModal__rowName {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    line-height: 18px;
+}
+
+.SimulateAccessModal__rowDisplayName {
+    overflow: hidden;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__rowUsername {
+    overflow: hidden;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__rowActivity {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}
+
+.SimulateAccessModal__rowActivityLabel {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    gap: 4px;
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+
+    i {
+        font-size: 14px;
+        opacity: 0.7;
+    }
+}
+
+.SimulateAccessModal__rowActivityEmpty {
+    color: rgba(var(--center-channel-color-rgb), 0.4);
+}
+
+.SimulateAccessModal__rowActions {
+    // Slightly narrower now that the row hosts only the pencil-icon
+    // override editor (no remove button) — kept as a fixed column so
+    // the pencil sits on a stable right-edge axis across rows.
+    width: 56px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+// Pencil-icon override editor button. Highlighted with a subtle
+// frame and brand-colored glyph so it reads as a primary per-row
+// affordance — when sessionAttributes are configured, this is the
+// only action in the row. Sized like a 28px chip so it lines up
+// with the result chip's vertical rhythm.
+.SimulateAccessModal__rowConfigure {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    vertical-align: middle;
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    i {
+        font-size: 16px;
+    }
+}

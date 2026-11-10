@@ -136,9 +136,48 @@ describe('useExternalLink', () => {
         expect(firstHref).toBe(secondHref);
         expect(firstParams).toBe(secondParams);
     });
+
     it('do not substitute %20 on query params', () => {
         const url = 'https://www.mattermost.com/some/url?subject=hello%20world';
         const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
         expect(href).toContain('subject=hello%20world');
+    });
+
+    it('do not error on invalid URLs', () => {
+        const invalidUrl = 'not a valid url';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        expect(href).toBe(invalidUrl);
+        expect(queryParams).toEqual({});
+    });
+
+    it('do not modify arbitrary links that happen to include mattermost.com', () => {
+        const invalidUrl = 'https://example.com/mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        expect(href).toBe(invalidUrl);
+        expect(queryParams).toEqual({});
+    });
+
+    it('do not modify mailto links on mattermost.com', () => {
+        const mailtoUrl = 'mailto:support@mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(mailtoUrl), getBaseState());
+        expect(href).toBe(mailtoUrl);
+        expect(queryParams).toEqual({});
+    });
+
+    it('do not modify links to the server itself when it is hosted on mattermost.com', () => {
+        const url = 'https://hub.mattermost.com/_documentation/';
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://hub.mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, 'menu_item_external_link'), state);
+        expect(href).toBe(url);
+        expect(queryParams).toEqual({});
+    });
+
+    it('still tracks other mattermost.com links when the server is hosted on mattermost.com', () => {
+        const url = 'https://docs.mattermost.com/some/page';
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://hub.mattermost.com';
+        const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), state);
+        expect(new URL(href).searchParams.get('utm_source')).toBe('mattermost');
     });
 });

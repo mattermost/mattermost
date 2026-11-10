@@ -24,12 +24,12 @@ type Props = {
     defaultWidth: number;
     globalCssVar: CssVarKeyForResizable;
     dir: ResizeDirection;
-    containerRef: RefObject<HTMLElement>;
+    containerRef: RefObject<HTMLElement | null>;
     onResizeStart?: (startWidth: number) => void;
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
-}
+};
 
 const Divider = styled.div<{isActive: boolean}>`
     position: absolute;
@@ -128,6 +128,12 @@ function ResizableDivider({
         if (disabled || !containerRef.current) {
             return;
         }
+
+        // Only resize with the left mouse button
+        if (e.button !== 0) {
+            return;
+        }
+
         previousClientX.current = e.clientX;
 
         const currentWidth = containerRef.current.getBoundingClientRect().width;

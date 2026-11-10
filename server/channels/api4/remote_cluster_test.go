@@ -4,13 +4,84 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGetRemoteClustersWithSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "test-remote",
+		SiteURL:   "http://example.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, rcs)
+	})
+}
+
+func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("system_shared_channel_manager should be denied create", func(t *testing.T) {
+		rcPayload := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:          "test-from-scm",
+				DefaultTeamId: th.BasicTeam.Id,
+			},
+			Password: model.NewTestPassword(),
+		}
+		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
 
 func TestGetRemoteClusters(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -188,7 +259,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -296,7 +367,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
-		Password:      "mysupersecret",
+		Password:      model.NewTestPassword(),
 		DefaultTeamId: "",
 	}
 
@@ -319,8 +390,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -383,6 +453,52 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		require.Empty(t, rc)
 	})
 
+	t.Run("should return a translated error without the remote's reason if the remote rejects the invite", func(t *testing.T) {
+		remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"status":"FAIL","err":"[click here](https://evil.example.com)"}`))
+		}))
+		defer remote.Close()
+
+		rejectingInvite := &model.RemoteClusterInvite{RemoteId: model.NewId(), SiteURL: remote.URL, Token: "token"}
+		rejectingEncrypted, err := rejectingInvite.Encrypt(rcAcceptInvite.Password)
+		require.NoError(t, err)
+		rcAcceptInvite.Invite = base64.URLEncoding.EncodeToString(rejectingEncrypted)
+		defer func() { rcAcceptInvite.Invite = encoded }()
+
+		// Developer mode keeps detailed_error in the response, so the test can check it.
+		enableDeveloper := *th.App.Config().ServiceSettings.EnableDeveloper
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = enableDeveloper })
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		checkHTTPStatus(t, resp, http.StatusBadGateway)
+		CheckErrorID(t, err, "api.remote_cluster.accept_invitation.rejected.app_error")
+		CheckErrorMessage(t, err, "The remote site rejected the invitation.")
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.NotContains(t, appErr.DetailedError, "evil.example.com")
+		require.Empty(t, rc)
+
+		_, getErr := th.App.GetRemoteCluster(rejectingInvite.RemoteId, false)
+		require.NotNil(t, getErr, "the refused connection must not remain active")
+	})
+
+	t.Run("should fail with a conflict error if the connection already exists", func(t *testing.T) {
+		_, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:  remoteId,
+			Name:      rcAcceptInvite.Name,
+			SiteURL:   "https://" + model.NewId() + ".example.com",
+			Token:     model.NewId(),
+			CreatorId: th.SystemAdminUser.Id,
+		})
+		require.Nil(t, appErr)
+
+		rc, resp, err := th.SystemAdminClient.RemoteClusterAcceptInvite(context.Background(), rcAcceptInvite)
+		checkHTTPStatus(t, resp, http.StatusConflict)
+		CheckErrorID(t, err, "api.remote_cluster.save_not_unique.app_error")
+		require.Empty(t, rc)
+	})
+
 	t.Run("should return a sanitized remote cluster if the action succeeds", func(t *testing.T) {
 		t.Skip("Requires server2server communication: ToBeImplemented")
 	})
@@ -390,7 +506,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
@@ -480,9 +596,10 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 func TestGetRemoteCluster(t *testing.T) {
 	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
-		Name:    "remotecluster",
-		SiteURL: "http://example.com",
-		Token:   model.NewId(),
+		Name:        "remotecluster",
+		SiteURL:     "http://example.com",
+		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -531,6 +648,47 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Equal(t, rc.RemoteId, fetchedRC.RemoteId)
 		require.Equal(t, th.BasicTeam.Id, fetchedRC.DefaultTeamId)
 		require.Empty(t, fetchedRC.Token)
+		require.Empty(t, fetchedRC.RemoteToken)
+	})
+}
+
+func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:      model.NewId(),
+		Name:          "test-remote",
+		SiteURL:       "http://example.com",
+		CreatorId:     th.SystemAdminUser.Id,
+		DefaultTeamId: th.BasicTeam.Id,
+		Token:         model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	sharedChannelUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, sharedChannelUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	sharedChannelClient := th.CreateClient()
+	_, _, err := sharedChannelClient.Login(context.Background(), sharedChannelUser.Email, sharedChannelUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		fetchedRC, resp, err := sharedChannelClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, newRC.RemoteId, fetchedRC.RemoteId)
+		require.Empty(t, fetchedRC.Token)
 	})
 }
 
@@ -541,9 +699,10 @@ func TestPatchRemoteCluster(t *testing.T) {
 		DisplayName: "initialvalue",
 		SiteURL:     "http://example.com",
 		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
-	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
+	rcp := &model.RemoteClusterPatch{DisplayName: new("different value")}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
 		th := Setup(t)
@@ -585,8 +744,8 @@ func TestPatchRemoteCluster(t *testing.T) {
 	t.Run("should correctly patch the remote cluster", func(t *testing.T) {
 		newTeamId := model.NewId()
 		rcp := &model.RemoteClusterPatch{
-			DisplayName:   model.NewPointer("patched!"),
-			DefaultTeamId: model.NewPointer(newTeamId),
+			DisplayName:   new("patched!"),
+			DefaultTeamId: new(newTeamId),
 		}
 
 		patchedRC, resp, err := th.SystemAdminClient.PatchRemoteCluster(context.Background(), rc.RemoteId, rcp)
@@ -594,6 +753,8 @@ func TestPatchRemoteCluster(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "patched!", patchedRC.DisplayName)
 		require.Equal(t, newTeamId, patchedRC.DefaultTeamId)
+		require.Empty(t, patchedRC.Token)
+		require.Empty(t, patchedRC.RemoteToken)
 	})
 }
 
@@ -655,5 +816,187 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEmpty(t, deletedRC)
 		require.NotZero(t, deletedRC.DeleteAt)
+	})
+}
+
+func TestDeleteRemoteClusterUnsharesOrphanSharedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "orphan-unshare-remote",
+		DisplayName: "orphan-unshare-remote",
+		SiteURL:     "http://orphan-unshare.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "orphan_unshare_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scr := &model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		CreatorId:         th.SystemAdminUser.Id,
+		RemoteId:          rc.RemoteId,
+		IsInviteConfirmed: true,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	chShared, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chShared.IsShared())
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.Error(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.False(t, chAfter.IsShared())
+}
+
+func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc1, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-a",
+		DisplayName: "keep-shared-a",
+		SiteURL:     "http://keep-shared-a.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	rc2, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-b",
+		DisplayName: "keep-shared-b",
+		SiteURL:     "http://keep-shared-b.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "keep_shared_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	for _, rc := range []*model.RemoteCluster{rc1, rc2} {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         channel.Id,
+			CreatorId:         th.SystemAdminUser.Id,
+			RemoteId:          rc.RemoteId,
+			IsInviteConfirmed: true,
+		}
+		_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+	}
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc1.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.NoError(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chAfter.IsShared())
+}
+
+func TestUploadRemoteData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "remote_upload",
+		SiteURL:   "http://example-upload.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	data := []byte("contents of a file sent by a remote")
+
+	saveSession := func(t *testing.T, offset int64) *model.UploadSession {
+		t.Helper()
+		id := model.NewId()
+		us, err := th.App.Srv().Store().UploadSession().Save(&model.UploadSession{
+			Id:         id,
+			Type:       model.UploadTypeAttachment,
+			UserId:     th.BasicUser.Id,
+			ChannelId:  th.BasicChannel.Id,
+			Filename:   "remote.txt",
+			Path:       "remote_upload_test/" + id + "/remote.txt",
+			FileSize:   int64(len(data)),
+			FileOffset: offset,
+			RemoteId:   rc.RemoteId,
+		})
+		require.NoError(t, err)
+		if offset > 0 {
+			_, appErr := th.App.WriteFile(bytes.NewReader(data[:offset]), us.Path)
+			require.Nil(t, appErr)
+		}
+		return us
+	}
+
+	upload := func(t *testing.T, us *model.UploadSession) *http.Response {
+		t.Helper()
+		// An unknown length, like the file reader sendFileToRemote sends, so the Content-Length check is skipped.
+		body := io.MultiReader(bytes.NewReader(data))
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/remotecluster/upload/"+us.Id, body)
+		require.NoError(t, err)
+		req.Header.Set(model.HeaderRemoteclusterId, rc.RemoteId)
+		req.Header.Set(model.HeaderRemoteclusterToken, rc.Token)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() { resp.Body.Close() })
+		return resp
+	}
+
+	t.Run("a new upload completes", func(t *testing.T) {
+		us := saveSession(t, 0)
+
+		resp := upload(t, us)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var info model.FileInfo
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&info))
+		require.Equal(t, int64(len(data)), info.Size)
+	})
+
+	t.Run("an upload that already received data is rejected", func(t *testing.T) {
+		us := saveSession(t, 10)
+
+		resp := upload(t, us)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckErrorID(t, model.AppErrorFromJSON(resp.Body), "api.remote_cluster.upload_resume_not_allowed.app_error")
+
+		stored, err := th.App.Srv().Store().UploadSession().Get(th.Context, us.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(10), stored.FileOffset)
 	})
 }

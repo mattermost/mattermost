@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useState, useEffect, useCallback} from 'react';
+import React, {useRef, useState, useEffect, useCallback, useMemo} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
-import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
@@ -23,6 +22,7 @@ import Constants from 'utils/constants';
 import ViewUserGroupListItem from './view_user_group_list_item';
 import ViewUserGroupModalHeader from './view_user_group_modal_header';
 
+import 'components/user_groups_modal/user_groups_modal.scss';
 import './view_user_group_modal.scss';
 
 const USERS_PER_PAGE = 60;
@@ -41,7 +41,7 @@ export type Props = {
         setModalSearchTerm: (term: string) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModal: React.FC<Props> = ({
     onExited,
@@ -88,8 +88,8 @@ const ViewUserGroupModal: React.FC<Props> = ({
         actions.setModalSearchTerm(term);
     }, [actions]);
 
-    const getGroupMembers = useCallback(
-        debounce(
+    const getGroupMembers = useMemo(
+        () => debounce(
             async () => {
                 const newPage = page + 1;
                 setPage(newPage);
@@ -155,35 +155,6 @@ const ViewUserGroupModal: React.FC<Props> = ({
         };
     }, [searchTerm, groupId, actions, loadComplete]);
 
-    const mentionName = () => {
-        if (group) {
-            return (
-                <div className='group-mention-name'>
-                    <span className='group-name'>{`@${group.name}`}</span>
-                    {
-                        group.source.toLowerCase() === GroupSource.Ldap &&
-                        <span className='group-source'>
-                            <FormattedMessage
-                                id='view_user_group_modal.ldapSynced'
-                                defaultMessage='AD/LDAP SYNCED'
-                            />
-                        </span>
-                    }
-                    {
-                        group.source.toLowerCase().startsWith(PluginGroupSourcePrefix.Plugin) &&
-                        <span className='group-source'>
-                            <FormattedMessage
-                                id='view_user_group_modal.pluginSynced'
-                                defaultMessage='Plugin SYNCED'
-                            />
-                        </span>
-                    }
-                </div>
-            );
-        }
-        return (<></>);
-    };
-
     return (
         <Modal
             dialogClassName='a11y__modal view-user-groups-modal'
@@ -204,7 +175,6 @@ const ViewUserGroupModal: React.FC<Props> = ({
                     decrementMemberCount={decrementMemberCount}
                 />
                 <Modal.Body>
-                    {mentionName()}
                     {((users.length === 0 && !searchTerm && !loading) || !group) ? (
                         <NoResultsIndicator
                             variant={NoResultsVariant.UserGroupMembers}

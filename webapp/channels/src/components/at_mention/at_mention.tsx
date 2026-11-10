@@ -23,7 +23,7 @@ type OwnProps = {
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
     fetchMissingUsers?: boolean;
-}
+};
 
 type Props = OwnProps & PropsFromRedux;
 

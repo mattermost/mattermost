@@ -11,7 +11,7 @@ type Props = {
     actions: {
         toggleLhs: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     };
-}
+};
 
 const CollapseLhsButton: React.FunctionComponent<Props> = (props: Props) => (
     <button

@@ -3,7 +3,7 @@
 
 import truncate from 'lodash/truncate';
 import React from 'react';
-import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import type {CSSProperties, JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {PostActionOption} from '@mattermost/types/integration_actions';
@@ -23,6 +23,7 @@ import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {decodeHtmlEntities} from 'utils/markdown/decode_html_entities';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
@@ -61,14 +62,14 @@ type Props = {
     };
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
     actionError: React.ReactNode | null;
-}
+};
 
 export default class MessageAttachment extends React.PureComponent<Props, State> {
     private mounted = false;
@@ -272,7 +273,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         let rowPos = 0;
         let lastWasLong = false;
         let nrTables = 0;
-        const markdown = {markdown: false, mentionHighlight: false, atMentions: false};
+        const markdown = {...this.props.options, markdown: false, mentionHighlight: false, atMentions: false};
 
         fields.forEach((field, i) => {
             if (rowPos === 2 || !(field.short === true) || lastWasLong) {
@@ -319,6 +320,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 >
                     <Markdown
                         message={String(field.value)}
+                        options={this.props.options}
                         postId={this.props.postId}
                     />
                 </td>,
@@ -391,6 +393,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 <div className='attachment__thumb-pretext'>
                     <Markdown
                         message={attachment.pretext}
+                        options={options}
                         postId={this.props.postId}
                     />
                 </div>
@@ -424,7 +427,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         className='attachment__author-name'
                         key={'attachment__author-name'}
                     >
-                        {attachment.author_name}
+                        {decodeHtmlEntities(attachment.author_name)}
                     </span>,
                 );
             }
@@ -451,7 +454,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                             href={attachment.title_link}
                             location='message_attachment'
                         >
-                            {attachment.title}
+                            {decodeHtmlEntities(attachment.title)}
                         </ExternalLink>
                     </h1>
                 );
@@ -461,6 +464,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         <Markdown
                             message={attachment.title}
                             options={{
+                                ...options,
                                 atMentions: false,
                                 mentionHighlight: false,
                                 renderer: new LinkOnlyRenderer(),
@@ -542,7 +546,11 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             footer = (
                 <div className='attachment__footer-container'>
                     {footerIcon}
-                    <span>{truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}</span>
+                    <Markdown
+                        message={truncate(attachment.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'})}
+                        options={options}
+                        postId={this.props.postId}
+                    />
                 </div>
             );
         }

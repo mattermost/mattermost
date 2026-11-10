@@ -16,7 +16,7 @@ type Props = {
     onGifClick?: (gif: string) => void;
     handleFilterChange: (filter: string) => void;
     getRootPickerNode: () => HTMLDivElement | null;
-}
+};
 
 const GifPicker = (props: Props) => {
     const handleItemClick = useCallback((gif: IGif, event: SyntheticEvent<HTMLElement, Event>) => {

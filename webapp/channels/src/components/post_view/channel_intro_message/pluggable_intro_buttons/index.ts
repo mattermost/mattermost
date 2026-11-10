@@ -15,7 +15,7 @@ import PluggableIntroButtons from './pluggable_intro_buttons';
 
 type OwnProps = {
     channel: Channel;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {

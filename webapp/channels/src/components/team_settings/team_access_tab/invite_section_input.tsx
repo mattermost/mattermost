@@ -6,6 +6,8 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -28,7 +30,7 @@ const translations = defineMessages({
 
 type Props = {
     regenerateTeamInviteId: (teamId: string) => Promise<ActionResult>;
-}
+};
 
 const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
     const team = useSelector((state: GlobalState) => getCurrentTeam(state));
@@ -68,15 +70,15 @@ const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
                 value={inviteId}
                 maxLength={32}
             />
-            <button
+            <Button
                 data-testid='regenerateButton'
                 id='regenerateButton'
-                className='btn btn-tertiary'
+                emphasis='tertiary'
                 onClick={handleRegenerateInviteId}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             >
-                <RefreshIcon/>
                 {formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
-            </button>
+            </Button>
         </div>
     );
 

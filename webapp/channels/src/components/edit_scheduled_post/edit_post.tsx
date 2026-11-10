@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji} from '@mattermost/types/emojis';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import {scheduledPostToPost} from '@mattermost/types/schedule_post';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
@@ -26,6 +26,7 @@ import Textbox from 'components/textbox';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
+import {unifiedToUnicode} from 'utils/emoji_utils';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -33,7 +34,7 @@ import {
     formatGithubCodePaste,
     formatMarkdownMessage,
     getHtmlTable,
-    hasHtmlLink,
+    hasMarkdownFormatting,
     isGitHubCodeBlock,
 } from 'utils/paste';
 import {postMessageOnKeyPress, splitMessageBasedOnCaretPosition} from 'utils/post_utils';
@@ -49,13 +50,13 @@ import './style.scss';
 
 export type Actions = {
     addMessageIntoHistory: (message: string) => void;
-    editPost: (input: Partial<Post>) => Promise<Post>;
+    editPost: (input: Post) => Promise<ActionResult<Post>>;
     setDraft: (name: string, value: PostDraft | null) => void;
     unsetEditingPost: () => void;
     scrollPostListToBottom: () => void;
     runMessageWillBeUpdatedHooks: (newPost: Partial<Post>, oldPost: Post) => Promise<ActionResult>;
     updateScheduledPost: (scheduledPost: ScheduledPost, connectionId: string) => Promise<ActionResult>;
-}
+};
 
 export type Props = {
     canEditPost?: boolean;
@@ -125,7 +126,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // If we would just use the editText value from the state it would be a stale since it is encapsuled in the
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
-    const saveDraftFrame = useRef<number|null>();
+    const saveDraftFrame = useRef<number | null>(undefined);
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -166,10 +167,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     }, []);
 
     useEffect(() => {
-        if (selectionRange.start === selectionRange.end) {
-            Utils.setCaretPosition(textboxRef.current?.getInputBox(), selectionRange.start);
-        } else {
-            Utils.setSelectionRange(textboxRef.current?.getInputBox(), selectionRange.start, selectionRange.end);
+        const textbox = textboxRef.current?.getInputBox();
+        if (textbox) {
+            if (selectionRange.start === selectionRange.end) {
+                Utils.setCaretPosition(textbox, selectionRange.start);
+            } else {
+                Utils.setSelectionRange(textbox, selectionRange.start, selectionRange.end);
+            }
         }
     }, [selectionRange]);
 
@@ -181,7 +185,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         caretPosition.current = target.selectionEnd;
     };
 
-    const handlePaste = useCallback((e: ClipboardEvent) => {
+    const handlePaste = useCallback((e: React.ClipboardEvent<TextboxElement>) => {
         const {clipboardData, target} = e;
         if (
             !clipboardData ||
@@ -192,9 +196,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const hasLinks = hasHtmlLink(clipboardData);
         const table = getHtmlTable(clipboardData);
-        if (!table && !hasLinks) {
+        if (!hasMarkdownFormatting(clipboardData)) {
             return;
         }
 
@@ -242,7 +245,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
-    const handleRefocusAndExit = (refocusId: string|null) => {
+    const handleRefocusAndExit = (refocusId: string | null) => {
         if (refocusId) {
             const element = document.getElementById(refocusId);
             element?.focus();
@@ -502,13 +505,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             return;
         }
 
-        const emojiAlias = getEmojiName(emoji);
-        if (!emojiAlias) {
-            //Oops.. There went something wrong
-            return;
+        let emojiText: string;
+        if (isSystemEmoji(emoji)) {
+            emojiText = unifiedToUnicode((emoji as SystemEmoji).unified);
+        } else {
+            const emojiAlias = getEmojiName(emoji);
+            if (!emojiAlias) {
+                return;
+            }
+            emojiText = `:${emojiAlias}:`;
         }
 
-        let newMessage = `:${emojiAlias}: `;
+        const isUnicode = isSystemEmoji(emoji);
+        let newMessage = isUnicode ? emojiText : `${emojiText} `;
         let newCaretPosition = newMessage.length;
 
         if (editText.length > 0) {
@@ -517,10 +526,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
                 editText,
             );
 
-            // check whether the first piece of the message is empty when cursor
-            // is placed at beginning of message and avoid adding an empty string at the beginning of the message
-            newMessage = firstPiece === '' ? `:${emojiAlias}: ${lastPiece}` : `${firstPiece} :${emojiAlias}: ${lastPiece}`;
-            newCaretPosition = firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
+            if (isUnicode) {
+                newMessage = firstPiece + emojiText + lastPiece;
+                newCaretPosition = firstPiece.length + emojiText.length;
+            } else {
+                newMessage = firstPiece === '' ? `${emojiText} ${lastPiece}` : `${firstPiece} ${emojiText} ${lastPiece}`;
+                newCaretPosition = firstPiece === '' ? `${emojiText} `.length : `${firstPiece} ${emojiText} `.length;
+            }
         }
 
         draftRef.current = {

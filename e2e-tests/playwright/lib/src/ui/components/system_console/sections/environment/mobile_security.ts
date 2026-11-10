@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
-import {RadioSetting, TextInputSetting, DropdownSetting, AdminSectionPanel} from '../../base_components';
+import {
+    RadioSetting,
+    TextInputSetting,
+    NumberInputSetting,
+    DropdownSetting,
+    AdminSectionPanel,
+} from '../../base_components';
 
 /**
  * System Console -> Environment -> Mobile Security
@@ -17,6 +24,7 @@ export default class MobileSecurity {
     // Panels
     readonly generalMobileSecurity: GeneralMobileSecurityPanel;
     readonly microsoftIntune: MicrosoftIntunePanel;
+    readonly mobileEphemeralMode: MobileEphemeralModePanel;
 
     // Save section
     readonly saveButton: Locator;
@@ -28,14 +36,15 @@ export default class MobileSecurity {
         this.header = container.getByText('Mobile Security', {exact: true});
 
         this.generalMobileSecurity = new GeneralMobileSecurityPanel(
-            container.locator('.AdminSectionPanel').filter({hasText: 'General Mobile Security'}),
+            container.getByTestId('MobileSecuritySettings.General'),
         );
-        this.microsoftIntune = new MicrosoftIntunePanel(
-            container.locator('.AdminSectionPanel').filter({hasText: 'Microsoft Intune'}),
+        this.microsoftIntune = new MicrosoftIntunePanel(container.getByTestId('MobileSecuritySettings.Intune'));
+        this.mobileEphemeralMode = new MobileEphemeralModePanel(
+            container.getByTestId('MobileSecuritySettings.EphemeralMode'),
         );
 
         this.saveButton = container.getByRole('button', {name: 'Save'});
-        this.errorMessage = container.locator('.error-message');
+        this.errorMessage = container.getByTestId('errorMessage');
     }
 
     async toBeVisible() {
@@ -77,6 +86,20 @@ export default class MobileSecurity {
     get clientId() {
         return this.microsoftIntune.clientId;
     }
+
+    // Convenience shortcuts for Mobile Ephemeral Mode settings
+    get enableMobileEphemeralMode() {
+        return this.mobileEphemeralMode.enableMobileEphemeralMode;
+    }
+    get disconnectionTimeout() {
+        return this.mobileEphemeralMode.disconnectionTimeout;
+    }
+    get offlinePersistenceTimer() {
+        return this.mobileEphemeralMode.offlinePersistenceTimer;
+    }
+    get autoCacheCleanup() {
+        return this.mobileEphemeralMode.autoCacheCleanup;
+    }
 }
 
 class GeneralMobileSecurityPanel extends AdminSectionPanel {
@@ -105,6 +128,36 @@ class GeneralMobileSecurityPanel extends AdminSectionPanel {
     }
 }
 
+class MobileEphemeralModePanel extends AdminSectionPanel {
+    readonly enableMobileEphemeralMode: RadioSetting;
+    readonly disconnectionTimeout: NumberInputSetting;
+    readonly offlinePersistenceTimer: NumberInputSetting;
+    readonly autoCacheCleanup: NumberInputSetting;
+
+    constructor(container: Locator) {
+        super(container, 'Mobile Ephemeral Mode');
+
+        this.enableMobileEphemeralMode = new RadioSetting(
+            this.body.getByRole('group', {name: /Enable Mobile Ephemeral Mode/}),
+        );
+        this.disconnectionTimeout = new NumberInputSetting(
+            this.body.getByTestId('MobileEphemeralModeSettings.DisconnectionTimeoutSeconds'),
+            'Disconnection Timeout (seconds):',
+            'MobileEphemeralModeSettings.DisconnectionTimeoutSeconds',
+        );
+        this.offlinePersistenceTimer = new NumberInputSetting(
+            this.body.getByTestId('MobileEphemeralModeSettings.OfflinePersistenceTimerHours'),
+            'Offline Persistence Timer (hours):',
+            'MobileEphemeralModeSettings.OfflinePersistenceTimerHours',
+        );
+        this.autoCacheCleanup = new NumberInputSetting(
+            this.body.getByTestId('MobileEphemeralModeSettings.AutoCacheCleanupDays'),
+            'Auto Cache Cleanup (days):',
+            'MobileEphemeralModeSettings.AutoCacheCleanupDays',
+        );
+    }
+}
+
 class MicrosoftIntunePanel extends AdminSectionPanel {
     readonly enableIntuneMAM: RadioSetting;
     readonly authProvider: DropdownSetting;
@@ -117,16 +170,19 @@ class MicrosoftIntunePanel extends AdminSectionPanel {
         this.enableIntuneMAM = new RadioSetting(this.body.getByRole('group', {name: /Enable Microsoft Intune MAM/}));
 
         this.authProvider = new DropdownSetting(
-            this.body.locator('.form-group').filter({hasText: 'Auth Provider:'}),
+            this.body.getByTestId('IntuneSettings.AuthService'),
             'Auth Provider:',
+            'IntuneSettings.AuthService',
         );
         this.tenantId = new TextInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Tenant ID:'}),
+            this.body.getByTestId('IntuneSettings.TenantId'),
             'Tenant ID:',
+            'IntuneSettings.TenantId',
         );
         this.clientId = new TextInputSetting(
-            this.body.locator('.form-group').filter({hasText: 'Application (Client) ID:'}),
+            this.body.getByTestId('IntuneSettings.ClientId'),
             'Application (Client) ID:',
+            'IntuneSettings.ClientId',
         );
     }
 }

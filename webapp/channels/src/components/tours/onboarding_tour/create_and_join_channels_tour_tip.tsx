@@ -23,7 +23,7 @@ export const CreateAndJoinChannelsTour = () => {
         <p>
             <FormattedMessage
                 id='onboardingTour.CreateAndJoinChannels.Description'
-                defaultMessage={'Create new channels or browse available channels to see what your team is discussing. As you join channels, organize them into  categories based on how you work.'}
+                defaultMessage={'Create new channels or browse available channels to see what your team is discussing. As you join channels, organize them into categories based on how you work.'}
             />
         </p>
     );

@@ -5,8 +5,11 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {Post, PostList} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
@@ -42,7 +45,7 @@ describe('Actions.Posts', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                         EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
@@ -402,7 +405,7 @@ describe('Actions.Posts', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
                 preferences: {
@@ -679,6 +682,72 @@ describe('Actions.Posts', () => {
                     message: '@user1:org1 @user2:org2/@user3:org3/@user4:org4 (@user5:org5) @user6:org6',
                 }),
                 expected: new Set(['user1:org1', 'user2:org2', 'user3:org3', 'user4:org4', 'user5:org5', 'user6:org6']),
+            },
+            {
+                name: 'should return at-mentions from mm_blocks text blocks but not button labels',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {type: 'text', text: 'hello @bbb'},
+                            {type: 'button', text: '@ccc', action_id: 'act'},
+                        ],
+                    },
+                }),
+                expected: new Set(['bbb']),
+            },
+            {
+                name: 'should return at-mentions from nested mm_blocks containers',
+                input: TestHelper.getPostMock({
+                    props: {
+                        mm_blocks: [
+                            {
+                                type: 'container',
+                                content: [
+                                    {type: 'text', text: '@ddd in container'},
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['ddd']),
+            },
+            {
+                name: 'should return at-mentions from Block Kit markdown and section blocks',
+                input: TestHelper.getPostMock({
+                    props: {
+                        blocks: [
+                            {type: 'markdown', text: 'markdown @eee'},
+                            {
+                                type: 'section',
+                                text: {type: 'mrkdwn', text: 'section @fff'},
+                                fields: [{type: 'mrkdwn', text: 'field @ggg'}],
+                            },
+                            {type: 'header', text: 'header @hhh'},
+                        ],
+                    },
+                }),
+                expected: new Set(['eee', 'fff', 'ggg', 'hhh']),
+            },
+            {
+                name: 'should return at-mentions from Adaptive Card TextBlock elements',
+                input: TestHelper.getPostMock({
+                    props: {
+                        cards: [
+                            {
+                                type: 'AdaptiveCard',
+                                version: '1.0',
+                                body: [
+                                    {type: 'TextBlock', text: 'card @iii'},
+                                    {
+                                        type: 'Container',
+                                        items: [{type: 'TextBlock', text: 'nested @jjj'}],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                }),
+                expected: new Set(['iii', 'jjj']),
             },
         ];
 
@@ -1105,7 +1174,7 @@ describe('Actions.Posts', () => {
                 posts: {
                     posts: {
                         [postId]: {id: postId, msg: 'test message', create_at: 123, delete_at: 0, channel_id: channelId},
-                    },
+                    } as unknown as IDMappedObjects<Post>,
                 },
             },
         });
@@ -1311,13 +1380,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await dispatch(createCustomEmoji(
+        const created = (await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).
@@ -1370,9 +1439,6 @@ describe('Actions.Posts', () => {
                         [postId]: {id: postId, channel_id: channelId},
                     },
                 },
-                integrations: {
-                    dialogArguments: {},
-                },
             },
         });
 
@@ -1386,11 +1452,8 @@ describe('Actions.Posts', () => {
         const state = store.getState();
         expect(data).toBeTruthy();
         expect(data).toEqual({trigger_id: triggerId});
-        expect(data).toBeTruthy();
 
-        expect(state.entities.integrations.dialogArguments).toBeTruthy();
         expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
-        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {
@@ -1717,5 +1780,137 @@ describe('getPostThreads', () => {
             [post1.id]: post1,
             [comment.id]: comment,
         });
+    });
+});
+
+// Every posts fetch whose handler hydrates values has to carry the group, and none
+// of them may carry it with the feature flag off. A missed call site does not throw
+// and does not blank the chips — the reducer merges, so the surface keeps whatever
+// values some other fetch already put in the store — which is exactly why nothing
+// but a test says a surface stopped hydrating.
+describe('post attribute hydration', () => {
+    const channelId = 'channel_id_00000000000000';
+    const postId = 'post_id_000000000000000000';
+    const userId = 'user_id_000000000000000000';
+
+    const GROUP_ARGUMENT: Record<string, number> = {
+        getPost: 3,
+        getPosts: 6,
+        getPostsUnread: 7,
+        getPostsSince: 5,
+        getPostsBefore: 7,
+        getPostsAfter: 7,
+        getPostThread: 4,
+    };
+
+    const emptyList = (): PostList => ({
+        order: [],
+        posts: {},
+        next_post_id: '',
+        prev_post_id: '',
+        first_inaccessible_post_time: 0,
+    });
+
+    const emptyThread = () => ({...emptyList(), has_next: false});
+
+    const spies = {
+        getPost: jest.spyOn(Client4, 'getPost'),
+        getPosts: jest.spyOn(Client4, 'getPosts'),
+        getPostsUnread: jest.spyOn(Client4, 'getPostsUnread'),
+        getPostsSince: jest.spyOn(Client4, 'getPostsSince'),
+        getPostsBefore: jest.spyOn(Client4, 'getPostsBefore'),
+        getPostsAfter: jest.spyOn(Client4, 'getPostsAfter'),
+        getPostThread: jest.spyOn(Client4, 'getPostThread'),
+        getPaginatedPostThread: jest.spyOn(Client4, 'getPaginatedPostThread'),
+    };
+
+    /**
+     * The group every spied call carried, in call order, whichever method took it.
+     *
+     * Collected across all of them rather than per-method so a test asserts on what
+     * reached the wire without naming which client method a thunk happened to use.
+     */
+    function sentGroups(): Array<string | undefined> {
+        return Object.entries(spies).flatMap(([name, spy]) => spy.mock.calls.map((call: any[]) => {
+            return name === 'getPaginatedPostThread' ? call[1]?.propertyGroup : call[GROUP_ARGUMENT[name]];
+        }));
+    }
+
+    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}) {
+        return configureStore({
+            entities: {
+                general: {config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'}},
+                users: {currentUserId: userId, profiles: {}, statuses: {}},
+                channels: {currentChannelId: channelId},
+                preferences: {myPreferences: preferences},
+            },
+        });
+    }
+
+    beforeEach(() => {
+        Object.values(spies).forEach((spy) => spy.mockReset());
+
+        spies.getPost.mockResolvedValue(TestHelper.getPostMock({id: postId, channel_id: channelId}));
+        spies.getPosts.mockResolvedValue(emptyList());
+        spies.getPostsUnread.mockResolvedValue(emptyList());
+        spies.getPostsSince.mockResolvedValue(emptyList());
+        spies.getPostsBefore.mockResolvedValue(emptyList());
+        spies.getPostsAfter.mockResolvedValue(emptyList());
+        spies.getPostThread.mockResolvedValue(emptyThread());
+        spies.getPaginatedPostThread.mockResolvedValue(emptyThread());
+    });
+
+    afterAll(() => {
+        Object.values(spies).forEach((spy) => spy.mockRestore());
+    });
+
+    // One entry per surface a chip can appear on, and the permalink triple counts as
+    // three: `getPostsAround` is the only thunk that fetches through three client
+    // methods at once, and all three feed the same screen.
+    const surfaces: Array<[string, () => any, number]> = [
+        ['getPost', () => Actions.getPost(postId), 1],
+        ['getPostThread', () => Actions.getPostThread(postId), 1],
+        ['getNewestPostThread', () => Actions.getNewestPostThread(postId), 1],
+        ['getPosts', () => Actions.getPosts(channelId), 1],
+        ['getPostsUnread', () => Actions.getPostsUnread(channelId), 1],
+        ['getPostsSince', () => Actions.getPostsSince(channelId, 12345), 1],
+        ['getPostsBefore', () => Actions.getPostsBefore(channelId, postId), 1],
+        ['getPostsAfter', () => Actions.getPostsAfter(channelId, postId), 1],
+        ['getPostsAround', () => Actions.getPostsAround(channelId, postId), 3],
+    ];
+
+    it.each(surfaces)('%s asks for post attribute values when the flag is on', async (_name, action, calls) => {
+        const store = storeWithFlag(true);
+
+        await store.dispatch(action());
+
+        expect(sentGroups()).toEqual(new Array(calls).fill('post_attributes'));
+    });
+
+    it.each(surfaces)('%s asks for nothing when the flag is off', async (_name, action, calls) => {
+        const store = storeWithFlag(false);
+
+        await store.dispatch(action());
+
+        expect(sentGroups()).toEqual(new Array(calls).fill(undefined));
+    });
+
+    // The second request `getPostsUnread` makes when the user reads unreads from the
+    // newest post down. Separate because it only happens when the unread chunk has
+    // more posts after it, so the table above never reaches it.
+    it('getPostsUnread asks on its recent-posts fallback too', async () => {
+        const store = storeWithFlag(true, {
+            [`${Preferences.CATEGORY_ADVANCED_SETTINGS}--${Preferences.UNREAD_SCROLL_POSITION}`]: {
+                user_id: userId,
+                category: Preferences.CATEGORY_ADVANCED_SETTINGS,
+                name: Preferences.UNREAD_SCROLL_POSITION,
+                value: Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST,
+            },
+        });
+        spies.getPostsUnread.mockResolvedValue({...emptyList(), next_post_id: 'next_post_id_0000000000000'});
+
+        await store.dispatch(Actions.getPostsUnread(channelId));
+
+        expect(sentGroups()).toEqual(['post_attributes', 'post_attributes']);
     });
 });

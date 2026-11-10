@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, ClientLicense} from './config';
-import type {UserPropertyField} from './properties';
+import type {UserPropertyField} from './properties_user';
 import type {IDMappedObjects} from './utilities';
 
 export type GeneralState = {

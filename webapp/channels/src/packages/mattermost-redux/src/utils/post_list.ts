@@ -15,7 +15,7 @@ import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, isNotificationSuppressed, ensureString} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
@@ -96,6 +96,7 @@ export function makeFilterPostsAndAddSeparators() {
                     lastViewedAt &&
                     post.create_at > lastViewedAt &&
                     (post.user_id !== currentUser.id || isFromWebhook(post)) &&
+                    !isNotificationSuppressed(post) &&
                     !addedNewMessagesIndicator &&
                     indicateNewMessages
                 ) {
@@ -112,7 +113,7 @@ export function makeFilterPostsAndAddSeparators() {
     );
 }
 
-function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post|string>, lastDate?: Date) {
+function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post | string>, lastDate?: Date) {
     // Push on a date header if the last post was on a different day than the current one
     const postDate = new Date(post.create_at);
     const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
@@ -144,7 +145,7 @@ export function makeAddDateSeparatorsForSearchResults() {
                 return [];
             }
 
-            const out: Array<Post|string> = [];
+            const out: Array<Post | string> = [];
             let lastDate;
 
             for (const post of posts) {
@@ -491,7 +492,7 @@ export type MessageData = {
     actorId?: string;
     postType: string;
     userIds: string[];
-}
+};
 
 function isMessageData(v: unknown): v is MessageData {
     if (typeof v !== 'object' || !v) {
@@ -517,7 +518,7 @@ type UserActivityProp = {
     allUserIds: string[];
     allUsernames: string[];
     messageData: MessageData[];
-}
+};
 
 export function isUserActivityProp(v: unknown): v is UserActivityProp {
     if (typeof v !== 'object' || !v) {

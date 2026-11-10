@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -13,9 +15,10 @@ import Textbox, {TextboxLinks} from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
 
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
@@ -43,12 +46,13 @@ type State = {
     header?: string;
     saving: boolean;
     show: boolean;
+    showPreview: boolean;
     serverError?: ServerError | null;
     postError?: React.ReactNode;
-}
+};
 
 export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
-    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass>;
+    private editChannelHeaderTextboxRef: React.RefObject<TextboxClass | null>;
 
     constructor(props: Props) {
         super(props);
@@ -57,6 +61,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
             header: props.channel.header,
             saving: false,
             show: true,
+            showPreview: false,
         };
         this.editChannelHeaderTextboxRef = React.createRef<TextboxClass>();
     }
@@ -67,8 +72,8 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         }
     };
 
-    private setShowPreview = (newState: boolean): void => {
-        this.props.actions.setShowPreview(newState);
+    private togglePreview = (): void => {
+        this.setState((prevState) => ({showPreview: !prevState.showPreview}));
     };
 
     private handleChange = (e: React.ChangeEvent<TextboxElement>): void => {
@@ -163,8 +168,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
         if (serverError.server_error_id === 'model.channel.is_valid.header.app_error') {
             errorMsg = (
                 <FormattedMessage
-                    id='edit_channel_header_modal.error'
-                    defaultMessage='The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.'
+                    {...channelKindMessages.headerLengthError[this.props.channelKind]}
                     values={{
                         maxLength: headerMaxLength,
                     }}
@@ -231,10 +235,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                             htmlFor='edit_textbox'
                             className='textarea-label'
                         >
-                            <FormattedMessage
-                                id='edit_channel_header_modal.description'
-                                defaultMessage='Edit the text appearing next to the channel name in the header.'
-                            />
+                            <FormattedMessage {...messages.description[this.props.channelKind]}/>
                         </label>
                         <div className='textarea-wrapper'>
                             <Textbox
@@ -244,20 +245,20 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 onKeyDown={this.handleKeyDown}
                                 supportsCommands={false}
                                 suggestionListPosition='bottom'
-                                createMessage={this.props.intl.formatMessage({id: 'edit_channel_header_modal.placeholder', defaultMessage: 'Enter the Channel Header'})}
+                                createMessage={this.props.intl.formatMessage(messages.placeholder[this.props.channelKind])}
                                 handlePostError={this.handlePostError}
                                 channelId={this.props.channel.id!}
                                 id='edit_textbox'
                                 ref={this.editChannelHeaderTextboxRef}
                                 characterLimit={headerMaxLength}
-                                preview={this.props.shouldShowPreview}
+                                preview={this.state.showPreview}
                                 useChannelMentions={false}
                             />
                         </div>
                         <div className='post-create-footer'>
                             <TextboxLinks
-                                showPreview={this.props.shouldShowPreview}
-                                updatePreview={this.setShowPreview}
+                                showPreview={this.state.showPreview}
+                                updatePreview={this.togglePreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
                                 hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
                                 previewMessageLink={
@@ -272,31 +273,56 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.hideModal}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         disabled={this.state.saving}
                         type='button'
-                        className='btn btn-primary save-button'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );
     }
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    description: {
+        channel: defineMessage({
+            id: 'edit_channel_header_modal.description',
+            defaultMessage: 'Edit the text appearing next to the channel name in the header.',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_header_modal.description.board',
+            defaultMessage: 'Edit the text appearing next to the board name in the header.',
+        }),
+    },
+    placeholder: {
+        channel: defineMessage({
+            id: 'edit_channel_header_modal.placeholder',
+            defaultMessage: 'Enter the Channel Header',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_header_modal.placeholder.board',
+            defaultMessage: 'Enter the Board Header',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default injectIntl(EditChannelHeaderModal);

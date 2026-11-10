@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console @enterprise @cloud_only
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {adminConsoleNavigation} from '../../../../utils/admin_console';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {adminConsoleNavigation} from '@/utils/admin_console';
 
 describe('System Console - Cloud', () => {
     before(() => {

@@ -4,13 +4,15 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
 export type FieldsetCheckbox = {
     dataTestId?: string;
     name: string;
-}
+};
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetCheckbox;
@@ -23,7 +25,7 @@ type Props = BaseSettingItemProps & {
     handleChange: (e: boolean) => void;
     className?: string;
     descriptionAboveContent?: boolean;
-}
+};
 
 export default function CheckboxSettingItem({
     title,
@@ -36,26 +38,23 @@ export default function CheckboxSettingItem({
     dataTestId,
     descriptionAboveContent = false,
 }: Props) {
+    const checkboxId = inputFieldData.name.replaceAll(' ', '-');
+
     const content = (
         <div
             key={inputFieldData.name}
             className='mm-modal-generic-section-item__fieldset-checkbox-ctr'
         >
-            <input
-                className='mm-modal-generic-section-item__input-checkbox'
+            <Checkbox
+                className='mm-modal-generic-section-item__fieldset-checkbox'
                 data-testid={inputFieldData.dataTestId}
-                type='checkbox'
                 name={inputFieldData.name}
-                id={inputFieldData.name.replaceAll(' ', '-')}
+                id={checkboxId}
                 checked={inputFieldValue}
                 onChange={(e) => handleChange(e.target.checked)}
-            />
-            <label
-                htmlFor={inputFieldData.name.replaceAll(' ', '-')}
-                className='mm-modal-generic-section-item__fieldset-checkbox'
             >
                 {inputFieldTitle}
-            </label>
+            </Checkbox>
         </div>
     );
 

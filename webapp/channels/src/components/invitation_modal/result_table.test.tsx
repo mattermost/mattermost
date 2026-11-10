@@ -1,18 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import AlertIcon from 'components/widgets/icons/alert_icon';
-import EmailIcon from 'components/widgets/icons/mail_icon';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
-import Avatar from 'components/widgets/users/avatar';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import ResultTable from './result_table';
 import type {Props} from './result_table';
@@ -75,8 +68,8 @@ describe('ResultTable', () => {
             email: 'aa@aa.aa',
             reason: {id: 'some_reason', defaultMessage: 'some reason'},
         }];
-        const wrapper = shallow(<ResultTable {...props}/>);
-        expect(wrapper.find(EmailIcon).length).toBe(1);
+        const {container} = renderWithContext(<ResultTable {...props}/>);
+        expect(container.querySelector('.mail-icon')).toBeInTheDocument();
     });
 
     test('unsent invites render as unsent invites', () => {
@@ -84,8 +77,8 @@ describe('ResultTable', () => {
             text: '@incomplete_userna',
             reason: {id: 'incomplete_user', defaultMessage: 'This was not a complete user'},
         }];
-        const wrapper = shallow(<ResultTable {...props}/>);
-        expect(wrapper.find(AlertIcon).length).toBe(1);
+        const {container} = renderWithContext(<ResultTable {...props}/>);
+        expect(container.querySelector('.alert-icon')).toBeInTheDocument();
     });
 
     test('user invites render as users', () => {
@@ -93,10 +86,10 @@ describe('ResultTable', () => {
             user: defaultUser,
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const wrapper = shallow(<ResultTable {...props}/>);
-        expect(wrapper.find(Avatar).length).toBe(1);
-        expect(wrapper.find(BotTag).length).toBe(0);
-        expect(wrapper.find(GuestTag).length).toBe(0);
+        const {container} = renderWithContext(<ResultTable {...props}/>);
+        expect(container.querySelector('.Avatar')).toBeInTheDocument();
+        expect(screen.queryByText('BOT')).not.toBeInTheDocument();
+        expect(screen.queryByText('GUEST')).not.toBeInTheDocument();
     });
 
     test('bots render as bots', () => {
@@ -107,10 +100,10 @@ describe('ResultTable', () => {
             },
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const wrapper = shallow(<ResultTable {...props}/>);
-        expect(wrapper.find(Avatar).length).toBe(1);
-        expect(wrapper.find(BotTag).length).toBe(1);
-        expect(wrapper.find(GuestTag).length).toBe(0);
+        const {container} = renderWithContext(<ResultTable {...props}/>);
+        expect(container.querySelector('.Avatar')).toBeInTheDocument();
+        expect(screen.getByText('BOT')).toBeInTheDocument();
+        expect(screen.queryByText('GUEST')).not.toBeInTheDocument();
     });
 
     test('guests render as guests', () => {
@@ -121,21 +114,21 @@ describe('ResultTable', () => {
             },
             reason: {id: 'success', defaultMessage: 'added successfully'},
         }];
-        const wrapper = shallow(<ResultTable {...props}/>);
-        expect(wrapper.find(Avatar).length).toBe(1);
-        expect(wrapper.find(BotTag).length).toBe(0);
-        expect(wrapper.find(GuestTag).length).toBe(1);
+        const {container} = renderWithContext(<ResultTable {...props}/>);
+        expect(container.querySelector('.Avatar')).toBeInTheDocument();
+        expect(screen.queryByText('BOT')).not.toBeInTheDocument();
+        expect(screen.getByText('GUEST')).toBeInTheDocument();
     });
 
     test('renders success banner when invites were sent', () => {
         props.sent = true;
-        const wrapper = mountWithIntl(<ResultTable {...props}/>);
-        expect(wrapper.find('h2').at(0).text()).toContain('Successful Invites');
+        renderWithContext(<ResultTable {...props}/>);
+        expect(screen.getByText('Successful Invites')).toBeInTheDocument();
     });
 
     test('renders not sent banner when invites were not sent', () => {
         props.sent = false;
-        const wrapper = mountWithIntl(<ResultTable {...props}/>);
-        expect(wrapper.find('h2').at(0).text()).toContain('Invitations Not Sent');
+        renderWithContext(<ResultTable {...props}/>);
+        expect(screen.getByText('Invitations Not Sent')).toBeInTheDocument();
     });
 });

@@ -35,14 +35,14 @@ import Pluggable from 'plugins/pluggable';
 import BackstageNavbar from './components/backstage_navbar';
 import BackstageSidebar from './components/backstage_sidebar';
 
-type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void}
+type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void};
 
 type BackstageRouteProps = {
     component: ComponentType<any>;
     extraProps: ExtraProps;
     path: string;
     exact?: boolean;
-}
+};
 
 const BackstageRoute = ({component: Component, extraProps, ...rest}: BackstageRouteProps) => (
     <Route
@@ -82,7 +82,7 @@ type Props = {
     enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
-}
+};
 
 const BackstageController = (props: Props) => {
     const listRef = useRef<HTMLDivElement>(null);

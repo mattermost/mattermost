@@ -26,7 +26,7 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     const wrapperRef = useRef<HTMLDivElement>(null);
     const childRef = useRef<HTMLDivElement>(null);
     const prevSlot = useRef<AutoHeightProps['showSlot']>(showSlot);
-    const prevHeight = useRef<number|null>(null);
+    const prevHeight = useRef<number | null>(null);
     const [animate, setAnimate] = useState<boolean>(false);
     const [height, setHeight] = useState<string | number>('auto');
     const [overflow, setOverflow] = useState<string>('visible');
@@ -39,8 +39,23 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
         } else {
             // switch slots using height animation
             prevSlot.current = showSlot;
-            setAnimate(true);
+
+            if (animate) {
+                // A previous transition is still in flight, so the Transition's
+                // `in` prop is already `true`; toggling it `true` again is a
+                // no-op and `onEnter` will not re-run. Swap the child directly
+                // to the newly selected slot so the correct content is shown
+                // once the in-flight transition ends (otherwise the stale slot
+                // stays rendered).
+                setChild(showSlot === AutoHeightSlots.SLOT1 ? slot1 : slot2);
+            } else {
+                setAnimate(true);
+            }
         }
+
+        // `animate` is read to detect an in-flight transition but intentionally excluded from the
+        // deps so this effect only runs on a slot change, not on every animation state toggle.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showSlot, slot1, slot2]);
 
     useEffect(() => {
@@ -81,6 +96,7 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
     return (
         <Transition
             in={animate}
+            nodeRef={wrapperRef}
             timeout={duration}
             onEnter={() => {
                 setHeight(prevHeight.current ?? childRef.current!.offsetHeight);
@@ -90,12 +106,12 @@ const AutoHeightSwitcher = ({showSlot, onTransitionEnd, slot1 = null, slot2 = nu
             onEntering={() => {
                 setHeight(childRef.current!.offsetHeight);
             }}
-            onEntered={(node: HTMLElement) => {
+            onEntered={() => {
                 prevHeight.current = childRef.current!.offsetHeight;
                 setHeight('auto');
                 setOverflow('visible');
                 setAnimate(false);
-                onTransitionEnd?.(node);
+                onTransitionEnd?.(wrapperRef.current ?? undefined);
             }}
         >
             <div

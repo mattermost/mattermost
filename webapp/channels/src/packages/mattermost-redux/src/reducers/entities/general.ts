@@ -4,7 +4,7 @@
 import {combineReducers} from 'redux';
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';

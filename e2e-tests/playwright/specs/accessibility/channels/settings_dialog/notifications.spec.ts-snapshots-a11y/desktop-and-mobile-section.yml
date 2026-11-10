@@ -1,13 +1,15 @@
 - heading "Desktop and mobile notifications" [level=4]
-- text: 󰀪
 - heading "Browser notification permission was denied" [level=4]
-- paragraph: You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.
+- text: You're missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.
 - button "How to enable notifications"
 - group "Send notifications for:":
+  - text: "Send notifications for:"
   - radio "All new messages"
+  - text: All new messages
   - radio "Mentions, direct messages, and group messages" [checked]
   - text: Mentions, direct messages, and group messages
   - radio "Nothing"
+  - text: Nothing
 - checkbox "Notify me about replies to threads I'm following" [checked]
 - text: Notify me about replies to threads I'm following
 - separator

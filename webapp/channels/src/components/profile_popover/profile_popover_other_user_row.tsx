@@ -5,6 +5,9 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {SendIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -69,7 +72,7 @@ const ProfilePopoverOtherUserRow = ({
                 } else {
                     setCanMessage(false);
                 }
-            } catch (error) {
+            } catch {
                 // Error checking DM permissions
                 setCanMessage(false);
             } finally {
@@ -93,45 +96,44 @@ const ProfilePopoverOtherUserRow = ({
             {shouldShowButton && (
                 <>
                     {isLoading ? (
-                        <button
+                        <Button
                             type='button'
-                            className='btn btn-primary btn-sm disabled'
+                            emphasis='primary'
+                            size='small'
+                            className='disabled'
                             disabled={true}
+                            loading={true}
                         >
-                            <i
-                                className='icon icon-loading'
-                                aria-hidden='true'
-                            />
                             <FormattedMessage
                                 id='user_profile.send.dm.checking'
                                 defaultMessage='Checking...'
                             />
-                        </button>
+                        </Button>
                     ) : (
                         <>
                             {canMessage ? (
-                                <button
+                                <Button
                                     type='button'
-                                    className='btn btn-primary btn-sm'
+                                    emphasis='primary'
+                                    size='small'
                                     onClick={handleShowDirectChannel}
                                     aria-label={intl.formatMessage({
                                         id: 'user_profile.send.dm.aria_label',
                                         defaultMessage: 'Send message to {user}',
                                     }, {user: user.username})}
+                                    leadingIcon={<Icon glyph={<SendIcon/>}/>}
                                 >
-                                    <i
-                                        className='icon icon-send'
-                                        aria-hidden='true'
-                                    />
                                     <FormattedMessage
                                         id='user_profile.send.dm'
                                         defaultMessage='Message'
                                     />
-                                </button>
+                                </Button>
                             ) : (
-                                <button
+                                <Button
                                     type='button'
-                                    className='btn btn-primary btn-sm disabled'
+                                    emphasis='primary'
+                                    size='small'
+                                    className='disabled'
                                     disabled={true}
                                     title={intl.formatMessage({
                                         id: 'user_profile.send.dm.no_connection',
@@ -150,7 +152,7 @@ const ProfilePopoverOtherUserRow = ({
                                         id='user_profile.send.dm'
                                         defaultMessage='Message'
                                     />
-                                </button>
+                                </Button>
                             )}
                         </>
                     )}
@@ -168,6 +170,7 @@ const ProfilePopoverOtherUserRow = ({
                     fullname={fullname}
                     userId={user.id}
                     username={user.username}
+                    hide={hide}
                 />
             </div>
         </div>

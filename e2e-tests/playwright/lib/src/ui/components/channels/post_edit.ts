@@ -3,7 +3,8 @@
 
 import path from 'node:path';
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import DeletePostConfirmationDialog from './delete_post_confirmation_dialog';
 import RestorePostConfirmationDialog from './restore_post_confirmation_dialog';
@@ -17,6 +18,8 @@ export default class ChannelsPostEdit {
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
+    readonly suggestionList;
+    readonly suggestionOptions;
     readonly deleteConfirmationDialog;
     readonly restorePostConfirmationDialog;
 
@@ -27,7 +30,9 @@ export default class ChannelsPostEdit {
 
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
-        this.sendMessageButton = container.locator('.save');
+        this.sendMessageButton = container.getByRole('button', {name: 'Save'});
+        this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
+        this.suggestionOptions = this.suggestionList.getByRole('option');
         this.deleteConfirmationDialog = new DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
         this.restorePostConfirmationDialog = new RestorePostConfirmationDialog(
             container.page().locator('#restorePostModal'),
@@ -63,12 +68,12 @@ export default class ChannelsPostEdit {
     }
 
     async removeFile(fileName: string) {
-        const files = await this.container.locator(`.file-preview`).all();
+        const files = await this.container.getByTestId('file-preview-item').all();
 
         for (let i = 0; i < files.length; i++) {
             const textContent = await files[i].textContent();
             if (textContent?.includes(fileName)) {
-                const removeButton = files[i].locator('.icon-close');
+                const removeButton = files[i].getByTestId('file-preview-remove');
                 await removeButton.click();
                 break;
             }

@@ -20,8 +20,10 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 
 import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
+import {setTeamSidebarHidden} from 'actions/views/product_rail';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
+import {isProductRailShown, isTeamSidebarHidden} from 'selectors/views/product_rail';
 
 import {Preferences} from 'utils/constants';
 
@@ -38,7 +40,6 @@ function mapStateToProps(state: GlobalState) {
     const products = state.plugins.components.Product || [];
 
     const [unreadTeamsSet, mentionsInTeamMap, teamHasUrgentMap] = getTeamsUnreadStatuses(state);
-    const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
     return {
         currentTeamId: getCurrentTeamId(state),
@@ -52,7 +53,8 @@ function mapStateToProps(state: GlobalState) {
         unreadTeamsSet,
         mentionsInTeamMap,
         teamHasUrgentMap,
-        enableWebSocketEventScope,
+        isProductRailShown: isProductRailShown(state),
+        isHiddenByProductRail: isTeamSidebarHidden(state),
     };
 }
 
@@ -62,6 +64,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getTeams,
             switchTeam,
             updateTeamsOrderForUser,
+            setTeamSidebarHidden,
         }, dispatch),
     };
 }

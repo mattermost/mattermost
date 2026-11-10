@@ -5,7 +5,21 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import {makeGetMentionKeysForPost} from './index';
+import {hasPluginTooltips, makeGetMentionKeysForPost} from './index';
+
+describe('hasPluginTooltips', () => {
+    it('should be false when LinkTooltip is an empty array', () => {
+        expect(hasPluginTooltips([])).toBe(false);
+    });
+
+    it('should be false when LinkTooltip is undefined', () => {
+        expect(hasPluginTooltips(undefined)).toBe(false);
+    });
+
+    it('should be true when LinkTooltip has registered components', () => {
+        expect(hasPluginTooltips([{id: 'test', pluginId: 'com.example', component: () => null}])).toBe(true);
+    });
+});
 
 describe('makeGetMentionKeysForPost', () => {
     const channel = TestHelper.getChannelMock({});

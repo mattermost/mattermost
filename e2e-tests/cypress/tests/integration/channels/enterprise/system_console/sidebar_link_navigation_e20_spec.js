@@ -9,8 +9,8 @@
 
 // Group: @channels @enterprise @e20_only @not_cloud @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {adminConsoleNavigation} from '../../../../utils/admin_console';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {adminConsoleNavigation} from '@/utils/admin_console';
 
 describe('System Console - Enterprise', () => {
     before(() => {

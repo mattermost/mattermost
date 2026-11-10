@@ -7,7 +7,7 @@ type Props = {
     hasPermission: boolean;
     invert?: boolean;
     children: React.ReactNode;
-}
+};
 
 const Gate = ({
     hasPermission,

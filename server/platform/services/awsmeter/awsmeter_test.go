@@ -24,7 +24,7 @@ type mockMarketplaceMeteringClient struct {
 
 func (m *mockMarketplaceMeteringClient) MeterUsage(ctx context.Context, input *marketplacemetering.MeterUsageInput, optFns ...func(*marketplacemetering.Options)) (*marketplacemetering.MeterUsageOutput, error) {
 	return &marketplacemetering.MeterUsageOutput{
-		MeteringRecordId: model.NewPointer("1"),
+		MeteringRecordId: new("1"),
 	}, nil
 }
 

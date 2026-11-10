@@ -4,9 +4,13 @@
 package teams
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (ts *TeamService) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, error) {
@@ -92,6 +96,16 @@ func (ts *TeamService) UpdateTeam(team *model.Team, opts UpdateOptions) (*model.
 	}
 
 	if opts.Sanitized {
+		if team.Name != "" && team.Name != oldTeam.Name && team.Name != "-" {
+			_, nErr := ts.store.GetByName(team.Name)
+			if nErr == nil {
+				return oldTeam, &NameOccupiedError{Name: team.Name}
+			}
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
+				return oldTeam, nErr
+			}
+			oldTeam.Name = team.Name
+		}
 		oldTeam.DisplayName = team.DisplayName
 		oldTeam.Description = team.Description
 		oldTeam.AllowOpenInvite = team.AllowOpenInvite
@@ -132,11 +146,28 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 	return team, nil
 }
 
+func applyPreSaveHooks(hooks []func(*model.TeamMember) (*model.TeamMember, error), tm *model.TeamMember) (*model.TeamMember, error) {
+	for _, hook := range hooks {
+		var err error
+		tm, err = hook(tm)
+		if err != nil {
+			return nil, err
+		}
+		if tm == nil {
+			return nil, fmt.Errorf("preSaveHook returned nil TeamMember without error")
+		}
+	}
+	return tm, nil
+}
+
 // JoinUserToTeam adds a user to the team and it returns three values:
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+//
+// An optional preSaveHook can be provided to inspect/modify the TeamMember before it is persisted.
+// If the hook returns an error, the addition is rejected.
+func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, preSaveHooks ...func(*model.TeamMember) (*model.TeamMember, error)) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
@@ -157,13 +188,18 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if team.Email == user.Email {
+	if team.Email == user.Email && !user.IsGuest() {
 		tm.SchemeAdmin = true
 	}
 
 	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
+		tm, err = applyPreSaveHooks(preSaveHooks, tm)
+		if err != nil {
+			return nil, false, err
+		}
+
 		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
 			return nil, false, nErr
@@ -177,13 +213,20 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		return rtm, true, nil
 	}
 
-	membersCount, err := ts.store.GetActiveMemberCount(tm.TeamId, nil)
-	if err != nil {
-		return nil, false, MemberCountError
+	if maxUsersPerTeam := *ts.config().TeamSettings.MaxUsersPerTeam; maxUsersPerTeam > 0 {
+		membersCount, nErr := ts.store.GetActiveMemberCount(tm.TeamId, nil)
+		if nErr != nil {
+			return nil, false, MemberCountError
+		}
+
+		if membersCount >= int64(maxUsersPerTeam) {
+			return nil, false, MaxMemberCountError
+		}
 	}
 
-	if membersCount >= int64(*ts.config().TeamSettings.MaxUsersPerTeam) {
-		return nil, false, MaxMemberCountError
+	tm, err = applyPreSaveHooks(preSaveHooks, tm)
+	if err != nil {
+		return nil, false, err
 	}
 
 	member, nErr := ts.store.UpdateMember(rctx, tm)

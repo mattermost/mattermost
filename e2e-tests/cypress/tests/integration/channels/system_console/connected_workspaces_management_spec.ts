@@ -9,8 +9,8 @@
 
 // Group: @channels @system_console
 
-import timeouts from '../../../fixtures/timeouts';
-import {getRandomId, stubClipboard} from '../../../utils';
+import timeouts from '@/fixtures/timeouts';
+import {getRandomId, stubClipboard} from '@/utils';
 
 describe('Connected Workspaces', () => {
     let testTeam: Cypress.Team;
@@ -41,7 +41,6 @@ describe('Connected Workspaces', () => {
     it('configured', () => {
         cy.apiRequireLicenseForFeature('SharedChannels');
 
-        // @ts-expect-error types update, need ConnectedWorkspacesSettings
         cy.apiGetConfig().then(({config: {ConnectedWorkspacesSettings}}) => {
             expect(ConnectedWorkspacesSettings.EnableSharedChannels).equal(true);
             expect(ConnectedWorkspacesSettings.EnableRemoteClusterService).equal(true);

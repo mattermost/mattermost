@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -12,11 +13,10 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -101,7 +101,7 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+			if hasOverride, value := ch.getPluginStateOverride(plugin.Manifest); hasOverride {
 				pluginEnabled = value
 			}
 
@@ -158,9 +158,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 func (a *App) NewPluginAPI(rctx request.CTX, manifest *model.Manifest) plugin.API {
@@ -250,6 +248,23 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 			}
 			return true
 		}, plugin.OnConfigurationChangeID)
+	})
+
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		// The config listener above never fires for a license upload, so add-on
+		// gating would go stale. Guarded because SetLicense fires far more often
+		// than entitlements change and the sync activates every installed plugin
+		// on this goroutine. Sync before the hook, so OnLicenseChanged only
+		// reaches plugins the new license permits.
+		if !addOnEntitlementsEqual(oldLicense, newLicense) {
+			ch.syncPluginsActiveState()
+		}
+
+		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			hooks.OnLicenseChanged(oldLicense, newLicense)
+			return true
+		}, plugin.OnLicenseChangedID)
 	})
 	ch.pluginsLock.Unlock()
 
@@ -361,6 +376,8 @@ func (ch *Channels) ShutDownPlugins() {
 
 	ch.RemoveConfigListener(ch.pluginConfigListenerID)
 	ch.pluginConfigListenerID = ""
+	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
+	ch.pluginLicenseListenerID = ""
 	ch.srv.RemoveClusterLeaderChangedListener(ch.pluginClusterLeaderListenerID)
 	ch.pluginClusterLeaderListenerID = ""
 
@@ -439,6 +456,13 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	if manifest == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
+	}
+
+	// Reject up front rather than writing Enable: true and letting
+	// syncPluginsActiveState deactivate it again, reporting success for a plugin
+	// that cannot run.
+	if addOn := manifest.RequiredAddOn; addOn != "" && !ch.srv.License().HasAddOn(addOn) {
+		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
@@ -569,8 +593,8 @@ func (a *App) GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplaceP
 	}
 
 	// Sort result alphabetically.
-	sort.SliceStable(result, func(i, j int) bool {
-		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
+	slices.SortStableFunc(result, func(a, b *model.MarketplacePlugin) int {
+		return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 	})
 
 	return result, nil
@@ -687,18 +711,18 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		}
 
 		// If available in the marketplace, only overwrite if newer.
-		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
+		prepackagedVersion, err := semver.StrictNewVersion(prepackaged.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
-		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
+		marketplaceVersion, err := semver.StrictNewVersion(marketplacePlugin.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if prepackagedVersion.GT(marketplaceVersion) {
+		if prepackagedVersion.GreaterThan(marketplaceVersion) {
 			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
 		}
 	}
@@ -1075,7 +1099,7 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 		return true
 	}
 
-	prepackagedVersion, err := semver.Parse(p.Manifest.Version)
+	prepackagedVersion, err := semver.StrictNewVersion(p.Manifest.Version)
 	if err != nil {
 		logger.Error("Should not persist transitionally prepackged plugin: invalid prepackaged version", mlog.Err(err))
 		return false
@@ -1083,14 +1107,14 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 
 	logger = logger.With(mlog.String("existing_version", existing.Manifest.Version))
 
-	existingVersion, err := semver.Parse(existing.Manifest.Version)
+	existingVersion, err := semver.StrictNewVersion(existing.Manifest.Version)
 	if err != nil {
 		// Consider this an old version and replace with the prepackaged version instead.
 		logger.Warn("Should persist transitionally prepackged plugin: invalid existing version", mlog.Err(err))
 		return true
 	}
 
-	if prepackagedVersion.GT(existingVersion) {
+	if prepackagedVersion.GreaterThan(existingVersion) {
 		logger.Info("Should persist transitionally prepackged plugin: newer version")
 		return true
 	}
@@ -1242,13 +1266,39 @@ func getIcon(iconPath string) (string, error) {
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }
 
-func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
-	switch pluginID {
+// addOnEntitlementsEqual compares case- and order-insensitively, to match
+// License.HasAddOn.
+func addOnEntitlementsEqual(oldLicense, newLicense *model.License) bool {
+	normalize := func(l *model.License) []string {
+		if l == nil {
+			return nil
+		}
+
+		addOns := make([]string, 0, len(l.AddOns))
+		for _, addOn := range l.AddOns {
+			addOns = append(addOns, strings.ToLower(addOn))
+		}
+		slices.Sort(addOns)
+
+		return slices.Compact(addOns)
+	}
+
+	return slices.Equal(normalize(oldLicense), normalize(newLicense))
+}
+
+func (ch *Channels) getPluginStateOverride(manifest *model.Manifest) (bool, bool) {
+	switch manifest.Id {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
 			return true, false
 		}
+	}
+
+	// Overrides PluginStates, so an unlicensed add-on cannot be enabled by editing
+	// config.
+	if addOn := manifest.RequiredAddOn; addOn != "" && !ch.srv.License().HasAddOn(addOn) {
+		return true, false
 	}
 
 	return false, false

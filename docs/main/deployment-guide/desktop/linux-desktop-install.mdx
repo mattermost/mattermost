@@ -1,0 +1,170 @@
+---
+title: "Deploy the desktop app on Linux"
+---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+Install the desktop app from the package for your distribution. How the app is updated depends on the package.
+
+<Tabs>
+<TabItem value="ubuntu-debian" label="Ubuntu/Debian">
+
+Both a `.deb` package and an official APT repository are available for Debian and for Ubuntu LTS releases 22.04 or later. A standalone `.deb` package doesn't update itself, so install new versions manually. If you install from the APT repository, new versions arrive with your normal `apt upgrade`. They install automatically only if you've configured unattended upgrades to include the Mattermost repository.
+
+<Important>
+
+The GPG public key has changed. If you had previously set up the repository on your system, you'll need to [download the new key](https://deb.packages.mattermost.com/pubkey.gpg). You can set the `UPDATE_GPG_KEY=yes` environment variable when running the setup script to configure it to overwrite the previous key on your system with the new one. The first step of installation then becomes:
+
+``` sh
+curl -fsS -o- https://deb.packages.mattermost.com/setup-repo.sh | sudo UPDATE_GPG_KEY=yes bash
+```
+
+Depending on your setup, additional steps may also be required, particularly for installations that don't rely on the repository setup script.
+
+</Important>
+
+1.  At the command line, set up the Mattermost repository on your system:
+
+> ``` sh
+> curl -fsS -o- https://deb.packages.mattermost.com/setup-repo.sh | sudo bash
+> ```
+
+2.  Install the Mattermost desktop app:
+
+> ``` sh
+> sudo apt install mattermost-desktop
+> ```
+
+3.  Update the Mattermost desktop app:
+
+> ``` sh
+> sudo apt upgrade mattermost-desktop
+> ```
+
+</TabItem>
+<TabItem value="centos-rhel" label="CentOS/RHEL">
+
+Beta `.rpm` packages are available for CentOS and RHEL 7 and 8. Automatic app updates aren't supported. You must update your app manually.
+
+## Install the Mattermost desktop app
+
+1.  Download the latest version of the Mattermost desktop app for 64-bit systems: [mattermost-desktop-6.3.2-linux-x86_64.rpm](https://releases.mattermost.com/desktop/6.3.2/mattermost-desktop-6.3.2-linux-x86_64.rpm)
+2.  At the command line, execute the following command:
+
+> ``` sh
+> sudo rpm -i mattermost-desktop-6.3.2-linux-x86_64.rpm
+> ```
+
+3.  Run Mattermost as a desktop app.
+
+To manually update the desktop app, run the following command:
+
+> ``` sh
+> sudo rpm -U mattermost-desktop-6.3.2-linux-x86_64.rpm
+> ```
+
+</TabItem>
+<TabItem value="flatpak" label="Flatpak">
+
+From Mattermost Desktop v6.1, Flatpak packages are available for Linux systems. Flatpak is a universal Linux package format that provides a sandboxed environment and includes runtime dependencies. The Flatpak version is currently in **beta**.
+
+<Note>
+
+Flatpak requires the Flatpak runtime to be installed on your system. The Mattermost Desktop Flatpak package uses Freedesktop Platform/SDK 25.08 and Electron BaseApp 25.08. Wayland display server support is enabled by default.
+
+</Note>
+
+## Available architectures
+
+Flatpak packages are available for:
+
+- **x86_64** (Intel/AMD 64-bit processors)
+- **aarch64** (ARM 64-bit processors)
+
+## Install Flatpak
+
+1.  Ensure Flatpak is installed on your system. If not, see the [Flatpak setup guide](https://flatpak.org/setup/) for your distribution.
+2.  Download the latest Mattermost Desktop Flatpak package for your architecture from the [Desktop App's Github releases page](https://github.com/mattermost/desktop/releases):
+    - For x86_64: `mattermost-desktop-{VERSION}-linux-x86_64.flatpak`
+    - For aarch64: `mattermost-desktop-{VERSION}-linux-aarch64.flatpak`
+3.  Install the Flatpak package:
+
+> ``` sh
+> flatpak install mattermost-desktop-{VERSION}-linux-{ARCH}.flatpak
+> ```
+
+    Replace `{VERSION}` with the version number (for example, `6.3.2`) and `{ARCH}` with your architecture (`x86_64` or `aarch64`).
+
+4.  Run Mattermost as a desktop app:
+
+> ``` sh
+> flatpak run com.Mattermost.Desktop
+> ```
+
+</TabItem>
+<TabItem value="appimage" label="AppImage">
+
+An AppImage runs on most Linux distributions without being installed. To update it, download the new AppImage and replace the old one.
+
+1.  Download the AppImage for your architecture from the [GitHub releases page](https://github.com/mattermost/desktop/releases/latest), either `linux-x86_64` or `linux-arm64`.
+2.  Make it executable, replacing `<version>` and `<arch>` with the version and architecture in the downloaded filename:
+
+    ``` sh
+    chmod +x mattermost-desktop-<version>-linux-<arch>.AppImage
+    ```
+
+3.  Run the AppImage. See the [AppImage documentation](https://docs.appimage.org/introduction/quickstart.html) for desktop integration options.
+
+</TabItem>
+<TabItem value="tarball" label="Tarball">
+
+A compressed tarball is available for most Linux distributions from the [GitHub releases page](https://github.com/mattermost/desktop/releases). To update it, download and extract the new version into the same directory. If you extract it to a different directory, run `create_desktop_file.sh` again from the new directory and move the `.desktop` file it creates to `~/.local/share/applications/`, so the launcher doesn't point to the old version.
+
+## Install the Desktop App's compressed tarball
+
+1.  Download the latest version of the Mattermost desktop app for 64-bit systems: [mattermost-desktop-6.3.2-linux-x64.tar.gz](https://releases.mattermost.com/desktop/6.3.2/mattermost-desktop-6.3.2-linux-x64.tar.gz)
+2.  Extract the archive to a convenient location, then go to the extracted directory and give `chrome-sandbox` the required ownership and permissions:
+
+    ``` sh
+    sudo chown root:root chrome-sandbox && sudo chmod 4755 chrome-sandbox
+    ```
+3.  Run the app executable inside the extracted directory.
+4.  To add Mattermost to your desktop environment's app launcher, and to let sign-in links open the app, run `create_desktop_file.sh` from the extracted directory, then move the `.desktop` file it creates to your applications folder:
+
+    ``` sh
+    ./create_desktop_file.sh
+    mv *.desktop ~/.local/share/applications/
+    xdg-mime default Mattermost.desktop x-scheme-handler/mattermost
+    ```
+
+    The last command makes this installation the default handler for sign-in links, even if another application was previously the default. To check it, run `xdg-mime query default x-scheme-handler/mattermost`.
+
+</TabItem>
+</Tabs>
+
+## Community packages
+
+The following packages are maintained by the community and aren't supported by Mattermost:
+
+- **Snap**: Available from [Snapcraft](https://snapcraft.io/mattermost-desktop) on distributions with [snapd](https://snapcraft.io/docs/installing-snapd) installed:
+
+    ``` sh
+    sudo snap install mattermost-desktop
+    ```
+
+- **Flathub**: Available from [Flathub](https://flathub.org/apps/com.mattermost.Desktop).
+- **Arch Linux**: Available as [`mattermost-desktop`](https://archlinux.org/packages/extra/x86_64/mattermost-desktop/) in the extra repository, and as [`mattermost-desktop-bin`](https://aur.archlinux.org/packages/mattermost-desktop-bin) in the AUR.
+
+<Tip>
+
+To check which version is installed, select the **More** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon in the top left corner of the desktop app, then select **Help \> Version...**.
+
+</Tip>
+
+## Pre-configure the app for your users
+
+To give every user the same permanent servers on Linux, you can [distribute a custom desktop app](/deployment-guide/desktop/distribute-a-custom-desktop-app). As an advanced option, you can also [seed config.json](/deployment-guide/desktop/desktop-troubleshooting#seed-configjson) with each user's initial servers and settings.
+

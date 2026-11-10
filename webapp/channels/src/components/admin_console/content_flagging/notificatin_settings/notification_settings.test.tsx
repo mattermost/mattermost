@@ -10,7 +10,7 @@ import {fireEvent, render, screen, userEvent} from 'tests/react_testing_utils';
 
 import ContentFlaggingNotificationSettingsSection from './notification_settings';
 
-const renderWithContext = (component: React.ReactElement) => {
+const renderWithContext = (component: React.ReactElement<any>) => {
     return render(
         <IntlProvider locale='en'>
             {component}
@@ -36,16 +36,16 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByText('Notification Settings')).toBeInTheDocument();
-        expect(screen.getByText('Choose who receives notifications from the System bot when content is flagged and reviewed')).toBeInTheDocument();
+        expect(screen.getByText('Choose who receives notifications from the System bot when content is quarantined and reviewed')).toBeInTheDocument();
     });
 
     test('should render all notification setting sections', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        expect(screen.getByText('Notify when content is flagged')).toBeInTheDocument();
+        expect(screen.getByText('Notify when content is quarantined')).toBeInTheDocument();
         expect(screen.getByText('Notify when a reviewer is assigned')).toBeInTheDocument();
         expect(screen.getByText('Notify when content is removed')).toBeInTheDocument();
-        expect(screen.getByText('Notify when flag is dismissed')).toBeInTheDocument();
+        expect(screen.getByText('Notify when quarantine is dismissed')).toBeInTheDocument();
     });
 
     test('should render all checkbox labels', () => {

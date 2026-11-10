@@ -132,25 +132,43 @@ func relativeToAbsolutePosition(ranges []Range, position int) int {
 	return ranges[len(ranges)-1].End
 }
 
-func trimBytesFromRanges(ranges []Range, bytes int) (result []Range) {
-	rem := bytes
+// joinRanges returns the text the ranges cover, in order.
+func joinRanges(markdown string, ranges []Range) string {
+	length := 0
 	for _, r := range ranges {
-		if rem == 0 {
-			result = append(result, r)
-			continue
-		}
-		l := r.End - r.Position
-		if rem < l {
-			result = append(result, Range{r.Position + rem, r.End})
-			rem = 0
-			continue
-		}
-		rem -= l
+		length += r.End - r.Position
 	}
-	return
+
+	var sb strings.Builder
+	sb.Grow(length)
+	for _, r := range ranges {
+		sb.WriteString(markdown[r.Position:r.End])
+	}
+	return sb.String()
 }
 
-func Parse(markdown string) (*Document, []*ReferenceDefinition) {
+// trimBytesFromRanges drops the leading bytes of the text the ranges cover. The result is
+// a reslice of ranges whose first element it may rewrite in place, so a caller keeps the result
+// rather than its own view of the slice, and gets a trim that never allocates in return.
+func trimBytesFromRanges(ranges []Range, bytes int) []Range {
+	for i := range ranges {
+		if bytes == 0 {
+			return ranges[i:]
+		}
+		l := ranges[i].End - ranges[i].Position
+		if bytes < l {
+			ranges[i].Position += bytes
+			return ranges[i:]
+		}
+		bytes -= l
+	}
+	return ranges[len(ranges):]
+}
+
+func Parse(markdown string) (*Document, *ReferenceDefinitions) {
+	if len(markdown) > MaxLen() {
+		return &Document{}, nil
+	}
 	lines := ParseLines(markdown)
 	return ParseBlocks(markdown, lines)
 }

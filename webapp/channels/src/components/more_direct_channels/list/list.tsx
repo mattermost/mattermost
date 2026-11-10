@@ -33,7 +33,7 @@ type Props = {
     options: Option[];
     saving: boolean;
     search: (term: string) => void;
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
     totalCount: number;
     users: UserProfile[];
 
@@ -41,7 +41,7 @@ type Props = {
      * An array of values that have been selected by the user in the multiselect.
      */
     values: OptionValue[];
-}
+};
 
 const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionValue>>) => {
     const renderOptionValue = useCallback((

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {ConnectedComponent} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -46,10 +46,10 @@ type Props = {
     userCount?: number;
     totalUsers?: number;
     isDisabled?: boolean;
-}
+};
 type State = {
     error?: ServerError;
-}
+};
 
 export default class UserListRowWithError extends React.PureComponent<Props, State> {
     constructor(props: Props) {

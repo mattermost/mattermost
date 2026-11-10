@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
 import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 
@@ -19,7 +19,7 @@ jest.mock('../sidebar_channel', () => () => <li id='mock-sidebar-channel'/>);
 jest.mock('../add_channels_cta_button', () => () => <div id='mock-add-channels-button'/>);
 jest.mock('../invite_members_button', () => () => <div id='mock-invite-members-button'/>);
 
-// Suppress react-beautiful-dnd console errors in tests
+// Suppress @hello-pangea/dnd console errors in tests
 beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -60,7 +60,7 @@ describe('components/sidebar/sidebar_category', () => {
     };
 
     // Wrapper component to provide DragDropContext and Droppable
-    const renderWithDnd = (component: React.ReactElement) => {
+    const renderWithDnd = (component: React.ReactElement<any>) => {
         const onDragEnd = () => {};
         return renderWithContext(
             <DragDropContext onDragEnd={onDragEnd}>
@@ -202,5 +202,36 @@ describe('components/sidebar/sidebar_category', () => {
         await userEvent.click(screen.getByText('custom_category_1'));
 
         expect(baseProps.actions.setCategoryCollapsed).toHaveBeenCalledWith('category1', false);
+    });
+
+    test('should not show category menu for managed categories', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.MANAGED,
+                display_name: 'Admin Category',
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.getByText('Admin Category')).toBeInTheDocument();
+        expect(document.querySelector('#mock-category-menu')).not.toBeInTheDocument();
+    });
+
+    test('should render managed category with its display name', () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.MANAGED,
+                display_name: 'Active Operations',
+            },
+        };
+
+        renderWithDnd(<SidebarCategory {...props}/>);
+
+        expect(screen.getByText('Active Operations')).toBeInTheDocument();
     });
 });

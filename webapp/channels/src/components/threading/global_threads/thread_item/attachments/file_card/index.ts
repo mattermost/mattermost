@@ -14,7 +14,7 @@ import FileCard from './file_card';
 
 type OwnProps = {
     id: FileInfo['id'];
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const file = getFile(state, ownProps.id);

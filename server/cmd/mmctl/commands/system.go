@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -77,11 +76,33 @@ var SystemSupportPacketCmd = &cobra.Command{
 	RunE:    withClient(systemSupportPacketCmdF),
 }
 
+var SystemNukeCmd = &cobra.Command{
+	Use:   "nuke",
+	Short: "Destructive operations that permanently delete data",
+	Long:  "Destructive operations that permanently and irreversibly delete server data. Use with extreme caution.",
+}
+
+var SystemNukeUsersCmd = &cobra.Command{
+	Use:     "users",
+	Short:   "Delete all users and all posts. Local command only.",
+	Long:    "Permanently delete all users and all related information including posts. This command can only be run in local mode.",
+	Example: "  system nuke users",
+	Args:    cobra.NoArgs,
+	PreRun:  localOnlyPrecheck,
+	RunE:    withClient(nukeUsersCmdF),
+}
+
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
 	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+
+	SystemNukeUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to permanently delete all users, posts, and related data, and that a DB backup has been performed")
+
+	SystemNukeCmd.AddCommand(
+		SystemNukeUsersCmd,
+	)
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -90,6 +111,7 @@ func init() {
 		SystemVersionCmd,
 		SystemStatusCmd,
 		SystemSupportPacketCmd,
+		SystemNukeCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -97,7 +119,7 @@ func init() {
 func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	sbs, _, err := c.GetServerBusy(context.TODO())
+	sbs, _, err := c.GetServerBusy(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to get busy state: %w", err)
 	}
@@ -113,7 +135,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("seconds must be a number > 0")
 	}
 
-	_, err = c.SetServerBusy(context.TODO(), int(seconds))
+	_, err = c.SetServerBusy(cmd.Context(), int(seconds))
 	if err != nil {
 		return fmt.Errorf("unable to set busy state: %w", err)
 	}
@@ -125,7 +147,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	_, err := c.ClearServerBusy(context.TODO())
+	_, err := c.ClearServerBusy(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to clear busy state: %w", err)
 	}
@@ -139,7 +161,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	// use the initial "withClient" connection information as local
 	// mode doesn't need to log in, so we use an endpoint that will
 	// always return a valid response
-	_, resp, err := c.GetPing(context.TODO())
+	_, resp, err := c.GetPing(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to fetch server version: %w", err)
 	}
@@ -151,7 +173,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, _, err := c.GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+	status, _, err := c.GetPingWithOptions(cmd.Context(), model.SystemPingOptions{
 		FullStatus:    true,
 		RESTSemantics: true,
 	})
@@ -193,25 +215,52 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 
 	printer.Print("Downloading Support Packet")
 
-	data, rFilename, _, err := c.GenerateSupportPacket(context.TODO())
+	data, rFilename, _, err := c.GenerateSupportPacket(cmd.Context())
 	if err != nil {
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
 	}
 
-	if filename == "" {
-		filename = rFilename
+	exclusive := filename == ""
+	var file *os.File
+	if exclusive {
+		filename = model.SanitizeFilename(rFilename)
+		if filename == "" {
+			filename = "mm_support_packet.zip"
+		}
+		file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	} else {
+		file, err = os.Create(filename)
 	}
-
-	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create zip file: %w", err)
 	}
 
 	_, err = io.Copy(file, data)
 	if err != nil {
+		_ = file.Close()
+		if exclusive {
+			_ = os.Remove(filename)
+		}
 		return fmt.Errorf("failed to write to zip file: %w", err)
 	}
 
 	printer.PrintT("Downloaded Support Packet to {{ .filename }}", map[string]string{"filename": filename})
+	return nil
+}
+
+func nukeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getConfirmation("Are you sure you want to permanently delete all users, posts, and related data?", true); err != nil {
+			return err
+		}
+	}
+
+	if _, err := c.PermanentDeleteAllUsers(cmd.Context()); err != nil {
+		return err
+	}
+
+	defer printer.Print("All users successfully deleted")
+
 	return nil
 }

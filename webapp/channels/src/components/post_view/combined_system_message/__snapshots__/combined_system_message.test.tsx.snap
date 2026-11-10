@@ -1,263 +1,191 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/post_view/CombinedSystemMessage should match snapshot 1`] = `
-<Fragment>
-  <Connect(Markdown)
-    message="@AddedUser1 **added to the channel** by @User1."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@AddedUser1",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "@User1",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser1"
+    >
+      @AddedUser1
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
   <br />
-  <Connect(Markdown)
-    message="You were **added to the channel** by @User1."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "You",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "@User1",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    You were 
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
   <br />
-  <Connect(Markdown)
-    message="@AddedUser2 **added to the channel** by you."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@AddedUser2",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "you",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser2"
+    >
+      @AddedUser2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by you.
+  </p>
   <br />
-</Fragment>
+</div>
 `;
 
 exports[`components/post_view/CombinedSystemMessage should match snapshot when join leave messages are turned off 1`] = `
-<Fragment>
-  <Connect(Markdown)
-    message="You were **added to the channel** by @User1."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "You",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "@User1",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    You were 
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
   <br />
-  <Connect(Markdown)
-    message="@AddedUser2 **added to the channel** by you."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@AddedUser2",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "you",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser2"
+    >
+      @AddedUser2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by you.
+  </p>
   <br />
-</Fragment>
+</div>
 `;
 
 exports[`components/post_view/CombinedSystemMessage should match snapshot, "removed from channel" message when join leave messages are turned off 1`] = `
-<Fragment>
-  <Connect(Markdown)
-    message="@removed_username_1 was **removed from the channel**."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@removed_username_1",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "you",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_1"
+    >
+      @removed_username_1
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
   <br />
-</Fragment>
+</div>
 `;
 
 exports[`components/post_view/CombinedSystemMessage should render messages in chronological order 1`] = `
-<Fragment>
-  <Connect(Markdown)
-    message="@removed_username_1 was **removed from the channel**."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@removed_username_1",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "you",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_1"
+    >
+      @removed_username_1
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
   <br />
-  <Connect(Markdown)
-    message="@removed_username_2 **added to the channel** by Someone."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@removed_username_2",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "Someone",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_2"
+    >
+      @removed_username_2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by Someone.
+  </p>
   <br />
-  <Connect(Markdown)
-    message="@removed_username_2 was **removed from the channel**."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@removed_username_2",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "Someone",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_2"
+    >
+      @removed_username_2
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
   <br />
-  <Connect(Markdown)
-    message="@User2 **added to the channel** by @User1."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "@User2",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "@User1",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="User2"
+    >
+      @User2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
   <br />
-  <Connect(Markdown)
-    message="Someone **joined the channel**."
-    options={
-      Object {
-        "atMentions": true,
-        "mentionHighlight": false,
-        "mentionKeys": Array [
-          Object {
-            "key": "Someone",
-          },
-          Object {
-            "key": undefined,
-          },
-          Object {
-            "key": "Someone",
-          },
-        ],
-        "singleline": true,
-      }
-    }
-  />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    Someone 
+    <strong>
+      joined the channel
+    </strong>
+    .
+  </p>
   <br />
-</Fragment>
+</div>
 `;

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export type DisplaySettingsSection =
     | 'theme'
@@ -15,6 +16,7 @@ export type DisplaySettingsSection =
     | 'messageDisplay'
     | 'clickToReply'
     | 'channelDisplayMode'
+    | 'collapseCategoryWithUnreads'
     | 'oneClickReactions'
     | 'emojiPicker'
     | 'language';
@@ -31,6 +33,7 @@ const sectionTitles: Record<DisplaySettingsSection, string> = {
     messageDisplay: 'Message Display',
     clickToReply: 'Click to open threads',
     channelDisplayMode: 'Channel Display',
+    collapseCategoryWithUnreads: 'Collapse category with unread channels',
     oneClickReactions: 'Quick reactions on messages',
     emojiPicker: 'Render emoticons as emojis',
     language: 'Language',
@@ -41,8 +44,8 @@ export default class DisplaySettings {
 
     readonly title;
     public id = '#displaySettings';
-    readonly expandedSection;
     public expandedSectionId = '.section-max';
+    readonly expandedSection;
 
     readonly themeEditButton;
     readonly clockDisplayEditButton;
@@ -55,6 +58,7 @@ export default class DisplaySettings {
     readonly messageDisplayEditButton;
     readonly clickToReplyEditButton;
     readonly channelDisplayModeEditButton;
+    readonly collapseCategoryWithUnreadsEditButton;
     readonly oneClickReactionsEditButton;
     readonly emojiPickerEditButton;
     readonly languageEditButton;
@@ -63,7 +67,7 @@ export default class DisplaySettings {
         this.container = container;
 
         this.title = container.getByRole('heading', {name: 'Display Settings', exact: true});
-        this.expandedSection = container.locator(this.expandedSectionId);
+        this.expandedSection = container.locator('section');
 
         // Edit buttons for each setting section - IDs are {section}Edit pattern from webapp
         this.themeEditButton = container.locator('#themeEdit');
@@ -77,6 +81,7 @@ export default class DisplaySettings {
         this.messageDisplayEditButton = container.locator('#message_displayEdit');
         this.clickToReplyEditButton = container.locator('#click_to_replyEdit');
         this.channelDisplayModeEditButton = container.locator('#channel_display_modeEdit');
+        this.collapseCategoryWithUnreadsEditButton = container.locator('#collapse_category_with_unreadsEdit');
         this.oneClickReactionsEditButton = container.locator('#one_click_reactions_enabledEdit');
         this.emojiPickerEditButton = container.locator('#renderEmoticonsAsEmojiEdit');
         this.languageEditButton = container.locator('#languagesEdit');
@@ -92,8 +97,17 @@ export default class DisplaySettings {
     }
 
     async verifySectionIsExpanded(section: DisplaySettingsSection) {
-        await expect(this.container.locator('.section-min', {hasText: sectionTitles[section]})).not.toBeVisible();
+        await expect(
+            this.container.getByTestId('section-min').filter({hasText: sectionTitles[section]}),
+        ).not.toBeVisible();
 
-        await expect(this.container.locator('.section-max', {hasText: sectionTitles[section]})).toBeVisible();
+        await expect(this.container.locator('section', {hasText: sectionTitles[section]})).toBeVisible();
+    }
+
+    async selectPremadeTheme(theme: 'Denim' | 'Sapphire' | 'Quartz' | 'Indigo' | 'Onyx') {
+        await this.themeEditButton.click();
+        await this.verifySectionIsExpanded('theme');
+        await this.container.getByRole('button', {name: theme}).click();
+        await this.container.getByRole('button', {name: 'Save', exact: true}).click();
     }
 }

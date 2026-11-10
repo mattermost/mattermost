@@ -23,7 +23,7 @@ type Props = {
     onChange: (id: string, value: any, confirm: boolean, doSubmit: boolean, warning: boolean) => void;
     disabled: boolean;
     setByEnv: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPCustomSetting = (props: Props) => {
     const intl = useIntl();

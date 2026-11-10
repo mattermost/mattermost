@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
@@ -48,7 +49,7 @@ export type Props = {
         ) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const UserGroupsModal = (props: Props) => {
     const [searchTimeoutId, setSearchTimeoutId] = useState(0);
@@ -213,15 +214,16 @@ const UserGroupsModal = (props: Props) => {
             }
             headerButton={
                 props.canCreateCustomGroups &&
-                <button
-                    className='user-groups-create btn btn-secondary btn-sm'
+                <Button
+                    emphasis='tertiary'
+                    size='small'
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage
                         id='user_groups_modal.createNew'
                         defaultMessage='Create Group'
                     />
-                </button>
+                </Button>
             }
             bodyPadding={false}
             enforceFocus={!isMenuOpen}

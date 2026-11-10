@@ -18,6 +18,7 @@ const (
 	SidebarCategoryDirectMessages SidebarCategoryType = "direct_messages"
 	SidebarCategoryFavorites      SidebarCategoryType = "favorites"
 	SidebarCategoryCustom         SidebarCategoryType = "custom"
+	SidebarCategoryManaged        SidebarCategoryType = "managed"
 	// Increment to use when adding/reordering things in the sidebar
 	MinimalSidebarSortDistance = 10
 	// Default Sort Orders for categories
@@ -33,6 +34,9 @@ const (
 	SidebarCategorySortRecent SidebarCategorySorting = "recent"
 	// sort by display name alphabetically
 	SidebarCategorySortAlphabetical SidebarCategorySorting = "alpha"
+
+	ManagedCategoryPropertyGroupName = "managed_channel_categories"
+	ManagedCategoryPropertyFieldName = "category_name"
 )
 
 // SidebarCategory represents the corresponding DB table

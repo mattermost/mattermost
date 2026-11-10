@@ -46,6 +46,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 			"Username",
 			"IconURL",
 			"ChannelLocked",
+			"LastUsed",
 		).
 		From("IncomingWebhooks")
 
@@ -88,9 +89,9 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 	}
 
 	if _, err := s.GetMaster().NamedExec(`INSERT INTO IncomingWebhooks
-		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked)
+		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked, LastUsed)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked)`, webhook); err != nil {
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked, :LastUsed)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "failed to save IncomingWebhook with id=%s", webhook.Id)
 	}
 
@@ -109,6 +110,19 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 	}
 
 	return hook, nil
+}
+
+func (s SqlWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	_, err := s.GetMaster().Exec(
+		`UPDATE IncomingWebhooks SET LastUsed = ? WHERE Id = ? AND DeleteAt = 0`,
+		lastUsed,
+		webhookID,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update LastUsed for IncomingWebhook id=%s", webhookID)
+	}
+
+	return nil
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
@@ -166,6 +180,7 @@ func (s SqlWebhookStore) GetIncomingListByUser(userId string, offset, limit int)
 
 	query := s.incomingWebhookSelectQuery.
 		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -188,6 +203,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": 0},
 		}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -271,6 +287,7 @@ func (s SqlWebhookStore) GetOutgoingListByUser(userId string, offset, limit int)
 		Where(sq.And{
 			sq.Eq{"DeleteAt": 0},
 		}).
+		OrderBy("DisplayName", "Id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -296,7 +313,8 @@ func (s SqlWebhookStore) GetOutgoingByChannelByUser(channelId string, userId str
 		Where(sq.And{
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": 0},
-		})
+		}).
+		OrderBy("DisplayName", "Id")
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})
@@ -323,7 +341,8 @@ func (s SqlWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, o
 		Where(sq.And{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"DeleteAt": 0},
-		})
+		}).
+		OrderBy("DisplayName", "Id")
 
 	if userId != "" {
 		query = query.Where(sq.Eq{"CreatorId": userId})

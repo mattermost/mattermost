@@ -41,6 +41,7 @@ SEE ALSO
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
+* `mmctl health <mmctl_health.rst>`_ 	 - Inspect workspace health findings
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
 * `mmctl job <mmctl_job.rst>`_ 	 - Management of jobs
@@ -51,6 +52,7 @@ SEE ALSO
 * `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
 * `mmctl plugin <mmctl_plugin.rst>`_ 	 - Management of plugins
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl report <mmctl_report.rst>`_ 	 - Reporting commands
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
 * `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data

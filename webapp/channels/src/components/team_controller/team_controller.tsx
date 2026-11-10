@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
@@ -22,12 +21,13 @@ import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_
 import ChannelController from 'components/channel_layout/channel_controller';
 import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
 import InitialLoadingScreen from 'components/initial_loading_screen';
+import ProductPluggable from 'components/product_pluggable';
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
-import {isIosSafari} from 'utils/user_agent';
+import {getTeamScopedProductRoutePath} from 'utils/products';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -148,12 +148,6 @@ function TeamController(props: Props) {
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
-        const browserIsIosSafari = isIosSafari();
-        if (browserIsIosSafari) {
-            // Use iNoBounce to prevent scrolling past the boundaries of the page
-            iNoBounce.enable();
-        }
-
         // Set up tracking for whether the window is active
         window.isActive = true;
 
@@ -161,10 +155,6 @@ function TeamController(props: Props) {
 
         return () => {
             window.isActive = false;
-
-            if (browserIsIosSafari) {
-                iNoBounce.disable();
-            }
         };
     }, []);
 
@@ -227,6 +217,11 @@ function TeamController(props: Props) {
 
     const teamLoaded = team?.name.toLowerCase() === teamNameParam?.toLowerCase();
 
+    // The team-resolution effect above sets currentTeamId (via initializeTeam) only after render,
+    // so it lags the URL on a cold deep-link or team switch. Gate the product on the URL team being
+    // both resolved and current, so it never mounts against a stale team.
+    const teamScopedProductReady = teamLoaded && props.currentTeamId === team.id;
+
     return (
         <Switch>
             <Route
@@ -248,6 +243,19 @@ function TeamController(props: Props) {
                             css={{gridArea: 'center'}}
                         />
                     )}
+                />
+            ))}
+            {props.products?.map((product) => (
+                <Route
+                    key={product.id}
+                    path={getTeamScopedProductRoutePath(product.baseURL)}
+                    render={() => {
+                        if (!teamScopedProductReady) {
+                            return null;
+                        }
+
+                        return <ProductPluggable product={product}/>;
+                    }}
                 />
             ))}
             <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>

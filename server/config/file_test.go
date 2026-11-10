@@ -23,11 +23,8 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
 
-	tempDir, err := os.MkdirTemp("", "setupConfigFile")
-	require.NoError(t, err)
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	tempDir := t.TempDir()
+	t.Chdir(tempDir)
 
 	var name string
 	if cfg != nil {
@@ -490,7 +487,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.ServiceSettings.SiteURL = model.NewPointer("invalid")
+		newCfg.ServiceSettings.SiteURL = new("invalid")
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
@@ -500,13 +497,27 @@ func TestFileStoreSet(t *testing.T) {
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
+	t.Run("retired feature flags forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
+		defer tearDown()
+
+		newCfg := &model.Config{}
+		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true, MoveThreadsEnabled: true}
+
+		_, _, err := configStore.Set(newCfg)
+		require.NoError(t, err)
+
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
+	})
+
 	t.Run("read-only", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, readOnlyConfig)
 		defer tearDown()
 
 		newReadOnlyConfig := readOnlyConfig.Clone()
 		newReadOnlyConfig.ServiceSettings = model.ServiceSettings{
-			SiteURL: model.NewPointer("http://test"),
+			SiteURL: new("http://test"),
 		}
 		_, _, err := configStore.Set(newReadOnlyConfig)
 		if assert.Error(t, err) {
@@ -565,7 +576,7 @@ func TestFileStoreSet(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -632,6 +643,42 @@ func TestFileStoreLoad(t *testing.T) {
 		err = fs.Load()
 		require.NoError(t, err)
 		assertFileNotEqualsConfig(t, emptyConfig, path)
+	})
+
+	t.Run("migrate legacy atmos/camo image proxy type", func(t *testing.T) {
+		cfg := minimalConfig.Clone()
+		cfg.ImageProxySettings.Enable = new(true)
+		cfg.ImageProxySettings.ImageProxyType = new(model.ImageProxyTypeLegacyAtmosCamo)
+
+		path, tearDown := setupConfigFile(t, cfg)
+		defer tearDown()
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.True(t, *fs.Get().ImageProxySettings.Enable)
+		assert.Equal(t, model.ImageProxyTypeLocal, *fs.Get().ImageProxySettings.ImageProxyType)
+
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, model.ImageProxyTypeLocal, *actualConfig.ImageProxySettings.ImageProxyType)
+	})
+
+	t.Run("retired feature flags from environment forced off", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_FEATUREFLAGS_APPSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_APPSENABLED")
+		os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
+
+		err := configStore.Load()
+		require.NoError(t, err)
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+		assert.False(t, configStore.Get().FeatureFlags.MoveThreadsEnabled)
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
@@ -911,7 +958,7 @@ func TestFileStoreLoad(t *testing.T) {
 		callback := func(oldCfg, newCfg *model.Config) {
 			require.NotEqual(t, oldCfg, newCfg)
 			expectedConfig := minimalConfig.Clone()
-			expectedConfig.ServiceSettings.SiteURL = model.NewPointer("http://override")
+			expectedConfig.ServiceSettings.SiteURL = new("http://override")
 			require.Equal(t, minimalConfig, oldCfg)
 			require.Equal(t, expectedConfig, newCfg)
 			called <- true
@@ -934,7 +981,7 @@ func TestFileStoreSave(t *testing.T) {
 
 	newCfg := &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer("http://new"),
+			SiteURL: new("http://new"),
 		},
 	}
 
@@ -946,6 +993,83 @@ func TestFileStoreSave(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *store.Get().ServiceSettings.SiteURL)
+	})
+}
+
+// addUnknownConfigKeys takes valid, marshaled config data and adds keys that don't
+// correspond to any field in model.Config, simulating settings removed from a past
+// release that a deployment might still be carrying in its on disk config.
+func addUnknownConfigKeys(t *testing.T, cfgData []byte) []byte {
+	t.Helper()
+
+	var raw map[string]any
+	require.NoError(t, json.Unmarshal(cfgData, &raw))
+
+	raw["SomeRemovedSettings"] = map[string]any{"Enable": true}
+
+	elasticsearchSettings, ok := raw["ElasticsearchSettings"].(map[string]any)
+	require.True(t, ok)
+	elasticsearchSettings["BulkIndexingTimeWindowSeconds"] = 30
+
+	updated, err := json.Marshal(raw)
+	require.NoError(t, err)
+
+	return updated
+}
+
+func TestFileStoreUnknownConfigKeys(t *testing.T) {
+	t.Run("load ignores unknown keys", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		cfgData, err := marshalConfig(minimalConfig)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("save drops unknown keys", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		cfgData, err := marshalConfig(minimalConfig)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		fsInner, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// NewStoreFromBacking's initial Load() already persists the normalized
+		// config, which would strip the unknown keys on its own. Reinject them
+		// right before Set() so the assertions below actually exercise Set,
+		// not the load-time normalization.
+		require.NoError(t, os.WriteFile(path, addUnknownConfigKeys(t, cfgData), 0644))
+
+		_, _, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		f, err := os.Open(path)
+		require.NoError(t, err)
+		defer f.Close()
+
+		var actualRaw map[string]any
+		require.NoError(t, json.NewDecoder(f).Decode(&actualRaw))
+
+		assert.NotContains(t, actualRaw, "SomeRemovedSettings")
+
+		elasticsearchSettings, ok := actualRaw["ElasticsearchSettings"].(map[string]any)
+		require.True(t, ok)
+		assert.NotContains(t, elasticsearchSettings, "BulkIndexingTimeWindowSeconds")
 	})
 }
 
@@ -1226,6 +1350,55 @@ func TestFileRemoveFile(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, has)
 	})
+
+	t.Run("reject invalid relative path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		baseDir := filepath.Dir(path)
+		parentDir := filepath.Dir(baseDir)
+		outsideFile := filepath.Join(parentDir, "invalid-target-file")
+
+		err = os.WriteFile(outsideFile, []byte("outside"), 0600)
+		require.NoError(t, err)
+		defer os.Remove(outsideFile)
+
+		relativePath, err := filepath.Rel(baseDir, outsideFile)
+		require.NoError(t, err)
+
+		err = fs.RemoveFile(relativePath)
+		require.Error(t, err)
+
+		_, statErr := os.Stat(outsideFile)
+		require.NoError(t, statErr)
+	})
+
+	t.Run("remove valid relative file", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		nestedDir := filepath.Join(filepath.Dir(path), "certs")
+		err = os.MkdirAll(nestedDir, 0700)
+		require.NoError(t, err)
+
+		filename := filepath.Join("certs", "valid-cert.pem")
+		err = fs.SetFile(filename, []byte("cert-data"))
+		require.NoError(t, err)
+
+		err = fs.RemoveFile(filename)
+		require.NoError(t, err)
+
+		_, statErr := os.Stat(filepath.Join(filepath.Dir(path), filename))
+		require.ErrorIs(t, statErr, os.ErrNotExist)
+	})
 }
 
 func TestFileStoreString(t *testing.T) {
@@ -1326,12 +1499,10 @@ func TestResolveConfigPath(t *testing.T) {
 	})
 
 	t.Run("should be able to resolve relative path", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "resolveconfig")
-		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		var err error
 
 		file := "config-test-1.json"
 		_, err = os.Stat(file)

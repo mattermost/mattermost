@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 func TestClient4CreatePost(t *testing.T) {
 	post := &model.Post{
 		Props: map[string]any{
-			model.PostPropsAttachments: []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					Actions: []*model.PostAction{
 						{
@@ -61,7 +62,7 @@ func TestClient4CreatePost(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(&post)
 		assert.NoError(t, err)
 		attachments := post.Attachments()
-		assert.Equal(t, []*model.SlackAttachment{
+		assert.Equal(t, []*model.MessageAttachment{
 			{
 				Actions: []*model.PostAction{
 					{
@@ -112,6 +113,79 @@ func TestClient4SetToken(t *testing.T) {
 	_, resp, err := client.GetMe(context.Background(), "")
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestClient4DoAPIRequest(t *testing.T) {
+	const pluginPath = "/plugins/com.mattermost.calls/bot/calls/abc"
+
+	newServer := func(t *testing.T, handler http.HandlerFunc) (*httptest.Server, *model.Client4) {
+		t.Helper()
+		server := httptest.NewServer(handler)
+		t.Cleanup(server.Close)
+		client := model.NewAPIv4Client(server.URL)
+		client.SetToken("token")
+		return server, client
+	}
+
+	t.Run("DoAPIRequest sends to a fully-qualified URL", func(t *testing.T) {
+		server, client := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, pluginPath, r.URL.Path)
+			assert.Equal(t, model.HeaderBearer+" token", r.Header.Get(model.HeaderAuth))
+			assert.Equal(t, "etag", r.Header.Get(model.HeaderEtagClient))
+			body, err := io.ReadAll(r.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, "data", string(body))
+		})
+
+		resp, err := client.DoAPIRequest(context.Background(), http.MethodPost, server.URL+pluginPath, "data", "etag")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("DoAPIRequestBytes sends the body", func(t *testing.T) {
+		server, client := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPut, r.Method)
+			assert.Equal(t, pluginPath, r.URL.Path)
+			body, err := io.ReadAll(r.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, []byte{0x1, 0x2}, body)
+		})
+
+		resp, err := client.DoAPIRequestBytes(context.Background(), http.MethodPut, server.URL+pluginPath, []byte{0x1, 0x2}, "")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("DoAPIRequestReader sets the content type and headers", func(t *testing.T) {
+		server, client := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, pluginPath, r.URL.Path)
+			assert.Equal(t, "application/octet-stream", r.Header.Get("Content-Type"))
+			assert.Equal(t, "value", r.Header.Get("X-Custom"))
+			body, err := io.ReadAll(r.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, "stream", string(body))
+		})
+
+		resp, err := client.DoAPIRequestReader(context.Background(), http.MethodPost, server.URL+pluginPath, "application/octet-stream", strings.NewReader("stream"), map[string]string{"X-Custom": "value"})
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("non-2xx responses return an AppError", func(t *testing.T) {
+		server, client := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusForbidden)
+			_, err := w.Write([]byte(model.NewAppError("handler", "api.context.permissions.app_error", nil, "", http.StatusForbidden).ToJSON()))
+			assert.NoError(t, err)
+		})
+
+		resp, err := client.DoAPIRequest(context.Background(), http.MethodGet, server.URL+pluginPath, "", "")
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func TestClient4RequestCancellation(t *testing.T) {
@@ -419,5 +493,24 @@ func TestBuildResponse(t *testing.T) {
 		assert.Empty(t, response.Etag)
 		assert.Empty(t, response.ServerVersion)
 		assert.Equal(t, httpResp.Header, response.Header)
+	})
+}
+
+// TestGetUsersNotInChannelWithOptions_NilOptions is a lightweight regression
+// test for a nil-pointer dereference in GetUsersNotInChannelWithOptions.
+// Before the fix, options.Etag was accessed outside the nil guard, so passing
+// nil options caused a panic. This test does not need a real server — the
+// panic happens in the client before any HTTP request is made.
+func TestGetUsersNotInChannelWithOptions_NilOptions(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, "[]")
+	}))
+	defer server.Close()
+
+	client := model.NewAPIv4Client(server.URL)
+
+	require.NotPanics(t, func() {
+		_, _, _ = client.GetUsersNotInChannelWithOptions(context.Background(), "somechannelid", nil)
 	})
 }

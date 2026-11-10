@@ -4,12 +4,21 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {
+    ArrowBackIosIcon,
+    ArrowCollapseIcon,
+    ArrowExpandIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
-import {isPopoutWindow} from 'utils/popouts/popout_windows';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {PropsFromRedux} from './index';
 
@@ -23,8 +32,6 @@ function SearchResultsHeader(props: Props) {
 
     const showExpand = props.previousRhsState !== RHSStates.CHANNEL_INFO;
 
-    // sidebarTooltipContent contains tooltips content for expand or shrink sidebarTooltip.
-    // if props.isExpanded is true, defaultMessage would feed from 'shrinkTooltip', else 'expandTooltip'
     const sidebarTooltipContent = props.isExpanded ? (
         <>
             <FormattedMessage
@@ -60,42 +67,34 @@ function SearchResultsHeader(props: Props) {
                 id='rhsPanelTitle'
             >
                 {props.canGoBack && (
-                    <button
-                        className='sidebar--right__back btn btn-icon btn-sm'
-                        onClick={props.actions.goBack}
-                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
-                    >
-                        <i className='icon icon-arrow-back-ios'/>
-                    </button>
+                    <WithTooltip title={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}>
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__back'
+                            icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
+                            onClick={props.actions.goBack}
+                            aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
+                        />
+                    </WithTooltip>
                 )}
                 {props.children}
             </span>
             <div className='pull-right'>
                 {showExpand && !isPopoutWindow() && (
-                    <WithTooltip
-                        title={sidebarTooltipContent}
-                    >
-                        <button
-                            type='button'
-                            className='sidebar--right__expand btn btn-icon btn-sm'
+                    <WithTooltip title={sidebarTooltipContent}>
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__expand'
+                            icon={<Icon glyph={props.isExpanded ? <ArrowCollapseIcon/> : <ArrowExpandIcon/>}/>}
                             onClick={props.actions.toggleRhsExpanded}
                             aria-label={expandOrCollapseSidebarButtonAriaLabel}
-                        >
-                            <i
-                                className='icon icon-arrow-expand'
-                                aria-hidden='true'
-                            />
-                            <i
-                                className='icon icon-arrow-collapse'
-                                aria-hidden='true'
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                 )}
                 {props.newWindowHandler && (
                     <PopoutButton onClick={props.newWindowHandler}/>
                 )}
-                {!isPopoutWindow() &&
+                {(!isPopoutWindow() || isChannelPopoutWindow()) &&
                     <WithTooltip
                         title={
                             <FormattedMessage
@@ -104,18 +103,14 @@ function SearchResultsHeader(props: Props) {
                             />
                         }
                     >
-                        <button
+                        <IconButton
                             id='searchResultsCloseButton'
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            size='small'
+                            className='sidebar--right__close'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={props.actions.closeRightHandSide}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                 }
             </div>

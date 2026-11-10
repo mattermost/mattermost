@@ -1,0 +1,95 @@
+// This file is a Go text/template used by TestPluginRPCSharedChannelSync in
+// channels/app/shared_channel_test.go. It is compiled into a real plugin binary
+// at test time to exercise the full plugin RPC layer (gob serialization and
+// MuxBroker streaming) for the ReceiveSharedChannel* plugin APIs.
+// Template fields (e.g. {{.ChannelID}}) are populated by the test before compilation.
+
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+)
+
+type TestPlugin struct {
+	plugin.MattermostPlugin
+}
+
+func (p *TestPlugin) OnActivate() error {
+	channelID := "{{.ChannelID}}"
+	remoteID := "{{.RemoteID}}"
+	syncUserID := "{{.SyncUserID}}"
+	syncPostID := "{{.SyncPostID}}"
+
+	// --- Step 1: Sync a user + post via ReceiveSharedChannelSyncMsg ---
+	msg := model.NewSyncMsg(channelID)
+	msg.Users = map[string]*model.User{
+		syncUserID: {
+			Id:       syncUserID,
+			Username: "rpc-synced-user",
+			Email:    syncUserID + "@remote.test",
+			RemoteId: model.NewPointer(remoteID),
+		},
+	}
+	msg.Posts = []*model.Post{
+		{
+			Id:        syncPostID,
+			ChannelId: channelID,
+			UserId:    syncUserID,
+			Message:   "hello from plugin over RPC",
+			CreateAt:  model.GetMillis(),
+			RemoteId:  model.NewPointer(remoteID),
+		},
+	}
+
+	resp, err := p.API.ReceiveSharedChannelSyncMsg(remoteID, msg)
+	if err != nil {
+		return fmt.Errorf("ReceiveSharedChannelSyncMsg failed: %w", err)
+	}
+	if len(resp.UserErrors) > 0 {
+		return fmt.Errorf("ReceiveSharedChannelSyncMsg had user errors: %v", resp.UserErrors)
+	}
+	if len(resp.PostErrors) > 0 {
+		return fmt.Errorf("ReceiveSharedChannelSyncMsg had post errors: %v", resp.PostErrors)
+	}
+
+	// --- Step 2: Sync a file attachment via ReceiveSharedChannelAttachmentSyncMsg ---
+	fileData := []byte("attachment data streamed over MuxBroker")
+	fi := &model.FileInfo{
+		CreatorId: syncUserID,
+		Name:      "test.txt",
+		Size:      int64(len(fileData)),
+	}
+
+	savedFI, err := p.API.ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID, fi, bytes.NewReader(fileData))
+	if err != nil {
+		return fmt.Errorf("ReceiveSharedChannelAttachmentSyncMsg failed: %w", err)
+	}
+	if savedFI == nil || savedFI.Id == "" {
+		return fmt.Errorf("ReceiveSharedChannelAttachmentSyncMsg returned nil FileInfo")
+	}
+
+	// --- Step 3: Sync a profile image via ReceiveSharedChannelProfileImageSyncMsg ---
+	img := image.NewRGBA(image.Rect(0, 0, 1, 1))
+	img.Set(0, 0, color.White)
+	var pngBuf bytes.Buffer
+	if err := png.Encode(&pngBuf, img); err != nil {
+		return fmt.Errorf("failed to encode test PNG: %w", err)
+	}
+
+	if err := p.API.ReceiveSharedChannelProfileImageSyncMsg(remoteID, syncUserID, pngBuf.Bytes()); err != nil {
+		return fmt.Errorf("ReceiveSharedChannelProfileImageSyncMsg failed: %w", err)
+	}
+
+	return nil
+}
+
+func main() {
+	plugin.ClientMain(&TestPlugin{})
+}

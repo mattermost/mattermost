@@ -22,7 +22,7 @@ describe('Integrations', () => {
     const triggerC = 'carrot';
 
     before(() => {
-        const callbackUrl = `${Cypress.env().webhookBaseUrl}/post_outgoing_webhook`;
+        const callbackUrl = `${Cypress.expose().webhookBaseUrl}/post_outgoing_webhook`;
 
         cy.requireWebhookServer();
 

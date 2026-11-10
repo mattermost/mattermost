@@ -4,15 +4,21 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
+
 import AdvancedSettingsDisplay from 'components/user_settings/advanced/user_settings_advanced';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import {isMac} from 'utils/user_agent';
 
 jest.mock('actions/global_actions');
-jest.mock('utils/user_agent');
+
+const isMacMock = jest.mocked(isMac);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+    isMac: jest.fn(() => false),
+}));
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const user = TestHelper.getUserMock({
@@ -126,7 +132,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('function getCtrlSendText should return correct value for Mac', () => {
-        (isMac as jest.Mock).mockReturnValue(true);
+        isMacMock.mockReturnValue(true);
         const props = {...requiredProps};
 
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
@@ -134,10 +140,46 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('function getCtrlSendText should return correct value for Windows', () => {
-        (isMac as jest.Mock).mockReturnValue(false);
+        isMacMock.mockReturnValue(false);
         const props = {...requiredProps};
 
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
         expect(screen.getByText('Send Messages on CTRL+ENTER')).toBeInTheDocument();
+    });
+
+    describe('dividers around the Performance Debugging section', () => {
+        const getSettingRow = (title: string) => screen.getByRole('heading', {name: title}).closest('[data-testid="section-min"]')!;
+        const isDivider = (element: Element | null) => element?.classList.contains('divider-light') ?? false;
+
+        const renderWithPerformanceDebugging = (enabled: boolean) => renderWithContext(
+            <AdvancedSettingsDisplay {...requiredProps}/>,
+            {entities: {general: {config: {EnableClientPerformanceDebugging: enabled.toString()}}}},
+        );
+
+        test('should separate Performance Debugging from its neighbours with exactly one divider each when enabled', () => {
+            renderWithPerformanceDebugging(true);
+
+            const joinLeaveRow = getSettingRow('Enable Join/Leave Messages');
+            const performanceDebuggingRow = getSettingRow('Performance Debugging');
+            const unreadScrollPositionRow = getSettingRow('Scroll position when viewing an unread channel');
+
+            expect(isDivider(joinLeaveRow.nextElementSibling)).toBe(true);
+            expect(joinLeaveRow.nextElementSibling!.nextElementSibling).toBe(performanceDebuggingRow);
+
+            expect(isDivider(performanceDebuggingRow.nextElementSibling)).toBe(true);
+            expect(performanceDebuggingRow.nextElementSibling!.nextElementSibling).toBe(unreadScrollPositionRow);
+        });
+
+        test('should leave a single divider between Join/Leave and the next setting when disabled', () => {
+            renderWithPerformanceDebugging(false);
+
+            expect(screen.queryByRole('heading', {name: 'Performance Debugging'})).not.toBeInTheDocument();
+
+            const joinLeaveRow = getSettingRow('Enable Join/Leave Messages');
+            const unreadScrollPositionRow = getSettingRow('Scroll position when viewing an unread channel');
+
+            expect(isDivider(joinLeaveRow.nextElementSibling)).toBe(true);
+            expect(joinLeaveRow.nextElementSibling!.nextElementSibling).toBe(unreadScrollPositionRow);
+        });
     });
 });

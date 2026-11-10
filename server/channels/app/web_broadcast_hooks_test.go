@@ -5,11 +5,14 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -303,6 +306,80 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	})
 }
 
+func TestPermalinkBroadcastHook_ChannelMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    th.App,
+		UserId:   session.UserId,
+	}
+	hook := &permalinkBroadcastHook{}
+
+	// BasicUser can read the previewed post's channel, but not this private channel.
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+	require.Nil(t, appErr)
+
+	refPost := th.CreatePost(t, th.BasicChannel)
+	refPost.AddProp(model.PostPropsChannelMentions, map[string]any{
+		privateChannel.Name: map[string]any{
+			"id":           privateChannel.Id,
+			"display_name": privateChannel.DisplayName,
+		},
+		th.BasicChannel.Name: map[string]any{
+			"id":           th.BasicChannel.Id,
+			"display_name": th.BasicChannel.DisplayName,
+		},
+	})
+	previewPost := model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)
+
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
+	require.NoError(t, err)
+
+	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+	wsEvent.Add("post", cleanJSON)
+
+	msg := platform.MakeHookedWebSocketEvent(wsEvent)
+	err = hook.Process(msg, wc, map[string]any{
+		"preview_channel":          th.BasicChannel,
+		"permalink_previewed_post": previewPost,
+		"preview_prop":             refPost.Id,
+	})
+	require.NoError(t, err)
+
+	gotJSON, ok := msg.Get("post").(string)
+	require.True(t, ok)
+	assert.NotContains(t, gotJSON, privateChannel.DisplayName, "private channel display name should not be broadcast")
+
+	var gotPost model.Post
+	require.NoError(t, json.Unmarshal([]byte(gotJSON), &gotPost))
+	require.Len(t, gotPost.Metadata.Embeds, 1)
+
+	embedData, ok := gotPost.Metadata.Embeds[0].Data.(map[string]any)
+	require.True(t, ok)
+	embeddedPost, ok := embedData["post"].(map[string]any)
+	require.True(t, ok)
+	embeddedProps, ok := embeddedPost["props"].(map[string]any)
+	require.True(t, ok)
+	mentions, ok := embeddedProps[model.PostPropsChannelMentions].(map[string]any)
+	require.True(t, ok)
+
+	assert.NotContains(t, mentions, privateChannel.Name)
+	assert.Contains(t, mentions, th.BasicChannel.Name)
+
+	// The hook args are shared across recipients, so the previewed post must not be mutated.
+	assert.Contains(t, refPost.GetProp(model.PostPropsChannelMentions), privateChannel.Name)
+}
+
 func TestChannelMentionsBroadcastHook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -457,5 +534,975 @@ func TestChannelMentionsBroadcastHook(t *testing.T) {
 		gotJSON, ok := msg.Get("post").(string)
 		require.True(t, ok)
 		assert.Equal(t, cleanJSON, gotJSON)
+	})
+
+	t.Run("retains same-team public channel mention for non-member recipient under compliance", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(c *model.Config) {
+			c.ComplianceSettings.Enable = model.NewPointer(false)
+		})
+
+		// BasicUser is a BasicTeam member (via InitBasic) but NOT a member of this fresh
+		// channel (created without adding the creator as a member).
+		pub, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "name_" + model.NewId(),
+			DisplayName: "Public Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		msg := platform.MakeHookedWebSocketEvent(wsEvent)
+		err = hook.Process(msg, wc, map[string]any{
+			"channel_mentions": map[string]any{
+				pub.Name: map[string]any{
+					"id":           pub.Id,
+					"display_name": pub.DisplayName,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+
+		var gotPost model.Post
+		err = json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+
+		mentions := gotPost.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		assert.Contains(t, mentionsMap, pub.Name)
+	})
+
+	t.Run("strips cross-team public channel mention for non-member recipient regardless of compliance", func(t *testing.T) {
+		team2 := th.CreateTeam(t)
+		// Created without adding the creator so BasicUser is neither a team nor channel member.
+		ch, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "name_" + model.NewId(),
+			DisplayName: "Cross Team Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+				defer th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(false)
+				})
+
+				msg := platform.MakeHookedWebSocketEvent(wsEvent)
+				err = hook.Process(msg, wc, map[string]any{
+					"channel_mentions": map[string]any{
+						ch.Name: map[string]any{
+							"id":           ch.Id,
+							"display_name": ch.DisplayName,
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				gotJSON, ok := msg.Get("post").(string)
+				require.True(t, ok)
+
+				var gotPost model.Post
+				err = json.Unmarshal([]byte(gotJSON), &gotPost)
+				require.NoError(t, err)
+
+				assert.Nil(t, gotPost.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+
+	t.Run("strips private channel mention for non-member recipient regardless of compliance", func(t *testing.T) {
+		for _, compliance := range []bool{true, false} {
+			t.Run(fmt.Sprintf("compliance=%t", compliance), func(t *testing.T) {
+				th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(compliance)
+				})
+				defer th.App.UpdateConfig(func(c *model.Config) {
+					c.ComplianceSettings.Enable = model.NewPointer(false)
+				})
+
+				msg := platform.MakeHookedWebSocketEvent(wsEvent)
+				err = hook.Process(msg, wc, map[string]any{
+					"channel_mentions": map[string]any{
+						privateChannel.Name: map[string]any{
+							"id":           privateChannel.Id,
+							"display_name": privateChannel.DisplayName,
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				gotJSON, ok := msg.Get("post").(string)
+				require.True(t, ok)
+
+				var gotPost model.Post
+				err = json.Unmarshal([]byte(gotJSON), &gotPost)
+				require.NoError(t, err)
+
+				assert.Nil(t, gotPost.GetProp(model.PostPropsChannelMentions))
+			})
+		}
+	})
+}
+
+func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	hook := &permalinkBroadcastHook{}
+
+	userID := model.NewId()
+	postChannelID := model.NewId()
+	refChannelID := model.NewId()
+
+	previewChannel := &model.Channel{Id: refChannelID, Name: "ref-channel", Type: model.ChannelTypeOpen}
+
+	// makeRefPost builds a PreviewPost with optional file attachments.
+	makeRefPost := func(fileIDs []string, files []*model.FileInfo) *model.PreviewPost {
+		refPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: refChannelID,
+			FileIds:   fileIDs,
+			Metadata:  &model.PostMetadata{Files: files},
+		}
+		return &model.PreviewPost{
+			PostID: refPost.Id,
+			Post:   refPost,
+		}
+	}
+
+	// makeOuterPostJSON creates a clean outer post JSON to seed the WS event.
+	makeOuterPostJSON := func(t *testing.T) string {
+		t.Helper()
+		outerPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: postChannelID,
+			Metadata:  &model.PostMetadata{},
+		}
+		postJSON, err := outerPost.ToJSON()
+		require.NoError(t, err)
+		return postJSON
+	}
+
+	makeMessage := func(postJSON string) *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", postChannelID, "", nil, "")
+		event.Add("post", postJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+		return wc
+	}
+
+	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToChannelAction.
+	makeWebConnNoFileCheck := func(t *testing.T) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+		return wc
+	}
+
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
+		t.Helper()
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		var gotPost model.Post
+		err := json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+		return &gotPost
+	}
+
+	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, false)
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+		// Save the original Post pointer to verify the hook does not replace it.
+		origPostPtr := previewPost.Post
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedPermalink, gotPost.Metadata.Embeds[0].Type)
+
+		// The embed's data is serialized/deserialized as JSON — inspect via raw JSON.
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be stripped from embed")
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "redacted count should reflect the stripped file")
+
+		// The hook creates a previewCopy with a cloned Post; the original PreviewPost.Post
+		// pointer must not be swapped out.
+		assert.Same(t, origPostPtr, previewPost.Post, "original PreviewPost.Post pointer must not be replaced")
+	})
+
+	t.Run("files preserved in embed when user allowed download", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, true)
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.Contains(t, gotJSON, fileID, "file ID should be present in the embed")
+		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction should occur")
+	})
+
+	t.Run("files stripped when FileIds non-empty but Metadata.Files already nil", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		wc := makeWebConn(t, false)
+
+		fileID := model.NewId()
+		// FileIds set but Metadata.Files nil — simulates upstream stripping.
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			nil,
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be cleared")
+		// RedactedFileCount falls back to len(FileIds) when Metadata.Files is nil,
+		// so the placeholder count is 1 even though Files was already cleared upstream.
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "file count falls back to FileIds length")
+	})
+
+	t.Run("no file stripping when embed has no files", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+		// Use webConn that does NOT expect HasPermissionToChannelAction to be called.
+		wc := makeWebConnNoFileCheck(t)
+
+		previewPost := makeRefPost(model.StringArray{}, nil)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction metadata should be present")
+	})
+
+	t.Run("nil session: fail-secure, files stripped from permalink preview", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+
+		// WebConn with no session — cannot evaluate permissions, must strip files.
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		// Do NOT call wc.SetSession — session remains nil
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "doc.pdf", Extension: "pdf"}},
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be stripped when session is nil")
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "redacted count should be set when session is nil")
+	})
+}
+
+func TestAbacFilesBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &abacFilesBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makePostWithFiles := func(t *testing.T, fileCount int) (*model.Post, string) {
+		t.Helper()
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channelID,
+			FileIds:   make(model.StringArray, fileCount),
+			Metadata: &model.PostMetadata{
+				Files: make([]*model.FileInfo, fileCount),
+			},
+		}
+		for i := range fileCount {
+			fid := model.NewId()
+			post.FileIds[i] = fid
+			post.Metadata.Files[i] = &model.FileInfo{Id: fid, Name: "file.txt", Extension: "txt"}
+		}
+		postJSON, err := post.ToJSON()
+		require.NoError(t, err)
+		return post, postJSON
+	}
+
+	makeMessage := func(channelID, postJSON string) *platform.HookedWebSocketEvent {
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", channelID, "", nil, "")
+		event.Add("post", postJSON)
+		return platform.MakeHookedWebSocketEvent(event)
+	}
+
+	makeArgs := func(channelID string, fileCount int) map[string]any {
+		return map[string]any{
+			"channel_id": channelID,
+			"file_count": fileCount,
+		}
+	}
+
+	makeWebConn := func(t *testing.T, userID string, allowed bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+		return wc
+	}
+
+	extractPost := func(t *testing.T, msg *platform.HookedWebSocketEvent) *model.Post {
+		t.Helper()
+		gotJSON, ok := msg.Get("post").(string)
+		require.True(t, ok)
+		var gotPost model.Post
+		err := json.Unmarshal([]byte(gotJSON), &gotPost)
+		require.NoError(t, err)
+		return &gotPost
+	}
+
+	t.Run("allowed user: post is unchanged", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 2)
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, true)
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 2))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Len(t, gotPost.Metadata.Files, 2)
+		assert.Len(t, gotPost.FileIds, 2)
+		assert.Equal(t, 0, gotPost.Metadata.RedactedFileCount)
+	})
+
+	t.Run("denied user: files stripped, RedactedFileCount set", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 2)
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, false)
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 2))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Nil(t, gotPost.Metadata.Files)
+		assert.Empty(t, gotPost.FileIds)
+		assert.Equal(t, 2, gotPost.Metadata.RedactedFileCount)
+	})
+
+	t.Run("denied user: count from Metadata.Files when FileIds empty", func(t *testing.T) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channelID,
+			FileIds:   model.StringArray{},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{
+					{Id: model.NewId(), Name: "a.txt", Extension: "txt"},
+					{Id: model.NewId(), Name: "b.txt", Extension: "txt"},
+					{Id: model.NewId(), Name: "c.txt", Extension: "txt"},
+				},
+			},
+		}
+		postJSON, err := post.ToJSON()
+		require.NoError(t, err)
+
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, false)
+
+		err = hook.Process(msg, wc, makeArgs(channelID, 3))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Equal(t, 3, gotPost.Metadata.RedactedFileCount)
+		assert.Nil(t, gotPost.Metadata.Files)
+	})
+
+	t.Run("denied user: fallback to registered fileCount arg when post has no files", func(t *testing.T) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channelID,
+			FileIds:   model.StringArray{},
+			Metadata:  &model.PostMetadata{},
+		}
+		postJSON, err := post.ToJSON()
+		require.NoError(t, err)
+
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, false)
+
+		err = hook.Process(msg, wc, makeArgs(channelID, 2))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Equal(t, 2, gotPost.Metadata.RedactedFileCount)
+		assert.Nil(t, gotPost.Metadata.Files)
+		assert.Empty(t, gotPost.FileIds)
+	})
+
+	t.Run("nil session: fail-secure, files stripped", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 2)
+		msg := makeMessage(channelID, postJSON)
+
+		// WebConn with no session set — cannot evaluate permissions, must strip files
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+		}
+		// Do NOT call wc.SetSession — session remains nil
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 2))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Empty(t, gotPost.Metadata.Files)
+		assert.Empty(t, gotPost.FileIds)
+		assert.Equal(t, 2, gotPost.Metadata.RedactedFileCount)
+	})
+
+	t.Run("missing channel_id arg: returns error", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 1)
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, true)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"file_count": 1,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id")
+	})
+
+	t.Run("missing file_count arg: returns error", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 1)
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, true)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"channel_id": channelID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "file_count")
+	})
+
+	t.Run("denied user: Metadata.Images is preserved", func(t *testing.T) {
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: channelID,
+			FileIds:   model.StringArray{model.NewId()},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{
+					{Id: model.NewId(), Name: "photo.png", Extension: "png"},
+				},
+				Images: map[string]*model.PostImage{
+					"https://example.com/img.png": {Width: 100, Height: 200},
+				},
+			},
+		}
+		postJSON, err := post.ToJSON()
+		require.NoError(t, err)
+
+		msg := makeMessage(channelID, postJSON)
+		wc := makeWebConn(t, userID, false)
+
+		err = hook.Process(msg, wc, makeArgs(channelID, 1))
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		assert.Nil(t, gotPost.Metadata.Files)
+		assert.Equal(t, 1, gotPost.Metadata.RedactedFileCount)
+		assert.NotNil(t, gotPost.Metadata.Images, "Images should be preserved when files are stripped")
+		assert.Contains(t, gotPost.Metadata.Images, "https://example.com/img.png")
+	})
+}
+
+func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("when ABAC is disabled: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			FileIds:   model.StringArray{model.NewId()},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{{Id: model.NewId(), Name: "file.txt", Extension: "txt"}},
+			},
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+		th.App.setupBroadcastHookForAbacFiles(post, message)
+
+		hooks := message.GetBroadcast().BroadcastHooks
+		assert.Empty(t, hooks, "No hooks should be registered when ABAC is disabled")
+	})
+
+	t.Run("when post has no files: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			FileIds:   model.StringArray{},
+			Metadata:  &model.PostMetadata{},
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+		th.App.setupBroadcastHookForAbacFiles(post, message)
+
+		hooks := message.GetBroadcast().BroadcastHooks
+		assert.Empty(t, hooks, "No hooks should be registered when post has no files")
+	})
+
+	t.Run("when post is burn-on-read: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   model.StringArray{model.NewId()},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{{Id: model.NewId(), Name: "file.txt", Extension: "txt"}},
+			},
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+		th.App.setupBroadcastHookForAbacFiles(post, message)
+
+		hooks := message.GetBroadcast().BroadcastHooks
+		assert.Empty(t, hooks, "No hooks should be registered for burn-on-read posts")
+	})
+
+	t.Run("when AccessControl is nil: hook NOT registered", func(t *testing.T) {
+		// In test setup without enterprise, AccessControl is nil.
+		// Even with ABAC config enabled, the nil check on AccessControl
+		// prevents registration.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			FileIds:   model.StringArray{model.NewId()},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{{Id: model.NewId(), Name: "file.txt", Extension: "txt"}},
+			},
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+		th.App.setupBroadcastHookForAbacFiles(post, message)
+
+		// AccessControl is nil in test env (no enterprise), so hook should not register
+		hooks := message.GetBroadcast().BroadcastHooks
+		assert.Empty(t, hooks, "No hooks should be registered when AccessControl is nil")
+	})
+
+	t.Run("when post has Metadata.Files but empty FileIds: hook IS registered (when AccessControl available)", func(t *testing.T) {
+		// This test verifies the logic path: if AccessControl were non-nil and ABAC enabled,
+		// a post with only Metadata.Files (no FileIds) would still trigger hook registration.
+		// Since AccessControl is nil in test env, we verify the fileCount logic directly
+		// by checking that the function does not register when AccessControl is nil, but the
+		// fileCount derivation is tested through the Process tests above.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			FileIds:   model.StringArray{},
+			Metadata: &model.PostMetadata{
+				Files: []*model.FileInfo{
+					{Id: model.NewId(), Name: "file.txt", Extension: "txt"},
+				},
+			},
+		}
+		message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+
+		th.App.setupBroadcastHookForAbacFiles(post, message)
+
+		// Without enterprise, AccessControl is nil so hook won't register.
+		// The file-count logic is verified via TestAbacFilesBroadcastHook_Process.
+		hooks := message.GetBroadcast().BroadcastHooks
+		assert.Empty(t, hooks, "AccessControl is nil in test env — hook not registered")
+	})
+}
+
+func TestAbacBookmarksBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &abacBookmarksBroadcastHook{}
+
+	userID := model.NewId()
+	channelID := model.NewId()
+
+	makeBookmark := func(withFile bool) *model.ChannelBookmarkWithFileInfo {
+		bookmark := &model.ChannelBookmarkWithFileInfo{
+			ChannelBookmark: &model.ChannelBookmark{
+				Id:          model.NewId(),
+				ChannelId:   channelID,
+				DisplayName: "bookmark",
+				Type:        model.ChannelBookmarkLink,
+				LinkUrl:     "https://mattermost.com",
+			},
+		}
+		if withFile {
+			fileID := model.NewId()
+			bookmark.Type = model.ChannelBookmarkFile
+			bookmark.LinkUrl = ""
+			bookmark.FileId = fileID
+			bookmark.FileInfo = &model.FileInfo{
+				Id:          fileID,
+				ChannelId:   channelID,
+				Name:        "secret.png",
+				Extension:   "png",
+				MimeType:    "image/png",
+				MiniPreview: &[]byte{1, 2, 3, 4},
+			}
+		}
+		return bookmark
+	}
+
+	makeMessage := func(t *testing.T, event model.WebsocketEventType, field string, payload any) *platform.HookedWebSocketEvent {
+		t.Helper()
+		payloadJSON, err := json.Marshal(payload)
+		require.NoError(t, err)
+		ev := model.NewWebSocketEvent(event, "", channelID, "", nil, "")
+		ev.Add(field, string(payloadJSON))
+		return platform.MakeHookedWebSocketEvent(ev)
+	}
+
+	makeArgs := func(field string) map[string]any {
+		return map[string]any{
+			"channel_id": channelID,
+			"field":      field,
+		}
+	}
+
+	makeWebConn := func(t *testing.T, allowed bool) *platform.WebConn {
+		t.Helper()
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+		return wc
+	}
+
+	decode := func(t *testing.T, msg *platform.HookedWebSocketEvent, field string) any {
+		t.Helper()
+		raw, ok := msg.Get(field).(string)
+		require.True(t, ok)
+		var decoded any
+		require.NoError(t, json.Unmarshal([]byte(raw), &decoded))
+		return decoded
+	}
+
+	// requireNoFileInfo walks the decoded payload and asserts no "file" object survived.
+	var requireNoFileInfo func(t *testing.T, value any)
+	requireNoFileInfo = func(t *testing.T, value any) {
+		t.Helper()
+		switch typed := value.(type) {
+		case map[string]any:
+			if file, ok := typed["file"]; ok {
+				assert.Nil(t, file, "file info should be stripped")
+			}
+			for key, nested := range typed {
+				if key == "file" {
+					continue
+				}
+				requireNoFileInfo(t, nested)
+			}
+		case []any:
+			for _, item := range typed {
+				requireNoFileInfo(t, item)
+			}
+		}
+	}
+
+	t.Run("denied user: single bookmark payload has file info stripped", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmark").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+		assert.Contains(t, raw, bookmark.Id, "the bookmark itself is still delivered")
+		requireNoFileInfo(t, decode(t, msg, "bookmark"))
+	})
+
+	t.Run("denied user: array payload has file info stripped from every entry", func(t *testing.T) {
+		bookmarks := []*model.ChannelBookmarkWithFileInfo{makeBookmark(true), makeBookmark(false), makeBookmark(true)}
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkSorted, "bookmarks", bookmarks)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmarks").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+
+		decoded, ok := decode(t, msg, "bookmarks").([]any)
+		require.True(t, ok)
+		require.Len(t, decoded, 3)
+		requireNoFileInfo(t, decoded)
+	})
+
+	t.Run("denied user: updated/deleted wrapper payload has file info stripped from both entries", func(t *testing.T) {
+		response := &model.UpdateChannelBookmarkResponse{
+			Updated: makeBookmark(true),
+			Deleted: makeBookmark(true),
+		}
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkUpdated, "bookmarks", response)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmarks"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmarks").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		assert.NotContains(t, raw, "secret.png")
+
+		decoded, ok := decode(t, msg, "bookmarks").(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, decoded, "updated")
+		require.Contains(t, decoded, "deleted")
+		requireNoFileInfo(t, decoded)
+	})
+
+	t.Run("allowed user: payload is unchanged", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+		before, _ := msg.Get("bookmark").(string)
+
+		err := hook.Process(msg, makeWebConn(t, true), makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		after, _ := msg.Get("bookmark").(string)
+		assert.Equal(t, before, after)
+		assert.Contains(t, after, "mini_preview")
+	})
+
+	t.Run("nil session: fail-secure, file info stripped", func(t *testing.T) {
+		bookmark := makeBookmark(true)
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", bookmark)
+
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+		}
+		// Do NOT call wc.SetSession — session remains nil
+
+		err := hook.Process(msg, wc, makeArgs("bookmark"))
+		require.NoError(t, err)
+		require.False(t, msg.Event().IsRejected())
+
+		raw, _ := msg.Get("bookmark").(string)
+		assert.NotContains(t, raw, "mini_preview")
+		requireNoFileInfo(t, decode(t, msg, "bookmark"))
+	})
+
+	t.Run("denied user: malformed payload rejects the event", func(t *testing.T) {
+		ev := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", channelID, "", nil, "")
+		ev.Add("bookmark", "{not json")
+		msg := platform.MakeHookedWebSocketEvent(ev)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		assert.True(t, msg.Event().IsRejected(), "event must be rejected when the payload cannot be sanitised")
+	})
+
+	t.Run("denied user: missing payload field rejects the event", func(t *testing.T) {
+		ev := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", channelID, "", nil, "")
+		msg := platform.MakeHookedWebSocketEvent(ev)
+
+		err := hook.Process(msg, makeWebConn(t, false), makeArgs("bookmark"))
+		require.NoError(t, err)
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("missing channel_id arg: returns error", func(t *testing.T) {
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", makeBookmark(true))
+
+		err := hook.Process(msg, makeWebConn(t, true), map[string]any{"field": "bookmark"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id")
+	})
+
+	t.Run("missing field arg: returns error", func(t *testing.T) {
+		msg := makeMessage(t, model.WebsocketEventChannelBookmarkCreated, "bookmark", makeBookmark(true))
+
+		err := hook.Process(msg, makeWebConn(t, true), map[string]any{"channel_id": channelID})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "field")
+	})
+}
+
+func TestSetupBroadcastHookForAbacBookmarks(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bookmarkWithFile := &model.ChannelBookmarkWithFileInfo{
+		ChannelBookmark: &model.ChannelBookmark{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.ChannelBookmarkFile,
+			FileId:    model.NewId(),
+		},
+		FileInfo: &model.FileInfo{Id: model.NewId(), Name: "file.png", Extension: "png"},
+	}
+
+	linkBookmark := &model.ChannelBookmarkWithFileInfo{
+		ChannelBookmark: &model.ChannelBookmark{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.ChannelBookmarkLink,
+			LinkUrl:   "https://mattermost.com",
+		},
+	}
+
+	t.Run("when ABAC is disabled: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", bookmarkWithFile)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("when AccessControl is nil: hook NOT registered", func(t *testing.T) {
+		// In test setup without enterprise, AccessControl is nil.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", bookmarkWithFile)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
+	})
+
+	t.Run("when no bookmark carries file info: hook NOT registered", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkCreated, "", th.BasicChannel.Id, "", nil, "")
+		th.App.setupBroadcastHookForAbacBookmarks(message, th.BasicChannel.Id, "bookmark", linkBookmark, nil)
+
+		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
 	})
 }

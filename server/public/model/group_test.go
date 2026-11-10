@@ -20,15 +20,15 @@ func TestGroupAuditable(t *testing.T) {
 		now := GetMillis()
 		g := Group{
 			Id:             id,
-			Name:           NewPointer("some name"),
+			Name:           new("some name"),
 			DisplayName:    "some display name",
 			Source:         GroupSourceLdap,
-			RemoteId:       NewPointer("some_remote"),
+			RemoteId:       new("some_remote"),
 			CreateAt:       now,
 			UpdateAt:       now,
 			DeleteAt:       now,
 			HasSyncables:   true,
-			MemberCount:    NewPointer(10),
+			MemberCount:    new(10),
 			AllowReference: true,
 		}
 		m := g.Auditable()
@@ -65,15 +65,15 @@ func TestGroupLogClone(t *testing.T) {
 		now := GetMillis()
 		g := Group{
 			Id:             id,
-			Name:           NewPointer("some name"),
+			Name:           new("some name"),
 			DisplayName:    "some display name",
 			Source:         GroupSourceLdap,
-			RemoteId:       NewPointer("some_remote"),
+			RemoteId:       new("some_remote"),
 			CreateAt:       now,
 			UpdateAt:       now,
 			DeleteAt:       now,
 			HasSyncables:   true,
-			MemberCount:    NewPointer(10),
+			MemberCount:    new(10),
 			AllowReference: true,
 		}
 		l := g.LogClone()

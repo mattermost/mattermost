@@ -4,20 +4,62 @@
 package commands
 
 import (
-	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
+
+func (s *MmctlUnitTestSuite) TestNukeUsersCmd() {
+	s.Run("Delete all users", func() {
+		printer.Clean()
+		cmd := newTestCmd(s.T(), SystemNukeUsersCmd)
+		s.Require().NoError(cmd.Flags().Set("confirm", "true"))
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(gomock.Any()).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+	})
+
+	s.Run("Delete all users call fails", func() {
+		printer.Clean()
+		cmd := newTestCmd(s.T(), SystemNukeUsersCmd)
+		s.Require().NoError(cmd.Flags().Set("confirm", "true"))
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(gomock.Any()).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
 
 func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 	s.Run("GetBusy when not set", func() {
@@ -26,11 +68,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -45,11 +87,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(sbs, printer.GetLines()[0])
@@ -60,11 +102,11 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			GetServerBusy(context.TODO()).
+			GetServerBusy(gomock.Any()).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := getBusyCmdF(s.client, newTestCmd(s.T(), SystemGetBusyCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -76,12 +118,12 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		printer.Clean()
 		const minutes = 15
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Uint("seconds", minutes*60, "")
+		cmd := newTestCmd(s.T(), SystemSetBusyCmd)
+		s.Require().NoError(cmd.Flags().Set("seconds", strconv.Itoa(minutes*60)))
 
 		s.client.
 			EXPECT().
-			SetServerBusy(context.TODO(), minutes*60).
+			SetServerBusy(gomock.Any(), minutes*60).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
@@ -92,20 +134,11 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("SetBusy with missing arg", func() {
-		printer.Clean()
-
-		err := setBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Error(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
 	s.Run("SetBusy zero seconds", func() {
 		printer.Clean()
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Uint("seconds", 0, "")
+		cmd := newTestCmd(s.T(), SystemSetBusyCmd)
+		s.Require().NoError(cmd.Flags().Set("seconds", "0"))
 
 		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(0)})
 		s.Require().Error(err)
@@ -119,11 +152,11 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := clearBusyCmdF(s.client, newTestCmd(s.T(), SystemClearBusyCmd), []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
@@ -134,11 +167,11 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		printer.Clean()
 		s.client.
 			EXPECT().
-			ClearServerBusy(context.TODO()).
+			ClearServerBusy(gomock.Any()).
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
-		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
+		err := clearBusyCmdF(s.client, newTestCmd(s.T(), SystemClearBusyCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -152,11 +185,11 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(gomock.Any()).
 			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemVersionCmdF(s.client, newTestCmd(s.T(), SystemVersionCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -168,11 +201,11 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetPing(context.TODO()).
+			GetPing(gomock.Any()).
 			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemVersionCmdF(s.client, newTestCmd(s.T(), SystemVersionCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -180,6 +213,8 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
+	systemPingOpts := model.SystemPingOptions{FullStatus: true, RESTSemantics: true}
+
 	s.Run("Print server status - all healthy", func() {
 		printer.Clean()
 
@@ -190,14 +225,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -210,14 +242,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -229,14 +258,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -251,14 +277,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -273,14 +296,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -296,14 +316,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "server status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -321,14 +338,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "database status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -346,14 +360,11 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		}
 		s.client.
 			EXPECT().
-			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
-				FullStatus:    true,
-				RESTSemantics: true,
-			}).
+			GetPingWithOptions(gomock.Any(), systemPingOpts).
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		err := systemStatusCmdF(s.client, newTestCmd(s.T(), SystemStatusCmd), []string{})
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "filestore status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -372,7 +383,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
@@ -381,7 +392,8 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 			s.NoError(err)
 		}()
 
-		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+		err := systemSupportPacketCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -399,21 +411,19 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
-		systemSupportPacketCmd := &cobra.Command{}
-		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
-		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
-		s.Require().NoError(err)
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+		s.Require().NoError(cmd.Flags().Set("output-file", "foo.zip"))
 
 		defer func() {
-			err = os.Remove("foo.zip")
+			err := os.Remove("foo.zip")
 			s.Require().NoError(err)
 		}()
 
-		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
+		err := systemSupportPacketCmdF(s.client, cmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -430,14 +440,281 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		s.client.
 			EXPECT().
-			GenerateSupportPacket(context.TODO()).
+			GenerateSupportPacket(gomock.Any()).
 			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+		err := systemSupportPacketCmdF(s.client, cmd, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
 	})
+
+	s.Run("uses last path element of server filename", func() {
+		const body = "support packet bytes"
+		for _, tc := range serverFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				root := s.T().TempDir()
+				workDir := filepath.Join(root, "work")
+				s.Require().NoError(os.Mkdir(workDir, 0o700))
+				s.T().Chdir(workDir)
+
+				absPath := filepath.Join(root, "outside", tc.baseName)
+				s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+					w.Header().Set("Content-Disposition", tc.disposition(absPath))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+				assertDownloadUsedBaseName(s.T(), workDir, tc.baseName, unexpectedDownloadPaths(workDir, absPath, tc.baseName), []byte(body), err)
+			})
+		}
+	})
+
+	s.Run("uses default name when server filename is empty", func() {
+		const body = "support packet bytes"
+		const defaultName = "mm_support_packet.zip"
+		for _, tc := range emptyServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				root := s.T().TempDir()
+				workDir := filepath.Join(root, "work")
+				s.Require().NoError(os.Mkdir(workDir, 0o700))
+				s.T().Chdir(workDir)
+
+				absPath := filepath.Join(root, "outside", "packet.zip")
+				s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+					w.Header().Set("Content-Disposition", tc.disposition)
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+				assertDownloadUsedBaseName(s.T(), workDir, defaultName, unexpectedDownloadPaths(workDir, absPath, defaultName), []byte(body), err)
+			})
+		}
+	})
+
+	s.Run("returns an error when the response has no filename header", func() {
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+			_, _ = w.Write([]byte("support packet bytes"))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+		err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+		s.Require().Error(err)
+
+		entries, readErr := os.ReadDir(workDir)
+		s.Require().NoError(readErr)
+		s.Empty(entries)
+	})
+
+	s.Run("leaves existing default file unchanged", func() {
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		absPath := filepath.Join(root, "outside", "packet.zip")
+		s.Require().NoError(os.Mkdir(filepath.Dir(absPath), 0o700))
+		s.Require().NoError(os.WriteFile(filepath.Join(workDir, "packet.zip"), []byte("original"), 0o600))
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+			w.Header().Set("Content-Disposition", `attachment; filename="../packet.zip"`)
+			_, _ = w.Write([]byte("support packet bytes"))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+		err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+		s.Require().Error(err)
+		assertDownloadUsedBaseName(s.T(), workDir, "packet.zip", unexpectedDownloadPaths(workDir, absPath, "packet.zip"), []byte("original"), nil)
+	})
+
+	s.Run("leaves existing default symlink target unchanged", func() {
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		target := filepath.Join(root, "outside", "target")
+		s.Require().NoError(os.Mkdir(filepath.Dir(target), 0o700))
+		s.Require().NoError(os.WriteFile(target, []byte("original"), 0o600))
+		s.Require().NoError(os.Symlink(target, filepath.Join(workDir, "packet.zip")))
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+			w.Header().Set("Content-Disposition", `attachment; filename="packet.zip"`)
+			_, _ = w.Write([]byte("support packet bytes"))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+		err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+		s.Require().Error(err)
+
+		got, readErr := os.ReadFile(target)
+		s.Require().NoError(readErr)
+		s.Equal([]byte("original"), got)
+
+		info, statErr := os.Lstat(filepath.Join(workDir, "packet.zip"))
+		s.Require().NoError(statErr)
+		s.True(info.Mode()&os.ModeSymlink != 0)
+	})
+
+	s.Run("removes incomplete default file after a write failure", func() {
+		printer.Clean()
+
+		root := s.T().TempDir()
+		workDir := filepath.Join(root, "work")
+		s.Require().NoError(os.Mkdir(workDir, 0o700))
+		s.T().Chdir(workDir)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(s.T(), "/api/v4/system/support_packet", r.URL.Path)
+			w.Header().Set("Content-Disposition", `attachment; filename="packet.zip"`)
+			w.Header().Set("Content-Length", "100")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("partial"))
+		}))
+		s.T().Cleanup(server.Close)
+
+		cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+
+		err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
+		s.Require().Error(err)
+		s.Require().NoFileExists(filepath.Join(workDir, "packet.zip"))
+		s.Require().NoFileExists(filepath.Join(workDir, "mm_support_packet.zip"))
+	})
+}
+
+// serverFilenameCases are Content-Disposition values whose last path element is baseName.
+func serverFilenameCases() []struct {
+	name        string
+	disposition func(absPath string) string
+	baseName    string
+} {
+	const baseName = "packet.zip"
+	return []struct {
+		name        string
+		disposition func(absPath string) string
+		baseName    string
+	}{
+		{
+			name:        "plain filename",
+			disposition: func(string) string { return `attachment; filename="packet.zip"` },
+			baseName:    baseName,
+		},
+		{
+			name:        "relative path",
+			disposition: func(string) string { return `attachment; filename="../packet.zip"` },
+			baseName:    baseName,
+		},
+		{
+			name: "absolute path",
+			disposition: func(absPath string) string {
+				return fmt.Sprintf(`attachment; filename="%s"`, absPath)
+			},
+			baseName: baseName,
+		},
+		{
+			name:        "backslash separators",
+			disposition: func(string) string { return `attachment; filename="..\\packet.zip"` },
+			baseName:    baseName,
+		},
+		{
+			name:        "extended filename parameter",
+			disposition: func(string) string { return `attachment; filename*=UTF-8''..%2Fpacket.zip` },
+			baseName:    baseName,
+		},
+		{
+			name:        "mixed separators",
+			disposition: func(string) string { return `attachment; filename="foo\\../bar/..\\packet.zip"` },
+			baseName:    baseName,
+		},
+		{
+			name: "filename and extended parameter",
+			disposition: func(string) string {
+				return `attachment; filename="other.zip"; filename*=UTF-8''..%2Fpacket.zip`
+			},
+			baseName: baseName,
+		},
+		{
+			name:        "percent-encoded filename",
+			disposition: func(string) string { return `attachment; filename="%2e%2e%2fpacket.zip"` },
+			baseName:    "%2e%2e%2fpacket.zip",
+		},
+	}
+}
+
+// emptyServerFilenameCases are Content-Disposition values that have no usable last path element.
+func emptyServerFilenameCases() []struct {
+	name        string
+	disposition string
+} {
+	return []struct {
+		name        string
+		disposition string
+	}{
+		{name: "empty filename", disposition: `attachment; filename=""`},
+		{name: "attachment without filename", disposition: `attachment`},
+		{name: "dot filename", disposition: `attachment; filename="."`},
+		{name: "dotdot filename", disposition: `attachment; filename=".."`},
+		{name: "root filename", disposition: `attachment; filename="/"`},
+		{name: "trailing separator", disposition: `attachment; filename="../"`},
+	}
+}
+
+func unexpectedDownloadPaths(workDir, absPath, baseName string) []string {
+	return []string{
+		filepath.Join(filepath.Dir(workDir), baseName),
+		absPath,
+		filepath.Join(workDir, `..\`+baseName),
+	}
+}
+
+// assertDownloadUsedBaseName checks that the command succeeded and that the
+// file is written only as baseName inside workDir.
+func assertDownloadUsedBaseName(t *testing.T, workDir, baseName string, unexpectedPaths []string, wantBody []byte, cmdErr error) {
+	t.Helper()
+	for _, p := range unexpectedPaths {
+		require.NoFileExists(t, p)
+	}
+	require.NoError(t, cmdErr)
+	got, err := os.ReadFile(filepath.Join(workDir, baseName))
+	require.NoError(t, err)
+	require.Equal(t, wantBody, got)
 }

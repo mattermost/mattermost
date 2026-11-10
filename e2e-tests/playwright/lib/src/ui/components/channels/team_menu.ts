@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class TeamMenu {
     readonly container: Locator;
@@ -10,6 +11,7 @@ export default class TeamMenu {
     readonly teamSettings: Locator;
     readonly manageMembers: Locator;
     readonly leaveTeam: Locator;
+    readonly joinAnotherTeam: Locator;
     readonly createTeam: Locator;
     readonly learnAboutTeams: Locator;
 
@@ -20,6 +22,7 @@ export default class TeamMenu {
         this.teamSettings = container.getByRole('menuitem', {name: 'Team settings'});
         this.manageMembers = container.getByRole('menuitem', {name: 'Manage members'});
         this.leaveTeam = container.getByRole('menuitem', {name: 'Leave team'});
+        this.joinAnotherTeam = container.getByRole('menuitem', {name: 'Join another team'});
         this.createTeam = container.getByRole('menuitem', {name: 'Create a team'});
         this.learnAboutTeams = container.getByRole('menuitem', {name: 'Learn about teams'});
     }

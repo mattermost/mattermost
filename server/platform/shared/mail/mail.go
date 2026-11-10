@@ -8,17 +8,15 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"mime"
 	"net"
 	"net/mail"
 	"net/smtp"
 	"slices"
-	"strings"
 	"time"
 
-	"code.sajari.com/docconv/v2"
+	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
-	gomail "gopkg.in/mail.v2"
+	gomail "github.com/wneessen/go-mail"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -67,10 +65,6 @@ type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error
 	Data() (io.WriteCloser, error)
-}
-
-func encodeRFC2047Word(s string) string {
-	return mime.BEncoding.Encode("utf-8", s)
 }
 
 type authChooser struct {
@@ -122,31 +116,37 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 }
 
 func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
-	var conn net.Conn
-	var err error
+	return connectToSMTPServer(context.Background(), config)
+}
 
+// connectToSMTPServer dials the SMTP server, completing the TLS handshake for TLS connections.
+// ServerTimeout bounds the dial and ctx can cancel it.
+func connectToSMTPServer(ctx context.Context, config *SMTPConfig) (net.Conn, error) {
 	smtpAddress := config.Server + ":" + config.Port
 	dialer := &net.Dialer{
 		Timeout: time.Duration(config.ServerTimeout) * time.Second,
 	}
 
 	if config.ConnectionSecurity == TLS {
-		tlsconfig := &tls.Config{
-			InsecureSkipVerify: config.SkipServerCertificateVerification,
-			ServerName:         config.ServerName,
+		tlsDialer := &tls.Dialer{
+			NetDialer: dialer,
+			Config: &tls.Config{
+				InsecureSkipVerify: config.SkipServerCertificateVerification,
+				ServerName:         config.ServerName,
+			},
 		}
 
-		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
+		conn, err := tlsDialer.DialContext(ctx, "tcp", smtpAddress)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the SMTP server through TLS")
 		}
-	} else {
-		conn, err = dialer.Dial("tcp", smtpAddress)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
-		}
+		return conn, nil
 	}
 
+	conn, err := dialer.DialContext(ctx, "tcp", smtpAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
+	}
 	return conn, nil
 }
 
@@ -154,29 +154,16 @@ func ConnectToSMTPServer(config *SMTPConfig) (net.Conn, error) {
 	return ConnectToSMTPServerAdvanced(config)
 }
 
+// NewSMTPClientAdvanced reads the server greeting and runs Hello, StartTLS and Auth. If ctx ends while it
+// waits for the greeting, it closes conn and returns ctx's error. The later steps are not bounded by ctx.
 func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smtp.Client, error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	var c *smtp.Client
-	ec := make(chan error)
-	go func() {
-		var err error
-		c, err = smtp.NewClient(conn, config.ServerName+":"+config.Port)
-		if err != nil {
-			ec <- err
-			return
-		}
-		cancel()
-	}()
-
-	select {
-	case <-ctx.Done():
-		err := ctx.Err()
-		if err != nil && err.Error() != "context canceled" {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
-		}
-	case err := <-ec:
+	// smtp.NewClient takes no context; closing conn is the only way to unblock its read of the greeting.
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	c, err := smtp.NewClient(conn, config.ServerName+":"+config.Port)
+	if !stop() {
+		return nil, errors.Wrap(ctx.Err(), "unable to connect to the SMTP server")
+	}
+	if err != nil {
 		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 	}
 
@@ -211,22 +198,35 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smt
 	)
 }
 
-func TestConnection(config *SMTPConfig) error {
-	conn, err := ConnectToSMTPServer(config)
+// TestConnection connects to the SMTP server and runs the handshake up to authentication. ServerTimeout
+// bounds the whole test, and ctx can cancel it.
+func TestConnection(ctx context.Context, config *SMTPConfig) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(config.ServerTimeout)*time.Second)
+	defer cancel()
+
+	conn, err := connectToSMTPServer(ctx, config)
 	if err != nil {
 		return errors.Wrap(err, "unable to connect")
 	}
 	defer conn.Close()
 
-	sec := config.ServerTimeout
-
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
-	defer cancel()
+	// net/smtp's Hello, StartTLS and Auth take no context; closing the connection is the only way to unblock them.
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	defer stop()
 
 	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
+		// Closing the connection surfaces as a network error; report the deadline or cancellation behind it.
+		if ctxErr := ctx.Err(); ctxErr != nil && !errors.Is(err, ctxErr) {
+			return errors.Wrapf(ctxErr, "unable to connect: %v", err)
+		}
 		return errors.Wrap(err, "unable to connect")
+	}
+	// NewSMTPClient ignores a failed StartTLS, so a handshake that ctx cut short can still return a client.
+	// TODO: MM-71213 remove this check once NewSMTPClient returns the StartTLS error; the error branch above
+	// then reports the deadline.
+	if !stop() {
+		return errors.Wrap(ctx.Err(), "unable to connect")
 	}
 	c.Close()
 	c.Quit()
@@ -290,66 +290,96 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 
 const SendGridXSMTPAPIHeader = "X-SMTPAPI"
 
+func generateMessageID(hostname string) string {
+	return fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(16), time.Now().Unix(), hostname)
+}
+
+// validateSingleAddress rejects a value that resolves to anything other than
+// exactly one address. This package only ever sends to a single recipient per
+// header; a multi-address value would otherwise be rejected deep inside the
+// SMTP library (or, worse, silently mishandled), so we fail early with a clear
+// error rather than adding multi-recipient support. The caller wraps the error
+// with the relevant header name.
+func validateSingleAddress(value string) error {
+	addresses, err := mail.ParseAddressList(value)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse address")
+	}
+	if len(addresses) != 1 {
+		return errors.Errorf("must contain exactly one address, got %d", len(addresses))
+	}
+	return nil
+}
+
 func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
-	mlog.Info("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
+	mlog.Info("sending mail", mlog.String("to", mail.smtpTo))
 
 	htmlMessage := mail.htmlBody
-	text, _, err := docconv.ConvertHTML(strings.NewReader(htmlMessage), true)
+	text, err := html2text.FromString(htmlMessage)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		text = ""
 	}
 
-	headers := map[string][]string{
-		"From":                      {mail.from.String()},
-		"To":                        {mail.mimeTo},
-		"Subject":                   {encodeRFC2047Word(mail.subject)},
-		"Content-Transfer-Encoding": {"8bit"},
-		"Auto-Submitted":            {"auto-generated"},
-		"Precedence":                {"bulk"},
+	m := gomail.NewMsg()
+
+	m.SetAddrHeaderFromMailAddress(gomail.HeaderFrom, &mail.from)
+	if err = validateSingleAddress(mail.mimeTo); err != nil {
+		return errors.Wrap(err, "invalid To header")
 	}
+	if err = m.SetAddrHeader(gomail.HeaderTo, mail.mimeTo); err != nil {
+		return errors.Wrap(err, "failed to set To address")
+	}
+	m.SetGenHeader(gomail.HeaderSubject, mail.subject)
+	m.SetGenHeader(gomail.Header("Content-Transfer-Encoding"), "8bit")
+	m.SetGenHeader(gomail.Header("Auto-Submitted"), "auto-generated")
+	m.SetGenHeader(gomail.Header("Precedence"), "bulk")
 
 	if mail.category != "" {
-		sendgridHeader := fmt.Sprintf(`{"category": %q}`, mail.category)
-		headers[SendGridXSMTPAPIHeader] = []string{sendgridHeader}
+		m.SetGenHeader(gomail.Header(SendGridXSMTPAPIHeader), fmt.Sprintf(`{"category": %q}`, mail.category))
 	}
 
 	if mail.replyTo.Address != "" {
-		headers["Reply-To"] = []string{mail.replyTo.String()}
+		m.SetAddrHeaderFromMailAddress(gomail.HeaderReplyTo, &mail.replyTo)
 	}
 
 	if mail.cc != "" {
-		headers["CC"] = []string{mail.cc}
+		if err = validateSingleAddress(mail.cc); err != nil {
+			return errors.Wrap(err, "invalid Cc header")
+		}
+		if err = m.SetAddrHeader(gomail.HeaderCc, mail.cc); err != nil {
+			return errors.Wrap(err, "failed to set Cc address")
+		}
 	}
 
-	if mail.messageID != "" {
-		headers["Message-ID"] = []string{mail.messageID}
-	} else {
-		randomStringLength := 16
-		msgID := fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(randomStringLength), time.Now().Unix(), config.Hostname)
-		headers["Message-ID"] = []string{msgID}
+	msgID := mail.messageID
+	if msgID == "" {
+		msgID = generateMessageID(config.Hostname)
 	}
+	// Must be SetGenHeader, not SetGenHeaderPreformatted: only genHeader suppresses go-mail's
+	// auto-generated Message-ID, otherwise we emit two and strict servers reject with a 554.
+	m.SetGenHeader(gomail.HeaderMessageID, msgID)
 
 	if mail.inReplyTo != "" {
-		headers["In-Reply-To"] = []string{mail.inReplyTo}
+		m.SetGenHeaderPreformatted(gomail.HeaderInReplyTo, mail.inReplyTo)
 	}
 
 	if mail.references != "" {
-		headers["References"] = []string{mail.references}
+		m.SetGenHeaderPreformatted(gomail.HeaderReferences, mail.references)
 	}
 
 	for k, v := range mail.mimeHeaders {
-		headers[k] = []string{encodeRFC2047Word(v)}
+		m.SetGenHeader(gomail.Header(k), v)
 	}
 
-	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
-	m.SetHeaders(headers)
-	m.SetDateHeader("Date", date)
-	m.SetBody("text/plain", text)
-	m.AddAlternative("text/html", htmlMessage)
+	m.SetDateWithValue(date)
+	m.SetBodyString(gomail.TypeTextPlain, text)
+	m.AddAlternativeString(gomail.TypeTextHTML, htmlMessage)
 
 	for name, reader := range mail.embeddedFiles {
-		m.EmbedReader(name, reader)
+		if err = m.EmbedReader(name, reader); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("failed to embed file %q", name))
+		}
 	}
 
 	if err = c.Mail(mail.from.Address); err != nil {

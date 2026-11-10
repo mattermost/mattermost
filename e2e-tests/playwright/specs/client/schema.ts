@@ -16,7 +16,6 @@ const FileInfoSchema = z.object({
     mime_type: z.string(),
     mini_preview: z.nullable(z.any()),
     remote_id: z.string(),
-    archived: z.boolean(),
 });
 
 export const FileUploadResponseSchema = z.object({

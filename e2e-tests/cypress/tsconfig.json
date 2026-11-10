@@ -5,11 +5,13 @@
     "types": ["cypress", "cypress-wait-until", "cypress-real-events", "@testing-library/cypress", "node"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./tests/*"]
+    },
     "skipLibCheck": true,
     "allowJs": true,
-    "noEmit": true,
+    "noEmit": true
   },
   "include": ["**/*.*"]
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useRef} from 'react';
+import React, {memo, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -36,7 +36,7 @@ type Props = {
         doManageTokens: (user: UserProfile) => void;
         isDisabled?: boolean;
     };
-}
+};
 
 const UserList = ({
     actionUserProps,

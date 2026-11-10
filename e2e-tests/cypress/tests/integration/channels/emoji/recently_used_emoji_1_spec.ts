@@ -10,15 +10,15 @@
 // Stage: @prod
 // Group: @channels @emoji @timeout_error
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
-
 import {getCustomEmoji} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Recent Emoji', () => {
     const largeEmojiFile = 'gif-image-file.gif';
 
-    let townsquareLink;
+    let townsquareLink: string;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -53,7 +53,7 @@ describe('Recent Emoji', () => {
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', `:${firstEmoji}: `).type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post
@@ -68,11 +68,16 @@ describe('Recent Emoji', () => {
         // * Verify recently used category is present in emoji picker
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
-        // * Assert first emoji should equal with second recent emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'grin emoji');
+        // * Assert both emojis appear in the recently used section (grin most recent, joy before it)
+        cy.findAllByTestId('emojiItem').then((items) => {
+            const labels = [...items].map((el) => el.getAttribute('aria-label'));
+            const grinIdx = labels.indexOf('grin emoji');
+            const joyIdx = labels.indexOf('joy emoji');
 
-        // * Assert second emoji should equal with first recent emoji
-        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'joy emoji');
+            expect(grinIdx, 'grin should be in recently used').to.be.greaterThan(-1);
+            expect(joyIdx, 'joy should be in recently used').to.be.greaterThan(-1);
+            expect(grinIdx, 'grin should appear before joy (more recent)').to.be.lessThan(joyIdx);
+        });
     });
 
     it('MM-T4463 Recently used custom emoji, when is deleted should be removed from recent emoji category and quick reactions', () => {
@@ -110,12 +115,12 @@ describe('Recent Emoji', () => {
             cy.get(`#post_${postId}`).trigger('mouseover');
         });
 
-        cy.get('#recent_reaction_0').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_0 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that custom emoji is present as most recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('api/v4/emoji');
         });
 
-        cy.get('#recent_reaction_1').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_1 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that system emoji is present as second recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('static/emoji/');
         });
@@ -160,7 +165,7 @@ describe('Recent Emoji', () => {
             cy.get(`#post_${postId}`).trigger('mouseover');
         });
 
-        cy.get('#recent_reaction_0').should('exist').then((recentReaction) => {
+        cy.get('#recent_reaction_0 .emoticon--post-menu').should('exist').then((recentReaction) => {
             // * Assert that instead of custom emoji the system emoji is present as most recent in quick reaction menu
             expect(recentReaction[0].style.backgroundImage).to.include('static/emoji/');
         });

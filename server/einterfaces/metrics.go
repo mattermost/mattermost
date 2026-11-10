@@ -28,6 +28,7 @@ type MetricsInterface interface {
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
 	IncrementClusterEventType(eventType model.ClusterEvent)
+	ObserveClusterReliableFallbackLength(event model.ClusterEvent, length int)
 
 	IncrementLogin()
 	IncrementLoginFail()
@@ -48,7 +49,8 @@ type MetricsInterface interface {
 	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
 	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
-	IncrementWebsocketReconnectEventWithDisconnectErrCode(eventType string, disconnectErrCode string)
+	IncrementWebsocketReconnectEvent(eventType, disconnectErrCode, originClient string)
+	IncrementWebsocketReconnectFailure(reason string, isRemote bool, disconnectErrCode, originClient string)
 
 	IncrementHTTPWebSockets(originClient string)
 	DecrementHTTPWebSockets(originClient string)

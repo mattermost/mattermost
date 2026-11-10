@@ -2,15 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-
-import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
-
-import store from 'stores/redux_store';
+import ReactDOMClient from 'react-dom/client';
 
 import App from 'components/app';
 
-import {AnnouncementBarTypes} from 'utils/constants';
+import {registerGlobalErrorHandlers} from 'utils/global_error_handler';
 import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
@@ -18,6 +14,7 @@ import './sass/styles.scss';
 import 'katex/dist/katex.min.css';
 
 import '@mattermost/compass-icons/css/compass-icons.css';
+import '@mattermost/compass-ui/styles';
 import '@mattermost/components/dist/index.esm.css';
 
 declare global {
@@ -29,34 +26,14 @@ declare global {
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
-    window.onerror = (msg, url, line, column, error) => {
-        if (msg === 'ResizeObserver loop limit exceeded') {
-            return;
-        }
-
-        store.dispatch(
-            logError(
-                {
-                    type: AnnouncementBarTypes.DEVELOPER,
-                    message: 'A JavaScript error in the webapp client has occurred. (msg: ' + msg + ', row: ' + line + ', col: ' + column + ').',
-                    stack: error?.stack,
-                    url,
-                },
-                {errorBarMode: LogErrorBarMode.InDevMode},
-            ),
-        );
-    };
-
+    registerGlobalErrorHandlers();
     setCSRFFromCookie();
-
     onPreRenderSetupReady();
 }
 
 function renderReactRootComponent() {
-    // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
-    // new features such as automatic batching which breaks some components. This will need to be changed in the future
-    // because this method of starting the app will be removed in React 19.
-    ReactDOM.render(<App/>, document.getElementById('root')!);
+    const container = document.getElementById('root')!;
+    ReactDOMClient.createRoot(container).render(<App/>);
 }
 
 /**

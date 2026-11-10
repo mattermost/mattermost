@@ -11,6 +11,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import {InviteType} from './invite_as';
@@ -20,7 +21,7 @@ import './add_to_channels.scss';
 export type CustomMessageProps = {
     message: string;
     open: boolean;
-}
+};
 
 export const defaultInviteChannels = deepFreeze({
     channels: [],
@@ -30,7 +31,7 @@ export const defaultInviteChannels = deepFreeze({
 export type InviteChannels = {
     channels: Channel[];
     search: string;
-}
+};
 
 export const defaultCustomMessage = deepFreeze({
     message: '',
@@ -53,7 +54,7 @@ export type Props = {
 
     // this prop is only sent when inviting members to channels
     channelToInvite?: Channel;
-}
+};
 
 const RENDER_TIMEOUT_GUESS = 100;
 
@@ -70,11 +71,13 @@ export default function AddToChannels(props: Props) {
 
     let placeholderChannelName = props.townSquareDisplayName;
 
-    // If the user is in a public or private channel and is not abac policy enforced,
-    // use this channel name as a placeholder.
-    // Inviting to direct or group message channels
-    // on a team is not currently supported.
-    if (props.currentChannel && [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(props.currentChannel.type) && !props.currentChannel.policy_enforced) {
+    // If the user is in a public or private channel whose membership is not
+    // gated by an ABAC policy, use this channel name as a placeholder.
+    // Channels carrying only a permission policy (e.g. file upload
+    // restriction) keep their display name as the suggestion since the
+    // ABAC gate does not apply to invites. Inviting to direct or group
+    // message channels on a team is not currently supported.
+    if (props.currentChannel && [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(props.currentChannel.type) && !isMembershipPolicyEnforced(props.currentChannel)) {
         placeholderChannelName = props.currentChannel.display_name;
     }
 

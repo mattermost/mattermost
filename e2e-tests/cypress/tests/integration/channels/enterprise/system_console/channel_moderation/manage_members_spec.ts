@@ -10,12 +10,9 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console @channel_moderation
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../../utils';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {checkboxesTitleToIdMap} from './constants';
 import {
@@ -30,6 +27,9 @@ import {
     visitChannel,
     visitChannelConfigPage,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 function addButtonExists() {
     cy.uiGetRHS().contains('button', 'Add').should('be.visible');
@@ -186,7 +186,7 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
         visitChannelConfigPage(testChannel);
         cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
             should('not.exist');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('have.class', 'checkbox checked');
+        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.checked');
         cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);

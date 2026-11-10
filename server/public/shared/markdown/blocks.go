@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// See MM-69445
+const maxNestingDepth = 32
+
 type continuation struct {
 	Indentation int
 	Remaining   Range
@@ -37,19 +40,20 @@ type Range struct {
 	End      int
 }
 
-func closeBlocks(blocks []Block, referenceDefinitions []*ReferenceDefinition) []*ReferenceDefinition {
+func closeBlocks(blocks []Block, referenceDefinitions *ReferenceDefinitions) {
 	for _, block := range blocks {
 		block.Close()
-		if p, ok := block.(*Paragraph); ok && len(p.ReferenceDefinitions) > 0 {
-			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...)
+		if p, ok := block.(*Paragraph); ok {
+			for _, definition := range p.ReferenceDefinitions {
+				referenceDefinitions.add(definition)
+			}
 		}
 	}
-	return referenceDefinitions
 }
 
-func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefinition) {
+func ParseBlocks(markdown string, lines []Line) (*Document, *ReferenceDefinitions) {
 	document := &Document{}
-	var referenceDefinitions []*ReferenceDefinition
+	referenceDefinitions := &ReferenceDefinitions{}
 
 	openBlocks := []Block{document}
 
@@ -74,12 +78,12 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 		}
 
 		if openBlocks[lastMatchIndex].AllowsBlockStarts() {
-			if newBlocks := blockStart(markdown, indentation, r, openBlocks[:lastMatchIndex+1], openBlocks[lastMatchIndex+1:]); newBlocks != nil {
+			if newBlocks := blockStart(markdown, indentation, r, openBlocks[:lastMatchIndex+1], openBlocks[lastMatchIndex+1:], lastMatchIndex+1); newBlocks != nil {
 				didAdd := false
 				for i := lastMatchIndex; i >= 0; i-- {
 					if container, ok := openBlocks[i].(ContainerBlock); ok {
 						if addedBlocks := container.AddChild(newBlocks); addedBlocks != nil {
-							referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
+							closeBlocks(openBlocks[i+1:], referenceDefinitions)
 							openBlocks = openBlocks[:i+1]
 							openBlocks = append(openBlocks, addedBlocks...)
 							didAdd = true
@@ -99,7 +103,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			continue
 		}
 
-		referenceDefinitions = closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
+		closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
 		openBlocks = openBlocks[:lastMatchIndex+1]
 
 		if openBlocks[lastMatchIndex].AddLine(indentation, r) {
@@ -110,7 +114,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			for i := lastMatchIndex; i >= 0; i-- {
 				if container, ok := openBlocks[i].(ContainerBlock); ok {
 					if newBlocks := container.AddChild([]Block{paragraph}); newBlocks != nil {
-						referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
+						closeBlocks(openBlocks[i+1:], referenceDefinitions)
 						openBlocks = openBlocks[:i+1]
 						openBlocks = append(openBlocks, newBlocks...)
 						break
@@ -120,19 +124,19 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 		}
 	}
 
-	referenceDefinitions = closeBlocks(openBlocks, referenceDefinitions)
+	closeBlocks(openBlocks, referenceDefinitions)
 
 	return document, referenceDefinitions
 }
 
-func blockStart(markdown string, indentation int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
+func blockStart(markdown string, indentation int, r Range, matchedBlocks, unmatchedBlocks []Block, depth int) []Block {
 	if r.Position >= r.End {
 		return nil
 	}
 
-	if start := blockQuoteStart(markdown, indentation, r); start != nil {
+	if start := blockQuoteStart(markdown, indentation, r, depth); start != nil {
 		return start
-	} else if start := listStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+	} else if start := listStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks, depth); start != nil {
 		return start
 	} else if start := indentedCodeStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
 		return start
@@ -143,8 +147,8 @@ func blockStart(markdown string, indentation int, r Range, matchedBlocks, unmatc
 	return nil
 }
 
-func blockStartOrParagraph(markdown string, indentation int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
-	if start := blockStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+func blockStartOrParagraph(markdown string, indentation int, r Range, matchedBlocks, unmatchedBlocks []Block, depth int) []Block {
+	if start := blockStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks, depth); start != nil {
 		return start
 	}
 	if paragraph := newParagraph(markdown, r); paragraph != nil {

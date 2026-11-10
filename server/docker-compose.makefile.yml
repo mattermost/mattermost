@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-     - "postgres-14-data:/var/lib/postgresql/data"
+     - "postgres-15-data:/var/lib/postgresql/data"
     extends:
         file: build/docker-compose.common.yml
         service: postgres
@@ -18,6 +18,14 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: minio
+  azurite:
+    restart: 'no'
+    container_name: mattermost-azurite
+    ports:
+      - "10000:10000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: azurite
   inbucket:
     restart: 'no'
     container_name: mattermost-inbucket
@@ -117,4 +125,4 @@ networks:
           ip_range: 192.168.254.0/24
 
 volumes:
-  postgres-14-data:
+  postgres-15-data:

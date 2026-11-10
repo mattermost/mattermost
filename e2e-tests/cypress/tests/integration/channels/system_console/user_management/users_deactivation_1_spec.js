@@ -9,7 +9,7 @@
 
 // Group: @channels @system_console
 
-import * as MESSAGES from '../../../../fixtures/messages';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('System Console > User Management > Deactivation', () => {
     let team1;

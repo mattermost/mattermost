@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import type {PrimitiveType, FormatXMLElementFn} from 'intl-messageformat';
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
@@ -27,7 +27,7 @@ type Props = BaseSettingItemProps & {
     isContentInline?: boolean;
     className?: string;
     descriptionAboveContent?: boolean;
-}
+};
 
 function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false, isContentInline = false, dataTestId}: Props): JSX.Element {
     const {formatMessage} = useIntl();

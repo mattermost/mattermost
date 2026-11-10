@@ -10,9 +10,11 @@
 // Stage: @prod
 // Group: @channels @autocomplete
 
-import {getRandomLetter} from '../../../../utils';
 import {doTestQuickChannelSwitcher} from '../common_test';
-import {createSearchData, SimpleUser} from '../helpers';
+import type {SimpleUser} from '../helpers';
+import {createSearchData} from '../helpers';
+
+import {getRandomLetter} from '@/utils';
 
 describe('Autocomplete with Database - Users', () => {
     const prefix = getRandomLetter(3);

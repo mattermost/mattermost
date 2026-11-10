@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter} from '@mattermost/types/admin';
+import type {LogFilter, LogFilterQuery} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
@@ -35,18 +35,33 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
-    const logFilter = {
+function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, search = ''}: LogFilter): LogFilterQuery {
+    return {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
+        search,
     };
+}
+
+export function getLogs(logFilter: LogFilter) {
     return bindClientFunc({
         clientFunc: Client4.getLogs,
         onSuccess: [AdminTypes.RECEIVED_LOGS],
         params: [
-            logFilter,
+            toLogFilterQuery(logFilter),
+        ],
+    });
+}
+
+// Merges the response into the loaded entries instead of replacing them
+export function getNewLogs(logFilter: LogFilter) {
+    return bindClientFunc({
+        clientFunc: Client4.getLogs,
+        onSuccess: [AdminTypes.RECEIVED_NEW_LOGS],
+        params: [
+            toLogFilterQuery(logFilter),
         ],
     });
 }
@@ -121,9 +136,23 @@ export function testSiteURL(siteURL: string) {
     });
 }
 
+/**
+ * @deprecated Use testFileStoreConnection instead. The /file/s3_test
+ * endpoint is kept for backwards compatibility but is no longer
+ * backend-specific.
+ */
 export function testS3Connection(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testS3Connection,
+        params: [
+            config,
+        ],
+    });
+}
+
+export function testFileStoreConnection(config?: AdminConfig) {
+    return bindClientFunc({
+        clientFunc: Client4.testFileStoreConnection,
         params: [
             config,
         ],
@@ -421,6 +450,15 @@ export function purgeElasticsearchIndexes(indexes?: string[]) {
 export function uploadLicense(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadLicense,
+        params: [
+            fileData,
+        ],
+    });
+}
+
+export function previewLicense(fileData: File) {
+    return bindClientFunc({
+        clientFunc: Client4.previewLicense,
         params: [
             fileData,
         ],

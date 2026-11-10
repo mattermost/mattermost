@@ -5,9 +5,9 @@ import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
-
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import WithTooltip from 'components/with_tooltip';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
 
@@ -22,7 +22,7 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
-}
+};
 
 const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props) => {
     const {formatMessage} = useIntl();
@@ -53,19 +53,19 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props)
             title={tooltipTitle}
             hint={tooltipHint}
         >
-            <IconContainer
+            <IconButton
                 id='burnOnReadButton'
                 className='control'
+                size='small'
                 disabled={disabled}
-                type='button'
                 aria-label={tooltipMessage}
                 onClick={handleClick}
-            >
-                <FireIcon
-                    size={18}
-                    color='currentColor'
-                />
-            </IconContainer>
+                icon={
+                    <Icon
+                        glyph={<FireIcon color='currentColor'/>}
+                    />
+                }
+            />
         </WithTooltip>
     );
 };

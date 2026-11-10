@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @system_console @with_feature_flag
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Data Retention', () => {
     let testTeam;
@@ -222,10 +222,11 @@ describe('Data Retention', () => {
                     // * Verify custom policy data table
                     cy.uiVerifyCustomPolicyRow(policyId, 'Policy 3', 'Keep forever', '0 teams, 1 channel');
 
-                    cy.get(`#customWrapper-${policyId}`).trigger('mouseover').click();
+                    cy.get(`#customWrapper-${policyId}`).realHover();
+                    cy.get(`#custom-retention-policy-menu-${policyId}`).should('be.visible').click();
 
                     // # Delete a policy
-                    cy.findByRole('button', {name: 'Delete'}).should('be.visible').click();
+                    cy.findByRole('menuitem', {name: 'Delete'}).should('be.visible').click();
 
                     // # Wait for deletion
                     cy.wait(TIMEOUTS.ONE_SEC);

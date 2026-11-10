@@ -4,6 +4,7 @@ exports[`components/app_bar/app_bar should match snapshot on mount 1`] = `
 <DocumentFragment>
   <div
     class="app-bar"
+    data-testid="app-bar"
   >
     <div
       class="app-bar__top"
@@ -43,6 +44,7 @@ exports[`components/app_bar/app_bar should match snapshot on mount when App Bar 
 <DocumentFragment>
   <div
     class="app-bar"
+    data-testid="app-bar"
   >
     <div
       class="app-bar__top"

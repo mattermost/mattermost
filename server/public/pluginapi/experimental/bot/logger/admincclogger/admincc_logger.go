@@ -83,12 +83,12 @@ func (l *adminCCLogger) logToAdmins(level, message string) {
 	if l.includeContext && len(context) > 0 {
 		message += "\n" + common.JSONBlock(context)
 	}
-	_ = l.dmAdmins("(log " + level + ") " + message)
+	_ = l.dmAdmins("(log %s) %s", level, message)
 }
 
 func (l *adminCCLogger) dmAdmins(format string, args ...any) error {
 	for _, id := range l.userIDs {
-		_, err := l.dmer.DM(id, format, args)
+		_, err := l.dmer.DM(id, format, args...)
 		if err != nil {
 			return err
 		}

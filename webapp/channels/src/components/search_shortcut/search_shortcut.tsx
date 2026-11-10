@@ -4,16 +4,15 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
-
-import {isDesktopApp, isMac} from 'utils/user_agent';
+import {ShortcutKey, ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
+import {isDesktopApp, isMac} from '@mattermost/shared/utils/user_agent';
 
 import './search_shortcut.scss';
 
 export type SearchShortcutProps = {
     className?: string;
     variant?: ShortcutKeyVariant;
-}
+};
 
 export const SearchShortcut = ({className, variant}: SearchShortcutProps) => {
     const controlKey = isMac() ? '⌘' : 'Ctrl';

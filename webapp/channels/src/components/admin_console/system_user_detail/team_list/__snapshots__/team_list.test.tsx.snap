@@ -1,142 +1,145 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot when no teams are found 1`] = `
-<Fragment>
+<div>
   <div />
-  <AbstractList
-    actions={
-      Object {
-        "getTeamMembersForUser": [Function],
-        "getTeamsData": [Function],
-        "removeUserFromTeam": [MockFunction],
-        "updateTeamMemberSchemeRoles": [MockFunction],
-      }
-    }
-    data={Array []}
-    emptyList={
-      Object {
-        "defaultMessage": "No teams found",
-        "id": "admin.team_settings.team_list.no_teams_found",
-      }
-    }
-    headerLabels={
-      Array [
-        Object {
-          "label": Object {
-            "defaultMessage": "Name",
-            "id": "admin.systemUserDetail.teamList.header.name",
-          },
-          "style": Object {
-            "flexGrow": 1,
-            "marginLeft": "16px",
-            "minWidth": "284px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Type",
-            "id": "admin.systemUserDetail.teamList.header.type",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Role",
-            "id": "admin.systemUserDetail.teamList.header.role",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "style": Object {
-            "width": "150px",
-          },
-        },
-      ]
-    }
-    renderRow={[Function]}
-    total={0}
-    userId="1234"
-  />
-</Fragment>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="AbstractList__empty"
+      >
+        No teams found
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot with teams populated 1`] = `
-<Fragment>
+<div>
   <div />
-  <AbstractList
-    actions={
-      Object {
-        "getTeamMembersForUser": [Function],
-        "getTeamsData": [Function],
-        "removeUserFromTeam": [MockFunction],
-        "updateTeamMemberSchemeRoles": [MockFunction],
-      }
-    }
-    data={
-      Array [
-        Object {
-          "description": "Team 1 description",
-          "display_name": "Team 1",
-          "id": "id1",
-        },
-        Object {
-          "description": "The 2 description",
-          "display_name": "Team 2",
-          "id": "id2",
-        },
-      ]
-    }
-    emptyList={
-      Object {
-        "defaultMessage": "No teams found",
-        "id": "admin.team_settings.team_list.no_teams_found",
-      }
-    }
-    headerLabels={
-      Array [
-        Object {
-          "label": Object {
-            "defaultMessage": "Name",
-            "id": "admin.systemUserDetail.teamList.header.name",
-          },
-          "style": Object {
-            "flexGrow": 1,
-            "marginLeft": "16px",
-            "minWidth": "284px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Type",
-            "id": "admin.systemUserDetail.teamList.header.type",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "label": Object {
-            "defaultMessage": "Role",
-            "id": "admin.systemUserDetail.teamList.header.role",
-          },
-          "style": Object {
-            "width": "150px",
-          },
-        },
-        Object {
-          "style": Object {
-            "width": "150px",
-          },
-        },
-      ]
-    }
-    renderRow={[Function]}
-    total={2}
-    userId="1234"
-  />
-</Fragment>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__header"
+    >
+      <div
+        class="AbstractList__header-label"
+        style="flex-grow: 1; min-width: 284px; margin-left: 16px;"
+      >
+        Name
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Type
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Role
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      />
+    </div>
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        data-testid="team-row-id1"
+      >
+        Team 1
+      </div>
+      <div
+        data-testid="team-row-id2"
+      >
+        Team 2
+      </div>
+    </div>
+    <div
+      class="AbstractList__footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 2 of 2
+      </div>
+      <button
+        aria-label="Previous page"
+        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 prev"
+        disabled=""
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_ft92e_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+      </button>
+      <button
+        aria-label="Next page"
+        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+        disabled=""
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="_icon-button__icon-slot_ft92e_41"
+        >
+          <div
+            aria-hidden="true"
+            class="_icon_1i355_2 _icon--size-16_1i355_38"
+          >
+            <div
+              class="_icon__glyph-area_1i355_9"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 `;

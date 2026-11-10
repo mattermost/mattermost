@@ -14,10 +14,11 @@ import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 
 import CenterMessageLock from 'components/center_message_lock';
 import PostComponent from 'components/post';
-import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
+import ChannelIntroMessage from 'components/post_view/channel_intro_message';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
 import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {PostListRowListIds, Locations} from 'utils/constants';
 import {isIdNotPost} from 'utils/post_utils';
@@ -65,7 +66,7 @@ export type PostListRowProps = {
           */
         emitShortcutReactToLastPostFrom: typeof emitShortcutReactToLastPostFrom;
     };
-}
+};
 
 export default class PostListRow extends React.PureComponent<PostListRowProps> {
     blockShortcutReactToLastPostForNonMessages(listId: string) {
@@ -156,9 +157,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     className='loading-screen'
                 >
                     <div className={classNames('loading__content', {hideAnimation: shouldHideAnimation})}>
-                        <div className='round round-1'/>
-                        <div className='round round-2'/>
-                        <div className='round round-3'/>
+                        <LoadingSpinner/>
                     </div>
                 </div>
             );

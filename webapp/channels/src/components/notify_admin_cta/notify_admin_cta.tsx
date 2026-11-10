@@ -30,13 +30,13 @@ type HookProps = {
     ctaText?: React.ReactNode;
     successText?: React.ReactNode;
     preTrial?: boolean;
-}
+};
 
 type Props = HookProps & {
     notifyRequestData: NotifyAdminRequest;
-}
+};
 
-type ValueOf<T> = T[keyof T]
+type ValueOf<T> = T[keyof T];
 
 export function useNotifyAdmin<T = HTMLAnchorElement | HTMLButtonElement>(props: HookProps, reqData: NotifyAdminRequest): [React.ReactNode, (e: React.MouseEvent<T, MouseEvent>) => void, ValueOf<typeof NotifyStatus>] {
     const {btnText: btnFormaText, notifyAdmin, notifyStatus} = useGetNotifyAdmin({});

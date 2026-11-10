@@ -9,6 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -26,7 +27,7 @@ type Draft = {
     key: keyof GlobalState['storage']['storage'];
     value: PostDraft;
     timestamp: Date;
-}
+};
 
 /**
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
@@ -87,10 +88,10 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean> {
+export function updateDraft(key: string, value: PostDraft | null, rootId = '', save = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        let updatedValue: PostDraft|null = null;
+        let updatedValue: PostDraft | null = null;
         if (value) {
             const timestamp = new Date().getTime();
             const data = getGlobalItem<Partial<PostDraft>>(state, key, {});
@@ -135,7 +136,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): ActionFunc {
+export function setGlobalDraft(key: string, value: PostDraft | null, isRemote: boolean): ActionFunc {
     return (dispatch) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));
@@ -186,5 +187,41 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             metadata,
             show: true,
         },
+    };
+}
+
+export function quoteTextInDraft(channelId: string, rootId: string, text: string) {
+    return {
+        type: ActionTypes.QUOTE_TEXT_IN_DRAFT,
+        data: {
+            channelId,
+            rootId,
+            text,
+        },
+    };
+}
+
+export function clearPendingQuote() {
+    return {
+        type: ActionTypes.CLEAR_PENDING_QUOTE,
+    };
+}
+
+/**
+ * Quotes text selected in a post into the message box it belongs to: the channel's message box
+ * for posts in the center channel, or the thread's reply box for posts shown in the RHS or the
+ * Threads view.
+ */
+export function quoteTextFromPost(postId: string, isRHS: boolean, text: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const post = getPost(getState(), postId);
+        if (!post) {
+            return {data: false};
+        }
+
+        const rootId = isRHS ? (post.root_id || post.id) : '';
+        dispatch(quoteTextInDraft(post.channel_id, rootId, text));
+
+        return {data: true};
     };
 }

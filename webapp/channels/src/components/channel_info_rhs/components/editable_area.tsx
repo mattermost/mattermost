@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 const EditButton = styled.button`
     border: 0;

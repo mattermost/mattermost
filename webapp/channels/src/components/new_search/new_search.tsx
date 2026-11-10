@@ -12,10 +12,12 @@ import {
     FloatingPortal,
     offset,
 } from '@floating-ui/react';
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
+
+import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
@@ -23,14 +25,13 @@ import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/
 
 import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
-import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
+import {getRegularSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
 import a11yController from 'utils/a11y_controller_instance';
 import {focusElement} from 'utils/a11y_utils';
 import {RootHtmlPortalId, Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
 
@@ -115,7 +116,7 @@ const NewSearch = (): JSX.Element => {
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
-    const searchTeam = useSelector(getSearchTeam);
+    const searchTeam = useSelector(getRegularSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
     const currentTeamId = useSelector(getCurrentTeamId);
     const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);
@@ -133,7 +134,7 @@ const NewSearch = (): JSX.Element => {
         placement: 'bottom',
         middleware: [offset({mainAxis: -28})],
     });
-    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
+    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement | null>;
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);

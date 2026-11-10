@@ -13,18 +13,44 @@ type LanguageObject = {
         extensions: string[];
         aliases?: string[];
     };
-}
+};
 
 const HighlightedLanguages: LanguageObject = Constants.HighlightedLanguages;
+
+// The cost of highlighting grows super-linearly with the total length of the input, so longer code is
+// rendered as escaped plain text instead.
+const MAX_HIGHLIGHTED_LENGTH = 5000;
+
+let previousTask: Promise<void> = Promise.resolve();
+
+// Lets the browser run other work between highlighted blocks.
+function runInOwnTask<T>(work: () => T): Promise<T> {
+    const result = previousTask.
+        then(() => new Promise<void>((resolve) => {
+            // Unlike nested setTimeout calls, a message post isn't clamped to a 4 ms minimum delay.
+            const channel = new MessageChannel();
+            channel.port1.onmessage = () => {
+                channel.port1.close();
+                resolve();
+            };
+            channel.port2.postMessage(null);
+        })).
+        then(work);
+
+    // A failed job must not stall the jobs queued after it.
+    previousTask = result.then(() => undefined, () => undefined);
+
+    return result;
+}
 
 export async function highlight(lang: string, code: string) {
     const language = getLanguageFromNameOrAlias(lang);
 
-    if (language) {
+    if (language && code.length <= MAX_HIGHLIGHTED_LENGTH) {
         try {
             await registerLanguage(language);
-            return hlJS.highlight(code, {language}).value;
-        } catch (e) {
+            return await runInOwnTask(() => hlJS.highlight(code, {language}).value);
+        } catch {
             // fall through if highlighting fails and handle below
         }
     }
@@ -56,6 +82,11 @@ export function canHighlight(language: string): boolean {
     return Boolean(getLanguageFromNameOrAlias(language));
 }
 
+// Whether highlight() will apply syntax highlighting to this code rather than return it as plain text.
+export function canHighlightCode(language: string, code: string): boolean {
+    return canHighlight(language) && code.length <= MAX_HIGHLIGHTED_LENGTH;
+}
+
 export function getLanguageName(language: string): string {
     if (canHighlight(language)) {
         const name: string | undefined = getLanguageFromNameOrAlias(language);
@@ -68,6 +99,10 @@ export function getLanguageName(language: string): string {
     return '';
 }
 
+export function getLanguageFromDisplayName(displayName: string): string {
+    return Object.keys(HighlightedLanguages).find((key) => HighlightedLanguages[key].name === displayName) ?? '';
+}
+
 function getLanguageFromNameOrAlias(name: string) {
     const langName: string = name.toLowerCase();
     if (HighlightedLanguages[langName]) {
@@ -78,6 +113,10 @@ function getLanguageFromNameOrAlias(name: string) {
         const aliases = HighlightedLanguages[key].aliases;
         return aliases && aliases.find((a) => a === langName);
     });
+}
+
+export function isMarkdownLanguage(language: string): boolean {
+    return getLanguageFromNameOrAlias(language) === 'markdown';
 }
 
 async function registerLanguage(languageName: string) {

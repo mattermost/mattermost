@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
     title: React.ReactNode;
@@ -12,18 +13,20 @@ type Props = {
     isDisabled?: boolean;
     onClick?: () => void;
     tooltipText?: string;
+    destructive?: boolean;
 };
 
 // This component can be used in the card header
 const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
     let button = (
-        <button
+        <Button
             disabled={props.isDisabled}
-            className='btn btn-primary'
+            emphasis='primary'
+            destructive={props.destructive}
             onClick={props.onClick}
         >
             {props.buttonText}
-        </button>
+        </Button>
     );
 
     if (props.isDisabled && props.tooltipText) {

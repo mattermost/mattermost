@@ -7,7 +7,7 @@ type Props = {
     email?: string;
     haveOverrideProp?: boolean;
     isBot?: boolean;
-}
+};
 const ProfilePopoverEmail = ({
     email,
     haveOverrideProp,

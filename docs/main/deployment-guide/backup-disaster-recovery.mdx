@@ -1,0 +1,90 @@
+---
+title: "Backup and disaster recovery"
+---
+<PlanAvailability slug="all-commercial" />
+
+Options to protect your Mattermost server from different types of failures range from simple backups to sophisticated disaster recovery deployments and automation.
+
+## Backup
+
+The state of your Mattermost server is contained in multiple data stores that need to be backed up and restored separately to fully recover your system from failure.
+
+To back up your Mattermost server:
+
+1.  Back up your Mattermost database using standard procedures depending on your database version. [PostgreSQL SQL Dump backup documentation](https://www.postgresql.org/docs/10/backup-dump.html) is available online. Use the navigation at the top of the page to select your PostgreSQL version.
+2.  Back up your server settings stored in `config/config.json`. If you are using SAML configuration for Mattermost, your SAML certificate files will be saved in the `config` directory. Therefore, we recommend backing up the entire directory.
+3.  Back up files stored by your users with one of the following options:
+
+> - If you use local storage using the default `./data` directory, back up this directory.
+> - If you use local storage using a non-default directory specified in the `Directory` setting in `config.json`, back up files in that location.
+> - If you store your files in S3, you can typically keep the files where they are located without backup.
+
+<Note>
+
+To make a clean backup, you must stop Mattermost during the duration of the backup, otherwise the database and files may become out of sync.
+
+</Note>
+
+To restore a Mattermost instance from backup, restore your database, `config.json` file, and optionally the locally stored user files into the locations from which they were backed up.
+
+## Disaster recovery
+
+An appropriate disaster recovery plan weighs the benefits of mitigating specific risks against the cost and complexity of setting up disaster recovery infrastructure and automation.
+
+<Note>
+
+**High availability (HA) vs. disaster recovery (DR)**
+
+HA and DR are distinct concepts that are often confused. HA refers to a clustered deployment within a single site that eliminates single points of failure and keeps Mattermost running through individual component outages (e.g., a failed app node or database replica). DR addresses the broader scenario of an entire site or region becoming unavailable, and typically requires a secondary deployment in a separate data center or cloud region.
+
+Mattermost supports active/passive DR, where a secondary site is kept in sync but only activated during a failover. Mattermost does not support active/active deployments, where both sites serve live traffic simultaneously.
+
+</Note>
+
+### Automated backup
+
+Automating backups for a Mattermost server provides a copy of the server's state at a particular point in time, which can be restored if a failure in the future leads to loss of data. Options include:
+
+- Automation to periodically back up the Mattermost server, which may include all the components listed above or a subset depending on what you choose to protect.
+- Automation to restore a server from backup, or deploy a new server, to reduce recovery time.
+- Automation to verify a backup has been successfully produced to protect against backup automation failures.
+- Storing backups off-site, to protect against physical loss of onsite systems.
+
+Recovering from a failure using a backup is typically a manual process and will incur downtime. The alternative is to automate recovery using a high availability deployment.
+
+### Active/passive DR deployment
+
+For step-by-step instructions on setting up Mattermost in an active/passive DR configuration across two data centers, including how to replicate the database, file storage, and search indices, and how to perform a failover, see the platform-specific guide:
+
+### Failover from Single Sign-On outage
+
+When using Single Sign-on with Mattermost Enterprise Edition, an outage to your SSO provider can cause a partial outage on your Mattermost instance.
+
+**What happens during an SSO outage?**
+
+- **Most people can still log in.** By default, when a user logs in to Mattermost they receive a session token lasting 30 days (the duration can be configured in the System Console). During an SSO outage, users with valid session tokens can continue using Mattermost uninterrupted.
+- **Some people can't log in.** During an SSO outage, there are two situations under which a user cannot log in:
+  - Users whose session token expires during the outage.
+  - Users trying to log in to new devices.
+
+In each case, the user cannot reach the SSO provider, and cannot log in. In either case, several mitigations are available:
+
+#### Configure your SSO provider for High Availability
+
+If you're using a self-hosted Single Sign-on provider, several options are available for [High Availability configurations that protect your system from unplanned outages](https://learn.microsoft.com/en-us/microsoft-identity-manager/pam/high-availability-disaster-recovery-considerations-bastion-environment).
+
+For SaaS-based authentication providers, while you still have a dependency on service uptime, you can set up redundancy in source systems from which data is being pulled. For example, with the OneLogin SaaS-based authentication service, you can set up High Availability LDAP connectivity to further reduce the chances of an outage.
+
+#### Set up your own IDP to provide an automated or manual SSO failover option
+
+Create a custom Identity Provider for SAML authentication that connects to both an active and a standby authentication option, that can be manually or automatically switched in case of an outage.
+
+In this configuration, security should be carefully reviewed to prevent the standby SSO option from weakening your authentication protocols.
+
+#### Set up a manual failover plan for SSO outages
+
+When users are unable to reach your organization's SSO provider during an outage, an error message directing them to contact your support link (defined in your System Console settings) is displayed.
+
+Once IT is contacted about an SSO outage, they can temporarily change a user's account from SSO to email-password using the System Console, and the end user can use their email and password to claim the account until the SSO outage is over and the account can be converted back to SSO.
+
+When the outage is over, it's critical to switch everyone back to SSO from email-password to maintain consistency and security.

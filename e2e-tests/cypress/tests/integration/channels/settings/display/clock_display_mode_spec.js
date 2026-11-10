@@ -11,7 +11,7 @@
 
 import moment from 'moment-timezone';
 
-import * as DATE_TIME_FORMAT from '../../../../fixtures/date_time_format';
+import * as DATE_TIME_FORMAT from '@/fixtures/date_time_format';
 
 describe('Settings > Display > Clock Display Mode', () => {
     const mainMessage = 'Test for clock display mode';

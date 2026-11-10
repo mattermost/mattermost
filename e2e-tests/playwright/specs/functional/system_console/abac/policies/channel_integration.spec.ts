@@ -68,7 +68,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await enableABAC(systemConsolePage.page);
 
         // Create policy without channels (we'll link via Channel Config)
-        const policyName = `Channel Config Policy ${await pw.random.id()}`;
+        const policyName = `Channel Config Policy ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -107,13 +107,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // STEP 3: Toggle on "Enable attribute based channel access"
         // ============================================================
 
-        const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
-        await abacToggle.waitFor({state: 'visible', timeout: 5000});
-
-        const isEnabled = await abacToggle.getAttribute('aria-pressed');
-        if (isEnabled !== 'true') {
-            await abacToggle.click();
-        }
+        await systemConsolePage.channelDetail.enablePolicyEnforcement();
         await systemConsolePage.page.waitForTimeout(500);
 
         // ============================================================
@@ -127,9 +121,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForTimeout(500);
 
         // Select policy in modal
-        const modal = systemConsolePage.page
-            .locator('[role="dialog"]')
-            .filter({hasText: 'Select an Access Control Policy'});
+        const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
 
         const modalSearch = modal.locator('[data-testid="searchInput"]');
@@ -149,8 +141,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // ============================================================
         await systemConsolePage.page.waitForTimeout(2000);
         await navigateToABACPage(systemConsolePage.page);
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, jobId1);
 
         // ============================================================
         // VERIFY: Channel membership
@@ -224,7 +216,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await navigateToABACPage(page);
         await enableABAC(page);
 
-        const policyName = `ABAC-GroupSync-Test-${await pw.random.id()}`;
+        const policyName = `ABAC-GroupSync-Test-${pw.random.id()}`;
         await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',
@@ -239,7 +231,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // This works without LDAP configuration
         // ===========================================
 
-        const groupSyncChannelName = `ABAC-GroupSync-${await pw.random.id()}`;
+        const groupSyncChannelName = `ABAC-GroupSync-${pw.random.id()}`;
         const groupSyncChannel = await adminClient.createChannel({
             team_id: team.id,
             name: groupSyncChannelName.toLowerCase().replace(/[^a-z0-9]/g, ''),
@@ -279,7 +271,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
-        const abacToggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const abacToggle = systemConsolePage.channelDetail.policyEnforceSwitch.input;
         const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleWithGroupSync).toBe(false);
@@ -297,8 +289,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // Verify ABAC toggle is now available
-        const abacToggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
-        const abacVisibleAfterDisable = await abacToggleAfter.isVisible({timeout: 5000}).catch(() => false);
+        const abacVisibleAfterDisable = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleAfterDisable).toBe(true);
 

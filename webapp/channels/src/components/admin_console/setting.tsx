@@ -11,7 +11,7 @@ export type Props = {
     children?: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
-}
+};
 
 const Settings = ({children, setByEnv, helpText, inputId, label}: Props) => {
     return (

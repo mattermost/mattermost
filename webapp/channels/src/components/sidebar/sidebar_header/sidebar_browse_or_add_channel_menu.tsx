@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -13,6 +13,7 @@ import {
     GlobeIcon,
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
@@ -22,8 +23,17 @@ import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
+
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
+
+const BrowseOrAddChannelMenuTrigger = Menu.createMenuIconButtonTrigger({
+    size: 'small',
+    style: 'inverted',
+    rounded: true,
+    className: 'browseOrAddChannelMenuTrigger',
+});
 
 type Props = {
     canCreateChannel: boolean;
@@ -157,8 +167,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     );
 
     let pluggableMenuItems: JSX.Element[] = [];
+    let afterCreateChannelMenuItems: JSX.Element[] = [];
     if (pluginMenuItems) {
-        pluggableMenuItems = pluginMenuItems.map((item) => {
+        const toMenuItem = (item: SidebarBrowseOrAddChannelMenuAction) => {
             const handlePluginItemClick = () => {
                 if (item.action) {
                     item.action(currentTeamId);
@@ -174,7 +185,9 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     labels={<span>{item.text}</span>}
                 />
             );
-        });
+        };
+        afterCreateChannelMenuItems = pluginMenuItems.filter((item) => item.placement === 'afterCreateChannel').map(toMenuItem);
+        pluggableMenuItems = pluginMenuItems.filter((item) => item.placement !== 'afterCreateChannel').map(toMenuItem);
     }
 
     return (
@@ -185,8 +198,8 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
                     id: 'sidebarLeft.browserOrCreateChannelMenuButton.label',
                     defaultMessage: 'Browse or create channels',
                 }),
-                class: 'btn btn-icon btn-sm btn-tertiary btn-inverted btn-round',
-                children: <PlusIcon size={18}/>,
+                as: BrowseOrAddChannelMenuTrigger,
+                children: <Icon glyph={<PlusIcon/>}/>,
             }}
             menuButtonTooltip={{
                 text: formatMessage({id: 'sidebarLeft.browserOrCreateChannelMenuButton.label', defaultMessage: 'Browse or create channels'}),
@@ -197,6 +210,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             }}
         >
             {createNewChannelMenuItem}
+            {afterCreateChannelMenuItems}
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}

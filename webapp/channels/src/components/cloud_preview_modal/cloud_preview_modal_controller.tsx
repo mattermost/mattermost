@@ -5,6 +5,8 @@ import React, {useState, useEffect, lazy} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -13,7 +15,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
-import WithTooltip from 'components/with_tooltip';
 
 import {useGetCloudPreviewModalContent} from 'hooks/useGetCloudPreviewModalContent';
 
@@ -25,6 +26,9 @@ import {modalContent} from './preview_modal_content_data';
 import './cloud_preview_modal.scss';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
+
+// Teams without their own slides get this use case's slides.
+const DEFAULT_USE_CASE = 'mission-ops';
 
 // Lazy load the controller component and content data together
 const PreviewModalController = makeAsyncComponent(
@@ -52,7 +56,8 @@ const CloudPreviewModal: React.FC = () => {
     const {data: dynamicModalContent, loading: contentLoading} = useGetCloudPreviewModalContent();
 
     const filteredContentByUseCase = React.useCallback((content: PreviewModalContentData[]) => {
-        return content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
+        const forTeam = content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
+        return forTeam.length > 0 ? forTeam : content.filter((content) => content.useCase === DEFAULT_USE_CASE);
     }, [team?.name]);
 
     useEffect(() => {

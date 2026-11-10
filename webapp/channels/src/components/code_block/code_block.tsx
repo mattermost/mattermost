@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {lazy, Suspense, useCallback, useContext, useEffect, useMemo, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import CopyButton from 'components/copy_button';
+import MarkdownToggleContext, {MarkdownPostIdContext} from 'components/markdown_view_toggle/markdown_toggle_context';
+import MarkdownViewToggle from 'components/markdown_view_toggle/markdown_view_toggle';
+import {useMarkdownView} from 'components/markdown_view_toggle/use_markdown_view';
+import WrappedCodeLines from 'components/wrapped_code_lines';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
+import {MARKDOWN_SOURCE_ATTRIBUTE, MarkdownViews} from 'utils/constants';
+import {isLikelyMarkdown} from 'utils/is_likely_markdown';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
 
@@ -16,10 +22,16 @@ type Props = {
     code: string;
     language: string;
     searchedContent?: string;
-    channelId?: string;
-}
+};
 
-const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}: Props) => {
+// Loaded lazily because Markdown reaches this file again through the LaTeX block, and a static import would make that cycle
+// fail to initialise whenever the LaTeX block is the first module loaded
+const Markdown = lazy(() => import('components/markdown'));
+
+const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) => {
+    const toggleAllowed = useContext(MarkdownToggleContext);
+    const postId = useContext(MarkdownPostIdContext);
+
     const getUsedLanguage = useCallback(() => {
         let usedLanguage = language || '';
         usedLanguage = usedLanguage.toLowerCase();
@@ -38,14 +50,30 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
     const usedLanguage = getUsedLanguage();
 
+    // Untagged blocks are checked too, but an explicit other language is respected
+    const detectedMarkdown = useMemo(() => !usedLanguage && isLikelyMarkdown(code), [usedLanguage, code]);
+
+    const isMarkdownSource = SyntaxHighlighting.isMarkdownLanguage(usedLanguage) || detectedMarkdown;
+
+    // Search results highlight matches in the source, which rendering would lose, so they stay raw
+    const canToggleMarkdown = toggleAllowed && !searchedContent && isMarkdownSource;
+
+    const [markdownView, setMarkdownView] = useMarkdownView('code_block');
+    const showRendered = canToggleMarkdown && markdownView === MarkdownViews.RENDERED;
+
+    // Markdown is prose, so wrap it, with a number on each line rather than one column that wrapped lines would knock out of step.
+    // Search highlighting is a second copy of the code laid over the first, so searched blocks keep the plain layout.
+    const numberWrappedLines = isMarkdownSource && !searchedContent;
+    const wrapLines = !usedLanguage || numberWrappedLines;
+
     let className = 'post-code';
-    if (!usedLanguage) {
+    if (wrapLines) {
         className += ' post-code--wrap';
     }
 
     let header: JSX.Element = <></>;
     let lineNumbers: JSX.Element = <></>;
-    if (SyntaxHighlighting.canHighlight(usedLanguage)) {
+    if (SyntaxHighlighting.canHighlightCode(usedLanguage, code)) {
         header = (
             <span className='post-code__language'>
                 {SyntaxHighlighting.getLanguageName(usedLanguage)}
@@ -84,9 +112,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channelId);
-
-    const pluginItems = pluginItemsVisible ? codeBlockActions?.
+    const pluginItems = codeBlockActions?.
         map((item) => {
             if (!item.component) {
                 return null;
@@ -94,24 +120,58 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent, channelId}
 
             const Component = item.component as any;
             return (
-                <Component
+                <PluggableErrorBoundary
                     key={item.id}
-                    code={code}
-                />
+                    pluginId={item.pluginId}
+                >
+                    <Component
+                        code={code}
+                    />
+                </PluggableErrorBoundary>
             );
-        }) : [];
+        });
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            {...(showRendered ? {[MARKDOWN_SOURCE_ATTRIBUTE]: code} : {})}
+        >
             <div className='post-code__overlay'>
+                {canToggleMarkdown && (
+                    <MarkdownViewToggle
+                        className='post-code__markdown-toggle'
+                        size='compact'
+                        view={showRendered ? MarkdownViews.RENDERED : MarkdownViews.RAW}
+                        onChange={setMarkdownView}
+                    />
+                )}
                 <CopyButton content={code}/>
                 {pluginItems}
                 {header}
             </div>
-            <div className='hljs'>
-                {lineNumbers}
-                <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
-            </div>
+            {showRendered ? (
+                <div className='post-code__rendered'>
+                    <MarkdownToggleContext.Provider value={false}>
+                        <Suspense fallback={null}>
+                            <Markdown
+                                message={code}
+                                postId={postId}
+                            />
+                        </Suspense>
+                    </MarkdownToggleContext.Provider>
+                </div>
+            ) : (
+                <div className='hljs'>
+                    {numberWrappedLines ? (
+                        <WrappedCodeLines html={htmlContent}/>
+                    ) : (
+                        <>
+                            {lineNumbers}
+                            <code dangerouslySetInnerHTML={{__html: htmlContent}}/>
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

@@ -16,7 +16,7 @@ type OwnProps = {
     location: {
         search: string | string[][] | Record<string, string> | URLSearchParams | undefined;
     };
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);

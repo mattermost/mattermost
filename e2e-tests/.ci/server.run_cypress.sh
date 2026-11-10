@@ -18,6 +18,27 @@ firefox:         $(firefox --version || true)
 INNEREOF
 EOF
 
+mme2e_log "Prepare Cypress: ensure container user entry exists for UID $MME2E_UID"
+${MME2E_DC_SERVER} exec -T -- cypress bash <<EOF
+getent passwd $MME2E_UID >/dev/null 2>&1 || \
+  useradd --uid $MME2E_UID --gid 0 --home /root --no-create-home --shell /bin/bash mme2euser 2>/dev/null || true
+EOF
+
+mme2e_log "Prepare Cypress: install dependencies"
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF
+npm install --cache /tmp/empty-cache
+EOF
+# cypress install verifies the Electron binary, which needs a display and dbus session.
+# Use xvfb-run and dbus-run-session for the headless virtual display and bus.
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<'EOF'
+set -euo pipefail
+Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp &
+XVFB_PID=$!
+trap 'kill "$XVFB_PID" 2>/dev/null || true' EXIT
+sleep 1
+DISPLAY=:99 dbus-run-session -- cypress install
+EOF
+
 # Initialize cypress report directory
 mme2e_log "Prepare Cypress: clean and initialize report and logs directory"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<EOF

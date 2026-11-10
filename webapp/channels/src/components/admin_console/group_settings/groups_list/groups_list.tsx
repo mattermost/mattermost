@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {LinkVariantIcon, LinkVariantOffIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
+import PaginationButtons from 'components/common/pagination_buttons';
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
 import {Constants} from 'utils/constants';
@@ -28,24 +30,24 @@ type Props = {
         link: (key: string) => Promise<ActionResult>;
         unlink: (key: string) => Promise<ActionResult>;
     };
-}
+};
 
 type FilterOption = {
     is_configured?: boolean;
     is_linked?: boolean;
-}
+};
 
 type FilterConfig = {
     filter: string;
     option: FilterOption;
-}
+};
 
 type FilterSearchMap = {
     filterIsConfigured: FilterConfig;
     filterIsUnconfigured: FilterConfig;
     filterIsLinked: FilterConfig;
     filterIsUnlinked: FilterConfig;
-}
+};
 
 type State = {
     checked?: any;
@@ -58,7 +60,7 @@ type State = {
     filterIsUnconfigured?: boolean;
     filterIsLinked?: boolean;
     filterIsUnlinked?: boolean;
-}
+};
 
 type FilterUpdates = [string, boolean];
 
@@ -69,7 +71,7 @@ const FILTER_STATE_SEARCH_KEY_MAPPING: FilterSearchMap = {
     filterIsUnlinked: {filter: 'is:notlinked', option: {is_linked: false}},
 };
 
-export default class GroupsList extends React.PureComponent<Props, State> {
+class GroupsList extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
         groups: [],
     };
@@ -157,47 +159,47 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         switch (this.selectionActionButtonType()) {
         case 'link':
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={() => this.linkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon fa fa-link'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
                     />
-                </button>
+                </Button>
             );
         case 'unlink':
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={() => this.unlinkSelectedGroups()}
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantOffIcon/>}/>}
                 >
-                    <i className='icon fa fa-unlink'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.unlink_selected'
                         defaultMessage='Unlink Selected Groups'
                     />
-                </button>
+                </Button>
             );
         default:
             return (
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     disabled={this.props.readOnly}
+                    leadingIcon={<Icon glyph={<LinkVariantIcon/>}/>}
                 >
-                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
                     />
-                </button>
+                </Button>
             );
         }
     }
@@ -361,73 +363,66 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                 }}
             >
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsLinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsLinked', !this.state.filterIsLinked], ['filterIsUnlinked', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsLinked)}
+                        onChange={() => this.handleFilterCheck([['filterIsLinked', !this.state.filterIsLinked], ['filterIsUnlinked', false]])}
                     >
-                        {this.state.filterIsLinked && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isLinked'
                             defaultMessage='Is Linked'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsUnlinked ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnlinked', !this.state.filterIsUnlinked], ['filterIsLinked', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsUnlinked)}
+                        onChange={() => this.handleFilterCheck([['filterIsUnlinked', !this.state.filterIsUnlinked], ['filterIsLinked', false]])}
                     >
-                        {this.state.filterIsUnlinked && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isUnlinked'
                             defaultMessage='Is Not Linked'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsConfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsConfigured', !this.state.filterIsConfigured], ['filterIsUnconfigured', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsConfigured)}
+                        onChange={() => this.handleFilterCheck([['filterIsConfigured', !this.state.filterIsConfigured], ['filterIsUnconfigured', false]])}
                     >
-                        {this.state.filterIsConfigured && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isConfigured'
                             defaultMessage='Is Configured'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
                 <div className='filter-row'>
-                    <span
-                        className={'filter-check ' + (this.state.filterIsUnconfigured ? 'checked' : '')}
-                        onClick={() => this.handleFilterCheck([['filterIsUnconfigured', !this.state.filterIsUnconfigured], ['filterIsConfigured', false]])}
+                    <Checkbox
+                        className='filter-check'
+                        checked={Boolean(this.state.filterIsUnconfigured)}
+                        onChange={() => this.handleFilterCheck([['filterIsUnconfigured', !this.state.filterIsUnconfigured], ['filterIsConfigured', false]])}
                     >
-                        {this.state.filterIsUnconfigured && <CheckboxCheckedIcon/>}
-                    </span>
-                    <span>
                         <FormattedMessage
                             id='admin.group_settings.filters.isUnconfigured'
                             defaultMessage='Is Not Configured'
                         />
-                    </span>
+                    </Checkbox>
                 </div>
-                <a
+                <Button
                     onClick={() => {
                         this.setState({page: 0});
                         this.searchGroups(0);
                     }}
-                    className='btn btn-primary search-groups-btn'
+                    emphasis='primary'
+                    className='search-groups-btn'
                 >
                     <FormattedMessage
                         id='search_bar.search'
                         defaultMessage='Search'
                     />
-                </a>
+                </Button>
             </div>
         );
     }
@@ -466,7 +461,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         const lastPage = endCount === total;
         const firstPage = this.state.page === 0;
         return (
-            <div className='groups-list'>
+            <div className='groups-list groups-list-less-padding'>
                 <div className='groups-list--global-actions'>
                     <div className='group-list-search'>
                         <LocalizedPlaceholderInput
@@ -517,22 +512,14 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <button
-                            type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
-                            onClick={(e: any) => this.previousPage(e)}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </button>
-                        <button
-                            type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
-                            onClick={(e: any) => this.nextPage(e)}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </button>
+                        <PaginationButtons
+                            onPrevious={(e) => this.previousPage(e)}
+                            onNext={(e) => this.nextPage(e)}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                            previousButtonTestId='page-link-prev'
+                            nextButtonTestId='page-link-next'
+                        />
                     </div>
                 }
             </div>
@@ -540,3 +527,4 @@ export default class GroupsList extends React.PureComponent<Props, State> {
     }
 }
 
+export default GroupsList;

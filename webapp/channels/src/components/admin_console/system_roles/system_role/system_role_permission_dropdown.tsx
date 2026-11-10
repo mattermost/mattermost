@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
@@ -20,7 +20,7 @@ type Props = {
     access: MixedAccess | ReadAccess | NoAccess | WriteAccess;
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     isDisabled?: boolean;
-}
+};
 
 export default class SystemRolePermissionDropdown extends React.PureComponent<Props> {
     updatePermission = (value: PermissionAccess) => {
@@ -129,7 +129,10 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                     type='button'
                     aria-expanded='true'
                 >
-                    <div className='PermissionSectionDropdownButton_text'>
+                    <div
+                        className='PermissionSectionDropdownButton_text'
+                        data-testid='permissionDropdownButton-text'
+                    >
                         {currentAccess}
                     </div>
                     <div className='PermissionSectionDropdownButton_icon'>

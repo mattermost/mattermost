@@ -30,13 +30,14 @@ type Props = {
     label?: string;
     icon?: React.ReactNode;
     value?: string;
-}
+};
 
 const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenState, locale, label, icon, value}: Props) => {
     const [loadedLocales, setLoadedLocales] = useState<Record<string, Locale>>({});
     const {x, y, strategy, context, refs: {setReference, setFloating}} = useFloating({
         open: isPopperOpen,
         onOpenChange: () => handlePopperOpenState(false),
+        strategy: 'fixed',
         placement: 'bottom-start',
         whileElementsMounted: autoUpdate,
         middleware: [
@@ -105,6 +106,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                     initialFocus={-1}
                 >
                     <div
+                        data-testid='date-picker-popper'
                         ref={setFloating}
                         style={{
                             position: strategy,

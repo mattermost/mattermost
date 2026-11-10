@@ -1,0 +1,152 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.TeamMembershipTab {
+    display: flex;
+    max-height: 100%;
+    flex: 1;
+    flex-direction: column;
+    padding-bottom: 60px;
+    overflow-y: auto;
+
+    &__systemPolicies {
+        margin-bottom: 20px;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 16px;
+        gap: 8px;
+    }
+
+    &__title {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    &__subtitle {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__editor {
+        .table-editor__cell {
+            button {
+                color: var(--center-channel-color) !important;
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                }
+            }
+        }
+
+        .editor__help-text {
+            width: 75%;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__lockedRules {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__lockedNotice {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--button-bg-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 8px;
+        line-height: 20px;
+
+        .icon {
+            color: var(--button-bg);
+        }
+    }
+
+    &__lockedExpression {
+        display: block;
+        padding: 12px 16px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: var(--center-channel-color);
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    &__divider {
+        border: none;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        margin: 24px 0;
+    }
+
+    &__autoAddSection {
+        margin-bottom: 16px;
+    }
+
+    &__autoAddCheckboxContainer {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 8px;
+    }
+
+    &__autoAddCheckbox {
+        margin: 0;
+        user-select: none;
+    }
+
+    &__autoAddText {
+        color: var(--center-channel-color);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+
+        &.disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.5);
+            cursor: not-allowed;
+        }
+    }
+
+    &__autoAddDescription {
+        margin: 0 0 0 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__confirmMessage {
+        p {
+            margin-bottom: 8px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__emptyTeamWarning {
+        color: var(--error-text);
+        font-weight: 600;
+    }
+
+    .SyncStatusFooter {
+        margin-top: 16px;
+    }
+}

@@ -4,16 +4,26 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {
+    ArrowBackIosIcon,
+    ArrowCollapseIcon,
+    ArrowExpandIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import FollowButton from 'components/threading/common/follow_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
@@ -165,15 +175,13 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <WithTooltip
                     title={backToResultsTooltip}
                 >
-                    <button
-                        className='sidebar--right__back btn btn-icon btn-sm'
+                    <IconButton
+                        size='small'
+                        className='sidebar--right__back'
+                        icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
                         onClick={this.handleBack}
                         aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
-                    >
-                        <i
-                            className='icon icon-arrow-back-ios'
-                        />
-                    </button>
+                    />
                 </WithTooltip>
             );
         }
@@ -183,15 +191,17 @@ class RhsHeaderPost extends React.PureComponent<Props> {
 
         return (
             <div className='sidebar--right__header'>
-                <span
+                <div
                     className='sidebar--right__title'
                     id='rhsPanelTitle'
                 >
                     {back}
-                    <FormattedMessage
-                        id='rhs_header.details'
-                        defaultMessage='Thread'
-                    />
+                    <span className='sidebar--right__title__heading'>
+                        <FormattedMessage
+                            id='rhs_header.details'
+                            defaultMessage='Thread'
+                        />
+                    </span>
                     {channelName &&
                         <button
                             onClick={this.handleJumpClick}
@@ -200,12 +210,18 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             {channelName}
                         </button>
                     }
-                </span>
+                    <ChannelAttributeLabels
+                        channelId={this.props.channel.id}
+                        surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
+                        allowEmptyVisible={true}
+                    />
+                </div>
                 <div className='controls'>
                     {this.props.isCollapsedThreadsEnabled ? (
                         <FollowButton
                             className='sidebar--right__follow__thread'
                             isFollowing={isFollowingThread}
+                            iconOnly={true}
                             onClick={this.handleFollowChange}
                         />
                     ) : null}
@@ -213,36 +229,26 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >
-                        <button
-                            type='button'
-                            className='sidebar--right__expand btn btn-icon btn-sm'
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__expand'
+                            icon={<Icon glyph={this.props.isExpanded ? <ArrowCollapseIcon/> : <ArrowExpandIcon/>}/>}
                             aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
-                        >
-                            <i
-                                className='icon icon-arrow-expand'
-                            />
-                            <i
-                                className='icon icon-arrow-collapse'
-                            />
-                        </button>
+                        />
                     </WithTooltip>
 
                     <WithTooltip
                         title={closeSidebarTooltip}
                     >
-                        <button
+                        <IconButton
                             id='rhsCloseButton'
-                            type='button'
-                            className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            size='small'
+                            className='sidebar--right__close'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                             onClick={this.props.closeRightHandSide}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                            />
-                        </button>
+                        />
                     </WithTooltip>
                 </div>
             </div>

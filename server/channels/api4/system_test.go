@@ -10,10 +10,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
+	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
 func TestGetPing(t *testing.T) {
@@ -67,9 +70,9 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the environment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
-		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		// Feature flags in ping response come from env var overrides, not config.
+		// Must use real env vars + ReloadConfig to test this path.
+		t.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
@@ -153,27 +156,27 @@ func TestEmailTest(t *testing.T) {
 	es := model.EmailSettings{}
 	es.SetDefaults(false)
 
-	es.SMTPServer = model.NewPointer("")
-	es.SMTPPort = model.NewPointer("")
-	es.SMTPPassword = model.NewPointer("")
-	es.FeedbackName = model.NewPointer("")
-	es.FeedbackEmail = model.NewPointer("some-addr@test.com")
-	es.ReplyToAddress = model.NewPointer("some-addr@test.com")
-	es.ConnectionSecurity = model.NewPointer("")
-	es.SMTPUsername = model.NewPointer("")
-	es.EnableSMTPAuth = model.NewPointer(false)
-	es.SkipServerCertificateVerification = model.NewPointer(true)
-	es.SendEmailNotifications = model.NewPointer(false)
-	es.SMTPServerTimeout = model.NewPointer(15)
+	es.SMTPServer = new("")
+	es.SMTPPort = new("")
+	es.SMTPPassword = new("")
+	es.FeedbackName = new("")
+	es.FeedbackEmail = new("some-addr@test.com")
+	es.ReplyToAddress = new("some-addr@test.com")
+	es.ConnectionSecurity = new("")
+	es.SMTPUsername = new("")
+	es.EnableSMTPAuth = new(false)
+	es.SkipServerCertificateVerification = new(true)
+	es.SendEmailNotifications = new(false)
+	es.SMTPServerTimeout = new(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer(""),
+			SiteURL: new(""),
 		},
 		EmailSettings: es,
 		FileSettings: model.FileSettings{
 			DriverName: model.NewPointer(model.ImageDriverLocal),
-			Directory:  model.NewPointer(dir),
+			Directory:  new(dir),
 		},
 	}
 
@@ -417,20 +420,47 @@ func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
 	for i := range 20 {
-		th.TestLogger.Info(strconv.Itoa(i))
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
@@ -459,6 +489,135 @@ func TestGetLogs(t *testing.T) {
 	_, resp, err = th.Client.GetLogs(context.Background(), 0, 10)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 5)
+	for i := range 5 {
+		message := fmt.Sprintf("querylogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
+	}
+	require.NoError(t, th.TestLogger.Flush(), "failed to flush log")
+
+	containsAllMessages := func(combined string) bool {
+		for _, expected := range expectedMessages {
+			if !strings.Contains(combined, expected) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// waitForFilteredLogs queries with the filter, asserting a successful response, and
+	// polls until the expected messages appear (log availability after Flush is
+	// asynchronous). It returns the per-node lines from the last response.
+	waitForFilteredLogs := func(t *testing.T, filter *model.LogFilter) map[string][]json.RawMessage {
+		t.Helper()
+		var nodes map[string][]json.RawMessage
+		require.Eventually(t, func() bool {
+			decoded, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, filter)
+			if err != nil {
+				return false
+			}
+
+			var combined strings.Builder
+			for _, lines := range decoded {
+				for _, line := range lines {
+					combined.Write(line)
+				}
+			}
+			if !containsAllMessages(combined.String()) {
+				return false
+			}
+			nodes = decoded
+			return true
+		}, 5*time.Second, 25*time.Millisecond, "expected logged messages to be returned")
+		return nodes
+	}
+
+	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{DateFrom: "", DateTo: ""})
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("valid bounds are accepted and still return matching logs", func(t *testing.T) {
+		filter := &model.LogFilter{
+			DateFrom: "2000-01-01 00:00:00.000 +00:00",
+			DateTo:   "2100-01-01 00:00:00.000 +00:00",
+		}
+		nodes := waitForFilteredLogs(t, filter)
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("a filter matching nothing keeps the node key with an empty array", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "2100-01-01 00:00:00.000 +00:00"})
+		require.NoError(t, err)
+		require.Contains(t, nodes, "default")
+		assert.NotNil(t, nodes["default"], "expected [] rather than null")
+		assert.Empty(t, nodes["default"])
+	})
+
+	t.Run("server_names without the local node returns no entries", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"unknown"}})
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("server_names default returns only the local node", func(t *testing.T) {
+		nodes, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{ServerNames: []string{"default", "unknown"}})
+		require.NoError(t, err)
+		assert.Equal(t, []string{"default"}, slices.Collect(maps.Keys(nodes)))
+	})
+
+	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_from.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("malformed date_to is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_to.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("null filter is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, nil)
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("undecodable filter is rejected with 400", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/logs/query", "{")
+		CheckErrorID(t, err, "api.system.logs.invalidFilter")
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("search returns only matching entries, ignoring case", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{Search: strings.ToUpper("querylogs_verify_" + testID)})
+		require.Len(t, nodes["default"], len(expectedMessages))
+		for _, line := range nodes["default"] {
+			assert.Contains(t, string(line), testID)
+		}
+	})
+
+	t.Run("overlong search is rejected with 400", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{Search: strings.Repeat("a", model.LogFilterSearchMaxLength+1)})
+		CheckErrorID(t, err, "model.log_filter.is_valid.search.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-admin is forbidden", func(t *testing.T) {
+		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDownloadLogs(t *testing.T) {
@@ -641,11 +800,11 @@ func TestS3TestConnection(t *testing.T) {
 	fs.DriverName = model.NewPointer(model.ImageDriverS3)
 	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
 	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewPointer("")
-	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-	fs.AmazonS3Region = model.NewPointer("")
-	fs.AmazonS3PathPrefix = model.NewPointer("")
-	fs.AmazonS3SSL = model.NewPointer(false)
+	fs.AmazonS3Bucket = new("")
+	fs.AmazonS3Endpoint = new(s3Endpoint)
+	fs.AmazonS3Region = new("")
+	fs.AmazonS3PathPrefix = new("")
+	fs.AmazonS3SSL = new(false)
 
 	config := model.Config{
 		FileSettings: fs,
@@ -664,26 +823,26 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		config.FileSettings.AmazonS3PathPrefix = new("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Region = model.NewPointer("")
+		config.FileSettings.AmazonS3Region = new("")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
+		config.FileSettings.AmazonS3Bucket = new("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 	})
 
 	t.Run("with incorrect credentials", func(t *testing.T) {
@@ -691,15 +850,391 @@ func TestS3TestConnection(t *testing.T) {
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_auth.app_error")
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_settings_nil.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("desanitizes FakeSetting using running config", func(t *testing.T) {
+		// Seed the running config with valid Minio credentials so the
+		// running config's AmazonS3SecretAccessKey is the real secret.
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+			c.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+			c.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+			c.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+			c.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+			c.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+			c.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+			c.FileSettings.AmazonS3SSL = model.NewPointer(false)
+		})
+
+		// Build a request body that mirrors what the System Console sends
+		// after the admin clicks Test Connection without re-entering the
+		// secret: every field present, but the secret slot is the
+		// FakeSetting placeholder.
+		body := model.Config{FileSettings: model.FileSettings{}}
+		body.FileSettings.SetDefaults(false)
+		body.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+		body.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		body.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+		body.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+		body.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		body.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+		body.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		body.FileSettings.AmazonS3SSL = model.NewPointer(false)
+
+		// If desanitize is not running, the server tests with the literal
+		// "********" string as the secret and Minio returns a 403 auth
+		// error. A 200 here proves the placeholder was swapped for the
+		// real running-config value before the connection test.
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &body)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("unsupported driver", func(t *testing.T) {
+		unsupported := model.FileSettings{}
+		unsupported.SetDefaults(false)
+		unsupported.DriverName = model.NewPointer("bogus")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: unsupported})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("empty driver name", func(t *testing.T) {
+		empty := model.FileSettings{}
+		empty.SetDefaults(false)
+		empty.DriverName = model.NewPointer("")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: empty})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("azure missing mandatory fields", func(t *testing.T) {
+		// CheckMandatoryAzureFields rejects requests that don't carry an
+		// Azure storage account, container, and access key. Each missing
+		// field path must produce the same 400 with the dedicated error
+		// ID so admins get a clear signal in the System Console toast.
+		base := model.FileSettings{}
+		base.SetDefaults(false)
+		base.DriverName = model.NewPointer(model.ImageDriverAzure)
+
+		cases := []struct {
+			name string
+			mut  func(*model.FileSettings)
+		}{
+			{"missing storage account", func(fs *model.FileSettings) {
+				fs.AzureContainer = model.NewPointer("mattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing container", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing access key", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureContainer = model.NewPointer("mattermost")
+			}},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				fs := base
+				tc.mut(&fs)
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+	})
+
+	t.Run("with experimental admin setting", func(t *testing.T) {
+		dir := t.TempDir()
+
+		fs := model.FileSettings{}
+		fs.SetDefaults(false)
+		fs.DriverName = model.NewPointer(model.ImageDriverLocal)
+		fs.Directory = model.NewPointer(dir)
+
+		th.LoginSystemManager(t)
+
+		// User with the file-connection role, separate from the built-in admin and manager users.
+		holder := th.CreateUserWithClient(t, th.SystemAdminClient)
+		require.NotNil(t, holder)
+		roleName := "file_store_" + strings.ToLower(model.NewId())
+		role, appErr := th.App.CreateRole(&model.Role{
+			Name:        roleName,
+			DisplayName: "file store",
+			Permissions: []string{model.PermissionTestS3.Id},
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.DeleteRole(role.Id)
+		})
+		_, appErr = th.App.UpdateUserRoles(th.Context, holder.Id, model.SystemUserRoleId+" "+role.Name, false)
+		require.Nil(t, appErr)
+		holderClient := th.CreateClient()
+		_, _, loginErr := holderClient.Login(context.Background(), holder.Email, holder.Password)
+		require.NoError(t, loginErr)
+
+		s3Settings := model.FileSettings{}
+		s3Settings.SetDefaults(false)
+		s3Settings.DriverName = model.NewPointer(model.ImageDriverS3)
+		s3Settings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		s3Settings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+		s3Settings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+		s3Settings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		s3Settings.AmazonS3Region = model.NewPointer("us-east-1")
+		s3Settings.AmazonS3PathPrefix = model.NewPointer("")
+		s3Settings.AmazonS3SSL = model.NewPointer(false)
+		s3Body := &model.Config{FileSettings: s3Settings}
+
+		emptyBody := ""
+		nullFileSettings := `{"FileSettings":null}`
+		emptyFileSettings := `{"FileSettings":{}}`
+
+		originalRestrictSystemAdminVal := *th.App.Config().ExperimentalSettings.RestrictSystemAdmin
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ExperimentalSettings.RestrictSystemAdmin = originalRestrictSystemAdminVal
+			})
+		})
+
+		cases := []struct {
+			name     string
+			restrict bool
+			client   *model.Client4
+			call     func(*model.Client4, context.Context, *model.Config) (*model.Response, error)
+			body     *model.Config
+			rawBody  *string
+			rawRoute string
+			wantOK   bool
+		}{
+			{
+				name:     "as restricted system admin",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system manager",
+				restrict: true,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system manager with file store connection",
+				restrict: true,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   false,
+			},
+			{
+				name:     "as system manager",
+				restrict: false,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   true,
+			},
+			{
+				name:     "as system manager with file store connection",
+				restrict: false,
+				client:   th.SystemManagerClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   true,
+			},
+			{
+				name:     "as restricted file store user",
+				restrict: true,
+				client:   holderClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted file store user with file store connection",
+				restrict: true,
+				client:   holderClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   false,
+			},
+			{
+				name:     "as file store user",
+				restrict: false,
+				client:   holderClient,
+				call:     (*model.Client4).TestS3Connection,
+				wantOK:   true,
+			},
+			{
+				name:     "as file store user with file store connection",
+				restrict: false,
+				client:   holderClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				wantOK:   true,
+			},
+			{
+				name:     "as restricted system admin with amazons3 settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestS3Connection,
+				body:     s3Body,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection and amazons3 settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				call:     (*model.Client4).TestFileStoreConnection,
+				body:     s3Body,
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with empty body",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &emptyBody,
+				rawRoute: "/file/s3_test",
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection and empty body",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &emptyBody,
+				rawRoute: "/file/test",
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with null file settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &nullFileSettings,
+				rawRoute: "/file/s3_test",
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection and null file settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &nullFileSettings,
+				rawRoute: "/file/test",
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with empty file settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &emptyFileSettings,
+				rawRoute: "/file/s3_test",
+				wantOK:   false,
+			},
+			{
+				name:     "as restricted system admin with file store connection and empty file settings",
+				restrict: true,
+				client:   th.SystemAdminClient,
+				rawBody:  &emptyFileSettings,
+				rawRoute: "/file/test",
+				wantOK:   false,
+			},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ExperimentalSettings.RestrictSystemAdmin = tc.restrict
+				})
+
+				var (
+					resp      *model.Response
+					err       error
+					absentDir string
+				)
+				if tc.rawBody != nil {
+					httpResp, postErr := tc.client.DoAPIPost(context.Background(), tc.rawRoute, *tc.rawBody)
+					resp = model.BuildResponse(httpResp)
+					err = postErr
+					if httpResp != nil && httpResp.Body != nil {
+						httpResp.Body.Close()
+					}
+				} else {
+					body := tc.body
+					if body == nil && !tc.wantOK {
+						absentDir = filepath.Join(t.TempDir(), "submitted")
+						settings := model.FileSettings{}
+						settings.SetDefaults(false)
+						settings.DriverName = model.NewPointer(model.ImageDriverLocal)
+						settings.Directory = model.NewPointer(absentDir)
+						body = &model.Config{FileSettings: settings}
+					} else if body == nil {
+						body = &model.Config{FileSettings: fs}
+					}
+					resp, err = tc.call(tc.client, context.Background(), body)
+				}
+				if tc.wantOK {
+					require.NoError(t, err)
+					CheckOKStatus(t, resp)
+					return
+				}
+
+				// Status for a non-local session while the experimental admin setting is on.
+				CheckForbiddenStatus(t, resp)
+				require.Error(t, err)
+				if absentDir != "" {
+					// A local connection attempt creates the submitted directory.
+					_, statErr := os.Stat(absentDir)
+					require.ErrorIs(t, statErr, os.ErrNotExist)
+				}
+			})
+		}
+
+		localHandler := &web.Handler{
+			Srv:         th.App.Srv(),
+			HandleFunc:  testFileStore,
+			HandlerName: "testFileStore",
+			IsLocal:     true,
+		}
+		localCases := []struct {
+			name string
+			path string
+		}{
+			{name: "as local session", path: "/api/v4/file/s3_test"},
+			{name: "as local session with file store connection", path: "/api/v4/file/test"},
+		}
+		for _, lc := range localCases {
+			t.Run(lc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ExperimentalSettings.RestrictSystemAdmin = true
+				})
+
+				payload, err := json.Marshal(&model.Config{FileSettings: fs})
+				require.NoError(t, err)
+
+				req := httptest.NewRequest(http.MethodPost, lc.path, bytes.NewReader(payload))
+				req.Header.Set("Content-Type", "application/json")
+				req.RemoteAddr = "@"
+				rr := httptest.NewRecorder()
+				localHandler.ServeHTTP(rr, req)
+
+				// Status for a local session while the experimental admin setting is on.
+				require.Equal(t, http.StatusOK, rr.Code)
+			})
+		}
 	})
 }
 
@@ -1067,7 +1602,7 @@ func TestCompleteOnboarding(t *testing.T) {
 		*cfg.PluginSettings.AllowInsecureDownloadURL = true
 	})
 
-	key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
+	key, err := os.Open(filepath.Join(path, "development-public-key.asc"))
 	require.NoError(t, err)
 	appErr := th.App.AddPublicKey("pub_key", key)
 	require.Nil(t, appErr)

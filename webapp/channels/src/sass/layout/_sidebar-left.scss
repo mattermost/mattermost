@@ -70,6 +70,19 @@ $sidebarOpacityAnimationDuration: 0.15s;
             color: inherit;
             cursor: inherit;
         }
+
+        .SidebarNavContainer:not(.disabled) .SidebarChannelGroup.SidebarChannelGroup--managedDropRejected {
+            cursor: not-allowed;
+
+            .SidebarChannelGroupHeader,
+            .SidebarChannelGroupHeader_groupButton,
+            .SidebarChannelGroupHeader_groupButton:hover,
+            .SidebarChannelGroupHeader_text,
+            .SidebarLink,
+            .SidebarChannel {
+                cursor: not-allowed;
+            }
+        }
     }
 
     .a11y--focused {
@@ -292,15 +305,16 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarFilters .SidebarFilters_filterButton {
-        display: block;
-        width: 28px;
-        height: 28px;
         border-radius: 4px;
         color: rgba(var(--sidebar-text-rgb), 0.64);
         font-size: 18px;
         font-weight: 400;
-        line-height: 26px;
-        text-align: center;
+    }
+
+    // As the product rail's filter menu, the button is a <button>; drop the browser's styling.
+    .SidebarFilters button.SidebarFilters_filterButton {
+        padding: 0;
+        border: none;
     }
 
     .SidebarFilters .SidebarFilters_filterButton:hover {
@@ -444,30 +458,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
-    .SidebarMenu_menuButton {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 16px;
-        line-height: 16px;
-
-        &:hover,
-        &:active,
-        &:focus {
-            color: var(--sidebar-text);
-            cursor: pointer;
-        }
-    }
-
-    .SidebarMenu_menuButton:focus {
-        outline-style: none;
-    }
-
     .SidebarNavContainer {
         position: relative;
         display: flex;
@@ -606,14 +596,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         transition: box-shadow 0.25s ease-in-out;
 
         .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
             margin: 2px 16px 2px 2px;
-
-            &:hover,
-            &:focus {
-                background-color: rgba(255, 255, 255, 0.08);
-            }
 
             &.sortingMenu {
                 margin: 0;
@@ -732,6 +715,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
                 padding-left: 0;
             }
         }
+
+        i.icon-folder-outline {
+            font-size: 14px;
+            +.SidebarChannelGroupHeader_text {
+                padding-left: 4px;
+            }
+        }
     }
 
     .SidebarChannelGroupHeader--static {
@@ -739,7 +729,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     button.SidebarChannelGroupHeader_groupButton > div {
-        // This overrides react-beautiful-dnd's grab cursor
+        // This overrides @hello-pangea/dnd's grab cursor
         cursor: pointer;
     }
 
@@ -830,27 +820,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannelGroupHeader_addButton {
         z-index: 1;
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
-        padding: 0;
-        border: none;
-        border-radius: 4px;
         margin: 2px 16px 2px 2px;
-        background: transparent;
-        color: rgba(var(--sidebar-text-rgb), 0.64);
-        font-size: 18px;
-        line-height: 16px;
-    }
-
-    .SidebarChannelGroupHeader_addButton:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: var(--sidebar-text);
-        cursor: pointer;
-    }
-
-    .SidebarChannelGroupHeader_addButton:focus {
-        outline-style: none;
     }
 
     .SidebarChannelGroupHeader_sortButton {
@@ -980,11 +950,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
-        .SidebarMenu_menuButton {
-            width: 28px;
-            height: 28px;
-        }
-
         .SidebarChannel__selectedCount {
             position: absolute;
             top: -8px;
@@ -1081,6 +1046,26 @@ $sidebarOpacityAnimationDuration: 0.15s;
         .SidebarMenu:not(.menuOpen) {
             display: none;
         }
+
+        .SidebarChannelLink__join-request-dot {
+            position: relative;
+            display: flex;
+            width: 28px;
+            min-width: 0;
+            flex: 0 0 28px;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+
+            &::before {
+                display: block;
+                width: 6px;
+                height: 6px;
+                border-radius: var(--radius-full);
+                background: var(--sidebar-text-active-border);
+                content: '';
+            }
+        }
     }
 
     .SidebarChannel .SidebarLink:focus {
@@ -1106,11 +1091,18 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
 
         .channel-pencil-icon,
-        .badge {
+        .badge,
+        .SidebarChannelLink__join-request-dot {
             // Hide the badge by hiding it instead of using `display: none` since the desktop app only counts
             // badges with a non-zero offsetHeight when counting notifications
             position: absolute;
             visibility: hidden;
+        }
+
+        // Keep urgent mention badges visible on hover so the tooltip can be discovered
+        .badge.urgent {
+            position: relative;
+            visibility: visible;
         }
     }
 

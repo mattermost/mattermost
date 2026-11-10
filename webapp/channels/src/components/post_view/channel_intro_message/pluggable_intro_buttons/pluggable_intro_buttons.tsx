@@ -3,9 +3,9 @@
 
 import React from 'react';
 
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 
 import type {ChannelIntroButtonAction} from 'types/store/plugins';
 
@@ -13,7 +13,7 @@ type Props = {
     channel: Channel;
     channelMember?: ChannelMembership;
     pluginButtons: ChannelIntroButtonAction[];
-}
+};
 
 const PluggableIntroButtons = React.memo(({
     channel,
@@ -21,11 +21,6 @@ const PluggableIntroButtons = React.memo(({
     channelMember,
 }: Props) => {
     const channelIsArchived = channel.delete_at !== 0;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel.id);
-
-    if (!pluginItemsVisible) {
-        return null;
-    }
 
     if (channelIsArchived || pluginButtons.length === 0 || !channelMember) {
         return null;
@@ -33,14 +28,12 @@ const PluggableIntroButtons = React.memo(({
 
     const buttons = pluginButtons.map((buttonProps) => {
         return (
-            <button
+            <TileButton
                 key={buttonProps.id}
-                className={'action-button'}
                 onClick={() => buttonProps.action?.(channel, channelMember)}
-            >
-                {buttonProps.icon}
-                {buttonProps.text}
-            </button>
+                icon={<Icon glyph={buttonProps.icon}/>}
+                label={buttonProps.text}
+            />
         );
     });
 

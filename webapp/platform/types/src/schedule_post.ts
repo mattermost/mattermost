@@ -6,14 +6,22 @@ import type {Post} from './posts';
 
 export type ScheduledPostErrorCode = 'unknown' | 'channel_archived' | 'channel_not_found' | 'user_missing' | 'user_deleted' | 'no_channel_permission' | 'no_channel_member' | 'thread_deleted' | 'unable_to_send' | 'invalid_post';
 
+export type ScheduledPostRepeatType = '' | 'weekly';
+
 export type SchedulingInfo = {
     scheduled_at: number;
     processed_at?: number;
     error_code?: ScheduledPostErrorCode;
-}
+    repeat_type?: ScheduledPostRepeatType;
+    repeat_timezone?: string;
+};
 
 export type ScheduledPost = Omit<Draft, 'delete_at'> & SchedulingInfo & {
     id: string;
+};
+
+export function isRecurringScheduledPost(schedulingInfo: Pick<SchedulingInfo, 'repeat_type'>): boolean {
+    return schedulingInfo.repeat_type === 'weekly';
 }
 
 export type ScheduledPostsState = {
@@ -29,7 +37,7 @@ export type ScheduledPostsState = {
     byChannelOrThreadId: {
         [channelId: string]: string[];
     };
-}
+};
 
 export function scheduledPostFromPost(post: Post, schedulingInfo: SchedulingInfo): ScheduledPost {
     return {
@@ -45,6 +53,8 @@ export function scheduledPostFromPost(post: Post, schedulingInfo: SchedulingInfo
         metadata: post.metadata,
         priority: post.metadata.priority,
         type: post.type,
+        repeat_type: schedulingInfo.repeat_type,
+        repeat_timezone: schedulingInfo.repeat_timezone,
     };
 }
 

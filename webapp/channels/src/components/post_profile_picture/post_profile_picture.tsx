@@ -25,7 +25,7 @@ type Props = {
     user: UserProfile;
     isBot?: boolean;
     overwriteIcon?: string;
-}
+};
 
 export default class PostProfilePicture extends React.PureComponent<Props> {
     static defaultProps = {

@@ -18,11 +18,12 @@ type SlackCompatibleBool bool
 // that supports both.
 func (b *SlackCompatibleBool) UnmarshalJSON(data []byte) error {
 	value := strings.ToLower(string(data))
-	if value == "true" || value == `"true"` {
+	switch value {
+	case "true", `"true"`:
 		*b = true
-	} else if value == "false" || value == `"false"` {
+	case "false", `"false"`:
 		*b = false
-	} else {
+	default:
 		return fmt.Errorf("unmarshal: unable to convert %s to bool", data)
 	}
 

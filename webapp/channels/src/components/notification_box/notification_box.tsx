@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, type JSX} from 'react';
 import styled, {css} from 'styled-components';
 
 import {AlertOutlineIcon, CheckIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
-type NotificationVariant = 'general' | 'info' | 'success'| 'warning' | 'danger';
+type NotificationVariant = 'general' | 'info' | 'success' | 'warning' | 'danger';
 
 type NotificationProps = {
     id?: string;
@@ -14,7 +14,7 @@ type NotificationProps = {
     title?: JSX.Element | string;
     text: JSX.Element | string;
     variant: NotificationVariant;
-}
+};
 
 const variantColorMap: Record<NotificationVariant, string> = {
     general: 'var(--semantic-color-general)',
@@ -26,7 +26,7 @@ const variantColorMap: Record<NotificationVariant, string> = {
 
 type NotificationWrapperProps = {
     color: string;
-}
+};
 
 const NotificationWrapper = styled.div(({color}: NotificationWrapperProps) => {
     return css`

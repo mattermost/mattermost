@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	saml2 "github.com/mattermost/gosaml2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -65,6 +66,16 @@ const (
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
 	FileWillBeDownloadedID                    = 48
+	ChannelMemberWillBeAddedID                = 49
+	TeamMemberWillBeAddedID                   = 50
+	ChannelWillBeArchivedID                   = 51
+	ChannelWillBeUpdatedID                    = 52
+	ChannelWillBeRestoredID                   = 53
+	ScheduledPostWillBeCreatedID              = 54
+	DraftWillBeUpsertedID                     = 55
+	MessagesWillBeConsumedWithContextID       = 56
+	OnLicenseChangedID                        = 57
+	PropertyValuesHaveBeenUpdatedID           = 58
 	TotalHooksID                              = iota
 )
 
@@ -191,6 +202,18 @@ type Hooks interface {
 	// Minimum server version: 9.3
 	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 
+	// MessagesWillBeConsumedWithContext is invoked when messages are requested by a client, before
+	// they are returned to the client. It is the context-aware variant of MessagesWillBeConsumed.
+	//
+	// To modify a post, return the replacement post; the returned posts are matched to the originals
+	// by ID. Posts that should be left unchanged may be omitted from the returned slice.
+	//
+	// Note that this method will be called for posts created by plugins, including the plugin that
+	// created the post.
+	//
+	// Minimum server version: 11.9
+	MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post
+
 	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
 	// Note that this method will be called for posts deleted by plugins, including the plugin that
 	// deleted the post.
@@ -203,6 +226,25 @@ type Hooks interface {
 	// Minimum server version: 5.2
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 
+	// ChannelWillBeArchived is invoked before a channel is archived, allowing plugins to
+	// reject the archive operation.
+	//
+	// To reject the archive, return a non-empty string describing why it was rejected.
+	// To allow the archive, return an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelWillBeArchived(c *Context, channel *model.Channel) string
+
+	// ChannelMemberWillBeAdded is invoked before a member is added to a channel, allowing
+	// plugins to modify the channel member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.ChannelMember and an empty string.
+	// To allow the addition without modification, return a nil *model.ChannelMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string)
+
 	// UserHasJoinedChannel is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was invited to the channel by the actor.
 	//
@@ -214,6 +256,16 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
+
+	// TeamMemberWillBeAdded is invoked before a member is added to a team, allowing
+	// plugins to modify the team member or reject the addition.
+	//
+	// To reject the addition, return a non-empty string describing why it was rejected.
+	// To modify the member, return the replacement, non-nil *model.TeamMember and an empty string.
+	// To allow the addition without modification, return a nil *model.TeamMember and an empty string.
+	//
+	// Minimum server version: 11.7
+	TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string)
 
 	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was added to the team by the actor.
@@ -323,6 +375,17 @@ type Hooks interface {
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
 
+	// OnLicenseChanged is invoked when the server license changes, including
+	// upload, removal, expiry, and cluster-driven reloads. Either license may
+	// be nil (unlicensed ↔ licensed transitions).
+	//
+	// This hook is not invoked for the initial license load at startup. Plugins
+	// that need the current license when activated should call API.GetLicense()
+	// from OnActivate.
+	//
+	// Minimum server version: 12.0
+	OnLicenseChanged(oldLicense, newLicense *model.License)
+
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
 	// backing store.
 	// An error can be returned to reject the operation. Additionally, a new
@@ -374,7 +437,17 @@ type Hooks interface {
 	// Shared Channels service for which they have been invited via InviteRemote.  Each SyncMsg may contain
 	// multiple updates (posts, reactions, attachments, users) for a single channel.
 	//
-	// The cursor will be advanced based on the SyncResponse returned.
+	// Return an error only when the message was not applied and sending it again may succeed. The
+	// SyncResponse is then ignored and the channel's sync cursor is not advanced, so the batch is sent
+	// again: after a short delay, a limited number of times, and once more after the next successful
+	// OnSharedChannelsPing. The posts, acknowledgements and reactions of a batch arrive in separate
+	// calls and an error from any of them holds the cursor, so the retry can repeat posts that were
+	// already applied.
+	//
+	// When the error is nil the cursor advances past the batch. Posts listed in SyncResponse.PostErrors
+	// are retried individually, a limited number of times. Users listed in UsersSyncd are marked as
+	// synchronized. UserErrors, ReactionErrors and AcknowledgementErrors are only logged, and the
+	// *LastUpdateAt fields are not read.
 	//
 	// Minimum server version: 9.5
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
@@ -429,8 +502,77 @@ type Hooks interface {
 	// Minimum server version: 9.8
 	GenerateSupportData(c *Context) ([]*model.FileData, error)
 
-	// OnSAMLLogin is invoked after a successful SAML login.
+	// OnSAMLLogin is invoked during SAML login, after the SAML assertion has been validated and the
+	// user has been authenticated (and created or updated if needed), but before a session, desktop
+	// token, or mobile login code is issued. Because no session exists yet, c.SessionId is empty.
+	//
+	// To reject the login, return an error. The user is shown an error and no session is created.
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// ChannelWillBeUpdated is invoked before a channel update is committed, allowing plugins to
+	// modify the channel or reject the update.
+	//
+	// To reject the update, return a non-empty string describing why. To modify the channel, return
+	// the replacement *model.Channel and an empty string. To allow the update without modification,
+	// return nil and an empty string.
+	//
+	// Fires from the app-layer UpdateChannel and PatchChannel paths so REST, local API, plugin API,
+	// import, and bulk callers all hit it.
+	//
+	// Minimum server version: 11.9
+	ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
+
+	// ChannelWillBeRestored is invoked before an archived channel is un-archived. Fires from
+	// app.RestoreChannel before the store's Channel().Restore call. Sibling of
+	// ChannelWillBeArchived for the inverse operation.
+	//
+	// To reject, return a non-empty string. Empty string allows the restore.
+	//
+	// Minimum server version: 11.9
+	ChannelWillBeRestored(c *Context, channel *model.Channel) string
+
+	// ScheduledPostWillBeCreated is invoked before a scheduled post is committed. Fires from the
+	// app-layer SaveScheduledPost and UpdateScheduledPost paths.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.9
+	ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string)
+
+	// DraftWillBeUpserted is invoked before a draft is committed. Fires from the app-layer
+	// UpsertDraft path.
+	//
+	// Return value semantics match MessageWillBePosted.
+	//
+	// Minimum server version: 11.9
+	DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string)
+
+	// PropertyValuesHaveBeenUpdated is invoked after property values of one target have been
+	// created, updated, upserted, or deleted and the change has been committed. It is a
+	// notification only: it runs asynchronously, cannot change or reject the write, and is invoked
+	// for writes made by plugins too, including the plugin that made them.
+	//
+	// userID is the user whose request made the change. For writes without a user session, such as
+	// plugin API calls, it is the UpdatedBy of the written values, or empty when they have none.
+	// groupID, targetType, and targetID identify the property group and the object the values
+	// belong to, for example "post" and a post id.
+	//
+	// values are the values as written, and are empty for a deletion. previousValues are the stored
+	// values of the same fields as they were just before the write, and only for fields that had a
+	// value then. Match the two by FieldID: a field in values but not in previousValues got its
+	// first value, and a field in previousValues but not in values was deleted. A write whose value
+	// equals the stored one is still reported. previousValues are read just before the write but
+	// outside its transaction, so two concurrent writes to the same field may both report the same
+	// previous value. A batch spanning several targets invokes the hook
+	// once per target, and at most 100 values per invocation. Deleting all values of a field is not
+	// reported.
+	//
+	// A plugin receives only the values it may read, as its own read of them through the API would
+	// return them, so a source_only or shared_only value reaches only the plugins allowed to see it.
+	// A plugin that may read none of a change's values isn't invoked for it.
+	//
+	// Minimum server version: 12.2
+	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
 }

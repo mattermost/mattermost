@@ -1,0 +1,10 @@
+.InlineActionButton {
+    display: inline-flex;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &--executing {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+}

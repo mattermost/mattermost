@@ -72,6 +72,12 @@ const state: GlobalState = {
             messageCounts: {},
             channelsMemberCount: {},
             restrictedDMs: {},
+            joinRequests: {
+                myPendingByChannel: {},
+                byChannel: {},
+                countsByChannel: {},
+                myList: [],
+            },
         },
         channelBookmarks: {
             byChannelId: {},
@@ -106,6 +112,8 @@ const state: GlobalState = {
         recaps: {
             byId: {},
             allIds: [],
+            scheduledRecaps: {},
+            limitStatus: null,
         },
         preferences: {
             myPreferences: {},
@@ -115,7 +123,7 @@ const state: GlobalState = {
             accounts: {},
         },
         admin: {
-            logs: [],
+            logs: {},
             plainLogs: [],
             audits: {},
             config: {},
@@ -147,6 +155,7 @@ const state: GlobalState = {
             appsBotIDs: [],
             appsOAuthAppIDs: [],
             dialogTriggerId: '',
+            dialogs: {},
             outgoingOAuthConnections: {},
         },
         files: {
@@ -187,6 +196,7 @@ const state: GlobalState = {
         channelCategories: {
             byId: {},
             orderByTeam: {},
+            managedCategoryMappings: {},
         },
         apps: {
             main: {
@@ -205,12 +215,6 @@ const state: GlobalState = {
                 limitsLoaded: false,
             },
             errors: {},
-        },
-        hostedCustomer: {
-            products: {
-                products: {},
-                productsLoaded: false,
-            },
         },
         usage: {
             files: {
@@ -234,6 +238,20 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        properties: {
+            fields: {byObjectType: {}, byId: {}},
+            values: {byTargetId: {}, byFieldId: {}},
+            groups: {byId: {}, byName: {}},
+        },
+        renderPermissions: {
+            byResource: {},
+            invalidatedAt: 0,
+            invalidatedAtByResource: {},
+        },
+        health: {
+            findings: {},
+            evaluatedAt: 0,
+        },
     },
     errors: [],
     requests: {

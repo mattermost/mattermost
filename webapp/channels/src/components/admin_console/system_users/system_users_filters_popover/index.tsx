@@ -6,6 +6,10 @@ import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import {StyledPopoverContainer} from 'components/styled_popover_container';
@@ -83,8 +87,12 @@ export function SystemUsersFilterPopover(props: Props) {
             filterRole = RoleFilters.Admin;
         } else if (roleFilter === RoleFilters.Member) {
             filterRole = RoleFilters.Member;
-        } else if (roleFilter === RoleFilters.Guest) {
-            filterRole = RoleFilters.Guest;
+        } else if (roleFilter === RoleFilters.GuestAll) {
+            filterRole = RoleFilters.GuestAll;
+        } else if (roleFilter === RoleFilters.GuestSingleChannel) {
+            filterRole = RoleFilters.GuestSingleChannel;
+        } else if (roleFilter === RoleFilters.GuestMultiChannel) {
+            filterRole = RoleFilters.GuestMultiChannel;
         }
 
         setFilterState({...filterState, filterRole});
@@ -113,15 +121,17 @@ export function SystemUsersFilterPopover(props: Props) {
 
     return (
         <div className='systemUsersFilterContainer'>
-            <button
-                {...getReferenceProps()}
-                ref={floatingRefs.setReference}
-                className='btn btn-md btn-tertiary'
+            <Button
+                className='systemUsersFilterTrigger'
+                emphasis='tertiary'
+                size='medium'
                 aria-controls='systemUsersFilterPopover'
+                leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
+                ref={floatingRefs.setReference}
+                {...getReferenceProps()}
             >
-                <i className='icon icon-filter-variant'/>
                 {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
-            </button>
+            </Button>
             {isMounted && (
                 <FloatingFocusManager
                     context={floatingContext}
@@ -153,13 +163,14 @@ export function SystemUsersFilterPopover(props: Props) {
                             />
                         </div>
                         <div className='footer'>
-                            <button
-                                className='btn btn-md btn-primary'
+                            <Button
+                                emphasis='primary'
+                                size='medium'
                                 onClick={handleApplyFilters}
                                 type='submit'
                             >
                                 {formatMessage({id: 'admin.system_users.filtersPopover.apply', defaultMessage: 'Apply'})}
-                            </button>
+                            </Button>
                         </div>
                     </StyledPopoverContainer>
                 </FloatingFocusManager>

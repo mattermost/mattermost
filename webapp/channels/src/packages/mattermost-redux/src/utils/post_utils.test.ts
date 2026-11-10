@@ -8,6 +8,8 @@ import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     canEditPost,
     isSystemMessage,
+    isSilentNotification,
+    isNotificationSuppressed,
     shouldIgnorePost,
     isMeMessage,
     isUserActivityPost,
@@ -336,6 +338,40 @@ describe('PostUtils', () => {
         });
     });
 
+    describe('isSilentNotification', () => {
+        it('returns true when silent_notification prop is set to true', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true}});
+            expect(isSilentNotification(post)).toBe(true);
+        });
+
+        it('returns false when silent_notification prop is absent', () => {
+            const post = TestHelper.getPostMock({props: {}});
+            expect(isSilentNotification(post)).toBe(false);
+        });
+
+        it('returns false when silent_notification prop is the string "true" rather than a bool', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: 'true'}});
+            expect(isSilentNotification(post)).toBe(false);
+        });
+    });
+
+    describe('isNotificationSuppressed', () => {
+        it('returns true for a silent post', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true}});
+            expect(isNotificationSuppressed(post)).toBe(true);
+        });
+
+        it('returns false when force_notification overrides silent', () => {
+            const post = TestHelper.getPostMock({props: {silent_notification: true, force_notification: 'abc123'}});
+            expect(isNotificationSuppressed(post)).toBe(false);
+        });
+
+        it('returns false for a non-silent post', () => {
+            const post = TestHelper.getPostMock({props: {}});
+            expect(isNotificationSuppressed(post)).toBe(false);
+        });
+    });
+
     describe('shouldIgnorePost', () => {
         it('should return false if system message is adding current user', () => {
             const currentUserId = 'czduet3upjfupy9xnqswrxaqea';
@@ -649,6 +685,121 @@ describe('PostUtils', () => {
             const storedPostSansMetadata = {...storedPost};
             delete (storedPostSansMetadata as any).metadata;
             expect(shouldUpdatePost(post, storedPostSansMetadata)).toBe(true);
+        });
+
+        it('should return false when the received post carries no metadata to compare', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {redacted_file_count: 1} as Post['metadata'],
+            });
+            const post = {...storedPost};
+            delete (post as any).metadata;
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
+
+        // A policy change strips or restores file metadata without touching update_at.
+        it('should return true for same posts whose files became redacted', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {files: [{id: 'file1'}]} as unknown as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {redacted_file_count: 1} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        it('should return true for same posts whose files stopped being redacted', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {redacted_file_count: 1} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {files: [{id: 'file1'}]} as unknown as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        // Hydration can fail on one fetch and succeed on the next without the post
+        // itself changing, so update_at says nothing about it. Both directions matter:
+        // one leaves `Attributes unavailable` frozen on a healthy post, the other
+        // leaves stale chips on a post whose values could not be read.
+        it('should return true when hydration started failing', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        it('should return true when hydration stopped failing', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: false} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        // Search, pinned, flagged and getPostsByIds never ask for hydration, so their
+        // posts carry no flag. That says nothing about the values and must not clear a
+        // stored true, or the chips go back to rendering the values left from before
+        // the lookup failed.
+        it('should return false when an unhydrated response meets a stored failure', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
+
+        // A post stored without the flag counts as false, so a hydrated response that
+        // loaded fine is the same answer.
+        it('should return false when hydration succeeds on a post stored without the flag', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: false} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
+
+        // Every caller that never asked for hydration sits on this branch, which is what
+        // bounds the blast radius of the check.
+        it('should return false when neither post was hydrated', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
         });
     });
 });

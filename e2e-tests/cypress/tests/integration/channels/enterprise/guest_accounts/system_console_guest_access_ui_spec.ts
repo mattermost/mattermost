@@ -14,7 +14,7 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Guest Account - Verify Guest Access UI', () => {
     beforeEach(() => {
@@ -40,7 +40,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.findByTestId('GuestAccountsSettings.Enable').should('be.visible').within(() => {
             cy.get('.control-label').should('be.visible').and('have.text', 'Enable Guest Access: ');
         });
-        cy.findByTestId('GuestAccountsSettings.Enablehelp-text').should('be.visible').and('have.text', 'When true, external guest can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
+        cy.findByTestId('GuestAccountsSettings.Enablehelp-text').should('be.visible').and('have.text', 'When true, external guests can be invited to channels within teams. Please see Permissions Schemes for which roles can invite guests.');
 
         // * Verify Whitelisted Guest Domains field
         cy.findByTestId('GuestAccountsSettings.RestrictCreationToDomains').should('be.visible').within(() => {
@@ -96,11 +96,8 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('#saveSetting').should('be.visible').click();
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
-        // # Visit the chat facing application
-        cy.get('.header__info').should('be.visible').click();
-        cy.findByLabelText('Admin Console Menu').should('exist').within(() => {
-            cy.findByText('Switch to eligendi').click();
-        });
+        // # Return to the chat-facing application via BackstageNavbar
+        cy.findByTestId('backstage-navbar-back').should('be.visible').click();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');

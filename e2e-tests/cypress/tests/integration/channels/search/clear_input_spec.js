@@ -9,8 +9,8 @@
 
 // Group: @channels @search
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Search', () => {
     before(() => {
@@ -32,7 +32,7 @@ describe('Search', () => {
 
         // * The input should contain what we wrote
         cy.uiGetSearchBox().should('have.value', 'abc');
-        cy.get('#searchBox .icon-close').click();
+        cy.get('[data-testid="searchBoxClose"]').click();
 
         // * The X should be visible
         // # Then click X to clear the input field

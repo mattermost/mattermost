@@ -26,6 +26,10 @@ export const getAccessControlSettings = createSelector(
         return {
             EnableAttributeBasedAccessControl: config?.EnableAttributeBasedAccessControl === 'true',
             EnableUserManagedAttributes: config?.EnableUserManagedAttributes === 'true',
+
+            // Absent in older/limited client configs — default to shown to
+            // preserve behavior when the server hasn't sent the flag.
+            EnableChannelPolicyIndicators: config?.EnableChannelPolicyIndicators !== 'false',
         } as AccessControlSettings;
     },
 );

@@ -1,77 +1,13 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/license_settings/modals/upload_license_modal should match snapshot when is licensed 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <UploadLicenseModal
-    fileObjFromProps={
-      Object {
-        "name": "Test license file",
-      }
-    }
-    onExited={[MockFunction]}
-  />
-</ContextProvider>
+<div
+  aria-hidden="true"
+/>
 `;
 
 exports[`components/admin_console/license_settings/modals/upload_license_modal should match snapshot when is not licensed 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "getServerState": undefined,
-      "identityFunctionCheck": "once",
-      "stabilityCheck": "once",
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Object {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
-    }
-  }
->
-  <UploadLicenseModal
-    fileObjFromProps={
-      Object {
-        "name": "Test license file",
-      }
-    }
-    onExited={[MockFunction]}
-  />
-</ContextProvider>
+<div
+  aria-hidden="true"
+/>
 `;

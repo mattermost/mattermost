@@ -1,314 +1,384 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on checked row 1`] = `
-<div
-  className="group checked"
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group checked"
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check checked"
+        class="group-name"
       >
-        <Memo(CheckboxCheckedIcon) />
-      </div>
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
-      >
-        <a
-          className=""
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_3_"
         >
-          <i
-            className="icon fa fa-unlink"
+          <input
+            checked=""
+            class="_checkbox__input_18swc_25"
+            id="_r_3_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Not Linked"
-            id="admin.group_settings.group_row.not_linked"
-          />
-        </a>
-      </span>
-      <span
-        className="group-actions"
-      />
+          <span
+            class="_checkbox__box_18swc_44"
+          >
+            <span
+              class="_checkbox__icon_18swc_69"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </span>
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
+      >
+        <span
+          class="group-description"
+        >
+          <a
+            class=""
+            href="#"
+          >
+            <i
+              class="icon fa fa-unlink"
+            />
+            Not Linked
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        />
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on failed linked row 1`] = `
-<div
-  className="group "
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group "
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check "
-      />
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
+        class="group-name"
       >
-        <a
-          className="warning"
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_4_"
         >
-          <i
-            className="icon fa fa-exclamation-triangle"
+          <input
+            class="_checkbox__input_18swc_25"
+            id="_r_4_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Unlink failed"
-            id="admin.group_settings.group_row.unlink_failed"
+          <span
+            class="_checkbox__box_18swc_44"
           />
-        </a>
-      </span>
-      <span
-        className="group-actions"
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
       >
-        <Link
-          id="name_configure"
-          to="/admin_console/user_management/groups/group-id"
+        <span
+          class="group-description"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Configure"
-            id="admin.group_settings.group_row.configure"
-          />
-        </Link>
-      </span>
+          <a
+            class="warning"
+            href="#"
+          >
+            <i
+              class="icon fa fa-exclamation-triangle"
+            />
+            Unlink failed
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        >
+          <a
+            href="/admin_console/user_management/groups/group-id"
+            id="name_configure"
+          >
+            Configure
+          </a>
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on failed not linked row 1`] = `
-<div
-  className="group "
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group "
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check "
-      />
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
+        class="group-name"
       >
-        <a
-          className="warning"
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_5_"
         >
-          <i
-            className="icon fa fa-exclamation-triangle"
+          <input
+            class="_checkbox__input_18swc_25"
+            id="_r_5_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Link failed"
-            id="admin.group_settings.group_row.link_failed"
+          <span
+            class="_checkbox__box_18swc_44"
           />
-        </a>
-      </span>
-      <span
-        className="group-actions"
-      />
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
+      >
+        <span
+          class="group-description"
+        >
+          <a
+            class="warning"
+            href="#"
+          >
+            <i
+              class="icon fa fa-exclamation-triangle"
+            />
+            Link failed
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        />
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on linked and configured row 1`] = `
-<div
-  className="group "
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group "
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check "
-      />
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
+        class="group-name"
       >
-        <a
-          className=""
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_0_"
         >
-          <i
-            className="icon fa fa-link"
+          <input
+            class="_checkbox__input_18swc_25"
+            id="_r_0_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Linked"
-            id="admin.group_settings.group_row.linked"
+          <span
+            class="_checkbox__box_18swc_44"
           />
-        </a>
-      </span>
-      <span
-        className="group-actions"
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
       >
-        <Link
-          id="name_edit"
-          to="/admin_console/user_management/groups/group-id"
+        <span
+          class="group-description"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="admin.group_settings.group_row.edit"
-          />
-        </Link>
-      </span>
+          <a
+            class=""
+            href="#"
+          >
+            <i
+              class="icon fa fa-link"
+            />
+            Linked
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        >
+          <a
+            href="/admin_console/user_management/groups/group-id"
+            id="name_edit"
+          >
+            Edit
+          </a>
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on linked but not configured row 1`] = `
-<div
-  className="group "
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group "
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check "
-      />
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
+        class="group-name"
       >
-        <a
-          className=""
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_1_"
         >
-          <i
-            className="icon fa fa-link"
+          <input
+            class="_checkbox__input_18swc_25"
+            id="_r_1_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Linked"
-            id="admin.group_settings.group_row.linked"
+          <span
+            class="_checkbox__box_18swc_44"
           />
-        </a>
-      </span>
-      <span
-        className="group-actions"
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
       >
-        <Link
-          id="name_configure"
-          to="/admin_console/user_management/groups/group-id"
+        <span
+          class="group-description"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Configure"
-            id="admin.group_settings.group_row.configure"
-          />
-        </Link>
-      </span>
+          <a
+            class=""
+            href="#"
+          >
+            <i
+              class="icon fa fa-link"
+            />
+            Linked
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        >
+          <a
+            href="/admin_console/user_management/groups/group-id"
+            id="name_configure"
+          >
+            Configure
+          </a>
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/group_settings/GroupRow should match snapshot, on not linked row 1`] = `
-<div
-  className="group "
-  id="name_group"
-  onClick={[Function]}
->
+<div>
   <div
-    className="group-row"
+    class="group "
+    id="name_group"
   >
     <div
-      className="group-name"
+      class="group-row"
     >
       <div
-        className="group-check "
-      />
-      <span>
-        name
-      </span>
-    </div>
-    <div
-      className="group-content"
-    >
-      <span
-        className="group-description"
+        class="group-name"
       >
-        <a
-          className=""
-          href="#"
-          onClick={[Function]}
+        <label
+          class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 group-check"
+          for="_r_2_"
         >
-          <i
-            className="icon fa fa-unlink"
+          <input
+            class="_checkbox__input_18swc_25"
+            id="_r_2_"
+            type="checkbox"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Not Linked"
-            id="admin.group_settings.group_row.not_linked"
+          <span
+            class="_checkbox__box_18swc_44"
           />
-        </a>
-      </span>
-      <span
-        className="group-actions"
-      />
+          <span
+            class="_checkbox__label_18swc_120"
+          >
+            name
+          </span>
+        </label>
+      </div>
+      <div
+        class="group-content"
+      >
+        <span
+          class="group-description"
+        >
+          <a
+            class=""
+            href="#"
+          >
+            <i
+              class="icon fa fa-unlink"
+            />
+            Not Linked
+          </a>
+        </span>
+        <span
+          class="group-actions"
+        />
+      </div>
     </div>
   </div>
 </div>

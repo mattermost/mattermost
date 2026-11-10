@@ -6,20 +6,50 @@ package commands
 import (
 	"context"
 	"fmt"
+	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 )
 
 var EnableEnterpriseTests string
+
+// newTestCmd returns a cobra.Command whose context is bound to the test's
+// lifetime, mirroring the context cobra assigns to a command during real
+// execution (see Command.ExecuteContext). base is one of the package's real
+// command vars (e.g. SystemSupportPacketCmd, SystemGetBusyCmd), reusing its
+// already-registered flags instead of re-declaring them on a bare command.
+//
+// base's context and flag values are restored once the test completes, so
+// mutating the shared command in one test (e.g. via cmd.Flags().Set(...))
+// can't leak into a later test or into a real dispatch through cobra's
+// Execute/ExecuteContext, which only assigns a fresh context when one isn't
+// already set.
+func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
+	t.Cleanup(func() {
+		// A nil context is intentional here: it restores cobra's own "no
+		// context assigned yet" sentinel (see Command.ExecuteC), so the next
+		// real dispatch gets a fresh context instead of this test's.
+		base.SetContext(nil) //nolint:staticcheck
+		base.Flags().VisitAll(func(f *pflag.Flag) {
+			_ = f.Value.Set(f.DefValue)
+			f.Changed = false
+		})
+	})
+	base.SetContext(t.Context())
+	return base
+}
 
 type MmctlUnitTestSuite struct {
 	suite.Suite
@@ -28,6 +58,7 @@ type MmctlUnitTestSuite struct {
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
+	viper.Reset()
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
 
@@ -37,6 +68,7 @@ func (s *MmctlUnitTestSuite) SetupTest() {
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
+	viper.Reset()
 }
 
 type MmctlE2ETestSuite struct {
@@ -49,6 +81,10 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 	printer.SetFormat(printer.FormatJSON)
 }
 
+func (s *MmctlE2ETestSuite) SetupSubTest() {
+	printer.Clean()
+}
+
 func (s *MmctlE2ETestSuite) TearDownTest() {
 	// Remove the test helper from the structure to avoid reusing the same helper between tests
 	s.th = nil
@@ -56,6 +92,11 @@ func (s *MmctlE2ETestSuite) TearDownTest() {
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
 	s.th = api4.Setup(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupTestHelperWithConfig(updateConfig func(cfg *model.Config)) *api4.TestHelper {
+	s.th = api4.SetupConfig(s.T(), updateConfig)
 	return s.th
 }
 

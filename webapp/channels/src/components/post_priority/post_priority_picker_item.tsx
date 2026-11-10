@@ -6,9 +6,9 @@ import React from 'react';
 import styled from 'styled-components';
 
 import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 
 import {MenuItem} from 'components/menu/menu_item';
-import Toggle from 'components/toggle';
 
 type ToggleProps = {
     ariaLabel?: string;
@@ -18,7 +18,7 @@ type ToggleProps = {
     onClick: () => void;
     text: React.ReactNode;
     toggled: boolean;
-}
+};
 
 const Wrapper = styled(MenuItem)`
     cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
@@ -108,6 +108,12 @@ function ToggleItem({
     text,
     toggled,
 }: ToggleProps) {
+    // Compass Switch fires onChange on its own click; without stopping
+    // propagation the MenuItem onClick also runs and the toggle nets out.
+    const handleSwitchClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     return (
         <Wrapper
             onClick={disabled ? undefined : onClick}
@@ -117,17 +123,18 @@ function ToggleItem({
             role='menuitemcheckbox'
             aria-checked={toggled}
             aria-label={ariaLabel}
-            trailingElements={<>
-                <Toggle
-                    ariaLabel={ariaLabel}
-                    size='btn-sm'
-                    disabled={disabled}
-                    onToggle={onClick}
-                    toggled={toggled}
-                    toggleClassName='btn-toggle-primary'
-                    tabIndex={-1}
-                />
-            </>}
+            trailingElements={
+                <span onClick={disabled ? undefined : handleSwitchClick}>
+                    <Switch
+                        size='small'
+                        disabled={disabled}
+                        onChange={onClick}
+                        checked={toggled}
+                        tabIndex={-1}
+                        aria-label={ariaLabel}
+                    />
+                </span>
+            }
             labels={<>
                 <div>
                     {text}

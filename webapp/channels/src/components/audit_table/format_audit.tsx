@@ -18,7 +18,7 @@ export type Props = {
     showUserId: boolean;
     showIp: boolean;
     showSession: boolean;
-}
+};
 
 export default function FormatAudit({
     audit,

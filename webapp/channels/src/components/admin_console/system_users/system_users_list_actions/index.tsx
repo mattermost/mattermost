@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -96,6 +96,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const menuItemIdPrefix = `actionMenuItem-${tableId}-${rowIndex}`;
 
     const isCurrentUserSystemAdmin = useMemo(() => isSystemAdmin(currentUser.roles), [currentUser.roles]);
+    const isGuestUser = isGuest(user.roles);
 
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isNonSystemAdminEditingSystemAdmin = !isCurrentUserSystemAdmin && isSystemAdmin(user.roles);
@@ -349,7 +350,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         <Menu.Container
             menuButton={{
                 id: menuButtonId,
-                class: classNames('btn btn-quaternary btn-sm', {
+                class: buttonClassNames({emphasis: 'quaternary', size: 'sm'}, {
                     disabled: disableEditingOtherUsers,
                 }),
                 disabled: disableEditingOtherUsers,
@@ -387,7 +388,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleActivateUserClick}
                 />
             )}
-            {isCurrentUserSystemAdmin &&
+            {/* Hidden for guests: setting the role here leaves their team and channel memberships behind, which "Promote to member" migrates. */}
+            {isCurrentUserSystemAdmin && !isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageRoles`}
                     labels={
@@ -493,7 +495,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleUpdateEmailClick}
                 />
             }
-            {isGuest(user.roles) &&
+            {isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-promoteToMember`}
                     labels={
@@ -505,7 +507,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handlePromoteToMemberClick}
                 />
             }
-            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
+            {!isGuestUser && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-demoteToGuest`}
                     labels={

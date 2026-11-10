@@ -50,6 +50,7 @@ func (s LocalCacheSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.schemeCache, schemeId, nil)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	defer s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	return s.SchemeStore.Delete(schemeId)
 }
 
@@ -57,5 +58,6 @@ func (s LocalCacheSchemeStore) PermanentDeleteAll() error {
 	defer s.rootStore.doClearCacheCluster(s.rootStore.schemeCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	defer s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	return s.SchemeStore.PermanentDeleteAll()
 }

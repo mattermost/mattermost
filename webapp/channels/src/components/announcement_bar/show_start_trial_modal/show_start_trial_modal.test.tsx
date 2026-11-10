@@ -1,11 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 
 import ShowStartTrialModal from 'components/announcement_bar/show_start_trial_modal/show_start_trial_modal';
-import * as getTotalUsersHook from 'components/common/hooks/useGetTotalUsersNoBots';
+
+import {render} from 'tests/react_testing_utils';
+
+let mockTotalUsers = 0;
+jest.mock('components/common/hooks/useGetTotalUsersNoBots', () => ({
+    __esModule: true,
+    default: () => mockTotalUsers,
+}));
 
 let mockState: any;
 const mockDispatch = jest.fn();
@@ -19,6 +25,8 @@ jest.mock('react-redux', () => ({
 describe('components/sidebar/show_start_trial_modal', () => {
     beforeEach(() => {
         const now = new Date().getTime();
+        mockDispatch.mockClear();
+        mockTotalUsers = 0;
 
         // required state to mount using the provider
         mockState = {
@@ -70,15 +78,15 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <ShowStartTrialModal/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should NOT dispatch the modal when there are less than 10 users', () => {
         const lessThan10Users = 9;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => lessThan10Users);
+        mockTotalUsers = lessThan10Users;
 
         const isAdminUser = {
             currentUserId: 'current_user_id',
@@ -97,7 +105,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, general: moreThan6Hours}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -113,7 +121,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         const moreThan10Users = 11;
 
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         const lessThan6Hours = {
             config: {
@@ -125,7 +133,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, general: lessThan6Hours}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -146,11 +154,11 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
 
         const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, admin: moreThan10UsersAndPrevLicensed}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -165,7 +173,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
 
         const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         const moreThan6HoursAndLicensed = {
             config: {
@@ -180,7 +188,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, general: moreThan6HoursAndLicensed}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -195,7 +203,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
 
         const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         const moreThan6Hours = {
             config: {
@@ -224,7 +232,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
             },
         };
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -239,7 +247,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
 
         const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         const notPreviouslyLicensed = {
             prevTrialLicense: {
@@ -260,7 +268,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, admin: notPreviouslyLicensed, general: moreThan6Hours}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(0);
@@ -275,7 +283,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
 
         const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
+        mockTotalUsers = moreThan10Users;
 
         const notPreviouslyLicensed = {
             prevTrialLicense: {
@@ -297,7 +305,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
 
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, admin: notPreviouslyLicensed, general: moreThan6Hours}};
 
-        mount(
+        render(
             <ShowStartTrialModal/>,
         );
         expect(mockDispatch).toHaveBeenCalledTimes(1);

@@ -17,7 +17,7 @@ type Props = {
         focusPost: (postId: string, returnTo: string, currentUserId: string) => void;
     };
     currentUserId: string;
-}
+};
 
 const PermalinkView = (props: Props) => {
     const mounted = useRef(false);

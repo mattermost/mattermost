@@ -8,6 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {
@@ -108,5 +109,185 @@ describe('components/LeaveChannelModal', () => {
             expect(props.actions.leaveChannel).toHaveBeenCalledTimes(1);
         });
         expect(props.callback).toHaveBeenCalledTimes(0);
+    });
+
+    test('should match snapshot for the policy enforced public channel variant', () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            display_name: 'Ask IT',
+            policy_enforced: true,
+        };
+
+        const {baseElement} = renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel: jest.fn(),
+                    muteChannel: jest.fn(),
+                }}
+            />,
+        );
+
+        expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should render policy variant for a policy enforced public channel and offer Mute instead', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn().mockResolvedValue({data: true});
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        expect(screen.getByText("You're part of this channel's membership policy. If you leave, you will not be automatically re-added.")).toBeInTheDocument();
+        expect(screen.getByText('To stay a member without notifications, you can mute this channel instead.')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Mute instead'}));
+
+        await waitFor(() => {
+            expect(muteChannel).toHaveBeenCalledTimes(1);
+        });
+        expect(muteChannel).toHaveBeenCalledWith('user-1', policyChannel.id);
+        expect(leaveChannel).not.toHaveBeenCalled();
+    });
+
+    test('should keep modal open when Mute instead fails', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn().mockResolvedValue({error: {message: 'mute failed'}});
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+        const onExited = jest.fn();
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={onExited}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Mute instead'}));
+
+        await waitFor(() => {
+            expect(muteChannel).toHaveBeenCalledTimes(1);
+        });
+
+        // Modal stays open on failure so the user can retry or choose to leave instead.
+        expect(screen.getByRole('button', {name: 'Mute instead'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Leave channel'})).toBeInTheDocument();
+        expect(onExited).not.toHaveBeenCalled();
+    });
+
+    test('should hide mute hint when channel is already muted', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn();
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={true}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText('To stay a member without notifications, you can mute this channel instead.')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Mute instead'})).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Leave channel'}));
+
+        await waitFor(() => {
+            expect(leaveChannel).toHaveBeenCalledTimes(1);
+        });
+        expect(muteChannel).not.toHaveBeenCalled();
+    });
+
+    test('says board for a private board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={channels['channel-1']}
+                onExited={jest.fn()}
+                actions={{leaveChannel: jest.fn()}}
+            />,
+            boardChannelsState('channel-1'),
+        );
+
+        expect(screen.getByText(/Leave Private Board/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the private board/)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Yes, leave board'})).toBeInTheDocument();
+        expect(screen.queryByText(/Leave Private Channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/private channel/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Yes, leave channel'})).not.toBeInTheDocument();
+    });
+
+    test('says board for a public board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={channels['town-square']}
+                onExited={jest.fn()}
+                actions={{leaveChannel: jest.fn()}}
+            />,
+            boardChannelsState('town-square-id'),
+        );
+
+        expect(screen.getByText(/Leave Board/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the board/)).toBeInTheDocument();
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
+    });
+
+    test('says board for a policy enforced public board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={{...channels['town-square'], policy_enforced: true}}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel: jest.fn(),
+                    muteChannel: jest.fn(),
+                }}
+            />,
+            boardChannelsState('town-square-id'),
+        );
+
+        expect(screen.getByText('Leave Town Square board')).toBeInTheDocument();
+        expect(screen.getByText("You're part of this board's membership policy. If you leave, you will not be automatically re-added.")).toBeInTheDocument();
+        expect(screen.getByText('To stay a member without notifications, you can mute this board instead.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Leave board'})).toBeInTheDocument();
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
     });
 });

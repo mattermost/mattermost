@@ -1,14 +1,16 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`RemoveFromTeamButton should match snapshot init 1`] = `
-<button
-  className="btn btn-danger"
-  onClick={[Function]}
-  type="button"
->
-  <MemoizedFormattedMessage
-    defaultMessage="Remove from Team"
-    id="team_members_dropdown.leave_team"
-  />
-</button>
+<div>
+  <button
+    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+    type="button"
+  >
+    <span
+      class="_button__label_we8pe_31"
+    >
+      Remove from Team
+    </span>
+  </button>
+</div>
 `;

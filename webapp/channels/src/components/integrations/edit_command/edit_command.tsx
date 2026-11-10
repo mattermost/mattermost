@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {Command} from '@mattermost/types/integrations';
@@ -65,13 +65,13 @@ type Props = {
     * Whether or not commands are enabled.
     */
     enableCommands: boolean;
-}
+};
 
 type State = {
     originalCommand: Command | null;
     showConfirmModal: boolean;
     serverError: string;
-}
+};
 
 export default class EditCommand extends React.PureComponent<Props, State> {
     private newCommand?: Command;

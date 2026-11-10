@@ -2,25 +2,25 @@
 // See LICENSE.txt for license information.
 
 // Asserts that an item in the channel sidebar is not unread.
-export function beRead(items) {
+export function beRead(items: JQuery<HTMLElement>) {
     expect(items).to.have.length(1);
     expect(items[0].className).to.not.match(/unread-title/);
 }
 
 // Asserts that an item in the channel sidebar is read.
-export function beUnread(items) {
+export function beUnread(items: JQuery<HTMLElement>) {
     expect(items).to.have.length(1);
     expect(items[0].className).to.match(/unread-title/);
 }
 
 // Asserts that an item in the channel sidebar is muted.
-export function beMuted(items) {
+export function beMuted(items: JQuery<HTMLElement>) {
     expect(items).to.have.length(1);
     expect(items[0].className).to.match(/muted/);
 }
 
 // Asserts that an item in the channel sidebar is unmuted.
-export function beUnmuted(items) {
+export function beUnmuted(items: JQuery<HTMLElement>) {
     expect(items).to.have.length(1);
     expect(items[0].className).to.not.match(/muted/);
 }

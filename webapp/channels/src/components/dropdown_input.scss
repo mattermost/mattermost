@@ -33,6 +33,10 @@ $dropdown_input_index: 999999;
     background-color: var(--center-channel-bg) !important;
 }
 
+.DropDown__menu-list > .DropDown__group:first-child .DropDown__group-heading {
+    display: none;
+}
+
 .DropDown__single-value {
     color: var(--center-channel-color) !important;
 }

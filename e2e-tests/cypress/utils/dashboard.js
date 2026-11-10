@@ -13,7 +13,7 @@ const fs = require('fs');
 const readFile = require('util').promisify(fs.readFile);
 
 const axios = require('axios');
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 const mime = require('mime-types');
 
 require('dotenv').config();

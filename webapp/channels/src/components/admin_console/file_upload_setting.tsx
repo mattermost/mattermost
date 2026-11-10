@@ -4,6 +4,8 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 import * as Utils from 'utils/utils';
 
 import Setting from './setting';
@@ -17,7 +19,7 @@ type Props = {
     disabled: boolean;
     fileType: string;
     error?: string;
-}
+};
 
 const FileUploadSetting = ({
     id,
@@ -62,19 +64,23 @@ const FileUploadSetting = ({
     const handleSubmit = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        setIsUploading(true);
         const file = fileInputRef.current?.files?.[0];
-        if (file) {
-            onSubmit(id, file, (error) => {
-                if (isMounted.current) {
-                    setIsUploading(false);
-
-                    if (error && fileInputRef.current) {
-                        Utils.clearFileInput(fileInputRef.current);
-                    }
-                }
-            });
+        if (!file) {
+            return;
         }
+
+        setIsUploading(true);
+        onSubmit(id, file, (error) => {
+            if (isMounted.current) {
+                setIsUploading(false);
+
+                if (error && fileInputRef.current) {
+                    Utils.clearFileInput(fileInputRef.current);
+                    setIsFileSelected(false);
+                    setFileNameFromState(null);
+                }
+            }
+        });
     }, [id, onSubmit]);
 
     let serverError;
@@ -108,9 +114,9 @@ const FileUploadSetting = ({
         >
             <div>
                 <div className='file__upload'>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         disabled={disabled}
                         onClick={handleChooseClick}
                     >
@@ -118,7 +124,7 @@ const FileUploadSetting = ({
                             id='admin.file_upload.chooseFile'
                             defaultMessage='Choose File'
                         />
-                    </button>
+                    </Button>
                     <input
                         ref={fileInputRef}
                         type='file'
@@ -127,28 +133,20 @@ const FileUploadSetting = ({
                         onChange={handleChange}
                     />
                 </div>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     disabled={!isFileSelected}
                     onClick={handleSubmit}
+                    loading={isUploading}
                 >
-                    {
-                        isUploading && (
-                            <>
-                                <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
-                                {uploadingText}
-                            </>
-                        )
-                    }
-                    {
-                        !isUploading &&
+                    {isUploading ? uploadingText : (
                         <FormattedMessage
                             id='admin.file_upload.uploadFile'
                             defaultMessage='Upload'
                         />
-                    }
-                </button>
+                    )}
+                </Button>
                 <div className='help-text m-0'>
                     {fileName}
                 </div>

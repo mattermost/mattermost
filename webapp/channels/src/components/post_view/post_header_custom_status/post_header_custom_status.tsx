@@ -21,7 +21,7 @@ interface ComponentProps {
 }
 
 const PostHeaderCustomStatus = (props: ComponentProps) => {
-    const getCustomStatus = useMemo(makeGetCustomStatus, []);
+    const getCustomStatus = useMemo(() => makeGetCustomStatus(), []);
     const {userId, isSystemMessage, isBot} = props;
     const userCustomStatus = useSelector((state: GlobalState) => getCustomStatus(state, userId));
     const showUpdateStatusButton = useSelector(showPostHeaderUpdateStatusButton);

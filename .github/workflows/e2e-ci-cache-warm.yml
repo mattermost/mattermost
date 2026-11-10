@@ -1,0 +1,78 @@
+# Warms the ~/.npm registry cache used by the e2e suites (cypress, playwright,
+# api). Runs once per day on master; all e2e/api CI jobs restore this cache
+# read-only via .github/actions/restore-e2e-npm-cache and never write back, so
+# this job is its sole writer.
+#
+# The cache is keyed on the OS/arch and a hash of all e2e lockfiles. Keep the key
+# below in sync with .github/actions/restore-e2e-npm-cache, which is the canonical
+# definition of the bucket's lockfile set. PRs that change a lockfile miss the
+# exact key and fall back to the most recent warm entry via restore-keys.
+#
+# The webapp node_modules cache is warmed separately by webapp-ci-cache-warm.yml.
+name: E2E CI Cache Warm
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # Daily 1am UTC — 1 h before e2e CI typically runs
+  workflow_dispatch:
+
+# Prevent an overlapping manual dispatch and scheduled run from both missing the
+# lookup and then racing to reserve the same cache key.
+concurrency:
+  group: e2e-ci-cache-warm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write # required to save the Actions cache
+
+jobs:
+  warm:
+    name: Warm E2E npm Registry Cache
+    runs-on: ubuntu-24.04
+    # Bound a hung run so it can't hold the concurrency group for the default
+    # 6-hour timeout and block subsequent warm runs.
+    timeout-minutes: 60
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check if npm registry cache already warm
+        id: e2e-npm-check
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.npm
+          key: e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('e2e-tests/cypress/package-lock.json', 'e2e-tests/playwright/package-lock.json', 'api/package-lock.json') }}
+          lookup-only: true
+
+      - name: ci/setup-node
+        if: steps.e2e-npm-check.outputs.cache-hit != 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+
+      # ~/.npm is content-addressable and grows additively across installs, so we
+      # populate it by running each suite's install, then save the single bucket.
+      - name: Install playwright npm packages
+        if: steps.e2e-npm-check.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/playwright
+        run: npm ci
+
+      - name: Install cypress npm packages
+        if: steps.e2e-npm-check.outputs.cache-hit != 'true'
+        working-directory: e2e-tests/cypress
+        run: npm ci
+
+      - name: Install api npm packages
+        if: steps.e2e-npm-check.outputs.cache-hit != 'true'
+        working-directory: api
+        run: npm ci
+
+      - name: Save npm registry cache
+        if: steps.e2e-npm-check.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.npm
+          key: e2e-npm-registry-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('e2e-tests/cypress/package-lock.json', 'e2e-tests/playwright/package-lock.json', 'api/package-lock.json') }}

@@ -5,7 +5,11 @@ import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
+import {ArrowLeftIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {useFocusTrap} from '@mattermost/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -26,7 +30,7 @@ export type Props = {
         addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const AddUsersToGroupModal = (props: Props) => {
     const [show, setShow] = useState(true);
@@ -102,16 +106,17 @@ const AddUsersToGroupModal = (props: Props) => {
             id='addUsersToGroupsModal'
         >
             <div ref={modalRef}>
-                <Modal.Header>
-                    <div className='d-flex align-items-center'>
-                        <button
-                            type='button'
-                            className='modal-header-back-button btn btn-icon'
-                            aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
-                            onClick={goBack}
-                        >
-                            <i className='icon icon-arrow-left'/>
-                        </button>
+                <Modal.Header closeButton={false}>
+                    <div className='user-groups-modal__header-title-row d-flex align-items-center'>
+                        <WithTooltip title={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}>
+                            <IconButton
+                                size='medium'
+                                className='modal-header-back-button'
+                                icon={<Icon glyph={<ArrowLeftIcon/>}/>}
+                                aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
+                                onClick={goBack}
+                            />
+                        </WithTooltip>
                         <Modal.Title
                             componentClass='h1'
                             id='addUsersToGroupsModalLabel'
@@ -124,20 +129,15 @@ const AddUsersToGroupModal = (props: Props) => {
                             />
                         </Modal.Title>
                     </div>
-                    <button
-                        type='button'
-                        className='close'
-                        onClick={props.onExited}
-                        aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                        <span className='sr-only'>
-                            <FormattedMessage
-                                id='generic.close'
-                                defaultMessage='Close'
-                            />
-                        </span>
-                    </button>
+                    <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
+                        <IconButton
+                            className='user-groups-modal__header-close'
+                            size='medium'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            onClick={doHide}
+                            aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                        />
+                    </WithTooltip>
                 </Modal.Header>
                 <Modal.Body
                     className='overflow--visible'
@@ -157,7 +157,6 @@ const AddUsersToGroupModal = (props: Props) => {
                                     buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
                                     buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
                                     backButtonClick={goBack}
-                                    backButtonClass={'multiselect-back'}
                                     saving={saving}
                                 />
                             </div>

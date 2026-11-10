@@ -1,0 +1,39 @@
+---
+title: "Desktop App Deployment"
+---
+<PlanAvailability slug="all-commercial" />
+
+The Mattermost desktop app is available for Windows, macOS, and Linux, and offers [additional functionality](/end-user-guide/preferences/customize-desktop-app-experience) beyond the web-based experience. This guide walks you through rolling it out to your users. If something goes wrong along the way, see [Desktop app troubleshooting](/deployment-guide/desktop/desktop-troubleshooting).
+
+## Roll out the desktop app
+
+1.  **Check requirements.** Confirm your users' operating systems meet the [software requirements](/deployment-guide/software-hardware-requirements#desktop-apps), and that the desktop app version you plan to deploy is [compatible with your server](/product-overview/mattermost-desktop-releases).
+2.  **[Review privacy and data collection](/deployment-guide/desktop/desktop-app-privacy).** Decide whether to keep [error reporting](/deployment-guide/desktop/desktop-app-privacy#error-reporting) on, and which [session attributes](/deployment-guide/desktop/desktop-app-privacy#session-attribute-collection) your permission policies will rely on.
+3.  **[Choose how users get the app](#choose-a-distribution-channel).**
+4.  **[Pre-configure servers and settings](/deployment-guide/desktop/desktop-app-policies).** Help users have the best experience on first launch by having their servers and settings ready.
+5.  **[Plan updates](#plan-updates).**
+6.  **Let your users know.** [Install the Mattermost desktop app](/end-user-guide/access/install-desktop-app) walks them through getting started.
+
+## Choose a distribution channel
+
+The app needs to be installed on a local drive. Running it from a network share isn't supported.
+
+| Platform | Channel | How it's updated |
+|---|---|---|
+| Windows | [Microsoft Store](https://apps.microsoft.com/detail/xp8br8mh3lpklt?hl=en-US&gl=US) | Automatically, through the Microsoft Store. |
+| Windows | MSI | The app notifies users when an update is available, or you deploy new versions yourself. See [Deploy the desktop app on Windows](/deployment-guide/desktop/windows-desktop-install). |
+| macOS | [Mac App Store](https://apps.apple.com/us/app/mattermost-desktop/id1614666244?mt=12) | Automatically, through the Mac App Store. |
+| macOS | DMG | The app notifies users when an update is available, or you deploy new versions yourself. See [Deploy the desktop app on macOS](/deployment-guide/desktop/macos-desktop-install). |
+| Linux | APT repository, `.deb`, `.rpm`, Flatpak, AppImage, or tarball | Depends on the package. See [Deploy the desktop app on Linux](/deployment-guide/desktop/linux-desktop-install). |
+
+To deploy the app to virtual desktops, also see [Run the desktop app on VDI](/deployment-guide/desktop/desktop-vdi-deployment). To ship your own white-labelled build with built-in servers, see [Distribute a custom desktop app](/deployment-guide/desktop/distribute-a-custom-desktop-app).
+
+## Plan updates
+
+All channels receive each release at the same time. See [Upgrade the desktop app](/end-user-guide/access/install-desktop-app#upgrade-the-desktop-app) for what users see when an update is available.
+
+If you deliver updates yourself, for example with SCCM, Intune, or a base image, you can disable the `EnableAutoUpdater` policy, so users aren't prompted for updates you haven't rolled out yet. The policy is available on Windows and macOS only, so on Linux, control updates through your package source. See [Desktop app policies](/deployment-guide/desktop/desktop-app-policies).
+
+### Enforce a minimum version
+
+From Mattermost server v11.6, the [Minimum desktop app version](/administration-guide/configure/site-configuration-settings#minimum-desktop-app-version) setting blocks older desktop app versions from connecting. Users below the minimum see an update required screen the next time the app loads the server, with a **Download** button that opens the [Mattermost apps download page link](/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link). You can point that link at a page that tells users how to get the update, such as an intranet page for Software Center or Company Portal. It must be an `http` or `https` URL.

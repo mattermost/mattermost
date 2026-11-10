@@ -6,7 +6,7 @@ import type {Team} from './teams';
 import type {UserProfile} from './users';
 import type {IDMappedObjects, RelationOneToOne} from './utilities';
 
-export type ChannelCategoryType = 'favorites' | 'channels' | 'direct_messages' | 'custom';
+export type ChannelCategoryType = 'favorites' | 'channels' | 'direct_messages' | 'custom' | 'managed';
 
 export enum CategorySorting {
     Alphabetical = 'alpha',
@@ -35,4 +35,5 @@ export type OrderedChannelCategories = {
 export type ChannelCategoriesState = {
     byId: IDMappedObjects<ChannelCategory>;
     orderByTeam: RelationOneToOne<Team, Array<ChannelCategory['id']>>;
+    managedCategoryMappings: RelationOneToOne<Team, Record<Channel['id'], string>>;
 };

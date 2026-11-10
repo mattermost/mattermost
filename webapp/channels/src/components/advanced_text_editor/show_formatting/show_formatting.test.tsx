@@ -7,10 +7,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ShowFormatting from './show_formatting';
 
-jest.mock('components/with_tooltip', () => {
-    return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
-});
-
 describe('ShowFormatting Component', () => {
     it('should render correctly with default props', () => {
         renderWithContext(
@@ -36,7 +32,7 @@ describe('ShowFormatting Component', () => {
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply the active class when active prop is true', () => {
+    it('should be pressed when active prop is true', () => {
         const {container} = renderWithContext(
             <ShowFormatting
                 onClick={jest.fn()}
@@ -44,6 +40,6 @@ describe('ShowFormatting Component', () => {
             />,
         );
 
-        expect(container.querySelector('button')).toHaveClass('active');
+        expect(container.querySelector('button')).toHaveAttribute('aria-pressed', 'true');
     });
 });

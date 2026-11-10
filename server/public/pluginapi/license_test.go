@@ -33,21 +33,21 @@ func TestIsEnterpriseLicensedOrDevelopment(t *testing.T) {
 
 	t.Run("no license, only developer mode", func(t *testing.T) {
 		assert.False(t, IsEnterpriseLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(false)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(false)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, only testing mode", func(t *testing.T) {
 		assert.False(t, IsEnterpriseLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(false), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(false), EnableTesting: new(true)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, developer and testing mode", func(t *testing.T) {
 		assert.True(t, IsEnterpriseLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(true)}},
 			nil,
 		))
 	})
@@ -64,13 +64,13 @@ func TestIsE20LicensedOrDevelopment(t *testing.T) {
 
 	t.Run("disabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			FutureFeatures: bToP(false),
+			FutureFeatures: new(false),
 		}}))
 	})
 
 	t.Run("enabled future features", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			FutureFeatures: bToP(true),
+			FutureFeatures: new(true),
 		}}))
 	})
 
@@ -87,21 +87,21 @@ func TestIsE20LicensedOrDevelopment(t *testing.T) {
 
 	t.Run("no license, only developer mode", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(false)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(false)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, only testing mode", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(false), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(false), EnableTesting: new(true)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, developer and testing mode", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(true)}},
 			nil,
 		))
 	})
@@ -109,56 +109,56 @@ func TestIsE20LicensedOrDevelopment(t *testing.T) {
 	t.Run("license with E10 SKU name, disabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E10",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with E10 SKU name, enabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E10",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
 
 	t.Run("license with professional SKU name, disabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with professional SKU name, enabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
 
 	t.Run("license with enterprise SKU name, disabled future features", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "enterprise",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with enterprise SKU name, enabled future features", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "enterprise",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
 
 	t.Run("license with unknown SKU name, disabled future features", func(t *testing.T) {
 		assert.False(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "unknown",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with unknown SKU name, enabled future features", func(t *testing.T) {
 		assert.True(t, IsE20LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "unknown",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
 }
@@ -174,13 +174,13 @@ func TestIsE10LicensedOrDevelopment(t *testing.T) {
 
 	t.Run("disabled LDAP", func(t *testing.T) {
 		assert.False(t, IsE10LicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			LDAP: bToP(false),
+			LDAP: new(false),
 		}}))
 	})
 
 	t.Run("enabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			LDAP: bToP(true),
+			LDAP: new(true),
 		}}))
 	})
 
@@ -197,21 +197,21 @@ func TestIsE10LicensedOrDevelopment(t *testing.T) {
 
 	t.Run("no license, only developer mode", func(t *testing.T) {
 		assert.False(t, IsE10LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(false)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(false)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, only testing mode", func(t *testing.T) {
 		assert.False(t, IsE10LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(false), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(false), EnableTesting: new(true)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, developer and testing mode", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(true)}},
 			nil,
 		))
 	})
@@ -219,42 +219,42 @@ func TestIsE10LicensedOrDevelopment(t *testing.T) {
 	t.Run("license with professional SKU name, disabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
-			Features:     &model.Features{LDAP: bToP(false)},
+			Features:     &model.Features{LDAP: new(false)},
 		}))
 	})
 
 	t.Run("license with professional SKU name, enabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "professional",
-			Features:     &model.Features{LDAP: bToP(true)},
+			Features:     &model.Features{LDAP: new(true)},
 		}))
 	})
 
 	t.Run("license with enterprise SKU name, disabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "enterprise",
-			Features:     &model.Features{LDAP: bToP(false)},
+			Features:     &model.Features{LDAP: new(false)},
 		}))
 	})
 
 	t.Run("license with enterprise SKU name, enabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "enterprise",
-			Features:     &model.Features{LDAP: bToP(true)},
+			Features:     &model.Features{LDAP: new(true)},
 		}))
 	})
 
 	t.Run("license with unknown SKU name, disabled LDAP", func(t *testing.T) {
 		assert.False(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "unknown",
-			Features:     &model.Features{LDAP: bToP(false)},
+			Features:     &model.Features{LDAP: new(false)},
 		}))
 	})
 
 	t.Run("license with unknown SKU name, enabled LDAP", func(t *testing.T) {
 		assert.True(t, IsE10LicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "unknown",
-			Features:     &model.Features{LDAP: bToP(true)},
+			Features:     &model.Features{LDAP: new(true)},
 		}))
 	})
 }
@@ -296,13 +296,13 @@ func TestIsEnterpriseAdvancedOrDevelopment(t *testing.T) {
 
 	t.Run("disabled future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			FutureFeatures: bToP(false),
+			FutureFeatures: new(false),
 		}}))
 	})
 
 	t.Run("should have no affect of future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{Features: &model.Features{
-			FutureFeatures: bToP(true),
+			FutureFeatures: new(true),
 		}}))
 	})
 
@@ -319,21 +319,21 @@ func TestIsEnterpriseAdvancedOrDevelopment(t *testing.T) {
 
 	t.Run("no license, only developer mode", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(false)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(false)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, only testing mode", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(false), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(false), EnableTesting: new(true)}},
 			nil,
 		))
 	})
 
 	t.Run("no license, developer and testing mode", func(t *testing.T) {
 		assert.True(t, IsEnterpriseAdvancedLicensedOrDevelopment(
-			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: bToP(true), EnableTesting: bToP(true)}},
+			&model.Config{ServiceSettings: model.ServiceSettings{EnableDeveloper: new(true), EnableTesting: new(true)}},
 			nil,
 		))
 	})
@@ -341,32 +341,28 @@ func TestIsEnterpriseAdvancedOrDevelopment(t *testing.T) {
 	t.Run("license with E10 SKU name, disabled future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E10",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with E10 SKU name, enabled future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E10",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
 
 	t.Run("license with E20 SKU name, disabled future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E20",
-			Features:     &model.Features{FutureFeatures: bToP(false)},
+			Features:     &model.Features{FutureFeatures: new(false)},
 		}))
 	})
 
 	t.Run("license with E20 SKU name, enabled future features", func(t *testing.T) {
 		assert.False(t, IsEnterpriseAdvancedLicensedOrDevelopment(nil, &model.License{
 			SkuShortName: "E20",
-			Features:     &model.Features{FutureFeatures: bToP(true)},
+			Features:     &model.Features{FutureFeatures: new(true)},
 		}))
 	})
-}
-
-func bToP(b bool) *bool {
-	return &b
 }

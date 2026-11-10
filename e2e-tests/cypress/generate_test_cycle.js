@@ -63,7 +63,7 @@
 
 const os = require('os');
 
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 
 const {createAndStartCycle} = require('./utils/dashboard');
 const {getSortedTestFiles} = require('./utils/file');

@@ -11,7 +11,6 @@
  * - Action/Verification comments
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/order */
 
 const fs = require('fs');
@@ -93,14 +92,7 @@ specFiles.forEach((filePath) => {
         });
 
         // Check if test has a test key (MM-T####)
-        if (!testName.match(/^MM-T\d+/)) {
-            // This is a new test without a test key
-            console.log(
-                `${colors.cyan}NEW TEST FOUND: "${testName}"${colors.reset} - Will be registered in the test management system after merge`,
-            );
-            results.newTests = results.newTests || [];
-            results.newTests.push({file: relativeFilePath, testName});
-        } else {
+        if (testName.match(/^MM-T\d+/)) {
             // This is an existing test with a test key
             const baseTestKey = testName.match(/^(MM-T\d+)/)[1];
 
@@ -135,13 +127,18 @@ specFiles.forEach((filePath) => {
                     testName,
                 });
             }
+        } else {
+            // This is a new test without a test key
+            console.log(
+                `${colors.cyan}NEW TEST FOUND: "${testName}"${colors.reset} - Will be registered in the test management system after merge`,
+            );
+            results.newTests = results.newTests || [];
+            results.newTests.push({file: relativeFilePath, testName});
         }
 
         // JSDoc was already retrieved above, no need to get it again
 
-        if (!precedingJSDoc) {
-            fileErrors.push(`Missing JSDoc documentation at "${testName}"`);
-        } else {
+        if (precedingJSDoc) {
             const jsdocContent = precedingJSDoc[0];
 
             // Check for @objective
@@ -151,6 +148,8 @@ specFiles.forEach((filePath) => {
 
             // Note: @precondition is optional and should only be included when there are
             // non-default requirements for the test
+        } else {
+            fileErrors.push(`Missing JSDoc documentation at "${testName}"`);
         }
 
         // Check for tag declaration
@@ -336,23 +335,28 @@ if (results.updatedTests && results.updatedTests.length > 0) {
     Object.keys(groupedTests).forEach((baseTestKey) => {
         const tests = groupedTests[baseTestKey];
 
-        // If there's only one test with this base key and it's not a step
         if (tests.length === 1 && !tests[0].isStep) {
+            // If there's only one test with this base key and it's not a step
+
             const test = tests[0];
             console.log(
                 `  ${colors.magenta}•${colors.reset} ${test.file}: ${test.testKey} "${test.testName.substring(test.testKey.length).trim()}"`,
             );
-        }
-        // If there are multiple steps of the same test
-        else {
+        } else {
+            // If there are multiple steps of the same test
+
             console.log(
                 `  ${colors.magenta}•${colors.reset} ${tests[0].file}: ${colors.cyan}${baseTestKey}${colors.reset} (with ${tests.length} steps):`,
             );
 
             // Sort steps by their step number
             tests.sort((a, b) => {
-                if (!a.isStep) return -1;
-                if (!b.isStep) return 1;
+                if (!a.isStep) {
+                    return -1;
+                }
+                if (!b.isStep) {
+                    return 1;
+                }
 
                 const aNum = parseInt(a.stepSuffix.substring(1), 10);
                 const bNum = parseInt(b.stepSuffix.substring(1), 10);

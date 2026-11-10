@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @channel @channel_settings @permissions
 
-import {Team} from '@mattermost/types/teams';
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 describe('Channel Settings Menu Permissions', () => {
     let testTeam: Team;

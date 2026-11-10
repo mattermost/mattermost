@@ -6,14 +6,14 @@ import type {MouseEvent} from 'react';
 
 import type {ClusterInfo} from '@mattermost/types/admin';
 
-import {getClusterStatus} from 'actions/admin_actions.jsx';
+import {getClusterStatus} from 'actions/admin_actions';
 
 import ClusterTable from './cluster_table';
 
 import LoadingScreen from '../loading_screen';
 
 const ClusterTableContainer = () => {
-    const interval = useRef<NodeJS.Timeout>();
+    const interval = useRef<NodeJS.Timeout>(undefined);
     const [clusterInfos, setClusterInfos] = useState<ClusterInfo[] | null>(null);
 
     const load = useCallback(() => {

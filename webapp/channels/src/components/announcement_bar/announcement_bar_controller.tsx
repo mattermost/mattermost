@@ -9,15 +9,15 @@ import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_clou
 
 import CloudPreviewAnnouncementBar from './cloud_preview_announcement_bar';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
-import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
+import NonProductionLicenseAnnouncementBar from './non_production_license_bar';
 import NotificationPermissionBar from './notification_permission_bar';
 import OverageUsersBanner from './overage_users_banner';
-import PaymentAnnouncementBar from './payment_announcement_bar';
 import PostHistoryLimitBanner from './post_history_limit_banner';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
+import SingleChannelGuestLimitBanner from './single_channel_guest_limit_banner';
 import TextDismissableBar from './text_dismissable_bar';
 import UsersLimitsAnnouncementBar from './users_limits_announcement_bar';
 import VersionBar from './version_bar';
@@ -33,7 +33,6 @@ type Props = {
     actions: {
         dismissError: (index: number) => void;
         getCloudSubscription: () => void;
-        getCloudCustomer: () => void;
     };
 };
 
@@ -64,21 +63,11 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
-        let paymentAnnouncementBar = null;
         let cloudTrialAnnouncementBar = null;
-        let cloudTrialEndAnnouncementBar = null;
         let cloudPreviewAnnouncementBar = null;
-        const notifyAdminDowngradeDelinquencyBar = null;
-        const toYearlyNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
-            paymentAnnouncementBar = (
-                <PaymentAnnouncementBar/>
-            );
             cloudTrialAnnouncementBar = (
                 <CloudTrialAnnouncementBar/>
-            );
-            cloudTrialEndAnnouncementBar = (
-                <CloudTrialEndAnnouncementBar/>
             );
             cloudPreviewAnnouncementBar = (
                 <CloudPreviewAnnouncementBar/>
@@ -104,6 +93,8 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         // If set with class 'admin-announcement', they will always be visible, stacked vertically.
         return (
             <>
+                {/* Lowest priority: urgent bars temporarily override it, and it reappears once they clear. */}
+                <NonProductionLicenseAnnouncementBar/>
                 <NotificationPermissionBar/>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
@@ -111,13 +102,10 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                     license={this.props.license}
                     userIsAdmin={this.props.userIsAdmin}
                 />
-                {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
-                {cloudTrialEndAnnouncementBar}
                 {cloudPreviewAnnouncementBar}
-                {notifyAdminDowngradeDelinquencyBar}
-                {toYearlyNudgeBannerDismissable}
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
+                <SingleChannelGuestLimitBanner userIsAdmin={this.props.userIsAdmin}/>
                 <PostHistoryLimitBanner/>
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>

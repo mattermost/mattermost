@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import classNames from 'classnames';
+import React, {type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+
+import {CheckIcon, LinkVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
+import './get_link_modal.scss';
 
 type Props = {
     show: boolean;
@@ -12,11 +19,11 @@ type Props = {
     title: string;
     helpText?: string;
     link: string;
-}
+};
 
 type State = {
     copiedLink: boolean;
-}
+};
 
 export default class GetLinkModal extends React.PureComponent<Props, State> {
     private textAreaRef = React.createRef<HTMLTextAreaElement>();
@@ -61,7 +68,7 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                 this.resetTimeout = setTimeout(() => {
                     this.setState({copiedLink: false});
                 }, 1000);
-            } catch (err) {
+            } catch {
                 this.setState({copiedLink: false});
             }
         }
@@ -83,31 +90,29 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
 
         if (document.queryCommandSupported('copy')) {
             copyLink = (
-                <button
+                <Button
                     id='linkModalCopyLink'
                     data-copy-btn='true'
                     type='button'
-                    className={`btn ${this.state.copiedLink ? 'btn-primary btn-success' : 'btn-primary'} pull-left`}
+                    emphasis='primary'
+                    className={classNames({
+                        GetLinkModal__copied: this.state.copiedLink,
+                    })}
                     onClick={this.copyLink}
+                    leadingIcon={<Icon glyph={this.state.copiedLink ? <CheckIcon/> : <LinkVariantIcon/>}/>}
                 >
                     {this.state.copiedLink ? (
-                        <>
-                            <i className='icon icon-check'/>
-                            <FormattedMessage
-                                id='get_link.clipboard'
-                                defaultMessage='Copied'
-                            />
-                        </>
+                        <FormattedMessage
+                            id='get_link.clipboard'
+                            defaultMessage='Copied'
+                        />
                     ) : (
-                        <>
-                            <i className='icon icon-link-variant'/>
-                            <FormattedMessage
-                                id='get_link.copy'
-                                defaultMessage='Copy Link'
-                            />
-                        </>
+                        <FormattedMessage
+                            id='get_link.copy'
+                            defaultMessage='Copy Link'
+                        />
                     )}
-                </button>
+                </Button>
             );
         }
 
@@ -143,17 +148,17 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     {linkText}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         id='linkModalCloseButton'
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='get_link.close'
                             defaultMessage='Close'
                         />
-                    </button>
+                    </Button>
                     {copyLink}
                 </Modal.Footer>
             </Modal>

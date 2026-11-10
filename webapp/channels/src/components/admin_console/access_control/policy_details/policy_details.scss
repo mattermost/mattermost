@@ -33,4 +33,31 @@
 
         margin-bottom: 16px;
     }
+
+    .AccessControlPolicySettings__mixedChannelsNotice {
+        margin-bottom: 16px;
+
+        h4 {
+            margin-bottom: 0;
+        }
+    }
+
+    .EditPolicy__masked-values-warning {
+        margin-top: 4px;
+    }
+
+    // Warnings live in AdminPanel body (panel padding owns horizontal inset).
+    .EditPolicy__delete-masked-values-warning,
+    .EditPolicy__delete-linked-teams-warning {
+        margin: 0 0 16px;
+    }
+
+    .EditPolicy__delete-linked-teams-list {
+        padding-left: 20px;
+        margin: 8px 0 0;
+
+        li {
+            margin-bottom: 4px;
+        }
+    }
 }

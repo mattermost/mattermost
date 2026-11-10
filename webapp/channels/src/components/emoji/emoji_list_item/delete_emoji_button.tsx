@@ -8,7 +8,7 @@ import DeleteIntegrationLink from 'components/integrations/delete_integration_li
 
 type Props = {
     onDelete: () => void;
-}
+};
 
 export default function DeleteEmojiButton(props: Props) {
     return (

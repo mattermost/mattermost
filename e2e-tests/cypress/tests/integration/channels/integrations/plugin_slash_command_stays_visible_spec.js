@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @integrations @plugin @not_cloud
 
-import {agendaPlugin} from '../../../utils/plugins';
+import {agendaPlugin} from '@/utils/plugins';
 
 describe('Integrations', () => {
     before(() => {

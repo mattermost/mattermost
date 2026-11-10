@@ -10,11 +10,9 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console @channel_moderation
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {checkBoxes} from './constants';
 import {
@@ -22,6 +20,8 @@ import {
     enableAllChannelModeratedPermissions,
     saveConfigForChannel,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Channel Moderation', () => {
     let guestUser: UserProfile;
@@ -71,7 +71,7 @@ describe('Channel Moderation', () => {
 
         // * Ensure all checkboxes are checked
         checkBoxes.forEach((buttonId) => {
-            cy.findByTestId(buttonId).should('have.class', 'checked');
+            cy.findByTestId(buttonId).should('be.checked');
         });
 
         // # Uncheck all the boxes currently checked
@@ -86,7 +86,7 @@ describe('Channel Moderation', () => {
         // * Ensure all checkboxes have the correct unchecked state
         checkBoxes.forEach((buttonId) => {
             // * Ensure all checkboxes are unchecked
-            cy.findByTestId(buttonId).should('not.have.class', 'checked');
+            cy.findByTestId(buttonId).should('not.be.checked');
 
             // * Ensure Channel Mentions are disabled due to Create Posts
             if (buttonId.includes('use_channel_mentions')) {

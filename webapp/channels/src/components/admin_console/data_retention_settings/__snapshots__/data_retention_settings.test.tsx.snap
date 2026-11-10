@@ -1,1429 +1,1325 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with Global Policies disabled 1`] = `
-<div
-  className="wrapper--fixed DataRetentionSettings"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Data Retention Policies"
-      id="admin.data_retention.settings.title"
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed DataRetentionSettings"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
+      data-testid="admin-console-header"
     >
-      <Card
-        className="console"
-        expanded={true}
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Keep messages and files for a set amount of time."
-                id="admin.data_retention.globalPolicy.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Global retention policy"
-                id="admin.data_retention.globalPolicy.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
+        <section
+          aria-labelledby="_r_19_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            id="global_policy_table"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.globalPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.globalPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Files"
-                      id="admin.data_retention.globalPoliciesTable.files"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={4}
-              loading={false}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            buttonClass="edit_global_policy"
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "channel_messages": <div
-                        data-testid="global_message_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Keep forever"
-                          id="admin.data_retention.form.keepForever"
-                        />
-                      </div>,
-                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
-                      "files": <div
-                        data-testid="global_file_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Keep forever"
-                          id="admin.data_retention.form.keepForever"
-                        />
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={0}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add policy"
-                id="admin.data_retention.customPolicies.addPolicy"
-              />
-            }
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Customize how long specific teams and channels will keep messages."
-                id="admin.data_retention.customPolicies.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Custom retention policies"
-                id="admin.data_retention.customPolicies.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <div
-            id="custom_policy_table"
-          >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.customPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.customPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Applied to"
-                      id="admin.data_retention.customPoliciesTable.appliedTo"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={1}
-              loading={true}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        id="customWrapper-1234567"
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Delete"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "applied_to": <div
-                        id="customAppliedTo-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
-                          id="admin.data_retention.channel_team_counts"
-                          values={
-                            Object {
-                              "channel_count": 2,
-                              "team_count": 1,
-                            }
-                          }
-                        />
-                      </div>,
-                      "channel_messages": <div
-                        id="customDuration-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Keep forever"
-                          id="admin.data_retention.form.keepForever"
-                        />
-                      </div>,
-                      "description": <div
-                        id="customDescription-1234567"
-                      >
-                        Custom policy 1
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={1}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            isDisabled={false}
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Daily log of messages and files removed based on the policies defined above."
-                id="admin.data_retention.jobCreation.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Policy log"
-                id="admin.data_retention.jobCreation.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <Connect(JobTable)
-            className="job-table__data-retention"
-            createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            createJobHelpText={
-              <div>
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Daily time to check policies and run delete job:"
-                  id="admin.data_retention.createJob.instructions"
-                />
-                <span
-                  className="JobSelectedtime"
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  <b>
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="{time} AM (UTC)"
-                      id="admin.data_retention.jobTimeAM"
-                      values={
-                        Object {
-                          "time": "12:15",
-                        }
-                      }
-                    />
-                  </b>
-                </span>
-                <a
-                  className="EditJobTime"
-                  onClick={[Function]}
-                >
-                  Edit
-                </a>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_19_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
-            }
-            disabled={true}
-            hideJobCreateButton={true}
-            jobType="data_retention"
-          />
-        </CardBody>
-      </Card>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                    data-testid="dataGrid-row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_1d_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1d_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_1e_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1e_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="run-deletion-job-now"
+                  disabled=""
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with custom policy 1`] = `
-<div
-  className="wrapper--fixed DataRetentionSettings"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Data Retention Policies"
-      id="admin.data_retention.settings.title"
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed DataRetentionSettings"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
+      data-testid="admin-console-header"
     >
-      <Card
-        className="console"
-        expanded={true}
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Keep messages and files for a set amount of time."
-                id="admin.data_retention.globalPolicy.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Global retention policy"
-                id="admin.data_retention.globalPolicy.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
+        <section
+          aria-labelledby="_r_9_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            id="global_policy_table"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.globalPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.globalPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Files"
-                      id="admin.data_retention.globalPoliciesTable.files"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={4}
-              loading={false}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            buttonClass="edit_global_policy"
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "channel_messages": <div
-                        data-testid="global_message_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
-                      "files": <div
-                        data-testid="global_file_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={0}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add policy"
-                id="admin.data_retention.customPolicies.addPolicy"
-              />
-            }
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Customize how long specific teams and channels will keep messages."
-                id="admin.data_retention.customPolicies.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Custom retention policies"
-                id="admin.data_retention.customPolicies.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <div
-            id="custom_policy_table"
-          >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.customPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.customPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Applied to"
-                      id="admin.data_retention.customPoliciesTable.appliedTo"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={1}
-              loading={true}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        id="customWrapper-1234567"
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Delete"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "applied_to": <div
-                        id="customAppliedTo-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
-                          id="admin.data_retention.channel_team_counts"
-                          values={
-                            Object {
-                              "channel_count": 2,
-                              "team_count": 1,
-                            }
-                          }
-                        />
-                      </div>,
-                      "channel_messages": <div
-                        id="customDuration-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "60",
-                            }
-                          }
-                        />
-                      </div>,
-                      "description": <div
-                        id="customDescription-1234567"
-                      >
-                        Custom policy 1
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={1}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            isDisabled={false}
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Daily log of messages and files removed based on the policies defined above."
-                id="admin.data_retention.jobCreation.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Policy log"
-                id="admin.data_retention.jobCreation.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <Connect(JobTable)
-            className="job-table__data-retention"
-            createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            createJobHelpText={
-              <div>
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Daily time to check policies and run delete job:"
-                  id="admin.data_retention.createJob.instructions"
-                />
-                <span
-                  className="JobSelectedtime"
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  <b>
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="{time} AM (UTC)"
-                      id="admin.data_retention.jobTimeAM"
-                      values={
-                        Object {
-                          "time": "12:15",
-                        }
-                      }
-                    />
-                  </b>
-                </span>
-                <a
-                  className="EditJobTime"
-                  onClick={[Function]}
-                >
-                  Edit
-                </a>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_9_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
-            }
-            disabled={false}
-            hideJobCreateButton={true}
-            jobType="data_retention"
-          />
-        </CardBody>
-      </Card>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                    data-testid="dataGrid-row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_d_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_d_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_footer"
+                  data-testid="dataGrid-footer"
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    <span
+                      data-testid="dataGrid-footer-paginationInfo"
+                    >
+                      1 - 1 of 1
+                    </span>
+                    <button
+                      aria-label="Previous page"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
+                      disabled=""
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                    </button>
+                    <button
+                      aria-label="Next page"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+                      disabled=""
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_i_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_i_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with custom policy keep forever 1`] = `
-<div
-  className="wrapper--fixed DataRetentionSettings"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Data Retention Policies"
-      id="admin.data_retention.settings.title"
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed DataRetentionSettings"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
+      data-testid="admin-console-header"
     >
-      <Card
-        className="console"
-        expanded={true}
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Keep messages and files for a set amount of time."
-                id="admin.data_retention.globalPolicy.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Global retention policy"
-                id="admin.data_retention.globalPolicy.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
+        <section
+          aria-labelledby="_r_p_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            id="global_policy_table"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.globalPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.globalPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Files"
-                      id="admin.data_retention.globalPoliciesTable.files"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={4}
-              loading={false}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            buttonClass="edit_global_policy"
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "channel_messages": <div
-                        data-testid="global_message_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
-                      "files": <div
-                        data-testid="global_file_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={0}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add policy"
-                id="admin.data_retention.customPolicies.addPolicy"
-              />
-            }
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Customize how long specific teams and channels will keep messages."
-                id="admin.data_retention.customPolicies.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Custom retention policies"
-                id="admin.data_retention.customPolicies.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <div
-            id="custom_policy_table"
-          >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.customPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.customPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Applied to"
-                      id="admin.data_retention.customPoliciesTable.appliedTo"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={1}
-              loading={true}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        id="customWrapper-1234567"
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                          <MenuItemAction
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Delete"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "applied_to": <div
-                        id="customAppliedTo-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{team_count} {team_count, plural, one {team} other {teams}}, {channel_count} {channel_count, plural, one {channel} other {channels}}"
-                          id="admin.data_retention.channel_team_counts"
-                          values={
-                            Object {
-                              "channel_count": 2,
-                              "team_count": 1,
-                            }
-                          }
-                        />
-                      </div>,
-                      "channel_messages": <div
-                        id="customDuration-1234567"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Keep forever"
-                          id="admin.data_retention.form.keepForever"
-                        />
-                      </div>,
-                      "description": <div
-                        id="customDescription-1234567"
-                      >
-                        Custom policy 1
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={1}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            isDisabled={false}
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Daily log of messages and files removed based on the policies defined above."
-                id="admin.data_retention.jobCreation.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Policy log"
-                id="admin.data_retention.jobCreation.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <Connect(JobTable)
-            className="job-table__data-retention"
-            createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            createJobHelpText={
-              <div>
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Daily time to check policies and run delete job:"
-                  id="admin.data_retention.createJob.instructions"
-                />
-                <span
-                  className="JobSelectedtime"
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  <b>
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="{time} AM (UTC)"
-                      id="admin.data_retention.jobTimeAM"
-                      values={
-                        Object {
-                          "time": "12:15",
-                        }
-                      }
-                    />
-                  </b>
-                </span>
-                <a
-                  className="EditJobTime"
-                  onClick={[Function]}
-                >
-                  Edit
-                </a>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_p_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
-            }
-            disabled={false}
-            hideJobCreateButton={true}
-            jobType="data_retention"
-          />
-        </CardBody>
-      </Card>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                    data-testid="dataGrid-row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_t_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_t_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_footer"
+                  data-testid="dataGrid-footer"
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    <span
+                      data-testid="dataGrid-footer-paginationInfo"
+                    >
+                      1 - 1 of 1
+                    </span>
+                    <button
+                      aria-label="Previous page"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
+                      disabled=""
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                    </button>
+                    <button
+                      aria-label="Next page"
+                      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+                      disabled=""
+                      type="button"
+                    >
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_ft92e_41"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1i355_2 _icon--size-16_1i355_38"
+                        >
+                          <div
+                            class="_icon__glyph-area_1i355_9"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_12_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_12_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with no custom policies 1`] = `
-<div
-  className="wrapper--fixed DataRetentionSettings"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Data Retention Policies"
-      id="admin.data_retention.settings.title"
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed DataRetentionSettings"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
+      data-testid="admin-console-header"
     >
-      <Card
-        className="console"
-        expanded={true}
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Keep messages and files for a set amount of time."
-                id="admin.data_retention.globalPolicy.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Global retention policy"
-                id="admin.data_retention.globalPolicy.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            id="global_policy_table"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.globalPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.globalPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "files",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Files"
-                      id="admin.data_retention.globalPoliciesTable.files"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={4}
-              loading={false}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={
-                Array [
-                  Object {
-                    "cells": Object {
-                      "actions": <MenuWrapper
-                        animationComponent={[Function]}
-                        className=""
-                        isDisabled={false}
-                        stopPropagationOnToggle={true}
-                      >
-                        <div
-                          className="text-right"
-                        >
-                          <a>
-                            <i
-                              className="icon icon-dots-vertical"
-                            />
-                          </a>
-                        </div>
-                        <Menu
-                          ariaLabel="User Actions Menu"
-                          openLeft={false}
-                          openUp={false}
-                        >
-                          <MenuItemAction
-                            buttonClass="edit_global_policy"
-                            disabled={false}
-                            onClick={[Function]}
-                            show={true}
-                            text="Edit"
-                          />
-                        </Menu>
-                      </MenuWrapper>,
-                      "channel_messages": <div
-                        data-testid="global_message_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                      "description": "Applies to all teams and channels, but does not apply to custom retention policies.",
-                      "files": <div
-                        data-testid="global_file_retention_cell"
-                      >
-                        <Memo(MemoizedFormattedMessage)
-                          defaultMessage="{count} {count, plural, one {day} other {days}}"
-                          id="admin.data_retention.retention_days"
-                          values={
-                            Object {
-                              "count": "100",
-                            }
-                          }
-                        />
-                      </div>,
-                    },
-                    "onClick": [Function],
-                  },
-                ]
-              }
-              startCount={1}
-              term=""
-              total={0}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Add policy"
-                id="admin.data_retention.customPolicies.addPolicy"
-              />
-            }
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Customize how long specific teams and channels will keep messages."
-                id="admin.data_retention.customPolicies.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Custom retention policies"
-                id="admin.data_retention.customPolicies.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <div
-            id="custom_policy_table"
-          >
-            <DataGrid
-              className="customTable"
-              columns={
-                Array [
-                  Object {
-                    "field": "description",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Description"
-                      id="admin.data_retention.customPoliciesTable.description"
-                    />,
-                  },
-                  Object {
-                    "field": "channel_messages",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Channel messages"
-                      id="admin.data_retention.customPoliciesTable.channelMessages"
-                    />,
-                  },
-                  Object {
-                    "field": "applied_to",
-                    "name": <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Applied to"
-                      id="admin.data_retention.customPoliciesTable.appliedTo"
-                    />,
-                  },
-                  Object {
-                    "className": "actionIcon",
-                    "field": "actions",
-                    "name": "",
-                  },
-                ]
-              }
-              endCount={0}
-              loading={true}
-              nextPage={[Function]}
-              previousPage={[Function]}
-              rows={Array []}
-              startCount={1}
-              term=""
-              total={0}
-            />
-          </div>
-        </CardBody>
-      </Card>
-      <Card
-        className="console"
-        expanded={true}
-      >
-        <CardHeader>
-          <TitleAndButtonCardHeader
-            buttonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            isDisabled={false}
-            onClick={[Function]}
-            subtitle={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Daily log of messages and files removed based on the policies defined above."
-                id="admin.data_retention.jobCreation.subTitle"
-              />
-            }
-            title={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Policy log"
-                id="admin.data_retention.jobCreation.title"
-              />
-            }
-          />
-        </CardHeader>
-        <CardBody
-          expanded={true}
-        >
-          <Connect(JobTable)
-            className="job-table__data-retention"
-            createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Run Deletion Job Now"
-                id="admin.data_retention.createJob.title"
-              />
-            }
-            createJobHelpText={
-              <div>
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Daily time to check policies and run delete job:"
-                  id="admin.data_retention.createJob.instructions"
-                />
-                <span
-                  className="JobSelectedtime"
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  <b>
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="{time} AM (UTC)"
-                      id="admin.data_retention.jobTimeAM"
-                      values={
-                        Object {
-                          "time": "12:15",
-                        }
-                      }
-                    />
-                  </b>
-                </span>
-                <a
-                  className="EditJobTime"
-                  onClick={[Function]}
-                >
-                  Edit
-                </a>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
-            }
-            disabled={false}
-            hideJobCreateButton={true}
-            jobType="data_retention"
-          />
-        </CardBody>
-      </Card>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                    data-testid="dataGrid-row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_4_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_4_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Add policy
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+                data-testid="dataGrid"
+              >
+                <div
+                  class="DataGrid_header"
+                  data-testid="dataGrid-header"
+                />
+                <div
+                  class="DataGrid_rows"
+                  data-testid="dataGrid-rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          aria-labelledby="_r_5_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_5_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <button
+                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_we8pe_31"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>

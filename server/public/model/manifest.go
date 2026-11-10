@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 )
@@ -209,6 +209,12 @@ type Manifest struct {
 	// Minimum server version: 5.6
 	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
 
+	// RequiredAddOn names the add-on the server license must grant before this plugin
+	// can be enabled or activated, matched case-insensitively against License.AddOns.
+	//
+	// Minimum server version: 12.0
+	RequiredAddOn string `json:"required_add_on,omitempty" yaml:"required_add_on,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
@@ -243,6 +249,11 @@ type ManifestWebapp struct {
 	// location of the manifest file.
 	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
 
+	// PreAuth indicates the webapp bundle must also be delivered to unauthenticated clients, such
+	// as the login page. When PluginSettings.RestrictUnauthenticatedWebappPlugins is enabled, only
+	// plugins setting this field are exposed to clients without a session.
+	PreAuth bool `json:"pre_auth,omitempty" yaml:"pre_auth,omitempty"`
+
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
 }
@@ -260,7 +271,28 @@ func (m *Manifest) ClientManifest() *Manifest {
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
-		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+		cm.Webapp.BundlePath = m.clientBundlePath()
+	}
+	return cm
+}
+
+func (m *Manifest) clientBundlePath() string {
+	return "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+}
+
+// PreAuthClientManifest returns the minimal manifest needed by an unauthenticated client to load
+// the plugin's webapp bundle.
+func (m *Manifest) PreAuthClientManifest() *Manifest {
+	cm := &Manifest{
+		Id:      m.Id,
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if m.Webapp != nil {
+		cm.Webapp = &ManifestWebapp{
+			BundlePath: m.clientBundlePath(),
+			PreAuth:    m.Webapp.PreAuth,
+		}
 	}
 	return cm
 }
@@ -299,12 +331,12 @@ func (m *Manifest) HasWebapp() bool {
 }
 
 func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
-	minServerVersion, err := semver.Parse(m.MinServerVersion)
+	minServerVersion, err := semver.StrictNewVersion(m.MinServerVersion)
 	if err != nil {
 		return false, errors.New("failed to parse MinServerVersion")
 	}
 	sv := semver.MustParse(serverVersion)
-	if sv.LT(minServerVersion) {
+	if sv.LessThan(minServerVersion) {
 		return false, nil
 	}
 	return true, nil
@@ -332,14 +364,14 @@ func (m *Manifest) IsValid() error {
 	}
 
 	if m.Version != "" {
-		_, err := semver.Parse(m.Version)
+		_, err := semver.StrictNewVersion(m.Version)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse Version")
 		}
 	}
 
 	if m.MinServerVersion != "" {
-		_, err := semver.Parse(m.MinServerVersion)
+		_, err := semver.StrictNewVersion(m.MinServerVersion)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse MinServerVersion")
 		}

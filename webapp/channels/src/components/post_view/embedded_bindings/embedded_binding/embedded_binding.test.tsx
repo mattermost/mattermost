@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {AppBinding} from '@mattermost/types/apps';
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {Post} from '@mattermost/types/posts';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import EmbeddedBinding from './embedded_binding';
 
@@ -29,9 +30,21 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
         currentRelativeTeamUrl: 'dummy_team',
     };
 
+    const initialState = {
+        entities: {
+            general: {config: {}},
+            users: {profiles: {}},
+            groups: {myGroups: []},
+            emojis: {},
+            channels: {},
+            teams: {teams: {}},
+            preferences: {myPreferences: {}},
+        },
+    };
+
     test('should match snapshot', () => {
-        const wrapper = shallow(<EmbeddedBinding {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<EmbeddedBinding {...baseProps}/>, initialState);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the attachment has an emoji in the title', () => {
@@ -42,9 +55,9 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
+        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
@@ -55,9 +68,9 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
+        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when the attachment has a link in the title', () => {
@@ -68,8 +81,8 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<EmbeddedBinding {...props}/>);
+        const {container} = renderWithContext(<EmbeddedBinding {...props}/>, initialState);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

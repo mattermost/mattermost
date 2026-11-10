@@ -20,7 +20,7 @@ type Props = {
     user: UserProfile;
     enablePostIconOverride?: boolean;
     hasImageProxy?: boolean;
-}
+};
 
 export default function PreviewPostAvatar({post, user, enablePostIconOverride, hasImageProxy}: Props) {
     const isBot = Boolean(user && user.is_bot);

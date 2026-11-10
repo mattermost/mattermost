@@ -53,6 +53,10 @@
         &.singleAction {
             border-radius: 4px;
         }
+
+        &:not(.disabled):hover {
+            background: color-mix(in srgb, var(--button-bg) 90%, #000);
+        }
     }
 
     .button_send_post_options {
@@ -60,5 +64,9 @@
         border-radius: 0 4px 4px 0;
         border-left: 1px solid color-mix(in srgb, currentColor 20%, transparent);
         padding-inline: 2px;
+
+        &:not(.disabled):hover {
+            background: color-mix(in srgb, var(--button-bg) 90%, #000);
+        }
     }
 }

@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './action.scss';
 
@@ -13,7 +13,7 @@ type Props = {
     id: string;
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    tooltipText: React.ReactElement | string;
+    tooltipText: React.ReactElement<any> | string;
 };
 
 function Action({

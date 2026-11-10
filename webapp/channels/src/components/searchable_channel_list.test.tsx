@@ -3,12 +3,18 @@
 
 import React from 'react';
 
+jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
+    compassIconForName: jest.fn(),
+}));
+
 import type {Channel} from '@mattermost/types/channels';
 
-import {SearchableChannelList} from 'components/searchable_channel_list';
+import {compassIconForName} from 'components/channel_type_icon';
+import ConnectedSearchableChannelList, {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -27,6 +33,8 @@ jest.mock('@mattermost/compass-icons/components', () => ({
             {...props}
         />
     ),
+    GlobeIcon: () => <span data-testid='default-globe-icon'/>,
+    LockOutlineIcon: () => <span data-testid='default-lock-icon'/>,
 }));
 
 describe('components/SearchableChannelList', () => {
@@ -41,10 +49,12 @@ describe('components/SearchableChannelList', () => {
         toggleArchivedChannels: jest.fn(),
         closeModal: jest.fn(),
         hideJoinedChannelsPreference: jest.fn(),
+        hideArchivedChannelsPreference: jest.fn(),
         changeFilter: jest.fn(),
         myChannelMemberships: {},
         canShowArchivedChannels: false,
         rememberHideJoinedChannelsChecked: false,
+        rememberHideArchivedChannelsChecked: true,
         noResultsText: <>{'no channel found'}</>,
         filter: Filter.All,
         intl: {
@@ -89,6 +99,48 @@ describe('components/SearchableChannelList', () => {
         // We verify this by checking the search prop was called correctly
         // and the component renders without errors
         expect(baseProps.search).toBeDefined();
+    });
+
+    test('renders the Hide Archived checkbox reflecting the persisted preference', () => {
+        renderWithContext(
+            <SearchableChannelList {...baseProps}/>,
+            initialState,
+        );
+
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toBeInTheDocument();
+        expect(hideArchived).toHaveAttribute('aria-checked', 'true');
+    });
+
+    test('does not render the Hide Archived checkbox when the Archived filter is active', () => {
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                filter={Filter.Archived}
+            />,
+            initialState,
+        );
+
+        expect(screen.queryByLabelText('Hide archived channels')).not.toBeInTheDocument();
+    });
+
+    test('clicking the Hide Archived checkbox toggles the preference', async () => {
+        const hideArchivedChannelsPreference = jest.fn();
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                rememberHideArchivedChannelsChecked={false}
+                hideArchivedChannelsPreference={hideArchivedChannelsPreference}
+            />,
+            initialState,
+        );
+
+        const hideArchived = screen.getByLabelText('Hide archived channels');
+        expect(hideArchived).toHaveAttribute('aria-checked', 'false');
+
+        await userEvent.click(hideArchived);
+
+        expect(hideArchivedChannelsPreference).toHaveBeenCalledWith(true);
     });
 
     test('should render ArchiveOutlineIcon for archived public channels', () => {
@@ -145,5 +197,149 @@ describe('components/SearchableChannelList', () => {
         expect(channelRow).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveLockOutlineIcon"]')).toBeInTheDocument();
         expect(container.querySelector('[data-testid="archiveOutlineIcon"]')).not.toBeInTheDocument();
+    });
+
+    describe('plugin channel icon override', () => {
+        const mockedCompassIconForName = jest.mocked(compassIconForName);
+
+        afterEach(() => {
+            mockedCompassIconForName.mockReset();
+        });
+
+        test('renders override SVG icon with size prop when plugin matcher matches', () => {
+            const StubIcon = ({size}: {size?: number}) => (
+                <span
+                    data-testid='stub-override-icon'
+                    data-size={size}
+                />
+            );
+            mockedCompassIconForName.mockReturnValue(StubIcon as any);
+
+            const channels = [
+                {
+                    id: 'channel1',
+                    name: 'open-channel',
+                    display_name: 'Open Channel',
+                    type: 'O',
+                    delete_at: 0,
+                    team_id: 'team1',
+                    purpose: '',
+                } as Channel,
+            ];
+
+            const stateWithOverride = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => true,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <SearchableChannelList
+                    {...baseProps}
+                    channels={channels}
+                    loading={false}
+                />,
+                stateWithOverride,
+            );
+
+            const icon = screen.getByTestId('stub-override-icon');
+            expect(icon).toBeInTheDocument();
+            expect(icon).toHaveAttribute('data-size', '18');
+
+            // Default icons absent when override wins
+            expect(screen.queryByTestId('default-globe-icon')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('default-lock-icon')).not.toBeInTheDocument();
+        });
+
+        test('renders default SVG icon when no plugin matcher matches', () => {
+            mockedCompassIconForName.mockReturnValue(null);
+
+            const channels = [
+                {
+                    id: 'channel1',
+                    name: 'open-channel',
+                    display_name: 'Open Channel',
+                    type: 'O',
+                    delete_at: 0,
+                    team_id: 'team1',
+                    purpose: '',
+                } as Channel,
+            ];
+
+            const stateWithNoMatch = {
+                ...initialState,
+                plugins: {
+                    components: {
+                        ChannelIconOverride: [{
+                            id: '1',
+                            pluginId: 'test-plugin',
+                            matcher: () => false,
+                            iconName: 'shield-outline',
+                        }],
+                    },
+                },
+            } as any;
+
+            renderWithContext(
+                <SearchableChannelList
+                    {...baseProps}
+                    channels={channels}
+                    loading={false}
+                />,
+                stateWithNoMatch,
+            );
+
+            expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+
+            // Default globe icon rendered for the open channel fallback
+            expect(screen.getByTestId('default-globe-icon')).toBeInTheDocument();
+        });
+    });
+
+    test('names a board row a board', () => {
+        const channels = [
+            {
+                id: 'board1',
+                name: 'roadmap',
+                display_name: 'Roadmap',
+                type: 'P',
+                delete_at: 0,
+                team_id: 'team1',
+                purpose: 'plans',
+                discoverable: true,
+            } as Channel,
+            {
+                id: 'channel1',
+                name: 'town-square',
+                display_name: 'Town Square',
+                type: 'O',
+                delete_at: 0,
+                team_id: 'team1',
+                purpose: 'chat',
+            } as Channel,
+        ];
+
+        const {container} = renderWithContext(
+            <ConnectedSearchableChannelList
+                {...baseProps}
+                channels={channels}
+                loading={false}
+                showDiscoverableFilters={true}
+            />,
+            {...initialState, ...boardChannelsState('board1')},
+        );
+
+        const [boardRow, channelRow] = container.querySelectorAll('.more-modal__row');
+        expect(boardRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Board Information: Membership Indicator: Joined, Member count 0, Purpose: plans');
+        expect(channelRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Channel Information: Membership Indicator: Joined, Member count 0, Purpose: chat');
+        expect(screen.getByTestId('discoverable-indicator')).toHaveAttribute('aria-label', 'Discoverable private board');
     });
 });

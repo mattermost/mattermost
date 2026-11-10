@@ -9,15 +9,15 @@
 
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getCustomEmoji, verifyLastPostedEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
     let otherUser;
-    let offTopicUrl;
+    let offTopicUrl: string;
 
     const largeEmojiFile = 'gif-image-file.gif';
     const largeEmojiFileResized = 'gif-image-file-resized.gif';
@@ -55,7 +55,7 @@ describe('Custom emojis', () => {
         cy.uiOpenCustomEmoji();
 
         // # Click on add custom emoji
-        cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible').click();
+        cy.findByRole('link', {name: 'Add Custom Emoji'}).should('be.visible').click();
 
         // # Type emoji name
         cy.get('#name').type(customEmojiWithColons);
@@ -103,7 +103,7 @@ describe('Custom emojis', () => {
     });
 });
 
-function saveCustomEmoji(teamName) {
+function saveCustomEmoji(teamName: string) {
     // # Click on Save
     cy.findByText('Save').click();
 
@@ -122,5 +122,5 @@ function saveCustomEmoji(teamName) {
 
     // * Should return to list of custom emojis
     cy.url().should('include', `${teamName}/emoji`);
-    cy.findByRole('button', {name: 'Add Custom Emoji'}).should('be.visible');
+    cy.findByRole('link', {name: 'Add Custom Emoji'}).should('be.visible');
 }

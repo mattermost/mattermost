@@ -91,7 +91,10 @@ func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(logger, job, "48")
+		if appErr := rseworker.ResendEmails(logger, job, "48"); appErr != nil {
+			rseworker.setJobError(logger, job, appErr)
+			return
+		}
 		rseworker.TearDown(logger, job)
 	}
 }
@@ -175,28 +178,33 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(logger mlog.LoggerIFace, 
 	rseworker.setJobSuccess(logger, job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFace, job *model.Job, interval string) *model.AppError {
 	rctx := request.EmptyContext(logger)
 
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
-	channelListData := job.Data["channelList"]
 
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
 		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 		logger.Error("Worker: Failed to clean emails string data", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
+		return appErr
 	}
 
-	channelList, err := rseworker.cleanChannelsData(channelListData)
-	if err != nil {
-		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
-		logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
+	var channelList []string
+	if channelListData := job.Data["channelList"]; channelListData != "" {
+		channelList, err = rseworker.cleanChannelsData(channelListData)
+		if err != nil {
+			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
+			logger.Error("Worker: Failed to clean channel string data", mlog.Err(appErr))
+			return appErr
+		}
 	}
 
 	emailList = rseworker.removeAlreadyJoined(teamID, emailList)
+	if len(emailList) == 0 {
+		return nil
+	}
 
 	memberInvite := model.MemberInvite{
 		Emails: emailList,
@@ -206,9 +214,39 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(logger mlog.LoggerIFa
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
+	if profileListData := job.Data["profilesList"]; profileListData != "" {
+		var profiles []*model.MemberInviteProfile
+		if err := json.Unmarshal([]byte(profileListData), &profiles); err != nil {
+			appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
+			logger.Error("Worker: Failed to clean profiles string data", mlog.Err(appErr))
+			return appErr
+		}
+
+		remainingEmails := make(map[string]struct{}, len(emailList))
+		for _, email := range emailList {
+			remainingEmails[model.NormalizeEmail(email)] = struct{}{}
+		}
+		for _, profile := range profiles {
+			if profile == nil {
+				memberInvite.Profiles = append(memberInvite.Profiles, profile)
+				continue
+			}
+			if _, ok := remainingEmails[model.NormalizeEmail(profile.Email)]; ok {
+				memberInvite.Profiles = append(memberInvite.Profiles, profile)
+			}
+		}
+	}
+
+	invitesWithErrors, appErr := rseworker.app.InviteNewUsersToTeamGracefully(rctx, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		logger.Error("Worker: Failed to send emails", mlog.Err(appErr))
-		rseworker.setJobError(logger, job, appErr)
+		return appErr
 	}
+	for _, invite := range invitesWithErrors {
+		if invite != nil && invite.Error != nil {
+			logger.Error("Worker: Failed to resend invitation", mlog.String("email", invite.Email), mlog.Err(invite.Error))
+			return invite.Error
+		}
+	}
+	return nil
 }

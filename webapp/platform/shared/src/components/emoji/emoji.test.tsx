@@ -27,7 +27,7 @@ describe('Emoji', () => {
         expect(document.querySelector('.emoticon')).toBe(screen.getByLabelText(':smiley:'));
         expect(screen.getByLabelText(':smiley:')).toBeInTheDocument();
         expect(screen.getByLabelText(':smiley:')).toHaveStyle({
-            backgroundImage: 'https://mattermost.example.com/static/emoji/1F603.png',
+            backgroundImage: '/static/emoji/1F603.png',
         });
     });
 
@@ -39,7 +39,7 @@ describe('Emoji', () => {
         expect(document.querySelector('.emoticon')).toBe(screen.getByLabelText(':custom-emoji-1:'));
         expect(screen.getByLabelText(':custom-emoji-1:')).toBeInTheDocument();
         expect(screen.getByLabelText(':custom-emoji-1:')).toHaveStyle({
-            backgroundImage: 'https://mattermost.example.com/api/v4/emojis/custom-emoji-id-1/image',
+            backgroundImage: '/api/v4/emojis/custom-emoji-id-1/image',
         });
     });
 });

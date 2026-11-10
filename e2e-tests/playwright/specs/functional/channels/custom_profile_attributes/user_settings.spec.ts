@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from './helpers';
 import {
-    CustomProfileAttribute,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
     deleteCustomProfileAttributes,
@@ -36,25 +36,31 @@ import {
     TEST_MESSAGE_OTHER,
 } from './helpers';
 
-// Custom attribute definitions
+// Custom attribute definitions.
+// Names are intentionally suffixed with 'US' to avoid sharing server fields with
+// custom_attributes.spec.ts, which defines identically-typed 'Department', 'Phone',
+// and 'Website' attributes.  With greedy-bin-packing shard balancing the two spec
+// files often land in different shards; if they shared fields the owning spec's
+// afterAll would delete the field while the other spec is still using it, causing
+// consistent CI failures (observed as Department absent from the profile popover).
 const customAttributes: CustomProfileAttribute[] = [
     {
-        name: 'Department',
+        name: 'DepartmentUS',
         value: TEST_DEPARTMENT,
         type: 'text',
     },
     {
-        name: 'Location',
+        name: 'LocationUS',
         type: 'select',
         options: TEST_LOCATION_OPTIONS,
     },
     {
-        name: 'Skills',
+        name: 'SkillsUS',
         type: 'multiselect',
         options: TEST_SKILLS_OPTIONS,
     },
     {
-        name: 'Phone',
+        name: 'PhoneUS',
         value: TEST_PHONE,
         type: 'text',
         attrs: {
@@ -62,7 +68,7 @@ const customAttributes: CustomProfileAttribute[] = [
         },
     },
     {
-        name: 'Website',
+        name: 'WebsiteUS',
         value: TEST_URL,
         type: 'text',
         attrs: {
@@ -88,8 +94,8 @@ test.beforeEach(async ({pw}) => {
     ({team, user, adminClient, userClient} = await pw.initSetup({userOptions: {prefix: 'cpa-test-'}}));
     const channel = pw.random.channel({
         teamId: team.id,
-        name: `test-channel`,
-        displayName: `Test Channel`,
+        name: 'test-channel',
+        displayName: 'Test Channel',
     });
     testChannel = await adminClient.createChannel(channel);
 
@@ -150,14 +156,14 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
     // * Verify that custom profile attributes section exists
     await verifyAttributesExistInSettings(page, customAttributes);
 
-    // 3. Edit the Department attribute and change to "Product"
-    await editTextAttribute(page, attributeFieldsMap, 'Department', TEST_UPDATED_DEPARTMENT);
+    // 3. Edit the DepartmentUS attribute and change to "Product"
+    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
 
-    // 4. Edit the Location attribute (select field) and select "Office"
-    await editSelectAttribute(page, attributeFieldsMap, 'Location', 0); // Office is the first option (index 0)
+    // 4. Edit the LocationUS attribute (select field) and select "Remote" (index 0)
+    await editSelectAttribute(page, attributeFieldsMap, 'LocationUS', 0); // Remote is the first option (index 0)
 
-    // 5. Edit the Skills attribute (multiselect field) and select "Python" and "Node.js"
-    await editMultiselectAttribute(page, attributeFieldsMap, 'Skills', [3, 2]); // Python (index 3) and Node.js (index 2)
+    // 5. Edit the SkillsUS attribute (multiselect field) and select "Python" and "Node.js"
+    await editMultiselectAttribute(page, attributeFieldsMap, 'SkillsUS', [3, 2]); // Python (index 3) and Node.js (index 2)
 
     // 6. Close the profile settings modal
     await profileModal.closeModal();
@@ -174,11 +180,163 @@ test('MM-T5768 Editing Custom Profile Attributes @custom_profile_attributes', as
     await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated custom attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'Department', TEST_UPDATED_DEPARTMENT);
-    await verifyAttributeInPopover(otherChannelsPage, 'Location', 'Remote'); // This should be 'Office' but there's a bug in the test
-    await verifyAttributeInPopover(otherChannelsPage, 'Skills', 'Python');
-    await verifyAttributeInPopover(otherChannelsPage, 'Skills', 'Node.js');
+    await verifyAttributeInPopover(otherChannelsPage, 'DepartmentUS', TEST_UPDATED_DEPARTMENT);
+    await verifyAttributeInPopover(otherChannelsPage, 'LocationUS', 'Remote'); // Remote is index 0 in TEST_LOCATION_OPTIONS
+    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Python');
+    await verifyAttributeInPopover(otherChannelsPage, 'SkillsUS', 'Node.js');
 });
+
+/**
+ * @objective Verify that a select custom profile attribute's input takes focus when its section opens and
+ * its menu opens on click, and that keyboard use stays inside its dropdown: Escape with the menu open closes the menu
+ * but not the profile modal, and Enter on an option picks it
+ * without saving the section, which only saves when Save is clicked.
+ *
+ * @precondition
+ * A test server with a valid license to support Custom Profile Attributes, with a LocationUS select
+ * attribute (options Remote, Office, Hybrid) that the test user has not set.
+ */
+test(
+    'select attribute keyboard picks without saving and Escape keeps the profile modal open',
+    {tag: '@custom_profile_attributes'},
+    async ({pw}) => {
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+
+        // # Open the profile settings modal
+        const profileModal = await channelsPage.openProfileModal();
+        await profileModal.toBeVisible();
+        await verifyAttributesExistInSettings(page, customAttributes);
+
+        // # Edit the LocationUS attribute
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
+        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
+        await editButton.scrollIntoViewIfNeeded();
+        await editButton.click();
+
+        // * The input takes focus when the section opens
+        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toBeFocused();
+        const valueBefore = await input.inputValue();
+
+        // # Click the input
+        await input.click();
+
+        // * The menu opens with the input focused
+        await expect(input).toBeFocused();
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+
+        // # Press Escape with the menu open
+        await page.keyboard.press('Escape');
+
+        // * The menu closes, while the modal and the section stay open. The modal is still
+        // visible while it fades out, so check that it keeps react-bootstrap's `in` class,
+        // which is dropped as soon as the modal starts closing.
+        const modalRoot = page.locator('#accountSettingsModal');
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).toBeFocused();
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await expect(profileModal.saveButton).toBeVisible();
+
+        // # Reopen the menu with ArrowDown, move to the next option and pick it with Enter
+        await page.keyboard.press('ArrowDown');
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+
+        // * The modal is still open after the Escape
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await profileModal.toBeVisible();
+
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+
+        // * The option is picked but the section has not saved
+        await expect(input).not.toHaveValue(valueBefore);
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(editButton).not.toBeVisible();
+        await expect(profileModal.saveButton).toBeVisible();
+        const pickedValue = await input.inputValue();
+        expect(TEST_LOCATION_OPTIONS.map((option) => option.name)).toContain(pickedValue);
+
+        // # Save the section
+        await profileModal.saveButton.click();
+
+        // * The section closes and shows the picked value
+        await expect(editButton).toBeVisible();
+        await expect(profileModal.getAttributeValue('LocationUS', pickedValue)).toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify that clicking the open dropdown menu outside its options keeps focus on the select
+ * custom profile attribute, so the next Escape closes only the menu and not the profile modal.
+ *
+ * @precondition
+ * A test server with a valid license to support Custom Profile Attributes, with a LocationUS select
+ * attribute (options Remote, Office, Hybrid).
+ */
+test(
+    'clicking the select attribute menu outside an option keeps focus and Escape keeps the profile modal open',
+    {tag: '@custom_profile_attributes'},
+    async ({pw}) => {
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+
+        // # Open the profile settings modal and edit the LocationUS attribute
+        const profileModal = await channelsPage.openProfileModal();
+        await profileModal.toBeVisible();
+        const fieldId = getFieldIdByName(attributeFieldsMap, 'LocationUS');
+        const editButton = profileModal.container.locator(`#customAttribute_${fieldId}Edit`);
+        await editButton.scrollIntoViewIfNeeded();
+        await editButton.click();
+
+        // * The input takes focus when the section opens
+        const input = page.locator(`#customProfileAttribute_${fieldId}`);
+        await expect(input).toBeFocused();
+
+        // # Click the input to open the menu
+        await input.click();
+        await expect(input).toBeFocused();
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+
+        // # Click the menu padding just above its first option
+        const listboxId = `customProfileAttribute_${fieldId}-listbox`;
+        const firstOption = page.locator(`#${listboxId}`).getByRole('option').first();
+
+        // The menu ignores the pointer for a couple of frames after aria-expanded flips, then
+        // scales in; a trial click waits until the option is stable and receives pointer events.
+        await firstOption.click({trial: true});
+        const optionBox = await firstOption.boundingBox();
+        expect(optionBox).not.toBeNull();
+        const point = {x: optionBox!.x + optionBox!.width / 2, y: optionBox!.y - 3};
+        const hitsMenuPadding = await page.evaluate(
+            ({x, y, id}) => {
+                const el = document.elementFromPoint(x, y);
+                const popup = document.getElementById(id)?.closest('[class*="combobox__popup"]');
+                return Boolean(el && popup?.contains(el) && !el.closest('[role="option"]'));
+            },
+            {...point, id: listboxId},
+        );
+        expect(
+            hitsMenuPadding,
+            'the click point must land on the menu padding, not an option or outside the menu',
+        ).toBe(true);
+        await page.mouse.click(point.x, point.y);
+
+        // * The menu stays open and the input keeps focus
+        await expect(input).toHaveAttribute('aria-expanded', 'true');
+        await expect(input).toBeFocused();
+
+        // # Press Escape
+        await page.keyboard.press('Escape');
+
+        // * The menu closes, while the modal and the section stay open
+        const modalRoot = page.locator('#accountSettingsModal');
+        await expect(input).toHaveAttribute('aria-expanded', 'false');
+        await expect(input).toBeFocused();
+        await expect(modalRoot).toHaveClass(/\bin\b/);
+        await expect(profileModal.saveButton).toBeVisible();
+    },
+);
 
 /**
  * Verify that users can clear custom profile attribute values and that cleared
@@ -206,8 +364,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Department field and delete all text to clear the value
-    await editTextAttribute(page, attributeFieldsMap, 'Department', '');
+    // 3. Edit DepartmentUS field and delete all text to clear the value
+    await editTextAttribute(page, attributeFieldsMap, 'DepartmentUS', '');
 
     // 4. Close the profile settings modal
     await profileModal.closeModal();
@@ -223,8 +381,8 @@ test('MM-T5769 Clearing Custom Profile Attributes @custom_profile_attributes', a
     const lastPost = await channelsPage.getLastPost();
     await channelsPage.openProfilePopover(lastPost);
 
-    // * Department attribute is not displayed in the profile popover
-    await verifyAttributeNotInPopover(otherChannelsPage, 'Department');
+    // * DepartmentUS attribute is not displayed in the profile popover
+    await verifyAttributeNotInPopover(otherChannelsPage, 'DepartmentUS');
 });
 
 /**
@@ -245,8 +403,8 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Department field and change to "Changed Value"
-    const department = 'Department';
+    // 3. Edit DepartmentUS field and change to "Changed Value"
+    const department = 'DepartmentUS';
     const fieldId = getFieldIdByName(attributeFieldsMap, department);
     await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
@@ -258,12 +416,12 @@ test('MM-T5770 Cancelling Changes to Custom Profile Attributes @custom_profile_a
     // 4. Click Cancel button
     await profileModal.cancelButton.click();
 
-    // 5. Open Department field for editing again
-    await profileModal.container.locator(`text=Department`).scrollIntoViewIfNeeded();
+    // 5. Open DepartmentUS field for editing again
+    await profileModal.container.locator(`text=${department}`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
 
-    // * After cancelling, Department field should still show original value "Engineering"
+    // * After cancelling, DepartmentUS field should still show original value "Engineering"
     await expect(profileModal.container.locator(`#customAttribute_${fieldId}`)).toHaveValue(TEST_DEPARTMENT);
 });
 
@@ -295,11 +453,11 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Phone field and change to "555-987-6543"
-    await editTextAttribute(page, attributeFieldsMap, 'Phone', TEST_UPDATED_PHONE);
+    // 3. Edit PhoneUS field and change to "555-987-6543"
+    await editTextAttribute(page, attributeFieldsMap, 'PhoneUS', TEST_UPDATED_PHONE);
 
-    // 4. Edit Website field and change to "https://mattermost.com"
-    await editTextAttribute(page, attributeFieldsMap, 'Website', TEST_UPDATED_URL);
+    // 4. Edit WebsiteUS field and change to "https://mattermost.com"
+    await editTextAttribute(page, attributeFieldsMap, 'WebsiteUS', TEST_UPDATED_URL);
 
     // 5. Close the profile settings modal
     await profileModal.closeModal();
@@ -316,8 +474,8 @@ test('MM-T5771 Editing Phone and URL Type Custom Profile Attributes @custom_prof
     await otherChannelsPage.openProfilePopover(lastPost);
 
     // * Profile popover shows updated attributes
-    await verifyAttributeInPopover(otherChannelsPage, 'Phone', TEST_UPDATED_PHONE);
-    await verifyAttributeInPopover(otherChannelsPage, 'Website', TEST_UPDATED_URL);
+    await verifyAttributeInPopover(otherChannelsPage, 'PhoneUS', TEST_UPDATED_PHONE);
+    await verifyAttributeInPopover(otherChannelsPage, 'WebsiteUS', TEST_UPDATED_URL);
 });
 
 /**
@@ -338,9 +496,9 @@ test('MM-T5772 URL Validation in Custom Profile Attributes @custom_profile_attri
     const profileModal = await channelsPage.openProfileModal();
     await profileModal.toBeVisible();
 
-    // 3. Edit Website field and enter an invalid URL
-    const fieldId = getFieldIdByName(attributeFieldsMap, 'Website');
-    await profileModal.container.locator(`text=Website`).scrollIntoViewIfNeeded();
+    // 3. Edit WebsiteUS field and enter an invalid URL
+    const fieldId = getFieldIdByName(attributeFieldsMap, 'WebsiteUS');
+    await profileModal.container.locator('text=WebsiteUS').scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await profileModal.container.locator(`#customAttribute_${fieldId}Edit`).click();
     await profileModal.container.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();

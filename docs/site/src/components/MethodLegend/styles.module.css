@@ -1,0 +1,41 @@
+.legend {
+  list-style: none;
+  margin: 1rem 0 2rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.6rem;
+  padding: 0.2rem 0.55rem;
+  font-family: var(--mm-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  color: var(--mm-color-white);
+}
+
+.get    { background: #2D7BD2; }   /* operational blue */
+.post   { background: #2C7A4F; }   /* operational green */
+.put    { background: #A86A1F; }   /* operational amber */
+.patch  { background: #6B4FA0; }   /* operational violet */
+.delete { background: #8B1F1F; }   /* operational red */
+
+.meaning {
+  color: var(--mm-text-secondary);
+}

@@ -6,7 +6,7 @@ import * as React from 'react';
 type SvgProps = {
     width?: number;
     height?: number;
-}
+};
 
 const AutoTranslationSVG = (props: SvgProps) => (
     <svg

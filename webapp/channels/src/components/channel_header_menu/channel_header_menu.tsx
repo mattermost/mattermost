@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -27,7 +27,10 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants} from 'utils/constants';
+import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
@@ -35,10 +38,10 @@ import ChannelDirectMenu from './channel_header_menu_items/channel_header_direct
 import ChannelGroupMenu from './channel_header_menu_items/channel_header_group_menu';
 import ChannelHeaderMobileMenu from './channel_header_menu_items/channel_header_mobile_menu';
 import ChannelPublicPrivateMenu from './channel_header_menu_items/channel_header_public_private_menu';
+import MenuItemOpenInNewWindow from './menu_items/open_in_new_window';
 
 import ChannelHeaderTitleDirect from '../channel_header/channel_header_title_direct';
 import ChannelHeaderTitleGroup from '../channel_header/channel_header_title_group';
-import {usePluginVisibilityInSharedChannel} from '../common/hooks/usePluginVisibilityInSharedChannel';
 
 type Props = {
     dmUser?: UserProfile;
@@ -46,23 +49,34 @@ type Props = {
     archivedIcon?: JSX.Element;
     sharedIcon?: JSX.Element;
     isMobile?: boolean;
-}
+};
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const menuAriaLabels: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_header.otherchannel',
+        defaultMessage: '{displayName} Channel Menu',
+    }),
+    board: defineMessage({
+        id: 'channel_header.otherchannel.board',
+        defaultMessage: '{displayName} Board Menu',
+    }),
+};
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archivedIcon, sharedIcon}: Props): JSX.Element | null {
     const intl = useIntl();
 
     const user = useSelector(getCurrentUser);
     const channel = useSelector(getCurrentChannel);
+    const channelKind = useChannelKind(channel);
     const isDefault = useSelector(isCurrentChannelDefault);
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const isMuted = useSelector(isCurrentChannelMuted);
     const isLicensedForLDAPGroups = useSelector(getLicense).LDAPGroups === 'true';
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(channel?.id);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
-
-    const isReadonly = false;
 
     if (!channel) {
         return null;
@@ -72,10 +86,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isGroup = (channel.type === Constants.GM_CHANNEL);
 
     let channelTitle: ReactNode = channel.display_name;
-    let ariaLabel = intl.formatMessage({
-        id: 'channel_header.otherchannel',
-        defaultMessage: '{displayName} Channel Menu',
-    }, {
+    let ariaLabel = intl.formatMessage(menuAriaLabels[channelKind], {
         displayName: channel.display_name,
     });
     if (isDirect && dmUser) {
@@ -92,26 +103,22 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
         channelTitle = <ChannelHeaderTitleGroup gmMembers={gmMembers}/>;
     }
 
-    let pluginItems: JSX.Element[] = [];
+    const pluginItems = pluginMenuItems.map((item) => {
+        const handlePluginItemClick = () => {
+            if (item.action) {
+                item.action(channel.id);
+            }
+        };
 
-    if (pluginItemsVisible) {
-        pluginItems = pluginMenuItems.map((item) => {
-            const handlePluginItemClick = () => {
-                if (item.action) {
-                    item.action(channel.id);
-                }
-            };
-
-            return (
-                <Menu.Item
-                    id={item.id + '_pluginmenuitem'}
-                    key={item.id + '_pluginmenuitem'}
-                    onClick={handlePluginItemClick}
-                    labels={<span>{item.text}</span>}
-                />
-            );
-        });
-    }
+        return (
+            <Menu.Item
+                id={item.id + '_pluginmenuitem'}
+                key={item.id + '_pluginmenuitem'}
+                onClick={handlePluginItemClick}
+                labels={<span>{item.text}</span>}
+            />
+        );
+    });
 
     return (
         <Menu.Container
@@ -138,6 +145,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
             }}
             menu={{
                 id: 'channelHeaderDropdownMenu',
+                'aria-label': ariaLabel.toLowerCase(),
             }}
             transformOrigin={{
                 horizontal: 'left',
@@ -148,6 +156,9 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                 horizontal: 'left',
             }}
         >
+            {canPopout() && !isChannelPopoutWindow() && (
+                <MenuItemOpenInNewWindow channel={channel}/>
+            )}
             {isDirect && (
                 <ChannelDirectMenu
                     channel={channel}
@@ -181,7 +192,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
                     isDefault={isDefault}
-                    isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
                     isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}

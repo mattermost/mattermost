@@ -213,10 +213,6 @@
 
     .modal & {
         padding: 8px 3.2rem;
-
-        .suggestion-list__team-name {
-            right: 32px;
-        }
     }
 
     .suggestion-list__ellipsis {
@@ -248,16 +244,52 @@
     .suggestion-list__flex {
         display: flex;
         width: 100%;
+        min-width: 0;
         max-width: 100%;
         align-items: center;
 
+        .suggestion-list__switch-channel-primary {
+            display: flex;
+            overflow: hidden;
+            min-width: 0;
+            flex: 1 1 auto;
+            align-items: center;
+        }
+
         .suggestion-list__main {
+            display: flex;
+            overflow: hidden;
             width: unset;
+            min-width: 0;
+            flex: 1 1 auto;
+            white-space: nowrap;
 
             > span:first-child {
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+        }
+
+        .suggestion-list__channel-name-text {
+            overflow: hidden;
+            min-width: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suggestion-list_unread-mentions {
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+
+        .suggestion-list__team-name {
+            position: static;
+            overflow: hidden;
+            max-width: 40%;
+            flex: 0 0 auto;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .badge {
@@ -356,16 +388,6 @@
                 max-width: 11px;
             }
         }
-    }
-
-    .suggestion-list__team-name {
-        position: absolute;
-        right: 20px;
-        overflow: hidden;
-        max-width: 20%;
-        text-align: right;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .Tag {

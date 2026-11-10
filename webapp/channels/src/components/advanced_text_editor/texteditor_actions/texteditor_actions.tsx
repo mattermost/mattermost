@@ -8,7 +8,7 @@ type TexteditorActionsProps = {
     placement: 'top' | 'bottom';
     show?: boolean;
     isScrollbarRendered?: boolean;
-}
+};
 
 const TexteditorActions = styled.span<TexteditorActionsProps>`
     position: absolute;

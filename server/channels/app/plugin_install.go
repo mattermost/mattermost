@@ -81,7 +81,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -150,9 +150,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // removePluginFromClusterMessage is called when a peer removes a plugin, signalling all other
@@ -166,12 +164,10 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed to remove plugin locally", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
-// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
+// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
 // plugin was already enabled.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
@@ -208,9 +204,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return manifest, nil
 }
@@ -258,6 +252,40 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 	return nil
 }
 
+func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
+	// Installing only validates the plugin id, so the uploaded name and homepage may be missing.
+	// Fall back to the installed plugin's metadata to keep the plugin identifiable.
+	name := uploadedManifest.Name
+	if name == "" {
+		name = existingManifest.Name
+	}
+	homepageURL := uploadedManifest.HomepageURL
+	if homepageURL == "" {
+		homepageURL = existingManifest.HomepageURL
+	}
+
+	direction := model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest)
+
+	// The confirmation dialog reads this from AppError.Props, which is returned to clients even when
+	// developer mode is off. Keep it to plugin metadata that is safe for any admin client to see.
+	props := model.StringMap{
+		model.PluginInstallConflictPropPluginID:         uploadedManifest.Id,
+		model.PluginInstallConflictPropPluginName:       name,
+		model.PluginInstallConflictPropHomepageURL:      homepageURL,
+		model.PluginInstallConflictPropExistingVersion:  existingManifest.Version,
+		model.PluginInstallConflictPropUploadedVersion:  uploadedManifest.Version,
+		model.PluginInstallConflictPropVersionDirection: direction,
+	}
+
+	// DetailedError is only for the server log; the client reads Props instead.
+	details := fmt.Sprintf("plugin %q conflict: existing version %q, uploaded version %q (%s)", uploadedManifest.Id, existingManifest.Version, uploadedManifest.Version, direction)
+
+	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr.Props = props
+
+	return appErr
+}
+
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
 // plugin bundle from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace
 // is true.
@@ -301,21 +329,21 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		}
 
 		if plugin != nil {
-			var prepackagedVersion semver.Version
+			prepackagedVersion, _ := semver.StrictNewVersion("0.0.0")
 			if prepackagedPlugin != nil {
 				var err error
-				prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
+				prepackagedVersion, err = semver.StrictNewVersion(prepackagedPlugin.Manifest.Version)
 				if err != nil {
 					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 			}
 
-			marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
+			marketplaceVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackaged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+			if prepackagedVersion.LessThan(marketplaceVersion) { // Always true if no prepackaged plugin was found
 				logger.Debug("Found upgraded plugin from remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
 
 				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
@@ -457,24 +485,22 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, newPluginInstallConflictAppError(existingManifest, manifest)
 		}
 
 		// Skip installation if already installed and newer.
 		if installationStrategy == installPluginLocallyOnlyIfNewOrUpgrade {
-			var version, existingVersion semver.Version
-
-			version, err = semver.Parse(manifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			version, vErr := semver.StrictNewVersion(manifest.Version)
+			if vErr != nil {
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(vErr)
 			}
 
-			existingVersion, err = semver.Parse(existingManifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			existingVersion, vErr := semver.StrictNewVersion(existingManifest.Version)
+			if vErr != nil {
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(vErr)
 			}
 
-			if version.LTE(existingVersion) {
+			if version.LessThanEqual(existingVersion) {
 				logger.Warn("Skipping local installation of plugin since not a newer version", mlog.String("version", version.String()), mlog.String("existing_version", existingVersion.String()))
 				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.skip_installation.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 			}
@@ -504,7 +530,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	// Activate the plugin if enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
+		if hasOverride, enabled := ch.getPluginStateOverride(manifest); hasOverride && !enabled {
 			return manifest, nil
 		}
 
@@ -557,9 +583,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return nil
 }

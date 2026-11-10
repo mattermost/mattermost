@@ -80,7 +80,7 @@ type Props = WrappedComponentProps & {
     // Names of users for tooltip-like aria label, computed via selector
     users?: string[];
 
-}
+};
 
 export class Reaction extends React.PureComponent<Props, State> {
     private reactionButtonRef = React.createRef<HTMLButtonElement>();

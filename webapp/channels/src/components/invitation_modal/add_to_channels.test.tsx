@@ -7,10 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, fireEvent} from 'tests/react_testing_utils';
 
 import AddToChannels from './add_to_channels';
 import type {Props} from './add_to_channels';
@@ -57,44 +54,49 @@ describe('AddToChannels', () => {
     });
 
     describe('custom message', () => {
-        it('UI to toggle custom message opens it when closed', () => {
-            const props = baseProps;
-            const wrapper = mountWithIntl(<AddToChannels {...props}/>);
+        it('UI to toggle custom message opens it when closed', async () => {
+            const props = {...baseProps, toggleCustomMessage: jest.fn()};
+            const {container} = renderWithContext(<AddToChannels {...props}/>);
             expect(props.toggleCustomMessage).not.toHaveBeenCalled();
-            wrapper.find('a').at(0).simulate('click');
+            const link = container.querySelector('a');
+            if (link) {
+                await userEvent.click(link);
+            }
             expect(props.toggleCustomMessage).toHaveBeenCalled();
         });
 
-        it('UI to toggle custom message closes it when opened', () => {
+        it('UI to toggle custom message closes it when opened', async () => {
             const props = {
                 ...baseProps,
+                toggleCustomMessage: jest.fn(),
                 customMessage: {
                     ...baseProps.customMessage,
                     open: true,
                 },
             };
-            const wrapper = mountWithIntl(<AddToChannels {...props}/>);
+            const {container} = renderWithContext(<AddToChannels {...props}/>);
             expect(props.toggleCustomMessage).not.toHaveBeenCalled();
-            wrapper.find(CloseCircleIcon).at(0).simulate('click');
+            const closeIcon = container.querySelector('.close-circle-icon, svg');
+            if (closeIcon) {
+                await userEvent.click(closeIcon);
+            }
             expect(props.toggleCustomMessage).toHaveBeenCalled();
         });
 
         it('UI to write custom message calls the on change handler with its input', () => {
             const props = {
                 ...baseProps,
+                setCustomMessage: jest.fn(),
                 customMessage: {
                     ...baseProps.customMessage,
                     open: true,
                 },
             };
-            const wrapper = mountWithIntl(<AddToChannels {...props}/>);
+            renderWithContext(<AddToChannels {...props}/>);
             expect(props.setCustomMessage).not.toHaveBeenCalled();
             const expectedMessage = 'welcome to the team!';
-            wrapper.find('textarea').at(0).simulate('change', {
-                target: {
-                    value: expectedMessage,
-                },
-            });
+            const textarea = screen.getByRole('textbox');
+            fireEvent.change(textarea, {target: {value: expectedMessage}});
             expect(props.setCustomMessage).toHaveBeenCalledWith(expectedMessage);
         });
     });

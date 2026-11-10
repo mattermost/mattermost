@@ -9,8 +9,8 @@
 
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Customization', () => {
     beforeEach(() => {
@@ -65,7 +65,7 @@ describe('Customization', () => {
         cy.visit('/');
 
         // # Open About Mattermost menu option
-        cy.uiOpenProductMenu(`About ${siteName}`);
+        cy.uiOpenSwitchProductMenu(`About ${siteName}`);
 
         // * Verify in the about modal that the new site name is being shown
         cy.get('#aboutModalLabel').should('be.visible').and('have.text', `About ${siteName}`);
@@ -201,7 +201,7 @@ describe('Customization', () => {
 ~~This has been strikethrough~~
 *This has been italicized*
 [This is a link to mattermost.com](https://mattermost.com)
-` + '`This is inline code`';
+\`This is inline code\``;
 
         // # Update custom brand text
         cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
@@ -352,8 +352,8 @@ function saveSetting() {
 }
 
 function verifySiteNameInAboutModal(siteName) {
-    // # Open the hamburger menu
-    cy.get('button > span[class="menu-icon"]').click();
+    // # Open the system console header menu
+    cy.findByRole('button', {name: 'System Console Menu'}).should('be.visible').click();
 
     // # Click to open about modal
     cy.findByText(`About ${siteName}`).click();

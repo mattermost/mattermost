@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './multi_select_card.scss';
 
@@ -15,7 +15,7 @@ export type Props = {
     checked: boolean;
     tooltip?: string;
     size?: 'regular' | 'small';
-}
+};
 const MultiSelectCard = (props: Props) => {
     const buttonProps: {
         className: string;

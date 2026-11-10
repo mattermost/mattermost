@@ -11,7 +11,7 @@ import {ItemStatus} from 'utils/constants';
 type Props = {
     message?: string;
     custom?: CustomMessageInputType;
-}
+};
 
 const InputError = (props: Props) => {
     if (props.message) {

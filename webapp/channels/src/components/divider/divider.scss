@@ -1,0 +1,10 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Divider {
+    width: 100%;
+    height: 0;
+    border: none;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin: 0;
+}

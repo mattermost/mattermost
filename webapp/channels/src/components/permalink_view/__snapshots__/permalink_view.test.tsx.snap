@@ -1,49 +1,12 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PermalinkView should match snapshot 1`] = `
-<div
-  className="app__content"
-  id="app-content"
-/>
-`;
-
-exports[`components/PermalinkView should match snapshot with archived channel 1`] = `
-<Memo(PermalinkView)
-  actions={
-    Object {
-      "focusPost": [MockFunction] {
-        "calls": Array [
-          Array [
-            "post_id",
-            "return_to",
-            "current_user",
-          ],
-        ],
-        "results": Array [
-          Object {
-            "type": "return",
-            "value": undefined,
-          },
-        ],
-      },
-    }
-  }
-  channelId="channel_id"
-  channelIsArchived={true}
-  currentUserId="current_user"
-  match={
-    Object {
-      "params": Object {
-        "postid": "post_id",
-      },
-    }
-  }
-  returnTo="return_to"
-  teamName="team_name"
->
+<div>
   <div
-    className="app__content"
+    class="app__content"
     id="app-content"
   />
-</Memo(PermalinkView)>
+</div>
 `;
+
+exports[`components/PermalinkView should match snapshot with archived channel 1`] = `<div />`;

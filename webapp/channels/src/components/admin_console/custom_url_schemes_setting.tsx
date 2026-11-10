@@ -15,11 +15,11 @@ type Props = {
     onChange: (id: string, valueAsArray: string[]) => void;
     disabled: boolean;
     setByEnv: boolean;
-}
+};
 
 type State = {
     value: string;
-}
+};
 
 export default class CustomURLSchemesSetting extends PureComponent<Props, State> {
     constructor(props: Props) {

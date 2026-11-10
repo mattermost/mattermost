@@ -1,4 +1,5 @@
 @use "utils/functions";
+@use "utils/variables";
 
 .color-input {
     position: relative;
@@ -30,11 +31,20 @@
     border-radius: 0 4px 4px 0;
     background: functions.v(center-channel-bg) !important;
     line-height: 0;
+
+    &--disabled {
+        background: rgba(var(--center-channel-color-rgb), 0.1) !important;
+        cursor: not-allowed;
+
+        .color-icon {
+            cursor: not-allowed;
+        }
+    }
 }
 
 .color-popover {
     position: absolute;
-    z-index: 12;
+    z-index: variables.$z-index-popover;
     top: 100%;
     right: 0;
     padding-top: 8px;

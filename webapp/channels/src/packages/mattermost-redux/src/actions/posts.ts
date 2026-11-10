@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -30,12 +31,14 @@ import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {getAllChannels, getCurrentChannelId, getMyChannelMember, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {getPostPropertyGroups} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
+import {scanHumanReadableStringsFromInteractiveProps} from 'mattermost-redux/utils/post_interactive_utils';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -156,7 +159,7 @@ export function getPost(postId: string, includeDeleted?: boolean, retainContent?
         const crtEnabled = isCollapsedThreadsEnabled(getState());
 
         try {
-            post = await Client4.getPost(postId, includeDeleted, retainContent);
+            post = await Client4.getPost(postId, includeDeleted, retainContent, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POSTS_FAILURE, error});
@@ -174,7 +177,7 @@ export type CreatePostReturnType = {
     created?: boolean;
     pending?: string;
     error?: string;
-}
+};
 
 export function createPost(
     post: Post,
@@ -525,7 +528,7 @@ export function unpinPost(postId: string): ActionFuncAsync {
 export type SubmitReactionReturnType = {
     reaction?: Reaction;
     removedReaction?: boolean;
-}
+};
 
 export function addReaction(postId: string, emojiName: string): ActionFuncAsync<SubmitReactionReturnType> {
     return async (dispatch, getState) => {
@@ -658,6 +661,7 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
         const options: FetchPaginatedThreadOptions = {
             fetchThreads,
             collapsedThreads: collapsedThreadsEnabled,
+            propertyGroup: getPostPropertyGroups(state),
         };
         if (lastUpdateAt !== 0) {
             options.updatesOnly = true;
@@ -700,6 +704,7 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
             direction: 'down',
             fromCreateAt: latestReply?.create_at,
             fromPost: latestReply?.id,
+            propertyGroup: getPostPropertyGroups(getState()),
         };
 
         let posts;
@@ -727,7 +732,7 @@ export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK
         let posts;
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
         try {
-            posts = await Client4.getPosts(channelId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPosts(channelId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -754,10 +759,10 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
         let posts;
         let recentPosts;
         try {
-            posts = await Client4.getPostsUnread(channelId, userId, DEFAULT_LIMIT_BEFORE, DEFAULT_LIMIT_AFTER, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsUnread(channelId, userId, DEFAULT_LIMIT_BEFORE, DEFAULT_LIMIT_AFTER, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(state));
 
             if (posts.next_post_id && shouldLoadRecent) {
-                recentPosts = await Client4.getPosts(channelId, 0, Posts.POST_CHUNK_SIZE / 2, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+                recentPosts = await Client4.getPosts(channelId, 0, Posts.POST_CHUNK_SIZE / 2, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(state));
             }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -791,7 +796,7 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -813,7 +818,7 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -835,7 +840,7 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -860,10 +865,11 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
 
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const propertyGroups = getPostPropertyGroups(getState());
             [after, thread, before] = await Promise.all([
-                Client4.getPostsAfter(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
-                Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
-                Client4.getPostsBefore(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
+                Client4.getPostsAfter(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
+                Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
+                Client4.getPostsBefore(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
             ]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -942,7 +948,7 @@ export function getPostThreads(posts: Post[], fetchThreads = true): ThunkActionF
 }
 
 // Note that getMentionsAndStatusesForPosts can take either an array of posts or a map of ids to posts
-export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
+export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[] | PostList['posts'], dispatch: DispatchFunc, getState: GetStateFunc) {
     if (!postsArrayOrMap) {
         // Some API methods return {error} for no results
         return Promise.resolve();
@@ -1131,7 +1137,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
     }
 
     for (const post of posts) {
-        // These correspond to the fields searched by getMentionsEnabledFields on the server
+        // These correspond to the text segments from model.Post.AllStrings on the server (message, attachments, interactive).
         findNeededUsernamesAndGroups(post.message);
 
         if (isMessageAttachmentArray(post.props?.attachments)) {
@@ -1148,12 +1154,16 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
                 }
             }
         }
+
+        for (const text of scanHumanReadableStringsFromInteractiveProps(post.props)) {
+            findNeededUsernamesAndGroups(text);
+        }
     }
 
     return usernamesAndGroupsToLoad;
 }
 
-export type ExtendedPost = Post & { system_post_ids?: string[] };
+export type ExtendedPost = Post & {system_post_ids?: string[]};
 
 export function removePost(post: ExtendedPost): ActionFunc<boolean> {
     return (dispatch, getState) => {
@@ -1228,14 +1238,14 @@ export function addPostReminder(userId: string, postId: string, timestamp: numbe
 }
 
 export function doPostAction(postId: string, actionId: string, selectedOption = '') {
-    return doPostActionWithCookie(postId, actionId, '', selectedOption);
+    return doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
 }
 
-export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = ''): ActionFuncAsync {
+export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationFormat: PostActionIntegrationFormat | '' = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption);
+            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption, query, integrationFormat);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1247,13 +1257,6 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
                 data: data.trigger_id,
             });
-            const state = getState();
-            const post = PostSelectors.getPost(state, postId);
-            dispatch({
-                type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
-                data: {
-                    channel_id: post.channel_id,
-                }});
         }
 
         return {data};

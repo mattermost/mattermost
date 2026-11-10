@@ -7,27 +7,37 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// celSafeName returns a CPA field name guaranteed to satisfy the CEL identifier
+// rule the AccessControlAttributeValidationHook enforces. model.NewId() uses a base32
+// alphabet that includes digits, so a raw NewId can start with a digit and trip
+// the ^[A-Za-z_]… pattern; the leading "f_" sidesteps that.
+func celSafeName() string {
+	return "f_" + model.NewId()
+}
+
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
+		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, createdField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -36,7 +46,7 @@ func TestCreateCPAField(t *testing.T) {
 
 	t.Run("a user without admin permissions should not be able to create a field", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 
@@ -46,7 +56,7 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		field := &model.PropertyField{Name: model.NewId()}
+		field := &model.PropertyField{Name: celSafeName()}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckBadRequestStatus(t, resp)
@@ -55,9 +65,34 @@ func TestCreateCPAField(t *testing.T) {
 	}, "an invalid field should be rejected")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelSysadmin},
+					Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		createdField, resp, err := client.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.patch.permissions_not_supported.app_error")
+		require.Empty(t, createdField)
+
+		fields, _, err := client.ListCPAFields(context.Background())
+		require.NoError(t, err)
+		for _, f := range fields {
+			require.NotEqual(t, field.Name, f.Name)
+		}
+	}, "a field carrying a permissions object should be rejected")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		name := model.NewId()
+		name := celSafeName()
 		field := &model.PropertyField{
 			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
 			Type:  model.PropertyFieldTypeText,
@@ -95,7 +130,7 @@ func TestCreateCPAField(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		managedField := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -111,35 +146,94 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, "admin", createdManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
 		require.Equal(t, "when_set", createdManagedField.Attrs["visibility"])
 	}, "admin should be able to create a managed field")
+
+	t.Run("server zeroes DeleteAt even if input has a non-zero value", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:     celSafeName(),
+			Type:     model.PropertyFieldTypeText,
+			DeleteAt: time.Now().UnixMilli(),
+		}
+		require.NotZero(t, field.DeleteAt)
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.Zero(t, created.DeleteAt)
+	})
+}
+
+func TestCPAFieldLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// Create 20 fields — the maximum allowed by FieldLimitHook.
+	createdIDs := make([]string, 0, 20)
+	for i := 1; i <= 20; i++ {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		createdIDs = append(createdIDs, created.ID)
+	}
+
+	t.Run("creating a 21st field is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		_, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckUnprocessableEntityStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("deleted fields do not count toward the limit", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), createdIDs[0])
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		replacement := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), replacement)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+	})
 }
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
-	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name:  model.NewId(),
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name:  celSafeName(),
 		Type:  model.PropertyFieldTypeText,
 		Attrs: map[string]any{"visibility": "when_set"},
-	})
-	require.NoError(t, err)
+	}
 
-	createdField, appErr := th.App.CreateCPAField("", field)
-	require.Nil(t, appErr)
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, fields)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any user should be able to list fields", func(t *testing.T) {
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
@@ -151,7 +245,10 @@ func TestListCPAFields(t *testing.T) {
 	})
 
 	t.Run("the endpoint should only list non deleted fields", func(t *testing.T) {
-		require.Nil(t, th.App.DeleteCPAField("", createdField.ID))
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), createdField.ID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
 		fields, resp, err := th.Client.ListCPAFields(context.Background())
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
@@ -159,18 +256,82 @@ func TestListCPAFields(t *testing.T) {
 	})
 }
 
+// TestCPAFieldWithoutOwnersHasNoOwnersAttr guards the v2 read of an unowned
+// field. Clients take any attrs.owners entry to mean an integration owns the
+// values and lock the field for people, so the plugin wildcard every unowned
+// field converts to must not surface there.
+func TestCPAFieldWithoutOwnersHasNoOwnersAttr(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name:  celSafeName(),
+		Type:  model.PropertyFieldTypeText,
+		Attrs: map[string]any{"sort_order": 0},
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotContains(t, createdField.Attrs, model.PropertyAttrsOwners)
+
+	findField := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, field := range fields {
+			if field.ID == createdField.ID {
+				return field
+			}
+		}
+		require.FailNow(t, "created field not listed")
+		return nil
+	}
+
+	t.Run("the CPA endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the generic properties endpoint", func(t *testing.T) {
+		fields, resp, err := th.Client.GetPropertyFields(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, model.PropertyFieldSearch{
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PerPage:    100,
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		assert.NotContains(t, findField(t, fields).Attrs, model.PropertyAttrsOwners)
+	})
+
+	t.Run("the user can still set their own value", func(t *testing.T) {
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			createdField.ID: json.RawMessage(`"Self Value"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+}
+
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.PropertyFieldRank = true
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
-		patchedField, resp, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
+		// Create a field with a license so we can test the license check on patch.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
+		createdField, _, createErr := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		require.NoError(t, createErr)
+		require.NotNil(t, createdField)
+
+		// Remove the license and verify patch is blocked.
+		th.App.Srv().SetLicense(nil)
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
+		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -178,18 +339,18 @@ func TestPatchCPAField(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("a user without admin permissions should not be able to patch a field", func(t *testing.T) {
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		field := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
-		})
-		require.NoError(t, err)
+		}
 
-		createdField, appErr := th.App.CreateCPAField("", field)
-		require.Nil(t, appErr)
+		createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdField)
 
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
-		_, resp, err := th.Client.PatchCPAField(context.Background(), createdField.ID, patch)
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
+		_, resp, err = th.Client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 	})
@@ -197,17 +358,17 @@ func TestPatchCPAField(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		field := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
-		})
-		require.NoError(t, err)
+		}
 
-		createdField, appErr := th.App.CreateCPAField("", field)
-		require.Nil(t, appErr)
+		createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdField)
 
-		newName := model.NewId()
+		newName := celSafeName()
 		patch := &model.PropertyFieldPatch{Name: model.NewPointer(fmt.Sprintf("  %s \t ", newName))} // name should be sanitized
 		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckOKStatus(t, resp)
@@ -234,85 +395,22 @@ func TestPatchCPAField(t *testing.T) {
 			require.NotEmpty(t, wsField.ID)
 			require.Equal(t, patchedField, &wsField)
 		})
-
-		t.Run("sanitization should remove options and sync details when necessary", func(t *testing.T) {
-			// Create a select field with options
-			optionID1 := model.NewId()
-			optionID2 := model.NewId()
-			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-				Name: model.NewId(),
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					"options": []map[string]any{
-						{"id": optionID1, "name": "Option 1", "color": "#FF0000"},
-						{"id": optionID2, "name": "Option 2", "color": "#00FF00"},
-					},
-				},
-			})
-			require.NoError(t, err)
-
-			createdField, _, err := client.CreateCPAField(context.Background(), selectField.ToPropertyField())
-			require.NoError(t, err)
-			require.NotNil(t, createdField)
-
-			// Verify options were created
-			options, ok := createdField.Attrs["options"]
-			require.True(t, ok)
-			require.NotNil(t, options)
-
-			// Patch to change type to text with LDAP attribute
-			// Options should be automatically removed even though we don't explicitly remove them
-			ldapAttr := "user_attribute"
-			textPatch := &model.PropertyFieldPatch{
-				Type:  model.NewPointer(model.PropertyFieldTypeText),
-				Attrs: &model.StringInterface{"ldap": ldapAttr},
-			}
-
-			patchedTextField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
-			CheckOKStatus(t, resp)
-			require.NoError(t, err)
-			require.Equal(t, model.PropertyFieldTypeText, patchedTextField.Type)
-
-			// Verify options were removed
-			options = patchedTextField.Attrs["options"]
-			require.Empty(t, options)
-
-			// Verify LDAP attribute was set
-			ldap, ok := patchedTextField.Attrs["ldap"]
-			require.True(t, ok)
-			require.Equal(t, ldapAttr, ldap)
-
-			// Now patch to change type to date
-			// LDAP attribute should be automatically removed even though we don't explicitly remove it
-			datePatch := &model.PropertyFieldPatch{
-				Type: model.NewPointer(model.PropertyFieldTypeDate),
-			}
-
-			patchedDateField, resp, err := client.PatchCPAField(context.Background(), patchedTextField.ID, datePatch)
-			CheckOKStatus(t, resp)
-			require.NoError(t, err)
-			require.Equal(t, model.PropertyFieldTypeDate, patchedDateField.Type)
-
-			// Verify LDAP attribute was removed
-			ldap = patchedDateField.Attrs["ldap"]
-			require.Empty(t, ldap)
-		})
 	}, "a user with admin permissions should be able to patch the field")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Create a regular field first
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		field := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
-		})
-		require.NoError(t, err)
+		}
 
-		createdField, appErr := th.App.CreateCPAField("", field)
-		require.Nil(t, appErr)
+		createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdField)
 
 		// Verify field is not isManaged initially
-		require.Empty(t, createdField.Attrs.Managed)
+		require.Empty(t, createdField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
 
 		// Patch to make it managed
 		managedPatch := &model.PropertyFieldPatch{
@@ -340,19 +438,249 @@ func TestPatchCPAField(t *testing.T) {
 		// Verify managed attribute is removed or empty
 		require.Empty(t, patchedUnmanagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
 	}, "admin should be able to toggle managed attribute on existing field")
+
+	t.Run("patching select options preserves existing option IDs and assigns new IDs to added options", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: "select_field_" + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#111111"},
+					map[string]any{"name": "Option 2", "color": "#222222"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Len(t, createdCPA.Attrs.Options, 2)
+		id1 := createdCPA.Attrs.Options[0].ID
+		id2 := createdCPA.Attrs.Options[1].ID
+		require.NotEmpty(t, id1)
+		require.NotEmpty(t, id2)
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": id1, "name": "Updated Option 1", "color": "#333333"},
+					map[string]any{"name": "New Option 1.5", "color": "#353535"},
+					map[string]any{"id": id2, "name": "Updated Option 2", "color": "#444444"},
+				},
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		patchedCPA, err := model.NewCPAFieldFromPropertyField(patched)
+		require.NoError(t, err)
+		require.Len(t, patchedCPA.Attrs.Options, 3)
+
+		require.Equal(t, id1, patchedCPA.Attrs.Options[0].ID)
+		require.Equal(t, "Updated Option 1", patchedCPA.Attrs.Options[0].Name)
+		require.Equal(t, "#333333", patchedCPA.Attrs.Options[0].Color)
+		require.NotEmpty(t, patchedCPA.Attrs.Options[1].ID)
+		require.Equal(t, "New Option 1.5", patchedCPA.Attrs.Options[1].Name)
+		require.Equal(t, id2, patchedCPA.Attrs.Options[2].ID)
+		require.Equal(t, "Updated Option 2", patchedCPA.Attrs.Options[2].Name)
+	})
+
+	t.Run("changing a field's type deletes dependent values and emits delete_values:true", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		selectField := &model.PropertyField{
+			Name: "select_type_change_" + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#FF5733"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.NotEmpty(t, createdCPA.Attrs.Options)
+		optionID := createdCPA.Attrs.Options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Seed a value for BasicUser referencing the option.
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			created.ID: json.RawMessage(fmt.Sprintf(`"%s"`, optionID)),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Patch type from select → text.
+		typePatch := &model.PropertyFieldPatch{Type: model.NewPointer(model.PropertyFieldTypeText)}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, typePatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// The dependent value must be gone.
+		retrieved, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		_, present := retrieved[created.ID]
+		require.False(t, present, "value should be deleted when the field's type changes")
+
+		// The legacy CPA WS event must carry delete_values:true.
+		var sawDeleteValues bool
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() != model.WebsocketEventCPAFieldUpdated {
+						continue
+					}
+					if dv, ok := event.GetData()["delete_values"].(bool); ok && dv {
+						sawDeleteValues = true
+						return true
+					}
+				default:
+					return false
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond)
+		require.True(t, sawDeleteValues, "expected cpa_field_updated to carry delete_values:true on a type change")
+	})
+
+	t.Run("patching a field without changing its type preserves existing values", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: "select_with_values_" + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#FF5733"},
+					map[string]any{"name": "Option 2", "color": "#33FF57"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.NotEmpty(t, createdCPA.Attrs.Options)
+		optionID := createdCPA.Attrs.Options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Admin writes a value on behalf of BasicUser.
+		values := map[string]json.RawMessage{
+			created.ID: json.RawMessage(fmt.Sprintf(`"%s"`, optionID)),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Rename field + add an option, keeping Type unchanged.
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer("renamed_" + model.NewId()),
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Renamed Option 1", "color": "#FF5733"},
+					map[string]any{"name": "Option 2", "color": "#33FF57"},
+					map[string]any{"name": "Option 3", "color": "#5733FF"},
+				},
+			}),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// BasicUser's value for this field should still be present.
+		retrieved, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		rawValue, ok := retrieved[created.ID]
+		require.True(t, ok, "value should still exist after a non-type-changing patch")
+		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), rawValue)
+	})
+
+	t.Run("options-only patch on a rank field preserves IDs and round-trips ranks", func(t *testing.T) {
+		// A rank field is in the options-only permission branch (alongside
+		// select/multiselect), so an attrs.options-only patch routes through the
+		// manage-options path. Verify the admin patch succeeds and each option's
+		// rank persists through the round-trip.
+		rankField := &model.PropertyField{
+			Name: "rank_field_" + model.NewId(),
+			Type: model.PropertyFieldTypeRank,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Low", "rank": 1},
+					map[string]any{"name": "High", "rank": 2},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), rankField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Len(t, createdCPA.Attrs.Options, 2)
+		id1 := createdCPA.Attrs.Options[0].ID
+		id2 := createdCPA.Attrs.Options[1].ID
+		require.NotEmpty(t, id1)
+		require.NotEmpty(t, id2)
+		require.NotNil(t, createdCPA.Attrs.Options[0].Rank)
+		require.Equal(t, 1, *createdCPA.Attrs.Options[0].Rank)
+
+		// Options-only patch: re-rank existing options and add a new one.
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": id1, "name": "Low", "rank": 10},
+					map[string]any{"id": id2, "name": "High", "rank": 20},
+					map[string]any{"name": "Highest", "rank": 30},
+				},
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		patchedCPA, err := model.NewCPAFieldFromPropertyField(patched)
+		require.NoError(t, err)
+		require.Len(t, patchedCPA.Attrs.Options, 3)
+
+		require.Equal(t, id1, patchedCPA.Attrs.Options[0].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[0].Rank)
+		require.Equal(t, 10, *patchedCPA.Attrs.Options[0].Rank)
+		require.Equal(t, id2, patchedCPA.Attrs.Options[1].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[1].Rank)
+		require.Equal(t, 20, *patchedCPA.Attrs.Options[1].Rank)
+		require.NotEmpty(t, patchedCPA.Attrs.Options[2].ID)
+		require.NotNil(t, patchedCPA.Attrs.Options[2].Rank)
+		require.Equal(t, 30, *patchedCPA.Attrs.Options[2].Rank)
+	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		resp, err := client.DeleteCPAField(context.Background(), model.NewId())
+		// Create a field with a license so we can test the license check on delete.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
+		createdField, _, createErr := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		require.NoError(t, createErr)
+		require.NotNil(t, createdField)
+
+		// Remove the license and verify delete is blocked.
+		th.App.Srv().SetLicense(nil)
+		resp, err := client.DeleteCPAField(context.Background(), createdField.ID)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license
@@ -360,7 +688,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 	t.Run("a user without admin permissions should not be able to delete a field", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 		createdField, _, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
@@ -376,7 +704,7 @@ func TestDeleteCPAField(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 		createdField, _, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
@@ -388,7 +716,12 @@ func TestDeleteCPAField(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 
-		deletedField, appErr := th.App.GetCPAField("", createdField.ID)
+		// The list endpoint filters out deleted fields, so read at the app layer
+		// to confirm the soft-delete landed on the record itself.
+		rctx := request.TestContext(t)
+		group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		deletedField, appErr := th.App.GetPropertyField(rctx, group.ID, createdField.ID)
 		require.Nil(t, appErr)
 		require.NotZero(t, deletedField.DeleteAt)
 
@@ -417,36 +750,40 @@ func TestDeleteCPAField(t *testing.T) {
 func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
+
+	// License required for field/value creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
-	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+	field := &model.PropertyField{
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, err)
+	}
 
-	createdField, appErr := th.App.CreateCPAField("", field)
-	require.Nil(t, appErr)
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
 	require.NotNil(t, createdField)
 
-	_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdField.ID, json.RawMessage(`"Field Value"`), true)
-	require.Nil(t, appErr)
+	_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+		createdField.ID: json.RawMessage(`"Field Value"`),
+	})
+	CheckOKStatus(t, resp)
+	require.NoError(t, err)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, values)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// login with Client2 from this point on
 	th.LoginBasic2(t)
@@ -462,8 +799,8 @@ func TestListCPAValues(t *testing.T) {
 	t.Run("should handle array values correctly", func(t *testing.T) {
 		optionID1 := model.NewId()
 		optionID2 := model.NewId()
-		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		arrayField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -471,15 +808,18 @@ func TestListCPAValues(t *testing.T) {
 					{"id": optionID2, "name": "option2"},
 				},
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
-		require.Nil(t, appErr)
+		createdArrayField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), arrayField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdArrayField)
 
-		_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdArrayField.ID, json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)), true)
-		require.Nil(t, appErr)
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			createdArrayField.ID: json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionID1, optionID2)),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
 
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
 		CheckOKStatus(t, resp)
@@ -505,31 +845,32 @@ func TestListCPAValues(t *testing.T) {
 func TestPatchCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
-	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, err)
+	}
 
-	createdField, appErr := th.App.CreateCPAField("", field)
-	require.Nil(t, appErr)
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedValues)
 	})
-
-	// add a valid license
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	t.Run("any team member should be able to create their own values", func(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -604,8 +945,8 @@ func TestPatchCPAValues(t *testing.T) {
 	t.Run("should handle array values correctly", func(t *testing.T) {
 		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 
-		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		arrayField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -615,11 +956,11 @@ func TestPatchCPAValues(t *testing.T) {
 					{"id": optionsID[3], "name": "option4"},
 				},
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
-		require.Nil(t, appErr)
+		createdArrayField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), arrayField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdArrayField)
 
 		values := map[string]json.RawMessage{
@@ -647,50 +988,50 @@ func TestPatchCPAValues(t *testing.T) {
 
 	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
 		// Create a field with LDAP attribute
-		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		ldapField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdLDAPField, appErr := th.App.CreateCPAField("", ldapField)
-		require.Nil(t, appErr)
+		createdLDAPField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), ldapField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdLDAPField)
 
 		// Create a field with SAML attribute
-		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		samlField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdSAMLField, appErr := th.App.CreateCPAField("", samlField)
-		require.Nil(t, appErr)
+		createdSAMLField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), samlField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdSAMLField)
 
 		// Test LDAP field
 		values := map[string]json.RawMessage{
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
-		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
 			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -698,20 +1039,20 @@ func TestPatchCPAValues(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		field := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
-		})
-		require.NoError(t, err)
+		}
 
-		createdField, appErr := th.App.CreateCPAField("", field)
-		require.Nil(t, appErr)
+		createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdField)
 
 		// Create a value that's too long (over 64 characters)
@@ -720,16 +1061,16 @@ func TestPatchCPAValues(t *testing.T) {
 			createdField.ID: json.RawMessage(fmt.Sprintf(`"%s"`, tooLongValue)),
 		}
 
-		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Failed to validate property value")
+		CheckErrorID(t, err, "app.property_value.validate.app_error")
 	})
 
 	t.Run("admin-managed fields", func(t *testing.T) {
 		// Create a managed field (only admins can create fields)
 		managedField := &model.PropertyField{
-			Name: "Managed Field",
+			Name: "managed_field_" + model.NewId(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -743,7 +1084,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 		// Create a non-managed field for comparison
 		regularField := &model.PropertyField{
-			Name: "Regular Field",
+			Name: "regular_field_" + model.NewId(),
 			Type: model.PropertyFieldTypeText,
 		}
 
@@ -760,7 +1101,7 @@ func TestPatchCPAValues(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("regular user can update non-managed field", func(t *testing.T) {
@@ -794,13 +1135,18 @@ func TestPatchCPAValues(t *testing.T) {
 		})
 
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
-			// First set some initial values to ensure we can verify they don't change
-			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue("", th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
-			require.Nil(t, appErr)
+			// Admin seeds initial values for both fields on BasicUser.
+			_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+				createdRegularField.ID: json.RawMessage(`"Initial Regular Value"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
-			_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
-			require.Nil(t, appErr)
+			_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Initial Managed Value"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
 			// Try to batch update both managed and regular fields - this should fail
 			attemptedValues := map[string]json.RawMessage{
@@ -808,43 +1154,21 @@ func TestPatchCPAValues(t *testing.T) {
 				createdRegularField.ID: json.RawMessage(`"Regular Batch Value"`),
 			}
 
-			_, resp, err := th.Client.PatchCPAValues(context.Background(), attemptedValues)
+			_, resp, err = th.Client.PatchCPAValues(context.Background(), attemptedValues)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
-			// Verify that no values were updated when the batch operation failed
-			currentValues, appErr := th.App.ListCPAValues("", th.BasicUser.Id)
-			require.Nil(t, appErr)
+			// Verify that no values were updated when the batch operation failed.
+			currentValues, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
-			// Check that values remain unchanged - both fields should retain their initial values
-			regularFieldHasOriginalValue := false
-			managedFieldHasOriginalValue := false
-
-			for _, value := range currentValues {
-				if value.FieldID == createdManagedField.ID {
-					var currentValue string
-					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
-					if currentValue == "Initial Managed Value" {
-						managedFieldHasOriginalValue = true
-					}
-					// Verify it's not the attempted update value
-					require.NotEqual(t, "Managed Batch Value", currentValue, "Managed field should not have been updated in failed batch operation")
-				}
-				if value.FieldID == createdRegularField.ID {
-					var currentValue string
-					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
-					if currentValue == "Initial Regular Value" {
-						regularFieldHasOriginalValue = true
-					}
-					// Verify it's not the attempted update value
-					require.NotEqual(t, "Regular Batch Value", currentValue, "Regular field should not have been updated in failed batch operation")
-				}
-			}
-
-			// Both fields should retain their original values after the failed batch operation
-			require.True(t, regularFieldHasOriginalValue, "Regular field should retain its original value")
-			require.True(t, managedFieldHasOriginalValue, "Managed field should retain its original value")
+			var managedValue, regularValue string
+			require.NoError(t, json.Unmarshal(currentValues[createdManagedField.ID], &managedValue))
+			require.NoError(t, json.Unmarshal(currentValues[createdRegularField.ID], &regularValue))
+			require.Equal(t, "Initial Managed Value", managedValue, "Managed field should not have been updated in failed batch operation")
+			require.Equal(t, "Initial Regular Value", regularValue, "Regular field should not have been updated in failed batch operation")
 		})
 
 		t.Run("batch update with managed fields succeeds for admin", func(t *testing.T) {
@@ -865,31 +1189,244 @@ func TestPatchCPAValues(t *testing.T) {
 			require.Equal(t, "Admin Regular Batch", regularValue)
 		})
 	})
+
+	t.Run("patch fails if any field in the map does not exist", func(t *testing.T) {
+		// App.GetPropertyFields rejects an unknown id with a 404 before the
+		// handler's per-field 404 check runs. The property service wraps the
+		// store's ErrResultsMismatch with the ErrFieldNotFound sentinel,
+		// which mapPropertyServiceError translates into a not-found error.
+		values := map[string]json.RawMessage{
+			model.NewId(): json.RawMessage(`"any value"`),
+		}
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property_field.not_found.app_error")
+	})
+
+	t.Run("rejects values that fail hook validation", func(t *testing.T) {
+		optionsID := []string{model.NewId(), model.NewId(), model.NewId()}
+		arrayField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": optionsID[0], "name": "option1"},
+					{"id": optionsID[1], "name": "option2"},
+					{"id": optionsID[2], "name": "option3"},
+				},
+			},
+		}
+
+		createdArrayField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), arrayField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdArrayField)
+
+		t.Run("invalid option ID", func(t *testing.T) {
+			unknownOption := model.NewId()
+			values := map[string]json.RawMessage{
+				createdArrayField.ID: json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionsID[0], unknownOption)),
+			}
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckBadRequestStatus(t, resp)
+			require.Error(t, err)
+		})
+
+		t.Run("wrong value type (string instead of array)", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdArrayField.ID: json.RawMessage(`"not an array"`),
+			}
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckBadRequestStatus(t, resp)
+			require.Error(t, err)
+		})
+	})
+
+	t.Run("a non-public field's value is withheld from the websocket event", func(t *testing.T) {
+		nonPublicField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		createdNonPublicField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), nonPublicField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, createdNonPublicField)
+
+		// A value.read of none makes the field non-public while its value.write
+		// keeps it writable by its owner. Only a store write can produce that
+		// combination: over the API a non-public field must be protected.
+		store := th.App.Srv().Store().PropertyField()
+		storedField, err := store.Get(request.TestContext(t), createdNonPublicField.GroupID, createdNonPublicField.ID)
+		require.NoError(t, err)
+		storedField.Permissions.Restrictions.Value.Read = model.PermissionLevelNone
+		_, err = store.Update(storedField.GroupID, []*model.PropertyField{storedField}, nil)
+		require.NoError(t, err)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		values := map[string]json.RawMessage{createdNonPublicField.ID: json.RawMessage(`"Non-Public Value"`)}
+		patchedValues, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var actualValue string
+		require.NoError(t, json.Unmarshal(patchedValues[createdNonPublicField.ID], &actualValue))
+		require.Equal(t, "Non-Public Value", actualValue)
+
+		var wsValues map[string]json.RawMessage
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+					valuesData, err := json.Marshal(event.GetData()["values"])
+					require.NoError(t, err)
+					require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		require.Contains(t, wsValues, createdNonPublicField.ID)
+		require.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[createdNonPublicField.ID]))
+	})
+
+	t.Run("a value not everyone may read is withheld from the websocket event", func(t *testing.T) {
+		store := th.App.Srv().Store().PropertyField()
+		storeUpdate := func(t *testing.T, field *model.PropertyField) {
+			t.Helper()
+			_, err := store.Update(field.GroupID, []*model.PropertyField{field}, nil)
+			require.NoError(t, err)
+		}
+
+		// A value.read narrower than everyone, with value.write still open to
+		// the value's owner: only a store write produces that combination.
+		sysadminField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		storedSysadminField, err := store.Get(request.TestContext(t), sysadminField.GroupID, sysadminField.ID)
+		require.NoError(t, err)
+		storedSysadminField.Permissions.Restrictions.Value.Read = model.PermissionLevelSysadmin
+		storeUpdate(t, storedSysadminField)
+
+		// A field linked to a masked template: the linked field carries no
+		// masking of its own, so only the template says its values are masked.
+		rctx := request.TestContext(t)
+		template, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, linkedField.Permissions)
+		require.Nil(t, linkedField.Permissions.Masking)
+		linkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		linkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, linkedField)
+		template.Permissions.Masking = &model.Masking{}
+		storeUpdate(t, template)
+
+		// A field linked to a template that masks nothing, with tiers of
+		// everyone: its value is broadcast as is.
+		openTemplate, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    sysadminField.GroupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		openLinkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       sysadminField.GroupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &openTemplate.ID,
+		}, false, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, openLinkedField.Permissions)
+		openLinkedField.Permissions.Restrictions.Value.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		openLinkedField.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		storeUpdate(t, openLinkedField)
+
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		values := map[string]json.RawMessage{
+			sysadminField.ID:   json.RawMessage(`"Sysadmin Value"`),
+			linkedField.ID:     json.RawMessage(`"Linked Value"`),
+			openLinkedField.ID: json.RawMessage(`"Open Linked Value"`),
+		}
+		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var wsValues map[string]json.RawMessage
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventCPAValuesUpdated {
+					valuesData, err := json.Marshal(event.GetData()["values"])
+					require.NoError(t, err)
+					require.NoError(t, json.Unmarshal(valuesData, &wsValues))
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[sysadminField.ID]), "a sysadmin value.read is withheld")
+		assert.JSONEq(t, model.PropertyValueWithheldJSON, string(wsValues[linkedField.ID]), "a linked field's template masking is withheld")
+		assert.JSONEq(t, `"Open Linked Value"`, string(wsValues[openLinkedField.ID]), "a linked field everyone may read is broadcast as is")
+	})
 }
 
 func TestPatchCPAValuesForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
-	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+	// License required for field creation (LicenseCheckHook)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
-	})
-	require.NoError(t, err)
+	}
 
-	createdField, appErr := th.App.CreateCPAField("", field)
-	require.Nil(t, appErr)
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
 	require.NotNil(t, createdField)
 
 	t.Run("endpoint should not work if no valid license is present", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 		values := map[string]json.RawMessage{createdField.ID: json.RawMessage(`"Field Value"`)}
 		patchedValues, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
+		CheckErrorID(t, err, "app.property.license_error")
 		require.Empty(t, patchedValues)
 	})
 
@@ -969,8 +1506,8 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	t.Run("should handle array values correctly", func(t *testing.T) {
 		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 
-		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		arrayField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -980,11 +1517,11 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 					{"id": optionsID[3], "name": "option4"},
 				},
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdArrayField, appErr := th.App.CreateCPAField("", arrayField)
-		require.Nil(t, appErr)
+		createdArrayField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), arrayField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdArrayField)
 
 		values := map[string]json.RawMessage{
@@ -1012,50 +1549,50 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
 		// Create a field with LDAP attribute
-		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		ldapField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdLDAPField, appErr := th.App.CreateCPAField("", ldapField)
-		require.Nil(t, appErr)
+		createdLDAPField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), ldapField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdLDAPField)
 
 		// Create a field with SAML attribute
-		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		samlField := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
 			},
-		})
-		require.NoError(t, err)
+		}
 
-		createdSAMLField, appErr := th.App.CreateCPAField("", samlField)
-		require.Nil(t, appErr)
+		createdSAMLField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), samlField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdSAMLField)
 
 		// Test LDAP field
 		values := map[string]json.RawMessage{
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
-		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test SAML field
 		values = map[string]json.RawMessage{
 			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
 		// Test multiple fields with one being LDAP synced
 		values = map[string]json.RawMessage{
@@ -1063,20 +1600,20 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_synced.app_error")
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 	})
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+		field := &model.PropertyField{
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
-		})
-		require.NoError(t, err)
+		}
 
-		createdField, appErr := th.App.CreateCPAField("", field)
-		require.Nil(t, appErr)
+		createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
 		require.NotNil(t, createdField)
 
 		// Create a value that's too long (over 64 characters)
@@ -1085,16 +1622,16 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			createdField.ID: json.RawMessage(fmt.Sprintf(`"%s"`, tooLongValue)),
 		}
 
-		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 		CheckBadRequestStatus(t, resp)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Failed to validate property value")
+		CheckErrorID(t, err, "app.property_value.validate.app_error")
 	})
 
 	t.Run("admin-managed fields", func(t *testing.T) {
 		// Create a managed field (only admins can create fields)
 		managedField := &model.PropertyField{
-			Name: "Managed Field",
+			Name: "managed_field_" + model.NewId(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -1108,7 +1645,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 		// Create a non-managed field for comparison
 		regularField := &model.PropertyField{
-			Name: "Regular Field",
+			Name: "regular_field_" + model.NewId(),
 			Type: model.PropertyFieldTypeText,
 		}
 
@@ -1125,7 +1662,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 		})
 
 		t.Run("regular user can update non-managed field", func(t *testing.T) {
@@ -1144,9 +1681,12 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			// Set initial value through the app layer that we will be replacing during the test
-			_, appErr := th.App.PatchCPAValue("", th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`), true)
-			require.Nil(t, appErr)
+			// Seed a baseline value that the test run then replaces.
+			_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.SystemAdminUser.Id, map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Initial Admin Value"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
 			values := map[string]json.RawMessage{
 				createdManagedField.ID: json.RawMessage(`"Admin Updated Value"`),
@@ -1200,13 +1740,18 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		})
 
 		t.Run("batch update with managed fields fails for regular user", func(t *testing.T) {
-			// First set some initial values to ensure we can verify they don't change
-			// Set initial values for both fields using th.App (admins can set managed field values)
-			_, appErr := th.App.PatchCPAValue("", th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
-			require.Nil(t, appErr)
+			// Admin seeds initial values for both fields on BasicUser.
+			_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+				createdRegularField.ID: json.RawMessage(`"Initial Regular Value"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
-			_, appErr = th.App.PatchCPAValue("", th.BasicUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Managed Value"`), true)
-			require.Nil(t, appErr)
+			_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+				createdManagedField.ID: json.RawMessage(`"Initial Managed Value"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
 			// Try to batch update both managed and regular fields - this should fail
 			attemptedValues := map[string]json.RawMessage{
@@ -1214,43 +1759,21 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 				createdRegularField.ID: json.RawMessage(`"Regular Batch Value"`),
 			}
 
-			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, attemptedValues)
+			_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, attemptedValues)
 			CheckForbiddenStatus(t, resp)
 			require.Error(t, err)
-			CheckErrorID(t, err, "app.custom_profile_attributes.property_field_is_managed.app_error")
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
 
-			// Verify that no values were updated when the batch operation failed
-			currentValues, appErr := th.App.ListCPAValues("", th.BasicUser.Id)
-			require.Nil(t, appErr)
+			// Verify that no values were updated when the batch operation failed.
+			currentValues, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
 
-			// Check that values remain unchanged - both fields should retain their initial values
-			regularFieldHasOriginalValue := false
-			managedFieldHasOriginalValue := false
-
-			for _, value := range currentValues {
-				if value.FieldID == createdManagedField.ID {
-					var currentValue string
-					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
-					if currentValue == "Initial Managed Value" {
-						managedFieldHasOriginalValue = true
-					}
-					// Verify it's not the attempted update value
-					require.NotEqual(t, "Managed Batch Value", currentValue, "Managed field should not have been updated in failed batch operation")
-				}
-				if value.FieldID == createdRegularField.ID {
-					var currentValue string
-					require.NoError(t, json.Unmarshal(value.Value, &currentValue))
-					if currentValue == "Initial Regular Value" {
-						regularFieldHasOriginalValue = true
-					}
-					// Verify it's not the attempted update value
-					require.NotEqual(t, "Regular Batch Value", currentValue, "Regular field should not have been updated in failed batch operation")
-				}
-			}
-
-			// Both fields should retain their original values after the failed batch operation
-			require.True(t, regularFieldHasOriginalValue, "Regular field should retain its original value")
-			require.True(t, managedFieldHasOriginalValue, "Managed field should retain its original value")
+			var managedValue, regularValue string
+			require.NoError(t, json.Unmarshal(currentValues[createdManagedField.ID], &managedValue))
+			require.NoError(t, json.Unmarshal(currentValues[createdRegularField.ID], &regularValue))
+			require.Equal(t, "Initial Managed Value", managedValue, "Managed field should not have been updated in failed batch operation")
+			require.Equal(t, "Initial Regular Value", regularValue, "Regular field should not have been updated in failed batch operation")
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1270,5 +1793,1083 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			require.Equal(t, "Admin Managed Batch", managedValue)
 			require.Equal(t, "Admin Regular Batch", regularValue)
 		}, "batch update with managed fields succeeds for admin")
+	})
+}
+
+func TestPatchCPAValuesForBotTarget(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+
+	field, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+	})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+
+	newBot := func(t *testing.T, ownerID string) *model.Bot {
+		t.Helper()
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: ownerID})
+		require.Nil(t, appErr)
+		return bot
+	}
+	withPerms := func(t *testing.T, perms ...*model.Permission) {
+		t.Helper()
+		th.RestoreDefaultRolePermissions(t, defaultPerms)
+		for _, p := range perms {
+			th.AddPermissionToRole(t, p.Id, model.SystemUserRoleId)
+		}
+	}
+	values := func(v string) map[string]json.RawMessage {
+		return map[string]json.RawMessage{field.ID: json.RawMessage(fmt.Sprintf("%q", v))}
+	}
+	requireStored := func(t *testing.T, botUserID, want string) {
+		t.Helper()
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), botUserID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(stored[field.ID], &got))
+		require.Equal(t, want, got)
+	}
+	requireWritten := func(t *testing.T, botUserID, want string) {
+		t.Helper()
+		patched, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), botUserID, values(want))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(patched[field.ID], &got))
+		require.Equal(t, want, got)
+		requireStored(t, botUserID, want)
+	}
+	requireDenied := func(t *testing.T, targetID string) {
+		t.Helper()
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), targetID, values("denied"))
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.context.permissions.app_error")
+	}
+
+	t.Run("own bot with manage_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionManageBots)
+		requireWritten(t, bot.UserId, "v1")
+	})
+
+	t.Run("own bot with read_bots only", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionReadBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("own bot without read_bots is 403 not 404", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionManageOthersBots)
+		requireWritten(t, bot.UserId, "others")
+	})
+
+	t.Run("others' bot with only manage_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot with read_others_bots only", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t, model.PermissionReadOthersBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' bot without read_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("system admin bot owned by caller", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("others' system admin bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, bot.UserId, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageOthersBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("edit_other_users writes a regular user", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireWritten(t, th.BasicUser2.Id, "edit-other")
+	})
+
+	t.Run("edit_other_users cannot write a system admin", func(t *testing.T) {
+		withPerms(t, model.PermissionEditOtherUsers)
+		requireDenied(t, th.SystemAdminUser.Id)
+	})
+
+	t.Run("plugin-owned bot with manage_bots", func(t *testing.T) {
+		bot := newBot(t, "com.mattermost.test")
+		withPerms(t, model.PermissionManageBots)
+		requireDenied(t, bot.UserId)
+	})
+
+	t.Run("plugin-owned bot with manage_others_bots", func(t *testing.T) {
+		bot := newBot(t, "com.mattermost.test")
+		withPerms(t, model.PermissionManageOthersBots)
+		requireWritten(t, bot.UserId, "plugin-bot")
+	})
+
+	t.Run("disabled bot", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		_, appErr := th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, appErr)
+		withPerms(t, model.PermissionManageBots)
+		requireWritten(t, bot.UserId, "disabled")
+	})
+
+	t.Run("non-bot target with bot permissions", func(t *testing.T) {
+		withPerms(t, model.PermissionManageBots, model.PermissionManageOthersBots)
+		requireDenied(t, th.BasicUser2.Id)
+	})
+
+	t.Run("nonexistent target", func(t *testing.T) {
+		withPerms(t, model.PermissionManageOthersBots)
+		requireDenied(t, model.NewId())
+	})
+
+	t.Run("system admin writes a bot target", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser2.Id)
+		withPerms(t)
+		patched, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), bot.UserId, values("sysadmin"))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"sysadmin"`), patched[field.ID])
+		requireStored(t, bot.UserId, "sysadmin")
+	})
+
+	t.Run("self route unaffected", func(t *testing.T) {
+		withPerms(t)
+		patched, resp, err := th.Client.PatchCPAValues(context.Background(), values("self"))
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, json.RawMessage(`"self"`), patched[field.ID])
+	})
+
+	t.Run("field locks", func(t *testing.T) {
+		bot := newBot(t, th.BasicUser.Id)
+		withPerms(t, model.PermissionManageBots)
+
+		cpaGroup, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+		require.Nil(t, appErr)
+		memberLevel := model.PermissionLevelMember
+		protectedField, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:           cpaGroup.ID,
+			Name:              celSafeName(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeUser,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:      true,
+				model.PropertyAttrsSourcePluginID: "com.mattermost.test-plugin",
+			},
+		})
+		require.NoError(t, err)
+
+		createField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+			t.Helper()
+			created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+				Name:  celSafeName(),
+				Type:  model.PropertyFieldTypeText,
+				Attrs: attrs,
+			})
+			CheckCreatedStatus(t, resp)
+			require.NoError(t, err)
+			return created
+		}
+		syncedField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr"})
+		ownedField := createField(t, model.StringInterface{model.PropertyAttrsOwners: []model.PropertyOwner{{
+			ID:     "com.mattermost.scim",
+			Type:   model.PropertyOwnerTypePlugin,
+			Scopes: []string{"entra"},
+		}}})
+		adminField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsManaged: "admin"})
+
+		requireLocked := func(t *testing.T, fieldID, errorID string) {
+			t.Helper()
+			_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, map[string]json.RawMessage{
+				fieldID: json.RawMessage(`"x"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, errorID)
+		}
+
+		// Every lock is a value.write the field's permissions refuse the
+		// caller, which the API checks before the hook.
+		t.Run("protected", func(t *testing.T) {
+			requireLocked(t, protectedField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("synced", func(t *testing.T) {
+			requireLocked(t, syncedField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("owner-managed", func(t *testing.T) {
+			requireLocked(t, ownedField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("admin-managed", func(t *testing.T) {
+			requireLocked(t, adminField.ID, "api.property_value.patch.no_values_permission.app_error")
+		})
+
+		t.Run("batch with one admin-managed field writes nothing", func(t *testing.T) {
+			_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), bot.UserId, values("before"))
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+
+			_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, map[string]json.RawMessage{
+				field.ID:      json.RawMessage(`"after"`),
+				adminField.ID: json.RawMessage(`"x"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, bot.UserId, "before")
+		})
+	})
+}
+
+// TestBotWritesOwnCPAValues covers a bot authenticated with its own token
+// writing its own values, as opposed to a bot manager writing on its behalf.
+func TestBotWritesOwnCPAValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	createField := func(t *testing.T, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{
+			Name:  celSafeName(),
+			Type:  model.PropertyFieldTypeText,
+			Attrs: attrs,
+		})
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		return created
+	}
+	regularField := createField(t, nil)
+	adminField := createField(t, model.StringInterface{model.CustomProfileAttributesPropertyAttrsManaged: "admin"})
+
+	newBotClient := func(t *testing.T, roles string) (*model.Client4, string) {
+		t.Helper()
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		if roles != "" {
+			_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, roles, false)
+			require.Nil(t, appErr)
+		}
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
+		require.Nil(t, appErr)
+		client := th.CreateClient()
+		client.SetToken(token.Token)
+		return client, bot.UserId
+	}
+	requireStored := func(t *testing.T, botUserID, fieldID, want string) {
+		t.Helper()
+		stored, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), botUserID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		var got string
+		require.NoError(t, json.Unmarshal(stored[fieldID], &got))
+		require.Equal(t, want, got)
+	}
+
+	t.Run("member bot", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, "")
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"admin set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		t.Run("can write a regular field", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				regularField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckOKStatus(t, resp)
+			require.NoError(t, err)
+			requireStored(t, botUserID, regularField.ID, "bot set")
+		})
+
+		t.Run("cannot write an admin-managed field via the self route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the user route", func(t *testing.T) {
+			_, resp, err := botClient.PatchCPAValuesForUser(context.Background(), botUserID, map[string]json.RawMessage{
+				adminField.ID: json.RawMessage(`"bot set"`),
+			})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+
+		t.Run("cannot write an admin-managed field via the generic API", func(t *testing.T) {
+			_, resp, err := botClient.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, botUserID,
+				[]model.PropertyValuePatchItem{{FieldID: adminField.ID, Value: json.RawMessage(`"bot set"`)}})
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+			requireStored(t, botUserID, adminField.ID, "admin set")
+		})
+	})
+
+	t.Run("system admin bot can write an admin-managed field", func(t *testing.T) {
+		botClient, botUserID := newBotClient(t, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
+		_, resp, err := botClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			adminField.ID: json.RawMessage(`"bot set"`),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requireStored(t, botUserID, adminField.ID, "bot set")
+	})
+}
+
+// TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin user can set
+// their own value on a regular CPA field via the generic property API.
+func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+	}
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, createdField)
+
+	value := "Self Value"
+	items := []model.PropertyValuePatchItem{{
+		FieldID: createdField.ID,
+		Value:   json.RawMessage(fmt.Sprintf(`%q`, value)),
+	}}
+
+	upserted, resp, err := th.Client.PatchPropertyValues(
+		context.Background(),
+		model.AccessControlPropertyGroupName,
+		model.PropertyFieldObjectTypeUser,
+		th.BasicUser.Id,
+		items,
+	)
+	CheckOKStatus(t, resp)
+	require.NoError(t, err)
+	require.Len(t, upserted, 1)
+	require.Equal(t, createdField.ID, upserted[0].FieldID)
+	require.Equal(t, th.BasicUser.Id, upserted[0].TargetID)
+	require.Equal(t, model.PropertyValueTargetTypeUser, upserted[0].TargetType)
+
+	var actualValue string
+	require.NoError(t, json.Unmarshal(upserted[0].Value, &actualValue))
+	require.Equal(t, value, actualValue)
+
+	// Verify the write persisted via a generic-API read on the same target.
+	stored, resp, err := th.Client.GetPropertyValues(
+		context.Background(),
+		model.AccessControlPropertyGroupName,
+		model.PropertyFieldObjectTypeUser,
+		th.BasicUser.Id,
+		model.PropertyValueSearch{PerPage: 60},
+	)
+	CheckOKStatus(t, resp)
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	require.Equal(t, createdField.ID, stored[0].FieldID)
+
+	var readValue string
+	require.NoError(t, json.Unmarshal(stored[0].Value, &readValue))
+	require.Equal(t, value, readValue)
+}
+
+// TestCPANonAdminBlockedFromAdminManagedViaGenericAPI confirms a non-admin user
+// is blocked from writing their own value on an admin-only CPA field via the
+// generic property API.
+func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	managedField := &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+		},
+	}
+	createdManagedField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), managedField)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, createdManagedField)
+
+	items := []model.PropertyValuePatchItem{{
+		FieldID: createdManagedField.ID,
+		Value:   json.RawMessage(`"Non-Admin Value"`),
+	}}
+
+	t.Run("non-admin writing own admin-managed value is forbidden", func(t *testing.T) {
+		_, resp, err := th.Client.PatchPropertyValues(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			th.BasicUser.Id,
+			items,
+		)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	t.Run("admin writing same admin-managed value succeeds", func(t *testing.T) {
+		adminItems := []model.PropertyValuePatchItem{{
+			FieldID: createdManagedField.ID,
+			Value:   json.RawMessage(`"Admin Value"`),
+		}}
+		upserted, resp, err := th.SystemAdminClient.PatchPropertyValues(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			th.BasicUser.Id,
+			adminItems,
+		)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+
+		var actualValue string
+		require.NoError(t, json.Unmarshal(upserted[0].Value, &actualValue))
+		require.Equal(t, "Admin Value", actualValue)
+	})
+
+	t.Run("bot manager writing their bot's admin-managed value is forbidden", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.PatchPropertyValues(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			bot.UserId,
+			items,
+		)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+}
+
+// TestCPACrossAPIFieldRoundtrip verifies that a CPA field created via one
+// API surface reads back equivalently from the other. We deliberately do
+// not do a full map-equality on Attrs: ToPropertyField packs empty-string
+// defaults for every CPA-known key, so CPA→generic→CPA is lossy at the
+// map level. Compare the explicit set of fields that should match instead.
+func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("create via CPA API, read via generic API", func(t *testing.T) {
+		name := celSafeName()
+		field := &model.PropertyField{
+			Name: name,
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsValueType:  model.CustomProfileAttributesValueTypeEmail,
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  5,
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		listed, resp, err := th.SystemAdminClient.GetPropertyFields(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			model.PropertyFieldSearch{
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				PerPage:    60,
+			},
+		)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var found *model.PropertyField
+		for _, pf := range listed {
+			if pf.ID == created.ID {
+				found = pf
+				break
+			}
+		}
+		require.NotNil(t, found, "field created via CPA API should be readable via generic API")
+
+		require.Equal(t, created.ID, found.ID)
+		require.Equal(t, name, found.Name)
+		require.Equal(t, created.Type, found.Type)
+		require.Equal(t, created.GroupID, found.GroupID)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, found.ObjectType)
+		require.Equal(t, string(model.PropertyFieldTargetLevelSystem), found.TargetType)
+		require.Empty(t, found.TargetID)
+		require.Equal(t, created.CreatedBy, found.CreatedBy)
+		require.Equal(t, created.CreateAt, found.CreateAt)
+		require.Equal(t, int64(0), found.DeleteAt)
+		require.Equal(t, created.PermissionField, found.PermissionField)
+		require.Equal(t, created.PermissionValues, found.PermissionValues)
+		require.Equal(t, created.PermissionOptions, found.PermissionOptions)
+
+		require.Equal(t, model.CustomProfileAttributesValueTypeEmail, found.Attrs[model.CustomProfileAttributesPropertyAttrsValueType])
+		require.EqualValues(t, 5, found.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, found.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+	})
+
+	t.Run("create via generic API, read via CPA API", func(t *testing.T) {
+		name := celSafeName()
+		field := &model.PropertyField{
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  3,
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityAlways,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(
+			context.Background(),
+			model.AccessControlPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			field,
+		)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		listed, resp, err := th.SystemAdminClient.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var found *model.PropertyField
+		for _, pf := range listed {
+			if pf.ID == created.ID {
+				found = pf
+				break
+			}
+		}
+		require.NotNil(t, found, "field created via generic API should be readable via CPA ListCPAFields")
+
+		require.Equal(t, created.ID, found.ID)
+		require.Equal(t, name, found.Name)
+		require.Equal(t, created.Type, found.Type)
+		require.Equal(t, created.GroupID, found.GroupID)
+		require.Equal(t, created.CreateAt, found.CreateAt)
+		require.Equal(t, int64(0), found.DeleteAt)
+
+		// The CPA list response is CPAField-shaped: unmarshal to confirm
+		// the typed attrs struct round-trips cleanly.
+		cpaField, err := model.NewCPAFieldFromPropertyField(found)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, cpaField.Attrs.SortOrder)
+		require.Equal(t, model.CustomProfileAttributesVisibilityAlways, cpaField.Attrs.Visibility)
+	})
+}
+
+// TestCPABackwardCompatAfterRefactor pins CPA-handler invariants the rest of
+// the CPA tests do not: ListCPAFields returns fields in sort_order, create
+// responses fill typed CPAField attrs the caller omitted, and an LDAP-synced
+// write through the CPA path is still refused. The CPA handlers map onto the
+// generic properties API; these cases fail if that mapping drops those fields.
+func TestCPABackwardCompatAfterRefactor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("ListCPAFields preserves sort_order ordering", func(t *testing.T) {
+		// Create in a non-sorted order; ListCPAFields should return them
+		// sorted ascending by sort_order via CPAFieldsFromPropertyFields.
+		ids := make([]string, 3)
+		for _, order := range []int{2, 0, 1} {
+			field := &model.PropertyField{
+				Name: celSafeName(),
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsSortOrder: order,
+				},
+			}
+			created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+			CheckCreatedStatus(t, resp)
+			require.NoError(t, err)
+			ids[order] = created.ID
+		}
+
+		listed, resp, err := th.SystemAdminClient.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(listed), 3)
+
+		// Extract the three fields we just created, preserving ListCPAFields
+		// return order, and verify they match ids[0], ids[1], ids[2].
+		var observed []string
+		for _, pf := range listed {
+			for _, expected := range ids {
+				if pf.ID == expected {
+					observed = append(observed, pf.ID)
+				}
+			}
+		}
+		require.Equal(t, ids, observed, "ListCPAFields must return fields in ascending sort_order")
+	})
+
+	t.Run("CPA create response has typed CPAField attrs, with defaults filled", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsValueType: model.CustomProfileAttributesValueTypeEmail,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// The CPA response goes through ToPropertyField on the server side,
+		// so every CPA-known attrs key is present — including defaults like
+		// Visibility="when_set" that the caller did not send.
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsValueType)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsVisibility)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsSortOrder)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsLDAP)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsSAML)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsManaged)
+
+		cpaField, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Equal(t, model.CustomProfileAttributesValueTypeEmail, cpaField.Attrs.ValueType)
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, cpaField.Attrs.Visibility)
+	})
+
+	t.Run("AccessControlHook still blocks LDAP-synced writes via CPA path", func(t *testing.T) {
+		ldapField := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
+			},
+		}
+		createdLDAPField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), ldapField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(
+			context.Background(),
+			th.BasicUser.Id,
+			map[string]json.RawMessage{createdLDAPField.ID: json.RawMessage(`"attempted write"`)},
+		)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+}
+
+func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: celSafeName(),
+		Type: model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsOwners: []model.PropertyOwner{
+				{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			},
+		},
+	}
+
+	created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, created)
+	// Owner-managed conversion sets value.write to none (a grant restores
+	// write for a listed owner). Projected PermissionValues therefore reads
+	// none, not the create-path sysadmin pin; PermissionField stays sysadmin
+	// so dropping owners does not make the definition member-editable.
+	require.NotNil(t, created.PermissionValues)
+	assert.Equal(t, model.PermissionLevelNone, *created.PermissionValues)
+	require.NotNil(t, created.PermissionField)
+	assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+
+	t.Run("member cannot write values on an owner-managed field", func(t *testing.T) {
+		// value.write none denies the member at the API permission layer.
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"member write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	t.Run("system admin cannot write own values on an owner-managed field", func(t *testing.T) {
+		// value.write is none on an owner-managed field, so the API permission
+		// layer refuses the sysadmin before the property-service hook runs.
+		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	t.Run("system admin cannot write values for another user on an owner-managed field", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			created.ID: json.RawMessage(`"admin write for user"`),
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	// The machine-owner write path (a listed owner acting as a matching scope
+	// is allowed) is covered by the property-service tests in
+	// channels/app/properties, which can stub the plugin checker.
+}
+
+// findOwner returns the owner in owners with the given ID, or nil. A field's
+// owners now come from its permissions object's grants, not only from what
+// was explicitly submitted -- a public, unprotected field also carries a "*"
+// plugin grant for the ambient access every such field already had under the
+// legacy model (TestProjectLegacyPermissionsWildcardGrantBecomesOwner), so
+// asserting on one owner by ID is the stable check rather than the total
+// count.
+func findOwner(owners []model.PropertyOwner, id string) *model.PropertyOwner {
+	for i := range owners {
+		if owners[i].ID == id {
+			return &owners[i]
+		}
+	}
+	return nil
+}
+
+func TestSysadminManagesCPAFieldOwners(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("system admin can create a field with owners and scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		owners := model.GetPropertyFieldOwners(created)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, scim.Type)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
+	})
+
+	t.Run("member cannot create a field with owners", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		_, resp, err := th.Client.CreateCPAField(context.Background(), field)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system admin can patch owners to add, change, and remove scopes", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// Add owners
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners := model.GetPropertyFieldOwners(patched)
+		scim := findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.Equal(t, []string{"entra"}, scim.Scopes)
+
+		// Change scopes
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra", "okta"}},
+				},
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		owners = model.GetPropertyFieldOwners(patched)
+		scim = findOwner(owners, "com.mattermost.scim")
+		require.NotNil(t, scim)
+		assert.ElementsMatch(t, []string{"entra", "okta"}, scim.Scopes)
+
+		// Remove owners
+		patched, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: nil,
+			},
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		// A public, unprotected field with no explicit owner is ambiently
+		// writable by any plugin under the legacy model. That access is kept
+		// as a stored wildcard grant, but a v2 reader sees no owners, as it
+		// would for any field nobody owns; a "*" owner would lock the field
+		// for people.
+		assert.Empty(t, model.GetPropertyFieldOwners(patched), "the field must read as unowned")
+		stored, storeErr := th.App.Srv().Store().PropertyField().Get(th.Context, "", created.ID)
+		require.NoError(t, storeErr)
+		require.Len(t, stored.Permissions.Grants, 1)
+		assert.Equal(t, model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"}, stored.Permissions.Grants[0].Identity,
+			"the field's ambient plugin access must be kept")
+	})
+
+	t.Run("member cannot patch owners on a field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: celSafeName(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.Client.PatchCPAField(context.Background(), created.ID, &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "com.mattermost.scim", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
+func TestUserValuesTargetAccessAudit(t *testing.T) {
+	logFile, err := os.CreateTemp("", "user_values_target_access_audit.log")
+	require.NoError(t, err)
+	defer os.Remove(logFile.Name())
+
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "advanced_logging")
+	options := []app.Option{app.WithLicense(license)}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(logFile.Name())
+		cfg.FeatureFlags.IntegratedBoards = true
+	})
+	th.App.Srv().SetLicense(license)
+	th.LoginBasic(t)
+
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+	th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
+
+	field, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText})
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	vals := map[string]json.RawMessage{field.ID: json.RawMessage(`"v"`)}
+	items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(`"v"`)}}
+
+	readAudit := func(t *testing.T) string {
+		t.Helper()
+		require.NoError(t, th.Server.Audit.Flush())
+		require.NoError(t, logFile.Sync())
+		data, err := os.ReadFile(logFile.Name())
+		require.NoError(t, err)
+		return string(data)
+	}
+	resetAudit := func(t *testing.T) {
+		t.Helper()
+		require.NoError(t, th.Server.Audit.Flush())
+		require.NoError(t, logFile.Truncate(0))
+		_, err := logFile.Seek(0, 0)
+		require.NoError(t, err)
+	}
+	requirePath := func(t *testing.T, event, actorID, want string) {
+		t.Helper()
+		entry := FindAuditEntry(readAudit(t), event, actorID)
+		require.NotNil(t, entry, "no %s audit entry for %s", event, actorID)
+		assert.Equal(t, "success", entry.Status)
+		assert.Equal(t, want, entry.Parameters["target_access"])
+	}
+
+	t.Run("self", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.BasicUser.Id, "self")
+	})
+
+	t.Run("edit_other_users", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.SystemAdminUser.Id, "edit_other_users")
+	})
+
+	t.Run("bot_manager via CPA route", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), bot.UserId, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, th.BasicUser.Id, "bot_manager")
+	})
+
+	t.Run("bot_manager via generic route", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), model.AccessControlPropertyGroupName, model.PropertyFieldObjectTypeUser, bot.UserId, items)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchPropertyValues, th.BasicUser.Id, "bot_manager")
+	})
+
+	t.Run("local", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.LocalClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, vals)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		requirePath(t, model.AuditEventPatchCPAValues, "", "local")
+	})
+
+	t.Run("denied write records no path", func(t *testing.T) {
+		resetAudit(t)
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser2.Id, vals)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		entry := FindAuditEntry(readAudit(t), model.AuditEventPatchCPAValues, th.BasicUser.Id)
+		require.NotNil(t, entry)
+		assert.Equal(t, "fail", entry.Status)
+		assert.NotContains(t, entry.Parameters, "target_access")
+	})
+}
+
+func TestCPALinkedFieldBlocked(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+	group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Create a template + linked user field via the app layer, simulating a
+	// field that was migrated to Global Attributes.
+	tmpl, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	linkedField, appErr := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID:       group.ID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("patch of a linked field is rejected", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), linkedField.ID, &model.PropertyFieldPatch{
+			Name: model.NewPointer(celSafeName()),
+		})
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
+	})
+
+	t.Run("delete of a linked field is rejected", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), linkedField.ID)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.linked_field.app_error")
 	})
 }

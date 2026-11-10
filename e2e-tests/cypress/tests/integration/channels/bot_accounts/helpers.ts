@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
-import {getRandomId} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 export function createBotInteractive(team: Team, username = `bot-${getRandomId()}`) {
     // # Visit the Integrations > Bot Accounts page
@@ -21,7 +21,7 @@ export function createBotInteractive(team: Team, username = `bot-${getRandomId()
     // * Verify confirmation page
     cy.url({timeout: TIMEOUTS.ONE_MIN}).
         should('include', `/${team.name}/integrations/confirm`).
-        should('match', /token=[a-zA-Z0-9]{26}/);
+        should('not.match', /[?&]token=/);
 
     // * Verify confirmation form/token
     cy.get('div.backstage-form').

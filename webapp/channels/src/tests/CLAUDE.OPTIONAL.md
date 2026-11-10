@@ -14,6 +14,8 @@
 - **No Snapshots**: Write explicit assertions with `expect(...).toBeVisible()`.
 - **Accessible Selectors**: Prefer `getByRole` > `getByText` > `getByLabelText` > `getByTestId`.
 - **userEvent**: Use `userEvent` over `fireEvent`, always await.
+- **Props Factory**: Use `getBaseProps()` (not `makeProps` or other names) when creating fresh props per test to avoid shared mock state leaking between tests.
+- **No `act()` wrapping render calls**: RTL's `render` and `renderHook` (and their context wrappers like `renderWithContext`, `renderHookWithContext`) already run inside `act`. For async effects on mount, render normally and use `waitFor` to assert the effect completed.
 
 ## renderWithContext
 Always use `renderWithContext` for components that need Redux, Router, or I18n context:
@@ -34,13 +36,27 @@ describe('MyComponent', () => {
 });
 ```
 
+## Async Components
+
+For components that trigger async effects on mount (e.g., data fetching), render normally and use `waitFor` to assert the effect completed before making assertions:
+
+```typescript
+const {container} = renderWithContext(<MyComponent actions={actions} />);
+
+await waitFor(() => {
+    expect(actions.getData).toHaveBeenCalled();
+});
+
+expect(container).toMatchSnapshot();
+```
+
 ## Adding Helpers
-- Place reusable mocks under `helpers/` (e.g., `intl-test-helper.tsx`, `match_media.mock.ts`).
+- Place reusable mocks under `helpers/` (e.g., `intl-test-helper.tsx`, `match_media_mock.ts`).
 - Document custom utilities with inline comments.
 - If a helper becomes product-agnostic, consider moving it to `platform/components/testUtils.tsx`.
 
 ## Available Mocks
-- `helpers/match_media.mock.ts`: matchMedia mock
+- `helpers/match_media_mock.ts`: matchMedia mock
 - `helpers/localstorage.tsx`: localStorage mock
 - `react-intl_mock.ts`: React Intl mock
 - `react-router-dom_mock.ts`: React Router mock

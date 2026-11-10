@@ -23,7 +23,7 @@ const AttributeBasedAccessControlFeatureDiscovery: React.FC = () => {
                 id: 'admin.attribute_based_access_control_feature_discovery.desc',
                 defaultMessage: 'Create policies containing access rules based on user attributes and apply them to channels and other resources within Mattermost.',
             })}
-            learnMoreURL='https://docs.mattermost.com/deployment/'
+            learnMoreURL='https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control.html'
             featureDiscoveryImage={
                 <SystemRolesSVG
                     width={294}

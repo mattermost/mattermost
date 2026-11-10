@@ -1,394 +1,406 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/InstalledCommand should call onDelete function 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
       <div
-        className="item-details__name"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <strong>
-          display_name
-        </strong>
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-      <span
-        className="item-details__trigger"
-      >
-        - /trigger auto_complete_hint
-      </span>
       <div
-        className="item-actions"
+        class="item-details__row"
       >
-        <button
-          className="style--none color--link"
-          onClick={[Function]}
+        <span
+          class="item-details__description"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Token"
-            id="installed_integrations.regenToken"
-          />
-        </button>
-         - 
-        <Link
-          to="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_commands.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          description
+        </span>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        description
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            data-testid="copyText"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_ft92e_41"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </button>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token: {token}"
-          id="installed_integrations.token"
-          values={
-            Object {
-              "token": <code>
-                testToken
-              </code>,
-            }
-          }
-        />
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Token",
-              "id": "integrations.copy_token",
-            }
-          }
-          value="testToken"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1499722850203,
-              "creator": "username",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/InstalledCommand should call onRegenToken function 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
       <div
-        className="item-details__name"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <strong>
-          display_name
-        </strong>
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+          >
+            Edit
+          </a>
+           - 
+          <button>
+            Delete
+          </button>
+        </div>
       </div>
-      <span
-        className="item-details__trigger"
-      >
-        - /trigger auto_complete_hint
-      </span>
       <div
-        className="item-actions"
+        class="item-details__row"
       >
-        <button
-          className="style--none color--link"
-          onClick={[Function]}
+        <span
+          class="item-details__description"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Regenerate Token"
-            id="installed_integrations.regenToken"
-          />
-        </button>
-         - 
-        <Link
-          to="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Edit"
-            id="installed_integrations.edit"
-          />
-        </Link>
-         - 
-        <Connect(DeleteIntegrationLink)
-          modalMessage={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action permanently deletes the slash command and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_commands.delete.confirm"
-            />
-          }
-          onDelete={[Function]}
-        />
+          description
+        </span>
       </div>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+      <div
+        class="item-details__row"
       >
-        description
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            data-testid="copyText"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_ft92e_41"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </button>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token: {token}"
-          id="installed_integrations.token"
-          values={
-            Object {
-              "token": <code>
-                testToken
-              </code>,
-            }
-          }
-        />
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Token",
-              "id": "integrations.copy_token",
-            }
-          }
-          value="testToken"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1499722850203,
-              "creator": "username",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
-exports[`components/integrations/InstalledCommand should filter out command 1`] = `""`;
-
 exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
       <div
-        className="item-details__name"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <strong>
-          display_name
-        </strong>
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
       </div>
-      <span
-        className="item-details__trigger"
+      <div
+        class="item-details__row"
       >
-        - /trigger auto_complete_hint
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+        <span
+          class="item-details__description"
+        >
+          description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        description
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            data-testid="copyText"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_ft92e_41"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </button>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token: {token}"
-          id="installed_integrations.token"
-          values={
-            Object {
-              "token": <code>
-                testToken
-              </code>,
-            }
-          }
-        />
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Token",
-              "id": "integrations.copy_token",
-            }
-          }
-          value="testToken"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1499722850203,
-              "creator": "username",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/InstalledCommand should match snapshot, not autocomplete, no display_name/description/auto_complete_hint 1`] = `
-<div
-  className="backstage-list__item"
->
+<div>
   <div
-    className="item-details"
+    class="backstage-list__item"
   >
     <div
-      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      class="item-details"
     >
       <div
-        className="item-details__name"
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
       >
-        <strong>
-          command_display_name
-        </strong>
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            command_display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger
+        </span>
       </div>
-      <span
-        className="item-details__trigger"
+      <div
+        class="item-details__row"
       >
-        - /trigger
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__description"
+        <span
+          class="item-details__description"
+        >
+          command_description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        command_description
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__token"
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            data-testid="copyText"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_ft92e_41"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1i355_2 _icon--size-12_1i355_30"
+              >
+                <div
+                  class="_icon__glyph-area_1i355_9"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="14"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
+          </button>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
       >
-        <MemoizedFormattedMessage
-          defaultMessage="Token: {token}"
-          id="installed_integrations.token"
-          values={
-            Object {
-              "token": <code>
-                testToken
-              </code>,
-            }
-          }
-        />
-        <Memo(CopyText)
-          label={
-            Object {
-              "defaultMessage": "Copy Token",
-              "id": "integrations.copy_token",
-            }
-          }
-          value="testToken"
-        />
-      </span>
-    </div>
-    <div
-      className="item-details__row"
-    >
-      <span
-        className="item-details__creation"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Created by {creator} on {createAt, date, full}"
-          id="installed_integrations.creation"
-          values={
-            Object {
-              "createAt": 1499722850203,
-              "creator": "username",
-            }
-          }
-        />
-      </span>
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
     </div>
   </div>
 </div>

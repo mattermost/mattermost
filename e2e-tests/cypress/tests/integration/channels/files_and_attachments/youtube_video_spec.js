@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('YouTube Video', () => {
     before(() => {

@@ -20,7 +20,7 @@ type Props = {
     closeModal: () => void;
     collapseModal: () => void;
     settings: PluginConfiguration;
-}
+};
 
 const PluginTab = ({
     activeSection,

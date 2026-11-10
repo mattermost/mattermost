@@ -1,50 +1,67 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelSettings should match snapshot 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="{siteName} Channels"
-      id="admin.channel_settings.groupsPageTitle"
-      values={
-        Object {
-          "siteName": "site",
-        }
-      }
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
+      data-testid="admin-console-header"
     >
-      <AdminPanel
-        id="channels"
-        subtitle={
-          Object {
-            "defaultMessage": "Manage channel settings.",
-            "id": "admin.channel_settings.description",
-          }
-        }
-        subtitleValues={
-          Object {
-            "endCount": 1,
-            "startCount": 0,
-            "total": 0,
-          }
-        }
-        title={
-          Object {
-            "defaultMessage": "Channels",
-            "id": "admin.channel_settings.title",
-          }
-        }
+      site Channels
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <Connect(ChannelList) />
-      </AdminPanel>
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="channels"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Channels
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Manage channel settings.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div>
+              ChannelsList
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </div>

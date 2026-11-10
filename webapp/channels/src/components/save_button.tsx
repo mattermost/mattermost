@@ -4,22 +4,44 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import {Button} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonSize as CompassButtonSize} from '@mattermost/compass-ui/components/button';
+
+type SharedSize = 'xs' | 'sm' | 'md' | 'lg';
+type SharedVariant = '' | 'destructive' | 'inverted';
+
+const SHARED_TO_COMPASS_SIZE: Record<SharedSize, CompassButtonSize> = {
+    xs: 'x-small',
+    sm: 'small',
+    md: 'medium',
+    lg: 'large',
+};
 
 type Props = {
+    emphasis?: ButtonEmphasis;
+    size?: SharedSize | CompassButtonSize;
+    variant?: SharedVariant;
     saving?: boolean;
     disabled?: boolean;
     id?: string;
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     savingMessage?: React.ReactNode;
     defaultMessage?: React.ReactNode;
-    btnClass?: string;
     extraClasses?: string;
 };
 
+function mapSize(size?: SharedSize | CompassButtonSize): CompassButtonSize | undefined {
+    if (!size) {
+        return undefined;
+    }
+    if (size in SHARED_TO_COMPASS_SIZE) {
+        return SHARED_TO_COMPASS_SIZE[size as SharedSize];
+    }
+    return size as CompassButtonSize;
+}
+
 const SaveButton: React.FC<Props> = ({
     saving = false,
-    disabled = false,
     savingMessage = (
         <FormattedMessage
             id='save_button.saving'
@@ -32,39 +54,27 @@ const SaveButton: React.FC<Props> = ({
             defaultMessage='Save'
         />
     ),
-    btnClass = '',
+    emphasis,
+    size,
+    variant,
     extraClasses = '',
     ...props
 }) => {
-    let className = 'btn';
-    if (!btnClass) {
-        className += ' btn-primary';
-    }
-
-    if (!disabled || saving) {
-        className += ' ' + btnClass;
-    }
-
-    if (extraClasses) {
-        className += ' ' + extraClasses;
-    }
-
     return (
-        <button
+        <Button
             type='submit'
             data-testid='saveSetting'
             id='saveSetting'
-            className={className}
-            disabled={disabled}
+            emphasis={emphasis}
+            size={mapSize(size)}
+            destructive={variant === 'destructive'}
+            appearance={variant === 'inverted' ? 'inverted' : undefined}
+            className={extraClasses}
+            loading={saving}
             {...props}
         >
-            <LoadingWrapper
-                loading={saving}
-                text={savingMessage}
-            >
-                <span>{defaultMessage}</span>
-            </LoadingWrapper>
-        </button>
+            {saving ? savingMessage : defaultMessage}
+        </Button>
     );
 };
 

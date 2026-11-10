@@ -8,7 +8,7 @@ import type {GlobalState} from 'types/store';
 import * as selectors from './threads';
 
 describe('selectors/views/threads', () => {
-    const makeState = (selectedThreadId: string|null, selectedPostId: string, isSidebarOpen = true) => ({
+    const makeState = (selectedThreadId: string | null, selectedPostId: string, isSidebarOpen = true) => ({
         entities: {
             teams: {
                 currentTeamId: 'current_team_id',

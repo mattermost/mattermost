@@ -63,6 +63,7 @@ test('MM-T5520-2 should change user roles', async ({pw}) => {
 
 test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
     const {systemConsolePage} = await setupAndGetRandomUser(pw);
+    const {page} = systemConsolePage;
 
     const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
 
@@ -70,28 +71,27 @@ test('MM-T5520-3 should be able to manage teams', async ({pw}) => {
     const actionMenu = await userRow.openActionMenu();
     await actionMenu.clickManageTeams();
 
-    // # Click Make Team Admin
-    const team = systemConsolePage.page.locator('div.manage-teams__team');
-    const teamDropdown = team.locator('div.MenuWrapper');
-    await teamDropdown.click();
-    const makeTeamAdmin = teamDropdown.getByText('Make Team Admin');
-    await makeTeamAdmin.click();
+    // The role dropdown renders its menu in a portal (MUI Popover), so the menu
+    // items live at the page level rather than inside the team row.
+    const team = page.locator('div.manage-teams__team');
+
+    // # Open the role dropdown and click Make Team Admin
+    await team.getByRole('button', {name: 'Team Member'}).click();
+    await page.getByRole('menuitem', {name: 'Make Team Admin'}).click();
 
     // * Verify role is updated
     await expect(team.getByText('Team Admin')).toBeVisible();
 
     // # Change back to Team Member
-    await teamDropdown.click();
-    const makeTeamMember = teamDropdown.getByText('Make Team Member');
-    await makeTeamMember.click();
+    await team.getByRole('button', {name: 'Team Admin'}).click();
+    await page.getByRole('menuitem', {name: 'Make Team Member'}).click();
 
     // * Verify role is updated
     await expect(team.getByText('Team Member')).toBeVisible();
 
-    // # Click Remove From Team
-    await teamDropdown.click();
-    const removeFromTeam = teamDropdown.getByText('Remove From Team');
-    await removeFromTeam.click();
+    // # Click Remove from Team
+    await team.getByRole('button', {name: 'Team Member'}).click();
+    await page.getByRole('menuitem', {name: 'Remove from Team'}).click();
 
     // * The team should be detached
     await team.waitFor({state: 'detached'});
@@ -108,13 +108,13 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
     await actionMenu.clickResetPassword();
 
     // # Enter a random password and click Reset
-    await systemConsolePage.users.resetPasswordModal.fillPassword(await pw.random.id());
+    await systemConsolePage.users.resetPasswordModal.fillPassword(pw.newTestPassword());
     await systemConsolePage.users.resetPasswordModal.reset();
 });
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-    const newEmail = `${await pw.random.id()}@example.com`;
+    const newEmail = `${pw.random.id()}@example.com`;
 
     const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
 

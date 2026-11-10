@@ -20,4 +20,4 @@ export type Notice = {
         analytics?: AnalyticsState,
         currentChannel?: Channel,
     ): boolean;
-}
+};

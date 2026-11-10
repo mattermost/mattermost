@@ -41,6 +41,19 @@ func TestSaveReactionForPost(t *testing.T) {
 	require.NotNil(t, reaction3)
 	require.Nil(t, err)
 
+	t.Run("should save reaction with mixed case emoji name", func(t *testing.T) {
+		reaction := &model.Reaction{
+			UserId:    th.BasicUser.Id,
+			PostId:    post.Id,
+			EmojiName: "sMiLe",
+		}
+
+		result, err := th.App.SaveReactionForPost(th.Context, reaction)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, "smile", result.EmojiName)
+	})
+
 	t.Run("should not add reaction if it does not exist on the system", func(t *testing.T) {
 		reaction := &model.Reaction{
 			UserId:    th.BasicUser.Id,
@@ -149,6 +162,35 @@ func TestSaveReactionForPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
 		})
+	})
+}
+
+func TestDeleteReactionForPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	post := th.CreatePost(t, th.BasicChannel)
+	reaction, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
+		UserId:    th.BasicUser.Id,
+		PostId:    post.Id,
+		EmojiName: "smile",
+	})
+	require.NotNil(t, reaction)
+	require.Nil(t, err)
+
+	t.Run("should delete reaction with mixed case emoji name", func(t *testing.T) {
+		reactionToDelete := &model.Reaction{
+			UserId:    th.BasicUser.Id,
+			PostId:    post.Id,
+			EmojiName: "sMiLe",
+		}
+
+		appErr := th.App.DeleteReactionForPost(th.Context, reactionToDelete)
+		require.Nil(t, appErr)
+
+		reactions, err := th.App.GetReactionsForPost(post.Id)
+		require.Nil(t, err)
+		require.Empty(t, reactions)
 	})
 }
 

@@ -43,7 +43,7 @@ export const TeamGroups = ({onGroupRemoved, syncChecked, team, onAddCallback, to
         button={
             <ToggleModalButton
                 id='addGroupsToTeamToggle'
-                className='btn btn-primary'
+                emphasis='primary'
                 modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
                 dialogType={AddGroupsToTeamModal}
                 dialogProps={{

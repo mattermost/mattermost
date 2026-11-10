@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class RestorePostConfirmationDialog {
     readonly container: Locator;
@@ -12,8 +13,8 @@ export default class RestorePostConfirmationDialog {
     constructor(container: Locator) {
         this.container = container;
 
-        this.cancelButton = container.locator('button.btn.btn-tertiary');
-        this.confirmButton = container.locator('button.GenericModal__button.btn.btn-primary.confirm');
+        this.cancelButton = container.getByRole('button', {name: 'Cancel'});
+        this.confirmButton = container.locator('button.GenericModal__button.confirm');
     }
 
     async toBeVisible() {

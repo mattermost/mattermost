@@ -21,10 +21,14 @@ const Footer = () => {
     }
 
     return (
-        <div className='hfroute-footer'>
+        <div
+            data-testid='hfroute-footer'
+            className='hfroute-footer'
+        >
             <span
                 key='footer-copyright'
                 className='footer-copyright'
+                data-testid='footer-copyright'
             >
                 {`© ${new Date().getFullYear()} Mattermost Inc.`}
             </span>

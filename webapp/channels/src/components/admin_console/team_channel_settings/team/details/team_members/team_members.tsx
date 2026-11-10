@@ -47,11 +47,11 @@ type Props = {
         setUserGridSearch: (term: string) => void;
         setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 const PROFILE_CHUNK_SIZE = 10;
 
@@ -240,7 +240,7 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         modalId={ModalIdentifiers.ADD_USER_TO_TEAM}
                         dialogType={AddUsersToTeamModal}
                         disabled={isDisabled}

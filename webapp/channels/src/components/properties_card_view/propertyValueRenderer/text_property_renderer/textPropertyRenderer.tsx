@@ -10,18 +10,20 @@ import type {TextFieldMetadata} from 'components/properties_card_view/properties
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: TextFieldMetadata;
-}
+};
 
 export default function TextPropertyRenderer({value, metadata}: Props) {
+    const isSet = value.value !== null && value.value !== undefined && value.value !== '';
+
     return (
         <span
             className='TextProperty'
             data-testid='text-property'
         >
-            {Boolean(value.value) && value.value as string}
+            {isSet && String(value.value)}
 
             {
-                !value.value && metadata?.placeholder && (
+                !isSet && metadata?.placeholder && (
                     <span className='TextProperty__placeholder'>
                         {metadata.placeholder}
                     </span>

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PasswordResetForm from './password_reset_form';
 
@@ -20,11 +19,11 @@ describe('components/PasswordResetForm', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(<PasswordResetForm {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<PasswordResetForm {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
-    it('should call the resetUserPassword() action on submit', () => {
+    it('should call the resetUserPassword() action on submit', async () => {
         const props = {
             ...baseProps,
             location: {
@@ -32,10 +31,12 @@ describe('components/PasswordResetForm', () => {
             },
         };
 
-        const wrapper = mountWithIntl(<PasswordResetForm {...props}/>);
+        renderWithContext(<PasswordResetForm {...props}/>);
 
-        (wrapper.find('input[type="password"]').first().instance() as unknown as HTMLInputElement).value = 'PASSWORD';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        const passwordInput = screen.getByPlaceholderText('Password');
+        await userEvent.type(passwordInput, 'PASSWORD');
+
+        await userEvent.click(screen.getByText('Change my password'));
 
         expect(props.actions.resetUserPassword).toHaveBeenCalledWith('TOKEN', 'PASSWORD');
     });

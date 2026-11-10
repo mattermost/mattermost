@@ -6,14 +6,14 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {matchPath} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import SectionNotice from 'components/section_notice';
-
 import {getHistory} from 'utils/browser_history';
-import * as UserAgent from 'utils/user_agent';
 
 const urlFormatForDMGMPermalink = '/:teamName/messages/:username/:postid';
 const urlFormatForChannelPermalink = '/:teamName/channels/:channelname/:postid';
@@ -29,18 +29,15 @@ type Props = {
     location: {
         pathname: string;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class DeletePostModal extends React.PureComponent<Props, State> {
-    deletePostBtn: React.RefObject<HTMLButtonElement>;
-
     constructor(props: Props) {
         super(props);
-        this.deletePostBtn = React.createRef();
 
         this.state = {
             show: true,
@@ -82,7 +79,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
     };
 
     handleEntered = () => {
-        this.deletePostBtn?.current?.focus();
+        document.getElementById('deletePostModalButton')?.focus();
     };
 
     onHide = () => {
@@ -177,29 +174,28 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                     {remoteWarning}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='delete_post.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
-                        ref={this.deletePostBtn}
+                    </Button>
+                    <Button
                         type='button'
                         autoFocus={true}
-                        className='btn btn-danger'
                         onClick={this.handleDelete}
                         id='deletePostModalButton'
+                        destructive={true}
                     >
                         <FormattedMessage
                             id='delete_post.del'
                             defaultMessage='Delete'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );
@@ -228,7 +224,7 @@ const SharedChannelPostDeleteWarning = ({post}: {post: Post}) => {
                 id: 'delete_post.shared_channel_warning.title',
                 defaultMessage: 'Shared Channel',
             })}
-            text={text}
+            description={text}
         />
     );
 };

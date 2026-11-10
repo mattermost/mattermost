@@ -3,12 +3,12 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {CSSProperties, JSX} from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import DataGridHeader from './data_grid_header';
@@ -27,14 +27,14 @@ export type Column = {
     width?: number;
     textAlign?: '-moz-initial' | 'inherit' | 'initial' | 'revert' | 'unset' | 'center' | 'end' | 'justify' | 'left' | 'match-parent' | 'right' | 'start' | undefined;
     overflow?: string;
-}
+};
 
 export type Row = {
     cells: {
         [key: string]: JSX.Element | string | null;
     };
     onClick?: () => void;
-}
+};
 
 type Props = {
     rows: Row[];
@@ -65,7 +65,7 @@ type Props = {
 
     className?: string;
     disabled?: boolean;
-};
+} & WrappedComponentProps;
 
 type State = {
     visibleColumns: Column[];
@@ -77,7 +77,7 @@ type State = {
 const MINIMUM_COLUMN_WIDTH = 100;
 
 class DataGrid extends React.PureComponent<Props, State> {
-    private ref: React.RefObject<HTMLDivElement>;
+    private ref: React.RefObject<HTMLDivElement | null>;
 
     static defaultProps = {
         term: '',
@@ -184,6 +184,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className='DataGrid_rows'
+                data-testid='dataGrid-rows'
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -251,35 +252,30 @@ class DataGrid extends React.PureComponent<Props, State> {
             }
 
             footer = (
-                <div className='DataGrid_footer'>
+                <div
+                    className='DataGrid_footer'
+                    data-testid='dataGrid-footer'
+                >
                     <div className='DataGrid_cell'>
-                        <FormattedMessage
-                            id='admin.data_grid.paginatorCount'
-                            defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
-                            values={{
-                                startCount,
-                                endCount,
-                                total,
-                            }}
+                        <span data-testid='dataGrid-footer-paginationInfo'>
+                            <FormattedMessage
+                                id='admin.data_grid.paginatorCount'
+                                defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
+                                values={{
+                                    startCount,
+                                    endCount,
+                                    total,
+                                }}
+                            />
+                        </span>
+                        <PaginationButtons
+                            onPrevious={prevPageFn}
+                            onNext={nextPageFn}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                            previousButtonClassName='ml-2 prev'
+                            nextButtonClassName='next'
                         />
-                        <button
-                            aria-label='Previous page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
-                            onClick={prevPageFn}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </button>
-                        <button
-                            aria-label='Next page'
-                            type='button'
-                            className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
-                            onClick={nextPageFn}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </button>
                     </div>
                 </div>
             );
@@ -292,6 +288,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
+                data-testid='dataGrid'
                 ref={this.ref}
             >
                 {this.renderSearch()}
@@ -303,4 +300,4 @@ class DataGrid extends React.PureComponent<Props, State> {
     }
 }
 
-export default DataGrid;
+export default injectIntl(DataGrid);

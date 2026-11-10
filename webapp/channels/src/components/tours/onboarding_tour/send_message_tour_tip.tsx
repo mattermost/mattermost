@@ -14,7 +14,7 @@ type Props = {
     prefillMessage: (msg: string) => void;
     channelId: string;
     currentUserId: string;
-}
+};
 
 const translate = {x: -6, y: -6};
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, type JSX} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
@@ -31,7 +31,7 @@ export type Props = {
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
     const [error, setError] = React.useState<JSX.Element | null>(null);
@@ -107,7 +107,7 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
 
         let teamList;
         if (teams && teamMembers) {
-            teamList = teams.map((team) => {
+            teamList = teams.map((team, index) => {
                 const teamMember = teamMembers.find((member: TeamMembership) => member.team_id === team.id);
                 if (!teamMember) {
                     return null;
@@ -123,6 +123,8 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
                         user={user}
                         team={team}
                         teamMember={teamMember}
+                        index={index}
+                        totalTeams={teams.length}
                         onError={handleError}
                         onMemberChange={handleMemberChange}
                         updateTeamMemberSchemeRoles={actions.updateTeamMemberSchemeRoles}
@@ -193,6 +195,7 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
             dialogClassName='a11y__modal manage-teams modal--overflow-visible'
             role='none'
             aria-labelledby='manageTeamsModalLabel'
+            id='manageTeamsModal'
         >
             <Modal.Header closeButton={true}>
                 <Modal.Title

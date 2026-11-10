@@ -1,9 +1,259 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            id="acceptTerms"
+            type="submit"
+          >
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
+          </button>
+          <button
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            id="rejectTerms"
+            type="reset"
+          >
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot on loading 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot on loading 1`] = `
+<div>
+  <div
+    class="loading-screen"
+    data-testid="loading-screen"
+    style="position: relative;"
+  >
+    <div
+      class="loading__content"
+    >
+      <span
+        class="LoadingSpinner with-text"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_3elm7_10 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
+        Loading
+      </span>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot, on accept terms 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot, on accept terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            disabled=""
+            id="acceptTerms"
+            type="submit"
+          >
+            <span
+              aria-hidden="true"
+              class="_button__icon-slot_we8pe_35"
+            >
+              <span
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+              />
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
+          </button>
+          <button
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            disabled=""
+            id="rejectTerms"
+            type="reset"
+          >
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot, on reject terms 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot, on reject terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            disabled=""
+            id="acceptTerms"
+            type="submit"
+          >
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Agree
+            </span>
+          </button>
+          <button
+            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            disabled=""
+            id="rejectTerms"
+            type="reset"
+          >
+            <span
+              aria-hidden="true"
+              class="_button__icon-slot_we8pe_35"
+            >
+              <span
+                aria-label="Loading"
+                class="_spinner_3elm7_10"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+              />
+            </span>
+            <span
+              class="_button__label_we8pe_31"
+            >
+              I Disagree
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

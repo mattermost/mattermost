@@ -177,7 +177,54 @@ export function orderByTeam(state: RelationOneToOne<Team, Array<ChannelCategory[
     }
 }
 
+export function managedCategoryMappings(state: RelationOneToOne<Team, Record<Channel['id'], string>> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ChannelCategoryTypes.RECEIVED_MANAGED_CATEGORY_MAPPINGS: {
+        return {
+            ...state,
+            [action.data.team_id]: action.data.mappings,
+        };
+    }
+    case ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_SET: {
+        return {
+            ...state,
+            [action.data.team_id]: {
+                ...state[action.data.team_id],
+                [action.data.id]: action.data.category_name,
+            },
+        };
+    }
+    case ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_REMOVED:
+    case ChannelTypes.LEAVE_CHANNEL: {
+        if (!(action.data.team_id && action.data.id) || !state[action.data.team_id]) {
+            return state;
+        }
+        const nextTeam = {...state[action.data.team_id]};
+        Reflect.deleteProperty(nextTeam, action.data.id);
+        return {
+            ...state,
+            [action.data.team_id]: nextTeam,
+        };
+    }
+    case TeamTypes.LEAVE_TEAM: {
+        if (!state[action.data.id]) {
+            return state;
+        }
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.data.id);
+
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     byId,
     orderByTeam,
+    managedCategoryMappings,
 });

@@ -1,0 +1,21 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.KeepRemoveFlaggedMessageConfirmationModal {
+    .download_report_checkbox {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 400;
+        gap: 10px;
+
+        input[type='checkbox'] {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+    }
+}

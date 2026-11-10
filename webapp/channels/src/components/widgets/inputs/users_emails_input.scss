@@ -75,19 +75,19 @@
 
         .users-emails-input__input {
             border-bottom: 1px dotted red;
-
-            >div {
-                width: 1px;
-            }
         }
     }
 
     .users-emails-input__value-container {
+        min-width: 0;
+        max-width: 100%;
         padding-left: 0;
         margin-left: 2px;
     }
 
     .users-emails-input__input-container {
+        min-width: 0;
+        max-width: 100%;
         padding-left: 8px;
         margin-left: 2px;
     }
@@ -112,6 +112,7 @@
     }
 
     .users-emails-input__menu {
+        max-width: 100%;
         margin-top: 0;
         background: var(--center-channel-bg);
         box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
@@ -124,24 +125,29 @@
 
     .users-emails-input__menu-notice {
         display: flex;
-        height: 60px;
+        min-height: 60px;
         align-items: center;
         justify-content: center;
         padding: 12px;
         border-radius: 4px 4px 0 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .users-emails-input__option {
         display: flex;
-        height: 60px;
+        min-height: 60px;
         align-items: center;
         padding: 12px;
         cursor: pointer;
         gap: 8px;
 
         &--no-matches {
+            height: auto;
             color: rgba(var(--center-channel-color-rgb), 0.75);
+            overflow-wrap: anywhere;
             text-align: center;
+            word-break: break-word;
 
             span {
                 width: 100%;

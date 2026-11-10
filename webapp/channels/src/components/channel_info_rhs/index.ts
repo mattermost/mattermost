@@ -7,6 +7,7 @@ import type {AnyAction, Dispatch} from 'redux';
 
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
+import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -18,9 +19,8 @@ import {muteChannel, unmuteChannel} from 'actions/channel_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, showChannelFiles, showChannelMembers, showPinnedPosts} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {isModalOpen} from 'selectors/views/modals';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {Constants} from 'utils/constants';
 import {getDisplayNameByUser, getUserIdFromChannelId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -43,7 +43,6 @@ function mapStateToProps(state: GlobalState) {
     const isArchived = isCurrentChannelArchived(state);
     const isFavorite = isCurrentChannelFavorite(state);
     const isMuted = isCurrentChannelMuted(state);
-    const isInvitingPeople = isModalOpen(state, ModalIdentifiers.CHANNEL_INVITE) || isModalOpen(state, ModalIdentifiers.CREATE_DM_CHANNEL);
     const isMobile = getIsMobileView(state);
 
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -52,6 +51,8 @@ function mapStateToProps(state: GlobalState) {
 
     const channelMembers = getProfilesInCurrentChannel(state);
 
+    const isInManagedCategory = channel ? isChannelInManagedCategory(state, channel.id) : false;
+
     const props = {
         channel,
         currentUser,
@@ -59,8 +60,8 @@ function mapStateToProps(state: GlobalState) {
         isArchived,
         isFavorite,
         isMuted,
-        isInvitingPeople,
         isMobile,
+        isInManagedCategory,
         canManageMembers,
         canManageProperties,
         channelStats,

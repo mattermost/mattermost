@@ -16,13 +16,15 @@ import emojis from './emojis';
 import files from './files';
 import general from './general';
 import groups from './groups';
-import hostedCustomer from './hosted_customer';
+import health from './health';
 import integrations from './integrations';
 import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
+import properties from './properties';
 import recaps from './recaps';
+import renderPermissions from './render_permissions';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
@@ -60,9 +62,11 @@ export default combineReducers({
     apps,
     cloud,
     usage,
-    hostedCustomer,
     channelBookmarks,
     scheduledPosts,
     sharedChannels,
     contentFlagging,
+    properties,
+    renderPermissions,
+    health,
 });

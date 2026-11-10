@@ -5,10 +5,15 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {AccountOutlineIcon, SendIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {openModal} from 'actions/views/modals';
 
 import UserSettingsModal from 'components/user_settings/modal';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -20,7 +25,7 @@ type Props = {
     returnFocus: () => void;
     handleCloseModals: () => void;
     handleShowDirectChannel: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}
+};
 
 const ProfilePopoverSelfUserRow = ({
     userId,
@@ -52,34 +57,27 @@ const ProfilePopoverSelfUserRow = ({
         <div
             className='user-popover__bottom-row-container'
         >
-            <button
+            <Button
                 type='button'
-                className='btn btn-primary btn-sm'
+                emphasis='primary'
+                size='small'
                 onClick={handleEditAccountSettings}
+                leadingIcon={<Icon glyph={<AccountOutlineIcon/>}/>}
             >
-                <i
-                    className='icon icon-account-outline'
-                    aria-hidden='true'
-                />
                 <FormattedMessage
                     id='user_profile.account.editProfile'
                     defaultMessage='Edit Profile'
                 />
-            </button>
+            </Button>
             <WithTooltip
                 title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
             >
-                <button
-                    type='button'
-                    className='btn btn-icon btn-sm'
+                <IconButton
+                    size='small'
+                    icon={<Icon glyph={<SendIcon/>}/>}
                     onClick={handleShowDirectChannel}
                     aria-label={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
-                >
-                    <i
-                        className='icon icon-send'
-                        aria-hidden='true'
-                    />
-                </button>
+                />
             </WithTooltip>
         </div>
     );

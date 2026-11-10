@@ -1,0 +1,19 @@
+extends: existence
+message: "Brand voice: avoid '%s' in normative content. Mattermost is mission-critical, not casual."
+level: warning
+ignorecase: true
+# Brand pillars: Focused, Adaptable, Secure, Resilient.
+# Tone: 'Built for the War Room. Not the Break Room.'
+# Banned casual phrasing in normative documentation. Acceptable in blog/marketing.
+tokens:
+  - "easy peasy"
+  - "super easy"
+  - "no worries"
+  - "just kidding"
+  - "fun"
+  - "awesome"
+  - "cool"
+  - "yay"
+  - "let's go!"
+  - "magic"
+  - "magical"

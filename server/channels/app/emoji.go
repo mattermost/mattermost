@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
 const (
@@ -34,6 +35,7 @@ const (
 	MaxEmojiHeight         = 128
 	MaxEmojiOriginalWidth  = 1028
 	MaxEmojiOriginalHeight = 1028
+	MaxEmojiGIFFrames      = 70
 )
 
 func (a *App) CreateEmoji(rctx request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
@@ -122,6 +124,24 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Enforce the frame limit on every animated GIF, regardless of whether it
+	// needs resizing, so the cap applies to the direct-write path too.
+	isGIF := model.NewInfo(filename).MimeType == "image/gif"
+	if isGIF {
+		frameCount, err := imgutils.CountGIFFrames(file)
+		if err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		if frameCount > MaxEmojiGIFFrames {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.too_many_frames.app_error", map[string]any{
+				"MaxFrames": MaxEmojiGIFFrames,
+			}, "", http.StatusBadRequest)
+		}
+		if _, err = file.Seek(0, io.SeekStart); err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	if config.Width <= MaxEmojiWidth && config.Height <= MaxEmojiHeight {
 		// No need to resize the image
 		_, appErr := a.WriteFile(file, getEmojiImagePath(id))
@@ -131,27 +151,40 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 	// Create a buffer for the resized image
 	buf := &bytes.Buffer{}
 
-	info := model.NewInfo(filename)
-	if info.MimeType == "image/gif" {
-		g, err := gif.DecodeAll(file)
+	// Resizing goes through the shared decoder so the work it takes to turn the
+	// source into an emoji is accounted for the same way as for other
+	// user-uploaded images. The decoded data is released as soon as the result
+	// is encoded, so it is not held for the duration of the upload.
+	if isGIF {
+		g, release, err := a.ch.imgDecoder.DecodeAllGIF(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionLimit) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large_to_process.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		defer release()
 
 		resizeEmojiGif(g)
 		if err := gif.EncodeAll(buf, g); err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		release()
 	} else {
-		img, _, err := image.Decode(file)
+		img, _, release, err := a.ch.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionLimit) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large_to_process.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		defer release()
 
 		resizedImg := resizeEmoji(img, config.Width, config.Height)
 		if err := a.ch.imgEncoder.EncodePNG(buf, resizedImg); err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		release()
 	}
 
 	_, appErr := a.WriteFile(buf, getEmojiImagePath(id))
@@ -354,21 +387,22 @@ func (a *App) deleteEmojiImage(rctx request.CTX, id string) {
 }
 
 func (a *App) deleteReactionsForEmoji(rctx request.CTX, emojiName string) {
-	if err := a.Srv().Store().Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
+	if err := a.Srv().Store().Reaction().DeleteAllWithEmojiName(rctx, emojiName); err != nil {
 		rctx.Logger().Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }
 
-func (a *App) confirmEmojiExists(rctx request.CTX, emojiName string) *model.AppError {
+func (a *App) confirmEmojiExists(rctx request.CTX, emojiName string) error {
 	if model.IsSystemEmojiName(emojiName) {
 		return nil
 	}
 
-	err := model.IsValidEmojiName(emojiName)
-	if err != nil {
+	if err := model.IsValidEmojiName(emojiName); err != nil {
 		return err
 	}
 
-	_, err = a.GetEmojiByName(rctx, emojiName)
-	return err
+	if _, err := a.GetEmojiByName(rctx, emojiName); err != nil {
+		return err
+	}
+	return nil
 }

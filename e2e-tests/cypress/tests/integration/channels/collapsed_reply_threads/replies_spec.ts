@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {PostMessageResp} from 'tests/support/task_commands';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import type {PostMessageResp} from '@/support/task_commands';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -145,7 +145,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(postForAvatar.id).find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm').type('{esc}');
+        cy.get('div.user-profile-popover').first().should('be.visible').find('.user-popover__bottom-row-container button').type('{esc}');
 
         // # Visit global threads
         cy.uiClickSidebarItem('threads');
@@ -153,8 +153,8 @@ describe('Collapsed Reply Threads', () => {
         // * Find the first avatar and click it
         cy.get('div.ThreadItem').find('.activity').find('.Avatars').find('button').first().click();
 
-        // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm');
+        // * Profile popover should be visible
+        cy.get('div.user-profile-popover').first().should('be.visible').find('.user-popover__bottom-row-container button');
     });
 
     it('MM-T4143 Emoji reaction - type +:+1:', () => {

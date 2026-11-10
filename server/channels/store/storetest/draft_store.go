@@ -362,6 +362,18 @@ func testGetDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
 	})
+
+	t.Run("get draft with NULL type", func(t *testing.T) {
+		_, err := ss.GetInternalMasterDB().Exec(
+			"UPDATE Drafts SET Type = NULL WHERE UserId = $1 AND ChannelId = $2",
+			user.Id, channel.Id,
+		)
+		require.NoError(t, err)
+
+		draftResp, err := ss.Draft().Get(user.Id, channel.Id, "", false)
+		require.NoError(t, err)
+		assert.Equal(t, "", draftResp.Type)
+	})
 }
 
 func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {

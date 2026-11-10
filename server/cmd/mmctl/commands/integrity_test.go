@@ -28,8 +28,8 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 			ChildIdAttr:  "childIdAttr",
 			Records: []model.OrphanedRecord{
 				{
-					ParentId: model.NewPointer("parentId"),
-					ChildId:  model.NewPointer("childId"),
+					ParentId: new("parentId"),
+					ChildId:  new("childId"),
 				},
 			},
 		}
@@ -82,8 +82,8 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 			ChildIdAttr:  "childIdAttr",
 			Records: []model.OrphanedRecord{
 				{
-					ParentId: model.NewPointer("parentId"),
-					ChildId:  model.NewPointer("childId"),
+					ParentId: new("parentId"),
+					ChildId:  new("childId"),
 				},
 			},
 		}

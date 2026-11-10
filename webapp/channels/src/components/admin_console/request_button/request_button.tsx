@@ -7,9 +7,10 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -28,7 +29,7 @@ type Props = {
      */
     requestAction: (
         success: () => void,
-        error: (error: {message: string; detailed_error?: string}) => void
+        error: (error: {message: string; detailed_error?: string}) => void,
     ) => void;
 
     /**
@@ -116,14 +117,14 @@ type Props = {
      * The button type/variant to apply. Determines the button's visual style.
      * Defaults to 'tertiary'.
      */
-    buttonType?: 'primary' | 'secondary' | 'tertiary';
+    buttonEmphasis?: ButtonEmphasis;
 };
 
 type State = {
     busy: boolean;
     fail: string;
     success: boolean;
-}
+};
 
 export default class RequestButton extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
@@ -190,16 +191,14 @@ export default class RequestButton extends React.PureComponent<Props, State> {
     render() {
         let message = null;
         if (this.state.fail) {
-            const text = typeof this.props.errorMessage === 'string' ?
-                this.props.errorMessage :
-                (
-                    <FormattedMessage
-                        {...this.props.errorMessage}
-                        values={{
-                            error: this.state.fail,
-                        }}
-                    />
-                );
+            const text = typeof this.props.errorMessage === 'string' ? this.props.errorMessage : (
+                <FormattedMessage
+                    {...this.props.errorMessage}
+                    values={{
+                        error: this.state.fail,
+                    }}
+                />
+            );
             message = (
                 <div>
                     <div className='alert alert-warning'>
@@ -245,27 +244,23 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                 {label}
                 <div className={widgetClassNames}>
                     <div>
-                        <button
+                        <Button
                             type='button'
-                            className={`btn btn-${this.props.buttonType || 'tertiary'}`}
+                            emphasis={this.props.buttonEmphasis || 'tertiary'}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
+                            loading={this.state.busy}
                         >
-                            <LoadingWrapper
-                                loading={this.state.busy}
-                                text={
-                                    this.props.loadingText ||
-                                    (
-                                        <FormattedMessage
-                                            id={'admin.requestButton.loading'}
-                                            defaultMessage={'Loading...'}
-                                        />
-                                    )
-                                }
-                            >
-                                {this.props.buttonText}
-                            </LoadingWrapper>
-                        </button>
+                            {this.state.busy ? (
+                                this.props.loadingText ||
+                                (
+                                    <FormattedMessage
+                                        id={'admin.requestButton.loading'}
+                                        defaultMessage={'Loading...'}
+                                    />
+                                )
+                            ) : this.props.buttonText}
+                        </Button>
                         {this.props.alternativeActionElement}
                         {message}
                     </div>

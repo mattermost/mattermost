@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -9,15 +8,11 @@ import {getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 
 import {openModal} from 'actions/views/modals';
 
-import Header from 'components/widgets/header';
-
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ThreadList, {ThreadFilter} from './thread_list';
-import VirtualizedThreadList from './virtualized_thread_list';
-
-import Button from '../../common/button';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/modals');
@@ -27,10 +22,19 @@ const mockRouting = {
     currentTeamId: 'tid',
     goToInChannel: jest.fn(),
     select: jest.fn(),
+    clear: jest.fn(),
 };
 jest.mock('../../hooks', () => {
     return {
         useThreadRouting: () => mockRouting,
+    };
+});
+
+let capturedVTLProps: any = {};
+jest.mock('./virtualized_thread_list', () => {
+    return function MockVirtualizedThreadList(props: any) {
+        capturedVTLProps = props;
+        return <div data-testid='virtualized-thread-list'/>;
     };
 });
 
@@ -87,56 +91,101 @@ describe('components/threading/global_threads/thread_list', () => {
                 },
             },
         };
+
+        capturedVTLProps = {};
+        mockDispatch.mockClear();
     });
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <ThreadList {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should support filter:all', () => {
-        const wrapper = shallow(
+    test('should support filter:all', async () => {
+        renderWithContext(
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).first().shallow().simulate('click');
+        await userEvent.click(screen.getByRole('tab', {name: 'Followed threads'}));
         expect(props.setFilter).toHaveBeenCalledWith('');
     });
 
-    test('should support filter:unread', () => {
-        const wrapper = shallow(
+    test('should support filter:unread', async () => {
+        renderWithContext(
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).find({hasDot: true}).simulate('click');
+        await userEvent.click(screen.getByRole('tab', {name: 'Unreads'}));
         expect(props.setFilter).toHaveBeenCalledWith('unread');
     });
 
-    test('should support openModal', () => {
-        const wrapper = shallow(
+    test('should support openModal', async () => {
+        renderWithContext(
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).find({id: 'threads-list__mark-all-as-read'}).simulate('click');
+        await userEvent.click(screen.getByLabelText('Mark all threads as read'));
         expect(openModal).toHaveBeenCalledTimes(1);
     });
 
-    test('should support getThreads', async () => {
-        const setState = jest.fn();
-        const useStateSpy = jest.spyOn(React, 'useState');
-        useStateSpy.mockImplementation((init = false) => [init, setState]);
+    describe('arrow key navigation', () => {
+        const pressArrowDown = (target: HTMLElement) => {
+            target.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, bubbles: true}));
+        };
 
-        const wrapper = shallow(
+        beforeEach(() => {
+            props.selectedThreadId = '1';
+            mockRouting.select.mockClear();
+        });
+
+        test('should move to the next thread from outside a text input', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            pressArrowDown(document.body);
+            expect(mockRouting.select).toHaveBeenCalledWith('2');
+        });
+
+        test('should not move threads while a contenteditable composer is focused', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            const composer = document.createElement('div');
+            composer.setAttribute('contenteditable', 'true');
+            document.body.appendChild(composer);
+
+            pressArrowDown(composer);
+            expect(mockRouting.select).not.toHaveBeenCalled();
+
+            composer.remove();
+        });
+
+        test('should move threads from a non-editable element inside a contenteditable host', () => {
+            renderWithContext(<ThreadList {...props}/>);
+
+            const host = document.createElement('div');
+            host.setAttribute('contenteditable', 'true');
+            const readOnly = document.createElement('span');
+            readOnly.setAttribute('contenteditable', 'false');
+            host.appendChild(readOnly);
+            document.body.appendChild(host);
+
+            pressArrowDown(readOnly);
+            expect(mockRouting.select).toHaveBeenCalledWith('2');
+
+            host.remove();
+        });
+    });
+
+    test('should support getThreads', async () => {
+        renderWithContext(
             <ThreadList {...props}/>,
         );
 
-        const handleLoadMoreItems = wrapper.find(VirtualizedThreadList).prop('loadMoreItems');
+        const handleLoadMoreItems = capturedVTLProps.loadMoreItems;
         const loadMoreItems = await handleLoadMoreItems(2, 3);
 
         expect(loadMoreItems).toEqual({data: true});
         expect(getThreadsForCurrentTeam).toHaveBeenCalledWith({unread: false, before: '2'});
-        expect(setState.mock.calls).toEqual([[true], [false], [true]]);
     });
 });

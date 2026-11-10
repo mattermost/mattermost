@@ -4,12 +4,16 @@
 import React from 'react';
 import {defineMessage, type MessageDescriptor} from 'react-intl';
 
-import type {CloudState, Product} from '@mattermost/types/cloud';
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
+import type {CloudState} from '@mattermost/types/cloud';
+import type {AdminConfig, ClientConfig, ClientLicense} from '@mattermost/types/config';
+
+import {getConfig as getClientConfig} from 'mattermost-redux/selectors/entities/general';
+
+import store from 'stores/redux_store';
 
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {CloudProducts, getLicenseTier, LicenseSkus} from 'utils/constants';
+import {getLicenseTier, LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {Check, ConsoleAccess} from './types';
@@ -45,14 +49,16 @@ export const it = {
     stateIsFalse: (key: string) => (config: Partial<AdminConfig>, state: any) => !state[key],
     configIsTrue: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]),
     configIsFalse: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => !(config[group] as any)?.[setting],
+    clientConfigIsTrue: (setting: keyof ClientConfig) => () => getClientConfig(store.getState())[setting] === 'true',
+    clientConfigIsFalse: (setting: keyof ClientConfig) => () => getClientConfig(store.getState())[setting] !== 'true',
     configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
     enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
     licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
+    isFreeEdition: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed !== 'true' || license?.SkuShortName === LicenseSkus.Entry,
     cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
     minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
-    licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
     hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
             return true;
@@ -64,7 +70,7 @@ export const it = {
         return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
-    userHasReadPermissionOnSomeResources: (key: { [key: string]: string }) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => Object.values(key).some((resource) => (consoleAccess?.read as any)?.[resource]),
+    userHasReadPermissionOnSomeResources: (key: {[key: string]: string}) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => Object.values(key).some((resource) => (consoleAccess?.read as any)?.[resource]),
     userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
     isSystemAdmin: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
 };
@@ -73,6 +79,7 @@ export const validators = {
     isRequired: (text: MessageDescriptor | string) => (value: string) => new ValidationResult(Boolean(value), text),
     minValue: (min: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value >= min), text),
     maxValue: (max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value <= max), text),
+    numberInRange: (min: number, max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult(Number.isNaN(value) || (value >= min && value <= max), text),
 };
 
 export const usesLegacyOauth = (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
@@ -114,9 +121,9 @@ export const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequir
             tooltipMessageBlocked={defineMessage({
                 id: 'admin.sidebar.restricted_indicator.tooltip.message.blocked',
                 // eslint-disable-next-line formatjs/enforce-placeholders -- Placeholders provided in RestrictedIndicator
-                defaultMessage: 'This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial',
+                defaultMessage: 'This feature requires {minimumPlanRequiredForFeature}, available with an upgrade or free {trialLength}-day trial',
             })}
         />
     ),
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product | undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
+    shouldDisplay: () => displayBlocked,
 });

@@ -24,7 +24,7 @@ type Props = {
     post: Post;
     isMilitaryTime: boolean;
     timezone?: string;
-}
+};
 
 const PostReminders = {
     THIRTY_MINUTES: 'thirty_minutes',

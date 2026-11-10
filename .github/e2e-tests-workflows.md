@@ -16,22 +16,156 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 
 ```
 .github/workflows/
-├── e2e-tests-ci.yml                    # PR orchestrator
-├── e2e-tests-on-merge.yml              # Merge orchestrator (master/release branches)
-├── e2e-tests-on-release.yml            # Release cut orchestrator
-├── e2e-tests-cypress.yml               # Shared wrapper: cypress smoke -> full
-├── e2e-tests-playwright.yml            # Shared wrapper: playwright smoke -> full
-├── e2e-tests-cypress-template.yml      # Template: actual cypress test execution
-└── e2e-tests-playwright-template.yml   # Template: actual playwright test execution
+├── e2e-tests-ci.yml                       # PR orchestrator
+├── e2e-tests-on-merge.yml                 # Merge orchestrator (master/release branches)
+├── e2e-tests-on-release.yml               # Release cut orchestrator
+├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
+├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
+├── e2e-tests-playwright-rolling-upgrades.yml           # resolves the from-version matrix, calls the template per version
+├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
+├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+├── e2e-tests-lane-result.yml              # status, triage, webhook and gate for one lane (called last by both templates)
+└── e2e-tests-playwright-rolling-upgrades-template.yml  # one from-version: upgrade-from/to, then dispatch on the upgraded server
 ```
 
 ### Call hierarchy
 
 ```
 e2e-tests-ci.yml ─────────────────┐
-e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ──► e2e-tests-cypress-template.yml
-e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ──► e2e-tests-playwright-template.yml
+e2e-tests-on-merge.yml ───────────┤──► e2e-tests-cypress.yml ────► e2e-tests-cypress-template.yml
+e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.yml ─► e2e-tests-playwright-template.yml
+                                       │                          └► e2e-tests-playwright-rolling-upgrades.yml
+                                       │                               └► e2e-tests-playwright-rolling-upgrades-template.yml
+                                       │                                  (once per resolved from-version)
 ```
+
+`e2e-tests-playwright-rolling-upgrades.yml` is also directly runnable from the Actions UI, so it has no caller in that case.
+
+---
+
+## Workflow Architecture
+
+The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-begin`, `workers` (matrix), and `report` — and pushes spec-level execution to [Test System IO](https://github.com/mattermost/mattermost-test-system-io) so workers stay thin and identical.
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Template: e2e-tests-{cypress,playwright}-template.yml                    │
+│                                                                            │
+│   ┌───────────────────┐                ┌──────────────────────────────┐   │
+│   │ prepare-run       │                │ prep-deps                    │   │
+│   │ (1 runner)        │    parallel    │ (1 runner)                   │   │
+│   │                   │ ◄────────────► │                              │   │
+│   │ • build workers   │                │ Cypress:                     │   │
+│   │   matrix [1..N]   │                │   • cypress/node_modules     │   │
+│   │ • compute commit  │                │   • ~/.cache/Cypress (binary)│   │
+│   │   status context  │                │                              │   │
+│   │ • emit composite  │                │ Playwright:                  │   │
+│   │   identity        │                │   • webapp/platform/{client, │   │
+│   │                   │                │       types}/{lib,node_mod}  │   │
+│   │                   │                │   • playwright/node_modules  │   │
+│   │                   │                │   • playwright/lib/dist      │   │
+│   │                   │                │   • ~/.cache/ms-playwright   │   │
+│   │                   │                │     (chromium only)          │   │
+│   │                   │                │                              │   │
+│   │                   │                │   → saved to actions/cache   │   │
+│   └─────────┬─────────┘                └───────────────┬──────────────┘   │
+│             │                                          │                  │
+│             │                                          ▼                  │
+│             │                          ┌──────────────────────────────┐  │
+│             │                          │ dispatch-begin               │  │
+│             │                          │ • register run with          │  │
+│             │                          │   Test System IO             │  │
+│             │                          │ • runs immediately before    │  │
+│             │                          │   workers to minimise the    │  │
+│             │                          │   inactivity-timeout window  │  │
+│             │                          └───────────────┬──────────────┘  │
+│             │                                          │                  │
+│             └────────────────────┬─────────────────────┘                  │
+│                                  ▼                                        │
+│   ┌─────────────────────────────────────────────────────────────────┐    │
+│   │ workers  (matrix, fail-fast: false)                             │    │
+│   │   Cypress full: N=40       |   Playwright full: N=10            │    │
+│   │                                                                 │    │
+│   │   each worker, in parallel:                                     │    │
+│   │     1. sparse-checkout actions + full checkout-repo             │    │
+│   │     2. setup-node                                                │    │
+│   │     3. restore caches  ◄─── actions/cache (from prep-deps)      │    │
+│   │        (fail-on-cache-miss: true)                               │    │
+│   │     4. cloud-init + start-server  (docker compose stack)        │    │
+│   │     5. prepare-cypress | prepare-playwright (run setup project) │    │
+│   │     6. dispatch-run  ──────────────────────────────────┐        │    │
+│   │        (pulls specs from Test System IO, runs locally,  │       │    │
+│   │         posts result, loops until queue is empty)       │       │    │
+│   │     7. cloud-teardown                                   │       │    │
+│   └────────────────────┬────────────────────────────────────┼───────┘    │
+│                        │                                    │            │
+│                        ▼                                    │            │
+│   ┌─────────────────────────────────────────────────┐       │            │
+│   │ report                                           │       │            │
+│   │ • pull aggregated results from Test System IO    │  ◄────┘            │
+│   │ • post commit status                             │                    │
+│   │ • send webhook notification                      │                    │
+│   └─────────────────────────────────────────────────┘                    │
+└────────────────────────────────────────────────────────────────────────┬─┘
+                                                                          │
+                                              ┌───────────────────────────▼───┐
+                                              │ Test System IO (external)     │
+                                              │ • spec-level dispatch         │
+                                              │ • result aggregation          │
+                                              │ • retry orchestration         │
+                                              └───────────────────────────────┘
+```
+
+### Key properties
+
+- **Spec-level vs. job-level parallelism.** The matrix sizes the runner pool; Test System IO does the spec assignment. Slow specs don't block a worker — fast workers keep pulling the next spec from the queue.
+- **Cache-only workers.** `prep-deps` installs once per workflow run and saves to `actions/cache`. Every worker restores with `fail-on-cache-miss: true` and runs zero `npm ci`. Eliminates the 40-way `EEXIST/ENOENT` race in npm's shared cacache writer.
+- **dispatch-begin runs late.** It depends on `prep-deps` so the gap between Test System IO run registration and the first worker calling `dispatch-run` is just per-worker setup (~3–5 min). Registering earlier risks the run timing out before any worker checks in, bulk-failing every spec.
+- **Playwright slim slice.** Playwright only consumes `@mattermost/client` and `@mattermost/types` from webapp, so prep-deps caches just those two packages' built `lib/` and `node_modules` (~10–30 MB) instead of the full `webapp/node_modules` tree (~1–2 GB).
+- **Browser/binary caches.** Cypress caches `~/.cache/Cypress` (cypress binary lives outside node_modules); playwright caches `~/.cache/ms-playwright` (chromium only). Both keyed on the framework's lockfile so they invalidate on version bumps.
+- **No retry plumbing in the template.** Test System IO handles per-spec retries; the workflow only sees aggregated results.
+
+### Playwright rolling upgrades (separate from full suite)
+
+Two workflows, split on the question each answers:
+
+- **`e2e-tests-playwright-rolling-upgrades.yml`** — *which* versions to upgrade from. Resolves the matrix via `script/resolve_upgrade_matrix.mjs` (last 3 minors + active ESR; ESR entries carry `isESR: true` and a `contextLabel` ending in `-esr`), then calls the template once per entry in a `strategy.matrix` of reusable-workflow invocations.
+- **`e2e-tests-playwright-rolling-upgrades-template.yml`** — *how* to test one version, given two images: `upgrade_from_server_image` (that entry's `dockerTag`) and `SERVER_IMAGE` (the to-image). Same job shape as `e2e-tests-playwright-template.yml` — `prepare-run` → `prep-deps` → `dispatch-begin` → `workers` → `report` — with the harness prepended to each worker.
+
+Per worker, within one from-version:
+
+1. `upgrade-from` → `upgrade-to`
+2. `dispatch-run` against the just-upgraded server
+
+So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
+
+**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — claimed pending by its `prepare-run` and resolved by its lane result (`e2e-tests-lane-result.yml`). There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
+
+Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 20, matching the full suite, and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
+
+There is deliberately no `testcontainers:down` first — the runner is fresh, so `upgrade-from`'s clean-slate guard has nothing to trip over. `PW_TESTCONTAINERS_REUSE=true` is what lets `upgrade-to` adopt the stack, survive the swap, and keep every per-spec dispatch on the same upgraded server. Step 2 is skipped when the harness fails; that worker then never reports, the run closes short of `total-reports-expected`, and the version's context goes red.
+
+**Commit status description** — written by the Test System IO summary, same shape as the full suite (`image_tag:` is the target/to image). The from-version needs no description field of its own: it is already in the context name, one context per version.
+
+**When it runs.** `e2e-tests-ci.yml`'s `check-changes` turns it on for a PR whose diff touches `e2e-tests/playwright/upgrade-specs/`, `e2e-tests/playwright/script/resolve_upgrade_matrix.mjs`, either `e2e-tests-playwright-rolling-upgrades*` workflow, or a server migration (`server/channels/db/migrations/`, `server/config/migrations/`, `server/channels/app/migrations.go`, `server/channels/app/permissions_migrations.go`, `server/public/model/version.go`). Everything else — including `e2e-tests/playwright/lib/` and `playwright.config.ts` — is unmatched and needs the manual dispatch's opt-in checkbox to run within this workflow. That decision is the only gate: unlike the full suite, this pipeline does not also consult `should_run`, because `should_run` matches `^e2e-tests/.*\.(ts|tsx|js|jsx)$` and would veto a run whose only change is the `.mjs` matrix resolver. Consequently there is no "skipped" status — when it is not requested, nothing is posted.
+
+`e2e-tests-on-merge.yml` mirrors this same gate on merges to `master`/`release-*`: its own `check-changes` job diffs the merge commit against its parent (`git diff HEAD~1 HEAD`, since there is no PR base to diff against) and applies the identical harness/migration conditions above (it has no manual opt-in checkbox, unlike the PR pipeline). Release cut (`e2e-tests-on-release.yml`) stays unconditional — no gate, always `true`.
+
+Failed rolling-upgrade contexts are included when applying **E2E Tests/verified** or the override-status workflow (discovered by pattern `e2e-test/playwright-full/{edition}/upgrade-from-*`, same principle as full-suite contexts).
+
+This pipeline is invoked from `e2e-tests-playwright.yml` when `run_rolling_upgrades: "true"`. It is **not** embedded in `e2e-tests-playwright-template.yml`.
+
+| Trigger | `run_rolling_upgrades` |
+|---------|------------------------|
+| PR (Argo / automated) | `false` (default) |
+| PR (`workflow_dispatch`, manual) | Opt-in: **Run rolling upgrades** on `e2e-tests-ci.yml` |
+| Merge to `master` / `release-*` | Auto — same file-change gate as PR (touches harness/migrations), evaluated against the merge commit's parent |
+| Release cut | `true` |
+| Ad-hoc | n/a — **Run workflow** directly on `e2e-tests-playwright-rolling-upgrades.yml` |
+
+`e2e-tests-playwright-rolling-upgrades.yml` carries its own `workflow_dispatch` so the coverage can be run from the Actions UI without a PR: `commit_sha` defaults to the selected ref's HEAD, `server_image_tag` to `master`, and the license / webhook secrets fall back to the repo secrets the calling workflows would have forwarded.
+
+When `resolve_upgrade_matrix.mjs` returns `[]` (no supported from-versions), the entry workflow posts success on `e2e-test/playwright-full/{edition}/upgrade-from-none` and never invokes the template.
 
 ---
 
@@ -95,9 +229,9 @@ Push to master/release-*
   ─► trigger-e2e-tests job dispatches e2e-tests-on-merge.yml
 ```
 
-**Jobs:** 4 (cypress + playwright) x (enterprise + fips), smoke skipped, full tests only
+**Jobs:** 4 (cypress + playwright) x (enterprise + fips), smoke skipped, full tests only, plus a `check-changes` job that conditionally forwards `run_rolling_upgrades` to the two playwright jobs (see [Playwright rolling upgrades](#playwright-rolling-upgrades-separate-from-full-suite) above).
 
-**Commit statuses (4 total):**
+**Commit statuses (4 total, +1 per rolling-upgrade from-version when triggered):**
 
 | Context | Description example |
 |---------|-------------------|
@@ -200,9 +334,12 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 - All passed: `100% passed (<count>), <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - With failures: `<rate>% passed (<passed>/<total>), <failed> failed, <specs> specs, image_tag:<tag>[ (<aliases>)]`
 - Pending: `tests running, image_tag:<tag>[ (<aliases>)]`
+- Rolling upgrades: identical shape — the from-version lives in the context
+  (`…/upgrade-from-release-11.9`), one per resolved version, not in the description
 
 - Pass rate: `100%` if all pass, otherwise one decimal (e.g., `99.5%`)
 - Aliases only present for release cuts
+- `image_tag:` is the target/to server image. Rolling upgrades put the from-version in the context name only, not in the description.
 
 ### Failure behavior
 
@@ -221,7 +358,8 @@ Each wrapper (Cypress/Playwright) follows this flow:
 generate-build-variables (branch, build_id, server_image)
   ─► smoke tests (1 worker, minimal docker services)
     ─► if smoke passes ─► full tests (20 workers cypress / 1 worker playwright, all docker services)
-      ─► report (aggregate results, update commit status)
+      ─► report (aggregate results)
+        ─► lane result (commit status, triage, webhook, pass/fail gate; e2e-tests-lane-result.yml)
 ```
 
 ### Test filtering
@@ -283,10 +421,16 @@ The wrappers (`e2e-tests-cypress.yml`, `e2e-tests-playwright.yml`) accept these 
 | `ref_branch` | _(empty)_ | Source branch name for webhook messages (e.g., `master` or `release-11.4`) |
 
 The automation dashboard branch name is derived from context:
-- PR: `server-pr-<pr_number>` (e.g., `server-pr-35205`)
-- Master merge: `server-master-<image_tag>` (e.g., `server-master-abc1234_def5678`)
-- Release merge: `server-release-<version>-<image_tag>` (e.g., `server-release-11.4-abc1234_def5678`)
-- Fallback: `server-commit-<image_tag>`
+- PR: `pr-<pr_number>` (e.g., `pr-35205`)
+- Master merge: `master`
+- Release merge: `release-<version>` (e.g., `release-11.7`)
+- Fallback: `commit-<short_sha>` (e.g., `commit-abc1234`)
+
+Master and release runs use the real branch verbatim so the
+`/reports/{repo}/{branch}` view aggregates every build on that branch
+into one history. PR runs use a `pr-<n>` token because there's no real
+branch to use; the commit-only fallback uses a `commit-<short_sha>`
+token (defensive — no current caller hits this path).
 
 The test type suffix (`-smoke` or `-full`) is appended by the template.
 
@@ -350,3 +494,87 @@ The commit short SHA links to the commit on GitHub. The PR number links to the p
 - `e2e-tests/playwright/` - Playwright test suite
 - `e2e-tests/.ci/` - CI configuration and environment files
 - `e2e-tests/Makefile` - Makefile with targets for running tests, generating cycles, and reporting
+
+## Status ownership across dispatch paths
+
+Cypress and Playwright serialize each lane by resolved PR, suite, edition and
+report type, independent of the workflow dispatch ref. Status publishers also
+share `e2e-status-publish-<full tested SHA>` with `cancel-in-progress: false` and
+`queue: max`, because statuses and the cross-lane summary belong to a commit.
+The toolkit `e2e-status` action claims pending before preparation and guards all
+raw results, skips and triage verdicts by run ID and publishing attempt. The
+TSIO actions collect diagnostics with their status side effects disabled.
+Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
+Missing current reports remain red, and a later pending/raw result refreshes
+the aggregate instead of leaving an old all-green snapshot.
+
+The orchestration summary can pass before workers finish uploading reports.
+Before publishing success, the owned writer checks the exact run/attempt's
+complete, nonempty report group on the same TSIO environment as dispatch.
+Preparation, dispatch and all workers must also succeed. Triage runs in
+`enforce` mode by default (`E2E_TRIAGE_MODE=report-only` turns it off) and gives
+every red lane a verdict. A lane red outside its tests (failed execution, or
+missing/unreadable reports) turns green only when triage's verdict rests on
+TSIO's orchestration (`basis` `orchestration`): every dispatched spec ran and
+passed there. A verdict from the tests or the lane's jobs never clears it. A
+manual re-run of failed jobs keeps the first attempt's TSIO identity, so that
+attempt runs triage in report-only mode and passes only on the raw result. The
+final job assertion uses these same gates, a successful triage step with a
+confirmed status write, and triage's effective mode after applying the PR's
+report-only label.
+
+### Lane result and the lane list
+
+`e2e-tests-lane-result.yml` is the one place a lane publishes its result. The Cypress,
+Playwright and rolling-upgrades templates call it after `report`, with the lane's identity, `execution_success`
+(preparation, dispatch and every worker succeeded), the summary outcome and the report URL. It
+holds the publication lock, publishes the owned status, triages a red run, refreshes the
+aggregate, posts the webhook, and then asserts the gate. Triage can only clear a failure in
+`enforce` mode, and a missing or incomplete report only on an orchestration-based verdict (see above).
+
+The PR lanes that feed the `e2e-test/triage` aggregate are listed once, in
+`.github/e2e-status-lanes.json`. Every writer checks out `.github` at the workflow's own ref (`github.sha`) into
+`.e2e-trusted` and runs `.e2e-trusted/.github/actions/e2e-status-lanes`, which reads
+the list beside it. The list therefore never comes from the tested commit or the
+PR head, and a malformed list fails the job. The toolkit
+refreshes the aggregate only for a context in that list.
+
+| Context | Published by | Feeds the aggregate and triage |
+|---|---|---|
+| `e2e-test/{cypress,playwright}-full/enterprise` (PR) | template claim and lane result; skip path | yes |
+| `e2e-test/playwright-full/enterprise/subpath` (PR) | playwright template with `server_deploy: subpath` | yes, when `should_run_subpath` |
+| `e2e-test/{cypress,playwright}-full/fips` (PR) | template claim and lane result; skip path | yes, when `should_run_fips` |
+| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check, without the model |
+| `…/master`, `…/release`, `…/release-cut` and their `/subpath` variants (`…/master/subpath`) | on-merge and on-release callers | no. Each lane gets its own triage check and writes only its own status |
+
+A suffixed context never equals a listed lane, so it never claims or refreshes the aggregate. A
+listed lane that did not run is ignored by the summary. `override-status` and **E2E Tests/verified**
+take the same list from the lane reader (the one source, subpath included) and write failed statuses
+for every PR lane in it, plus the rolling-upgrade contexts found by pattern. A failing subpath lane
+is therefore verifiable, and the verified refresh of the aggregate can clear it. The lane reader
+runs before the writer step in both workflows.
+
+Regression checks:
+
+```sh
+python3 .github/scripts/test_e2e_status_workflows.py  # requires PyYAML
+# In mattermost-test-automation-toolkit:
+node --test scripts/e2e-*.test.js
+```
+
+For workflow lint, actionlint 1.7.11 and 1.7.12 predate GitHub's `queue: max` property.
+Until the installed linter supports it, exclude only its `unexpected key
+"queue" for "concurrency" section` diagnostic and run the structural test above;
+keep all other workflow checks enabled.
+
+Rollout requires these workflow changes on **both** dispatch source refs:
+automated dispatch uses the selected PR ref, while manual dispatch can use
+master. `e2e-tests-check.yml` also dispatches without `--ref`, so its automatic
+E2E-only trigger uses the default branch (master). The existing toolkit PR supplies the pinned owned writer; its immutable
+commit is usable by this branch before toolkit main is updated. Merging the
+Mattermost workflow changes into master is still required for manual/master
+dispatches (and other branches need the updated workflows). The manual override and verified-label workflows must also contain the SHA
+publication lock. Running workflows
+keep their original YAML and pinned actions, so drain older unguarded runs
+before relying on ownership. Branch tests and a push do not repair production
+or update already-running reporters. No TSIO service deployment is required.

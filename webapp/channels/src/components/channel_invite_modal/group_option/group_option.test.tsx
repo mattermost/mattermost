@@ -10,7 +10,7 @@ import type {Value} from 'components/multiselect/multiselect';
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 import GroupOption from './group_option';
-import type{Props} from './group_option';
+import type {Props} from './group_option';
 
 const mockGroup = {
     id: 'group-id',
@@ -18,7 +18,7 @@ const mockGroup = {
     name: 'groupname',
     member_ids: ['user1', 'user2'],
     member_count: 2,
-} as Group&Value;
+} as Group & Value;
 
 describe('GroupOption', () => {
     const props: Props = {

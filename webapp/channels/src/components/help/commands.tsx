@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
@@ -52,7 +52,7 @@ const HelpCommands = (): JSX.Element => {
                             values={{
                                 link: (chunks: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/integrations/slash-commands-built-in.html'
+                                        href='https://docs.mattermost.com/integrations-guide/built-in-slash-commands.html'
                                         location='help_commands'
                                     >
                                         {chunks}

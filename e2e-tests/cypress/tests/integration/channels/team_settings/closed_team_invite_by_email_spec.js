@@ -10,21 +10,22 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getAdminAccount} from '../../../support/env';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     getJoinEmailTemplate,
     getRandomId,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Team Settings', () => {
     const sysadmin = getAdminAccount();
     const randomId = getRandomId();
     const username = `user${randomId}`;
     const email = `user${randomId}@sample.mattermost.com`;
-    const password = 'passwd';
+    const password = newTestPassword();
 
     let testTeam;
     let siteName;
@@ -64,7 +65,7 @@ describe('Team Settings', () => {
 
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
             });
 
             // * Verify that the '#allowedDomains' input field is empty

@@ -25,7 +25,7 @@ type Props = {
     id?: string;
     isClearable?: boolean;
     description?: string;
-}
+};
 
 const styles = {
     control: (baseStyles) => ({

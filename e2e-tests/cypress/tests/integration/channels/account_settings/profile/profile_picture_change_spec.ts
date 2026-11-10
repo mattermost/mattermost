@@ -4,7 +4,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Profile Settings', () => {
     beforeEach(() => {
@@ -49,13 +49,13 @@ describe('Profile Settings', () => {
 
 function getProfilePictureId() {
     return cy.uiGetProfileHeader().find('.Avatar').invoke('attr', 'src').then((urlString) => {
-        const url = new URL(urlString);
+        const url = new URL(urlString!);
         const params = new URLSearchParams(url.search);
         return params.get('_');
     });
 }
 
-function setInitialPicture(user) {
+function setInitialPicture(user: Cypress.UserProfile) {
     cy.apiUploadFile('image', 'mattermost-icon.png', {
         url: `/api/v4/users/${user.id}/image`,
         method: 'POST',
@@ -64,7 +64,7 @@ function setInitialPicture(user) {
 }
 
 function verifyProfilePictureDoesNotUpdateAfterCancel() {
-    let idOld;
+    let idOld: string | null | undefined;
 
     cy.visit('/');
 

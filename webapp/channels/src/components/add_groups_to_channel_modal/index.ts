@@ -21,10 +21,10 @@ import AddGroupsToChannelModal from './add_groups_to_channel_modal';
 
 type OwnProps = {
     channel: Channel;
-    skipCommit: boolean;
-    onAddCallback: (groupIDs: string[]) => void;
-    excludeGroups: Group[];
-}
+    skipCommit?: boolean;
+    onAddCallback?: (groupIDs: string[]) => void;
+    excludeGroups?: Group[];
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const searchTerm = state.views.search.modalSearch;

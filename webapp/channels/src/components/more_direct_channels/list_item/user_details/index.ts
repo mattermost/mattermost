@@ -16,7 +16,7 @@ import UserDetails from './user_details';
 
 type OwnProps = {
     option: UserProfile;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     return {

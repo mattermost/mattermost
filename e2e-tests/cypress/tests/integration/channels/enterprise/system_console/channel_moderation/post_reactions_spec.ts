@@ -9,13 +9,9 @@
 
 // Group: @channels @enterprise @system_console @channel_moderation
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../../utils';
-import {getAdminAccount} from '../../../../../support/env';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {checkboxesTitleToIdMap} from './constants';
 import {
@@ -29,6 +25,10 @@ import {
     visitChannel,
     visitChannelConfigPage,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('MM-23102 - Channel Moderation - Post Reactions', () => {
     let regularUser: UserProfile;
@@ -192,7 +192,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox checked');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.checked');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);
@@ -215,7 +215,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that post reaction is disabled for members
-        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('have.class', 'checkbox disabled');
+        cy.findByTestId(checkboxesTitleToIdMap.POST_REACTIONS_MEMBERS).should('be.disabled');
 
         // # Login as a Member user and visit the same channel
         visitChannel(regularUser, testChannel, testTeam);

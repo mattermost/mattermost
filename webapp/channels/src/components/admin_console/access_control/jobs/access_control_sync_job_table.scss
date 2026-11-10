@@ -20,15 +20,13 @@
             }
         }
         
-        .btn-primary {
-            display: flex;
-            align-items: center;
-            padding: 10px 16px;
-            gap: 8px;
-            
-            .icon {
-                font-size: 18px;
-            }
+    }
+
+    .team-sync-note {
+        margin-bottom: 16px;
+
+        p {
+            margin: 0;
         }
     }
 

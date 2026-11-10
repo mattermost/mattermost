@@ -1,12 +1,10 @@
 #!/bin/node
 
 import * as fs from 'fs';
-import langmap from '../channels/src/i18n/langmap.js';
 
 let lines = '';
 const langIDs = [];
 const langFiles = {};
-const langLabels = {};
 
 fs.readdirSync('./channels/src/i18n').forEach(file => {
   if (file.endsWith('.json')) {
@@ -16,46 +14,36 @@ fs.readdirSync('./channels/src/i18n').forEach(file => {
     if (langID === 'en') {
       return
     }
-    
+
     langIDs.push(langID);
     lines += `import ${langID.replace('-', '')} from './${file}';\n`;
     langFiles[langID] = langID.replace('-', '');
-
-    let m = langmap[langID]
-    if (!m) {
-      // We fallback to the language code prefix if we can't find a map.
-      const id = langID.includes('-') ? langID.substr(0, langID.indexOf('-')) : langID;
-      for (const k of Object.keys(langmap)) {
-        if (k.startsWith(id)) {
-          m = langmap[k];
-          break;
-        }
-      }
-    }
-
-    langLabels[langID] = m ? m["nativeName"] : langID;
   }
 });
 
-lines += `
-type TranslationsMap = {
-    [id: string]: string,
-};
-`;
-lines += `\nexport const langIDs = ${JSON.stringify(langIDs)};\n`
-lines += `\nexport const langLabels = ${JSON.stringify(langLabels)};\n`
-
 // To generate the file exports we need to do a bit more work to handle ids with dashes and also output a map of literals rather than strings.
-lines += '\nexport const langFiles: {[langID: string]: TranslationsMap} = {' + Object.keys(langFiles).reduce((out, id, idx) => {
+lines += `
+// TypeScript thinks it's importing these language files' contents directly, but Webpack rewrites the above imports
+// to the URL the file for lazy loading. That's the reason for the ugly type assertions below.
+export const langFiles: {
+    [langID: string]: string;
+} = {
+` + Object.keys(langFiles).reduce((out, id, idx) => {
+  out += '    ';
+
   if (id.includes('-')) {
-    out += `'${id}':${langFiles[id]}`;
+    out += `'${id}': ${langFiles[id]}`;
   } else {
-    out += `${langFiles[id]}`;
+    out += `${id}: ${langFiles[id]}`;
   }
+
+  out += ' as unknown as string';
 
   if (idx !== (langIDs.length - 1)) {
     out += ',';
   }
+
+  out += '\n';
 
   return out;
 }, '') + '};';

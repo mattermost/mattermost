@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import accessRules from '../../../../fixtures/system-roles-console-access';
-import disabledTests from '../../../../fixtures/console-example-inputs';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import accessRules from '@/fixtures/system-roles-console-access';
+import disabledTests from '@/fixtures/console-example-inputs';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 function noAccessFunc(section) {
     // * If it's a no-access permission, we just need to check that the section doesn't exist in the side bar

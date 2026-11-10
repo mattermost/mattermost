@@ -92,6 +92,40 @@ describe('components/TeamSidebar/TeamButton', () => {
         expect(screen.getByTestId('team-container-')).not.toHaveClass('unread');
     });
 
+    it('should show urgent class on mentions badge when hasUrgent is true', () => {
+        const props = {
+            ...baseProps,
+            active: false,
+            unread: true,
+            mentions: 3,
+            hasUrgent: true,
+            displayName: 'Acme',
+        };
+
+        renderWithContext(
+            <TeamButton {...props}/>,
+        );
+
+        expect(screen.queryByTestId('team-badge-')).toHaveClass('urgent');
+        expect(screen.getByRole('link')).toHaveAccessibleName(/including an urgent mention/i);
+    });
+
+    it('should not show urgent class on mentions badge when hasUrgent is false', () => {
+        const props = {
+            ...baseProps,
+            active: false,
+            unread: true,
+            mentions: 3,
+            hasUrgent: false,
+        };
+
+        renderWithContext(
+            <TeamButton {...props}/>,
+        );
+
+        expect(screen.queryByTestId('team-badge-')).not.toHaveClass('urgent');
+    });
+
     describe('aria-label accessibility', () => {
         it('should use displayName as aria-label for create team button', () => {
             const props = {

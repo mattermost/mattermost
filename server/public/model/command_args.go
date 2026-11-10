@@ -14,6 +14,7 @@ type CommandArgs struct {
 	RootId          string             `json:"root_id"`
 	ParentId        string             `json:"parent_id"`
 	TriggerId       string             `json:"trigger_id,omitempty"`
+	ConnectionId    string             `json:"connection_id,omitempty"`
 	Command         string             `json:"command"`
 	SiteURL         string             `json:"-"`
 	T               i18n.TranslateFunc `json:"-"`
@@ -23,14 +24,15 @@ type CommandArgs struct {
 
 func (o *CommandArgs) Auditable() map[string]any {
 	return map[string]any{
-		"user_id":    o.UserId,
-		"channel_id": o.ChannelId,
-		"team_id":    o.TeamId,
-		"root_id":    o.RootId,
-		"parent_id":  o.ParentId,
-		"trigger_id": o.TriggerId,
-		"command":    o.Command,
-		"site_url":   o.SiteURL,
+		"user_id":       o.UserId,
+		"channel_id":    o.ChannelId,
+		"team_id":       o.TeamId,
+		"root_id":       o.RootId,
+		"parent_id":     o.ParentId,
+		"trigger_id":    o.TriggerId,
+		"connection_id": o.ConnectionId,
+		"command":       o.Command,
+		"site_url":      o.SiteURL,
 	}
 }
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
@@ -25,13 +25,13 @@ export type FieldsetReactSelect = {
     ariaLabelledby?: string;
     clearable?: boolean;
     options: SelectOption[];
-}
+};
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetReactSelect;
     inputFieldValue: SelectOption;
     handleChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
-}
+};
 
 // Function to extract text from MessageDescriptor or return string as-is
 export const getOptionLabel = (option: SelectOption, intl: ReturnType<typeof useIntl>): string => {

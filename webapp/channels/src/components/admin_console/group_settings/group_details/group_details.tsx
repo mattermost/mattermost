@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 import {
     SyncableType,
@@ -46,29 +49,29 @@ export type Props = {
         getMembers: (
             id: string,
             page?: number,
-            perPage?: number
+            perPage?: number,
         ) => Promise<ActionResult>;
         getGroupStats: (id: string) => Promise<ActionResult>;
         getGroupSyncables: (
             id: string,
-            syncableType: SyncableType
+            syncableType: SyncableType,
         ) => Promise<ActionResult>;
         link: (
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: SyncablePatch
+            patch: SyncablePatch,
         ) => Promise<ActionResult>;
         unlink: (
             id: string,
             syncableID: string,
-            syncableType: SyncableType
+            syncableType: SyncableType,
         ) => Promise<ActionResult>;
         patchGroupSyncable: (
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: Partial<SyncablePatch>
+            patch: Partial<SyncablePatch>,
         ) => Promise<ActionResult>;
         patchGroup: (id: string, patch: GroupPatch) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => {
@@ -97,7 +100,7 @@ export type State = {
     groupChannels: GroupChannel[];
 };
 
-class GroupDetails extends React.PureComponent<Props, State> {
+export class GroupDetails extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         groupID: '',
         members: [],
@@ -311,7 +314,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
 
     onChangeRoles = (id: string, type: string, schemeAdmin: boolean) => {
         const {
-            rolesToChange = {},
+            rolesToChange: prevRolesToChange = {},
             groupTeams = [],
             groupChannels = [],
         } = this.state;
@@ -320,7 +323,7 @@ class GroupDetails extends React.PureComponent<Props, State> {
         let stateKey;
 
         const key = `${id}/${type}`;
-        rolesToChange[key] = schemeAdmin;
+        const rolesToChange = {...prevRolesToChange, [key]: schemeAdmin};
 
         if (
             this.syncableTypeFromEntryType(type) === SyncableType.Team
@@ -334,12 +337,14 @@ class GroupDetails extends React.PureComponent<Props, State> {
             stateKey = 'groupChannels';
         }
 
+        // Items in listToUpdate may originate from the (deep-frozen) Redux store,
+        // so produce a new object instead of mutating scheme_admin in place.
         const updatedItems = listToUpdate.map((item) => {
             if (getId(item) === id) {
-                item.scheme_admin = schemeAdmin;
+                return {...item, scheme_admin: schemeAdmin};
             }
             return item;
-        }); // clone list of objects
+        });
 
         this.setState({
             saveNeeded: true,
@@ -417,17 +422,25 @@ class GroupDetails extends React.PureComponent<Props, State> {
 
     roleChangeKey = (groupTeamOrChannel: {
         type?: SyncableType;
+        id?: string;
         team_id?: string;
         channel_id?: string;
     }) => {
-        let id;
-        if (
-            this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
-            SyncableType.Team
-        ) {
-            id = groupTeamOrChannel.team_id;
-        } else {
-            id = groupTeamOrChannel.channel_id;
+        // Items in itemsToRemove use a generic `id`, while items coming from
+        // teamsToAdd/channelsToAdd use `team_id`/`channel_id`. The key must
+        // be identical regardless of source so the dedup in
+        // handleRemovedTeamsAndChannels and handleAddedTeamsAndChannels
+        // matches the key produced by onChangeRoles.
+        let id = groupTeamOrChannel.id;
+        if (!id) {
+            if (
+                this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
+                SyncableType.Team
+            ) {
+                id = groupTeamOrChannel.team_id;
+            } else {
+                id = groupTeamOrChannel.channel_id;
+            }
         }
         return `${id}/${groupTeamOrChannel.type}`;
     };
@@ -683,17 +696,17 @@ class GroupDetails extends React.PureComponent<Props, State> {
                             button={
                                 <div className='group-profile-add-menu'>
                                     <MenuWrapper isDisabled={isDisabled}>
-                                        <button
+                                        <Button
                                             type='button'
                                             id='add_team_or_channel'
-                                            className='btn btn-primary'
+                                            emphasis='primary'
+                                            trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
                                         >
                                             <FormattedMessage
                                                 id='admin.group_settings.group_details.add_team_or_channel'
                                                 defaultMessage='Add Team or Channel'
                                             />
-                                            <i className={'fa fa-caret-down'}/>
-                                        </button>
+                                        </Button>
                                         <Menu
                                             ariaLabel={this.props.intl.formatMessage({
                                                 id: 'admin.group_settings.group_details.menuAriaLabel',

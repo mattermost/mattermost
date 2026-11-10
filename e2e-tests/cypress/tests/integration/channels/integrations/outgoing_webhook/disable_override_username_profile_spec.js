@@ -9,16 +9,17 @@
 
 // Group: @channels @outgoing_webhook
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
     enableUsernameAndIconOverrideInt,
     enableUsernameAndIconOverride,
 } from '../incoming_webhook/helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 describe('Outgoing webhook', () => {
     const triggerWord = 'text';
     const messageWithTriggerWord = 'text with some more text';
-    const callbackUrl = `${Cypress.env().webhookBaseUrl}/post_outgoing_webhook`;
+    const callbackUrl = `${Cypress.expose().webhookBaseUrl}/post_outgoing_webhook`;
     const noChannelSelectionOption = '--- Select a channel ---';
     const overrideIconUrl = 'http://via.placeholder.com/150/00F/888';
     const defaultUsername = 'webhook';
@@ -78,7 +79,7 @@ describe('Outgoing webhook', () => {
         cy.postMessage('hello');
 
         // # Set outgoing webhook
-        setOutgoingWebhook(testTeam.name, siteName, {callbackUrl, channelSelect: testChannel.display_name});
+        setOutgoingWebhook(testTeam.name, siteName, {callbackUrl, channelSelect: testChannel.display_name, clearUsername: true});
 
         // * Verify it redirects to test channel
         cy.url().should('include', testChannelUrl);
@@ -294,8 +295,8 @@ function postMessageInChannel(user, channelUrl, message) {
     cy.uiWaitUntilMessagePostedIncludes('#### Outgoing Webhook Payload');
 }
 
-function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, triggerWord}) {
-    cy.uiOpenProductMenu('Integrations');
+function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, triggerWord, clearUsername}) {
+    cy.uiOpenSwitchProductMenu('Integrations');
 
     // * Verify that it redirects to integrations URL. Then, click "Outgoing Webhooks"
     cy.url().should('include', `${teamName}/integrations`);
@@ -312,6 +313,11 @@ function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, tri
     cy.get('.backstage-form').should('be.visible').within(() => {
         cy.get('#displayName').type('Webhook Title');
         cy.get('#description').type('Webhook Description');
+
+        // # Clear the username pre-filled from the title to keep the default username
+        if (clearUsername) {
+            cy.get('#username').clear();
+        }
 
         if (triggerWord) {
             cy.get('#triggerWords').type(triggerWord);
@@ -332,7 +338,7 @@ function setOutgoingWebhook(teamName, siteName, {callbackUrl, channelSelect, tri
 }
 
 function editOutgoingWebhook(teamName, siteName, {username, iconUrl, callbackUrl, channelSelect, withConfirmation}) {
-    cy.uiOpenProductMenu('Integrations');
+    cy.uiOpenSwitchProductMenu('Integrations');
 
     // * click "Outgoing Webhooks"
     cy.get('.backstage-sidebar').should('be.visible').findByText('Outgoing Webhooks').click();

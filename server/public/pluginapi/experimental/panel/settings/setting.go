@@ -29,5 +29,5 @@ type Setting interface {
 	IsDisabled(foreignValue any) bool
 	GetTitle() string
 	GetDescription() string
-	GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error)
+	GetMessageAttachments(userID, settingHandler string, disabled bool) (*model.MessageAttachment, error)
 }

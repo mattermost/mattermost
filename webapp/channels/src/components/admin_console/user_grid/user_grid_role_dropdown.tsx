@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -11,7 +12,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import * as Utils from 'utils/utils';
 
@@ -19,7 +19,7 @@ export type BaseMembership = {
     user_id: string;
     scheme_user: boolean;
     scheme_admin: boolean;
-}
+};
 
 type Props = {
     user: UserProfile;
@@ -27,7 +27,7 @@ type Props = {
     scope: 'team' | 'channel';
     handleUpdateMembership: (membership: BaseMembership) => void;
     isDisabled?: boolean;
-}
+};
 
 export type Role = 'system_admin' | 'team_admin' | 'team_user' | 'channel_admin' | 'channel_user' | 'shared_member' | 'guest';
 

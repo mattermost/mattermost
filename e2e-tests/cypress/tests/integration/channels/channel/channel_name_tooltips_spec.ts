@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @channel @not_cloud
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const timestamp = Date.now();
 
@@ -90,7 +90,7 @@ describe('channel name tooltips', () => {
     it('Should show tooltip on hover - user with a long username', () => {
         // # Open a DM with the user
         cy.findByRole('button', {name: 'Write a direct message'}).click();
-        cy.focused().as('searchBox').typeWithForce(longUser.username);
+        cy.get('.more-direct-channels #selectItems input').as('searchBox').typeWithForce(longUser.username);
 
         // * Verify that the user is selected in the results list before typing enter
         cy.get('div.more-modal__row').

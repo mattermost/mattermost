@@ -6,8 +6,10 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -108,7 +110,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -345,7 +347,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -720,7 +722,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -999,7 +1001,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1011,7 +1013,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(10)
+			config.ServiceSettings.MaximumURLLength = new(10)
 		})
 
 		web := New(th.Server)
@@ -1030,7 +1032,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1042,7 +1044,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(20)
+			config.ServiceSettings.MaximumURLLength = new(20)
 		})
 
 		web := New(th.Server)
@@ -1055,6 +1057,62 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, http.StatusRequestURITooLong, response.Code)
 	})
+
+	t.Run("414 error page should not send the browser into a redirect loop", func(t *testing.T) {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(config *model.Config) {
+			config.ServiceSettings.MaximumURLLength = new(30)
+		})
+
+		web := New(th.Server)
+		handler := web.NewStaticHandler(noOpHandler)
+
+		// Follow the error page the way a browser would, until it settles on a page that no
+		// longer sends us anywhere else.
+		nextURL := "/thisurlismorethan30characterslong"
+		var visited []string
+		for range 5 {
+			visited = append(visited, nextURL)
+
+			request := httptest.NewRequest("GET", nextURL, nil)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+			require.Equal(t, http.StatusRequestURITooLong, response.Code)
+
+			nextURL = nextBrowserLocation(response)
+			if nextURL == "" {
+				body := response.Body.String()
+				assert.Contains(t, body, "<h2>Error</h2>")
+				assert.Contains(t, body, "URL is too long")
+				assert.NotContains(t, body, "/error?")
+				return
+			}
+		}
+
+		require.Fail(t, "the URL too long error page kept redirecting the browser", "visited: %v", visited)
+	})
+}
+
+// nextBrowserLocation returns the URL the response sends the browser to through any of the
+// mechanisms the error page uses, or an empty string if the browser stays on the page.
+func nextBrowserLocation(response *httptest.ResponseRecorder) string {
+	if location := response.Header().Get("Location"); location != "" {
+		return location
+	}
+
+	body := response.Body.String()
+	for _, pattern := range []*regexp.Regexp{
+		regexp.MustCompile(`window\.location = '([^']+)'`),
+		regexp.MustCompile(`http-equiv="refresh" content="0; url=([^"]+)"`),
+		regexp.MustCompile(`href="([^"]+)"`),
+	} {
+		if matches := pattern.FindStringSubmatch(body); len(matches) == 2 {
+			return html.UnescapeString(strings.NewReplacer(`\u0026`, "&", `\u003D`, "=").Replace(matches[1]))
+		}
+	}
+
+	return ""
 }
 
 func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
@@ -1092,7 +1150,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1104,7 +1162,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewPointer(int64(1))
+			config.ServiceSettings.MaximumPayloadSizeBytes = new(int64(1))
 		})
 
 		web := New(th.Server)
@@ -1119,6 +1177,50 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
+	})
+}
+
+func TestHandlerConnectionIdHeader(t *testing.T) {
+	t.Run("should set connection id from header on request context", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		connectionId := "test-connection-id-12345"
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.Header.Set(model.ConnectionId, connectionId)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, connectionId, capturedConnectionId)
+	})
+
+	t.Run("should have empty connection id when header not present", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Empty(t, capturedConnectionId)
 	})
 }
 
@@ -1177,5 +1279,188 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
 		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+}
+
+func TestHandleContextErrorProps(t *testing.T) {
+	respondWith := func(t *testing.T, th *TestHelper, appErr *model.AppError) *model.AppError {
+		t.Helper()
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{Srv: th.Server}
+		h.handleContextError(c, response, request)
+
+		var responded model.AppError
+		require.NoError(t, json.Unmarshal(response.Body.Bytes(), &responded))
+
+		return &responded
+	}
+
+	t.Run("should wipe detailed error but keep props when developer mode is off", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError, "developer mode off must still wipe the detailed error")
+		assert.Equal(t, model.StringMap{"plugin_id": "com.example"}, responded.Props)
+	})
+
+	t.Run("hardened mode should sanitize a 5xx including props", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+			*cfg.ServiceSettings.EnableHardenedMode = true
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusInternalServerError)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError)
+		assert.Empty(t, responded.Props, "hardened mode must scrub props on a sanitized 5xx")
+		assert.Equal(t, "Internal Server Error", responded.Message)
+		assert.Empty(t, responded.Id)
+	})
+}
+
+func TestTokenDigest(t *testing.T) {
+	token := model.NewId()
+	digest := tokenDigest(token)
+
+	assert.NotEmpty(t, digest)
+	assert.NotContains(t, digest, token)
+	assert.Equal(t, digest, tokenDigest(token), "should be stable for the same input")
+	assert.NotEqual(t, digest, tokenDigest(model.NewId()), "should differ for different inputs")
+	assert.Equal(t, "<none>", tokenDigest(""))
+}
+
+func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
+	newHandler := func(th *TestHelper) Handler {
+		web := New(th.Server)
+
+		return Handler{
+			Srv:            web.srv,
+			HandleFunc:     handlerForCSRFToken,
+			RequireSession: true,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       false,
+		}
+	}
+
+	newSession := func(t *testing.T, th *TestHelper, isOAuth bool) *model.Session {
+		session := &model.Session{
+			UserId:   th.BasicUser.Id,
+			CreateAt: model.GetMillis(),
+			Roles:    model.SystemUserRoleId,
+			IsOAuth:  isOAuth,
+		}
+		session.GenerateCSRF()
+		th.App.SetSessionExpireInHours(session, 24)
+
+		session, appErr := th.App.CreateSession(th.Context, session)
+		require.Nil(t, appErr)
+
+		return session
+	}
+
+	captureLogs := func(t *testing.T, th *TestHelper) *mlog.Buffer {
+		buffer := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+		return buffer
+	}
+
+	t.Run("expired or unknown session token", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		token := model.NewId()
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, token)
+		assert.Contains(t, logs, tokenDigest(token))
+	})
+
+	t.Run("session token provided in the query string", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("GET", "/api/v4/test?access_token="+session.Token, nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, session.Token)
+		assert.Contains(t, logs, tokenDigest(session.Token))
+	})
+
+	t.Run("failed CSRF check", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: session.Token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, session.Token)
+		assert.Contains(t, logs, "Appears to be a CSRF attempt")
+		assert.Contains(t, logs, tokenDigest(session.Token))
+	})
+
+	t.Run("valid session is served without logging the token", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: session.Token})
+		request.Header.Set(model.HeaderCsrfToken, session.GetCSRF())
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusOK, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		assert.NotContains(t, buffer.String(), session.Token)
 	})
 }

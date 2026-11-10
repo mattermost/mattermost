@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState, type JSX} from 'react';
 
 import './component_library.scss';
 
 type HookResult<T> = [
     {[x: string]: T},
     JSX.Element,
-]
+];
 export const useStringProp = (
     propName: string,
     defaultValue: string,

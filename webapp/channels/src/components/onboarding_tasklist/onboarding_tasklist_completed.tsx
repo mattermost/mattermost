@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
@@ -129,6 +130,7 @@ const Completed = (props: Props): JSX.Element => {
     const {dismissAction} = props;
 
     const dispatch = useDispatch();
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -154,10 +156,11 @@ const Completed = (props: Props): JSX.Element => {
         <>
             <CSSTransition
                 in={true}
+                nodeRef={wrapperRef}
                 timeout={150}
                 classNames='fade'
             >
-                <CompletedWrapper>
+                <CompletedWrapper ref={wrapperRef}>
                     <img
                         src={completedImg}
                         alt={'completed tasks image'}
@@ -212,24 +215,26 @@ const Completed = (props: Props): JSX.Element => {
                             />
                         </button>
                     )}
-                    <div className='download-apps'>
-                        <span>
-                            <FormattedMessage
-                                id='onboardingTask.checklist.downloads'
-                                defaultMessage='Now that you’re all set up, <link>download our apps.</link>'
-                                values={{
-                                    link: (msg: React.ReactNode) => (
-                                        <ExternalLink
-                                            location='onboarding_tasklist_completed'
-                                            href='https://mattermost.com/download#desktop'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                }}
-                            />
-                        </span>
-                    </div>
+                    {!isDesktopApp() && (
+                        <div className='download-apps'>
+                            <span>
+                                <FormattedMessage
+                                    id='onboardingTask.checklist.downloads'
+                                    defaultMessage='Now that you’re all set up, <link>download our apps.</link>'
+                                    values={{
+                                        link: (msg: React.ReactNode) => (
+                                            <ExternalLink
+                                                location='onboarding_tasklist_completed'
+                                                href='https://mattermost.com/download#desktop'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    }}
+                                />
+                            </span>
+                        </div>
+                    )}
                     {showStartTrialBtn && <div className='disclaimer'>
                         <span>
                             <FormattedMessage

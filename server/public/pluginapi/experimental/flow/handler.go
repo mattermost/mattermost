@@ -18,27 +18,27 @@ import (
 func (f *Flow) handleButtonHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 	if userID == "" {
-		common.SlackAttachmentError(w, errors.New("Not authorized"))
+		common.MessageAttachmentError(w, errors.New("Not authorized"))
 		return
 	}
 	f = f.ForUser(userID)
 
 	var request model.PostActionIntegrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		common.SlackAttachmentError(w, errors.New("invalid request"))
+		common.MessageAttachmentError(w, errors.New("invalid request"))
 		return
 	}
 
 	// selectedButton is 1-based
 	fromName, selectedButton, err := buttonContext(&request)
 	if err != nil {
-		common.SlackAttachmentError(w, err)
+		common.MessageAttachmentError(w, err)
 		return
 	}
 
 	donePost, err := f.handleButton(fromName, selectedButton, request.TriggerId)
 	if err != nil {
-		common.SlackAttachmentError(w, err)
+		common.MessageAttachmentError(w, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -197,7 +197,7 @@ func (f *Flow) handle(
 }
 
 func (f *Flow) processButtonPostActions(post *model.Post) {
-	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	if !ok || len(attachments) == 0 {
 		return
 	}

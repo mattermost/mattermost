@@ -47,7 +47,6 @@ export const PLUGIN_NAME_TO_ID_MAP: PluginNameMap = {
     gitlab: 'com.github.manland.mattermost-plugin-gitlab',
     jira: 'jira',
     zoom: 'zoom',
-    servicenow: 'mattermost-plugin-servicenow',
 } as const;
 
 export type Form = {
@@ -65,7 +64,6 @@ export type Form = {
         gitlab: boolean;
         jira: boolean;
         zoom: boolean;
-        servicenow: boolean;
 
         // set if user clicks skip for now
         skipped: boolean;
@@ -79,7 +77,7 @@ export type Form = {
         invites: string[];
         skipped: boolean;
     };
-}
+};
 
 export const emptyForm = deepFreeze({
     organization: '',
@@ -95,7 +93,6 @@ export const emptyForm = deepFreeze({
         gitlab: false,
         jira: false,
         zoom: false,
-        servicenow: false,
 
         // set if user clicks skip for now
         skipped: false,
@@ -117,5 +114,5 @@ export type PreparingWorkspacePageProps = {
     skip?: () => void;
     previous?: React.ReactNode;
     show: boolean;
-}
+};
 

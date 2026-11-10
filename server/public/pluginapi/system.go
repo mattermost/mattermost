@@ -7,7 +7,7 @@ import (
 	filePath "path"
 	"time"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
 
@@ -127,7 +127,7 @@ func (s *SystemService) RequestTrialLicense(requesterID string, users int, terms
 	currentVersion := semver.MustParse(s.api.GetServerVersion())
 	requiredVersion := semver.MustParse("5.36.0")
 
-	if currentVersion.LT(requiredVersion) {
+	if currentVersion.LessThan(requiredVersion) {
 		return errors.Errorf("current server version is lower than 5.36")
 	}
 

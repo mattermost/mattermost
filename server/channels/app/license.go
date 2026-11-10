@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -17,8 +18,8 @@ func (ch *Channels) License() *model.License {
 	return ch.srv.License()
 }
 
-func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
-	requester, err := ch.srv.userService.GetUser(requesterID)
+func (ch *Channels) RequestTrialLicenseWithExtraFields(rctx request.CTX, requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
+	requester, err := ch.srv.userService.GetUser(rctx, requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -59,7 +60,7 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trial
 }
 
 // Deprecated: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
-func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+func (ch *Channels) RequestTrialLicense(rctx request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if !termsAccepted {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
 	}
@@ -68,7 +69,7 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
-	requester, err := ch.srv.userService.GetUser(requesterID)
+	requester, err := ch.srv.userService.GetUser(rctx, requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

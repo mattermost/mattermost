@@ -1,10 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+
 import Authorize from './authorize';
+
+jest.mock('utils/browser_history', () => ({
+    getHistory: jest.fn(() => ({replace: jest.fn(), push: jest.fn()})),
+}));
 
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const oauthApp = {
@@ -21,42 +28,54 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         callback_urls: ['https://test.com/callback', 'https://test.com/callback2'],
     };
 
-    const requiredProps = {
-        location: {search: ''},
+    let requiredProps: {
+        location: {search: string};
         actions: {
-            getOAuthAppInfo: jest.fn().mockResolvedValue({data: true}),
-            allowOAuth2: jest.fn().mockResolvedValue({data: true}),
-        },
+            getOAuthAppInfo: jest.Mock;
+            allowOAuth2: jest.Mock;
+        };
     };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        requiredProps = {
+            location: {search: ''},
+            actions: {
+                getOAuthAppInfo: jest.fn().mockResolvedValue({data: oauthApp}),
+                allowOAuth2: jest.fn().mockResolvedValue({data: true}),
+            },
+        };
+    });
 
     test('UNSAFE_componentWillMount() should have called getOAuthAppInfo', () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
 
-        shallow(<Authorize {...props}/>);
+        renderWithContext(<Authorize {...props}/>);
 
-        expect(requiredProps.actions.getOAuthAppInfo).toHaveBeenCalled();
-        expect(requiredProps.actions.getOAuthAppInfo).toHaveBeenCalledWith('1234abcd');
+        expect(props.actions.getOAuthAppInfo).toHaveBeenCalled();
+        expect(props.actions.getOAuthAppInfo).toHaveBeenCalledWith('1234abcd');
     });
 
     test('UNSAFE_componentWillMount() should have updated state.app', async () => {
-        const expected = oauthApp;
-        const promise = Promise.resolve({data: expected});
-        const actions = {...requiredProps.actions, getOAuthAppInfo: () => promise};
-        const props = {...requiredProps, actions, location: {search: 'client_id=1234abcd'}};
-
-        const wrapper = shallow<Authorize>(<Authorize {...props}/>);
-
-        await promise;
-
-        expect(wrapper.state().app).toEqual(expected);
-    });
-
-    test('handleAllow() should have called allowOAuth2', () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
 
-        const wrapper = shallow<Authorize>(<Authorize {...props}/>);
+        renderWithContext(<Authorize {...props}/>);
 
-        wrapper.instance().handleAllow();
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
+        });
+    });
+
+    test('handleAllow() should have called allowOAuth2', async () => {
+        const props = {...requiredProps, location: {search: 'client_id=1234abcd'}};
+
+        renderWithContext(<Authorize {...props}/>);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: 'Allow'}));
 
         const expected = {
             clientId: '1234abcd',
@@ -68,16 +87,20 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             scope: null,
             resource: null,
         };
-        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalled();
-        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalledWith(expected);
+        expect(props.actions.allowOAuth2).toHaveBeenCalled();
+        expect(props.actions.allowOAuth2).toHaveBeenCalledWith(expected);
     });
 
-    test('handleAllow() should include resource parameter when provided in URL', () => {
+    test('handleAllow() should include resource parameter when provided in URL', async () => {
         const props = {...requiredProps, location: {search: 'client_id=1234abcd&resource=https://example.com/api'}};
 
-        const wrapper = shallow<Authorize>(<Authorize {...props}/>);
+        renderWithContext(<Authorize {...props}/>);
 
-        wrapper.instance().handleAllow();
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
+        });
+
+        await userEvent.click(screen.getByRole('button', {name: 'Allow'}));
 
         const expected = {
             clientId: '1234abcd',
@@ -89,21 +112,28 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
             scope: null,
             resource: 'https://example.com/api',
         };
-        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalled();
-        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalledWith(expected);
+        expect(props.actions.allowOAuth2).toHaveBeenCalled();
+        expect(props.actions.allowOAuth2).toHaveBeenCalledWith(expected);
     });
 
     test('handleAllow() should have updated state.error', async () => {
         const error = new Error('error');
-        const promise = Promise.resolve({error});
-        const actions = {...requiredProps.actions, allowOAuth2: () => promise};
+        const actions = {
+            ...requiredProps.actions,
+            allowOAuth2: jest.fn().mockResolvedValue({error}),
+        };
         const props = {...requiredProps, actions, location: {search: 'client_id=1234abcd'}};
 
-        const wrapper = shallow<Authorize>(<Authorize {...props}/>);
+        renderWithContext(<Authorize {...props}/>);
 
-        wrapper.instance().handleAllow();
-        await promise;
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Allow'})).toBeInTheDocument();
+        });
 
-        expect(wrapper.state().error).toEqual(error.message);
+        await userEvent.click(screen.getByRole('button', {name: 'Allow'}));
+
+        await waitFor(() => {
+            expect(screen.getByText('error')).toBeInTheDocument();
+        });
     });
 });

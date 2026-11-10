@@ -1,22 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
+import Permissions from 'mattermost-redux/constants/permissions';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
+import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
 import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
-import type TextboxClass from 'components/textbox/textbox';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 const getFileCount = (draft: PostDraft) => {
@@ -30,25 +35,42 @@ const useUploadFiles = (
     isThreadView: boolean,
     storedDrafts: React.MutableRefObject<Record<string, PostDraft | undefined>>,
     isDisabled: boolean,
-    textboxRef: React.RefObject<TextboxClass>,
+    editorBodyRef: React.RefObject<HTMLDivElement | null>,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     isPostBeingEdited?: boolean,
 ): [React.ReactNode, React.ReactNode] => {
+    const intl = useIntl();
     const locale = useSelector(getCurrentLocale);
+    const canEditAttachments = useSelector((state: GlobalState) => {
+        const channel = getChannel(state, channelId);
+        return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_FILE_ATTACHMENT) : true;
+    });
+    const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
 
-    const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
+    // Fail open while in flight: the endpoint enforces regardless, and failing closed flickers the
+    // button disabled on every first visit to a channel.
+    const uploadAllowedByPolicy = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'}, true);
+
+    const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
 
     const fileUploadRef = useRef<FileUploadClass>(null);
+
+    const removeTooltip = useMemo(() => {
+        return editAttachmentsDisabled ? intl.formatMessage({
+            id: 'file_preview.no_edit_permission',
+            defaultMessage: 'Post attachments cannot be edited',
+        }) : undefined;
+    }, [editAttachmentsDisabled, intl]);
 
     const handleFileUploadChange = useCallback(() => {
         focusTextbox();
     }, [focusTextbox]);
 
     const getFileUploadTarget = useCallback(() => {
-        return textboxRef.current?.getInputBox();
-    }, [textboxRef]);
+        return (editorBodyRef.current as unknown as HTMLInputElement | null) ?? null;
+    }, [editorBodyRef]);
 
     const handleUploadProgress = useCallback((filePreviewInfo: FilePreviewInfo) => {
         setUploadsProgressPercent((prev) => ({
@@ -64,7 +86,7 @@ const useUploadFiles = (
             return;
         }
 
-        const newFileInfos = sortFileInfos([...draftToUpdate.fileInfos || [], ...fileInfos], locale);
+        const newFileInfos = sortFileInfos([...(draftToUpdate.fileInfos || []), ...fileInfos], locale);
 
         const clientIdsSet = new Set(clientIds);
         const uploadsInProgress = (draftToUpdate.uploadsInProgress || []).filter((v) => !clientIdsSet.has(v));
@@ -146,9 +168,10 @@ const useUploadFiles = (
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
-                onRemove={removePreview}
+                onRemove={editAttachmentsDisabled ? undefined : removePreview}
                 uploadsInProgress={draft.uploadsInProgress}
                 uploadsProgressPercent={uploadsProgressPercent}
+                disabledRemoveTooltip={removeTooltip}
             />
         );
     }
@@ -160,7 +183,7 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = isDisabled ? null : (
+    const fileUploadJSX = (isDisabled || editAttachmentsDisabled) ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}
@@ -173,6 +196,7 @@ const useUploadFiles = (
             rootId={postId}
             channelId={channelId}
             postType={postType}
+            disabledByPolicy={!uploadAllowedByPolicy}
         />
     );
 

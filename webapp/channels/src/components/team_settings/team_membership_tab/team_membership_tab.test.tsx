@@ -1,0 +1,828 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import type {UserPropertyField} from '@mattermost/types/properties_user';
+
+import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import TeamMembershipTab from './team_membership_tab';
+
+jest.mock('hooks/useChannelAccessControlActions');
+jest.mock('mattermost-redux/actions/access_control', () => ({
+    ...jest.requireActual('mattermost-redux/actions/access_control'),
+    getTeamAccessControlPolicy: jest.fn(() => () => Promise.resolve({data: {policy: null, enforced: false}})),
+    createAccessControlTeamSyncJob: jest.fn(() => () => Promise.resolve({data: {}})),
+}));
+jest.mock('mattermost-redux/actions/teams', () => ({
+    ...jest.requireActual('mattermost-redux/actions/teams'),
+    getTeamStats: jest.fn(() => () => Promise.resolve({data: {total_member_count: 10, active_member_count: 10}})),
+}));
+
+jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
+    const MockReact = require('react');
+    return jest.fn(({onChange, onParseError}: {onChange: (val: string) => void; onParseError: (error: string) => void}) =>
+        MockReact.createElement('div', {'data-testid': 'table-editor'},
+            MockReact.createElement('button', {
+                onClick: () => onParseError('unsupported expression'),
+                'data-testid': 'table-editor-parse-error',
+            }, 'Parse error'),
+            MockReact.createElement('button', {
+                onClick: () => onChange('user.attributes.department in ["Engineering"]'),
+                'data-testid': 'table-editor-change',
+            }, 'Change expression'),
+            MockReact.createElement('button', {
+                onClick: () => onChange(''),
+                'data-testid': 'table-editor-clear',
+            }, 'Clear expression'),
+        ),
+    );
+});
+
+const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
+
+describe('components/team_settings/TeamMembershipTab', () => {
+    const mockActions = {
+        getAccessControlFields: jest.fn(),
+        getVisualAST: jest.fn(),
+        searchUsers: jest.fn(),
+        getChannelPolicy: jest.fn(),
+        saveChannelPolicy: jest.fn(),
+        deleteChannelPolicy: jest.fn(),
+        getChannelMembers: jest.fn(),
+        createJob: jest.fn(),
+        createAccessControlSyncJob: jest.fn(),
+        createAccessControlTeamSyncJob: jest.fn(),
+        updateAccessControlPoliciesActive: jest.fn(),
+        validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
+    };
+
+    const mockUserAttributes: UserPropertyField[] = [
+        {
+            id: 'attr1',
+            name: 'department',
+            type: 'select',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                options: [{id: 'eng', name: 'Engineering'}],
+            },
+        },
+    ];
+
+    const baseTeam = TestHelper.getTeamMock({
+        id: 'team_id',
+        display_name: 'Test Team',
+        type: 'O',
+        allow_open_invite: true,
+    });
+
+    const baseProps = {
+        team: baseTeam,
+        areThereUnsavedChanges: false,
+        setAreThereUnsavedChanges: jest.fn(),
+        showTabSwitchError: false,
+        setShowTabSwitchError: jest.fn(),
+    };
+
+    const initialState = {
+        entities: {
+            general: {
+                config: {
+                    EnableAttributeBasedAccessControl: 'true',
+                    FeatureFlagTeamMembershipAccessControl: 'true',
+                    EnableUserManagedAttributes: 'false',
+                },
+            },
+            users: {
+                currentUserId: 'user_id',
+                profiles: {
+                    user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_admin'}),
+                },
+            },
+        },
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        mockActions.getAccessControlFields.mockResolvedValue({data: mockUserAttributes});
+        mockActions.getChannelPolicy.mockResolvedValue({data: null});
+        mockActions.saveChannelPolicy.mockResolvedValue({data: {id: 'team_id'}});
+        mockActions.updateAccessControlPoliciesActive.mockResolvedValue({data: {}});
+        mockActions.createAccessControlTeamSyncJob.mockResolvedValue({data: {}});
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({data: {requester_matches: true}});
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 5}});
+        mockActions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        mockUseChannelAccessControlActions.mockReturnValue(mockActions as any);
+    });
+
+    it('renders the tab with title and table editor', async () => {
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Team Membership Rules')).toBeInTheDocument();
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+    });
+
+    it('renders auto-add checkbox reflecting initial policy state', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox', {name: /auto-add members/i});
+            expect(checkbox).toBeChecked();
+        });
+    });
+
+    it('shows advisory auto-add descriptions on a public team', async () => {
+        // baseTeam is public: neither description may promise join-restriction or removal.
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        // Auto-add off (loaded): advisory "recommended, not added automatically"
+        expect(screen.getByText(/shown as recommended but are not added automatically/i)).toBeInTheDocument();
+        expect(screen.queryByText(/will restrict who can join/i)).not.toBeInTheDocument();
+
+        // Auto-add on: advisory "no members are removed"
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
+        expect(screen.getByText(/automatically added as members and shown as recommended. No members are removed/i)).toBeInTheDocument();
+        expect(screen.queryByText(/who no longer match will be removed/i)).not.toBeInTheDocument();
+    });
+
+    it('shows system policy indicator from parent_policies returned by the team policy endpoint', async () => {
+        const parentPolicy = {
+            id: 'parent_policy_id',
+            name: 'Global Policy',
+            type: 'parent',
+            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]', metadata: {auto_add: 'always'}}],
+            imports: [],
+        };
+
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
+
+                // The server resolves imported parent policies so team admins — who cannot
+                // fetch a parent policy directly — can still render the banner.
+                parent_policies: [parentPolicy],
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        // The banner renders the resolved parent policy name without any getChannelPolicy call.
+        await waitFor(() => {
+            expect(screen.getByText('Global Policy')).toBeInTheDocument();
+        });
+        expect(mockActions.getChannelPolicy).not.toHaveBeenCalled();
+    });
+
+    it('triggers createAccessControlTeamSyncJob on a rule change even with auto-add off', async () => {
+        const {createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        // Simulate an expression change; auto-add is left OFF on purpose. On a strict
+        // team the reconcile removal pass runs regardless of auto-add, so the save must
+        // still enqueue a sync job — membership changes apply on save, not on the
+        // hourly scheduler.
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        // Trigger save
+        await userEvent.click(screen.getByText('Save'));
+
+        // Confirm modal
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: 'team_id'});
+        });
+    });
+
+    it('triggers createAccessControlTeamSyncJob when auto-add toggled on', async () => {
+        const {getTeamAccessControlPolicy, createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeInTheDocument());
+
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
+
+        // Trigger save
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(createAccessControlTeamSyncJob).toHaveBeenCalledWith({policy_id: 'team_id'});
+        });
+    });
+
+    it('does not trigger sync job when auto-add is turned off', async () => {
+        const {getTeamAccessControlPolicy, createAccessControlTeamSyncJob} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox', {name: /auto-add members/i});
+            expect(checkbox).toBeChecked();
+        });
+
+        await userEvent.click(screen.getByRole('checkbox', {name: /auto-add members/i}));
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        await waitFor(() => {
+            expect(createAccessControlTeamSyncJob).not.toHaveBeenCalled();
+        });
+    });
+
+    it('unchecks and disables auto-add when the last rule is cleared', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        const checkbox = await screen.findByRole('checkbox', {name: /auto-add members/i});
+        await waitFor(() => expect(checkbox).toBeChecked());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+
+        await waitFor(() => {
+            expect(checkbox).not.toBeChecked();
+            expect(checkbox).toBeDisabled();
+        });
+    });
+
+    it('removes the policy and reports success when the last rule is cleared', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+        mockActions.deleteChannelPolicy.mockResolvedValue({data: {status: 'OK'}});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        // Removing all rules shows the enforcement-removal warning, not the count modal.
+        await waitFor(() => expect(screen.getByText('Remove membership rules?')).toBeInTheDocument());
+        expect(screen.getByText(/no longer have membership requirements/i)).toBeInTheDocument();
+        await userEvent.click(screen.getByText('Remove rules'));
+
+        await waitFor(() => {
+            expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('team_id');
+            expect(screen.getByText('Settings saved')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Failed to save access rules')).not.toBeInTheDocument();
+    });
+
+    it('does not show the removal warning when a parent import remains, even if its policy is not yet loaded', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
+            },
+        }));
+
+        // The parent policy fetch returns nothing, so systemPolicies stays empty even
+        // though existingImports has the parent. Clearing the team rule must NOT be
+        // treated as removing all enforcement — the policy still imports the parent.
+        mockActions.getChannelPolicy.mockResolvedValue({data: null});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        expect(screen.queryByText('Remove membership rules?')).not.toBeInTheDocument();
+    });
+
+    it('reports an error when clearing the last rule fails to delete the policy', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    imports: [],
+                },
+                enforced: true,
+            },
+        }));
+        mockActions.deleteChannelPolicy.mockResolvedValue({error: new Error('boom')});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-clear'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Remove membership rules?')).toBeInTheDocument());
+        await userEvent.click(screen.getByText('Remove rules'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Failed to save access rules')).toBeInTheDocument();
+        });
+    });
+
+    it('shows a saving state on the save panel while the save is in flight', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {policy: null, enforced: false},
+        }));
+
+        let resolveSave: (value: unknown) => void = () => {};
+        mockActions.saveChannelPolicy.mockReturnValue(new Promise((resolve) => {
+            resolveSave = resolve;
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(await screen.findByText('Save'));
+
+        // Confirm the modal to start the save
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        const confirmButtons = screen.getAllByText('Save');
+        await userEvent.click(confirmButtons[confirmButtons.length - 1]);
+
+        // While saving: the panel button reads "Saving..." and is disabled
+        await waitFor(() => expect(screen.getByText('Saving...')).toBeInTheDocument());
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
+
+        // Finish the save
+        resolveSave({data: {id: 'team_id'}});
+        await waitFor(() => expect(screen.getByText('Settings saved')).toBeInTheDocument());
+    });
+
+    it('does not block self-exclusion on a public team (advisory: no removal)', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {policy: {id: 'team_id', rules: [], imports: []}, enforced: false},
+        }));
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({
+            data: {requester_matches: false},
+        });
+
+        // baseTeam is public (allow_open_invite). The admin excludes themselves, but
+        // the save must proceed straight to the normal confirmation — no hard block.
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(screen.getByText('Save team membership rules?')).toBeInTheDocument());
+        expect(screen.queryByText('Cannot save access rules')).not.toBeInTheDocument();
+        expect(mockActions.validateExpressionAgainstRequester).not.toHaveBeenCalled();
+    });
+
+    it('blocks save with the strict self-exclusion message on a private team', async () => {
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {policy: {id: 'team_id', rules: [], imports: []}, enforced: false},
+        }));
+        mockActions.validateExpressionAgainstRequester.mockResolvedValue({
+            data: {requester_matches: false},
+        });
+
+        const privateTeam = TestHelper.getTeamMock({
+            id: 'team_id',
+            display_name: 'Private Team',
+            type: 'I',
+            allow_open_invite: false,
+        });
+
+        renderWithContext(
+            <TeamMembershipTab {...{...baseProps, team: privateTeam}}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Cannot save access rules')).toBeInTheDocument();
+            expect(screen.getByText('You cannot set these rules because that will remove you from the team.')).toBeInTheDocument();
+        });
+    });
+
+    it('shows empty team warning in confirm modal when no users match and team is private', async () => {
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 0}});
+
+        const privateTeam = TestHelper.getTeamMock({
+            id: 'team_id',
+            display_name: 'Private Team',
+            type: 'I',
+            allow_open_invite: false,
+        });
+
+        renderWithContext(
+            <TeamMembershipTab {...{...baseProps, team: privateTeam}}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/empty private team/i)).toBeInTheDocument();
+        });
+    });
+
+    it('shows allowed count in confirmation modal', async () => {
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 7}});
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/7 users match/i)).toBeInTheDocument();
+        });
+    });
+
+    it('shows advisory confirmation copy on a public team, not the strict impact wording', async () => {
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 3}});
+
+        // baseTeam is public: the confirmation must clarify the advisory nature and
+        // must NOT claim members will be granted access or affected/removed.
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => {
+            expect(screen.getByText(/these rules are advisory: no one is blocked or removed/i)).toBeInTheDocument();
+        });
+        expect(screen.queryByText(/will have access/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/may be affected/i)).not.toBeInTheDocument();
+    });
+
+    it('combines the custom rule with the system policy expression when computing confirm counts', async () => {
+        // The team has a system/parent policy applied plus a custom rule added in the
+        // editor. The confirm count must simulate the SAME expression the sync enforces:
+        // (customRule) && (systemPolicyRule). Before the fix, only the custom rule was
+        // evaluated, so the count diverged from what sync actually removes.
+        const parentPolicy = {
+            id: 'parent_policy_id',
+            name: 'Global Policy',
+            type: 'team',
+            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]', metadata: {auto_add: 'always'}}],
+            imports: [],
+        };
+
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [],
+                    imports: ['parent_policy_id'],
+                },
+                enforced: true,
+                parent_policies: [parentPolicy],
+            },
+        }));
+        mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 3}});
+
+        const privateTeam = TestHelper.getTeamMock({
+            id: 'team_id',
+            display_name: 'Private Team',
+            type: 'I',
+            allow_open_invite: false,
+        });
+
+        renderWithContext(
+            <TeamMembershipTab {...{...baseProps, team: privateTeam}}/>,
+            initialState,
+        );
+
+        // Wait until the parent/system policy has been loaded into state (banner renders its name).
+        await waitFor(() => expect(screen.getByText('Global Policy')).toBeInTheDocument());
+
+        // Add a custom rule via the editor, then save to open the confirm modal.
+        await userEvent.click(screen.getByTestId('table-editor-change'));
+        await userEvent.click(screen.getByText('Save'));
+
+        await waitFor(() => expect(mockActions.searchUsers).toHaveBeenCalled());
+
+        // The evaluated expression must AND the custom rule with the system policy rule.
+        const combinedCall = mockActions.searchUsers.mock.calls.find((c) => String(c[0]).includes('location'));
+        expect(combinedCall).toBeDefined();
+        expect(combinedCall![0]).toContain('user.attributes.department in ["Engineering"]');
+        expect(combinedCall![0]).toContain('user.attributes.location in ["US"]');
+        expect(combinedCall![0]).toContain('&&');
+    });
+
+    it('preserves masked values when expression is loaded from policy', async () => {
+        const maskedExpression = 'user.attributes.department in []';
+        const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+        getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+            data: {
+                policy: {
+                    id: 'team_id',
+                    rules: [{actions: ['membership'], expression: maskedExpression}],
+                    imports: [],
+                },
+                enforced: false,
+            },
+        }));
+
+        renderWithContext(
+            <TeamMembershipTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => expect(screen.getByTestId('table-editor')).toBeInTheDocument());
+
+        const TableEditorMock = TableEditor as jest.MockedFunction<typeof TableEditor>;
+        expect(TableEditorMock).toHaveBeenCalledWith(
+            expect.objectContaining({value: maskedExpression}),
+            undefined,
+        );
+    });
+
+    describe('a saved rule the table cannot represent', () => {
+        const complexRule = 'user.attributes.department == "Engineering" || user.attributes.department == "Sales"';
+
+        const mockLoadedRule = (expression: string, parses = true) => {
+            const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
+            getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
+                data: {
+                    policy: {
+                        id: 'team_id',
+                        rules: [{actions: ['membership'], expression, metadata: {auto_add: 'never'}}],
+                        imports: [],
+                    },
+                    enforced: true,
+                },
+            }));
+            mockActions.getVisualAST.mockResolvedValue(parses ? {data: {conditions: []}} : {error: {message: 'OR (||) is only supported for multiselect membership checks'}});
+        };
+
+        it('locks the tab when the parser rejects the saved rule and shows it read-only', async () => {
+            mockLoadedRule(complexRule, false);
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(mockActions.getVisualAST).toHaveBeenCalledWith(complexRule);
+            expect(screen.getByRole('status')).toHaveTextContent('can only be edited in the System Console');
+            expect(screen.getByText(complexRule)).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
+        });
+
+        it('links a system admin to the team page in the System Console', async () => {
+            mockLoadedRule(complexRule, false);
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            const link = await screen.findByRole('link', {name: 'System Console'});
+            expect(link).toHaveAttribute('href', `/admin_console/user_management/teams/${baseTeam.id}`);
+            expect(screen.getByRole('status')).not.toHaveTextContent('Contact a System Admin');
+        });
+
+        it('tells a team admin to contact a system admin', async () => {
+            mockLoadedRule(complexRule, false);
+            const teamAdminState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    users: {
+                        currentUserId: 'user_id',
+                        profiles: {
+                            user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                        },
+                    },
+                },
+            };
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, teamAdminState);
+
+            expect(await screen.findByRole('status')).toHaveTextContent('Contact a System Admin to change them.');
+            expect(screen.queryByRole('link', {name: 'System Console'})).not.toBeInTheDocument();
+        });
+
+        it('locks the tab when the parse request itself fails', async () => {
+            mockLoadedRule('user.attributes.department == "Engineering"');
+            mockActions.getVisualAST.mockRejectedValue(new Error('403 Forbidden'));
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        });
+
+        it.each([
+            ['a "has any of" group the server saved without parentheses', '"Artemis" in user.attributes.program || "Helios" in user.attributes.program'],
+            ['a value containing &&', 'user.attributes.department == "R&&D"'],
+        ])('keeps the table for %s when the parser accepts it', async (_, rule) => {
+            mockLoadedRule(rule);
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+        });
+
+        it('re-checks when another team\'s rule loads', async () => {
+            mockLoadedRule(complexRule, false);
+
+            const {rerender} = renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+
+            mockLoadedRule('user.attributes.department == "Sales"');
+            rerender(
+                <TeamMembershipTab
+                    {...baseProps}
+                    team={{...baseTeam, id: 'other_team_id'}}
+                />,
+            );
+
+            expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+        });
+
+        it('a table parse error shows inline and never locks the tab', async () => {
+            mockLoadedRule('user.attributes.department in ["Sales"]');
+
+            renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
+
+            await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
+            await userEvent.click(screen.getByTestId('table-editor-change'));
+
+            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+            expect(await screen.findByText('Invalid expression format')).toBeInTheDocument();
+        });
+    });
+});

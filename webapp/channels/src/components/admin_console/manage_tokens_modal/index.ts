@@ -15,7 +15,7 @@ import ManageTokensModal from './manage_tokens_modal';
 
 type OwnProps = {
     user?: UserProfile;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const userId = ownProps.user ? ownProps.user.id : '';

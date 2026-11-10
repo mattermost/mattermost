@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as path from 'path';
+
 import {defineConfig} from 'cypress';
 
 export default defineConfig({
@@ -11,8 +13,8 @@ export default defineConfig({
     numTestsKeptInMemory: 0,
     retries: {
 
-        // 2 retries for cypress:run
-        runMode: 2,
+        // retries for cypress:run
+        runMode: 1,
 
         // No retries for cypress:open
         openMode: 0,
@@ -23,21 +25,22 @@ export default defineConfig({
     videoCompression: true,
     videosFolder: 'tests/videos',
     viewportWidth: 1300,
-    env: {
-        adminEmail: 'sysadmin@sample.mattermost.com',
-        adminUsername: 'sysadmin',
-        adminPassword: 'Sys@dmin-sample1',
+    allowCypressEnv: false,
+    expose: {
+        adminEmail: process.env.CYPRESS_adminEmail || 'sysadmin@sample.mattermost.com',
+        adminUsername: process.env.CYPRESS_adminUsername || 'sysadmin',
+        adminPassword: process.env.CYPRESS_adminPassword || 'Sys@dmin-sample1',
         allowedUntrustedInternalConnections: 'localhost',
         cwsURL: 'http://localhost:8076',
         cwsAPIURL: 'http://localhost:8076',
         dbClient: 'postgres',
-        dbConnection: 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10',
+        dbConnection: process.env.CYPRESS_dbConnection || 'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10',
         elasticsearchConnectionURL: 'http://localhost:9200',
         firstTest: false,
         keycloakAppName: 'mattermost',
         keycloakBaseUrl: 'http://localhost:8484',
         keycloakUsername: 'mmuser',
-        keycloakPassword: 'mostest',
+        keycloakPassword: 'mostest_password',
         ldapServer: 'localhost',
         ldapPort: 389,
         minioAccessKey: 'minioaccesskey',
@@ -49,16 +52,69 @@ export default defineConfig({
         pushNotificationServer: 'https://push-test.mattermost.com',
         resetBeforeTest: false,
         runLDAPSync: true,
-        secondServerURL: 'http://localhost/s/p',
         serverEdition: 'Team',
         serverClusterEnabled: false,
         serverClusterName: 'mm_dev_cluster',
         serverClusterHostCount: 3,
-        smtpUrl: 'http://localhost:9001',
+        smtpUrl: process.env.CYPRESS_smtpUrl || 'http://localhost:9001',
         webhookBaseUrl: 'http://localhost:3000',
     },
     e2e: {
         setupNodeEvents(on, config) {
+            // Custom webpack preprocessor for TypeScript 6 + @/ path aliases.
+            // @cypress/webpack-preprocessor@7.1.0 already handles TS6's
+            // downlevelIteration deprecation (cypress-io/cypress#33575).
+            // We add: ts-loader for .ts files, resolve extensions, and @/ alias.
+            // When Cypress >= 15.14 ships, the only custom piece needed is the @/ alias.
+            const webpackPreprocessor = require('@cypress/webpack-preprocessor');
+
+            const webpackOptions = {
+                resolve: {
+                    extensions: ['.ts', '.js', '.json'],
+                    alias: {
+                        '@': path.resolve(__dirname, 'tests'),
+                    },
+                },
+                module: {
+                    rules: [
+                        {
+                            test: /\.tsx?$/,
+                            exclude: /node_modules/,
+                            use: [
+                                {
+                                    loader: 'ts-loader',
+                                    options: {
+                                        transpileOnly: true,
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            test: /\.jsx?$/,
+                            exclude: /node_modules/,
+                            use: [
+                                {
+                                    loader: 'babel-loader',
+                                    options: {
+                                        presets: ['@babel/preset-env'],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                // Restore Node.js polyfills (crypto, process, path, etc.)
+                // that webpack 5 no longer provides by default.
+                plugins: [
+                    new (require('node-polyfill-webpack-plugin'))(),
+                    new (require('webpack').ProvidePlugin)({
+                        process: 'process/browser',
+                        Buffer: ['buffer', 'Buffer'],
+                    }),
+                ],
+            };
+
+            on('file:preprocessor', webpackPreprocessor({webpackOptions}));
             return require('./tests/plugins/index.js')(on, config);
         },
         baseUrl: process.env.MM_SERVICESETTINGS_SITEURL || 'http://localhost:8065',

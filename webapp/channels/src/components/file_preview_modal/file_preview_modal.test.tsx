@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
+import FilePreviewModal, {computeZoomAtCursor} from 'components/file_preview_modal/file_preview_modal';
 
 import {act, render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
@@ -19,12 +19,16 @@ jest.mock('react-bootstrap', () => {
     return {Modal};
 });
 
-jest.mock('components/archived_preview', () => () => <div>{'Archived Preview'}</div>);
 jest.mock('components/audio_video_preview', () => () => <div>{'Audio Video Preview'}</div>);
+const mockCodePreview = jest.fn();
 jest.mock('components/code_preview', () => ({
     __esModule: true,
-    default: () => <div>{'Code Preview'}</div>,
+    default: (props: unknown) => {
+        mockCodePreview(props);
+        return <div>{'Code Preview'}</div>;
+    },
     hasSupportedLanguage: () => true,
+    canToggleMarkdownPreview: jest.requireActual('components/code_preview').canToggleMarkdownPreview,
 }));
 jest.mock('components/file_info_preview', () => () => <div>{'File Info Preview'}</div>);
 jest.mock('components/loading_image_preview', () => () => <div>{'Loading Image Preview'}</div>);
@@ -35,9 +39,12 @@ jest.mock('components/pdf_preview', () => ({
 jest.mock('components/file_preview_modal/file_preview_modal_footer/file_preview_modal_footer', () => () => (
     <div>{'File Preview Modal Footer'}</div>
 ));
-jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => () => (
-    <div>{'File Preview Modal Header'}</div>
-));
+const mockHeader = jest.fn();
+const lastHeaderContent = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0].content;
+jest.mock('components/file_preview_modal/file_preview_modal_header/file_preview_modal_header', () => (props: unknown) => {
+    mockHeader(props);
+    return <div>{'File Preview Modal Header'}</div>;
+});
 jest.mock('components/file_preview_modal/image_preview', () => () => <div>{'Image Preview'}</div>);
 jest.mock('components/file_preview_modal/popover_bar', () => () => <div>{'Popover Bar'}</div>);
 
@@ -399,5 +406,481 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, pluginFilePreviewComponents};
         const {container} = renderModal(props);
         expect(container).toMatchSnapshot();
+    });
+});
+
+describe('computeZoomAtCursor', () => {
+    test('cursor at center yields zero translate when starting from zero', () => {
+        const result = computeZoomAtCursor(1, {x: 0, y: 0}, 0, 0, 2);
+        expect(result).toEqual({x: 0, y: 0});
+    });
+
+    test('zooming in at an off-center cursor shifts translate opposite to the cursor', () => {
+        // Cursor 100px right of center, zooming 1 -> 2. The pixel under the cursor
+        // must remain under the cursor, so translate must move by -100px on x.
+        const result = computeZoomAtCursor(1, {x: 0, y: 0}, 100, 50, 2);
+        expect(result).toEqual({x: -100, y: -50});
+    });
+
+    test('zooming back to the same scale is a no-op on translate', () => {
+        const start = {x: 30, y: -40};
+        const result = computeZoomAtCursor(2, start, 75, 25, 2);
+        expect(result).toEqual(start);
+    });
+
+    test('preserves the pixel under the cursor across a zoom step', () => {
+        // The image pixel under the cursor (in local image-center coords) is
+        //   p = (cursor - translate) / scale
+        // After the new scale + new translate, applying the same transform to p
+        // should land back at the cursor position.
+        const oldScale = 1.5;
+        const oldT = {x: 20, y: -10};
+        const cursor = {x: 60, y: 80};
+        const newScale = 2.25;
+        const px = (cursor.x - oldT.x) / oldScale;
+        const py = (cursor.y - oldT.y) / oldScale;
+
+        const newT = computeZoomAtCursor(oldScale, oldT, cursor.x, cursor.y, newScale);
+
+        expect(newT.x + (newScale * px)).toBeCloseTo(cursor.x);
+        expect(newT.y + (newScale * py)).toBeCloseTo(cursor.y);
+    });
+
+    test('returns the input translate when oldScale is zero (guard)', () => {
+        const t = {x: 5, y: 7};
+        expect(computeZoomAtCursor(0, t, 10, 10, 2)).toBe(t);
+    });
+});
+
+describe('FilePreviewModal static helpers', () => {
+    test('getDefaultScaleForFile returns the image default for image extensions', () => {
+        const png = TestHelper.getFileInfoMock({extension: 'png'});
+        expect(FilePreviewModal.getDefaultScaleForFile(png)).toBe(1.0);
+    });
+
+    test('getDefaultScaleForFile returns the image default for SVG', () => {
+        const svg = TestHelper.getFileInfoMock({extension: 'svg'});
+        expect(FilePreviewModal.getDefaultScaleForFile(svg)).toBe(1.0);
+    });
+
+    test('getDefaultScaleForFile returns the (PDF) default for other file types', () => {
+        const pdf = TestHelper.getFileInfoMock({extension: 'pdf'});
+        expect(FilePreviewModal.getDefaultScaleForFile(pdf)).toBe(1.75);
+    });
+
+    test('getMaxScaleForFile caps images at 2.0 and other files at 3.0', () => {
+        expect(FilePreviewModal.getMaxScaleForFile(TestHelper.getFileInfoMock({extension: 'png'}))).toBe(2.0);
+        expect(FilePreviewModal.getMaxScaleForFile(TestHelper.getFileInfoMock({extension: 'svg'}))).toBe(2.0);
+        expect(FilePreviewModal.getMaxScaleForFile(TestHelper.getFileInfoMock({extension: 'pdf'}))).toBe(3.0);
+    });
+
+    test('getFileIdentity distinguishes FileInfo by id and LinkInfo by link', () => {
+        const fileInfo = TestHelper.getFileInfoMock({id: 'abc-123', extension: 'png'});
+        const linkInfo = {link: 'https://example.com/x.png', extension: 'png', name: 'x.png'};
+        expect(FilePreviewModal.getFileIdentity(fileInfo)).toBe('f:abc-123');
+        expect(FilePreviewModal.getFileIdentity(linkInfo as any)).toBe('l:https://example.com/x.png');
+    });
+
+    test('getFileIdentity namespaces file ids vs links so a literal collision never compares equal', () => {
+        const fileInfo = TestHelper.getFileInfoMock({id: 'shared-value', extension: 'png'});
+        const linkInfo = {link: 'shared-value', extension: 'png', name: 'x.png'};
+        expect(FilePreviewModal.getFileIdentity(fileInfo)).not.toBe(FilePreviewModal.getFileIdentity(linkInfo as any));
+    });
+});
+
+describe('FilePreviewModal instance behavior', () => {
+    const imageProps = {
+        fileInfos: [TestHelper.getFileInfoMock({id: 'img_1', extension: 'png'})],
+        startIndex: 0,
+        canDownloadFiles: true,
+        enablePublicLink: true,
+        isMobileView: false,
+        post: TestHelper.getPostMock(),
+        onExited: jest.fn(),
+    };
+
+    const mountModal = (props = imageProps) => {
+        const ref = React.createRef<FilePreviewModal>();
+        const utils = render(
+            <FilePreviewModal
+                ref={ref}
+                {...props}
+            />,
+        );
+        return {ref, ...utils};
+    };
+
+    describe('handleKeyDown', () => {
+        test('"+" zooms in and "-" zooms back out for an image', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}});
+            });
+
+            act(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: '+'}));
+            });
+            expect(ref.current?.state.scale[0]).toBeCloseTo(1.25);
+
+            act(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: '-'}));
+            });
+            expect(ref.current?.state.scale[0]).toBeCloseTo(1.0);
+        });
+
+        test('"0" resets a previously zoomed image to default scale', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 1.5}});
+            });
+
+            act(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: '0'}));
+            });
+            expect(ref.current?.state.scale[0]).toBe(1.0);
+        });
+
+        test('ignores zoom keys when a Ctrl/Cmd modifier is held', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}});
+            });
+
+            act(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: '+', ctrlKey: true}));
+                document.dispatchEvent(new KeyboardEvent('keydown', {key: '+', metaKey: true}));
+            });
+            expect(ref.current?.state.scale[0]).toBe(1.0);
+        });
+
+        test('ignores zoom keys when an input element has focus', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}});
+            });
+
+            const input = document.createElement('input');
+            document.body.appendChild(input);
+            input.focus();
+
+            act(() => {
+                input.dispatchEvent(new KeyboardEvent('keydown', {key: '+', bubbles: true}));
+            });
+            expect(ref.current?.state.scale[0]).toBe(1.0);
+
+            document.body.removeChild(input);
+        });
+    });
+
+    describe('handleImageMouseDown drag gate', () => {
+        // The drag handler requires DOM-level event listeners to set up; we
+        // assert behavior via the resulting React state rather than the
+        // private dragState field.
+        test('does not start a drag when the image is at default scale', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}});
+            });
+
+            const mockEvent = {button: 0, clientX: 0, clientY: 0, preventDefault: jest.fn()} as any;
+            act(() => {
+                ref.current?.handleImageMouseDown(mockEvent);
+            });
+            expect(ref.current?.state.isDragging).toBe(false);
+        });
+
+        test('starts a drag when the image is zoomed past default scale', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 1.5}});
+            });
+
+            const mockEvent = {button: 0, clientX: 0, clientY: 0, preventDefault: jest.fn()} as any;
+            act(() => {
+                ref.current?.handleImageMouseDown(mockEvent);
+            });
+            expect(ref.current?.state.isDragging).toBe(true);
+
+            // Cleanup: simulate mouseup so the document listeners don't leak
+            // between tests.
+            act(() => {
+                document.dispatchEvent(new MouseEvent('mouseup'));
+            });
+        });
+
+        test('ignores non-left-button mousedowns', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 1.5}});
+            });
+
+            const mockEvent = {button: 2, clientX: 0, clientY: 0, preventDefault: jest.fn()} as any;
+            act(() => {
+                ref.current?.handleImageMouseDown(mockEvent);
+            });
+            expect(ref.current?.state.isDragging).toBe(false);
+        });
+    });
+
+    describe('handleImageWheel scale clamping', () => {
+        // Use a stable rect for getBoundingClientRect across these tests so the
+        // cursor-offset math is predictable.
+        const wheelEventOn = (target: HTMLElement, deltaY: number) => {
+            const evt = new WheelEvent('wheel', {deltaY, clientX: 100, clientY: 100, cancelable: true});
+            Object.defineProperty(evt, 'currentTarget', {value: target, configurable: true});
+            return evt;
+        };
+
+        test('clamps zoom-in at MAX_SCALE_IMAGE (2.0)', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 1.9}});
+            });
+            const dummy = document.createElement('div');
+            jest.spyOn(dummy, 'getBoundingClientRect').mockReturnValue({left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200, x: 0, y: 0, toJSON: () => ({})});
+
+            act(() => {
+                ref.current?.handleImageWheel(wheelEventOn(dummy, -100));
+
+                // A second zoom-in should not push past the cap.
+                ref.current?.handleImageWheel(wheelEventOn(dummy, -100));
+            });
+            expect(ref.current?.state.scale[0]).toBeLessThanOrEqual(2.0);
+            expect(ref.current?.state.scale[0]).toBeCloseTo(2.0);
+        });
+
+        test('clamps zoom-out at MIN_SCALE (0.25)', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 0.3}});
+            });
+            const dummy = document.createElement('div');
+            jest.spyOn(dummy, 'getBoundingClientRect').mockReturnValue({left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200, x: 0, y: 0, toJSON: () => ({})});
+
+            act(() => {
+                ref.current?.handleImageWheel(wheelEventOn(dummy, 100));
+                ref.current?.handleImageWheel(wheelEventOn(dummy, 100));
+            });
+            expect(ref.current?.state.scale[0]).toBeGreaterThanOrEqual(0.25);
+            expect(ref.current?.state.scale[0]).toBeCloseTo(0.25);
+        });
+
+        test('no-op when deltaY is exactly zero', () => {
+            const {ref} = mountModal();
+            act(() => {
+                ref.current?.setState({showZoomControls: true, loaded: {0: true}, scale: {0: 1.0}});
+            });
+            const dummy = document.createElement('div');
+            jest.spyOn(dummy, 'getBoundingClientRect').mockReturnValue({left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200, x: 0, y: 0, toJSON: () => ({})});
+
+            act(() => {
+                ref.current?.handleImageWheel(wheelEventOn(dummy, 0));
+            });
+            expect(ref.current?.state.scale[0]).toBe(1.0);
+        });
+    });
+
+    describe('getDerivedStateFromProps identity reconciliation', () => {
+        test('resets scale/translate at an index where the file identity changed (same length)', () => {
+            const initial = {
+                ...imageProps,
+                fileInfos: [
+                    TestHelper.getFileInfoMock({id: 'a', extension: 'png'}),
+                    TestHelper.getFileInfoMock({id: 'b', extension: 'png'}),
+                ],
+            };
+            const {ref, rerender} = mountModal(initial);
+
+            // Simulate the user zooming both images.
+            act(() => {
+                ref.current?.setState({
+                    scale: {0: 1.5, 1: 1.75},
+                    translate: {0: {x: 10, y: 10}, 1: {x: 20, y: 20}},
+                });
+            });
+
+            // Swap the file at index 1 for a different one; index 0 keeps its identity.
+            const swapped = {
+                ...initial,
+                fileInfos: [
+                    initial.fileInfos[0],
+                    TestHelper.getFileInfoMock({id: 'c', extension: 'png'}),
+                ],
+            };
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...swapped}
+                />,
+            );
+
+            // Index 0 (unchanged identity) keeps its zoom; index 1 (new identity) resets.
+            expect(ref.current?.state.scale[0]).toBe(1.5);
+            expect(ref.current?.state.translate[0]).toEqual({x: 10, y: 10});
+            expect(ref.current?.state.scale[1]).toBe(1.0);
+            expect(ref.current?.state.translate[1]).toEqual({x: 0, y: 0});
+        });
+
+        test('drops the loaded content when the shown file is swapped for another, but not when another index is', () => {
+            const initial = {
+                ...imageProps,
+                fileInfos: [
+                    TestHelper.getFileInfoMock({id: 'a', extension: 'png'}),
+                    TestHelper.getFileInfoMock({id: 'b', extension: 'png'}),
+                ],
+            };
+            const {ref, rerender} = mountModal(initial);
+            act(() => {
+                ref.current?.setState({content: {fileId: 'f:a', text: 'loaded'}});
+            });
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[initial.fileInfos[0], TestHelper.getFileInfoMock({id: 'c', extension: 'png'})]}
+                />,
+            );
+            expect(lastHeaderContent()).toBe('loaded');
+
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...initial}
+                    fileInfos={[TestHelper.getFileInfoMock({id: 'd', extension: 'png'}), initial.fileInfos[1]]}
+                />,
+            );
+            expect(lastHeaderContent()).toBe('');
+        });
+
+        test('seeds default scale/translate for brand-new indexes when the list grows', () => {
+            const {ref, rerender} = mountModal();
+            act(() => {
+                ref.current?.setState({scale: {0: 1.5}, translate: {0: {x: 5, y: 5}}});
+            });
+
+            const grown = {
+                ...imageProps,
+                fileInfos: [
+                    imageProps.fileInfos[0],
+                    TestHelper.getFileInfoMock({id: 'new', extension: 'pdf'}),
+                ],
+            };
+            rerender(
+                <FilePreviewModal
+                    ref={ref}
+                    {...grown}
+                />,
+            );
+
+            expect(ref.current?.state.scale[0]).toBe(1.5);
+            expect(ref.current?.state.scale[1]).toBe(1.75); // pdf default
+            expect(ref.current?.state.translate[1]).toEqual({x: 0, y: 0});
+        });
+    });
+});
+
+describe('FilePreviewModal markdown view', () => {
+    const mdProps = {
+        fileInfos: [TestHelper.getFileInfoMock({id: 'md_1', extension: 'md'})],
+        startIndex: 0,
+        canDownloadFiles: true,
+        enablePublicLink: true,
+        isMobileView: false,
+        post: TestHelper.getPostMock(),
+        onExited: jest.fn(),
+    };
+
+    const lastCodePreviewProps = () => mockCodePreview.mock.calls[mockCodePreview.mock.calls.length - 1][0];
+    const lastHeaderProps = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0];
+
+    const mountMarkdownModal = (props = mdProps) => {
+        const ref = React.createRef<FilePreviewModal>();
+        const utils = render(
+            <FilePreviewModal
+                ref={ref}
+                {...props}
+            />,
+        );
+        act(() => {
+            ref.current?.setState({loaded: {0: true}});
+        });
+        return {ref, ...utils};
+    };
+
+    beforeEach(() => {
+        localStorage.clear();
+        mockCodePreview.mockClear();
+        mockHeader.mockClear();
+    });
+
+    test('should only offer the toggle once the file content has loaded', () => {
+        const {ref} = mountMarkdownModal();
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
+
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        expect(lastHeaderProps().showMarkdownToggle).toBe(true);
+    });
+
+    test('should keep the source for copying', () => {
+        const {ref} = mountMarkdownModal();
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        expect(lastHeaderProps().content).toBe('# Title');
+    });
+
+    test('should neither offer the toggle nor render markdown in the mobile view', () => {
+        const {ref} = mountMarkdownModal({...mdProps, isMobileView: true});
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        expect(lastCodePreviewProps().isMobileView).toBe(true);
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
+    });
+
+    test('should not offer the toggle for non-markdown code files', () => {
+        const {ref} = mountMarkdownModal({...mdProps, fileInfos: [TestHelper.getFileInfoMock({id: 'js_1', extension: 'js'})]});
+        act(() => {
+            ref.current?.getContent('const a = 1;');
+        });
+
+        expect(lastHeaderProps().showMarkdownToggle).toBe(false);
+    });
+
+    test('should drop the previous file content when navigating', () => {
+        const files = [
+            TestHelper.getFileInfoMock({id: 'md_1', extension: 'md'}),
+            TestHelper.getFileInfoMock({id: 'md_2', extension: 'md'}),
+        ];
+        const {ref} = mountMarkdownModal({...mdProps, fileInfos: files});
+        act(() => {
+            ref.current?.getContent('# First');
+        });
+
+        act(() => {
+            ref.current?.handleNext();
+        });
+
+        expect(lastHeaderProps().content).toBe('');
+    });
+
+    test('should keep the file content when the same file is shown again', () => {
+        const {ref} = mountMarkdownModal();
+        act(() => {
+            ref.current?.getContent('# Title');
+        });
+
+        act(() => {
+            ref.current?.handleNext();
+        });
+
+        expect(ref.current?.state.imageIndex).toBe(0);
+        expect(lastHeaderProps().content).toBe('# Title');
     });
 });

@@ -8,7 +8,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getMyGroupMentionKeysForChannel,
@@ -19,9 +18,10 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys, getHighlightWithoutNotificationKeys} from 'mattermost-redux/selectors/entities/users';
 
+import {getChannelKind} from 'utils/channel_kind';
 import {canManageMembers} from 'utils/channel_utils';
 import {Preferences} from 'utils/constants';
-import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
+import {isEnterpriseOrSKUStarterFree} from 'utils/license_utils';
 import type {MentionKey} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
@@ -31,7 +31,7 @@ import PostMarkdown, {type OwnProps} from './post_markdown';
 export function makeGetMentionKeysForPost(): (
     state: GlobalState,
     post?: Post,
-    channel?: Channel
+    channel?: Channel,
 ) => MentionKey[] {
     return createSelector(
         'makeGetMentionKeysForPost',
@@ -56,6 +56,10 @@ export function makeGetMentionKeysForPost(): (
     );
 }
 
+export function hasPluginTooltips(linkTooltip?: unknown[]): boolean {
+    return Boolean(linkTooltip?.length);
+}
+
 function makeMapStateToProps() {
     const getMentionKeysForPost = makeGetMentionKeysForPost();
 
@@ -64,23 +68,23 @@ function makeMapStateToProps() {
         const currentTeam = getCurrentTeam(state);
 
         const license = getLicense(state);
-        const subscriptionProduct = getSubscriptionProduct(state);
 
         const config = getConfig(state);
         const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
 
         return {
             channel,
+            channelKind: getChannelKind(state, ownProps.post ? {id: ownProps.post.channel_id} : null),
             currentTeam,
             pluginHooks: state.plugins.components.MessageWillFormat,
-            hasPluginTooltips: Boolean(state.plugins.components.LinkTooltip),
+            hasPluginTooltips: hasPluginTooltips(state.plugins.components.LinkTooltip),
             isUserCanManageMembers: channel && canManageMembers(state, channel),
             mentionKeys: getMentionKeysForPost(state, ownProps.post, channel),
             highlightKeys: getHighlightWithoutNotificationKeys(state),
             isMilitaryTime: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false),
             timezone: getCurrentTimezone(state),
             hideGuestTags: getConfig(state).HideGuestTags === 'true',
-            isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
+            isEnterpriseOrSKUStarterFree: isEnterpriseOrSKUStarterFree(license, isEnterpriseReady),
             isEnterpriseReady,
             renderEmoticonsAsEmoji: getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.RENDER_EMOTICONS_AS_EMOJI, Preferences.RENDER_EMOTICONS_AS_EMOJI_DEFAULT === 'true'),
         };

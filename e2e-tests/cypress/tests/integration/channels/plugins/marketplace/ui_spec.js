@@ -9,15 +9,14 @@
 
 // Group: @channels @not_cloud @plugin_marketplace @plugin @plugins_uninstall
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {githubPluginOld} from '../../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {githubPluginOld} from '@/utils/plugins';
 
 describe('Plugin Marketplace', () => {
     let townsquareLink;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
-        cy.shouldHaveFeatureFlag('StreamlinedMarketplace', 'false'); // https://mattermost.atlassian.net/browse/MM-54230
         cy.shouldHavePluginUploadEnabled();
 
         cy.apiInitSetup().then(({team}) => {
@@ -52,7 +51,7 @@ describe('Plugin Marketplace', () => {
         cy.visit(townsquareLink);
 
         // # Open up marketplace
-        cy.uiOpenProductMenu('Marketplace');
+        cy.uiOpenSwitchProductMenu('Marketplace');
 
         // * Verify error bar should not be visible
         cy.get('#error_bar').should('not.exist');
@@ -78,7 +77,7 @@ describe('Plugin Marketplace', () => {
         cy.uiClose();
 
         // # Open up marketplace
-        cy.uiOpenProductMenu('Marketplace');
+        cy.uiOpenSwitchProductMenu('Marketplace');
 
         // * Verify search plugins should be focused
         cy.findByPlaceholderText('Search Marketplace').should('be.focused');
@@ -218,7 +217,7 @@ describe('Plugin Marketplace', () => {
         cy.get('#confirmModal').should('be.visible');
 
         // # Confirm update
-        cy.get('#confirmModal').find('.btn.btn-primary').click();
+        cy.get('#confirmModalButton').click();
 
         // * Verify confirmation modal should not be visible
         cy.get('#confirmModal').should('not.exist');

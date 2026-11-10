@@ -12,7 +12,7 @@ type Props = {
     text: ReactNode;
     onChange: () => void;
     checked: boolean;
-}
+};
 
 function CheckInput(props: Props) {
     const {id, ariaLabel, text, ...rest} = props;

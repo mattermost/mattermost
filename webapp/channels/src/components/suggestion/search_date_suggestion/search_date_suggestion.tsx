@@ -18,7 +18,7 @@ type Props = SuggestionProps<never> & {
     handleEscape?: () => void;
     locale: string;
     preventClose?: () => void;
-}
+};
 
 const IconLeft = () => {
     return (

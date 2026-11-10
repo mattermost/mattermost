@@ -8,11 +8,12 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"slices"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
-	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -33,14 +34,34 @@ func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-// AddPublicKey will add plugin public key to the config. Overwrites the previous file
+var validPublicKeyName = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9_.\-]*$`)
+
+// IsPluginPublicKeyFile reports whether name is one of the configured plugin signature public keys.
+func (a *App) IsPluginPublicKeyFile(name string) bool {
+	return slices.Contains(a.Config().PluginSettings.SignaturePublicKeyFiles, name)
+}
+
+// AddPublicKey will add plugin public key to the config. It never overwrites an existing file.
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if isSamlFile(&a.Config().SamlSettings, name) {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
+	if !validPublicKeyName.MatchString(name) {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid_name.app_error", map[string]any{"Name": name}, "", http.StatusBadRequest)
+	}
+	exists, err := a.Srv().platform.HasConfigFile(name)
+	if err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if exists {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.file_exists.app_error", map[string]any{"Name": name}, "", http.StatusConflict)
+	}
 	data, err := io.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if err = validatePublicKey(data); err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid_key.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	err = a.Srv().platform.SetConfigFile(name, data)
 	if err != nil {
@@ -80,6 +101,18 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 		return nil
 	}
 
+	// Next, if enabled, try verifying using the hard-coded MFI public key.
+	if ch.srv.Config().FeatureFlags.EnableMFIPluginSignaturePublicKey {
+		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in plugin reader for MFI public key")
+		} else if _, err := signature.Seek(0, io.SeekStart); err != nil {
+			logger.Warn("Unable to seek in signature reader for MFI public key")
+		} else if err := verifySignature(bytes.NewReader(mfiPluginPublicKey), plugin, signature); err == nil {
+			logger.Debug("Plugin signature verified using hard-coded MFI public key")
+			return nil
+		}
+	}
+
 	// If that fails, try any of the admin-configured public keys.
 	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
@@ -106,6 +139,26 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
+func validatePublicKey(data []byte) error {
+	pk, err := decodeIfArmored(bytes.NewReader(data))
+	if err != nil {
+		return errors.Wrap(err, "can't decode public key")
+	}
+	keyring, err := openpgp.ReadKeyRing(pk)
+	if err != nil {
+		return errors.Wrap(err, "can't read public key")
+	}
+	if len(keyring) == 0 {
+		return errors.New("no public keys found")
+	}
+	for _, entity := range keyring {
+		if entity.PrivateKey != nil {
+			return errors.New("refusing to store a private key")
+		}
+	}
+	return nil
+}
+
 func verifySignature(publicKey, message, signature io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
@@ -123,7 +176,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	if err != nil {
 		return errors.Wrap(err, "can't read public key")
 	}
-	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature); err != nil {
+	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature, nil); err != nil {
 		return errors.Wrap(err, "error while checking the signature")
 	}
 	return nil

@@ -6,8 +6,8 @@ import React from 'react';
 import './title.scss';
 
 type Props = {
-    children: React.ReactNode | React.ReactNodeArray;
-}
+    children: React.ReactNode | readonly React.ReactNode[];
+};
 const Title = (props: Props) => {
     return (<h1 className='PreparingWorkspaceTitle'>
         {props.children}

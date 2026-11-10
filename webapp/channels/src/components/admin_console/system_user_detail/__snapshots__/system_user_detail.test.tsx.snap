@@ -4,13 +4,16 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -24,101 +27,212 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
-                      aria-describedby="username-error"
-                      aria-invalid="false"
                       class="form-control"
-                      placeholder="Enter username"
+                      maxlength="64"
+                      placeholder="Enter first name"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
-                      aria-describedby="email-error"
-                      aria-invalid="false"
                       class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -127,96 +241,147 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      Email
-                    </span>
-                  </label>
+                        Email
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_0_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -226,13 +391,15 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -251,13 +418,16 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -271,101 +441,212 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
-                      aria-describedby="username-error"
-                      aria-invalid="false"
                       class="form-control"
-                      placeholder="Enter username"
+                      maxlength="64"
+                      placeholder="Enter first name"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
-                      aria-describedby="email-error"
-                      aria-invalid="false"
                       class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -374,96 +655,147 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      Email
-                    </span>
-                  </label>
+                        Email
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_6_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_6_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -473,13 +805,429 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+      <div
+        aria-live="polite"
+        class="error-message"
+        role="alert"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
+<div>
+  <div
+    class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
+  >
+    <div
+      class="admin-console__header with-back"
+      data-testid="admin-console-header"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
+          href="/admin_console/user_management/users"
+        />
+        User Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="AdminUserCard"
+          data-testid="adminUserCard"
+        >
+          <header
+            class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
+          >
+            <div
+              class="AdminUserCard__header-main"
+            >
+              <div
+                class="AdminUserCard__header-start"
+              >
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
+          >
+            <span />
+            <div
+              class="two-column-layout"
+              data-testid="twoColumnLayout"
+            >
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
+                    </span>
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
+                    </span>
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
+                      >
+                        Email
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
+          >
+            <button
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
+            </button>
+            <button
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
+            >
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
+            </button>
+          </div>
+        </div>
+        <section
+          aria-labelledby="_r_1c_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
+        >
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+          >
+            <div
+              class="_admin-panel-header__main_19tix_10"
+            >
+              <div
+                class="_admin-panel-header__start_19tix_19"
+              >
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_1c_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_iwm08_25"
+          >
+            <div />
+            <div
+              class="AbstractList"
+            >
+              <div
+                class="AbstractList__body"
+              >
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <div
+        class="admin-console-save-buttons"
+      >
+        <button
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -498,13 +1246,16 @@ exports[`SystemUserDetail should not show manage user settings button when user 
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -518,101 +1269,212 @@ exports[`SystemUserDetail should not show manage user settings button when user 
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
-                      aria-describedby="username-error"
-                      aria-invalid="false"
                       class="form-control"
-                      placeholder="Enter username"
+                      maxlength="64"
+                      placeholder="Enter first name"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
-                      aria-describedby="email-error"
-                      aria-invalid="false"
                       class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -621,96 +1483,147 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      Email
-                    </span>
-                  </label>
+                        Email
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_16_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_16_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -720,13 +1633,15 @@ exports[`SystemUserDetail should not show manage user settings button when user 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -745,13 +1660,16 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -765,101 +1683,212 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
-                      aria-describedby="username-error"
-                      aria-invalid="false"
                       class="form-control"
-                      placeholder="Enter username"
+                      maxlength="64"
+                      placeholder="Enter first name"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
-                      aria-describedby="email-error"
-                      aria-invalid="false"
                       class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -868,102 +1897,158 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      Email
-                    </span>
-                  </label>
+                        Email
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
             <button
-              class="manageUserSettingsBtn btn btn-tertiary"
+              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 manageUserSettingsBtn"
               id="manageUserSettingsBtn"
+              type="button"
             >
-              Manage User Settings
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Manage User Settings
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_c_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_c_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -973,13 +2058,15 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -998,13 +2085,16 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -1018,101 +2108,212 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="username-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter username"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="email-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
-                      aria-describedby="username-error"
-                      aria-invalid="false"
                       class="form-control"
-                      placeholder="Enter username"
+                      maxlength="64"
+                      placeholder="Enter first name"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
-                      aria-describedby="email-error"
-                      aria-invalid="false"
                       class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1121,96 +2322,147 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      Email
-                    </span>
-                  </label>
+                        Email
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 />
               </div>
             </div>
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+              type="button"
             >
-              Deactivate
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_i_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_i_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -1220,13 +2472,15 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>
@@ -1245,13 +2499,16 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
 <div>
   <div
     class="SystemUserDetail wrapper--fixed"
+    data-testid="systemUserDetail"
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
           class="fa fa-angle-left back"
+          data-testid="adminHeader-backLink"
           href="/admin_console/user_management/users"
         />
         User Configuration
@@ -1265,103 +2522,216 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
       >
         <div
           class="AdminUserCard"
+          data-testid="adminUserCard"
         >
-          <div
+          <header
             class="AdminUserCard__header"
+            data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__header-main"
             >
-              <span
-                class="profile-icon "
+              <div
+                class="AdminUserCard__header-start"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
-            <div
-              class="AdminUserCard__user-info"
-            >
-              <span>
-                 
-              </span>
-              <span
-                class="AdminUserCard__user-nickname"
-              />
+                <div
+                  class="AdminUserCard__picture"
+                >
+                  <button
+                    aria-expanded="false"
+                    aria-haspopup="dialog"
+                    class="status-wrapper style--none admin-user-card"
+                    style="border-radius: 50%; width: 128px; height: 128px;"
+                    type="button"
+                  >
+                    <span
+                      class="profile-icon "
+                      data-testid="profile-icon"
+                    >
+                      <img
+                        alt="user profile image"
+                        class="Avatar Avatar-xxl"
+                        loading="lazy"
+                        src="/api/v4/users/user_id/image"
+                      />
+                    </span>
+                  </button>
+                  <input
+                    accept=".jpeg,.jpg,.png,.bmp"
+                    aria-hidden="true"
+                    class="AdminUserCard__picture-input"
+                    data-testid="adminUserCardPictureInput"
+                    tabindex="-1"
+                    type="file"
+                  />
+                  <button
+                    aria-controls="adminUserCardPictureMenu"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="Edit profile picture"
+                    class="AdminUserCard__picture-edit"
+                    data-testid="adminUserCardPictureButton"
+                    id="adminUserCardPictureButton"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="14"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="AdminUserCard__title-stack"
+                >
+                  <h2
+                    class="AdminUserCard__user-info"
+                    data-testid="adminUserCard-userInfo"
+                  >
+                    some-user
+                  </h2>
+                  <p
+                    class="AdminUserCard__user-id"
+                    data-testid="adminUserCard-userId"
+                  >
+                    User ID: user_id
+                  </p>
+                </div>
+              </div>
             </div>
-            <div
-              class="AdminUserCard__user-id"
-            >
-              User ID: user_id
-            </div>
-          </div>
+          </header>
           <div
             class="AdminUserCard__body"
+            data-testid="adminUserCard-body"
           >
             <span />
             <div
               class="two-column-layout"
+              data-testid="twoColumnLayout"
             >
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Username
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Username
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M12,15C12.81,15 13.5,14.7 14.11,14.11C14.7,13.5 15,12.81 15,12C15,11.19 14.7,10.5 14.11,9.89C13.5,9.3 12.81,9 12,9C11.19,9 10.5,9.3 9.89,9.89C9.3,10.5 9,11.19 9,12C9,12.81 9.3,13.5 9.89,14.11C10.5,14.7 11.19,15 12,15M12,2C14.75,2 17.1,3 19.05,4.95C21,6.9 22,9.25 22,12V13.45C22,14.45 21.65,15.3 21,16C20.3,16.67 19.5,17 18.5,17C17.3,17 16.31,16.5 15.56,15.5C14.56,16.5 13.38,17 12,17C10.63,17 9.45,16.5 8.46,15.54C7.5,14.55 7,13.38 7,12C7,10.63 7.5,9.45 8.46,8.46C9.45,7.5 10.63,7 12,7C13.38,7 14.55,7.5 15.54,8.46C16.5,9.45 17,10.63 17,12V13.45C17,13.86 17.16,14.22 17.46,14.53C17.76,14.84 18.11,15 18.5,15C18.92,15 19.27,14.84 19.57,14.53C19.87,14.22 20,13.86 20,13.45V12C20,9.81 19.23,7.93 17.65,6.35C16.07,4.77 14.19,4 12,4C9.81,4 7.93,4.77 6.35,6.35C4.77,7.93 4,9.81 4,12C4,14.19 4.77,16.07 6.35,17.65C7.93,19.23 9.81,20 12,20H17V22H12C9.25,22 6.9,21 4.95,19.05C3,17.1 2,14.75 2,12C2,9.25 3,6.9 4.95,4.95C6.9,3 9.25,2 12,2Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        class="form-control"
+                        disabled=""
+                        placeholder="Enter username"
+                        readonly=""
+                        style="cursor: not-allowed;"
+                        type="text"
+                        value="some-user"
+                      />
+                    </div>
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      Email
+                    </span>
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        class="form-control"
+                        disabled=""
+                        readonly=""
+                        style="cursor: not-allowed;"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    <span
+                      class="field-label"
+                    >
+                      First Name
                     </span>
                     <input
                       class="form-control"
                       disabled=""
-                      placeholder="Enter username"
+                      placeholder="Enter first name"
                       readonly=""
-                      style="cursor: not-allowed;"
                       type="text"
-                      value="some-user"
+                      value=""
                     />
                   </label>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Email
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Last Name
                     </span>
                     <input
                       class="form-control"
                       disabled=""
+                      placeholder="Enter last name"
                       readonly=""
-                      style="cursor: not-allowed;"
                       type="text"
                       value=""
                     />
@@ -1370,54 +2740,75 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               </div>
               <div
                 class="field-row"
+                data-testid="fieldRow"
               >
                 <div
                   class="field-column left"
+                  data-testid="fieldColumn"
                 >
-                  <label>
-                    Authentication Method
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
+                  <div>
+                    <span
+                      class="field-label"
+                    >
+                      Authentication Method
+                    </span>
+                    <div
+                      class="field-control field-control--text"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        data-testid="authenticationMethodValue"
                       >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
-                    </span>
-                    <span>
-                      LDAP
-                    </span>
-                  </label>
+                        LDAP
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div
                   class="field-column right"
+                  data-testid="fieldColumn"
                 >
                   <label>
-                    Auth Data
-                    <span>
-                      <svg
-                        height="100%"
-                        viewBox="0 0 24 24"
-                        width="100%"
-                      >
-                        <path
-                          d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
-                          fill="inherit"
-                        />
-                      </svg>
+                    <span
+                      class="field-label"
+                    >
+                      Auth Data
                     </span>
-                    <input
-                      aria-describedby="authdata-error"
-                      aria-invalid="false"
-                      class="form-control"
-                      placeholder="Enter auth data"
-                      type="text"
-                      value=""
-                    />
+                    <div
+                      class="field-control"
+                    >
+                      <span>
+                        <svg
+                          height="100%"
+                          viewBox="0 0 24 24"
+                          width="100%"
+                        >
+                          <path
+                            d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                            fill="inherit"
+                          />
+                        </svg>
+                      </span>
+                      <input
+                        aria-describedby="authdata-error"
+                        aria-invalid="false"
+                        class="form-control"
+                        placeholder="Enter auth data"
+                        type="text"
+                        value=""
+                      />
+                    </div>
                   </label>
                 </div>
               </div>
@@ -1425,68 +2816,106 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
           </div>
           <div
             class="AdminUserCard__footer"
+            data-testid="adminUserCard-footer"
           >
             <button
-              class="btn btn-secondary"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+              type="button"
             >
-              Reset Password
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Reset Password
+              </span>
             </button>
             <button
-              class="btn btn-secondary btn-danger"
+              class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
               disabled=""
+              type="button"
             >
-              Deactivate
-               
-              (Managed By LDAP)
+              <span
+                class="_button__label_we8pe_31"
+              >
+                Deactivate
+                 
+                (Managed By LDAP)
+              </span>
             </button>
           </div>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_o_"
+          class="_admin-panel_iwm08_2 AdminPanel clearfix"
+          id="teamMembershipPanel"
         >
-          <div
-            class="header"
+          <header
+            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
           >
-            <div>
-              <h3>
-                Team Membership
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Teams to which this user belongs
-              </div>
-            </div>
             <div
-              class="button"
+              class="_admin-panel-header__main_19tix_10"
             >
               <div
-                class="add-team-button"
+                class="_admin-panel-header__start_19tix_19"
               >
-                <button
-                  class="btn btn-primary"
-                  type="button"
+                <div
+                  class="_admin-panel-header__title-stack_19tix_37"
                 >
-                  Add Team
-                </button>
+                  <div
+                    class="_admin-panel-header__title-row_19tix_46"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_19tix_37"
+                      id="_r_o_"
+                    >
+                      Team Membership
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_19tix_66"
+                  >
+                    Teams to which this user belongs
+                  </p>
+                </div>
+              </div>
+              <div
+                class="_admin-panel-header__actions_19tix_75"
+              >
+                <div
+                  class="add-team-button"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
+                    >
+                      Add Team
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div />
+          </header>
           <div
-            class="AbstractList"
+            class="_admin-panel__body_iwm08_25"
           >
+            <div />
             <div
-              class="AbstractList__body"
+              class="AbstractList"
             >
               <div
-                class="AbstractList__empty"
+                class="AbstractList__body"
               >
-                No teams found
+                <div
+                  class="AbstractList__empty"
+                >
+                  No teams found
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
     <div
@@ -1496,13 +2925,15 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
         class="admin-console-save-buttons"
       >
         <button
-          class="btn btn-primary"
+          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
-          <span>
+          <span
+            class="_button__label_we8pe_31"
+          >
             Save
           </span>
         </button>

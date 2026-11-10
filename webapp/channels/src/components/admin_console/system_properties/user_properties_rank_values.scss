@@ -1,0 +1,158 @@
+.user-property-rank-values {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+
+    .user-property-rank-values__chips {
+        display: flex;
+        min-height: 40px;
+        flex-wrap: wrap;
+        align-items: center;
+
+        // 10px matches react-select's content inset on the select/multiselect
+        // cell (valueContainer's 8px padding + the 2px margin on each chip and on
+        // the placeholder), so chips and the "Add values…" input line up across
+        // field types.
+        padding: 8px 10px;
+        cursor: text;
+        gap: 6px;
+
+        // Match the select/multiselect values cell's hover/focus affordance so the
+        // empty state (and the populated cell) read identically across field types.
+        &:hover,
+        &:focus-within {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
+    }
+
+    // The chip is a pill split into three flush regions: the rank badge fills the
+    // left, the label (popover trigger) the middle, and the remove button the
+    // right. overflow:hidden lets the badge/button square edges inherit the pill's
+    // rounded corners.
+    .user-property-rank-values__chip {
+        display: inline-flex;
+        overflow: hidden;
+        height: 24px;
+        align-items: stretch;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+
+        &--disabled {
+            opacity: 0.6;
+        }
+
+        // The rank badge fills the whole left side of the pill.
+        .rank-badge {
+            min-width: 24px;
+            height: auto;
+            align-self: stretch;
+            padding: 0 7px;
+            border-radius: 0;
+        }
+    }
+
+    .user-property-rank-values__chip-name {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+
+        &:hover:not(:disabled) {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            cursor: default;
+        }
+    }
+
+    .user-property-rank-values__chip-label {
+        line-height: 16px;
+    }
+
+    // Mirrors react-select's multiValueRemove (used by 'select' fields) so the
+    // remove affordance is identical across field types.
+    .user-property-rank-values__chip-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+
+    // The "Add values…" input auto-grows with its content and wraps to a new row
+    // when it no longer fits, mirroring react-select's sizer-based input. The
+    // wrapper is an inline-grid whose hidden ::after carries a copy of the live
+    // text (via data-value); that pseudo-element sizes the grid column and the
+    // input fills it. Both use `font: inherit` so the measured and rendered text
+    // match exactly — the same technique react-select uses on the select cell.
+    .user-property-rank-values__add-sizer {
+        display: inline-grid;
+        flex: 0 1 auto;
+        grid-template-columns: 0 min-content;
+
+        &::after {
+            min-width: 2px;
+            padding: 0;
+            content: attr(data-value) ' ';
+            font: inherit;
+            grid-area: 1 / 2;
+            visibility: hidden;
+            white-space: pre;
+        }
+    }
+
+    .user-property-rank-values__add-input {
+        width: 100%;
+        min-width: 2px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        margin: 0;
+        background: transparent;
+        color: var(--center-channel-color);
+        font: inherit;
+        grid-area: 1 / 2;
+
+        // react-select renders its placeholder as a plain <div> at full opacity in
+        // theme.colors.neutral50; a native <input>'s ::placeholder is dimmed by the
+        // browser's default opacity, so reset it to 1 to match the grey exactly.
+        &::placeholder {
+            color: hsl(0, 0%, 50%);
+            opacity: 1;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    .user-property-rank-values__rank-current {
+        margin-right: 6px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}
+
+// The per-option popover (label input + Rank submenu) is portalled to <body>,
+// so this rule lives outside .user-property-rank-values. Drop MUI's default 8px
+// MuiList top/bottom padding; the label input's own 10px top padding then sets
+// the spacing from the popover's top edge.
+.user-property-rank-values__popover-list.MuiList-root {
+    padding-top: 0;
+    padding-bottom: 0;
+}

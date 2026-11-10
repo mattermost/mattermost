@@ -15,7 +15,7 @@ import {getSiteURL} from 'utils/url';
 
 type Props = {
     isDisabled?: boolean;
-}
+};
 
 const GroupSettings = ({isDisabled}: Props) => {
     const siteURL = getSiteURL();

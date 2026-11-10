@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -26,7 +26,7 @@ import StartTrialBtn from './start_trial_btn';
 type Props = {
     onClose?: () => void;
     onExited: () => void;
-}
+};
 
 const LearnMoreTrialModal = (
     {

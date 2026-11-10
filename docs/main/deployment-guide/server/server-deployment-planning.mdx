@@ -1,0 +1,35 @@
+---
+title: "Plan your deployment"
+---
+Everything in this section is a decision you make before touching a server: what the components are, how big each one needs to be, and what the requirements are for the versions you'll run. Work through the pages in order.
+
+<CardGrid columns={3} cards={[
+  {
+    title: 'Application architecture',
+    description: 'The components of a Mattermost deployment and how they fit together: access layer, application layer, and the database, file storage, search, and cache behind them.',
+    to: '/deployment-guide/application-architecture',
+  },
+  {
+    title: 'Size your deployment',
+    description: 'Pick a scale tier, deployment type, and hosting provider to get a target architecture diagram and a bill of materials sized to those choices.',
+    to: '/deployment-guide/deployment-architecture',
+  },
+  {
+    title: 'Software and hardware requirements',
+    description: 'Minimum client, server, database, and hardware requirements, including the minimum PostgreSQL version policy.',
+    to: '/deployment-guide/software-hardware-requirements',
+  },
+]} />
+
+## What to decide here
+
+Sizing depends on more than user count. Before you move on to [Prepare](/deployment-guide/server/preparations), settle:
+
+- **Expected user count and growth.** Sizing is driven by concurrent users, not registered users. [Size your deployment](/deployment-guide/deployment-architecture) maps a scale tier to a bill of materials.
+- **Whether you need high availability.** HA changes the topology, the licensing, and the deployment method. See [High availability cluster-based deployment](/deployment-guide/server/high-availability-cluster-based-deployment).
+- **Your backup and disaster recovery requirements.** These are deployment-time architecture decisions, not day-2 tasks. See [Back up and recover](/deployment-guide/backup-disaster-recovery).
+- **Which deployment method fits your environment.** Kubernetes, Linux, or containers. The trade-offs are compared in [Deploy the Mattermost server](/deployment-guide/server/deploy-server#deployment-options).
+- **Security and compliance constraints.** If you're deploying air-gapped, into a coalition network, or under a compliance framework, start from [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index), because those constraints shape every decision that follows.
+- **Integrations with existing systems.** Identity provider, SMTP relay, push notification service, and search infrastructure all need to exist before you cut over users.
+
+Not deploying it yourself? [Deployment Solution Programs](/get-help/deployment-solution-programs) covers the third-party and community-maintained solutions that deploy Mattermost for you, and the standards each recognition tier commits to.

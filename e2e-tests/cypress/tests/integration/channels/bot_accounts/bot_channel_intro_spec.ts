@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @bot_accounts
 
-import {Bot} from '@mattermost/types/bots';
-import {Team} from '@mattermost/types/teams';
+import type {Bot} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
 
-import {createBotPatch} from '../../../support/api/bots';
+import {createBotPatch} from '@/support/api/bots';
 
 describe('Bot channel intro and avatar', () => {
     let team: Team;

@@ -1,20 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudBanners, Preferences} from 'utils/constants';
 
 import CloudTrialBanner from './cloud_trial_banner';
 
 jest.mock('components/common/hooks/useOpenSalesLink', () => ({
     __esModule: true,
-    default: () => () => true,
+    default: () => [jest.fn()],
 }));
 
 const mockDispatch = jest.fn();
@@ -31,6 +29,9 @@ describe('components/admin_console/billing_subscription/CloudTrialBanner', () =>
         entities: {
             users: {
                 currentUserId: 'test_id',
+                profiles: {
+                    test_id: {id: 'test_id', roles: 'system_user'},
+                },
             },
             admin: {
                 prevTrialLicense: {
@@ -48,25 +49,21 @@ describe('components/admin_console/billing_subscription/CloudTrialBanner', () =>
         },
     };
 
-    const store = mockStore(state);
-
     test('should match snapshot when no trial end date is passed', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <CloudTrialBanner trialEndDate={0}/>
-            </Provider>,
+        mockState = state;
+        const {container} = renderWithContext(
+            <CloudTrialBanner trialEndDate={0}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when is cloud and is free trial (the trial end is passed)', () => {
-        const wrapper = shallow(
-            <Provider store={store}>
-                <CloudTrialBanner trialEndDate={12345}/>
-            </Provider>,
+        mockState = state;
+        const {container} = renderWithContext(
+            <CloudTrialBanner trialEndDate={12345}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when there is an stored preference value', () => {
@@ -80,14 +77,10 @@ describe('components/admin_console/billing_subscription/CloudTrialBanner', () =>
             },
         };
 
-        const stateWithPref = {...state, entities: {...state.entities, preferences: myPref}};
-
-        const store = mockStore(stateWithPref);
-        const wrapper = shallow(
-            <Provider store={store}>
-                <CloudTrialBanner trialEndDate={12345}/>
-            </Provider>,
+        mockState = {...state, entities: {...state.entities, preferences: myPref}};
+        const {container} = renderWithContext(
+            <CloudTrialBanner trialEndDate={12345}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

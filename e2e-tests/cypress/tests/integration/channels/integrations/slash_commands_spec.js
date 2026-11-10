@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Integrations', () => {
     let user1;
@@ -41,7 +41,7 @@ describe('Integrations', () => {
             team1 = team;
             offTopicUrl1 = offTopicUrl;
             cy.apiGetChannelByName(team1.name, 'off-topic').then(({channel}) => {
-                commandURL = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
+                commandURL = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
             });
 
             cy.apiCreateUser().then(({user: otherUser}) => {
@@ -247,7 +247,7 @@ describe('Integrations', () => {
         cy.postMessage('hello');
 
         // # Navigate to slash commands and create the slash command
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#slashCommands').click();
         cy.get('#addSlashCommand').click();
         cy.get('#displayName').type(`Test${timestamp}`);

@@ -151,9 +151,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(oldRole)
 	auditRec.AddEventObjectType("role")
 
-	// manage_system permission is required to patch system_admin
+	// manage_system permission is required to patch system_admin and other protected system roles.
 	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
-	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SystemAdminRoleId)
+	specialProtectedSystemRoles := append(append([]string{}, model.NewSystemRoleIDs...), model.SystemAdminRoleId, model.SystemUserRoleId, model.SystemGuestRoleId)
 	for _, roleID := range specialProtectedSystemRoles {
 		if oldRole.Name == roleID {
 			requiredPermission = model.PermissionManageSystem

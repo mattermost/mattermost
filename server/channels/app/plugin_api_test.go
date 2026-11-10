@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -19,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -32,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -219,7 +222,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -230,19 +233,28 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	require.Len(t, preferences, 3)
 
-	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
+	prefByCategory := make(map[string]model.Preference, len(preferences))
+	for _, p := range preferences {
+		prefByCategory[p.Category] = p
+	}
+	require.Len(t, prefByCategory, 3, "default user preferences should use distinct categories")
 
-	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+	nextSteps, ok := prefByCategory[model.PreferenceRecommendedNextSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceRecommendedNextSteps)
+	assert.Equal(t, user1.Id, nextSteps.UserId)
+	assert.Equal(t, "hide", nextSteps.Name)
+	assert.Equal(t, "false", nextSteps.Value)
 
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	_, ok = prefByCategory[model.PreferenceCategorySystemNotice]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategorySystemNotice)
+
+	tutorial, ok := prefByCategory[model.PreferenceCategoryTutorialSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategoryTutorialSteps)
+	assert.Equal(t, user1.Id, tutorial.UserId)
+	assert.Equal(t, user1.Id, tutorial.Name)
+	assert.Equal(t, "0", tutorial.Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
@@ -253,7 +265,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -274,7 +286,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -315,7 +327,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -326,17 +338,28 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 3, len(preferences))
+	require.Len(t, preferences, 3)
 
-	assert.Equal(t, user1.Id, preferences[0].UserId)
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, "hide", preferences[0].Name)
-	assert.Equal(t, "false", preferences[0].Value)
-	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[2].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
-	assert.Equal(t, user1.Id, preferences[2].Name)
-	assert.Equal(t, "0", preferences[2].Value)
+	prefByCategory := make(map[string]model.Preference, len(preferences))
+	for _, p := range preferences {
+		prefByCategory[p.Category] = p
+	}
+	require.Len(t, prefByCategory, 3, "default user preferences should use distinct categories")
+
+	nextSteps, ok := prefByCategory[model.PreferenceRecommendedNextSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceRecommendedNextSteps)
+	assert.Equal(t, user1.Id, nextSteps.UserId)
+	assert.Equal(t, "hide", nextSteps.Name)
+	assert.Equal(t, "false", nextSteps.Value)
+
+	_, ok = prefByCategory[model.PreferenceCategorySystemNotice]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategorySystemNotice)
+
+	tutorial, ok := prefByCategory[model.PreferenceCategoryTutorialSteps]
+	require.True(t, ok, "expected default preference for category %q", model.PreferenceCategoryTutorialSteps)
+	assert.Equal(t, user1.Id, tutorial.UserId)
+	assert.Equal(t, user1.Id, tutorial.Name)
+	assert.Equal(t, "0", tutorial.Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -367,7 +390,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -378,7 +401,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -389,7 +412,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -400,7 +423,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -467,7 +490,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -478,7 +501,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -489,7 +512,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -535,7 +558,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -546,7 +569,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -557,7 +580,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -568,7 +591,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -662,7 +685,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Username: "user_" + model.NewId(),
-		Password: "password",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err)
 	defer func() {
@@ -677,14 +700,14 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err := th.App.GetCustomStatus(user1.Id)
+	userCs, err := th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
@@ -692,7 +715,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	custom.Emoji = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
@@ -705,7 +728,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	err = api.RemoveUserCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	var csClear *model.CustomStatus
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, csClear, userCs)
 }
@@ -737,6 +760,127 @@ func TestPluginAPIGetFile(t *testing.T) {
 	data, err = api.GetFile("../fake/testingApi")
 	require.NotNil(t, err)
 	require.Nil(t, data)
+}
+
+func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	fileActionAPI, ok := any(api).(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	})
+	if !t.Run("method exposure", func(t *testing.T) {
+		require.True(t, ok, "PluginAPI must expose HasPermissionToFileAction(sessionID, fileID, action string) bool")
+	}) {
+		return
+	}
+
+	enableSessionAttributesCollection(t, th)
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		cfg.FeatureFlags.PermissionPolicies = true
+	})
+	th.ConfigStore.SetReadOnlyFF(true)
+
+	activeSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		ExpiresAt: model.GetMillis() + 100000,
+		Props:     model.StringMap{},
+	})
+	require.Nil(t, appErr)
+
+	expiredSession, appErr := th.App.CreateSession(th.Context, &model.Session{
+		UserId:    th.BasicUser.Id,
+		ExpiresAt: model.GetMillis() - 100000,
+		Props:     model.StringMap{},
+	})
+	require.Nil(t, appErr)
+
+	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(activeSession.Id, map[string]any{
+		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
+	}, model.GetMillis()))
+
+	fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+	t.Cleanup(func() {
+		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
+	})
+
+	mockAccessControl := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockAccessControl
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Once()
+	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == th.BasicChannel.Id &&
+			req.Action == model.AccessControlPolicyActionUploadFileAttachment &&
+			req.Subject.Session[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10"
+	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+	tests := []struct {
+		name      string
+		sessionID string
+		fileID    string
+		action    string
+		expected  bool
+	}{
+		{
+			name:     "missing session",
+			fileID:   fileInfo.Id,
+			action:   model.AccessControlPolicyActionDownloadFileAttachment,
+			expected: false,
+		},
+		{
+			name:      "invalid session",
+			sessionID: model.NewId(),
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "expired session",
+			sessionID: expiredSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "unknown file",
+			sessionID: activeSession.Id,
+			fileID:    model.NewId(),
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "invalid action",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    "invalid-action",
+			expected:  false,
+		},
+		{
+			name:      "policy deny",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionDownloadFileAttachment,
+			expected:  false,
+		},
+		{
+			name:      "policy allow with session attributes",
+			sessionID: activeSession.Id,
+			fileID:    fileInfo.Id,
+			action:    model.AccessControlPolicyActionUploadFileAttachment,
+			expected:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, fileActionAPI.HasPermissionToFileAction(tt.sessionID, tt.fileID, tt.action))
+		})
+	}
+	mockAccessControl.AssertExpectations(t)
 }
 
 func TestPluginAPIGetFileInfos(t *testing.T) {
@@ -980,6 +1124,101 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	}`)
 
 	require.NoError(t, err)
+}
+
+func TestPluginAPILoadPluginConfigurationDefaultsFromSections(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"mysectionstringsetting": "override"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testsectiondefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testsectiondefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "MySectionStringSetting", Type: "text", Default: "notthis"},
+						{Key: "MySectionIntSetting", Type: "text", Default: float64(42)},
+						{Key: "MySectionBoolSetting", Type: "bool", Default: true},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		MySectionStringSetting string
+		MySectionIntSetting    int
+		MySectionBoolSetting   bool
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	assert.Equal(t, "override", dest.MySectionStringSetting) // saved config overrides default
+	assert.Equal(t, 42, dest.MySectionIntSetting)            // default applied from section
+	assert.True(t, dest.MySectionBoolSetting)                // default applied from section
+}
+
+func TestPluginAPILoadPluginConfigurationDefaultsMixed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"toplevelsetting": "saved_value"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testmixeddefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testmixeddefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "TopLevelSetting", Type: "text", Default: "top_default"},
+				{Key: "TopLevelBool", Type: "bool", Default: true},
+			},
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "SectionSetting", Type: "text", Default: "section_default"},
+						{Key: "SectionInt", Type: "text", Default: float64(99)},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		TopLevelSetting string
+		TopLevelBool    bool
+		SectionSetting  string
+		SectionInt      int
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	// Top-level: saved config overrides default
+	assert.Equal(t, "saved_value", dest.TopLevelSetting)
+	// Top-level: default applied
+	assert.True(t, dest.TopLevelBool)
+	// Section: default applied
+	assert.Equal(t, "section_default", dest.SectionSetting)
+	// Section: default applied
+	assert.Equal(t, 99, dest.SectionInt)
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
@@ -1309,12 +1548,25 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
 	require.NoError(t, err)
 	require.NotNil(t, hooks)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	if ret != "OK" {
-		return errors.New(ret)
+
+	runHook := func() error {
+		_, ret := hooks.MessageWillBePosted(nil, nil)
+		if ret != "OK" {
+			return errors.New(ret)
+		}
+		return nil
 	}
 
-	return nil
+	// SendMail + Inbucket delivery is async; under CI load the plugin's internal
+	// RetryInbucket window can expire before the message is visible.
+	if id == "test_send_mail_plugin" {
+		require.Eventually(t, func() bool {
+			return runHook() == nil
+		}, 90*time.Second, 2*time.Second)
+		return nil
+	}
+
+	return runHook()
 }
 
 // This is a meta-test function. It does the following:
@@ -1578,6 +1830,410 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
+func TestPluginCreatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
+	// Plugin-authored override_* is always stripped, regardless of
+	// EnablePostUsernameOverride/EnablePostIconOverride: no render path
+	// (GetSenderName, user_profile.tsx, post_profile_picture.tsx, avatar.tsx,
+	// commented_on.tsx) honors from_plugin the way it honors from_webhook, so
+	// CreatePost's re-injection is scoped to FromIncomingWebhook only. The
+	// config toggle must not be able to reactivate a capability plugins never
+	// have.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	t.Run("stripped with overrides disabled (default)", func(t *testing.T) {
+		post, err := api.CreatePost(&model.Post{
+			Message:   "test",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PluginBot",
+				model.PostPropsOverrideIconURL:   "http://plugin/icon.png",
+				model.PostPropsOverrideIconEmoji: ":plugin:",
+			},
+		})
+		require.Nil(t, err)
+
+		actualPost, err := api.GetPost(post.Id)
+		require.Nil(t, err)
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideUsername))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+
+	t.Run("still stripped with overrides enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostUsernameOverride = true
+			*cfg.ServiceSettings.EnablePostIconOverride = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnablePostUsernameOverride = false
+			*cfg.ServiceSettings.EnablePostIconOverride = false
+		})
+
+		post, err := api.CreatePost(&model.Post{
+			Message:   "test",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PluginBot",
+				model.PostPropsOverrideIconURL:   "http://plugin/icon.png",
+				model.PostPropsOverrideIconEmoji: ":plugin:",
+			},
+		})
+		require.Nil(t, err)
+
+		actualPost, err := api.GetPost(post.Id)
+		require.Nil(t, err)
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideUsername), "config toggle must not reactivate plugin override display")
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, actualPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+}
+
+func TestPluginUpdatePostAlwaysStripsUsernameIconOverride(t *testing.T) {
+	// Same as CreatePost: PluginAPI.UpdatePost is not granted
+	// AllowIdentityPropsUpdate, so a plugin's edit gets the default
+	// strip-and-preserve-from-old behavior like any other non-federated
+	// caller, regardless of the config toggle.
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+	})
+
+	api := th.SetupPluginAPI()
+
+	created, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	require.Nil(t, created.GetProp(model.PostPropsOverrideUsername), "sanity: no override on the original post")
+
+	edit := created.Clone()
+	edit.Message = "test edited"
+	edit.AddProp(model.PostPropsOverrideUsername, "NewName")
+	edit.AddProp(model.PostPropsOverrideIconURL, "http://plugin/new-icon.png")
+
+	updated, err := api.UpdatePost(edit)
+	require.Nil(t, err)
+
+	assert.Equal(t, "test edited", updated.Message)
+	assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername), "plugin edit must not be able to inject a new override, even with the config enabled")
+	assert.Nil(t, updated.GetProp(model.PostPropsOverrideIconURL))
+}
+
+func TestPluginUpdatePostWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	createPost := func(t *testing.T, userID, message string) *model.Post {
+		t.Helper()
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   message,
+			ChannelId: th.BasicChannel.Id,
+			UserId:    userID,
+		})
+		require.Nil(t, appErr)
+		return post
+	}
+
+	requireUnchanged := func(t *testing.T, post *model.Post) {
+		t.Helper()
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Message, stored.Message)
+		assert.Equal(t, post.UpdateAt, stored.UpdateAt)
+		assert.Equal(t, post.FileIds, stored.FileIds)
+	}
+
+	t.Run("attaches a file uploaded by the file creator", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		require.Len(t, infos, 1)
+		assert.Equal(t, file.Id, infos[0].Id)
+		assert.Equal(t, post.Id, infos[0].PostId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("attaches the file creator's file to another user's post", func(t *testing.T) {
+		post := createPost(t, th.BasicUser2.Id, "someone else's card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+		assert.Equal(t, th.BasicUser2.Id, updated.UserId)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("plugin UpdatePost drops a file uploaded by a user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited without a session user"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePost(edit)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited without a session user", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("does not attach another user's file", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		file := th.CreateFileInfo(t, th.BasicUser2.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited", updated.Message)
+		assert.Empty(t, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+
+	t.Run("removes files", func(t *testing.T) {
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		post, appErr := api.CreatePost(&model.Post{
+			Message:   "with file",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{file.Id},
+		})
+		require.Nil(t, appErr)
+		require.Equal(t, model.StringArray{file.Id}, post.FileIds)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Empty(t, updated.FileIds)
+
+		infos, appErr := th.App.GetFileInfosForPost(th.Context, updated, true, false)
+		require.Nil(t, appErr)
+		assert.Empty(t, infos)
+	})
+
+	t.Run("rejects an invalid user id", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: "not-a-valid-id"})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post_with_options.invalid_file_creator.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("rejects an unknown user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: model.NewId()})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("attaches a file uploaded by a deactivated user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "card")
+		user := th.CreateUser(t)
+		file := th.CreateFileInfo(t, user.Id, "", th.BasicChannel.Id)
+		deactivated, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+		require.NotZero(t, deactivated.DeleteAt)
+
+		edit := post.Clone()
+		edit.Message = "edited"
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: deactivated.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited", updated.Message)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+	})
+
+	t.Run("attaches a file uploaded with no user", func(t *testing.T) {
+		post := createPost(t, th.BasicUser2.Id, "card")
+		file := th.CreateFileInfo(t, model.UploadNoUserID, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.FileIds = model.StringArray{file.Id}
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, model.StringArray{file.Id}, updated.FileIds)
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, post.Id, stored.PostId)
+		assert.Equal(t, model.UploadNoUserID, stored.CreatorId)
+	})
+
+	t.Run("updates message and props like UpdatePost", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		edit := post.Clone()
+		edit.Message = "edited message"
+		edit.AddProp("card_id", "card-1")
+		edit.AddProp(model.PostPropsOverrideUsername, "spoofed")
+
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", updated.Message)
+		assert.Equal(t, "card-1", updated.GetProp("card_id"))
+		assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername))
+		assert.NotZero(t, updated.EditAt)
+
+		stored, appErr := api.GetPost(post.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited message", stored.Message)
+		assert.Equal(t, "card-1", stored.GetProp("card_id"))
+		assert.Nil(t, stored.GetProp(model.PostPropsOverrideUsername))
+	})
+
+	t.Run("rejects invalid mm_blocks_actions", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "stay")
+		edit := post.Clone()
+		edit.Message = "should not land"
+		edit.AddProp(model.PostPropsMmBlocksActions, "nope")
+
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			FileCreatorID:              th.BasicUser.Id,
+			AllowMmBlocksActionsUpdate: true,
+		})
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "plugin.api.update_post.mm_blocks_actions.app_error", appErr.Id)
+		requireUnchanged(t, post)
+	})
+
+	t.Run("safe update changes the message and leaves files", func(t *testing.T) {
+		post := createPost(t, th.BasicUser.Id, "original")
+		file := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+
+		edit := post.Clone()
+		edit.Message = "edited safely"
+		edit.FileIds = model.StringArray{file.Id}
+		edit.AddProp("card_id", "should-not-land")
+		updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{
+			SafeUpdate:    true,
+			FileCreatorID: th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		assert.Equal(t, "edited safely", updated.Message)
+		assert.Empty(t, updated.FileIds)
+		assert.Nil(t, updated.GetProp("card_id"))
+
+		stored, appErr := th.App.GetFileInfo(th.Context, file.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, stored.PostId)
+	})
+}
+
+func TestPluginUpdatePostWithOptionsRunsMessageWillBeUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, _, activationErrs := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+			newPost.Message = newPost.Message + "|session=" + c.SessionId
+			return newPost, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, activationErrs[0])
+
+	api := th.SetupPluginAPI()
+	created, appErr := api.CreatePost(&model.Post{
+		Message:   "message_",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	edit := created.Clone()
+	edit.Message = "edited_"
+	updated, appErr := api.UpdatePostWithOptions(edit, &model.UpdatePostOptions{FileCreatorID: th.BasicUser.Id})
+	require.Nil(t, appErr)
+	assert.Equal(t, "edited_|session=", updated.Message)
+}
+
+func TestPluginCreatePostSilentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	post, err := api.CreatePost(&model.Post{
+		Message:   "silent plugin post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsSilentNotification: true,
+		},
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	require.True(t, actualPost.HasSilentNotification())
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1604,7 +2260,6 @@ func TestPluginAPIGetConfig(t *testing.T) {
 	}
 
 	assert.Equal(t, *config.SqlSettings.DataSource, model.FakeSetting)
-	assert.Equal(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
 	assert.Equal(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {
@@ -1642,7 +2297,6 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	}
 
 	assert.NotEqual(t, *config.SqlSettings.DataSource, model.FakeSetting)
-	assert.NotEqual(t, *config.SqlSettings.AtRestEncryptKey, model.FakeSetting)
 	assert.NotEqual(t, *config.ElasticsearchSettings.Password, model.FakeSetting)
 
 	for i := range config.SqlSettings.DataSourceReplicas {
@@ -1737,6 +2391,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 				return nil, err.Error()
 			}
 			req.Header.Add("Mattermost-User-Id", "userid")
+			req.Header.Add("Mattermost-Plugin-ID", "com.mattermost.server")
 			resp := p.API.PluginHTTP(req)
 			if resp == nil {
 				return nil, "Nil resp"
@@ -1795,6 +2450,725 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	require.NoError(t, err)
 	_, ret := hooks.MessageWillBePosted(nil, nil)
 	assert.Equal(t, "ok", ret)
+}
+
+type flushObservingRecorder struct {
+	*httptest.ResponseRecorder
+	flushed chan struct{}
+	once    sync.Once
+}
+
+func (w *flushObservingRecorder) Flush() {
+	w.ResponseRecorder.Flush()
+	w.once.Do(func() { close(w.flushed) })
+}
+
+func TestInterpluginPluginHTTPContext(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	const testTimeout = 10 * time.Second
+
+	setupMultiPluginAPITest(t,
+		[]string{
+			// The destination plugin exposes blocking handlers and reports what its request context observes.
+			`
+		package main
+
+		import (
+			"context"
+			"fmt"
+			"io"
+			"net/http"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+			events chan string
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/core-identity":
+				_, _ = w.Write([]byte(r.Header.Get("Mattermost-Plugin-ID")))
+			case "/core-wait":
+				defer func() { p.events <- "core-wait:exited" }()
+				p.events <- "core-wait:started"
+				<-r.Context().Done()
+				p.events <- "core-wait:" + r.Context().Err().Error()
+			case "/core-stream":
+				defer func() { p.events <- "core-stream:exited" }()
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				p.events <- "core-stream:" + r.Context().Err().Error()
+			case "/deadline-expire":
+				deadline, ok := r.Context().Deadline()
+				if !ok || time.Until(deadline) <= 0 || time.Until(deadline) > 5*time.Second {
+					p.events <- "deadline:missing"
+					return
+				}
+				<-r.Context().Done()
+				p.events <- "deadline:" + r.Context().Err().Error()
+			case "/wait":
+				p.events <- "wait:started"
+				<-r.Context().Done()
+				p.events <- "wait:" + r.Context().Err().Error()
+			case "/stream":
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				p.events <- "stream:" + r.Context().Err().Error()
+				_, _ = w.Write([]byte("late"))
+			case "/headers-only":
+				w.WriteHeader(http.StatusAccepted)
+				<-r.Context().Done()
+			case "/body-close":
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte("start"))
+				w.(http.Flusher).Flush()
+				<-r.Context().Done()
+				_, err := w.Write([]byte("late"))
+				p.events <- fmt.Sprintf("body-close:context-canceled=%t,write-failed=%t", r.Context().Err() == context.Canceled, err != nil)
+			case "/upload":
+				p.events <- "upload:started"
+				_, _ = io.ReadAll(r.Body)
+				<-r.Context().Done()
+				p.events <- "upload:" + r.Context().Err().Error()
+				_, _ = w.Write([]byte("uploaded"))
+			case "/direct":
+				p.events <- "direct:started"
+				_, _ = io.ReadAll(r.Body)
+				<-r.Context().Done()
+				p.events <- "direct:" + r.Context().Err().Error()
+			case "/ok":
+				w.WriteHeader(http.StatusCreated)
+				body, _ := io.ReadAll(r.Body)
+				_, _ = w.Write(body)
+			case "/event":
+				select {
+				case event := <-p.events:
+					_, _ = w.Write([]byte(event))
+				case <-r.Context().Done():
+				}
+			}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{events: make(chan string, 8)})
+		}
+		`,
+			// The caller plugin exercises PluginHTTP from the other side of the RPC boundary.
+			`
+		package main
+
+		import (
+			"context"
+			"errors"
+			"fmt"
+			"io"
+			"net/http"
+			"strings"
+			"sync"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		const testTimeout = 10 * time.Second
+
+		type blockingBody struct {
+			closed chan struct{}
+			once sync.Once
+		}
+
+		func (b *blockingBody) Read(p []byte) (int, error) {
+			<-b.closed
+			return 0, io.EOF
+		}
+
+		func (b *blockingBody) Close() error {
+			b.once.Do(func() { close(b.closed) })
+			return nil
+		}
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		type readEntry struct {
+			io.ReadCloser
+			entered chan struct{}
+		}
+
+		func (r *readEntry) Read(p []byte) (int, error) {
+			close(r.entered)
+			return r.ReadCloser.Read(p)
+		}
+
+		func (p *MyPlugin) expectServerEvent(expected string) error {
+			ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+			defer cancel()
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/contextserver/event", nil)
+			if err != nil {
+				return err
+			}
+			response := p.API.PluginHTTP(request)
+			if response == nil {
+				return fmt.Errorf("event %q returned no response", expected)
+			}
+			body, err := io.ReadAll(response.Body)
+			_ = response.Body.Close()
+			if err != nil {
+				return fmt.Errorf("event %q failed: %w", expected, err)
+			}
+			if string(body) != expected {
+				return fmt.Errorf("event: got %q, expected %q", body, expected)
+			}
+			return nil
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			// A response becomes available when headers are written, not when the handler returns.
+			headersCtx, headersCancel := context.WithCancel(context.Background())
+			req, err := http.NewRequestWithContext(headersCtx, http.MethodGet, "/contextserver/headers-only", nil)
+			if err != nil {
+				return nil, err.Error()
+			}
+			headersResponse := make(chan *http.Response, 1)
+			go func(headersRequest *http.Request) {
+				headersResponse <- p.API.PluginHTTP(headersRequest)
+			}(req)
+			var resp *http.Response
+			select {
+			case resp = <-headersResponse:
+				if resp == nil || resp.StatusCode != http.StatusAccepted {
+					headersCancel()
+					return nil, "headers-only response was not ready before its body"
+				}
+			case <-time.After(testTimeout):
+				headersCancel()
+				return nil, "headers-only response timed out"
+			}
+			headersCancel()
+			_ = resp.Body.Close()
+
+			expiryCtx, expiryCancel := context.WithTimeout(context.Background(), time.Second)
+			defer expiryCancel()
+			req, _ = http.NewRequestWithContext(expiryCtx, http.MethodGet, "/contextserver/deadline-expire", nil)
+			resp = p.API.PluginHTTP(req)
+			<-expiryCtx.Done()
+			if expiryCtx.Err() != context.DeadlineExceeded {
+				return nil, fmt.Sprintf("deadline context error: %v", expiryCtx.Err())
+			}
+			// The independently reconstructed deadline may let the remote handler finish first.
+			if resp != nil {
+				_ = resp.Body.Close()
+			}
+			if err = p.expectServerEvent("deadline:" + context.DeadlineExceeded.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// Cancellation before headers returns no response.
+			cancelCtx, cancel := context.WithCancel(context.Background())
+			req, _ = http.NewRequestWithContext(cancelCtx, http.MethodGet, "/contextserver/wait", nil)
+			waitResponse := make(chan *http.Response, 1)
+			go func(waitRequest *http.Request) {
+				waitResponse <- p.API.PluginHTTP(waitRequest)
+			}(req)
+			if err = p.expectServerEvent("wait:started"); err != nil {
+				cancel()
+				return nil, err.Error()
+			}
+			cancel()
+			select {
+			case resp = <-waitResponse:
+			case <-time.After(testTimeout):
+				return nil, "cancellation before headers timed out"
+			}
+			if resp != nil {
+				return nil, "cancellation before headers failed"
+			}
+			if err = p.expectServerEvent("wait:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// After headers, cancellation reaches both the response body and the remote handler.
+			streamCtx, streamCancel := context.WithCancel(context.Background())
+			defer streamCancel()
+			req, _ = http.NewRequestWithContext(streamCtx, http.MethodGet, "/contextserver/stream", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "stream response is nil"
+			}
+			defer resp.Body.Close()
+			firstChunk := make([]byte, len("start"))
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
+				return nil, fmt.Sprintf("initial stream read: %q, %v", firstChunk, err)
+			}
+			streamProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = streamProbe
+			readErrCh := make(chan error, 1)
+			go func() {
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
+			}()
+			select {
+			case <-streamProbe.entered:
+			case <-time.After(testTimeout):
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, "stream read did not start"
+			}
+			select {
+			case readErr := <-readErrCh:
+				streamCancel()
+				_ = resp.Body.Close()
+				return nil, fmt.Sprintf("stream read ended before cancellation: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			streamCancel()
+			select {
+			case err = <-readErrCh:
+				if !errors.Is(err, context.Canceled) {
+					return nil, fmt.Sprintf("stream cancellation error: %v", err)
+				}
+			case <-time.After(testTimeout):
+				return nil, "stream cancellation timed out"
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("stream:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			streamDeadlineCtx, streamDeadlineCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer streamDeadlineCancel()
+			req, _ = http.NewRequestWithContext(streamDeadlineCtx, http.MethodGet, "/contextserver/stream", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "deadline stream response is nil"
+			}
+			defer resp.Body.Close()
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil || string(firstChunk) != "start" {
+				return nil, fmt.Sprintf("deadline stream initial read: %q, %v", firstChunk, err)
+			}
+			deadlineProbe := &readEntry{ReadCloser: resp.Body, entered: make(chan struct{})}
+			resp.Body = deadlineProbe
+			readErrCh = make(chan error, 1)
+			go func() {
+				_, readErr := resp.Body.Read(make([]byte, 1))
+				readErrCh <- readErr
+			}()
+			select {
+			case <-deadlineProbe.entered:
+			case <-time.After(testTimeout):
+				streamDeadlineCancel()
+				_ = resp.Body.Close()
+				return nil, "deadline stream read did not start"
+			}
+			if streamDeadlineCtx.Err() != nil {
+				return nil, fmt.Sprintf("deadline stream read started after expiry: %v", streamDeadlineCtx.Err())
+			}
+			select {
+			case readErr := <-readErrCh:
+				return nil, fmt.Sprintf("deadline stream read ended before expiry: %v", readErr)
+			case <-time.After(50 * time.Millisecond):
+			}
+			select {
+			case err = <-readErrCh:
+				// The remote deadline can close the stream before the caller
+				// observes its own deadline; both contexts are checked below.
+				if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, io.EOF) {
+					return nil, fmt.Sprintf("stream deadline error: %v", err)
+				}
+			case <-time.After(testTimeout):
+				return nil, "stream deadline timed out"
+			}
+			<-streamDeadlineCtx.Done()
+			if streamDeadlineCtx.Err() != context.DeadlineExceeded {
+				return nil, fmt.Sprintf("stream context error: %v", streamDeadlineCtx.Err())
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("stream:" + context.DeadlineExceeded.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// Closing a response body cancels the remote handler.
+			bodyCloseCtx, bodyCloseCancel := context.WithCancel(context.Background())
+			defer bodyCloseCancel()
+			req, _ = http.NewRequestWithContext(bodyCloseCtx, http.MethodGet, "/contextserver/body-close", nil)
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "body-close response is nil"
+			}
+			if _, err = io.ReadFull(resp.Body, firstChunk); err != nil {
+				return nil, fmt.Sprintf("body-close initial read: %v", err)
+			}
+			_ = resp.Body.Close()
+			if err = p.expectServerEvent("body-close:context-canceled=true,write-failed=true"); err != nil {
+				return nil, err.Error()
+			}
+
+			// Cancellation must unblock a handler reading the request body.
+			uploadCtx, uploadCancel := context.WithCancel(context.Background())
+			uploadBody := &blockingBody{closed: make(chan struct{})}
+			req, _ = http.NewRequestWithContext(uploadCtx, http.MethodPost, "/contextserver/upload", uploadBody)
+			uploadResponse := make(chan *http.Response, 1)
+			go func(uploadRequest *http.Request) {
+				uploadResponse <- p.API.PluginHTTP(uploadRequest)
+			}(req)
+			if err = p.expectServerEvent("upload:started"); err != nil {
+				uploadCancel()
+				return nil, err.Error()
+			}
+			uploadCancel()
+			select {
+			case resp = <-uploadResponse:
+			case <-time.After(testTimeout):
+				return nil, "upload cancellation timed out"
+			}
+			if resp != nil {
+				return nil, "upload cancellation returned a response"
+			}
+			select {
+			case <-uploadBody.closed:
+			case <-time.After(testTimeout):
+				return nil, "upload body was not closed"
+			}
+			if err = p.expectServerEvent("upload:" + context.Canceled.Error()); err != nil {
+				return nil, err.Error()
+			}
+
+			// A canceled request must not poison the shared RPC connection.
+			okCtx, okCancel := context.WithTimeout(context.Background(), testTimeout)
+			defer okCancel()
+			req, _ = http.NewRequestWithContext(okCtx, http.MethodPost, "/contextserver/ok", strings.NewReader("body"))
+			resp = p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "request after cancellation is nil"
+			}
+			body, err := io.ReadAll(resp.Body)
+			_ = resp.Body.Close()
+			if err != nil || resp.StatusCode != http.StatusCreated || string(body) != "body" {
+				return nil, fmt.Sprintf("request after cancellation: %d, %q, %v", resp.StatusCode, body, err)
+			}
+
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "contextserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "contextclient", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{"contextserver", "contextclient"},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("contextclient")
+	require.NoError(t, err)
+	_, result := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, "ok", result)
+
+	requestCtx, cancelRequest := context.WithCancel(context.Background())
+	t.Cleanup(cancelRequest)
+
+	// Leave the pipe unwritten so cancellation, rather than EOF, releases the remote read.
+	bodyReader, bodyWriter := io.Pipe()
+	t.Cleanup(func() {
+		_ = bodyReader.Close()
+		_ = bodyWriter.Close()
+	})
+	req, err := http.NewRequestWithContext(requestCtx, http.MethodPost, "/direct", bodyReader)
+	require.NoError(t, err)
+	requestDone := make(chan struct{})
+	go func() {
+		th.App.ServeInternalPluginRequest("", httptest.NewRecorder(), req, "", "contextserver")
+		close(requestDone)
+	}()
+	requireServerEvent := func(t *testing.T, expected string) {
+		eventCtx, eventCancel := context.WithTimeout(context.Background(), testTimeout)
+		defer eventCancel()
+		eventRequest, eventErr := http.NewRequestWithContext(eventCtx, http.MethodGet, "/event", nil)
+		require.NoError(t, eventErr)
+		eventRecorder := httptest.NewRecorder()
+		th.App.ServeInternalPluginRequest("", eventRecorder, eventRequest, "", "contextserver")
+		require.Equal(t, expected, eventRecorder.Body.String())
+	}
+
+	requireServerEvent(t, "direct:started")
+	cancelRequest()
+	select {
+	case <-requestDone:
+	case <-time.After(testTimeout):
+		require.FailNow(t, "direct server-to-plugin cancellation timed out")
+	}
+
+	requireServerEvent(t, "direct:"+context.Canceled.Error())
+	_, writeErr := bodyWriter.Write([]byte("late"))
+	require.ErrorIs(t, writeErr, io.ErrClosedPipe)
+
+	identityRequest, err := http.NewRequest(http.MethodGet, "/core-identity", nil)
+	require.NoError(t, err)
+	identityRequest.Header.Set("Mattermost-Plugin-ID", "forged-plugin")
+	identityRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", identityRecorder, identityRequest, "", "contextserver")
+	require.Equal(t, "com.mattermost.server", identityRecorder.Body.String())
+
+	for _, test := range []struct {
+		name     string
+		path     string
+		deadline bool
+		stream   bool
+	}{
+		{"cancel-before-headers", "/core-wait", false, false},
+		{"deadline-before-headers", "/core-wait", true, false},
+		{"cancel-during-stream", "/core-stream", false, true},
+		{"deadline-during-stream", "/core-stream", true, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var ctx context.Context
+			var cancel context.CancelFunc
+			if test.deadline {
+				ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+			} else {
+				ctx, cancel = context.WithCancel(context.Background())
+			}
+			defer cancel()
+			request, requestErr := http.NewRequestWithContext(ctx, http.MethodGet, test.path, nil)
+			require.NoError(t, requestErr)
+			writer := &flushObservingRecorder{ResponseRecorder: httptest.NewRecorder(), flushed: make(chan struct{})}
+			done := make(chan struct{})
+			go func() {
+				th.App.ServeInternalPluginRequest("", writer, request, "", "contextserver")
+				close(done)
+			}()
+
+			if test.stream {
+				select {
+				case <-writer.flushed:
+				case <-time.After(testTimeout):
+					require.FailNow(t, "core stream did not flush its first chunk")
+				}
+				require.Equal(t, "start", writer.Body.String())
+			} else {
+				requireServerEvent(t, "core-wait:started")
+			}
+			require.NoError(t, ctx.Err(), "stage must be reached before cancellation or deadline")
+			if test.deadline {
+				select {
+				case <-ctx.Done():
+				case <-time.After(testTimeout):
+					require.FailNow(t, "core deadline did not expire")
+				}
+				require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
+			} else {
+				cancel()
+			}
+			select {
+			case <-done:
+			case <-time.After(testTimeout):
+				require.FailNow(t, "core dispatch did not finish after cancellation")
+			}
+			stage := "core-wait"
+			if test.stream {
+				stage = "core-stream"
+			}
+			reason := context.Canceled
+			if test.deadline {
+				reason = context.DeadlineExceeded
+			}
+			requireServerEvent(t, stage+":"+reason.Error())
+			requireServerEvent(t, stage+":exited")
+		})
+	}
+
+	// Cancellation and stream closure leave the receiver usable.
+	okRequest, err := http.NewRequest(http.MethodPost, "/ok", strings.NewReader("reuse"))
+	require.NoError(t, err)
+	okRecorder := httptest.NewRecorder()
+	th.App.ServeInternalPluginRequest("", okRecorder, okRequest, "", "contextserver")
+	require.Equal(t, http.StatusCreated, okRecorder.Code)
+	require.Equal(t, "reuse", okRecorder.Body.String())
+}
+
+func TestInterpluginPluginHTTPCancellationWithLegacyDestination(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	markerPath := filepath.Join(t.TempDir(), "legacy-serve-http-started")
+
+	legacyPluginCode := fmt.Sprintf(`
+		package main
+
+		import (
+			"net/rpc"
+			"os"
+
+			hplugin "github.com/hashicorp/go-plugin"
+			mmplugin "github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+			const markerPath = %q
+
+		type legacyHooksPlugin struct{}
+
+		func (p *legacyHooksPlugin) Server(b *hplugin.MuxBroker) (any, error) {
+			return &legacyHooksServer{muxBroker: b}, nil
+		}
+
+		func (p *legacyHooksPlugin) Client(b *hplugin.MuxBroker, client *rpc.Client) (any, error) {
+			return nil, nil
+		}
+
+		type legacyHooksServer struct {
+			muxBroker *hplugin.MuxBroker
+		}
+
+		type LegacyOnActivateArgs struct {
+			APIMuxId    uint32
+			DriverMuxId uint32
+		}
+
+		type LegacyOnActivateReturns struct {
+			A error
+		}
+
+		type LegacyServeHTTPArgs struct {
+			ResponseWriterStream uint32
+			Request              *mmplugin.HTTPRequestSubset
+			Context              *mmplugin.Context
+			RequestBodyStream    uint32
+		}
+
+		func (s *legacyHooksServer) Implemented(args struct{}, reply *[]string) error {
+			*reply = []string{"ServeHTTP"}
+			return nil
+		}
+
+		func (s *legacyHooksServer) OnActivate(args *LegacyOnActivateArgs, returns *LegacyOnActivateReturns) error {
+			apiConnection, err := s.muxBroker.Dial(args.APIMuxId)
+			if err != nil {
+				return err
+			}
+			driverConnection, err := s.muxBroker.Dial(args.DriverMuxId)
+			if err != nil {
+				_ = apiConnection.Close()
+				return err
+			}
+			_ = apiConnection.Close()
+			_ = driverConnection.Close()
+			return nil
+		}
+
+		func (s *legacyHooksServer) ServeHTTP(args *LegacyServeHTTPArgs, returns *struct{}) error {
+			if err := os.WriteFile(markerPath, []byte("started"), 0600); err != nil {
+				return err
+			}
+			select {}
+		}
+
+		func main() {
+			hplugin.Serve(&hplugin.ServeConfig{
+				HandshakeConfig: hplugin.HandshakeConfig{
+					ProtocolVersion:  1,
+					MagicCookieKey:   "MATTERMOST_PLUGIN",
+					MagicCookieValue: "Securely message teams, anywhere.",
+				},
+				Plugins: map[string]hplugin.Plugin{"hooks": &legacyHooksPlugin{}},
+			})
+		}
+	`, markerPath)
+
+	callerPluginCode := fmt.Sprintf(`
+		package main
+
+		import (
+			"context"
+			"net/http"
+			"os"
+			"time"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		const markerPath = %q
+		const testTimeout = 10 * time.Second
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			ctx, cancel := context.WithCancel(context.Background())
+			request, err := http.NewRequestWithContext(ctx, http.MethodGet, "/legacycontextserver/wait", nil)
+			if err != nil {
+				return nil, err.Error()
+			}
+			responseCh := make(chan *http.Response, 1)
+			go func() {
+				responseCh <- p.API.PluginHTTP(request)
+			}()
+
+			started := false
+			for waitStarted := time.Now(); time.Since(waitStarted) < testTimeout; time.Sleep(20 * time.Millisecond) {
+				if _, statErr := os.Stat(markerPath); statErr == nil {
+					started = true
+					break
+				}
+			}
+			if !started {
+				cancel()
+				return nil, "legacy destination did not start"
+			}
+
+			cancel()
+			select {
+			case response := <-responseCh:
+				if response != nil {
+					return nil, "legacy destination cancellation returned a response"
+				}
+			case <-time.After(testTimeout):
+				return nil, "legacy destination kept caller blocked after cancellation"
+			}
+			if p.API.GetServerVersion() == "" {
+				return nil, "caller API connection was unusable after cancellation"
+			}
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, markerPath)
+
+	setupMultiPluginAPITest(t,
+		[]string{legacyPluginCode, callerPluginCode},
+		[]string{
+			`{"id": "legacycontextserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "legacycontextclient", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{"legacycontextserver", "legacycontextclient"},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("legacycontextclient")
+	require.NoError(t, err)
+	_, result := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, "ok", result)
 }
 
 func TestInterpluginPluginHTTPWithBodyAfterWriteHeader(t *testing.T) {
@@ -1937,7 +3311,7 @@ func TestInterpluginPluginHTTPStreaming(t *testing.T) {
 
 					w.WriteHeader(http.StatusOK)
 
-					for i := 0; i < totalChunks; i++ {
+					for range totalChunks {
 						chunk := bytes.Repeat([]byte("X"), chunkSize)
 						w.Write(chunk)
 
@@ -2242,13 +3616,13 @@ func TestAPIMetrics(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -2651,6 +4025,23 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
+
+	// Updating a command's trigger to one that already exists should fail.
+	cmd2 := &model.Command{
+		TeamId:  team1.Id,
+		Trigger: "uniquetrigger",
+		Method:  "G",
+		URL:     "http://test.com/uniquetrigger",
+	}
+	cmd2, appErr = api.CreateCommand(cmd2)
+	require.NoError(t, appErr)
+
+	cmd2.Trigger = "anotherNewTriggerAgain"
+	_, appErr = api.UpdateCommand(cmd2.Id, cmd2)
+	require.Error(t, appErr)
+	var appError *model.AppError
+	require.ErrorAs(t, appErr, &appError)
+	require.Equal(t, "api.command.duplicate_trigger.app_error", appError.Id)
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {
@@ -2972,8 +4363,8 @@ func TestPluginServeMetrics(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		prevEnable = cfg.MetricsSettings.Enable
 		prevAddress = cfg.MetricsSettings.ListenAddress
-		cfg.MetricsSettings.Enable = model.NewPointer(true)
-		cfg.MetricsSettings.ListenAddress = model.NewPointer(":30067")
+		cfg.MetricsSettings.Enable = new(true)
+		cfg.MetricsSettings.ListenAddress = new(":30067")
 	})
 	defer th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.MetricsSettings.Enable = prevEnable
@@ -3298,30 +4689,34 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
+
 		// Create 20 property fields
-		groupID := model.NewId()
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
 				UpdateAt: model.GetMillis(),
 			}
 
-			created, err := api.CreatePropertyField(field)
+			var created *model.PropertyField
+			created, err = api.CreatePropertyField(field)
 			require.NoError(t, err)
 			createdFields = append(createdFields, created)
 		}
 
 		// Delete one field
-		err := api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
 
 		// Should now be able to create another field
 		newField := &model.PropertyField{
-			GroupID:  groupID,
+			GroupID:  group.ID,
 			Name:     "new_field",
 			Type:     model.PropertyFieldTypeText,
 			CreateAt: model.GetMillis(),
@@ -3338,12 +4733,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
 
 		// Create and delete 5 fields
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("deleted_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3353,14 +4750,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 			created, err := api.CreatePropertyField(field)
 			require.NoError(t, err)
 
-			err = api.DeletePropertyField(groupID, created.ID)
+			err = api.DeletePropertyField(group.ID, created.ID)
 			require.NoError(t, err)
 		}
 
 		// Should be able to create multiple active fields
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("active_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3390,13 +4787,301 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err := api.CreatePropertyField(field)
 		require.Error(t, err) // Should fail due to invalid GroupID
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "group_id")
 
 		// Test with nil field - should fail gracefully
 		created, err = api.CreatePropertyField(nil)
 		require.Error(t, err) // Should fail when given nil input
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "invalid input: property field parameter is required")
+		assert.Contains(t, err.Error(), "property field is required")
+	})
+}
+
+// TestPluginAPIGetPropertyFieldProjectsLegacyPermissions asserts that a
+// plugin -- a v2 caller with no version negotiation -- reads Protected,
+// PermissionField/Values/Options and owners computed from a field's
+// permissions object, on every read method, even for a field whose legacy
+// columns were never written directly.
+func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	// api.RegisterPropertyGroup hardcodes v1, which never holds a permissions
+	// object, so register the v2 group directly through the app layer.
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	ownerID := model.NewId()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "projected field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+				Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+			},
+			Grants: []model.Grant{
+				{Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: ownerID}, Allow: []string{model.PropertyActionValueWrite}},
+			},
+		},
+	})
+	require.NoError(t, sErr)
+
+	assertProjected := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.True(t, got.Protected)
+		require.NotNil(t, got.PermissionField)
+		assert.Equal(t, model.PermissionLevelNone, *got.PermissionField)
+		require.NotNil(t, got.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *got.PermissionValues)
+		require.NotNil(t, got.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelAdmin, *got.PermissionOptions)
+		owners := model.GetPropertyFieldOwners(got)
+		require.Len(t, owners, 1)
+		assert.Equal(t, ownerID, owners[0].ID)
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, field.ID)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{field.ID})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assertProjected(t, got[0])
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", field.Name)
+		require.NoError(t, err)
+		assertProjected(t, got)
+	})
+
+	// Store hydration overrides the stored Protected/Permission* columns with the
+	// values projected from Permissions, so a load-modify-save does not look like a
+	// legacy-column change. Attrs (owners, access_mode) are still projected only on
+	// the plugin/v2 copy via ProjectLegacyPermissions.
+	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, stored)
+	assert.True(t, stored.Protected)
+	require.NotNil(t, stored.PermissionField)
+	assert.Equal(t, model.PermissionLevelNone, *stored.PermissionField)
+	require.NotNil(t, stored.PermissionValues)
+	assert.Equal(t, model.PermissionLevelMember, *stored.PermissionValues)
+	require.NotNil(t, stored.PermissionOptions)
+	assert.Equal(t, model.PermissionLevelAdmin, *stored.PermissionOptions)
+}
+
+func TestPluginAPIPropertyFieldReadsFollowLinkedTemplate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "plugin_linked_projection_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	restrictions := func() *model.Restrictions {
+		return &model.Restrictions{
+			Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+			Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+			Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelNone},
+		}
+	}
+	template, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:     group.ID,
+		Name:        "masked_template",
+		Type:        model.PropertyFieldTypeText,
+		ObjectType:  model.PropertyFieldObjectTypeTemplate,
+		TargetType:  string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{Restrictions: restrictions(), Masking: &model.Masking{}},
+	})
+	require.NoError(t, sErr)
+	linked, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "linked_field",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Permissions:   &model.Permissions{Restrictions: restrictions()},
+	})
+	require.NoError(t, sErr)
+	require.NotContains(t, linked.Attrs, model.PropertyAttrsAccessMode)
+
+	assertFollowsTemplate := func(t *testing.T, got *model.PropertyField) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, model.PropertyAccessModeSharedOnly, got.Attrs[model.PropertyAttrsAccessMode])
+		assert.Equal(t, true, got.Attrs[model.PropertyAttrsProtected])
+		assert.True(t, got.Protected)
+	}
+	findLinked := func(t *testing.T, fields []*model.PropertyField) *model.PropertyField {
+		t.Helper()
+		for _, f := range fields {
+			if f.ID == linked.ID {
+				return f
+			}
+		}
+		require.Fail(t, "linked field not returned")
+		return nil
+	}
+
+	t.Run("GetPropertyField", func(t *testing.T) {
+		got, err := api.GetPropertyField(group.ID, linked.ID)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+
+	t.Run("GetPropertyFields", func(t *testing.T) {
+		got, err := api.GetPropertyFields(group.ID, []string{linked.ID})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("SearchPropertyFields", func(t *testing.T) {
+		got, err := api.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{GroupID: group.ID, PerPage: 10})
+		require.NoError(t, err)
+		assertFollowsTemplate(t, findLinked(t, got))
+	})
+
+	t.Run("GetPropertyFieldByName", func(t *testing.T) {
+		got, err := api.GetPropertyFieldByName(group.ID, "", linked.Name)
+		require.NoError(t, err)
+		assertFollowsTemplate(t, got)
+	})
+}
+
+func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T) (*PluginAPI, *model.PropertyGroup, *model.PropertyField) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		group, err := api.RegisterPropertyGroup("optsgroup" + model.NewId())
+		require.NoError(t, err)
+
+		field, err := api.CreatePropertyField(&model.PropertyField{
+			GroupID: group.ID,
+			Name:    "opt_field",
+			Type:    model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+		return api, group, field
+	}
+
+	opts := model.PropertyRequestOptions{ActingAsScope: "entra"}
+
+	t.Run("UpsertPropertyValueWithOptions creates and reads back a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"hello"`),
+		}
+
+		upserted, err := api.UpsertPropertyValueWithOptions(value, opts)
+		require.NoError(t, err)
+		require.NotNil(t, upserted)
+
+		got, err := api.GetPropertyValue(group.ID, upserted.ID)
+		require.NoError(t, err)
+		assert.JSONEq(t, `"hello"`, string(got.Value))
+	})
+
+	t.Run("UpsertPropertyValuesWithOptions upserts multiple values", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		values := []*model.PropertyValue{
+			{GroupID: group.ID, FieldID: field.ID, TargetType: "user", TargetID: targetID, Value: json.RawMessage(`"a"`)},
+		}
+
+		upserted, err := api.UpsertPropertyValuesWithOptions(values, opts)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+	})
+
+	t.Run("DeletePropertyValueWithOptions deletes a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		upserted, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"x"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValueWithOptions(group.ID, upserted.ID, opts))
+	})
+
+	t.Run("DeletePropertyValuesForTargetWithOptions deprovisions a target", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   targetID,
+			Value:      json.RawMessage(`"y"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForTargetWithOptions(group.ID, "user", targetID, opts))
+
+		remaining, err := api.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{
+			GroupID:    group.ID,
+			TargetType: "user",
+			TargetIDs:  []string{targetID},
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, remaining)
+	})
+
+	t.Run("DeletePropertyValuesForFieldWithOptions deletes all values for a field", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"z"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForFieldWithOptions(group.ID, field.ID, opts))
 	})
 }
 
@@ -3408,13 +5093,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3427,18 +5113,18 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count active fields
-		count, err := api.CountPropertyFields(groupID, false)
+		count, err := api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count should now be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3448,13 +5134,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3467,23 +5154,23 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count all fields
-		count, err := api.CountPropertyFields(groupID, true)
+		count, err := api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count all should still be 5
-		count, err = api.CountPropertyFields(groupID, true)
+		count, err = api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Count active should be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3500,5 +5187,862 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		count, err = api.CountPropertyFields("non-existent-group", true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
+	})
+}
+
+func TestPluginAPICreateTeamAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override team name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Anonymous URL Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		assert.True(t, model.IsValidId(createdTeam.Name), "team name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should preserve team name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-team-name"
+		team := &model.Team{
+			DisplayName: "Normal Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+
+	t.Run("should not override team name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Enterprise Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+}
+
+func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	// The untagged context a real plugin gets, so the managed category write
+	// only succeeds if CreateChannel tags the plugin as the caller itself.
+	api := th.SetupPluginAPIWithPluginContext(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
+
+	categoryName := "Operations"
+	channel := &model.Channel{
+		DisplayName:         "Plugin channel with managed category",
+		Name:                "plugin-managed-cat-" + model.NewId(),
+		Type:                model.ChannelTypeOpen,
+		TeamId:              th.BasicTeam.Id,
+		ManagedCategoryName: categoryName,
+	}
+
+	createdChannel, appErr := api.CreateChannel(channel)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdChannel)
+	defer func() {
+		_ = th.App.ClearChannelManagedCategory(th.Context, createdChannel.Id)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser, createdChannel)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+	mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+	require.Nil(t, err)
+	assert.Equal(t, categoryName, mappings[createdChannel.Id])
+}
+
+func TestPluginAPICreateSpaceRequiresEnableDocs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() { th.ConfigStore.SetReadOnlyFF(true) })
+	api := th.SetupPluginAPI()
+
+	newSpace := func() *model.Channel {
+		return &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+			CreatorId:   th.BasicUser.Id,
+		}
+	}
+
+	t.Run("EnableDocs off: CreateChannel rejects space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		_, appErr := api.CreateChannel(newSpace())
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("EnableDocs on: CreateChannel allows space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		space, appErr := api.CreateChannel(newSpace())
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeSpace, space.Type)
+		t.Cleanup(func() {
+			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, space.Id))
+		})
+	})
+}
+
+func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	// Reproduces the docs plugin's CreateSpace flow: create the space backing channel,
+	// then add the creator as a member. Both must succeed through the plugin API.
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+	require.Equal(t, model.ChannelTypeSpace, created.Type)
+
+	member, appErr := api.AddChannelMember(created.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, created.Id, member.ChannelId)
+	require.Equal(t, th.BasicUser.Id, member.UserId)
+
+	// AddUserToChannel skips the sidebar default-category assignment for a space backing channel,
+	// so the space must not appear in the member's sidebar categories.
+	categories, appErr := th.App.GetSidebarCategories(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	for _, category := range categories.Categories {
+		require.NotContains(t, category.Channels, created.Id, "space backing channel must not appear in the sidebar")
+	}
+
+	// AddUserToChannel resolves the space backing channel through the same 404 fallback.
+	added, appErr := api.AddUserToChannel(created.Id, th.BasicUser2.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, created.Id, added.ChannelId)
+	require.Equal(t, th.BasicUser2.Id, added.UserId)
+
+	// DeleteChannelMember resolves the space backing channel and removes the member.
+	appErr = api.DeleteChannelMember(created.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = api.GetChannelMember(created.Id, th.BasicUser2.Id)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	notifications := map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+	// Notify-prop mutations carry chat semantics (a channel_member_updated event) that do not
+	// belong on an internal space backing channel, so the plugin API rejects them like /channels.
+	_, appErr := api.UpdateChannelMemberNotifications(space.Id, th.BasicUser.Id, notifications)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	appErr = api.PatchChannelMembersNotifications(
+		[]*model.ChannelMemberIdentifier{{ChannelId: space.Id, UserId: th.BasicUser.Id}},
+		notifications,
+	)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	// A regular channel is unaffected.
+	_, appErr = api.UpdateChannelMemberNotifications(th.BasicChannel.Id, th.BasicUser.Id, notifications)
+	require.Nil(t, appErr)
+}
+
+func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+
+	// Reproduces the docs plugin's rename/metadata sync: fetch the backing channel, edit its
+	// user-visible fields, and Update it. UpdateChannel must resolve the space through the
+	// dedicated path instead of 404ing on the space-excluding generic Get.
+	created.DisplayName = "Renamed Space"
+	created.Header = "New header"
+	updated, appErr := api.UpdateChannel(created)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", updated.DisplayName)
+	require.Equal(t, "New header", updated.Header)
+
+	got, appErr := api.GetChannelOfType(created.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", got.DisplayName)
+	require.Equal(t, "New header", got.Header)
+}
+
+func TestPluginAPISpaceLifecycleSkipsChatSideEffects(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+
+	_, appErr = api.AddChannelMember(created.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.DeleteChannel(created.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.RestoreChannel(created.Id)
+	require.Nil(t, appErr)
+
+	// Internal backing channels get none of the chat-UI side effects: no join system post on
+	// member add, no archive post on delete, no unarchive post on restore.
+	posts, appErr := th.App.GetPosts(th.Context, created.Id, 0, 60)
+	require.Nil(t, appErr)
+	assert.Empty(t, posts.Order, "space backing channel should carry no join/archive/restore system posts")
+}
+
+func TestPluginAPIDeleteAndRestoreChannelAllowSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+
+	// The docs plugin manages the space backing channel lifecycle through these plugin APIs,
+	// so archive and restore must succeed on a space channel.
+	appErr := api.DeleteChannel(space.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.RestoreChannel(space.Id)
+	require.Nil(t, appErr)
+}
+
+func TestPluginAPIGetChannelOfType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+
+	// Resolves an opaque backing channel type (space) that generic GetChannel excludes.
+	got, appErr := api.GetChannelOfType(space.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, space.Id, got.Id)
+	require.Equal(t, model.ChannelTypeSpace, got.Type)
+
+	// Also resolves a non-opaque type by ID + type.
+	got, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeOpen)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicChannel.Id, got.Id)
+
+	// A type mismatch (space ID asked for as an open channel) returns not-found.
+	_, appErr = api.GetChannelOfType(space.Id, model.ChannelTypeOpen)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	// A regular channel ID is not a space, so this returns not-found.
+	_, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeSpace)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	nonExistentID := model.NewId()
+
+	// A genuinely non-existent ID (neither regular channel nor space) should return a not-found error.
+	appErr := api.DeleteChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	appErr = api.RestoreChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestResolveChannelByID(t *testing.T) {
+	// resolveChannelByID has three branches that must be covered:
+	//  1. GetChannel succeeds → return that channel (no space lookup).
+	//  2. GetChannel returns 404 AND GetChannelOfType succeeds → return the space.
+	//  3. GetChannel returns a non-404 error → return that error immediately, skip the space lookup.
+	// Branches 1 and 2 are exercised by the integration tests above.
+	// Branch 3 cannot be triggered through a live DB (a SELECT by ID either finds the row or
+	// returns ErrNotFound), so it is covered here by calling the extracted function directly
+	// with controlled stubs.
+
+	th := Setup(t)
+	ctx := th.Context
+
+	t.Run("non-404 from GetChannel is propagated without attempting space lookup", func(t *testing.T) {
+		dbErr := model.NewAppError("store.Get", "store.sql_channel.get.app_error", nil, "", http.StatusInternalServerError)
+
+		spaceWasCalled := false
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, dbErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			spaceWasCalled = true
+			return nil, model.NewAppError("store.GetChannelOfType", "not_found", nil, "", http.StatusNotFound)
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Nil(t, got)
+		require.False(t, spaceWasCalled, "space lookup must not be attempted when GetChannel returns a non-404 error")
+	})
+
+	t.Run("non-404 from GetChannelOfType is propagated", func(t *testing.T) {
+		notFoundErr := model.NewAppError("store.Get", "not_found", nil, "", http.StatusNotFound)
+		spaceErr := model.NewAppError("store.GetChannelOfType", "store.sql_channel.get.app_error", nil, "", http.StatusInternalServerError)
+
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, notFoundErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			return nil, spaceErr
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Nil(t, got)
+	})
+
+	t.Run("404 from both returns the original GetChannel 404", func(t *testing.T) {
+		notFoundErr := model.NewAppError("store.Get", "not_found", nil, "", http.StatusNotFound)
+		spaceNotFoundErr := model.NewAppError("store.GetChannelOfType", "not_found", nil, "", http.StatusNotFound)
+
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, notFoundErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			return nil, spaceNotFoundErr
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Equal(t, notFoundErr, appErr, "should return the original GetChannel error, not the space error")
+		require.Nil(t, got)
+	})
+}
+
+func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override open channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous URL Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "open channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should override private channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "private-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous Private Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "private channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+	})
+
+	t.Run("should preserve space backing channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.UseAnonymousURLs = true
+			cfg.FeatureFlags.EnableDocs = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.UseAnonymousURLs = false
+			cfg.FeatureFlags.EnableDocs = false
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "space-" + model.NewId()
+		channel := &model.Channel{
+			DisplayName: "Space",
+			Name:        originalName,
+			Type:        model.ChannelTypeSpace,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "space backing channel name should not be rewritten")
+	})
+
+	t.Run("should preserve channel name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-channel"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
+	})
+
+	t.Run("should not override channel name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
+	})
+}
+
+func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("RegisterPropertyGroup rejects deprecated name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register using the deprecated name must fail
+		_, err := api.RegisterPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "deprecated")
+
+		// Register using the canonical name should still work
+		group, err := api.RegisterPropertyGroup(model.AccessControlPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		assert.Equal(t, model.AccessControlPropertyGroupName, group.Name)
+	})
+
+	t.Run("GetPropertyGroup rejects deprecated name", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Looking up by the deprecated name must fail with an actionable error
+		_, err := api.GetPropertyGroup(model.DeprecatedCPAPropertyGroupName)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "deprecated")
+
+		// Looking up by the canonical name should still work
+		canonical, err := api.GetPropertyGroup(model.AccessControlPropertyGroupName)
+		require.NoError(t, err)
+		require.NotNil(t, canonical)
+		assert.Equal(t, model.AccessControlPropertyGroupName, canonical.Name)
+	})
+
+	t.Run("other group names are not affected by the mapping", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		// Register a different group — no mapping should occur
+		group, err := api.RegisterPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		require.NotNil(t, group)
+		assert.Equal(t, "my_plugin_group", group.Name)
+
+		// Look it up
+		fetched, err := api.GetPropertyGroup("my_plugin_group")
+		require.NoError(t, err)
+		assert.Equal(t, group.ID, fetched.ID)
+	})
+
+	t.Run("GetPropertyGroup with nonexistent name returns error", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		api := th.SetupPluginAPI()
+
+		_, err := api.GetPropertyGroup("no_such_group")
+		require.Error(t, err)
+	})
+}
+
+// clusterWithNodes is a fake cluster that reports a node ID and node list, and
+// whether this node has joined.
+type clusterWithNodes struct {
+	testlib.FakeClusterInterface
+	id     string
+	nodes  []*model.ClusterInfo
+	joined atomic.Bool
+}
+
+func (c *clusterWithNodes) GetClusterId() string { return c.id }
+
+func (c *clusterWithNodes) GetMyClusterInfo() *model.ClusterInfo {
+	if !c.joined.Load() {
+		return nil
+	}
+	return &model.ClusterInfo{Id: c.id}
+}
+
+func (c *clusterWithNodes) GetClusterInfos() ([]*model.ClusterInfo, error) { return c.nodes, nil }
+
+func TestPluginAPICluster(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("no cluster implementation", func(t *testing.T) {
+		th := Setup(t)
+		api := th.SetupPluginAPI()
+
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	cluster := &clusterWithNodes{
+		id: "node1",
+		nodes: []*model.ClusterInfo{
+			{Id: "node1", Hostname: "10.0.0.1", IPAddress: "10.0.0.1:8074"},
+			{Id: "node2", Hostname: "10.0.0.2", IPAddress: "10.0.0.2:8074"},
+			{Id: "registration", Hostname: "10.0.0.3"}, // registered, not connected
+		},
+	}
+	th := SetupWithClusterMock(t, cluster)
+	api := th.SetupPluginAPI()
+
+	// Enterprise builds always register a cluster implementation, even when
+	// clustering is disabled or hasn't started.
+	t.Run("not joined", func(t *testing.T) {
+		assert.Empty(t, api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Empty(t, nodes)
+	})
+
+	t.Run("joined", func(t *testing.T) {
+		cluster.joined.Store(true)
+		defer cluster.joined.Store(false)
+
+		assert.Equal(t, "node1", api.GetClusterNodeID())
+		nodes, err := api.GetClusterNodes()
+		require.NoError(t, err)
+		assert.Equal(t, cluster.nodes[:2], nodes, "only connected nodes")
+	})
+
+	t.Run("published events carry the source node", func(t *testing.T) {
+		cluster.ClearMessages()
+		err := api.PublishPluginClusterEvent(
+			model.PluginClusterEvent{Id: "event", Data: []byte("data")},
+			model.PluginClusterEventSendOptions{SendType: model.PluginClusterEventSendTypeReliable, TargetId: "node2"},
+		)
+		require.NoError(t, err)
+
+		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPluginEvent
+		})
+		require.Len(t, msgs, 1)
+		assert.Equal(t, "pluginid", msgs[0].Props["PluginID"])
+		assert.Equal(t, "event", msgs[0].Props["EventID"])
+		assert.Equal(t, "node1", msgs[0].Props["SourceID"])
+	})
+}
+
+func TestPluginThreadFollowing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	root, appErr := api.CreatePost(&model.Post{
+		Message:   "a root post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	t.Run("a new thread has no followers", func(t *testing.T) {
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("following and unfollowing a root post", func(t *testing.T) {
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{th.BasicUser2.Id}, followers)
+
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, false))
+		followers, appErr = api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, followers)
+	})
+
+	t.Run("rejects a reply", func(t *testing.T) {
+		reply, appErr := api.CreatePost(&model.Post{
+			Message:   "a reply",
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			RootId:    root.Id,
+		})
+		require.Nil(t, appErr)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, reply.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.not_root_post.app_error", appErr.Id)
+	})
+
+	t.Run("rejects invalid ids", func(t *testing.T) {
+		appErr := api.SetThreadFollowing("not-an-id", root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_user_id.app_error", appErr.Id)
+
+		appErr = api.SetThreadFollowing(th.BasicUser2.Id, "not-an-id", true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+
+		_, appErr = api.GetThreadFollowers("not-an-id")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "plugin.api.thread.invalid_thread_id.app_error", appErr.Id)
+	})
+
+	t.Run("rejects a user that does not exist", func(t *testing.T) {
+		unknownID := model.NewId()
+		appErr := api.SetThreadFollowing(unknownID, root.Id, true)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, followers, unknownID)
+	})
+
+	t.Run("leaves out a deactivated follower", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		require.Nil(t, api.SetThreadFollowing(user.Id, root.Id, true))
+		require.Nil(t, api.SetThreadFollowing(th.BasicUser2.Id, root.Id, true))
+
+		_, appErr := th.App.UpdateActive(th.Context, user, false)
+		require.Nil(t, appErr)
+
+		followers, appErr := api.GetThreadFollowers(root.Id)
+		require.Nil(t, appErr)
+		assert.Contains(t, followers, th.BasicUser2.Id)
+		assert.NotContains(t, followers, user.Id)
 	})
 }

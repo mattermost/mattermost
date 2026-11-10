@@ -7,17 +7,6 @@ import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_
 
 import Input from './input';
 
-// Mock the WithTooltip component to avoid ref issues
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children}: {children: React.ReactNode}) => children,
-}));
-
-// Mock the CloseCircleIcon component to avoid ref issues
-jest.mock('@mattermost/compass-icons/components', () => ({
-    CloseCircleIcon: () => <div data-testid='close-circle-icon'/>,
-}));
-
 describe('components/widgets/inputs/Input', () => {
     test('should match snapshot', () => {
         const {container} = renderWithContext(
@@ -25,6 +14,20 @@ describe('components/widgets/inputs/Input', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should keep defaultValue across re-renders when value is omitted (uncontrolled / IME)', () => {
+        const {rerender} = renderWithContext(
+            <Input defaultValue=''/>,
+        );
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+
+        fireEvent.input(input, {target: {value: '그'}});
+        rerender(
+            <Input defaultValue=''/>,
+        );
+
+        expect(input.value).toBe('그');
     });
 
     test('should render with clearable enabled', async () => {
@@ -46,11 +49,11 @@ describe('components/widgets/inputs/Input', () => {
         expect(inputElement).toBeInTheDocument();
 
         // Find the clear button's div container
-        const iconElement = screen.getByTestId('close-circle-icon');
+        const iconElement = document.querySelector('.Input__clear');
         expect(iconElement).toBeInTheDocument();
 
         // Click directly on the icon element
-        await userEvent.click(iconElement);
+        await userEvent.click(iconElement!);
 
         // Verify onClear was called
         expect(onClear).toHaveBeenCalledTimes(1);

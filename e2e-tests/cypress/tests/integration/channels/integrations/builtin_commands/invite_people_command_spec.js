@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import {getJoinEmailTemplate, verifyEmailBody} from '../../../../utils';
-
 import {loginAndVisitChannel} from './helper';
+
+import {getJoinEmailTemplate, verifyEmailBody} from '@/utils';
 
 describe('Integrations', () => {
     let testUser;

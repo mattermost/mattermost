@@ -48,11 +48,11 @@ type Props = {
         setUserGridSearch: (term: string) => void;
         setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
-}
+};
 
 type State = {
     loading: boolean;
-}
+};
 
 const PROFILE_CHUNK_SIZE = 10;
 
@@ -239,7 +239,7 @@ export default class ChannelMembers extends React.PureComponent<Props, State> {
                 button={
                     <ToggleModalButton
                         id='addChannelMembers'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         modalId={ModalIdentifiers.CHANNEL_INVITE}
                         dialogType={ChannelInviteModal}
                         disabled={isDisabled}

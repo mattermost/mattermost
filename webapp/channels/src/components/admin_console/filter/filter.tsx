@@ -2,10 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
 import FilterList from './filter_list';
+
 import './filter.scss';
 
 export type Filters = {
@@ -32,19 +37,19 @@ export type FilterOption = {
     // Key value map of filter values with keys matching the keys above
     values: FilterValues;
 
-    // Filter Component type, optional parameter defaults to FilterCheckbox
+    // Filter Component type, optional parameter defaults to FilterList
     type?: React.ElementType;
-}
+};
 
 export type FilterOptions = {
     [key: string]: FilterOption;
-}
+};
 
 type Props = {
     onFilter: (filters: FilterOptions) => void;
     options: FilterOptions;
     keys: string[];
-}
+};
 
 type State = {
     show: boolean;
@@ -52,11 +57,11 @@ type State = {
     keys: string[];
     optionsModified: boolean;
     filterCount: number;
-}
+};
 
 class Filter extends React.PureComponent<Props, State> {
-    private buttonRef: React.RefObject<HTMLButtonElement>;
-    private filterRef: React.RefObject<HTMLDivElement>;
+    private buttonRef: React.RefObject<HTMLButtonElement | null>;
+    private filterRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);
@@ -187,20 +192,22 @@ class Filter extends React.PureComponent<Props, State> {
                 className='Filter'
                 ref={this.filterRef}
             >
-                <button
+                <Button
                     type='button'
-                    className={classNames('Filter_button', {Filter__active: this.state.show})}
+                    emphasis='tertiary'
+                    size='small'
+                    className='Filter_button'
+                    aria-expanded={this.state.show}
                     onClick={this.togglePopover}
                     ref={this.buttonRef}
+                    leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
                 >
-                    <i className='Icon icon-filter-variant'/>
-
                     <FormattedMessage
                         id='admin.filter.filters'
                         defaultMessage='Filters'
                     />
                     {filterCount > 0 && ` (${filterCount})`}
-                </button>
+                </Button>
 
                 <div
                     className={classNames('Filter_content', {Filter__show: this.state.show})}
@@ -230,9 +237,11 @@ class Filter extends React.PureComponent<Props, State> {
                         {filters}
                     </div>
 
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary btn-sm Filter_apply'
+                        emphasis='primary'
+                        size='small'
+                        className='Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >
@@ -240,7 +249,7 @@ class Filter extends React.PureComponent<Props, State> {
                             id='admin.filter.apply'
                             defaultMessage='Apply'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

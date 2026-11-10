@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import SuggestionBox from 'components/suggestion/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
 import type ModalSuggestionList from './suggestion/modal_suggestion_list';
@@ -16,7 +17,12 @@ export type Option = {
     text: string;
     value: string;
 };
-export type Selected = Option | UserProfile | Channel
+export type Selected = Option | UserProfile | Channel;
+
+type SuggestionBoxHandle = {
+    getTextbox: () => SuggestionBoxElement | null;
+    blur: () => void;
+};
 
 type Props = {
     id: string;
@@ -31,17 +37,14 @@ type Props = {
     disabled?: boolean;
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
-    listPosition: string;
+    listPosition?: AutocompleteListPosition;
 };
 
 type State = {
     input: string;
     focused?: boolean;
+    computedListPosition: SuggestionListPosition;
 };
-
-type ChangeEvent = {
-    target: HTMLInputElement;
-}
 
 export default class AutocompleteSelector extends React.PureComponent<Props, State> {
     static defaultProps = {
@@ -50,20 +53,40 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         labelClassName: '',
         inputClassName: '',
         listComponent: SuggestionList,
-        listPosition: 'top',
     };
 
-    suggestionRef?: HTMLElement;
+    suggestionRef?: SuggestionBoxHandle;
 
     constructor(props: Props) {
         super(props);
 
         this.state = {
             input: '',
+            computedListPosition: 'top',
         };
     }
 
-    onChange = (e: ChangeEvent) => {
+    onFocus = () => {
+        const nextState: Pick<State, 'focused' | 'computedListPosition'> = {
+            focused: true,
+            computedListPosition: 'top',
+        };
+
+        if (this.props.listPosition === 'auto' && this.suggestionRef) {
+            const input = this.suggestionRef.getTextbox();
+            if (input) {
+                nextState.computedListPosition = getSuggestionListPosition(input);
+            }
+        }
+
+        this.setState(nextState);
+
+        if (this.props.toggleFocus) {
+            this.props.toggleFocus(true);
+        }
+    };
+
+    onChange = (e: React.ChangeEvent<SuggestionBoxElement>) => {
         if (!e || !e.target) {
             return;
         }
@@ -85,16 +108,8 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         });
     };
 
-    setSuggestionRef = (ref: HTMLElement) => {
+    setSuggestionRef = (ref: SuggestionBoxHandle) => {
         this.suggestionRef = ref;
-    };
-
-    onFocus = () => {
-        this.setState({focused: true});
-
-        if (this.props.toggleFocus) {
-            this.props.toggleFocus(true);
-        }
     };
 
     onBlur = () => {
@@ -116,8 +131,12 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             value,
             disabled,
             listComponent,
-            listPosition,
+            listPosition: listPositionProp,
         } = this.props;
+
+        const listPosition = listPositionProp === 'auto' ?
+            this.state.computedListPosition :
+            listPositionProp;
 
         const {focused} = this.state;
         let {input} = this.state;
@@ -180,4 +199,20 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             </div>
         );
     }
+}
+
+type SuggestionListPosition = 'top' | 'bottom';
+
+type AutocompleteListPosition = SuggestionListPosition | 'auto';
+
+/** Open the suggestion list toward the side of the viewport with more room. */
+export function getSuggestionListPosition(input: HTMLElement): SuggestionListPosition {
+    if (typeof input?.getBoundingClientRect !== 'function') {
+        return 'top';
+    }
+
+    const {top, bottom} = input.getBoundingClientRect();
+    const spaceAbove = Math.max(0, top);
+    const spaceBelow = Math.max(0, window.innerHeight - bottom);
+    return spaceBelow > spaceAbove ? 'bottom' : 'top';
 }

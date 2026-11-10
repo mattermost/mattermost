@@ -1,19 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
 
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
+
+jest.mock('components/integrations/delete_integration_link', () => {
+    return (props: {onDelete: () => void}) => (
+        <button onClick={props.onDelete}>{'Delete'}</button>
+    );
+});
+
+const initialState: DeepPartial<GlobalState> = {
+    entities: {
+        general: {
+            config: {},
+        },
+    },
+};
 
 describe('components/integrations/InstalledOutgoingWebhook', () => {
     const team: Team = TestHelper.getTeamMock({
@@ -60,113 +75,137 @@ describe('components/integrations/InstalledOutgoingWebhook', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...baseProps}/>,
+            initialState as GlobalState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not have edit and delete actions if user does not have permissions to change', () => {
         const newCanChange = false;
         const props = {...baseProps, canChange: newCanChange};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
-        expect(wrapper.find('.item-actions').length).toBe(0);
+        expect(container.querySelector('.item-actions')).not.toBeInTheDocument();
     });
 
     test('should have edit and delete actions if user can change webhook', () => {
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOutgoingWebhook {...baseProps}/>,
+            initialState as GlobalState,
         );
-        expect(wrapper.find('.item-actions').find(Link).exists()).toBe(true);
-        expect(wrapper.find('.item-actions').find(DeleteIntegrationLink).exists()).toBe(true);
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
     test('Should have the same name and description on view as it has in outgoingWebhook', () => {
         const newCanChange = false;
         const props = {...baseProps, canChange: newCanChange};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper.find('.item-details__description').text()).toBe('build status');
-        expect(wrapper.find('.item-details__name').text()).toBe('build');
+        expect(container.querySelector('.item-details__description')).toHaveTextContent('build status');
+        expect(container.querySelector('.item-details__name')).toHaveTextContent('build');
     });
 
     test('Should not display description as it is null', () => {
         const newOutgoingWebhook = TestHelper.getOutgoingWebhookMock({...outgoingWebhook, description: undefined});
         const props = {...baseProps, outgoingWebhook: newOutgoingWebhook};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper.find('.item-details__description').length).toBe(0);
+        expect(container.querySelector('.item-details__description')).not.toBeInTheDocument();
     });
 
     test('Should not render any nodes as there are no filtered results', () => {
         const newFilter = 'someLongText';
         const props = {...baseProps, filter: newFilter};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper.getElement()).toBe(null);
+        expect(container.querySelector('.backstage-list__item')).not.toBeInTheDocument();
     });
 
     test('Should render a webhook item as filtered result is true', () => {
         const newFilter = 'buil';
         const props = {...baseProps, filter: newFilter};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        expect(wrapper.find('.item-details').exists()).toBe(true);
+        expect(container.querySelector('.item-details')).toBeInTheDocument();
     });
 
-    test('Should call onRegenToken function once', () => {
+    test('Should call onRegenToken function once', async () => {
         const newFilter = 'buil';
         const newOnRegenToken = jest.fn();
         const props = {...baseProps, filter: newFilter, onRegenToken: newOnRegenToken};
 
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        wrapper.find('.item-actions button').first().simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        await userEvent.click(screen.getByText('Regenerate Token'));
         expect(newOnRegenToken).toHaveBeenCalledTimes(1);
     });
 
-    test('Should call onDelete function once', () => {
+    test('Should call onDelete function once', async () => {
         const newFilter = 'buil';
         const newOnDelete = jest.fn();
         const props = {...baseProps, filter: newFilter, onDelete: newOnDelete};
 
-        const wrapper = shallow(
+        renderWithContext(
             <InstalledOutgoingWebhook {...props}/>,
+            initialState as GlobalState,
         );
 
-        wrapper.find(DeleteIntegrationLink).first().prop('onDelete')();
+        await userEvent.click(screen.getByText('Delete'));
         expect(newOnDelete).toHaveBeenCalledTimes(1);
     });
 
     test('Should match snapshot of makeDisplayName', () => {
-        const wrapper = shallow(
-            <InstalledOutgoingWebhook {...baseProps}/>,
+        // Test with webhook display name
+        const {container: container1} = renderWithContext(
+            <InstalledOutgoingWebhook
+                {...baseProps}
+                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: 'hook display name'})}
+            />,
+            initialState as GlobalState,
         );
+        expect(container1.querySelector('.item-details__name')).toMatchSnapshot();
 
-        const instance = wrapper.instance() as InstalledOutgoingWebhook;
+        // Test with channel display name (no webhook display name)
+        const {container: container2} = renderWithContext(
+            <InstalledOutgoingWebhook
+                {...baseProps}
+                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}
+                channel={TestHelper.getChannelMock({display_name: 'channel display name'})}
+            />,
+            initialState as GlobalState,
+        );
+        expect(container2.querySelector('.item-details__name')).toMatchSnapshot();
 
-        // displays webhook's display name
-        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock({display_name: 'hook display name'}), TestHelper.getChannelMock())).toMatchSnapshot();
-
-        // displays channel's display name
-        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock({display_name: 'channel display name'}))).toMatchSnapshot();
-
-        // displays a private hook
-        expect(instance.makeDisplayName(TestHelper.getOutgoingWebhookMock(), TestHelper.getChannelMock())).toMatchSnapshot();
+        // Test with no display name and no channel - displays "A Private Webhook"
+        const {container: container3} = renderWithContext(
+            <InstalledOutgoingWebhook
+                {...baseProps}
+                outgoingWebhook={TestHelper.getOutgoingWebhookMock({...outgoingWebhook, display_name: ''})}
+                channel={undefined as unknown as Channel}
+            />,
+            initialState as GlobalState,
+        );
+        expect(container3.querySelector('.item-details__name')).toMatchSnapshot();
     });
 
     test('Should match result when matchesFilter is called', () => {

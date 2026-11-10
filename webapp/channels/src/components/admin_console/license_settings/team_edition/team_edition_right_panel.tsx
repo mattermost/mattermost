@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {LicenseLinks} from 'utils/constants';
 import {format} from 'utils/markdown';
@@ -59,17 +60,21 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <ExternalLink
-                        href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
-                        location='team_edition_right_panel'
-                        className='btn btn-tertiary'
-                        role='button'
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                     >
-                        <FormattedMessage
-                            id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
-                            defaultMessage='Learn more'
-                        />
-                    </ExternalLink>
+                        <ExternalLink
+                            href={LicenseLinks.UNSUPPORTED_UPGRADE_LINK}
+                            location='team_edition_right_panel'
+                            role='button'
+                        >
+                            <FormattedMessage
+                                id='admin.licenseSettings.teamEdition.teamEditionRightPanel.learnMore'
+                                defaultMessage='Learn more'
+                            />
+                        </ExternalLink>
+                    </Button>
                 </p>
             </div>
         );
@@ -77,27 +82,25 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <button
+                    <Button
                         type='button'
                         onClick={onHandleUpgrade}
-                        className='btn btn-primary'
+                        emphasis='primary'
+                        loading={upgradingPercentage > 0}
                     >
-                        <LoadingWrapper
-                            loading={upgradingPercentage > 0}
-                            text={
-                                <FormattedMessage
-                                    id='admin.license.enterprise.upgrading'
-                                    defaultMessage='Upgrading {percentage}%'
-                                    values={{percentage: upgradingPercentage}}
-                                />
-                            }
-                        >
+                        {upgradingPercentage > 0 ? (
+                            <FormattedMessage
+                                id='admin.license.enterprise.upgrading'
+                                defaultMessage='Upgrading {percentage}%'
+                                values={{percentage: upgradingPercentage}}
+                            />
+                        ) : (
                             <FormattedMessage
                                 id='admin.license.enterprise.upgrade'
                                 defaultMessage='Upgrade to Enterprise Edition'
                             />
-                        </LoadingWrapper>
-                    </button>
+                        )}
+                    </Button>
                 </p>
                 <p className='upgrade-legal-terms'>
                     <FormattedMessage
@@ -141,28 +144,28 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                 <p>
                     <FormattedMessage
                         id='admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart'
-                        defaultMessage='You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:'
+                        defaultMessage='You have upgraded your binary to Mattermost Enterprise. Please restart the server to start using the new binary. You can do it right here:'
                     />
                 </p>
                 <p>
-                    <button
+                    <Button
                         type='button'
                         onClick={handleRestart}
-                        className='btn btn-primary'
+                        emphasis='primary'
+                        loading={restarting}
                     >
-                        <LoadingWrapper
-                            loading={restarting}
-                            text={intl.formatMessage({
+                        {restarting ? (
+                            intl.formatMessage({
                                 id: 'admin.licenseSettings.teamEdition.teamEditionRightPanel.restarting',
                                 defaultMessage: 'Restarting',
-                            })}
-                        >
+                            })
+                        ) : (
                             <FormattedMessage
                                 id='admin.licenseSettings.teamEdition.teamEditionRightPanel.restart'
                                 defaultMessage='Restart Server'
                             />
-                        </LoadingWrapper>
-                    </button>
+                        )}
+                    </Button>
                 </p>
                 {restartError && (
                     <div className='upgrade-error'>

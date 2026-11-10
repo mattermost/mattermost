@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import {searchTeams} from 'mattermost-redux/actions/teams';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
-import Toggle from 'components/toggle';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
@@ -26,7 +27,7 @@ type Props = {
     teamReviewersSetting: Record<string, TeamReviewerSetting>;
     onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
     disabled?: boolean;
-}
+};
 
 export default function TeamReviewers({teamReviewersSetting, onChange, disabled}: Props): JSX.Element {
     const intl = useIntl();
@@ -104,17 +105,17 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
     const columns = useMemo(() => {
         return [
             {
-                name: intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.header.team', defaultMessage: 'Team'}),
+                name: intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.header.team', defaultMessage: 'Team'}),
                 field: 'team',
                 fixed: true,
             },
             {
-                name: intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.header.reviewers', defaultMessage: 'Reviewers'}),
+                name: intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.header.reviewers', defaultMessage: 'Reviewers'}),
                 field: 'reviewers',
                 fixed: true,
             },
             {
-                name: intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.header.enabled', defaultMessage: 'Enabled'}),
+                name: intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.header.enabled', defaultMessage: 'Enabled'}),
                 field: 'enabled',
                 fixed: true,
             },
@@ -151,13 +152,15 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
                     />
                 ),
                 enabled: (
-                    <Toggle
+                    <Switch
                         id={`team_content_reviewer_toggle_${team.id}`}
-                        ariaLabel={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for this team'})}
-                        size='btn-md'
-                        onToggle={getHandleToggle(team.id)}
-                        toggled={teamReviewersSetting[team.id]?.Enabled || false}
+                        size='medium'
+                        onChange={getHandleToggle(team.id)}
+                        checked={teamReviewersSetting[team.id]?.Enabled || false}
                         disabled={disabled}
+                        data-testid={`team_content_reviewer_toggle_${team.id}-button`}
+                        tabIndex={0}
+                        aria-label={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.toggle', defaultMessage: 'Enable or disable content reviewers for team {teamName}'}, {teamName: team.display_name})}
                     />
                 ),
             },
@@ -196,16 +199,17 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
 
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
-            <button
+            <Button
                 data-testid='disableForAllTeamsButton'
-                className='btn btn-link icon-close'
-                aria-label={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
+                emphasis='link'
+                className='icon-close'
+                aria-label={intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
                 disabled={disabled}
                 aria-disabled={disabled}
                 onClick={handleDisableForAllTeams}
             >
-                {intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
-            </button>
+                {intl.formatMessage({id: 'admin.dataSpillage.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
+            </Button>
         </div>
     ), [disabled, intl, handleDisableForAllTeams]);
 

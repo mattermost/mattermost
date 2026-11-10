@@ -7,7 +7,17 @@ import {useSelector} from 'react-redux';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {getSiteURL} from 'utils/url';
+
 import type {GlobalState} from 'types/store';
+
+function isSameOrigin(url: URL, siteURL: string): boolean {
+    try {
+        return url.origin === new URL(siteURL).origin;
+    } catch {
+        return false;
+    }
+}
 
 export type ExternalLinkQueryParams = {
     utm_source?: string;
@@ -15,8 +25,19 @@ export type ExternalLinkQueryParams = {
     utm_campaign?: string;
     utm_content?: string;
     userId?: string;
-}
+};
 
+/**
+ * useExternalLink is used when linking outside of the MM server to add extra tracking parameters when linking to any
+ * page on mattermost.com (such as our docs or marketing websites). When passed any URL that isn't on mattermost.com,
+ * or one on this server's own origin, it returns the original URL unmodified.
+ *
+ * @param href The external URL being linked to
+ * @param location The location of the link within the app
+ * @param overwriteQueryParams
+ * @return {[string, Record<string, string>]} A tuple containing the URL (whether or not it was modified) and all query
+ * parameters on that link (either pre-existing or added by this hook)
+ */
 export function useExternalLink(href: string, location: string = '', overwriteQueryParams: ExternalLinkQueryParams = {}): [string, Record<string, string>] {
     const userId = useSelector(getCurrentUserId);
     const config = useSelector(getConfig);
@@ -28,11 +49,24 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
     const isCloud = useSelector((state: GlobalState) => getLicense(state)?.Cloud === 'true');
 
     return useMemo(() => {
-        if (!href?.includes('mattermost.com') || href?.startsWith('mailto:')) {
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(href);
+        } catch {
             return [href, {}];
         }
 
-        const parsedUrl = new URL(href);
+        if (parsedUrl.hostname !== 'mattermost.com' && !parsedUrl.hostname.endsWith('.mattermost.com')) {
+            return [href, {}];
+        }
+
+        if (parsedUrl.protocol === 'mailto:') {
+            return [href, {}];
+        }
+
+        if (isSameOrigin(parsedUrl, config?.SiteURL || getSiteURL())) {
+            return [href, {}];
+        }
 
         // Determine edition type (enterprise vs team)
         const isEnterpriseReady = config?.BuildEnterpriseReady === 'true';

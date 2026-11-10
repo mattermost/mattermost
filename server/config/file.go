@@ -198,9 +198,14 @@ func (fs *FileStore) RemoveFile(name string) error {
 		mlog.Debug("Skipping removal of configuration file with absolute path", mlog.String("filename", name))
 		return nil
 	}
-	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
-	err := os.Remove(resolvedPath)
+	root, err := os.OpenRoot(filepath.Dir(fs.path))
+	if err != nil {
+		return errors.Wrap(err, "failed to open config directory")
+	}
+	defer root.Close()
+
+	err = root.Remove(name)
 	if os.IsNotExist(err) {
 		return nil
 	}

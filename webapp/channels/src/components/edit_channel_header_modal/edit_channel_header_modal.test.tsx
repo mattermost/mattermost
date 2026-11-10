@@ -5,11 +5,13 @@ import React from 'react';
 
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 
+import ConnectedEditChannelHeaderModal from 'components/edit_channel_header_modal';
 import {EditChannelHeaderModal} from 'components/edit_channel_header_modal/edit_channel_header_modal';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import {renderWithContext, screen, userEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
 import * as Utils from 'utils/utils';
 
@@ -44,11 +46,10 @@ describe('components/EditChannelHeaderModal', () => {
         markdownPreviewFeatureIsEnabled: false,
         channel,
         ctrlSend: false,
+        channelKind: 'channel' as const,
         show: false,
-        shouldShowPreview: false,
         onExited: jest.fn(),
         actions: {
-            setShowPreview: jest.fn(),
             patchChannel: jest.fn().mockResolvedValue({}),
         },
         intl: {
@@ -125,6 +126,43 @@ describe('components/EditChannelHeaderModal', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
+    test('should call a board a board', () => {
+        renderWithContext(
+            <ConnectedEditChannelHeaderModal
+                channel={channel}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Edit the text appearing next to the board name in the header.')).toBeInTheDocument();
+        expect(screen.queryByText('Edit the text appearing next to the channel name in the header.')).not.toBeInTheDocument();
+    });
+
+    test('should say board header in the length error for a board', async () => {
+        const patchChannel = jest.fn().mockResolvedValue({
+            error: {...serverError, server_error_id: 'model.channel.is_valid.header.app_error'},
+        });
+        renderWithContext(
+            <EditChannelHeaderModal
+                {...baseProps}
+                channelKind='board'
+                actions={{...baseProps.actions, patchChannel}}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        const textbox = screen.getByRole('textbox');
+        await userEvent.clear(textbox);
+        await userEvent.type(textbox, 'New header');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(screen.getByText(/The board header is limited to 1024 characters/)).toBeInTheDocument();
+        });
+        expect(screen.queryByText(/The channel header is limited/)).not.toBeInTheDocument();
+    });
+
     test('error without intl message', async () => {
         const patchChannel = jest.fn().mockResolvedValue({error: serverError});
         const {baseElement} = renderWithContext(
@@ -147,6 +185,27 @@ describe('components/EditChannelHeaderModal', () => {
         });
 
         expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should toggle the preview and start without it when reopened', async () => {
+        const {unmount} = renderWithContext(<EditChannelHeaderModal {...baseProps}/>);
+
+        const previewLink = screen.getByRole('button', {name: 'Preview'});
+        const textboxWrapper = () => screen.getByTestId('edit_textbox').closest('.textarea-wrapper');
+
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(previewLink);
+        unmount();
+
+        renderWithContext(<EditChannelHeaderModal {...baseProps}/>);
+        expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
     });
 
     describe('handleSave', () => {
@@ -377,7 +436,7 @@ describe('components/EditChannelHeaderModal', () => {
                 }}
             />
         ),
-        (instance: React.Component<any, any>) => instance.state.header,
+        (container: HTMLElement) => (container.querySelector('textarea') as HTMLTextAreaElement)?.value ?? '',
         false,
     );
 });

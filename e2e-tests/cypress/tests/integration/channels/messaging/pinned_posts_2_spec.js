@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('pinned messages', () => {
     let testTeam;

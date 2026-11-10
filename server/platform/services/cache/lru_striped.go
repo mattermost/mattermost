@@ -149,7 +149,8 @@ func NewLRUStriped(opts *CacheOptions) (Cache, error) {
 	opts.Size = (opts.Size / opts.StripedBuckets) + (opts.Size % opts.StripedBuckets)
 
 	buckets := make([]*LRU, opts.StripedBuckets)
-	for i := 0; i < opts.StripedBuckets; i++ {
+	stripedBuckets := opts.StripedBuckets
+	for i := range stripedBuckets {
 		buckets[i] = NewLRU(opts).(*LRU)
 	}
 

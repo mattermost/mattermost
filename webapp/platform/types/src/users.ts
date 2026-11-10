@@ -30,6 +30,7 @@ export type UserNotifyProps = {
     auto_responder_message?: string;
     calls_mobile_sound?: 'true' | 'false' | '';
     calls_mobile_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful' | '';
+    channel_mention_auto_follow_threads?: 'true' | 'false';
 };
 
 export type UserProfile = {
@@ -133,6 +134,7 @@ export type UserAccessToken = {
     user_id: string;
     description: string;
     is_active: boolean;
+    expires_at?: number;
 };
 
 export type UsersStats = {

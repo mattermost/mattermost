@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -325,6 +327,52 @@ func TestUpdateCommand(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("CannotUpdateCommandToDuplicateCustomTrigger", func(t *testing.T) {
+		cmdA := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/a",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_a",
+		}
+		createdCmdA, appErr := th.App.CreateCommand(cmdA)
+		require.Nil(t, appErr)
+
+		cmdB := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/b",
+			Method:    model.CommandMethodPost,
+			Trigger:   "duplicate_custom_b",
+		}
+		createdCmdB, appErr := th.App.CreateCommand(cmdB)
+		require.Nil(t, appErr)
+
+		createdCmdB.Trigger = createdCmdA.Trigger
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmdB)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
+
+	t.Run("CannotUpdateCommandToBuiltInTrigger", func(t *testing.T) {
+		cmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/c",
+			Method:    model.CommandMethodPost,
+			Trigger:   "custom_for_builtin_collision",
+		}
+		createdCmd, appErr := th.App.CreateCommand(cmd)
+		require.Nil(t, appErr)
+
+		createdCmd.Trigger = "join"
+		_, resp, err := th.Client.UpdateCommand(context.Background(), createdCmd)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+	})
 }
 
 func TestMoveCommand(t *testing.T) {
@@ -509,6 +557,38 @@ func TestMoveCommand(t *testing.T) {
 
 		// Verify the command was not moved
 		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
+
+	t.Run("CannotMoveCommandToTeamWithDuplicateTrigger", func(t *testing.T) {
+		trigger := "move_duplicate_trigger"
+
+		sourceCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com/source",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		sourceCreatedCmd, appErr := th.App.CreateCommand(sourceCmd)
+		require.Nil(t, appErr)
+
+		targetCmd := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    newTeam.Id,
+			URL:       "http://nowhere.com/target",
+			Method:    model.CommandMethodPost,
+			Trigger:   trigger,
+		}
+		_, appErr = th.App.CreateCommand(targetCmd)
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, sourceCreatedCmd.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
+
+		notMovedCmd, _ := th.App.GetCommand(sourceCreatedCmd.Id)
 		require.Equal(t, team.Id, notMovedCmd.TeamId)
 	})
 }
@@ -1311,14 +1391,17 @@ func TestExecuteInvalidCommand(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rc := &model.CommandResponse{}
@@ -1383,14 +1466,17 @@ func TestExecuteGetCommand(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	token := model.NewId()
 	expectedCommandResponse := &model.CommandResponse{
@@ -1445,14 +1531,17 @@ func TestExecutePostCommand(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	token := model.NewId()
 	expectedCommandResponse := &model.CommandResponse{
@@ -1496,6 +1585,176 @@ func TestExecutePostCommand(t *testing.T) {
 
 	expectedCommandResponse.TriggerId = commandResponse.TriggerId
 	require.Equal(t, expectedCommandResponse, commandResponse)
+}
+
+func TestExecutePostCommandWithSuccessStatusOtherThanOK(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "the remote integration accepted the request",
+		ResponseType: model.CommandResponseTypeInChannel,
+	}
+
+	// Integrations such as Tines answer a webhook with 201 Created on success.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "createdcommand",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	commandResponse, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/createdcommand")
+	require.NoError(t, err)
+	require.NotNil(t, commandResponse)
+	require.Equal(t, expectedCommandResponse.Text, commandResponse.Text)
+
+	// The response is posted into the channel rather than surfaced as an error to the user.
+	posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+
+	var responsePost *model.Post
+	for _, post := range posts.Posts {
+		if post.Message == expectedCommandResponse.Text {
+			responsePost = post
+			break
+		}
+	}
+	require.NotNil(t, responsePost, "the command response should have been posted to the channel")
+	require.Equal(t, th.BasicUser.Id, responsePost.UserId)
+}
+
+func TestExecutePostCommandWithNoContentStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// A fire-and-forget integration acknowledges the request with an empty 204.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "nocontentcommand",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	postsBefore, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+
+	commandResponse, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/nocontentcommand")
+	require.NoError(t, err)
+	require.NotNil(t, commandResponse)
+	require.Empty(t, commandResponse.Text)
+
+	// The user sees neither an error nor an empty post.
+	postsAfter, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, postsAfter.Posts, len(postsBefore.Posts))
+}
+
+func TestExecutePostCommandWithResetContentStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// A fire-and-forget integration acknowledges the request with an empty 205.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusResetContent)
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "resetcontentcommand",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	postsBefore, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+
+	commandResponse, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/resetcontentcommand")
+	require.NoError(t, err)
+	require.NotNil(t, commandResponse)
+	require.Empty(t, commandResponse.Text)
+
+	// The user sees neither an error nor an empty post.
+	postsAfter, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, postsAfter.Posts, len(postsBefore.Posts))
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
@@ -1614,16 +1873,19 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	// create a team that the user isn't a part of
 	team2 := th.CreateTeam(t)
@@ -1678,16 +1940,19 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	// create a team that the user isn't a part of
 	team2 := th.CreateTeam(t)
@@ -1755,16 +2020,19 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
@@ -1814,8 +2082,8 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 		[]*model.ChannelModerationPatch{{
 			Name: &model.PermissionCreatePost.Id,
 			Roles: &model.ChannelModeratedRolesPatch{
-				Guests:  model.NewPointer(false),
-				Members: model.NewPointer(false),
+				Guests:  new(false),
+				Members: new(false),
 			},
 		}})
 	require.Nil(t, appErr)
@@ -1841,4 +2109,125 @@ func TestExecuteCommandReadOnly(t *testing.T) {
 	_, resp, err = client.ExecuteCommandWithTeam(context.Background(), th.BasicChannel2.Id, th.BasicChannel2.TeamId, "/postcommand")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestExecuteCommandResponseURLUsesSiteURL(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+
+	// Set a SiteURL that differs from the test client's Host header (localhost).
+	// This verifies that response_url uses the configured SiteURL, not the Host header.
+	// Before the fix (MM-67142), response_url would contain "localhost" and fail this check.
+	expectedSiteURL := "http://mattermost.example.com"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = expectedSiteURL })
+
+	var receivedResponseURL string
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "test response_url command response",
+		ResponseType: model.CommandResponseTypeInChannel,
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		require.NoError(t, err)
+
+		// Capture the response_url sent by the server
+		receivedResponseURL = r.FormValue("response_url")
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "testrespurl",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create command")
+
+	_, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/testrespurl")
+	require.NoError(t, err)
+
+	// Verify response_url starts with the configured SiteURL, not the Host header
+	require.True(t, strings.HasPrefix(receivedResponseURL, expectedSiteURL),
+		"response_url should start with configured SiteURL %q, but got %q", expectedSiteURL, receivedResponseURL)
+
+	// Verify warning is logged when Host header differs from SiteURL
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Request hostname differs from configured SiteURL. The configured SiteURL will be used for the slash command response URL.")
+}
+
+func TestExecuteCustomCommandRequiresSiteURL(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+
+	// Set SiteURL to a valid value first so we can create the command
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a custom command
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, `{"text": "response"}`)
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "customcmd",
+	}
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create command")
+
+	// Now set SiteURL to empty
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
+
+	// Try to execute the custom command - should fail because SiteURL is required for custom commands
+	_, resp, err := client.ExecuteCommand(context.Background(), channel.Id, "/customcmd")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.command.execute_command.site_url_required.app_error")
+
+	// Built-in commands should still work without SiteURL
+	_, _, err = client.ExecuteCommand(context.Background(), channel.Id, "/echo test")
+	require.NoError(t, err)
 }

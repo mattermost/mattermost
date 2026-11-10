@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import type {FC} from 'react';
 
@@ -15,7 +14,7 @@ const DATE_RANGES = [
 
 type Props = {
     date: number | Date;
-}
+};
 
 const DateSeparator: FC<Props> = ({date}) => {
     return (
@@ -28,13 +27,6 @@ const DateSeparator: FC<Props> = ({date}) => {
             />
         </BasicSeparator>
     );
-};
-
-DateSeparator.propTypes = {
-    date: PropTypes.oneOfType([
-        PropTypes.number,
-        PropTypes.instanceOf(Date),
-    ]).isRequired,
 };
 
 export default memo(DateSeparator);

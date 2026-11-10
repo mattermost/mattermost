@@ -1,55 +1,223 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/TeamMembersModal should match snapshot 1`] = `
-<GenericModal
-  ariaLabelledby="teamMemberModalLabel"
-  bodyPadding={false}
-  className="more-modal"
-  compassDesign={true}
-  enforceFocus={false}
-  headerButton={
-    <Memo(TeamPermissionGate)
-      permissions={
-        Array [
-          "add_user_to_team",
-          "invite_guest",
-        ]
-      }
-      teamId="id"
-    >
-      <button
-        className="btn btn-primary btn-sm invite-people-btn"
-        id="invitePeople"
-        onClick={[Function]}
-        type="button"
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Invite People"
-          id="team_member_modal.invitePeople"
-        />
-      </button>
-    </Memo(TeamPermissionGate)>
-  }
-  id="teamMembersModal"
-  modalHeaderText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="{team} Members"
-      id="team_member_modal.members"
-      values={
-        Object {
-          "team": "display name",
-        }
-      }
-    />
-  }
-  modalHeaderTextId="teamMemberModalLabel"
-  modalLocation="top"
-  onExited={[Function]}
-  onHide={[Function]}
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <Connect(MemberListTeam)
-    teamId="id"
+  <div
+    aria-hidden="true"
   />
-</GenericModal>
+  <div
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="teamMemberModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="teamMembersModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
+  >
+    <div
+      class="GenericModal__location--top a11y__modal GenericModal GenericModal__compassDesign more-modal modal-dialog"
+    >
+      <div
+        class="modal-content"
+        role="document"
+      >
+        <div
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+        >
+          <div
+            class="modal-header"
+          >
+            <div
+              class="GenericModal__header__text_container"
+            >
+              <div
+                class="GenericModal__header"
+              >
+                <h1
+                  class="modal-title"
+                  id="teamMemberModalLabel"
+                >
+                  display name Members
+                </h1>
+              </div>
+            </div>
+            <button
+              aria-label="Close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_ft92e_41"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                >
+                  <div
+                    class="_icon__glyph-area_1i355_9"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="GenericModal__body"
+            >
+              <div
+                class="filtered-user-list"
+              >
+                <div
+                  class="filter-row"
+                >
+                  <div
+                    class="col-xs-12"
+                  >
+                    <label
+                      class="hidden-label"
+                      for="searchUsersInput"
+                    >
+                      Search users
+                    </label>
+                    <div
+                      class="input-wrapper"
+                    >
+                      <input
+                        aria-label="Search users"
+                        class="form-control filter-textbox"
+                        id="searchUsersInput"
+                        placeholder="Search users"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="col-sm-12"
+                  >
+                    <span
+                      aria-live="polite"
+                      class="member-count pull-left"
+                      id="searchableUserListTotal"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="more-modal__list"
+                >
+                  <div
+                    data-simplebar="init"
+                    style="--scrollbar-color: var(undefined);"
+                  >
+                    <div
+                      class="simplebar-wrapper"
+                    >
+                      <div
+                        class="simplebar-height-auto-observer-wrapper"
+                      >
+                        <div
+                          class="simplebar-height-auto-observer"
+                        />
+                      </div>
+                      <div
+                        class="simplebar-mask"
+                      >
+                        <div
+                          class="simplebar-offset"
+                          style="right: 0px; bottom: 0px;"
+                        >
+                          <div
+                            aria-label="scrollable content"
+                            class="simplebar-content-wrapper"
+                            role="region"
+                            style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                            tabindex="-1"
+                          >
+                            <div
+                              class="simplebar-content"
+                            >
+                              <div
+                                class="loading-screen"
+                                data-testid="loading-screen"
+                                style="position: relative;"
+                              >
+                                <div
+                                  class="loading__content"
+                                >
+                                  <span
+                                    class="LoadingSpinner with-text"
+                                    data-testid="loadingSpinner"
+                                    id="loadingSpinner"
+                                  >
+                                    <span
+                                      aria-label="Loading Icon"
+                                      class="_spinner_3elm7_10 spinner"
+                                      role="status"
+                                      style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                                    />
+                                    Loading
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="simplebar-placeholder"
+                        style="width: 0px; height: 0px;"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-track simplebar-horizontal"
+                      style="visibility: hidden;"
+                    >
+                      <div
+                        class="simplebar-scrollbar"
+                        style="width: 0px; display: none;"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-track simplebar-vertical"
+                      style="visibility: hidden;"
+                    >
+                      <div
+                        class="simplebar-scrollbar"
+                        style="height: 0px; display: none;"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="filter-controls"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

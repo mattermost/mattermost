@@ -2,7 +2,7 @@
 
 .AdvancedTextEditor__skeleton {
     display: flex;
-    height: 122px;
+    height: 98px;
     align-items: center;
     justify-content: center;
     padding-left: 10px;
@@ -250,4 +250,14 @@
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// Compass sets width/padding with a single hashed class, so match its
+// specificity plus an element selector to win regardless of load order.
+button.ToggleFormattingBarButton {
+    width: auto;
+
+    > span {
+        gap: 0;
+    }
 }

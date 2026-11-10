@@ -4,7 +4,7 @@
 import percySnapshot from '@percy/playwright';
 
 import {testConfig} from '@/test_config';
-import {TestArgs} from '@/types';
+import type {TestArgs} from '@/types';
 
 export default async function snapshotWithPercy(name: string, testArgs: TestArgs) {
     if (testArgs.browserName === 'chromium' && testConfig.percyEnabled && testArgs.viewport) {

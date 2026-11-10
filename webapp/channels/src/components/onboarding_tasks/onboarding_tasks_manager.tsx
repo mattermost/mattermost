@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useLocation} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -18,7 +20,6 @@ import {
     setShowOnboardingVisitConsoleTour,
     switchToChannels,
 } from 'actions/views/onboarding_tasks';
-import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {getOnboardingTaskPreferences} from 'selectors/onboarding';
 
 import Channels from 'components/common/svg_images_components/channels_svg';
@@ -27,6 +28,7 @@ import Handshake from 'components/common/svg_images_components/handshake_svg';
 import Phone from 'components/common/svg_images_components/phone_svg';
 import Security from 'components/common/svg_images_components/security_svg';
 import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
+import {ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON} from 'components/global_header/left_controls/switch_product_menu';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import {openMenu} from 'components/menu';
 import {
@@ -138,6 +140,10 @@ export const useTasksList = () => {
         delete list.INVITE_PEOPLE;
     }
 
+    if (isDesktopApp()) {
+        delete list.DOWNLOAD_APP;
+    }
+
     return Object.values(list);
 };
 
@@ -239,7 +245,7 @@ export const useHandleOnBoardingTaskTrigger = () => {
             break;
         }
         case OnboardingTasksName.VISIT_SYSTEM_CONSOLE: {
-            dispatch(setProductMenuSwitcherOpen(true));
+            openMenu(ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON);
             dispatch(setShowOnboardingVisitConsoleTour(true));
             handleSaveData(taskName, TaskNameMapToSteps[taskName].STARTED);
             break;

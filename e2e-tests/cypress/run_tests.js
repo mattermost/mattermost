@@ -63,9 +63,9 @@
 
 const os = require('os');
 
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 const cypress = require('cypress');
-const argv = require('yargs').argv;
+const argv = require('yargs')(process.argv.slice(2)).argv;
 
 const {getSortedTestFiles} = require('./utils/file');
 const {getTestFilesIdentifier} = require('./utils/even_distribution');

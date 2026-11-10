@@ -12,10 +12,21 @@
         display: flex;
         height: 48px;
         flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         padding: 0.5em 0;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
         background: variables.$white;
         font-weight: bold;
+        gap: 8px;
+
+        // Keep search + Filters grouped on the left; extra actions stay on the right.
+        .DataGrid_searchControls {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 8px;
+        }
 
         .DataGrid_searchBar {
             position: relative;
@@ -200,36 +211,27 @@
             .actionIcon {
                 width: 32px;
 
-                .MenuWrapper {
-                    width: 32px;
-                    margin-left: auto;
+                .retention-policy-actions {
+                    display: flex;
+                    width: 100%;
+                    justify-content: flex-end;
+                }
+
+                button {
+                    opacity: 0;
                 }
             }
 
-            .actionIcon a i {
-                display: none;
+            &:hover .actionIcon button,
+            .actionIcon:focus-within button,
+            .actionIcon button[aria-expanded='true'] {
+                opacity: 1;
             }
 
-            .actionIcon a {
-                display: flex;
-                width: 32px;
-                height: 32px;
-                flex-direction: column;
-                align-items: center;
-                padding: 8px;
-                border-radius: 4px;
-                margin-left: auto;
-                background: transparent;
-                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
-                text-decoration: none;
-            }
-
-            &:hover .actionIcon a i {
-                display: flex;
-            }
-
-            .actionIcon a:hover {
-                background: rgba(var(--sys-center-channel-color-rgb), 0.08);
+            @media (hover: none) {
+                .actionIcon button {
+                    opacity: 1;
+                }
             }
 
             .DataGrid_cell {

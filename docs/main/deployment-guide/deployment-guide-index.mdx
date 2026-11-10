@@ -1,0 +1,44 @@
+---
+title: "Deployment Guide"
+---
+This guide takes you from evaluating Mattermost through to running it in production: planning a deployment, preparing its dependencies, installing the server, securing and scaling it, and rolling out the desktop and mobile apps.
+
+## Start here
+
+Work through the sections below in order. Each one links to the pages inside it.
+
+Two situations call for a different starting point. To evaluate Mattermost and see its capabilities before committing to a deployment plan, begin with [Quick Start Evaluation](/deployment-guide/quick-start-evaluation). If your environment has particular constraints, such as no internet egress, a coalition network, or an intermittently connected edge, read [Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) first, because those constraints shape every decision that follows.
+
+## Deployment scenarios
+
+[Deployment Scenarios](/deployment-guide/deployment-scenarios/deployment-scenarios-index) describes the operational patterns Mattermost is deployed into - out-of-band communications, mission partner collaboration, DDIL operations, sovereign collaboration in Microsoft, and air-gapped environments. Read this before the sections below if any of them describe your environment, because the constraints shape every decision that follows.
+
+## Server deployment
+
+The steps below run in order. Each is a section in the sidebar.
+
+- [Plan](/deployment-guide/server/server-deployment-planning) - Understand the [components of a deployment](/deployment-guide/application-architecture), [size it for your user count](/deployment-guide/deployment-architecture), decide whether you need [high availability and clustering](/deployment-guide/server/high-availability-cluster-based-deployment), and check the [software and hardware requirements](/deployment-guide/software-hardware-requirements).
+- [Prepare](/deployment-guide/server/preparations) - Stand up the prerequisites before you install: the [database](/deployment-guide/server/prepare-database), [file storage](/deployment-guide/server/prepare-file-storage), [network access](/deployment-guide/server/prepare-network), an [NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy), and [TLS](/deployment-guide/server/setup-tls). Large deployments also provision [search infrastructure](/deployment-guide/scale/enterprise-search) and [caching with Redis](/deployment-guide/scale/redis) here.
+- [Choose a deployment method](/deployment-guide/server/deploy-server) - Compare the methods, then install on [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or with [containers](/deployment-guide/server/deploy-containers).
+- [Secure your deployment](/deployment-guide/encryption-options) - Encryption at rest and [in transit](/deployment-guide/transport-encryption).
+- [Back up and recover](/deployment-guide/backup-disaster-recovery) - Backup strategy and [active/passive disaster recovery on AWS](/deployment-guide/disaster-recovery-aws).
+- [Air-Gapped Operations](/deployment-guide/air-gapped-operations/) - The runbook, bill of materials, registry mirroring, and configuration changes for a deployment with no internet access.
+- [General deployment troubleshooting](/deployment-guide/server/troubleshooting) - Log review, environment review, and the diagnostic data to gather for a support ticket. It also indexes the guides for specific layers - Docker, the database, and the desktop and mobile apps.
+
+## Calls deployment
+
+[Calls Deployment](/deployment-guide/calls/calls-deployment-guide) - Deploy and operate Calls infrastructure, including RTCD, the recording offloader, logging, and metrics.
+
+## Deploy the apps
+
+- [Desktop App Deployment](/deployment-guide/desktop/desktop-app-deployment) - Distribution and management for Windows, macOS, and Linux, including MSI and group policy.
+- [Mobile App Deployment](/deployment-guide/mobile/mobile-app-deployment) - EMM distribution, Microsoft Intune MAM, custom builds, and running your own push proxy.
+
+<Note>
+
+- If you encounter issues that aren't covered in this documentation:
+  - Customers with a Mattermost subscription: See the [Mattermost Support Knowledge Base](https://support.mattermost.com/hc/en-us), or [contact Mattermost Support](https://support.mattermost.com/hc/en-us/requests/new) for assistance.
+  - Community deployments: Reference the [Mattermost community forums](https://forum.mattermost.com/).
+  - For advanced customization or integrations, refer to the [Open source components](/administration-guide/upgrade/open-source-components) documentation for details about extending Mattermost functionality.
+
+</Note>

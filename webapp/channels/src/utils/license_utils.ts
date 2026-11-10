@@ -3,10 +3,9 @@
 
 import moment from 'moment';
 
-import type {Product} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
 
-import {CloudProducts, getLicenseTier, LicenseSkus, SelfHostedProducts} from 'utils/constants';
+import {getLicenseTier, LicenseSkus, SelfHostedProducts} from 'utils/constants';
 
 const LICENSE_EXPIRY_NOTIFICATION = 1000 * 60 * 60 * 24 * 60; // 60 days
 const LICENSE_GRACE_PERIOD = 1000 * 60 * 60 * 24 * 10; // 10 days
@@ -98,20 +97,24 @@ export const isEnterpriseLicense = (license?: ClientLicense) => {
 
 export const isNonEnterpriseLicense = (license?: ClientLicense) => !isEnterpriseLicense(license);
 
+// Delegated Granular Administration is gated behind the LDAPGroups license feature and is
+// not available on the Entry SKU. Mirrors the gating used by the Delegated Granular
+// Administration screen in admin_definition (system_roles).
+export const isLicensedForDelegatedAdministration = (license?: ClientLicense) => {
+    return Boolean(license?.IsLicensed === 'true' && license.LDAPGroups === 'true' && license.SkuShortName !== LicenseSkus.Entry);
+};
+
 export const licenseSKUWithFirstLetterCapitalized = (license: ClientLicense) => {
     const sku = license.SkuShortName;
     return sku.charAt(0).toUpperCase() + sku.slice(1);
 };
 
-export function isEnterpriseOrCloudOrSKUStarterFree(license: ClientLicense, subscriptionProduct: Product | undefined, isEnterpriseReady: boolean) {
-    const isCloud = license?.Cloud === 'true';
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-
+export function isEnterpriseOrSKUStarterFree(license: ClientLicense, isEnterpriseReady: boolean) {
     const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
 
     const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
 
-    return isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
+    return isSelfHostedStarter || isStarterSKULicense;
 }
 
 export function isMinimumProfessionalLicense(license: ClientLicense): boolean {

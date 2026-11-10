@@ -83,10 +83,8 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	socketPath := socketFile.Name()
 	os.Remove(socketPath)
 
-	// Set the socket path in the process environment
-	originalSocket := os.Getenv("NOTIFY_SOCKET")
-	os.Setenv("NOTIFY_SOCKET", socketPath)
-	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+	// t.Setenv prevents t.Parallel — env var has no config equivalent
+	t.Setenv("NOTIFY_SOCKET", socketPath)
 
 	// Open the socket connection
 	addr := &net.UnixAddr{
@@ -131,9 +129,8 @@ func TestRunServerNoSystemd(t *testing.T) {
 	defer th.TearDownServerTest()
 
 	// Temporarily remove any Systemd socket defined in the environment
-	originalSocket := os.Getenv("NOTIFY_SOCKET")
-	os.Unsetenv("NOTIFY_SOCKET")
-	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+	// t.Setenv prevents t.Parallel — env var has no config equivalent
+	t.Setenv("NOTIFY_SOCKET", "")
 
 	configStore := config.NewTestMemoryStore()
 

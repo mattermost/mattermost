@@ -148,6 +148,85 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestChannelUsersListCmd() {
+	s.SetupTestHelper().InitBasic(s.T())
+
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, s.th.BasicTeam.Id, user.Id, "")
+	s.Require().Nil(appErr)
+
+	channelName := api4.GenerateTestChannelName()
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
+		TeamId:      s.th.BasicTeam.Id,
+		Name:        channelName,
+		DisplayName: "dn_" + channelName,
+		Type:        model.ChannelTypeOpen,
+	}, false)
+	s.Require().Nil(appErr)
+
+	_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("List users of a channel", func(c client.Client) {
+		printer.Clean()
+
+		err := channelUsersListCmdF(c, channelUsersListTestCmd(), []string{channel.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().NotEmpty(printer.GetLines())
+
+		var found bool
+		for _, line := range printer.GetLines() {
+			out, ok := line.(channelUserOut)
+			s.Require().True(ok)
+			if out.Id == user.Id {
+				found = true
+				s.Require().Equal(user.Username, out.Username)
+				s.Require().Equal(user.Email, out.Email)
+				s.Require().NotEmpty(out.Roles)
+			}
+		}
+		s.Require().True(found, "expected the added user to be listed as a channel member")
+	})
+
+	s.RunForSystemAdminAndLocal("List all users of a channel with the --all flag", func(c client.Client) {
+		printer.Clean()
+
+		cmd := channelUsersListTestCmd()
+		err := cmd.Flags().Set("all", "true")
+		s.Require().NoError(err)
+
+		err = channelUsersListCmdF(c, cmd, []string{channel.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		var found bool
+		for _, line := range printer.GetLines() {
+			out, ok := line.(channelUserOut)
+			s.Require().True(ok)
+			if out.Id == user.Id {
+				found = true
+				s.Require().Equal(user.Username, out.Username)
+				s.Require().Equal(user.Email, out.Email)
+				s.Require().NotEmpty(out.Roles)
+			}
+		}
+		s.Require().True(found, "expected the added user to be listed as a channel member")
+	})
+
+	s.RunForSystemAdminAndLocal("List users of a nonexistent channel", func(c client.Client) {
+		printer.Clean()
+
+		nonexistentChannelName := "nonexistent"
+		err := channelUsersListCmdF(c, channelUsersListTestCmd(), []string{nonexistentChannelName})
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.SetupTestHelper().InitBasic(s.T())
 

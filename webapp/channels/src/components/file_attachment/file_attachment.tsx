@@ -3,28 +3,24 @@
 
 import classNames from 'classnames';
 import React, {useRef, useState, useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import GetPublicModal from 'components/get_public_link_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
-import {trimFilename} from 'utils/file_utils';
 import {
     fileSizeToString,
     getFileType,
     loadImage,
 } from 'utils/utils';
 
-import ArchivedTooltip from './archived_tooltip';
 import FileThumbnail from './file_thumbnail';
 import FilenameOverlay from './filename_overlay';
 
@@ -71,8 +67,6 @@ export default function FileAttachment(props: Props) {
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(props.currentChannel?.id);
-
     const handleImageLoaded = () => {
         if (mounted.current) {
             setLoaded(true);
@@ -81,11 +75,6 @@ export default function FileAttachment(props: Props) {
 
     const loadFiles = () => {
         const fileInfo = props.fileInfo;
-        if (fileInfo.archived) {
-            // if archived, file preview will not be accessible anyway.
-            // So skip trying to load.
-            return;
-        }
 
         // If file is rejected, don't try to load thumbnail - just mark as loaded
         // so it shows the file icon instead
@@ -143,7 +132,7 @@ export default function FileAttachment(props: Props) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (props.fileInfo.archived || props.disablePreview) {
+        if (props.disablePreview) {
             return;
         }
 
@@ -214,19 +203,16 @@ export default function FileAttachment(props: Props) {
             );
         }
 
-        let pluginItems: JSX.Element[] = [];
-        if (pluginItemsVisible) {
-            pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
-                return (
-                    <Menu.ItemAction
-                        id={item.id + '_pluginmenuitem'}
-                        key={item.id + '_pluginmenuitem'}
-                        onClick={() => item?.action(fileInfo)}
-                        text={item.text}
-                    />
-                );
-            });
-        }
+        const pluginItems = pluginMenuItems?.filter((item) => item?.match(fileInfo)).map((item) => {
+            return (
+                <Menu.ItemAction
+                    id={item.id + '_pluginmenuitem'}
+                    key={item.id + '_pluginmenuitem'}
+                    onClick={() => item?.action(fileInfo)}
+                    text={item.text}
+                />
+            );
+        });
 
         const isMenuVisible = defaultItems?.length || pluginItems?.length;
         if (!isMenuVisible) {
@@ -309,51 +295,28 @@ export default function FileAttachment(props: Props) {
             </a>
         );
 
-        if (fileInfo.archived) {
-            fileThumbnail = (
-                <ArchiveOutlineIcon
-                    size={48}
-                    color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                    data-testid='archived-file-icon'
-                />
-            );
-        }
-
         fileDetail = (
             <div
                 className='post-image__detail_wrapper'
                 onClick={onAttachmentClick}
             >
                 <div className='post-image__detail'>
-                    <span
-                        className={classNames('post-image__name', {
-                            'post-image__name--archived': fileInfo.archived,
-                        })}
-                    >
+                    <span className='post-image__name'>
                         {fileInfo.name}
                     </span>
-                    {fileInfo.archived ? <span className={'post-image__archived'}>
-
-                        <FormattedMessage
-                            id='workspace_limits.archived_file.archived'
-                            defaultMessage='This file is archived'
-                        />
-                    </span> : <>
-                        <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
-                        <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
-                    </>
-                    }
+                    <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
+                    <span className='post-image__size'>{fileSizeToString(fileInfo.size)}</span>
                 </div>
             </div>
         );
 
-        if (!fileInfo.archived && !props.disableActions) {
+        if (!props.disableActions) {
             fileActions = renderFileMenuItems();
         }
     }
 
     let filenameOverlay;
-    if (props.canDownloadFiles && !fileInfo.archived) {
+    if (props.canDownloadFiles) {
         filenameOverlay = (
             <FilenameOverlay
                 fileInfo={fileInfo}
@@ -366,49 +329,21 @@ export default function FileAttachment(props: Props) {
                 <i className='icon icon-download-outline'/>
             </FilenameOverlay>
         );
-    } else if (fileInfo.archived && compactDisplay) {
-        const fileName = fileInfo.name;
-        const trimmedFilename = trimFilename(fileName);
-        fileThumbnail = (
-            <ArchiveOutlineIcon
-                size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.48)'}
-                data-testid='archived-file-icon'
-            />
-        );
-        filenameOverlay =
-            (<span className='post-image__archived-name'>
-                <span className='post-image__archived-filename'>
-                    {trimmedFilename}
-                </span>
-                <span className='post-image__archived-label'>
-                    {formatMessage({
-                        id: 'workspace_limits.archived_file.archived_compact',
-                        defaultMessage: '(archived)',
-                    })}
-                </span>
-            </span>);
     }
 
     return (
-        <WithTooltip
-            title={<ArchivedTooltip/>}
-            disabled={!fileInfo.archived}
+        <div
+            className={classNames([
+                'post-image__column',
+                {'keep-open': keepOpen},
+            ])}
         >
-            <div
-                className={classNames([
-                    'post-image__column',
-                    {'keep-open': keepOpen},
-                    {'post-image__column--archived': fileInfo.archived},
-                ])}
-            >
-                {fileThumbnail}
-                <div className='post-image__details'>
-                    {fileDetail}
-                    {fileActions}
-                    {filenameOverlay}
-                </div>
+            {fileThumbnail}
+            <div className={classNames('post-image__details', {compact: compactDisplay})}>
+                {fileDetail}
+                {fileActions}
+                {filenameOverlay}
             </div>
-        </WithTooltip>
+        </div>
     );
 }

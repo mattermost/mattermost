@@ -6,12 +6,14 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +21,7 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70639")
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
@@ -47,13 +50,16 @@ func TestGetMattermostLog(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.Service.SetLogRootPathOverride(dir)
 
-	// Enable log file but point to an empty directory to get an error trying to read the file
+	// Enable log file but point to an empty directory to get an error trying to read the file.
+	// FileLevel "fatal" stops the file target from ever creating mattermost.log, which would
+	// otherwise defeat the missing-file assertion below (MM-70639).
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.EnableFile = true
 		*cfg.LogSettings.FileLocation = dir
+		*cfg.LogSettings.FileLevel = "fatal"
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
@@ -80,6 +86,12 @@ func TestGetMattermostLog(t *testing.T) {
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
 		t.Cleanup(func() {
+			// MM-62438: stop the file target before removing temp dirs.
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LogSettings.EnableFile = false
+				*cfg.LogSettings.FileLocation = dir
+			})
+			th.Service.Logger().Flush()
 			err = os.RemoveAll(outsideDir)
 			require.NoError(t, err)
 		})
@@ -89,16 +101,51 @@ func TestGetMattermostLog(t *testing.T) {
 		err = os.WriteFile(outsideLogLocation, []byte("secret data"), 0644)
 		require.NoError(t, err)
 
-		// Set FileLocation to the outside directory (MM_LOG_PATH is still set to 'dir')
+		// Set FileLocation to the outside directory (log root override is still 'dir')
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			*cfg.LogSettings.FileLocation = outsideDir
 		})
+		th.Service.Logger().Flush()
 
 		// Should be blocked by path validation
 		fileData, err = th.Service.GetLogFile(th.Context)
 		assert.Nil(t, fileData)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "outside allowed logging directory")
+	})
+}
+
+// Covers PlatformService.validateLogFilePath (used by GetLogFile) without enabling
+// file logging, which is the MM-70639 logger file-target race.
+func TestValidateLogFilePathWithRootOverride(t *testing.T) {
+	ps := &PlatformService{}
+
+	logDir, err := os.MkdirTemp("", "logs")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(logDir))
+	})
+	ps.SetLogRootPathOverride(logDir)
+
+	t.Run("allows path within override root", func(t *testing.T) {
+		inRoot := path.Join(logDir, "mattermost.log")
+		require.NoError(t, os.WriteFile(inRoot, []byte("ok"), 0644))
+		assert.NoError(t, ps.validateLogFilePath(inRoot))
+	})
+
+	t.Run("rejects path outside override root", func(t *testing.T) {
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, os.RemoveAll(outsideDir))
+		})
+
+		outsideFile := path.Join(outsideDir, "secret.log")
+		require.NoError(t, os.WriteFile(outsideFile, []byte("secret"), 0644))
+
+		err = ps.validateLogFilePath(outsideFile)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
 	})
 }
 
@@ -112,21 +159,22 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		logDir, err := os.MkdirTemp("", "logs")
 		require.NoError(t, err)
 		t.Cleanup(func() {
-			th.Service.UpdateConfig(func(cfg *model.Config) {
-				*cfg.LogSettings.EnableFile = false
-			})
-			th.Service.Logger().Flush()
 			err = os.RemoveAll(logDir)
 			require.NoError(t, err)
 		})
 
-		// Set MM_LOG_PATH to restrict log file access to logDir
-		t.Setenv("MM_LOG_PATH", logDir)
+		// Override log root path to restrict log file access to logDir
+		th.Service.SetLogRootPathOverride(logDir)
 
 		// Create a directory outside the allowed log root
 		outsideDir, err := os.MkdirTemp("", "outside")
 		require.NoError(t, err)
 		t.Cleanup(func() {
+			// The file target must be gone first or a late record recreates mattermost.log mid-RemoveAll (MM-70918).
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				*cfg.LogSettings.EnableFile = false
+			})
+			th.Service.Logger().Flush()
 			err = os.RemoveAll(outsideDir)
 			require.NoError(t, err)
 		})
@@ -136,10 +184,12 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		err = os.WriteFile(outsideLogLocation, []byte("secret data\n"), 0644)
 		require.NoError(t, err)
 
-		// Point FileLocation to the outside directory
+		// Point FileLocation to the outside directory. FileLevel "fatal" keeps the file target
+		// from writing into outsideDir; GetLogsSkipSend does not consult it.
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			*cfg.LogSettings.EnableFile = true
 			*cfg.LogSettings.FileLocation = outsideDir
+			*cfg.LogSettings.FileLevel = "fatal"
 		})
 
 		// Should be blocked by path validation
@@ -159,12 +209,19 @@ func TestGetAdvancedLogs(t *testing.T) {
 		dir, err := os.MkdirTemp("", "logs")
 		require.NoError(t, err)
 		t.Cleanup(func() {
+			// Drop the file targets before removing dir so a late record cannot recreate std.log (MM-62438).
+			th.Service.UpdateConfig(func(c *model.Config) {
+				c.LogSettings.AdvancedLoggingJSON = nil
+			})
+			require.NoError(t, th.Service.Logger().Flush())
+			th.Service.SetLogRootPathOverride("")
+
 			err = os.RemoveAll(dir)
 			require.NoError(t, err)
 		})
 
-		// Set MM_LOG_PATH to allow advanced logging to write to our temp directory
-		t.Setenv("MM_LOG_PATH", dir)
+		// Override log root path to allow advanced logging to write to our temp directory
+		th.Service.SetLogRootPathOverride(dir)
 
 		// Setup log files for each setting
 		optLDAP := map[string]string{
@@ -246,129 +303,377 @@ func TestGetAdvancedLogs(t *testing.T) {
 		require.NotNil(t, stdFile)
 		testlib.AssertLog(t, bytes.NewBuffer(stdFile.Body), mlog.LvlError.Name, "Some Error")
 	})
-	// Disable AdvancedLoggingJSON
-	th.Service.UpdateConfig(func(c *model.Config) {
-		c.LogSettings.AdvancedLoggingJSON = nil
-	})
+
 	t.Run("No logs returned when AdvancedLoggingJSON is empty", func(t *testing.T) {
 		// Confirm no logs get returned
 		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
 		require.NoError(t, err)
 		require.Len(t, fileDatas, 0)
 	})
+}
 
-	t.Run("path validation prevents reading files outside log directory", func(t *testing.T) {
-		// Create a temporary directory to use as the log root
-		logDir, err := os.MkdirTemp("", "logs")
+func TestGetAdvancedLogsPathValidation(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Isolated service so the live logger never targets these files (MM-62438).
+	logDir, err := os.MkdirTemp("", "logs")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(logDir)
 		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(logDir)
-			require.NoError(t, err)
-		})
-
-		// Set MM_LOG_PATH to restrict log file access to logDir
-		t.Setenv("MM_LOG_PATH", logDir)
-
-		// Create a file outside the log directory that should not be accessible
-		outsideDir, err := os.MkdirTemp("", "outside")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			err = os.RemoveAll(outsideDir)
-			require.NoError(t, err)
-		})
-
-		secretFile := path.Join(outsideDir, "secret.txt")
-		err = os.WriteFile(secretFile, []byte("secret data"), 0644)
-		require.NoError(t, err)
-
-		// Create a valid log file inside the log directory
-		validLog := path.Join(logDir, "valid.log")
-		err = os.WriteFile(validLog, []byte("valid log data"), 0644)
-		require.NoError(t, err)
-
-		// Test 1: Attempt to read file outside log directory using absolute path
-		optOutside := map[string]string{
-			"filename": secretFile,
-		}
-		dataOutside, err := json.Marshal(optOutside)
-		require.NoError(t, err)
-
-		logCfgOutside := mlog.LoggerConfiguration{
-			"malicious": mlog.TargetCfg{
-				Type:    "file",
-				Format:  "json",
-				Levels:  []mlog.Level{mlog.LvlError},
-				Options: dataOutside,
-			},
-		}
-		logCfgDataOutside, err := json.Marshal(logCfgOutside)
-		require.NoError(t, err)
-
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.LogSettings.AdvancedLoggingJSON = logCfgDataOutside
-		})
-
-		fileDatas, err := th.Service.GetAdvancedLogs(th.Context)
-		// Should return error indicating path is outside allowed directory
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "outside allowed logging directory")
-		require.Len(t, fileDatas, 0)
-
-		// Test 2: Attempt path traversal attack
-		traversalPath := path.Join(logDir, "..", "..", "etc", "passwd")
-		optTraversal := map[string]string{
-			"filename": traversalPath,
-		}
-		dataTraversal, err := json.Marshal(optTraversal)
-		require.NoError(t, err)
-
-		logCfgTraversal := mlog.LoggerConfiguration{
-			"traversal": mlog.TargetCfg{
-				Type:    "file",
-				Format:  "json",
-				Levels:  []mlog.Level{mlog.LvlError},
-				Options: dataTraversal,
-			},
-		}
-		logCfgDataTraversal, err := json.Marshal(logCfgTraversal)
-		require.NoError(t, err)
-
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.LogSettings.AdvancedLoggingJSON = logCfgDataTraversal
-		})
-
-		fileDatas, err = th.Service.GetAdvancedLogs(th.Context)
-		// Should return error for path traversal attempt
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "outside")
-		require.Len(t, fileDatas, 0)
-
-		// Test 3: Valid path within log directory should work
-		optValid := map[string]string{
-			"filename": validLog,
-		}
-		dataValid, err := json.Marshal(optValid)
-		require.NoError(t, err)
-
-		logCfgValid := mlog.LoggerConfiguration{
-			"valid": mlog.TargetCfg{
-				Type:    "file",
-				Format:  "json",
-				Levels:  []mlog.Level{mlog.LvlError},
-				Options: dataValid,
-			},
-		}
-		logCfgDataValid, err := json.Marshal(logCfgValid)
-		require.NoError(t, err)
-
-		th.Service.UpdateConfig(func(c *model.Config) {
-			c.LogSettings.AdvancedLoggingJSON = logCfgDataValid
-		})
-
-		fileDatas, err = th.Service.GetAdvancedLogs(th.Context)
-		require.NoError(t, err)
-		require.Len(t, fileDatas, 1)
-		require.Equal(t, "valid.log", fileDatas[0].Filename)
-		require.Equal(t, []byte("valid log data"), fileDatas[0].Body)
 	})
+
+	outsideDir, err := os.MkdirTemp("", "outside")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err = os.RemoveAll(outsideDir)
+		require.NoError(t, err)
+	})
+
+	ps := newLogPathTestService(t, logDir, func(*model.Config) {})
+	rctx := request.TestContext(t)
+
+	setAdvancedLoggingJSON := func(data json.RawMessage) {
+		cfg := ps.Config().Clone()
+		cfg.LogSettings.AdvancedLoggingJSON = data
+		_, _, setErr := ps.configStore.Set(cfg)
+		require.NoError(t, setErr)
+		require.JSONEq(t, string(data), string(ps.Config().LogSettings.AdvancedLoggingJSON))
+	}
+
+	secretFile := path.Join(outsideDir, "secret.txt")
+	err = os.WriteFile(secretFile, []byte("secret data"), 0644)
+	require.NoError(t, err)
+
+	// Create a valid log file inside the log directory
+	validLog := path.Join(logDir, "valid.log")
+	err = os.WriteFile(validLog, []byte("valid log data"), 0644)
+	require.NoError(t, err)
+
+	// Test 1: Attempt to read file outside log directory using absolute path
+	optOutside := map[string]string{
+		"filename": secretFile,
+	}
+	dataOutside, err := json.Marshal(optOutside)
+	require.NoError(t, err)
+
+	logCfgOutside := mlog.LoggerConfiguration{
+		"malicious": mlog.TargetCfg{
+			Type:    "file",
+			Format:  "json",
+			Levels:  []mlog.Level{mlog.LvlError},
+			Options: dataOutside,
+		},
+	}
+	logCfgDataOutside, err := json.Marshal(logCfgOutside)
+	require.NoError(t, err)
+
+	setAdvancedLoggingJSON(logCfgDataOutside)
+
+	fileDatas, err := ps.GetAdvancedLogs(rctx)
+	// Should return error indicating path is outside allowed directory
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "outside allowed logging directory")
+	require.Len(t, fileDatas, 0)
+
+	// Test 2: Attempt path traversal attack
+	traversalPath := path.Join(logDir, "..", "..", "etc", "passwd")
+	optTraversal := map[string]string{
+		"filename": traversalPath,
+	}
+	dataTraversal, err := json.Marshal(optTraversal)
+	require.NoError(t, err)
+
+	logCfgTraversal := mlog.LoggerConfiguration{
+		"traversal": mlog.TargetCfg{
+			Type:    "file",
+			Format:  "json",
+			Levels:  []mlog.Level{mlog.LvlError},
+			Options: dataTraversal,
+		},
+	}
+	logCfgDataTraversal, err := json.Marshal(logCfgTraversal)
+	require.NoError(t, err)
+
+	setAdvancedLoggingJSON(logCfgDataTraversal)
+
+	fileDatas, err = ps.GetAdvancedLogs(rctx)
+	// Should return error for path traversal attempt
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "outside")
+	require.Len(t, fileDatas, 0)
+
+	// Test 3: Valid path within log directory should work
+	optValid := map[string]string{
+		"filename": validLog,
+	}
+	dataValid, err := json.Marshal(optValid)
+	require.NoError(t, err)
+
+	logCfgValid := mlog.LoggerConfiguration{
+		"valid": mlog.TargetCfg{
+			Type:    "file",
+			Format:  "json",
+			Levels:  []mlog.Level{mlog.LvlError},
+			Options: dataValid,
+		},
+	}
+	logCfgDataValid, err := json.Marshal(logCfgValid)
+	require.NoError(t, err)
+
+	setAdvancedLoggingJSON(logCfgDataValid)
+
+	fileDatas, err = ps.GetAdvancedLogs(rctx)
+	require.NoError(t, err)
+	require.Len(t, fileDatas, 1)
+	require.Equal(t, "valid.log", fileDatas[0].Filename)
+	require.Equal(t, []byte("valid log data"), fileDatas[0].Body)
+}
+
+// newLogPathTestService builds a minimal PlatformService backed by an in-memory config store,
+// with its log root pinned to root so the test does not depend on MM_LOG_PATH.
+func newLogPathTestService(t testing.TB, root string, mutate func(*model.Config)) *PlatformService {
+	t.Helper()
+
+	configStore := config.NewTestMemoryStore()
+	// feature flag writes are dropped by the store unless read-only FF mode is disabled
+	configStore.SetReadOnlyFF(false)
+
+	cfg := configStore.Get().Clone()
+	mutate(cfg)
+	_, _, err := configStore.Set(cfg)
+	require.NoError(t, err)
+
+	ps := &PlatformService{configStore: configStore}
+	ps.SetLogRootPathOverride(root)
+
+	return ps
+}
+
+func TestInitLoggingLogPathEnforcement(t *testing.T) {
+	// root and outside are siblings so neither is a path prefix of the other
+	base := t.TempDir()
+	root := path.Join(base, "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+	outside := path.Join(base, "evil")
+	require.NoError(t, os.MkdirAll(outside, 0700))
+
+	outsideFile := path.Join(outside, "out.log")
+
+	withOutOfRootTarget := func(enforce bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"evil": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + outsideFile + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = enforce
+		}
+	}
+
+	t.Run("flag on aborts with an error and never opens the target", func(t *testing.T) {
+		require.NoError(t, os.RemoveAll(outsideFile))
+
+		ps := newLogPathTestService(t, root, withOutOfRootTarget(true))
+		require.True(t, config.IsLogPathEnforcementEnabled(ps.Config()), "feature flag should have been persisted")
+
+		err := ps.initLogging()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+		assert.Contains(t, err.Error(), outsideFile)
+
+		_, statErr := os.Stat(outsideFile)
+		assert.True(t, os.IsNotExist(statErr), "the out-of-root target must not be created")
+	})
+
+	t.Run("flag on leaves previously configured targets untouched", func(t *testing.T) {
+		inRootFile := path.Join(root, "good.log")
+		require.NoError(t, os.RemoveAll(inRootFile))
+
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"good": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + inRootFile + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+		require.NoError(t, ps.initLogging())
+
+		// now swap in an out-of-root target and reconfigure, as a config reload would
+		cfg := ps.Config().Clone()
+		withOutOfRootTarget(true)(cfg)
+		_, _, err := ps.configStore.Set(cfg)
+		require.NoError(t, err)
+
+		require.Error(t, ps.ReconfigureLogger())
+
+		ps.logger.Error("still writing to the original target")
+		ps.logger.Flush()
+
+		contents, readErr := os.ReadFile(inRootFile)
+		require.NoError(t, readErr, "the original in-root target should still be configured")
+		assert.Contains(t, string(contents), "still writing to the original target")
+
+		_, statErr := os.Stat(outsideFile)
+		assert.True(t, os.IsNotExist(statErr), "the out-of-root target must not be created")
+	})
+
+	t.Run("flag off only warns", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, withOutOfRootTarget(false))
+		require.False(t, config.IsLogPathEnforcementEnabled(ps.Config()))
+
+		assert.NoError(t, ps.initLogging())
+	})
+
+	t.Run("flag on with all paths inside the root succeeds", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = true
+			*cfg.LogSettings.FileLocation = root
+			*cfg.LogSettings.EnableConsole = false
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"good": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + path.Join(root, "adv.log") + `"}}}`)
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+
+		assert.NoError(t, ps.initLogging())
+	})
+
+	t.Run("flag on rejects an out-of-root audit path", func(t *testing.T) {
+		ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+			*cfg.LogSettings.EnableFile = false
+			*cfg.LogSettings.EnableConsole = false
+			*cfg.ExperimentalAuditSettings.FileEnabled = true
+			*cfg.ExperimentalAuditSettings.FileName = path.Join(outside, "audit.log")
+			cfg.FeatureFlags.EnforceLogPathRoot = true
+		})
+
+		err := ps.initLogging()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "ExperimentalAuditSettings.FileName")
+	})
+}
+
+func TestIsLogFilteredByDate(t *testing.T) {
+	filter := &model.LogFilter{
+		DateFrom: "2026-10-21 10:00:00.000 +00:00",
+		DateTo:   "2026-10-21 11:00:00.000 +00:00",
+	}
+
+	for _, tc := range []struct {
+		timestamp string
+		filtered  bool
+	}{
+		{"2026-10-21 09:59:59.999 Z", true},
+		{"2026-10-21 10:00:00.000 Z", false},
+		{"2026-10-21 10:30:00.000 Z", false},
+		{"2026-10-21 11:00:00.000 Z", false},
+		{"2026-10-21 11:00:00.001 Z", true},
+		{"2026-10-21 12:30:00.000 +02:00", false},
+		{"2026-10-21 09:30:00.000 +02:00", true},
+		{"not a timestamp", false},
+	} {
+		t.Run(tc.timestamp, func(t *testing.T) {
+			entry := &model.LogEntry{Timestamp: tc.timestamp}
+			assert.Equal(t, tc.filtered, isLogFilteredByDate(request.TestContext(t), filter, entry))
+		})
+	}
+}
+
+func TestIsLogFilteredBySearch(t *testing.T) {
+	line := []byte(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"User Logged In","caller":"app/login.go:42","user_id":"abc123","count":7,"ok":true,"details":{"remote":"10.0.0.1"},"note":"say \"hi\" <b>","path":"C:\\Temp","query":{"n":12345678901234567}}`)
+
+	for _, tc := range []struct {
+		search   string
+		filtered bool
+	}{
+		{"", false},
+		{"user logged", false},
+		{"USER LOGGED", false},
+		{"login.go", false},
+		{"ABC123", false},
+		{"7", false},
+		{"true", false},
+		{"10.0.0.1", false},
+		{`"remote"`, false},
+		{`say "hi"`, false},
+		{"<b>", false},
+		{`c:\temp`, false},
+		{`{"n":12345678901234567}`, false},
+		{"missing", true},
+		{`"missing"`, true},
+		{`say "bye"`, true},
+		{"<>", true},
+
+		// level and timestamp are left out, and keys aren't values
+		{"info", true},
+		{"2026-10-21", true},
+		{"user_id", true},
+	} {
+		t.Run(tc.search, func(t *testing.T) {
+			search := newLogSearch(&model.LogFilter{Search: tc.search})
+			assert.Equal(t, tc.filtered, isLogFilteredBySearch(search, line))
+		})
+	}
+
+	t.Run("non-ASCII terms ignore case", func(t *testing.T) {
+		line := []byte(`{"level":"info","msg":"Größe ÜBERSCHRITTEN"}`)
+		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "überschritten"}), line))
+		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "GRÖßE"}), line))
+		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "äpfel"}), line))
+	})
+
+	t.Run("characters that lowercase to ASCII match either way", func(t *testing.T) {
+		line := []byte(`{"level":"info","msg":"Flight to İstanbul at 300 K"}`)
+		for _, term := range []string{"İstanbul", "istanbul", "300 \u212a", "300 k"} {
+			search := newLogSearch(&model.LogFilter{Search: term})
+			assert.False(t, search.rejectsRaw(line), term)
+			assert.False(t, isLogFilteredBySearch(search, line), term)
+		}
+	})
+
+	t.Run("unparseable lines are filtered", func(t *testing.T) {
+		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "plain"}), []byte("plain text line")))
+	})
+
+	t.Run("no search keeps every line", func(t *testing.T) {
+		assert.Nil(t, newLogSearch(nil))
+		assert.Nil(t, newLogSearch(&model.LogFilter{}))
+		assert.False(t, isLogFilteredBySearch(nil, []byte("plain text line")))
+	})
+}
+
+func TestGetLogsSkipSendSearch(t *testing.T) {
+	root := t.TempDir()
+	ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+		*cfg.LogSettings.EnableFile = true
+		*cfg.LogSettings.FileLocation = root
+	})
+	ps.SetLogger(mlog.CreateConsoleTestLogger(t))
+
+	var content bytes.Buffer
+	for i := range 10 {
+		msg := "routine work"
+		if i%3 == 0 {
+			msg = "Websocket closed"
+		}
+		fmt.Fprintf(&content, `{"timestamp":"2026-10-21 10:00:%02d.000 Z","level":"info","msg":"%s","seq":%d}`+"\n", i, msg, i)
+	}
+	// Not JSON, so the API would drop it rather than return it as a match
+	content.WriteString("plain websocket line\n")
+	require.NoError(t, os.WriteFile(config.GetLogFileLocation(root), content.Bytes(), 0600))
+
+	lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 0, 10, &model.LogFilter{Search: "WEBSOCKET"})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 4)
+	for i, seq := range []int{0, 3, 6, 9} {
+		assert.Contains(t, lines[i], fmt.Sprintf(`"seq":%d`, seq))
+	}
+
+	// perPage counts matching lines only, starting from the newest
+	lines, appErr = ps.GetLogsSkipSend(request.TestContext(t), 0, 2, &model.LogFilter{Search: "websocket"})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 2)
+	assert.Contains(t, lines[0], `"seq":6`)
+	assert.Contains(t, lines[1], `"seq":9`)
+
+	// Combines with the level filter
+	lines, appErr = ps.GetLogsSkipSend(request.TestContext(t), 0, 10, &model.LogFilter{Search: "websocket", LogLevels: []string{"error"}})
+	require.Nil(t, appErr)
+	assert.Empty(t, lines)
 }

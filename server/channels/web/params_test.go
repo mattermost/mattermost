@@ -70,13 +70,13 @@ func TestParamsFromRequest(t *testing.T) {
 				LimitAfter:                6,
 				LimitBefore:               7,
 				Q:                         "picard",
-				IsLinked:                  boolPtr(true),
-				IsConfigured:              boolPtr(true),
+				IsLinked:                  new(true),
+				IsConfigured:              new(true),
 				NotAssociatedToTeam:       "this_team",
 				NotAssociatedToChannel:    "this_channel",
 				FilterAllowReference:      true,
 				FilterParentTeamPermitted: true,
-				Paginate:                  boolPtr(true),
+				Paginate:                  new(true),
 				IncludeMemberCount:        true,
 				NotAssociatedToGroup:      "test",
 				ExcludeDefaultChannels:    true,
@@ -495,8 +495,4 @@ func mustURL(u string) *url.URL {
 		panic(err)
 	}
 	return parsed
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }

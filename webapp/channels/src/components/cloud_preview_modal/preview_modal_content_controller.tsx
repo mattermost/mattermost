@@ -5,6 +5,8 @@ import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {ArrowLeftIcon, ArrowRightIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 
 import PreviewModalContent from './preview_modal_content';
@@ -68,33 +70,34 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
 
             <div className='preview-modal-controller__navigation-buttons'>
                 {isFirstSlide && (
-                    <button
-                        className='btn btn-quaternary'
+                    <Button
+                        emphasis='quaternary'
                         onClick={handleSkip}
                     >
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.skip',
                             defaultMessage: 'Skip for now',
                         })}
-                    </button>
+                    </Button>
                 )}
 
                 {!isFirstSlide && (
-                    <button
-                        className='btn btn-tertiary'
+                    <Button
+                        emphasis='tertiary'
                         onClick={handlePrevious}
+                        leadingIcon={<Icon glyph={<ArrowLeftIcon/>}/>}
                     >
-                        <ArrowLeftIcon size={18}/>
                         {intl.formatMessage({
                             id: 'cloud_preview_modal.previous',
                             defaultMessage: 'Previous',
                         })}
-                    </button>
+                    </Button>
                 )}
 
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={isLastSlide ? onClose : handleNext}
+                    trailingIcon={isLastSlide ? undefined : <Icon glyph={<ArrowRightIcon/>}/>}
                 >
                     {isLastSlide ? (
                         intl.formatMessage({
@@ -102,15 +105,12 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
                             defaultMessage: 'Finish',
                         })
                     ) : (
-                        <>
-                            {intl.formatMessage({
-                                id: 'cloud_preview_modal.next',
-                                defaultMessage: 'Next',
-                            })}
-                            <ArrowRightIcon size={18}/>
-                        </>
+                        intl.formatMessage({
+                            id: 'cloud_preview_modal.next',
+                            defaultMessage: 'Next',
+                        })
                     )}
-                </button>
+                </Button>
             </div>
         </div>
     );

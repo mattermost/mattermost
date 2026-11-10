@@ -27,7 +27,7 @@ type Props = {
     submitText: string;
     feedbackOptions: FeedbackOption[];
     freeformTextPlaceholder: string;
-}
+};
 
 export default function FeedbackModal(props: Props) {
     const intl = useIntl();

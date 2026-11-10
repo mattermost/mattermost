@@ -14,7 +14,7 @@ type Props = {
     message?: string;
     service?: string;
     isGuest?: boolean;
-}
+};
 
 const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props) => {
     let errorMessage = null;

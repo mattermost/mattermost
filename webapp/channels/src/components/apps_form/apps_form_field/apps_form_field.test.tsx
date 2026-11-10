@@ -1,17 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
 
 import type {AppField} from '@mattermost/types/apps';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+// AppsFormActionButton (rendered for ACTION_BUTTON fields) uses executeDialogAction.
+// Mock it the same way apps_form_action_button.test.tsx does.
+const mockExecuteDialogAction = jest.fn();
+jest.mock('actions/integration_actions', () => ({
+    executeDialogAction: (...args: unknown[]) => mockExecuteDialogAction(...args),
+}));
 
 import AppsFormField from './apps_form_field';
 import type {Props} from './apps_form_field';
+
+beforeEach(() => {
+    mockExecuteDialogAction.mockReset();
+    mockExecuteDialogAction.mockReturnValue(() => Promise.resolve({data: {}}));
+});
 
 describe('components/apps_form/apps_form_field/AppsFormField', () => {
     const baseProps: Props = {
@@ -218,69 +229,57 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render user select field', async () => {
+        it('should render user select field', () => {
             const userField: AppField = {
                 name: 'user-field',
                 type: AppFieldTypes.USER,
                 label: 'User Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={userField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={userField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render channel select field', async () => {
+        it('should render channel select field', () => {
             const channelField: AppField = {
                 name: 'channel-field',
                 type: AppFieldTypes.CHANNEL,
                 label: 'Channel Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={channelField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={channelField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
-        it('should render dynamic select field', async () => {
+        it('should render dynamic select field', () => {
             const dynamicSelectField: AppField = {
                 name: 'dynamic-select-field',
                 type: AppFieldTypes.DYNAMIC_SELECT,
                 label: 'Dynamic Select Field',
             };
 
-            let container: HTMLElement;
-            await act(async () => {
-                const result = renderWithContext(
-                    <AppsFormField
-                        {...baseProps}
-                        field={dynamicSelectField}
-                    />,
-                );
-                container = result.container;
-            });
+            const {container} = renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={dynamicSelectField}
+                />,
+            );
 
-            const reactSelect = container!.querySelector('.react-select');
+            const reactSelect = container.querySelector('.react-select');
             expect(reactSelect).toBeInTheDocument();
         });
 
@@ -300,6 +299,25 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
 
             // Markdown component should be rendered
             expect(container).toBeInTheDocument();
+        });
+
+        it('should render action_button field as a button with the field label', () => {
+            const actionButtonField: AppField = {
+                name: 'action-button-field',
+                type: AppFieldTypes.ACTION_BUTTON,
+                label: 'Run Action',
+                action_button_url: 'https://example.com/action',
+                action_button_context: {channelId: 'ch1'},
+            };
+
+            renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={actionButtonField}
+                />,
+            );
+
+            expect(screen.getByRole('button', {name: 'Run Action'})).toBeVisible();
         });
     });
 

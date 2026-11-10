@@ -49,7 +49,7 @@ export function fetchListing(localOnly = false): ActionFuncAsync<Array<Marketpla
         if (appsEnabled(state)) {
             try {
                 apps = await Client4.getMarketplaceApps(filter);
-            } catch (error) {
+            } catch {
                 return {data: plugins};
             }
 

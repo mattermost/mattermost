@@ -59,7 +59,7 @@ export default function useCopyText({
                 const success = document.execCommand('copy');
                 setCopiedRecently(success);
                 setCopyError(!success);
-            } catch (err) {
+            } catch {
                 setCopiedRecently(false);
                 setCopyError(true);
             }

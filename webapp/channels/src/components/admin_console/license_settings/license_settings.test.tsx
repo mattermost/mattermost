@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import moment from 'moment';
 import React from 'react';
-import type {ComponentProps} from 'react';
 
 import {fakeDate} from 'tests/helpers/date';
+import {renderWithContext, screen, act} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import LicenseSettings from './license_settings';
@@ -24,7 +23,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         resetFakeDate();
     });
 
-    const defaultProps: ComponentProps<typeof LicenseSettings> = {
+    const defaultProps: React.ComponentProps<typeof LicenseSettings> = {
         isDisabled: false,
         license: {
             IsLicensed: 'true',
@@ -49,7 +48,6 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             removeLicense: jest.fn(),
             upgradeToE0: jest.fn(),
             ping: jest.fn(),
-            requestTrialLicense: jest.fn(),
             restartServer: jest.fn(),
             getPrevTrialLicense: jest.fn(),
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
@@ -61,48 +59,76 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
     };
 
     test('should match snapshot enterprise build with license', () => {
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...defaultProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('renders left and right panel-card containers for AdminPanel-equivalent chrome', () => {
+        // Surface chrome lives on .panel-card (Compass AdminPanel tokens in
+        // license_settings.scss) so the two-column layout is preserved.
+        const {container} = renderWithContext(<LicenseSettings {...defaultProps}/>);
+        expect(container.querySelectorAll('.left-panel > .panel-card')).toHaveLength(1);
+        expect(container.querySelectorAll('.right-panel > .panel-card')).toHaveLength(1);
+    });
+
+    test('banner section is empty when no seat/trial/renew banners render', () => {
+        // license_settings.scss uses .admin-console__banner_section:empty
+        // { display: none } so shared .admin-console__content gap does not
+        // add an extra 20px above .top-wrapper when banners return null.
+        // Far-future expiry (raw ms; moment parsing is unreliable under fakeDate)
+        // + low seat usage keeps renew/seat banners off.
+        const props = {
+            ...defaultProps,
+            license: {
+                ...defaultProps.license,
+                ExpiresAt: '1893456000000', // 2030-01-01T00:00:00Z
+            },
+            totalUsers: 1,
+        };
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        const banner = container.querySelector('.admin-console__banner_section');
+        expect(banner).not.toBeNull();
+        expect(banner!.childElementCount).toBe(0);
     });
 
     test('should match snapshot enterprise build with license and isDisabled set to true', () => {
-        const wrapper = shallow<LicenseSettings>(
+        const {container} = renderWithContext(
             <LicenseSettings
                 {...defaultProps}
                 isDisabled={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build with license and upgraded from TE', () => {
         const props = {...defaultProps, upgradedFromTE: true};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build without license', () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build without license and upgrade from TE', () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}, upgradedFromTE: true};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot team edition build without license', () => {
         const props = {...defaultProps, enterpriseReady: false, license: {IsLicensed: 'false'}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot team edition build with license', () => {
         const props = {...defaultProps, enterpriseReady: false};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('upgrade to enterprise click', async () => {
@@ -115,27 +141,25 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => promise),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        await promise;
+        renderWithContext(<LicenseSettings {...props}/>);
+
+        await act(async () => {
+            await promise;
+        });
 
         expect(actions.getLicenseConfig).toHaveBeenCalledTimes(1);
         expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
         actions.upgradeToE0Status = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
 
-        const instance = wrapper.instance();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        expect(instance.interval).toBe(null);
-        expect(wrapper.state('upgradingPercentage')).toBe(0);
+        // Find and click the upgrade button
+        const upgradeButton = screen.getByRole('button', {name: /Upgrade to Enterprise Edition/i});
+        expect(upgradeButton).toBeInTheDocument();
 
-        await instance.handleUpgrade({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
+        await act(async () => {
+            upgradeButton.click();
+        });
+
         expect(actions.upgradeToE0).toHaveBeenCalledTimes(1);
-        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
-        wrapper.update();
-        expect(wrapper.update().state('upgradingPercentage')).toBe(1);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        expect(instance.interval).not.toBe(null);
     });
 
     test('load screen while upgrading', async () => {
@@ -144,9 +168,11 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 42, error: null})),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        await flushPromises();
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        await act(async () => {
+            await flushPromises();
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('load screen after upgrading', async () => {
@@ -155,39 +181,41 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 100, error: null})),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        await flushPromises();
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        await act(async () => {
+            await flushPromises();
+        });
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build with trial license', () => {
         const props = {...defaultProps, license: {IsLicensed: 'true', StartsAt: '1617714643650', IssuedAt: '1617714643650', ExpiresAt: '1620335443650'}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot team edition with expired trial in the past', () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}, prevTrialLicense: {IsLicensed: 'true'}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build with E20 license', () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E20}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build with E10 license', () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E10}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot enterprise build with Enterprise license', () => {
         const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.Enterprise}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with expiring license', () => {
@@ -195,8 +223,8 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         const expiringDate = moment().add(30, 'days').valueOf();
 
         const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString()}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with cloud expiring license', () => {
@@ -204,7 +232,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         const expiringDate = moment().add(30, 'days').valueOf();
 
         const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString(), Cloud: 'true'}};
-        const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<LicenseSettings {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

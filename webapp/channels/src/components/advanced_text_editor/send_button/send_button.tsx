@@ -3,10 +3,13 @@
 
 import classNames from 'classnames';
 import React, {memo, useCallback, useMemo} from 'react';
-import {defineMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
+import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
+import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
@@ -14,9 +17,8 @@ import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/sched
 import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
-import WithTooltip from 'components/with_tooltip';
-import type {ShortcutDefinition} from 'components/with_tooltip/tooltip_shortcut';
-import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
+
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import './send_button.scss';
 
@@ -24,9 +26,10 @@ type SendButtonProps = {
     handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
     disabled: boolean;
     channelId: string;
-}
+    repeatDisabledReason?: RepeatDisabledReason;
+};
 
-const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
@@ -41,16 +44,10 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
     const sendNowKeyboardShortcutDescriptor = useMemo<ShortcutDefinition>(() => {
         const shortcutDefinition: ShortcutDefinition = {
             default: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
             mac: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
         };
 
@@ -93,6 +90,7 @@ const SendButton = ({disabled, handleSubmit, channelId}: SendButtonProps) => {
                     disabled={disabled}
                     onSelect={handleSubmit}
                     channelId={channelId}
+                    repeatDisabledReason={repeatDisabledReason}
                 />
             }
         </div>

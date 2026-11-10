@@ -2,23 +2,35 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {
+    getMembershipRule,
+    buildRulesWithMembership,
+    getAutoAddFromRules,
+    autoAddModeForToggle,
+} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {canTableEditorRender, excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPolicyIndicator from 'components/system_policy_indicator';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {useChannelKind} from 'hooks/useChannelKind';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import type {KindMessages} from 'utils/channel_kind';
+import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,6 +59,7 @@ function ChannelSettingsAccessRulesTab({
     showTabSwitchError,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
+    const channelKind = useChannelKind(channel);
 
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -59,8 +72,10 @@ function ChannelSettingsAccessRulesTab({
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
+    const [savedRuleStatus, setSavedRuleStatus] = useState<'checking' | 'editable' | 'locked'>('checking');
 
     // Auto-sync members toggle state
     const [autoSyncMembers, setAutoSyncMembers] = useState(false);
@@ -95,7 +110,7 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getAccessControlFields('', 100);
                 if (result.data) {
-                    setUserAttributes(result.data);
+                    setUserAttributes(excludeSessionAttributes(result.data));
                 }
                 setAttributesLoaded(true);
             } catch (error) {
@@ -118,22 +133,29 @@ function ChannelSettingsAccessRulesTab({
     // Load existing channel access rules
     useEffect(() => {
         const loadChannelPolicy = async () => {
+            setSavedRuleStatus('checking');
             try {
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
-                    // Extract expression from the policy rules
-                    const existingExpression = result.data.rules?.[0]?.expression || '';
-                    const existingAutoSync = result.data.active || false;
+                    const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
+                    const existingAutoSync = getAutoAddFromRules(result.data.rules);
 
+                    // An empty table on a rule it can't show would let "Add attribute" replace it.
+                    const editable = await canTableEditorRender(actions.getVisualAST, existingExpression);
+                    setSavedRuleStatus(editable ? 'editable' : 'locked');
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
+                    setExistingRules(result.data.rules || []);
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
+                } else {
+                    setSavedRuleStatus('editable');
                 }
-            } catch (error) {
+            } catch {
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
+                setSavedRuleStatus('editable');
             }
         };
 
@@ -164,12 +186,14 @@ function ChannelSettingsAccessRulesTab({
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
             return;
         }
-
         setFormError(formatMessage({
             id: 'channel_settings.access_rules.parse_error',
             defaultMessage: 'Invalid expression format',
         }));
     }, [formatMessage]);
+
+    const rulesLocked = savedRuleStatus === 'locked';
+    const rulesEditable = savedRuleStatus === 'editable';
 
     // Helper function to detect empty rules state
     const isEmptyRulesState = useMemo((): boolean => {
@@ -194,19 +218,19 @@ function ChannelSettingsAccessRulesTab({
 
     const handleAutoSyncToggle = useCallback(() => {
         // Don't allow toggling if in empty rules state
-        if (isEmptyRulesState) {
+        if (isEmptyRulesState || !rulesEditable) {
             return;
         }
 
         setAutoSyncMembers((prev) => !prev);
-    }, [isEmptyRulesState]);
+    }, [isEmptyRulesState, rulesEditable]);
 
     // Helper function to combine system policy expressions with channel expression
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
         // Get expressions from system policies
         const systemExpressions = systemPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
-            filter((expr) => expr && expr.trim());
+            map((policy) => getMembershipRule(policy.rules)?.expression).
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
 
         // Combine channel expression with system expressions
         const allExpressions = [];
@@ -225,7 +249,7 @@ function ChannelSettingsAccessRulesTab({
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&
@@ -238,6 +262,15 @@ function ChannelSettingsAccessRulesTab({
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
         if (!testExpression.trim()) {
             return true; // No expression, skip validation
+        }
+
+        // Public-channel ABAC is advisory: rules can recommend / auto-add members
+        // but never remove anyone. A non-matching admin cannot lock themselves
+        // out of a public channel, so the self-inclusion check has no purpose
+        // here and just blocks legitimate admin workflows (e.g. configuring a
+        // policy intended for a department the admin doesn't belong to).
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            return true;
         }
 
         if (!currentUser?.id) {
@@ -269,7 +302,7 @@ function ChannelSettingsAccessRulesTab({
             return false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser?.id]);
+    }, [currentUser?.id, channel.type]);
 
     // Check if rules are becoming less restrictive by comparing user matches
     const isBecomingLessRestrictive = useCallback(async (oldExpression: string, newExpression: string): Promise<boolean> => {
@@ -395,38 +428,23 @@ function ChannelSettingsAccessRulesTab({
                 return true;
             }
 
-            // Step 1: Build and save the policy object (without active field to avoid conflicts)
             const policy = {
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                version: 'v0.2',
-                active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
-                rules: expression.trim() ? [{
-                    actions: ['*'],
-                    expression: expression.trim(),
-                }] : [],
+                rules: buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoSyncMembers)),
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
-            // Save the policy first
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error(result.error.message || 'Failed to save policy');
             }
 
-            // Step 2: Update the active status separately (like System Console does)
-            try {
-                await actions.updateAccessControlPoliciesActive([{id: channel.id, active: autoSyncMembers}]);
-            } catch (activeError) {
-                // Don't fail the entire save operation for this, but log it
-                // eslint-disable-next-line no-console
-                console.error('Failed to update policy active status:', activeError);
-            }
-
-            // Step 3: Create a job to immediately sync channel membership when rules exist
+            // Create a job to immediately sync channel membership when rules exist.
+            // This ensures both user removal (always) and addition (conditional) happen immediately
             // This ensures both user removal (always) and addition (conditional) happen immediately
             if (expression.trim()) {
                 try {
@@ -453,7 +471,8 @@ function ChannelSettingsAccessRulesTab({
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to save access rules:', error);
-            setFormError(formatMessage({
+            const message = error instanceof Error ? error.message : '';
+            setFormError(message || formatMessage({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));
@@ -461,7 +480,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             setIsProcessingSave(false);
         }
-    }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
+    }, [channel.id, channel.display_name, expression, existingRules, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
     // Handle save action
     const handleSave = useCallback(async (): Promise<SaveResult> => {
@@ -471,6 +490,28 @@ function ChannelSettingsAccessRulesTab({
             const hadRulesBefore = originalExpression.trim().length > 0;
             const hasRulesNow = expression.trim().length > 0;
             const isRemovingAllRules = hadRulesBefore && !hasRulesNow;
+
+            // Public channels use advisory membership policies: members are never removed by sync,
+            // and the impact preview would incorrectly imply removals. Save without confirmation.
+            if (channel.type === Constants.OPEN_CHANNEL) {
+                if (autoSyncMembers && isEmptyRulesState) {
+                    setFormError(formatMessage({
+                        id: 'channel_settings.access_rules.expression_required_for_autosync',
+                        defaultMessage: 'Access rules are required when auto-add members is enabled',
+                    }));
+                    return SAVE_RESULT_ERROR;
+                }
+
+                if (expression.trim()) {
+                    const isValid = await validateSelfExclusion(expression);
+                    if (!isValid) {
+                        return SAVE_RESULT_ERROR;
+                    }
+                }
+
+                const success = await performSave();
+                return success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
+            }
 
             // For empty rules state, check if we need to show warning for removing all rules
             if (isEmptyRulesState) {
@@ -555,7 +596,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -666,6 +707,9 @@ function ChannelSettingsAccessRulesTab({
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
+    const subtitleMessages = channel.type === Constants.OPEN_CHANNEL ? messages.subtitlePublic : messages.subtitlePrivate;
+    const accessRulesSubtitle = formatMessage(subtitleMessages[channelKind]);
+
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
             {/* Display system policies indicator if any are applied */}
@@ -682,18 +726,49 @@ function ChannelSettingsAccessRulesTab({
 
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
-                    {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.title_public',
+                        defaultMessage: 'Membership Rules',
+                    }) : formatMessage({
+                        id: 'channel_settings.access_rules.title',
+                        defaultMessage: 'Access Rules',
+                    })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {formatMessage({
-                        id: 'channel_settings.access_rules.subtitle',
-                        defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
-                    })}
+                    {accessRulesSubtitle}
                 </p>
             </div>
 
+            {rulesLocked && (
+                <div
+                    className='ChannelSettingsModal__lockedRules'
+                    data-testid='channel-access-rules-locked-rules'
+                >
+                    <div
+                        className='ChannelSettingsModal__lockedNotice'
+                        role='status'
+                    >
+                        <i className='icon icon-information-outline'/>
+                        <span>
+                            {isSystemAdmin ? (
+                                <FormattedMessage
+                                    id='channel_settings.access_rules.advanced_rules_locked_admin'
+                                    defaultMessage="These rules use advanced logic and can't be edited here."
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='channel_settings.access_rules.advanced_rules_locked'
+                                    defaultMessage="These rules use advanced logic and can't be edited here. Contact a System Admin to change them."
+                                />
+                            )}
+                        </span>
+                    </div>
+                    <code className='ChannelSettingsModal__lockedExpression'>{originalExpression}</code>
+                </div>
+            )}
+
             {/* TableEditor for creating access rules */}
-            {attributesLoaded && (
+            {attributesLoaded && rulesEditable && (
                 <div className='ChannelSettingsModal__accessRulesEditor'>
                     <TableEditor
                         value={expression}
@@ -705,7 +780,13 @@ function ChannelSettingsAccessRulesTab({
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                         isSystemAdmin={isSystemAdmin}
-                        validateExpressionAgainstRequester={actions.validateExpressionAgainstRequester}
+
+                        // Suppress the live "you would be excluded" banner on
+                        // public channels — public-channel ABAC is advisory and
+                        // can never lock the admin out, so the warning is
+                        // misleading. The save-time guard is also skipped in
+                        // validateSelfExclusion above.
+                        validateExpressionAgainstRequester={channel.type === Constants.OPEN_CHANNEL ? undefined : actions.validateExpressionAgainstRequester}
                     />
                 </div>
             )}
@@ -716,18 +797,13 @@ function ChannelSettingsAccessRulesTab({
             {/* Auto-sync members toggle */}
             <div className='ChannelSettingsModal__autoSyncSection'>
                 <div className='ChannelSettingsModal__autoSyncCheckboxContainer'>
-                    <input
-                        type='checkbox'
+                    <Checkbox
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
-                        disabled={isEmptyRulesState}
+                        disabled={isEmptyRulesState || !rulesEditable}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
-                    />
-                    <label
-                        htmlFor='autoSyncMembersCheckbox'
-                        className='ChannelSettingsModal__autoSyncLabel'
                         title={(() => {
                             if (isEmptyRulesState) {
                                 return formatMessage({
@@ -745,26 +821,34 @@ function ChannelSettingsAccessRulesTab({
                             return undefined;
                         })()}
                     >
-                        <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState && systemPolicies.length === 0) ? 'disabled' : ''}`}>
+                        <span className={`ChannelSettingsModal__autoSyncText ${((isEmptyRulesState && systemPolicies.length === 0) || !rulesEditable) ? 'disabled' : ''}`}>
                             {formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync',
                                 defaultMessage: 'Auto-add members based on access rules',
                             })}
                         </span>
-                    </label>
+                    </Checkbox>
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
+                        const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
+                            if (isPublic) {
+                                return formatMessage(messages.autoSyncEnabledPublic[channelKind]);
+                            }
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',
-                                defaultMessage: 'Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                                defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
                             });
+                        }
+
+                        if (isPublic) {
+                            return formatMessage(messages.autoSyncDisabledPublic[channelKind]);
                         }
 
                         return formatMessage({
                             id: 'channel_settings.access_rules.auto_sync_disabled_description',
-                            defaultMessage: 'Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.',
+                            defaultMessage: 'Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.',
                         });
                     })()}
                 </p>
@@ -798,12 +882,7 @@ function ChannelSettingsAccessRulesTab({
                         defaultMessage='Cannot save access rules'
                     />
                 }
-                message={
-                    <FormattedMessage
-                        id='channel_settings.access_rules.error.self_exclusion_message'
-                        defaultMessage="You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues."
-                    />
-                }
+                message={<FormattedMessage {...messages.selfExclusion[channelKind]}/>}
                 confirmButtonText={
                     <FormattedMessage
                         id='channel_settings.access_rules.error.back_to_editing'
@@ -813,7 +892,6 @@ function ChannelSettingsAccessRulesTab({
                 onConfirm={() => setShowSelfExclusionModal(false)}
                 onCancel={() => setShowSelfExclusionModal(false)}
                 hideCancel={true}
-                confirmButtonClass='btn btn-primary'
                 isStacked={true}
             />
 
@@ -838,6 +916,7 @@ function ChannelSettingsAccessRulesTab({
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
                 willShowActivityWarning={shouldShowActivityWarning}
+                channelKind={channelKind}
             />
 
             {/* Activity warning modal */}
@@ -846,9 +925,63 @@ function ChannelSettingsAccessRulesTab({
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
+                channelKind={channelKind}
             />
         </div>
     );
 }
+
+const messages = {
+    subtitlePublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.subtitle_public',
+            defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.subtitle_public.board',
+            defaultMessage: 'Define who this board is recommended for. The board stays open to everyone.',
+        }),
+    },
+    subtitlePrivate: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.subtitle',
+            defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.subtitle.board',
+            defaultMessage: 'Select user attributes and values as rules to restrict board membership',
+        }),
+    },
+    autoSyncEnabledPublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
+            defaultMessage: 'Users who match these rules will be added to this channel. They can leave anytime and won\'t be re-added.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_enabled_public_description.board',
+            defaultMessage: 'Users who match these rules will be added to this board. They can leave anytime and won\'t be re-added.',
+        }),
+    },
+    autoSyncDisabledPublic: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
+            defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.auto_sync_disabled_public_description.board',
+            defaultMessage: 'This board will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
+        }),
+    },
+    selfExclusion: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.error.self_exclusion_message',
+            defaultMessage: "You cannot set this rule because it would remove you from the channel. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.error.self_exclusion_message.board',
+            defaultMessage: "You cannot set this rule because it would remove you from the board. Please update the access rules to make sure you satisfy them and they don't cause any unintended issues.",
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default ChannelSettingsAccessRulesTab;

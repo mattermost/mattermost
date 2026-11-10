@@ -12,7 +12,7 @@ import {descriptorOrStringToString, renderSettingHelpText} from '../schema_admin
 
 type Props = {
     disabled: boolean;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPJobsTableSetting = (props: Props) => {
     const intl = useIntl();

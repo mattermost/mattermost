@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -47,12 +48,14 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
+	// Deprecated: use /file/test instead. Kept as a thin compatibility wrapper.
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods(http.MethodGet)
-	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequiredGzip(downloadLogs)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods(http.MethodPost)
 
@@ -361,7 +364,12 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil || logFilter == nil {
-		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	if appErr := logFilter.IsValid(); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -374,14 +382,16 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	logsJSON := make(map[string][]any)
 	var result any
 	for node, logLines := range logs {
+		entries := make([]any, 0, len(logLines))
 		for _, log := range logLines {
 			err = json.Unmarshal([]byte(log), &result)
 			if err != nil {
 				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
 			} else {
-				logsJSON[node] = append(logsJSON[node], result)
+				entries = append(entries, result)
 			}
 		}
+		logsJSON[node] = entries
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)
@@ -424,19 +434,26 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
+	file, err := c.App.Srv().Platform().OpenLogFile(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
 	if err != nil {
 		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	reader := bytes.NewReader(fileData.Body)
+	// The server keeps writing to the file, so only send the bytes its size was taken from.
 	web.WriteFileResponse(config.LogFilename,
 		"text/plain",
-		int64(len(fileData.Body)),
+		stat.Size(),
 		time.Now(),
 		*c.App.Config().ServiceSettings.WebserverMode,
-		reader,
+		io.NewSectionReader(file, 0, stat.Size()),
 		true,
 		w,
 		r)
@@ -476,6 +493,8 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
+		mlog.String("session_id", c.AppContext.Session().Id),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
@@ -526,7 +545,7 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, appErr := c.App.GetLatestVersion(c.AppContext, "https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	resp, appErr := c.App.GetLatestVersion(c.AppContext, app.LatestVersionURL)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -560,7 +579,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
 	if err != nil {
@@ -570,28 +589,51 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if checkHasNilFields(&cfg.FileSettings) {
-		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+	// PermissionTestS3 is kept for backwards compatibility -- it was named
+	// after the only supported test endpoint at the time it was introduced.
+	// The new /file/test endpoint is backend-agnostic but reuses the same
+	// permission to avoid a role migration.
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}
 
-	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if appErr != nil {
-		c.Err = appErr
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_settings_nil.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
-		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	// Validate mandatory fields per driver. TestFileStoreConnectionWithConfig
+	// will catch missing fields by failing to construct the backend, but a
+	// dedicated validation step lets us surface a clearer error.
+	driver := ""
+	if cfg.FileSettings.DriverName != nil {
+		driver = *cfg.FileSettings.DriverName
+	}
+	switch driver {
+	case model.ImageDriverLocal:
+		// Local driver has no mandatory fields beyond the directory, which has a default.
+	case model.ImageDriverS3:
+		if appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	case model.ImageDriverAzure:
+		if appErr := c.App.CheckMandatoryAzureFields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	default:
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_unsupported_driver.app_error", map[string]any{"Driver": driver}, "", http.StatusBadRequest)
+		return
 	}
 
-	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
-	if appErr != nil {
+	// A client editing the admin UI and clicking Test Connection without
+	// re-entering the secret would send the FakeSetting placeholder back, so we
+	// need to desanitize this first.
+	config.Desanitize(c.App.Config(), cfg)
+
+	if appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -736,8 +778,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			var isMember bool
+			var post *model.Post
 			var appErr *model.AppError
-			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			if post, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -756,6 +799,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			} else {
+				c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismPush)
 			}
 
 			auditRec := c.MakeAuditRecord(model.AuditEventNotificationAck, model.AuditStatusSuccess)
@@ -1097,9 +1142,8 @@ func checkHasNilFields(value any) bool {
 		return false
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if field.Kind() == reflect.Ptr && field.IsNil() {
+	for _, field := range v.Fields() {
+		if field.Kind() == reflect.Pointer && field.IsNil() {
 			return true
 		}
 	}

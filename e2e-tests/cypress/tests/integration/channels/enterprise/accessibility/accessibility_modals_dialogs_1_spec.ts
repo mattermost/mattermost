@@ -9,11 +9,11 @@
 
 // Group: @channels @enterprise @accessibility
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in Modals & Dialogs', () => {
     let testTeam: Team;
@@ -123,7 +123,7 @@ function verifyChannelMenuModal(menuItem: string, modalName?: string) {
     verifyModal(menuItem, modalName);
 }
 
-function verifyUserMenuModal(menuItem) {
+function verifyUserMenuModal(menuItem: string) {
     cy.uiGetSetStatusButton().click();
     verifyModal(menuItem);
 }

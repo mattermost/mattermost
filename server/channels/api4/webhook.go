@@ -64,8 +64,15 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, err = c.App.GetUser(hook.UserId); err != nil {
+		var hookUser *model.User
+		if hookUser, err = c.App.GetUser(c.AppContext, hook.UserId); err != nil {
 			c.Err = err
+			return
+		}
+
+		if appErr := c.App.ValidateIncomingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, channel); appErr != nil {
+			c.LogAudit("fail - invalid webhook user")
+			c.Err = appErr
 			return
 		}
 
@@ -163,6 +170,15 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 			c.LogAudit("fail - bad channel permissions")
 			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	}
+
+	// Moving the hook must not attribute its owner's posts to a channel they cannot access.
+	if updatedHook.ChannelId != oldHook.ChannelId {
+		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); appErr != nil {
+			c.LogAudit("fail - invalid webhook user")
+			c.Err = appErr
 			return
 		}
 	}
@@ -426,7 +442,24 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook.CreatorId = c.AppContext.Session().UserId
+	// Moving the hook to a different channel requires the retained owner to have access to it.
+	if updatedHook.ChannelId != "" && updatedHook.ChannelId != oldHook.ChannelId {
+		channel, appErr := c.App.GetChannel(c.AppContext, updatedHook.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		hookUser, appErr := c.App.GetUser(c.AppContext, oldHook.CreatorId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if appErr := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, updatedHook.TeamId, channel); appErr != nil {
+			c.LogAudit("fail - invalid webhook user")
+			c.Err = appErr
+			return
+		}
+	}
 
 	rhook, err := c.App.UpdateOutgoingWebhook(c.AppContext, oldHook, &updatedHook)
 	if err != nil {
@@ -468,9 +501,25 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err := c.App.GetUser(hook.CreatorId)
-		if err != nil {
+		var hookUser *model.User
+		var err *model.AppError
+		if hookUser, err = c.App.GetUser(c.AppContext, hook.CreatorId); err != nil {
 			c.Err = err
+			return
+		}
+
+		var channel *model.Channel
+		if hook.ChannelId != "" {
+			channel, err = c.App.GetChannel(c.AppContext, hook.ChannelId)
+			if err != nil {
+				c.Err = err
+				return
+			}
+		}
+
+		if appErr := c.App.ValidateOutgoingWebhookUser(c.AppContext, *c.AppContext.Session(), hookUser, hook.TeamId, channel); appErr != nil {
+			c.LogAudit("fail - invalid webhook user")
+			c.Err = appErr
 			return
 		}
 	}

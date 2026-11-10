@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     attachFile,
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Upload Files - Audio', () => {
     before(() => {
@@ -130,7 +130,7 @@ function testAudioFile(properties) {
 
     // * Download button should exist
     cy.get('@filePreviewModal').uiGetDownloadFilePreviewModal().then((downloadLink) => {
-        cy.wrap(downloadLink).parent().should('have.attr', 'download', fileName).then((link) => {
+        cy.wrap(downloadLink).should('have.attr', 'download', fileName).then((link) => {
             const fileAttachmentURL = link.attr('href');
 
             // * Verify that download link has correct name

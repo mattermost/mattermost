@@ -4,11 +4,14 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+
 import {Permissions} from 'mattermost-redux/constants';
 
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
-import {ActionsMenuIcon} from './actions_menu_icon';
 import Popover from './popover';
 
 type Props = {
@@ -16,7 +19,7 @@ type Props = {
     onOpenMarketplace: () => void;
     onToggle: (open: boolean) => void;
     isOpen: boolean;
-}
+};
 
 export default function ActionsMenuEmptyPopover({
     anchorElement,
@@ -52,19 +55,21 @@ export default function ActionsMenuEmptyPopover({
                     </p>
                 </div>
                 <div className='visit-marketplace'>
-                    <button
+                    <Button
                         id='marketPlaceButton'
-                        className='btn btn-primary btn-sm visit-marketplace-button'
+                        emphasis='primary'
+                        size='small'
+                        className='visit-marketplace-button'
                         onClick={onOpenMarketplace}
+                        leadingIcon={<Icon glyph={<ViewGridPlusOutlineIcon/>}/>}
                     >
-                        <ActionsMenuIcon name='icon-view-grid-plus-outline'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMessage
                                 id='post_info.actions.visitMarketplace'
                                 defaultMessage='Visit the Marketplace'
                             />
                         </span>
-                    </button>
+                    </Button>
                 </div>
             </SystemPermissionGate>
         </Popover>

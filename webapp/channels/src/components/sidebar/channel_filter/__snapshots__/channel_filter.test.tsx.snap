@@ -1,99 +1,87 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/channel_filter should match snapshot 1`] = `
-<div
-  className="SidebarFilters"
->
-  <WithTooltip
-    shortcut={
-      Object {
-        "default": Array [
-          Object {
-            "defaultMessage": "Ctrl",
-            "id": "shortcuts.generic.ctrl",
-          },
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-        "mac": Array [
-          "⌘",
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-      }
-    }
-    title={
-      Object {
-        "defaultMessage": "Filter by unread",
-        "id": "sidebar_left.channel_filter.filterByUnread",
-      }
-    }
+<div>
+  <div
+    class="SidebarFilters"
   >
-    <a
+    <button
       aria-label="unreads filter"
-      className="SidebarFilters_filterButton"
-      href="#"
-      onClick={[Function]}
+      aria-pressed="false"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 SidebarFilters_filterButton"
+      data-testid="sidebar-unread-filter-button"
+      type="button"
     >
-      <i
-        className="icon icon-filter-variant"
-      />
-    </a>
-  </WithTooltip>
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/sidebar/channel_filter should match snapshot if the unread filter is enabled 1`] = `
-<div
-  className="SidebarFilters"
->
-  <WithTooltip
-    shortcut={
-      Object {
-        "default": Array [
-          Object {
-            "defaultMessage": "Ctrl",
-            "id": "shortcuts.generic.ctrl",
-          },
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-        "mac": Array [
-          "⌘",
-          Object {
-            "defaultMessage": "Shift",
-            "id": "shortcuts.generic.shift",
-          },
-          "U",
-        ],
-      }
-    }
-    title={
-      Object {
-        "defaultMessage": "Show all channels",
-        "id": "sidebar_left.channel_filter.showAllChannels",
-      }
-    }
+<div>
+  <div
+    class="SidebarFilters"
   >
-    <a
+    <button
       aria-label="unreads filter"
-      className="SidebarFilters_filterButton active"
-      href="#"
-      onClick={[Function]}
+      aria-pressed="true"
+      class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 _icon-button--padding-compact_ft92e_72 _icon-button--style-inverted_ft92e_162 _icon-button--toggled_ft92e_31 SidebarFilters_filterButton active"
+      data-testid="sidebar-unread-filter-button"
+      type="button"
     >
-      <i
-        className="icon icon-filter-variant"
-      />
-    </a>
-  </WithTooltip>
+      <span
+        aria-hidden="true"
+        class="_icon-button__icon-slot_ft92e_41"
+      >
+        <div
+          aria-hidden="true"
+          class="_icon_1i355_2 _icon--size-16_1i355_38"
+        >
+          <div
+            class="_icon__glyph-area_1i355_9"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </span>
+    </button>
+  </div>
 </div>
 `;

@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import * as MESSAGES from '../../../../fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('System Console > User Management > Deactivation', () => {
     let team1;

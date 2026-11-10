@@ -3,7 +3,7 @@
 
 export function getKeycloakServerSettings() {
     const baseUrl = Cypress.config('baseUrl');
-    const {keycloakBaseUrl, keycloakAppName} = Cypress.env();
+    const {keycloakBaseUrl, keycloakAppName} = Cypress.expose();
     const idpDescriptorUrl = `${keycloakBaseUrl}/auth/realms/${keycloakAppName}`;
     const idpUrl = `${idpDescriptorUrl}/protocol/saml`;
 

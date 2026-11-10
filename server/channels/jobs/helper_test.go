@@ -91,7 +91,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)
@@ -180,15 +180,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.SystemAdminUser = th.CreateUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam(tb)
@@ -225,7 +225,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 

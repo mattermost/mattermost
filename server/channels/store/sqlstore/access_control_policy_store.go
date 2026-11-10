@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -21,11 +22,65 @@ import (
 const MaxPerPage = 1000
 const DefaultPerPage = 10
 
+// autoAddMembersContainment matches policies whose membership rule opts into
+// auto-adding members, in any mode. Written as jsonb containment on Data->'rules'
+// rather than as an expansion so idx_access_control_policies_rules can serve it;
+// with several modes it is an OR of containments, one per mode, which Postgres
+// can bitmap-OR over the same index. The containment yields NULL for a policy
+// with no Data, so callers selecting it as a value must wrap it in COALESCE —
+// but see autoAddMembersFilter before doing that in a WHERE clause.
+var autoAddMembersContainment = autoAddMembersExpr("")
+
+// autoAddMembersFilter renders the WHERE-clause predicate for filtering on
+// auto-add. Shared with the index test so the plan it asserts is the plan
+// SearchPolicies gets.
+//
+// The positive filter is the bare containment: COALESCE around it hides the
+// containment operator from the planner, which silently costs the index, and a
+// WHERE clause already reads a NULL result as not matching. The negative filter
+// does need COALESCE, so that a policy with no Data at all counts as not
+// auto-adding rather than dropping out; no index can serve a negated
+// containment anyway.
+func autoAddMembersFilter(autoAdd bool) sq.Sqlizer {
+	if !autoAdd {
+		return sq.Expr("NOT COALESCE(" + autoAddMembersContainment + ", false)")
+	}
+	return sq.Expr(autoAddMembersContainment)
+}
+
+// autoAddMembersExpr renders the auto-add predicate against the given
+// AccessControlPolicies alias, for use inside a correlated subquery. The modes
+// are compile-time constants, so they are safe to inline.
+func autoAddMembersExpr(alias string) string {
+	column := "Data->'rules'"
+	if alias != "" {
+		column = alias + "." + column
+	}
+
+	terms := make([]string, 0, len(model.AccessControlAutoAddModes))
+	for _, mode := range model.AccessControlAutoAddModes {
+		terms = append(terms, fmt.Sprintf(`%s @> '[{"metadata": {"auto_add": %q}}]'::jsonb`, column, mode))
+	}
+
+	return "(" + strings.Join(terms, " OR ") + ")"
+}
+
+// importsPolicyExpr matches policies that import policyID. The array form of the
+// containment keeps the predicate served by
+// idx_access_control_policies_imports. jsonb_build_array is variadic "any", so
+// the argument needs an explicit cast for Postgres to infer the parameter type.
+func importsPolicyExpr(policyID string) sq.Sqlizer {
+	return sq.Expr("Data->'imports' @> jsonb_build_array(?::text)", policyID)
+}
+
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Roles   []string                        `json:"roles,omitempty"`
+	Scope   string                          `json:"scope,omitempty"`
+	ScopeID string                          `json:"scope_id,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -54,25 +109,38 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		Version:  s.Version,
 	}
 
-	var p accessControlPolicyV0_1
-	if err := json.Unmarshal(s.Data, &p); err != nil {
-		return nil, err
+	if len(s.Data) > 0 {
+		var p accessControlPolicyV0_1
+		if err := json.Unmarshal(s.Data, &p); err != nil {
+			return nil, err
+		}
+		policy.Imports = p.Imports
+		policy.Rules = p.Rules
+		policy.Roles = p.Roles
+		policy.Scope = p.Scope
+		policy.ScopeID = p.ScopeID
 	}
 
-	policy.Imports = p.Imports
-	policy.Rules = p.Rules
-
-	if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
-		return nil, err
+	if len(s.Props) > 0 {
+		if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
+			return nil, err
+		}
 	}
 
 	return policy, nil
 }
 
 func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, error) {
+	imports := policy.Imports
+	if imports == nil {
+		imports = []string{}
+	}
 	data, err := json.Marshal(&accessControlPolicyV0_1{
-		Imports: policy.Imports,
+		Imports: imports,
 		Rules:   policy.Rules,
+		Roles:   policy.Roles,
+		Scope:   policy.Scope,
+		ScopeID: policy.ScopeID,
 	})
 	if err != nil {
 		return nil, err
@@ -174,7 +242,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		return nil, err
 	}
 
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to start transaction")
 	}
@@ -209,10 +277,27 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		}
 
 		// Check if the policy has actually changed
-		// We compare data, name, and version fields, and ensure type hasn't changed
+		// We compare data and version fields. Name changes are cosmetic
+		// and should not create a new revision in history.
 		if bytes.Equal(storePolicy.Data, tmp.Data) &&
-			storePolicy.Name == tmp.Name &&
 			storePolicy.Version == tmp.Version {
+			// Update name in place if it changed, without bumping revision
+			if storePolicy.Name != tmp.Name {
+				nameUpdate := s.getQueryBuilder().
+					Update("AccessControlPolicies").
+					Set("Name", storePolicy.Name).
+					Where(sq.Eq{"ID": policy.ID})
+				if _, err = tx.ExecBuilder(nameUpdate); err != nil {
+					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+					}
+					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+				}
+				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
+			}
 			return existingPolicy, nil
 		}
 
@@ -255,6 +340,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	_, err = tx.ExecBuilder(query)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+		}
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
@@ -271,7 +359,7 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 }
 
 func (s *SqlAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "failed to start transaction")
 	}
@@ -327,125 +415,87 @@ func (s *SqlAccessControlPolicyStore) deleteT(_ request.CTX, tx *sqlxTxWrapper, 
 	return nil
 }
 
-func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
-	tx, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
-	}
-	defer finalizeTransactionX(tx, &err)
-
-	existingPolicy, err := s.getT(rctx, tx, id)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", id)
-	} else if errors.Is(err, sql.ErrNoRows) {
-		return nil, store.NewErrNotFound("AccessControlPolicy", id)
-	}
-
-	// also make sure if the policy is valid before updating active status
-	// just in case
-	existingPolicy.Active = active
-	if appErr := existingPolicy.IsValid(); err != nil {
-		return nil, appErr
+// SetMembershipAutoAdd sets the auto_add mode on each listed policy's membership
+// rule. Because the setting lives inside the Data JSONB this is a
+// read-modify-write: the rows are locked and read together, modified in memory,
+// and written back in a single statement so the locks are held for one round
+// trip rather than one per policy. Missing IDs are skipped rather than erroring,
+// matching the previous behaviour of the batch active-status update.
+//
+// Like the active-status update it replaces, this does not bump Revision or
+// write a history entry: toggling auto-add is a switch on an existing policy,
+// not a new revision of its rules.
+func (s *SqlAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error) {
+	if len(list) == 0 {
+		return []*model.AccessControlPolicy{}, nil
 	}
 
-	query, args, err := s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(sq.Eq{"ID": id}).ToSql()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
-	}
-	_, err = tx.Exec(query, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update policy with id=%s", id)
-	}
-
-	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
-		// if the policy is a parent, we need to update the child policies
-		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
-		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
-		}
-		_, err = tx.Exec(query, args...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update child policies with id=%s", id)
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return existingPolicy, nil
-}
-
-func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
-	tx, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to start transaction")
-	}
-	defer finalizeTransactionX(tx, &err)
-
-	// Group by active status for batch updates
-	activeTrue := []string{}
-	activeFalse := []string{}
-	ids := make([]any, 0, len(list))
+	autoAddByID := make(map[string]string, len(list))
+	ids := make([]string, 0, len(list))
 	for _, entry := range list {
-		ids = append(ids, entry.ID)
-		if entry.Active {
-			activeTrue = append(activeTrue, entry.ID)
-			continue
+		if _, ok := autoAddByID[entry.ID]; !ok {
+			ids = append(ids, entry.ID)
 		}
-		activeFalse = append(activeFalse, entry.ID)
+		autoAddByID[entry.ID] = entry.AutoAdd
 	}
 
-	// Update active=true policies
-	if len(activeTrue) > 0 {
-		query, args, qbErr := s.getQueryBuilder().
-			Update("AccessControlPolicies").
-			Set("Active", true).
-			Where(sq.Eq{"ID": activeTrue}).
-			ToSql()
-
-		if qbErr != nil {
-			return nil, errors.Wrap(qbErr, "failed to build active=true update query")
-		}
-
-		_, err = tx.Exec(query, args...)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to update active=true policies")
-		}
-	}
-
-	// Update active=false policies
-	if len(activeFalse) > 0 {
-		query, args, qbErr := s.getQueryBuilder().
-			Update("AccessControlPolicies").
-			Set("Active", false).
-			Where(sq.Eq{"ID": activeFalse}).
-			ToSql()
-
-		if qbErr != nil {
-			return nil, errors.Wrap(qbErr, "failed to build active=false update query")
-		}
-
-		_, err = tx.Exec(query, args...)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to update active=false policies")
-		}
-	}
-
-	p := []storeAccessControlPolicy{}
-	query := s.selectQueryBuilder.Where(sq.Eq{"ID": ids})
-
-	err = tx.SelectBuilder(&p, query)
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	stored := []storeAccessControlPolicy{}
+	selectQuery := s.getQueryBuilder().
+		Select(accessControlPolicySliceColumns()...).
+		From("AccessControlPolicies").
+		Where(sq.Eq{"ID": ids}).
+		OrderBy("ID").
+		Suffix("FOR UPDATE")
+	if err = tx.SelectBuilder(&stored, selectQuery); err != nil {
 		return nil, errors.Wrapf(err, "failed to find policies with ids=%v", ids)
 	}
 
-	policies := make([]*model.AccessControlPolicy, len(p))
-	for i := range p {
-		policies[i], err = p[i].toModel()
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+	policies := make([]*model.AccessControlPolicy, len(stored))
+	dataCase := sq.Case("ID")
+	storedIDs := make([]string, len(stored))
+	for i := range stored {
+		policy, pErr := stored[i].toModel()
+		if pErr != nil {
+			return nil, errors.Wrapf(pErr, "failed to parse policy with id=%s", stored[i].ID)
+		}
+
+		policy.SetAutoAddMode(autoAddByID[policy.ID])
+		if appErr := policy.IsValid(); appErr != nil {
+			return nil, appErr
+		}
+
+		updated, pErr := fromModel(policy)
+		if pErr != nil {
+			return nil, errors.Wrapf(pErr, "failed to serialize policy with id=%s", policy.ID)
+		}
+
+		// jsonb sent as a binary parameter needs the version-byte prefix, the
+		// same as every other write to this column.
+		data := updated.Data
+		if s.IsBinaryParamEnabled() {
+			data = AppendBinaryFlag(data)
+		}
+
+		dataCase = dataCase.When(sq.Expr("?", policy.ID), sq.Expr("?::jsonb", data))
+		storedIDs[i] = policy.ID
+		policies[i] = policy
+	}
+
+	// A CASE with no branches is invalid SQL, so skip the write when every
+	// requested ID was missing.
+	if len(stored) > 0 {
+		updateQuery := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Data", dataCase).
+			Where(sq.Eq{"ID": storedIDs})
+		if _, err = tx.ExecBuilder(updateQuery); err != nil {
+			return nil, errors.Wrapf(err, "failed to update policies with ids=%v", storedIDs)
 		}
 	}
 
@@ -536,7 +586,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 	query := s.selectQueryBuilder
 
 	if opts.ParentID != "" {
-		query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
+		query = query.Where(importsPolicyExpr(opts.ParentID))
 	}
 
 	if opts.Type != "" {
@@ -583,7 +633,9 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
 	type wrapper struct {
 		storeAccessControlPolicy
-		ChildIDs json.RawMessage
+		ChildIDs     json.RawMessage
+		ChannelCount int
+		TeamCount    int
 	}
 
 	p := []wrapper{}
@@ -594,7 +646,15 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
      FROM AccessControlPolicies c
 	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-		columns = append(columns, childIDs)
+		channelCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'channel'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS ChannelCount`
+		teamCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'team'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS TeamCount`
+		columns = append(columns, childIDs, channelCount, teamCount)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -603,7 +663,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
-		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		safeTerm := sanitizeSearchTerm(opts.Term, "*")
+		condition := sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", fmt.Sprintf("%%%s%%", safeTerm))
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
@@ -615,9 +676,24 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if opts.ParentID != "" {
-		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+		condition := importsPolicyExpr(opts.ParentID)
 		query = query.Where(condition)
 		count = count.Where(condition)
+	}
+
+	if len(opts.Actions) > 0 {
+		or := sq.Or{}
+		for _, action := range opts.Actions {
+			// Expression-less rules are skipped for the same reason as in
+			// actionsAggregationSQL: they declare an action the engine never
+			// compiles, so they must not make a policy match on it.
+			or = append(or, sq.Expr(
+				"EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END) AS rule WHERE rule->'actions' @> ?::jsonb AND COALESCE(rule->>'expression', '') <> '')",
+				fmt.Sprintf("%q", action),
+			))
+		}
+		query = query.Where(or)
+		count = count.Where(or)
 	}
 
 	if opts.Active {
@@ -625,10 +701,58 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(sq.Eq{"Active": true})
 	}
 
+	if opts.AutoAdd != nil {
+		condition := autoAddMembersFilter(*opts.AutoAdd)
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
 	if len(opts.IDs) > 0 {
 		condition := sq.Eq{"Id": opts.IDs}
 		query = query.Where(condition)
 		count = count.Where(condition)
+	}
+
+	// Scope/ScopeID filter policies by their persisted scope in the Data JSONB.
+	// Both must be provided together — a partial match is not meaningful.
+	if opts.Scope != "" && opts.ScopeID != "" {
+		scopeCondition := sq.And{
+			sq.Expr("Data->>'scope' = ?", opts.Scope),
+			sq.Expr("Data->>'scope_id' = ?", opts.ScopeID),
+		}
+		query = query.Where(scopeCondition)
+		count = count.Where(scopeCondition)
+	}
+
+	// TeamID filters to parent policies whose assigned channels ALL belong to the
+	// specified team. Policies with channels spanning multiple teams will NOT match
+	// even if one channel is in the requested team (COUNT(DISTINCT TeamId) = 1
+	// enforces single-team scope). This only applies to parent policies; the type
+	// is forced to 'parent' when TeamID is set.
+	if opts.TeamID != "" {
+		if opts.Type == model.AccessControlPolicyTypeChannel {
+			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			if opts.Type == "" {
+				parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
+				query = query.Where(parentCondition)
+				count = count.Where(parentCondition)
+			}
+
+			condition := sq.Expr(`Id IN (
+			SELECT parent_id FROM (
+				SELECT ch.TeamId, jsonb_array_elements_text(COALESCE(NULLIF(cp.Data -> 'imports', 'null'::jsonb), '[]'::jsonb)) AS parent_id
+				FROM AccessControlPolicies cp
+				JOIN Channels ch ON ch.Id = cp.Id
+				WHERE cp.Type = 'channel'
+			) team_children
+			GROUP BY parent_id
+			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
 	}
 
 	cursor := opts.Cursor
@@ -673,6 +797,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
 			}
 			m.Props["child_ids"] = childIDs
+			m.Props["channel_count"] = p[i].ChannelCount
+			m.Props["team_count"] = p[i].TeamCount
 		}
 		policies[i] = m
 	}
@@ -689,3 +815,195 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	return policies, total, nil
 }
+
+// actionsAggregationSQL is the per-policy action-union expression embedded in
+// both GetActionsForPolicy and GetActionsForPolicies. It produces a JSONB
+// object whose keys are the distinct action strings declared by the policy's
+// own rules and the rules of any policies it imports. The expression is
+// table-qualified with `p` so it can be reused as a correlated subquery
+// against either a single row or a set of rows.
+//
+// Rules with no expression are excluded from both halves of the union: the
+// engine drops them when it compiles a policy, so counting their actions here
+// would report a channel as governed by an action nothing enforces.
+const actionsAggregationSQL = `COALESCE(
+    (
+        SELECT jsonb_object_agg(action, true)
+        FROM (
+            SELECT DISTINCT jsonb_array_elements_text(rule->'actions') AS action
+            FROM jsonb_array_elements(
+                CASE WHEN jsonb_typeof(p.Data->'rules') = 'array'
+                     THEN p.Data->'rules' ELSE '[]'::jsonb END
+            ) AS rule
+            WHERE COALESCE(rule->>'expression', '') <> ''
+            UNION
+            SELECT DISTINCT jsonb_array_elements_text(rule->'actions') AS action
+            FROM AccessControlPolicies parent
+            JOIN jsonb_array_elements_text(
+                CASE WHEN jsonb_typeof(p.Data->'imports') = 'array'
+                     THEN p.Data->'imports' ELSE '[]'::jsonb END
+            ) AS imp(id) ON parent.ID = imp.id
+            CROSS JOIN LATERAL jsonb_array_elements(
+                CASE WHEN jsonb_typeof(parent.Data->'rules') = 'array'
+                     THEN parent.Data->'rules' ELSE '[]'::jsonb END
+            ) AS rule
+            WHERE COALESCE(rule->>'expression', '') <> ''
+        ) AS unioned_actions
+    ),
+    '{}'::jsonb
+)`
+
+// GetActionsForPolicy returns the union of action keys declared by the policy's
+// own rules and the rules of any policies it imports. The result is always a
+// non-nil map (empty when the policy exists but declares no rules). Returns
+// store.ErrNotFound when no AccessControlPolicies row exists for policyID.
+//
+// The query is bounded by a single row's expansion plus its (small) imports
+// fan-out. Channels with no attached policy never reach this method because
+// the App-layer hydrator short-circuits on PolicyEnforced=false.
+func (s *SqlAccessControlPolicyStore) GetActionsForPolicy(_ request.CTX, policyID string) (map[string]bool, error) {
+	if !model.IsValidId(policyID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "policyID", policyID)
+	}
+
+	var raw []byte
+	query := fmt.Sprintf(`SELECT %s AS actions FROM AccessControlPolicies p WHERE p.ID = $1`, actionsAggregationSQL)
+	err := s.GetReplica().Get(&raw, query, policyID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("AccessControlPolicy", policyID)
+		}
+		return nil, errors.Wrapf(err, "failed to load policy actions for id=%s", policyID)
+	}
+
+	actions := map[string]bool{}
+	if len(raw) > 0 {
+		if err := json.Unmarshal(raw, &actions); err != nil {
+			return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", policyID)
+		}
+	}
+	return actions, nil
+}
+
+// GetActionsForPolicies returns the per-policy action union for each ID in
+// policyIDs. Missing IDs are absent from the result map (callers can detect
+// "policy not found" via `_, ok := result[id]`). An empty input slice returns
+// an empty map and fires no SQL. Used by batched hydration on channel-list
+// reads to avoid an N+1 against AccessControlPolicies.
+func (s *SqlAccessControlPolicyStore) GetActionsForPolicies(_ request.CTX, policyIDs []string) (map[string]map[string]bool, error) {
+	if len(policyIDs) == 0 {
+		return map[string]map[string]bool{}, nil
+	}
+
+	for _, id := range policyIDs {
+		if !model.IsValidId(id) {
+			return nil, store.NewErrInvalidInput("AccessControlPolicy", "policyID", id)
+		}
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Select("p.ID", fmt.Sprintf("%s AS actions", actionsAggregationSQL)).
+		From("AccessControlPolicies p").
+		Where(sq.Eq{"p.ID": policyIDs}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build batched policy actions query")
+	}
+
+	rows, err := s.GetReplica().Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load policy actions batch")
+	}
+	defer rows.Close()
+
+	result := make(map[string]map[string]bool, len(policyIDs))
+	for rows.Next() {
+		var id string
+		var raw []byte
+		if err := rows.Scan(&id, &raw); err != nil {
+			return nil, errors.Wrap(err, "failed to scan policy actions row")
+		}
+		actions := map[string]bool{}
+		if len(raw) > 0 {
+			if err := json.Unmarshal(raw, &actions); err != nil {
+				return nil, errors.Wrapf(err, "failed to decode policy actions for id=%s", id)
+			}
+		}
+		result[id] = actions
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "policy actions row iteration failed")
+	}
+
+	return result, nil
+}
+
+// GetPoliciesByFieldID finds all policies whose CEL rule expressions reference the
+// given property field ID. It performs a text search on the serialized JSONB Data
+// column for the pattern "id_<fieldID>", which is how property fields are referenced
+// in CEL expressions (e.g., user.attributes.id_<fieldID>).
+//
+// This is a sequential scan over the policies table. At the expected scale (hundreds
+// to low thousands of admin-configured policies) this is well under 1ms.
+// If the table grows beyond ~10K rows or this query lands on a hot path, a GIN
+// trigram index on (Data::text) can accelerate it with no query changes.
+func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	if !model.IsValidId(fieldID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "fieldID", fieldID)
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Expr("Data::text LIKE ?", fmt.Sprintf("%%id\\_%s%%", fieldID)))
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies referencing field id=%s", fieldID)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	return policies, nil
+}
+
+// GetEtagEpoch covers the system-scoped permission policies plus the given channel's own policy
+// row (a channel policy's ID equals the channel ID); an empty channelID covers only the former.
+//
+// MAX(CreateAt), because the table has no UpdateAt and saves are delete-and-reinsert. The count is
+// folded in to catch deletes: dropping a policy that isn't the newest leaves the max untouched, so
+// the ETag would still match and clients would keep a differently-sanitized cached copy.
+//
+// Matching the channel by primary key instead of scanning every policy's rules JSON costs a benign
+// false positive: a membership-only change to this channel's policy also advances the epoch.
+func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(CreateAt), 0) AS MaxCreateAt", "COUNT(*) AS Total").
+		From("AccessControlPolicies").
+		Where(sq.Or{
+			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
+			sq.Eq{"Id": channelID},
+		}).
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxCreateAt int64
+		Total       int64
+	}
+	// Master, not replica — see the note on SqlAttributesStore.GetUserPropertyValuesEpoch.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxCreateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the render-ETag epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {}
+func (s *SqlAccessControlPolicyStore) ClearEtagCache()                           {}

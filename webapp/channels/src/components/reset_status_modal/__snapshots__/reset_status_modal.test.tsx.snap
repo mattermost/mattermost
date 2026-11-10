@@ -9,106 +9,126 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="genericModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="confirmModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="confirmModalLabel"
-      aria-modal="true"
-      class="fade in modal"
-      id="confirmModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
     >
       <div
-        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
         >
           <div
-            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+            class="modal-header"
           >
             <div
-              class="modal-header"
+              class="GenericModal__header__text_container"
             >
               <div
-                class="GenericModal__header__text_container"
+                class="GenericModal__header"
+              >
+                <h1
+                  class="modal-title"
+                  id="genericModalLabel"
+                >
+                  Your status is set to "Away"
+                </h1>
+              </div>
+            </div>
+            <button
+              aria-label="Close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
-                  class="GenericModal__header"
-                >
-                  <h1
-                    class="modal-title"
-                    id="genericModalLabel"
-                  >
-                    Your status is set to "Away"
-                  </h1>
-                </div>
-              </div>
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
                   aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
                 >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
-            </div>
-            <div
-              class="modal-body"
-            >
-              <div
-                class="GenericModal__body padding"
-              >
-                <div>
                   <div
-                    class="ConfirmModal__body"
-                    id="confirmModalBody"
+                    class="_icon__glyph-area_1i355_9"
                   >
-                    Would you like to switch your status to "Online"?
-                    <div
-                      class="checkbox text-right mb-0"
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <label>
-                        <input
-                          type="checkbox"
-                        />
-                        Do not ask me again
-                      </label>
-                    </div>
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
                   </div>
+                </div>
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="GenericModal__body padding"
+            >
+              <div>
+                <div
+                  class="ConfirmModal__body"
+                  id="confirmModalBody"
+                >
+                  Would you like to switch your status to "Online"?
                   <div
-                    class="ConfirmModal__footer"
+                    class="checkbox text-right mb-0"
                   >
-                    <button
-                      class="btn btn-tertiary"
-                      data-testid="cancel-button"
-                      id="cancelModalButton"
-                      type="button"
+                    <label>
+                      <input
+                        type="checkbox"
+                      />
+                      Do not ask me again
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="ConfirmModal__footer"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancel-button"
+                    id="cancelModalButton"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
                     >
                       Stay as "Away"
-                    </button>
-                    <button
-                      class="btn btn-primary"
-                      id="confirmModalButton"
-                      type="button"
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    id="confirmModalButton"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
                     >
                       Set status to "Online"
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -129,96 +149,116 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-labelledby="genericModalLabel"
+    aria-modal="true"
+    class="fade in modal"
+    id="confirmModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      aria-labelledby="confirmModalLabel"
-      aria-modal="true"
-      class="fade in modal"
-      id="confirmModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
     >
       <div
-        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
         >
           <div
-            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+            class="modal-header"
           >
             <div
-              class="modal-header"
+              class="GenericModal__header__text_container"
             >
               <div
-                class="GenericModal__header__text_container"
+                class="GenericModal__header"
+              >
+                <h1
+                  class="modal-title"
+                  id="genericModalLabel"
+                >
+                  Your status is set to "Out of office"
+                </h1>
+              </div>
+            </div>
+            <button
+              aria-label="Close"
+              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_ft92e_41"
               >
                 <div
-                  class="GenericModal__header"
-                >
-                  <h1
-                    class="modal-title"
-                    id="genericModalLabel"
-                  >
-                    Your status is set to "Out of office"
-                  </h1>
-                </div>
-              </div>
-              <button
-                aria-label="Close"
-                class="close"
-                type="button"
-              >
-                <span
                   aria-hidden="true"
+                  class="_icon_1i355_2 _icon--size-20_1i355_46"
                 >
-                  ×
-                </span>
-                <span
-                  class="sr-only"
-                >
-                  Close
-                </span>
-              </button>
-            </div>
-            <div
-              class="modal-body"
-            >
-              <div
-                class="GenericModal__body padding"
-              >
-                <div>
                   <div
-                    class="ConfirmModal__body"
-                    id="confirmModalBody"
+                    class="_icon__glyph-area_1i355_9"
                   >
-                    Would you like to switch your status to "Online" and disable automatic replies?
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
                   </div>
-                  <div
-                    class="ConfirmModal__footer"
+                </div>
+              </span>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="GenericModal__body padding"
+            >
+              <div>
+                <div
+                  class="ConfirmModal__body"
+                  id="confirmModalBody"
+                >
+                  Would you like to switch your status to "Online" and disable automatic replies?
+                </div>
+                <div
+                  class="ConfirmModal__footer"
+                >
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    data-testid="cancel-button"
+                    id="cancelModalButton"
+                    type="button"
                   >
-                    <button
-                      class="btn btn-tertiary"
-                      data-testid="cancel-button"
-                      id="cancelModalButton"
-                      type="button"
+                    <span
+                      class="_button__label_we8pe_31"
                     >
                       Stay "Out of office"
-                    </button>
-                    <button
-                      class="btn btn-primary"
-                      id="confirmModalButton"
-                      type="button"
+                    </span>
+                  </button>
+                  <button
+                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    id="confirmModalButton"
+                    type="button"
+                  >
+                    <span
+                      class="_button__label_we8pe_31"
                     >
                       Set status to "Online"
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>

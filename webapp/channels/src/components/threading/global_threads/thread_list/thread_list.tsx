@@ -8,6 +8,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {getThreadsForCurrentTeam, markAllThreadsInTeamRead} from 'mattermost-redux/actions/threads';
@@ -17,7 +20,6 @@ import {closeModal, openModal} from 'actions/views/modals';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -34,7 +36,7 @@ import './thread_list.scss';
 
 export enum ThreadFilter {
     none = '',
-    unread = 'unread'
+    unread = 'unread',
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';
@@ -73,6 +75,10 @@ const ThreadList = ({
         const target = e.target as HTMLElement;
         const tagName = target?.tagName?.toLowerCase();
         if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+            return;
+        }
+        const editableHost = target?.closest?.('[contenteditable]');
+        if (editableHost && editableHost.getAttribute('contenteditable') !== 'false') {
             return;
         }
         const comboKeyPressed = e.altKey || e.metaKey || e.shiftKey || e.ctrlKey;
@@ -237,20 +243,16 @@ const ThreadList = ({
                                 defaultMessage: 'Mark all threads as read',
                             })}
                         >
-                            <Button
+                            <IconButton
                                 id={'threads-list__mark-all-as-read'}
+                                size='small'
                                 aria-label={formatMessage({
                                     id: 'threading.threadList.markRead',
                                     defaultMessage: 'Mark all threads as read',
                                 })}
-                                className={'Button___large Button___icon'}
+                                icon={<Icon glyph={<PlaylistCheckIcon/>}/>}
                                 onClick={handleOpenMarkAllAsReadModal}
-                                marginTop={true}
-                            >
-                                <span className='icon'>
-                                    <PlaylistCheckIcon size={18}/>
-                                </span>
-                            </Button>
+                            />
                         </WithTooltip>
                     </div>
                 )}
@@ -301,9 +303,9 @@ function useTabs<TabName extends string>({
         panelId: string;
     }>;
 }): {
-        tabListProps: React.HTMLAttributes<HTMLElement>;
-        tabProps: Array<React.HTMLAttributes<HTMLElement>>;
-    } {
+    tabListProps: React.HTMLAttributes<HTMLElement>;
+    tabProps: Array<React.HTMLAttributes<HTMLElement>>;
+} {
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {

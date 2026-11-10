@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -54,7 +55,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
+func (s SqlChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userId string, channelId string, leaveTime int64) error {
 	query, params, err := s.getQueryBuilder().
 		Update("ChannelMemberHistory").
 		Set("LeaveTime", leaveTime).
@@ -73,9 +74,37 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
 		// there was no join event to update - this is best effort, so no need to raise an error
-		mlog.Warn("Channel join event for user and channel not found", mlog.String("user", userId), mlog.String("channel", channelId))
+		rctx.Logger().Warn("Channel join event for user and channel not found", mlog.String("user", userId), mlog.String("channel", channelId))
 	}
 	return nil
+}
+
+// GetEverMembersInChannel returns user IDs that have at least one membership history row in the channel.
+func (s SqlChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
+	if len(userIDs) == 0 {
+		return []string{}, nil
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Select("UserId").
+		Distinct().
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelID},
+			sq.Eq{"UserId": userIDs},
+		}).
+		OrderBy("UserId ASC").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+
+	everMembers := []string{}
+	if err := s.GetReplica().Select(&everMembers, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "GetEverMembersInChannel channelId=%s users=%d", channelID, len(userIDs))
+	}
+
+	return everMembers, nil
 }
 
 func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error) {
@@ -221,7 +250,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
 	for _, channelMemberHistory := range histories {
 		channelMemberHistory.JoinTime = startTime
-		channelMemberHistory.LeaveTime = model.NewPointer(endTime)
+		channelMemberHistory.LeaveTime = new(endTime)
 	}
 	return histories, nil
 }
@@ -295,6 +324,40 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	return rowsAffected, nil
 }
 
+// GetMembershipChanges returns all membership events (joins and leaves) for a channel since the given timestamp.
+// Uses inclusive comparison (>=) so events at the cursor timestamp are re-fetched rather than lost at batch
+// boundaries. This may cause redundant re-sends when consecutive batches share a boundary timestamp, but the
+// receiver is idempotent so duplicates are harmless. A composite cursor (timestamp + ID) like posts use would
+// eliminate duplicates, but would require a schema change to SharedChannelRemotes; the current trade-off avoids that.
+func (s SqlChannelMemberHistoryStore) GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("ChannelId", "UserId", "JoinTime", "LeaveTime").
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelID},
+			sq.Or{
+				sq.GtOrEq{"JoinTime": since},
+				sq.And{
+					sq.NotEq{"LeaveTime": nil},
+					sq.GtOrEq{"LeaveTime": since},
+				},
+			},
+		}).
+		OrderBy("GREATEST(JoinTime, COALESCE(LeaveTime, 0)) ASC", "UserId ASC").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+
+	histories := []*model.ChannelMemberHistory{}
+	if err := s.GetReplica().Select(&histories, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "GetMembershipChanges channelId=%s since=%d limit=%d", channelID, since, limit)
+	}
+
+	return histories, nil
+}
+
 // GetChannelsLeftSince returns list of channels that the user has left after a given time,
 // but has not rejoined again.
 func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since int64) ([]string, error) {
@@ -314,4 +377,16 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 	}
 
 	return channelIds, nil
+}
+
+func (s SqlChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ChannelMemberHistory with userId=%s", userID)
+	}
+
+	return nil
 }
