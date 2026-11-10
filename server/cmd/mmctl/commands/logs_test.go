@@ -441,7 +441,8 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"level", map[string]string{"level": "error"}, "--level needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"search", map[string]string{"search": "abc"}, "--search needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"since", map[string]string{"since": "15m"}, "--since needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
-			{"several", map[string]string{"follow": "true", "level": "error", "search": "abc", "node": "node-1"}, "--follow, --level and --search need a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without them"},
+			{"node", map[string]string{"node": "node-1"}, "--node needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"several", map[string]string{"follow": "true", "level": "error", "search": "abc", "node": "node-1"}, "--follow, --level, --node and --search need a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without them"},
 		} {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
@@ -506,13 +507,13 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Don't read the server version without the flags that need it", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("node", "node-1"))
+		s.Require().NoError(cmd.Flags().Set("number", "1"))
 
-		// No GetPing expected: --node works on older servers too
+		// No GetPing expected: -n works on older servers too
 		s.client.
 			EXPECT().
-			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
-			Return(map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "info", "started")}}, &model.Response{}, nil).
+			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
+			Return(map[string][]json.RawMessage{"default": {testLogLine(time.Now(), "info", "started")}}, &model.Response{}, nil).
 			Times(1)
 
 		data, _, err := testLogsCmdF(s.client, cmd, []string{})

@@ -67,7 +67,7 @@ var LogsCmd = &cobra.Command{
 
 The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
 
---follow, --level, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+--follow, --level, --node, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -199,6 +199,11 @@ func (o *logsOptions) serverFilterFlags() []string {
 	}
 	if len(o.levels) > 0 {
 		flags = append(flags, "--level")
+	}
+	// Older servers only match the local node by the name "default", so a cluster node's own
+	// logs never match its name
+	if len(o.nodes) > 0 {
+		flags = append(flags, "--node")
 	}
 	if o.search != "" {
 		flags = append(flags, "--search")

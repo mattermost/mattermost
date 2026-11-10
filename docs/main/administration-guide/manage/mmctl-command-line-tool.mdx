@@ -4752,7 +4752,7 @@ Each entry shows the time the server logged it. When printed to a terminal, the 
 
 Filtering and following the logs requires the server to write its log file in JSON format. See the [Output file logs as JSON](/administration-guide/configure/environment-configuration-settings#output-file-logs-as-json) configuration setting. With plain-text log files, mmctl prints the log lines of every node unfiltered, and `--follow`, `--level`, `--node`, `--search`, and `--since` aren't available.
 
-The `--follow`, `--level`, `--search`, and `--since` options also require a Mattermost v12.2 or later server, and mmctl refuses them with older servers. Older servers ignore `--search`, don't filter the logs of other nodes, and read their whole log file on every `--follow` poll. `--node` works with older servers too.
+The `--follow`, `--level`, `--node`, `--search`, and `--since` options also require a Mattermost v12.2 or later server, and mmctl refuses them with older servers. Older servers ignore `--search`, don't filter the logs of other nodes, don't match the node mmctl connects to by its name, and read their whole log file on every `--follow` poll.
 
 </Note>
 
