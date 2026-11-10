@@ -46,7 +46,7 @@ For Mattermost deployments prior to v10.1, you must download the latest version 
 
 ### Metrics plugin enabled by default
 
-From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. If you enable Performance Monitoring while the server is running, the plugin is installed on the next server restart. To start collecting metrics right away, install it from the App Marketplace. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, install it if needed and enable it in **System Console \> Plugins \> Plugin Management**.
+From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. If you enable Performance Monitoring while the server is running and **Mattermost Metrics Plugin** isn't listed under **Installed Plugins**, install it from the App Marketplace. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, install it if needed and enable it in **System Console \> Plugins \> Plugin Management**.
 
 ## Upgrade
 
