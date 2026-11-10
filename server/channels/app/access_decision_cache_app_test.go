@@ -386,6 +386,54 @@ func TestEvaluateAccessCachedSessionAttributeExpiry(t *testing.T) {
 	})
 }
 
+// TestAccessDecisionCacheSessionAttributeChange changes a session attribute through a real
+// refresh request. That invalidates the session's cached decisions, but only the ones whose rules
+// read a session attribute; the rest keep serving from the cache.
+func TestAccessDecisionCacheSessionAttributeChange(t *testing.T) {
+	ipName := model.SessionAttributesPropertyFieldIPAddress
+
+	refresh := func(t *testing.T, h *accessDecisionCacheHarness, remoteAddr string) {
+		t.Helper()
+		h.th.App.ProcessSessionAttributesRequest(h.th.Context.WithSession(h.session), newSessionAttributesRequest(t, testUserAgentChrome, remoteAddr))
+	}
+
+	// run caches a decision under the first IP, moves the session to a second IP, checks again
+	// and returns how many times the PDP was asked.
+	run := func(t *testing.T, decision model.AccessDecision) int {
+		t.Helper()
+		h := setupAccessDecisionCacheTest(t)
+		// Enabling session attributes edits their property fields, which notifies the PDP.
+		h.acs.On("OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything).Return()
+		enableSessionAttributesCollection(t, h.th)
+		h.acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(decision, nil)
+
+		refresh(t, h, "192.0.2.10:1234")
+		require.Equal(t, "192.0.2.10", sessionAttributeValuesByFieldName(t, h.th, h.session.Id)[ipName])
+		require.True(t, h.check(t))
+		require.Equal(t, 1, h.evaluations())
+
+		refresh(t, h, "192.0.2.20:1234")
+		require.Equal(t, "192.0.2.20", sessionAttributeValuesByFieldName(t, h.th, h.session.Id)[ipName], "the session attribute changed")
+		require.True(t, h.check(t))
+		return h.evaluations()
+	}
+
+	t.Run("a decision whose rules read no session attribute is still served from the cache", func(t *testing.T) {
+		evaluations := run(t, model.AccessDecision{Decision: true, SessionAttributeRefsReported: true})
+		require.Equal(t, 1, evaluations)
+	})
+
+	t.Run("a decision whose rules read the changed attribute is evaluated again", func(t *testing.T) {
+		evaluations := run(t, model.AccessDecision{Decision: true, SessionAttributeRefs: []string{ipName}, SessionAttributeRefsReported: true})
+		require.Equal(t, 2, evaluations)
+	})
+
+	t.Run("a decision that doesn't say what it read is evaluated again", func(t *testing.T) {
+		evaluations := run(t, model.AccessDecision{Decision: true})
+		require.Equal(t, 2, evaluations)
+	})
+}
+
 func TestAccessDecisionCachePrepareSkipsCachedChannels(t *testing.T) {
 	h := setupAccessDecisionCacheTest(t)
 	decides(h.acs, false)

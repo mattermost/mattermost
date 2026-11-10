@@ -40,7 +40,7 @@ func storeDecision(t *testing.T, c *accessDecisionCache, l accessDecisionLookup,
 	t.Helper()
 	_, hit := c.get(&l)
 	require.False(t, hit)
-	c.put(&l, allowed, 0)
+	c.put(&l, allowed, 0, true)
 }
 
 func cached(c *accessDecisionCache, l accessDecisionLookup) (bool, bool) {
@@ -117,7 +117,7 @@ func TestAccessDecisionCacheInvalidationScopes(t *testing.T) {
 		for _, e := range entries {
 			l := e.l
 			if _, hit := c.get(&l); !hit {
-				c.put(&l, true, 0)
+				c.put(&l, true, 0, true)
 			}
 		}
 	}
@@ -162,7 +162,7 @@ func TestAccessDecisionCacheInvalidationDuringBuildIsNotStored(t *testing.T) {
 
 	// The user changes while the decision is being computed.
 	c.invalidateUser(userID)
-	c.put(&l, true, 0)
+	c.put(&l, true, 0, true)
 
 	_, hit = cached(c, readLookup(t, c, accessSubjectSession, sessionID, userID, channelID))
 	require.False(t, hit, "a decision computed from pre-invalidation inputs must not be served")
@@ -218,7 +218,7 @@ func TestAccessDecisionCacheSlowBuildDoesNotOutliveSweep(t *testing.T) {
 	clock.advance(time.Second)
 	c.invalidateUser(userID)
 	clock.advance(10 * time.Second)
-	c.put(&l, true, 0)
+	c.put(&l, true, 0, true)
 
 	// Sweeping the bump makes the user read as 0 again; the entry must have expired by then.
 	clock.advance(51 * time.Second) // 1s past the sweep cutoff, well before put + maxAge
@@ -309,7 +309,7 @@ func TestAccessDecisionCacheDeadline(t *testing.T) {
 		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
 		_, hit := c.get(&l)
 		require.False(t, hit)
-		c.put(&l, true, clock.now+int64(5*time.Second))
+		c.put(&l, true, clock.now+int64(5*time.Second), true)
 
 		clock.advance(4 * time.Second)
 		_, hit = cached(c, l)
@@ -325,7 +325,7 @@ func TestAccessDecisionCacheDeadline(t *testing.T) {
 		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
 		_, hit := c.get(&l)
 		require.False(t, hit)
-		c.put(&l, true, clock.now+int64(time.Hour))
+		c.put(&l, true, clock.now+int64(time.Hour), true)
 
 		clock.advance(59 * time.Second)
 		_, hit = cached(c, l)
@@ -341,13 +341,13 @@ func TestAccessDecisionCacheDeadline(t *testing.T) {
 		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
 		_, hit := c.get(&l)
 		require.False(t, hit)
-		c.put(&l, true, clock.now)
+		c.put(&l, true, clock.now, true)
 
 		require.Zero(t, c.len(), "storing it could only evict an entry that can still hit")
 	})
 }
 
-func TestSessionAttributeDeadline(t *testing.T) {
+func TestSessionAttributeDependence(t *testing.T) {
 	const deviceExpiry, networkExpiry = int64(1_700_000_010_000), int64(1_700_000_005_000)
 	subject := &model.Subject{
 		Session:          map[string]any{"device_compliant": "true", "network_status": "corp"},
@@ -356,43 +356,91 @@ func TestSessionAttributeDeadline(t *testing.T) {
 	ms := func(v int64) int64 { return v * int64(time.Millisecond) }
 
 	for name, tc := range map[string]struct {
-		subject  *model.Subject
-		decision model.AccessDecision
-		want     int64
+		subject      *model.Subject
+		decision     model.AccessDecision
+		wantDeadline int64
+		wantReads    bool
 	}{
-		"a decision that read no session attribute has none": {
-			subject:  subject,
-			decision: model.AccessDecision{SessionAttributeRefsReported: true},
-			want:     0,
+		"a decision that read no session attribute has no deadline and ignores the session": {
+			subject:      subject,
+			decision:     model.AccessDecision{SessionAttributeRefsReported: true},
+			wantDeadline: 0,
+			wantReads:    false,
 		},
 		"a decision ends with the one attribute it read": {
-			subject:  subject,
-			decision: model.AccessDecision{SessionAttributeRefs: []string{"device_compliant"}, SessionAttributeRefsReported: true},
-			want:     ms(deviceExpiry),
+			subject:      subject,
+			decision:     model.AccessDecision{SessionAttributeRefs: []string{"device_compliant"}, SessionAttributeRefsReported: true},
+			wantDeadline: ms(deviceExpiry),
+			wantReads:    true,
 		},
 		"a decision ends with the earliest attribute it read": {
-			subject:  subject,
-			decision: model.AccessDecision{SessionAttributeRefs: []string{"device_compliant", "network_status"}, SessionAttributeRefsReported: true},
-			want:     ms(networkExpiry),
+			subject:      subject,
+			decision:     model.AccessDecision{SessionAttributeRefs: []string{"device_compliant", "network_status"}, SessionAttributeRefsReported: true},
+			wantDeadline: ms(networkExpiry),
+			wantReads:    true,
 		},
-		"an attribute the session lacks can't expire": {
-			subject:  subject,
-			decision: model.AccessDecision{SessionAttributeRefs: []string{"client_type"}, SessionAttributeRefsReported: true},
-			want:     0,
+		"an attribute the session lacks can't expire, but its arrival must still count": {
+			subject:      subject,
+			decision:     model.AccessDecision{SessionAttributeRefs: []string{"client_type"}, SessionAttributeRefsReported: true},
+			wantDeadline: 0,
+			wantReads:    true,
 		},
 		"an unreported decision ends with the earliest attribute the session has": {
-			subject:  subject,
-			decision: model.AccessDecision{},
-			want:     ms(networkExpiry),
+			subject:      subject,
+			decision:     model.AccessDecision{},
+			wantDeadline: ms(networkExpiry),
+			wantReads:    true,
 		},
-		"a subject with no session attributes has none": {
-			subject:  &model.Subject{},
-			decision: model.AccessDecision{},
-			want:     0,
+		"an unreported decision on a subject with no session attributes still reads the session": {
+			subject:      &model.Subject{},
+			decision:     model.AccessDecision{},
+			wantDeadline: 0,
+			wantReads:    true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.want, sessionAttributeDeadline(tc.subject, &tc.decision))
+			deadline, readsSession := sessionAttributeDependence(tc.subject, &tc.decision)
+			assert.Equal(t, tc.wantDeadline, deadline)
+			assert.Equal(t, tc.wantReads, readsSession)
 		})
 	}
+}
+
+func TestAccessDecisionCacheSessionIndependentEntries(t *testing.T) {
+	sessionID, userID := model.NewId(), model.NewId()
+	store := func(t *testing.T, c *accessDecisionCache, readsSession bool) accessDecisionLookup {
+		t.Helper()
+		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
+		_, hit := c.get(&l)
+		require.False(t, hit)
+		c.put(&l, true, 0, readsSession)
+		return l
+	}
+
+	t.Run("an entry that ignores the session survives a session bump", func(t *testing.T) {
+		c, _ := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := store(t, c, false)
+
+		c.invalidateSession(sessionID)
+		_, hit := cached(c, l)
+		require.True(t, hit)
+	})
+
+	t.Run("an entry that reads the session misses after a session bump", func(t *testing.T) {
+		c, _ := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := store(t, c, true)
+
+		c.invalidateSession(sessionID)
+		_, hit := cached(c, l)
+		require.False(t, hit)
+	})
+
+	t.Run("an entry that ignores the session still misses after a user bump", func(t *testing.T) {
+		c, _ := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := store(t, c, false)
+
+		c.invalidateUser(userID)
+		_, hit := cached(c, l)
+		require.False(t, hit)
+	})
 }

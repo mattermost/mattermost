@@ -35,7 +35,7 @@ func fillBenchAccessCache(b *testing.B, c *accessDecisionCache, ids benchAccessI
 				b.Fatal("not cacheable")
 			}
 			c.get(&l)
-			c.put(&l, true, 0)
+			c.put(&l, true, 0, true)
 		}
 	}
 }
@@ -96,7 +96,7 @@ func BenchmarkAccessDecisionCacheMiss(b *testing.B) {
 		ch := ids.channels[(i/len(ids.sessions))%len(ids.channels)]
 		l, _ := c.prepare(accessSubjectSession, ids.sessions[s], ids.users[s], model.AccessControlPolicyTypeChannel, ch, model.AccessControlPolicyActionChannelReadAccess)
 		c.get(&l)
-		c.put(&l, true, 0)
+		c.put(&l, true, 0, true)
 		i++
 	}
 }

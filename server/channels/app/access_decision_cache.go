@@ -188,6 +188,9 @@ type accessDecisionSlot struct {
 	prev      int32
 	next      int32
 	allowed   bool
+	// ignoresSession marks a decision whose rules read no session attribute. The session
+	// version only moves when session attributes change, so such an entry survives it.
+	ignoresSession bool
 }
 
 // accessDecisionShard is a fixed-capacity LRU over a preallocated slab, linked by index with the
@@ -400,7 +403,11 @@ func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (a
 	s.mu.Lock()
 	if i, ok := s.index[l.key]; ok {
 		slot := &s.slots[i]
-		if slot.versions == l.versions && l.capturedAt < slot.expiresAt {
+		current := l.versions
+		if slot.ignoresSession {
+			current.session = 0
+		}
+		if slot.versions == current && l.capturedAt < slot.expiresAt {
 			s.moveToFront(i)
 			allowed = slot.allowed
 			s.hits++
@@ -418,7 +425,8 @@ func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (a
 // put stores a decision under the versions get captured. Expiry counts from the capture, not
 // from now, so a slow build can't outlive a swept version. A non-zero deadline (epoch ns) ends
 // the entry sooner: the time an input the decision read, such as a session attribute, goes stale.
-func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadline int64) {
+// readsSession false keeps the entry across session-version bumps; pass true when unsure.
+func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadline int64, readsSession bool) {
 	expiresAt := l.capturedAt + c.maxAge
 	if deadline > 0 && deadline < expiresAt {
 		expiresAt = deadline
@@ -453,6 +461,10 @@ func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadlin
 	slot := &s.slots[i]
 	slot.key = l.key
 	slot.versions = l.versions
+	if !readsSession {
+		slot.versions.session = 0
+	}
+	slot.ignoresSession = !readsSession
 	slot.expiresAt = expiresAt
 	slot.allowed = allowed
 }
