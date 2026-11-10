@@ -285,9 +285,13 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 // checked, because mutability isn't enforced then. A value written between this check and the
 // delete can still land on the option; there are no locks across objects.
 //
-// It also refuses while the system's or a channel's value of one of those fields holds an option
+// It also refuses while a value of a mutable field with a raise-only or lower-only rule holds one
+// of them: that value can no longer be ranked, so every later change to it would be refused.
+//
+// Last, it refuses while the system's or a channel's value of one of those fields holds an option
 // and a child field's parent rule compares against that value: every capped write below it would
-// then be refused as broken data. A lock refusal wins over this one.
+// then be refused as broken data. When several apply, the lock refusal wins, then the raise-only
+// or lower-only one, then this one.
 func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller string, owner *model.PropertyField, optionIDs []string, incoming map[string]*model.PropertyField) error {
 	if !ps.boundsEnforced() || len(optionIDs) == 0 {
 		return nil
@@ -297,8 +301,8 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 	if err != nil {
 		return fmt.Errorf("field %s: failed to look up the fields linked to it: %w", owner.ID, err)
 	}
-	var locked, held storedValueBreaches
-	firstID, heldID := "", ""
+	var locked, self, held storedValueBreaches
+	firstID, selfID, heldID := "", "", ""
 	for _, field := range append([]*model.PropertyField{owner}, linked...) {
 		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
 			field = inc
@@ -322,7 +326,11 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 				held.add(count, examples)
 			}
 		}
-		if field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
+		mutable := field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable
+		// A locked field is counted once, as locked, whatever rules it carries.
+		if mutable && !slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool {
+			return r.Reference == model.PropertyBoundsReferenceSelf
+		}) {
 			continue
 		}
 		var scope *store.PostValueScope
@@ -334,6 +342,13 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 		if err != nil {
 			return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
 		}
+		if mutable {
+			if count > 0 && selfID == "" {
+				selfID = field.ID
+			}
+			self.add(count, examples)
+			continue
+		}
 		if count > 0 && firstID == "" {
 			firstID = field.ID
 		}
@@ -344,6 +359,13 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 		return model.NewAppError(caller, "app.property_field.option_delete_locked_values.app_error",
 			map[string]any{"Count": locked.Count, "Examples": examples},
 			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, firstID, examples),
+			http.StatusConflict)
+	}
+	if self.Count > 0 {
+		examples := strings.Join(self.Examples, ", ")
+		return model.NewAppError(caller, "app.property_field.option_delete_self_rule_values.app_error",
+			map[string]any{"Count": self.Count, "Examples": examples},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are raise-only or lower-only, e.g. %s", owner.ID, self.Count, selfID, examples),
 			http.StatusConflict)
 	}
 	if held.Count > 0 {

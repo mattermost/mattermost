@@ -11346,6 +11346,11 @@
     "description": "API error (409) when deleting options of a property field while write_once or set_on_create values of it, or of a field linked to it, hold one of them; Examples lists up to five target IDs."
   },
   {
+    "id": "app.property_field.option_delete_self_rule_values.app_error",
+    "translation": "{{.Count}} values that can only be raised or lowered hold the options being deleted, for example on {{.Examples}}. Remove the raise-only or lower-only rule before deleting these options.",
+    "description": "API error (409) when deleting options of a property field while values of it, or of a field linked to it, that a raise-only or lower-only bounds rule governs hold one of them; Examples lists up to five target IDs."
+  },
+  {
     "id": "app.property_field.option_ranks_stored_values.app_error",
     "translation": "Changing these ranks would put {{.Count}} stored values out of bounds, for example on {{.Examples}}. Change those values first.",
     "description": "API error (409) when the rank of an option of a rank field is changed and the new order would put stored values of fields linked to it outside their parent bounds rules; Examples lists up to five target IDs."

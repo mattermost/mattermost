@@ -1144,6 +1144,103 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		require.NoError(t, dropMid(t, capped))
 	})
 
+	// Self-rule cases: a raise-only or lower-only value naming a dropped option can't be ranked, so
+	// every later change to it would be refused.
+	const selfRefusedID = "app.property_field.option_delete_self_rule_values.app_error"
+	raiseOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+	lowerOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}}
+	requireSelfRefused := func(t *testing.T, err error, count string, examples ...string) {
+		t.Helper()
+		requireAppErrorID(t, err, selfRefusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), count+" values of field")
+		assert.Equal(t, examples, examplesOf(err))
+		assert.NotContains(t, err.Error(), "optmid")
+	}
+
+	for name, bounds := range map[string]model.PropertyBounds{"raise-only": raiseOnly, "lower-only": lowerOnly} {
+		t.Run("a "+name+" value holding the option refuses the deletion", func(t *testing.T) {
+			_, create, _ := boundsSetup(t, th, rctx)
+			f := create(model.PropertyFieldObjectTypeChannel, bounds)
+			target := model.NewId()
+			seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+
+			requireSelfRefused(t, dropMid(t, f), "1", target)
+			live, err := th.dbStore.PropertyField().GetExistingOptionIDs(f, []string{"optmid"})
+			require.NoError(t, err)
+			assert.Equal(t, []string{"optmid"}, live)
+		})
+	}
+
+	t.Run("a value without a self rule doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, nil)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		require.NoError(t, dropMid(t, f))
+	})
+
+	t.Run("a self rule changed in the same call is judged by its copy there", func(t *testing.T) {
+		for _, tc := range []struct {
+			name    string
+			start   model.PropertyBounds
+			callSet model.PropertyBounds
+			refused bool
+		}{
+			{"rule removed in the call", raiseOnly, model.PropertyBounds{}, false},
+			{"rule added in the call", nil, raiseOnly, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, create, _ := boundsSetup(t, th, rctx)
+				f := create(model.PropertyFieldObjectTypeChannel, tc.start)
+				target := model.NewId()
+				seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+				template, err := th.service.GetPropertyField(rctx, f.GroupID, *f.LinkedFieldID)
+				require.NoError(t, err)
+
+				inCall, err := th.service.GetPropertyField(rctx, f.GroupID, f.ID)
+				require.NoError(t, err)
+				inCall.Bounds = tc.callSet
+				_, _, _, err = th.service.UpdatePropertyFields(rctx, f.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
+				if tc.refused {
+					requireSelfRefused(t, err, "1", target)
+				} else {
+					require.NoError(t, err)
+				}
+			})
+		}
+	})
+
+	t.Run("the self-rule error wins over the container one", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, raiseOnly)
+		create(model.PropertyFieldObjectTypePost, belowParent)
+		target := model.NewId()
+		seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
+		requireSelfRefused(t, dropMid(t, f), "1", target)
+	})
+
+	t.Run("a raise-only value on a deleted post doesn't block the deletion", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypePost, raiseOnly)
+		channel := th.CreateChannel(t, team.Id)
+		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
+		require.NoError(t, err)
+		seed(f, model.PropertyValueTargetTypePost, post.Id, `"optmid"`)
+		requireSelfRefused(t, dropMid(t, f), "1", post.Id)
+
+		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
+		require.NoError(t, dropMid(t, f))
+	})
+
+	t.Run("a self-rule deletion is allowed unless the license is Enterprise Advanced", func(t *testing.T) {
+		_, create, _ := boundsSetup(t, th, rctx)
+		f := create(model.PropertyFieldObjectTypeChannel, raiseOnly)
+		seed(f, model.PropertyValueTargetTypeChannel, model.NewId(), `"optmid"`)
+		prev := th.service.licenseProvider
+		t.Cleanup(func() { th.service.licenseProvider = prev })
+		th.service.licenseProvider = func() *model.License { return nil }
+		require.NoError(t, dropMid(t, f))
+	})
+
 	t.Run("a container deletion is allowed unless the license is Enterprise Advanced", func(t *testing.T) {
 		_, create, _ := boundsSetup(t, th, rctx)
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
