@@ -22275,6 +22275,10 @@
     "defaultMessage": "Select your Support Packet contents to download",
     "description": "Bold heading above the checkboxes where the admin selects which contents to include in the Support Packet download."
   },
+  "commercial_support_modal.download_error": {
+    "defaultMessage": "Unable to download the Support Packet. Please try again.",
+    "description": "Error shown below the download button in the Commercial Support modal when the Support Packet download fails and the server gave no specific error message."
+  },
   "commercial_support_modal.required": {
     "defaultMessage": "(required)",
     "description": "Marker shown next to the 'Basic contents' option in the Commercial Support modal, indicating that this Support Packet content is always included and cannot be deselected."
