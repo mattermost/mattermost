@@ -4258,7 +4258,8 @@ type AccessControlSettings struct {
 	// applied at scheduler construction (needs a restart to take effect).
 	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
 	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
-	// ABAC decision cache entry lifetime and per-node capacity. Read at startup.
+	// ABAC decision cache entry lifetime and per-node capacity. Applied live: changing the max
+	// age drops every cached decision, and lowering the size empties each shard above its new limit.
 	DecisionCacheMaxAgeSeconds *int `access:"write_restrictable,cloud_restrictable"`
 	DecisionCacheSize          *int `access:"write_restrictable,cloud_restrictable"`
 }
