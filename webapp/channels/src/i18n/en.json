@@ -6735,6 +6735,26 @@
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Attribute Management. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
   },
+  "admin.global_attributes.confirm.duplicate.body": {
+    "defaultMessage": "Also copy this attribute's applications to:",
+    "description": "Body of the duplicate confirmation dialog listing which Applies-to resources (Users, Channels, Posts) can be copied with the attribute. Introduces the checklist below."
+  },
+  "admin.global_attributes.confirm.duplicate.button": {
+    "defaultMessage": "Duplicate",
+    "description": "Confirm button of the dialog that duplicates a global attribute and optionally its linked resource applications. Verb."
+  },
+  "admin.global_attributes.confirm.duplicate.error.generic": {
+    "defaultMessage": "An error occurred while duplicating this attribute. Please try again.",
+    "description": "Error banner on the attributes listing when duplicating an attribute fails for a reason other than a specific named conflict."
+  },
+  "admin.global_attributes.confirm.duplicate.group_label": {
+    "defaultMessage": "Resources to copy",
+    "description": "Accessible name of the checklist of resource types (Users, Channels, Posts) in the duplicate attribute confirmation dialog."
+  },
+  "admin.global_attributes.confirm.duplicate.title": {
+    "defaultMessage": "Duplicate {name}",
+    "description": "Title of the dialog that duplicates a global attribute. {name} is the attribute's display name."
+  },
   "admin.global_attributes.confirm.remove_applies_to.body": {
     "defaultMessage": "This will permanently delete every value stored for this attribute on {resources}. This action cannot be undone.",
     "description": "Body of the confirmation dialog before removing an attribute from resources, warning that stored values are deleted. {resources} is a list of resource names."
@@ -6838,6 +6858,10 @@
   "admin.global_attributes.table.actions.delete": {
     "defaultMessage": "Delete attribute",
     "description": "Menu item in the per-row \"More actions\" menu of the attributes table. Verb phrase."
+  },
+  "admin.global_attributes.table.actions.duplicate": {
+    "defaultMessage": "Duplicate attribute",
+    "description": "Menu item in the per-row \"More actions\" menu of the attributes table that creates a copy of a template attribute. Verb phrase."
   },
   "admin.global_attributes.table.actions.edit": {
     "defaultMessage": "Edit attribute",

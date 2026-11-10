@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -49,10 +49,13 @@ import {externalSourceMessages} from './attribute_details/external_source';
 import type {AttributeTypeId} from './attribute_type';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
-import {attributeDetailsRoute} from './constants';
+import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from './constants';
+import {duplicateAttribute} from './duplicate_attribute';
+import {useGlobalAttributeDuplicatePrompt} from './global_attribute_duplicate_modal';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import type {NameConflict} from './name_conflict';
 import {nameConflictText} from './name_conflict';
+import useAllowedResourceTypes from './use_allowed_resource_types';
 import useGlobalAttributesListing from './use_global_attributes_listing';
 import {useOwnersLabel} from './use_owners_label';
 import {deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
@@ -294,16 +297,18 @@ type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     disabled: boolean;
-    onDeleteError: (message: string | null) => void;
-    onDeleted: () => void;
+    onActionError: (message: string | null) => void;
+    onChanged: () => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDeleteError, onDeleted, onDeleteModalExited}: ActionsCellProps) {
-    const {field, owners} = row;
+function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActionError, onChanged, onDeleteModalExited}: ActionsCellProps) {
+    const {field, owners, applies_to: appliesTo} = row;
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
+    const promptDuplicate = useGlobalAttributeDuplicatePrompt();
+    const allowedResourceTypes = useAllowedResourceTypes();
     const menuId = `global-attribute-actions-${field.id}`;
 
     // A plugin-owned field is server-protected only while its plugin is installed,
@@ -332,6 +337,10 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     const isViewOnly = disabled || isPluginOwned;
     const isDeleteDisabled = disabled || isPluginManaged || isOwnerManaged;
 
+    // Duplicate is template-only: it recreates a Managed-here definition (and
+    // optionally linked resources) without plugin ownership or sync links.
+    const canDuplicate = !disabled && !isPluginOwned && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+
     let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
     if (isOwned) {
         orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
@@ -340,21 +349,51 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     }
 
     const handleConfirmed = useCallback(async () => {
-        onDeleteError(null);
+        onActionError(null);
 
         try {
             await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
             syncUserAttributeFieldDelete(dispatch, field.object_type, field.id);
         } catch (error) {
-            onDeleteError(formatMessage(
+            onActionError(formatMessage(
                 (error as ClientError)?.status_code === 409 ? actionsLabels.deleteErrorHasDependents : actionsLabels.deleteErrorGeneric,
             ));
             return;
         }
 
-        onDeleted();
-    }, [dispatch, field.id, field.object_type, formatMessage, onDeleteError, onDeleted]);
+        onChanged();
+    }, [dispatch, field.id, field.object_type, formatMessage, onActionError, onChanged]);
+
+    const runDuplicate = useCallback(async (resourceTypes: ResourceObjectType[]) => {
+        onActionError(null);
+
+        const result = await duplicateAttribute(dispatch, field, resourceTypes, allowedResourceTypes);
+        if (!result.ok) {
+            onActionError(formatMessage(actionsLabels.duplicateErrorGeneric));
+            return;
+        }
+
+        onChanged();
+    }, [allowedResourceTypes, dispatch, field, formatMessage, onActionError, onChanged]);
+
+    const handleDuplicate = useCallback(() => {
+        if (!canDuplicate) {
+            return;
+        }
+
+        // Only offer resources this server can actually create linked fields for.
+        const resources = appliesTo.filter((type): type is ResourceObjectType => (
+            allowedResourceTypes.includes(type)
+        ));
+
+        if (resources.length === 0) {
+            runDuplicate([]);
+            return;
+        }
+
+        promptDuplicate(getDisplayName(field), resources, runDuplicate);
+    }, [allowedResourceTypes, appliesTo, canDuplicate, field, promptDuplicate, runDuplicate]);
 
     // Classification's definition lives on Classification Markings; this row only
     // offers the open-in-new link there. Row click still opens the attribute page
@@ -405,6 +444,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
                 labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
+            {canDuplicate && (
+                <Menu.Item
+                    id={`${menuId}-duplicate`}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    onClick={handleDuplicate}
+                    labels={<FormattedMessage {...actionsLabels.duplicate}/>}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}-delete`}
                 disabled={isDeleteDisabled}
@@ -591,8 +638,8 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                         isMobileView={isMobileView}
                         pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                         disabled={disabled}
-                        onDeleteError={setDeleteError}
-                        onDeleted={refetch}
+                        onActionError={setDeleteError}
+                        onChanged={refetch}
                         onDeleteModalExited={handleDeleteModalExited}
                     />
                 </div>
@@ -753,6 +800,7 @@ export const actionsLabels = defineMessages({
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
+    duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
     ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},
@@ -763,6 +811,10 @@ export const actionsLabels = defineMessages({
     deleteErrorGeneric: {
         id: 'admin.global_attributes.confirm.delete.error.generic',
         defaultMessage: 'An error occurred while deleting this attribute. Please try again.',
+    },
+    duplicateErrorGeneric: {
+        id: 'admin.global_attributes.confirm.duplicate.error.generic',
+        defaultMessage: 'An error occurred while duplicating this attribute. Please try again.',
     },
     classificationLink: {
         id: 'admin.global_attributes.table.actions.classification_link',

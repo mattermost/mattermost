@@ -1,0 +1,14 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GlobalAttributeDuplicateModal__resources {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+
+    // Compass Checkbox defaults to width: 100%; keep the label beside the box.
+    > * {
+        width: auto;
+    }
+}

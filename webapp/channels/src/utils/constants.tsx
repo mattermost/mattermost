@@ -491,6 +491,7 @@ export const ModalIdentifiers = {
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
     CHANNEL_RESOURCE_REMOVE: 'channel_resource_remove',
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
+    GLOBAL_ATTRIBUTE_FIELD_DUPLICATE: 'global_attribute_field_duplicate',
     GRAPH_NODE_DELETE: 'graph_node_delete',
     GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
     GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',

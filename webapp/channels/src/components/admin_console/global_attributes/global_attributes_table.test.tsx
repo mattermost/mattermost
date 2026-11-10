@@ -966,7 +966,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Actions column', () => {
-        it('opens the menu with Edit and Delete enabled for a managed field', async () => {
+        it('opens the menu with Edit, Duplicate, and Delete enabled for a managed template', async () => {
             mockListing([makeField()]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -981,13 +981,15 @@ describe('GlobalAttributesTable', () => {
 
             const menuitems = screen.getAllByRole('menuitem');
             const edit = menuitems.find((el) => el.textContent?.includes('Edit attribute'));
+            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
             expect(edit).toBeDefined();
+            expect(duplicate).toBeDefined();
             expect(del).toBeDefined();
-            expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(duplicate!).not.toHaveAttribute('aria-disabled', 'true');
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
 
             await userEvent.click(edit!);
@@ -1035,6 +1037,7 @@ describe('GlobalAttributesTable', () => {
             const menuitems = await openActionsMenu();
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
+            // Plugin-owned templates are not duplicated; the definition belongs to the plugin.
             expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             // Plugin is installed (pluginStatuses has an entry) -- Delete stays
@@ -1067,6 +1070,7 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
             const menuitems = screen.getAllByRole('menuitem');
             expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
+            expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
             expect(view).not.toHaveAttribute('aria-disabled', 'true');
@@ -1077,6 +1081,145 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(view!);
             await waitFor(() => {
                 expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
+        });
+
+        it('hides Duplicate for a standalone non-template field', async () => {
+            mockListing([makeField({object_type: 'user'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
+        });
+    });
+
+    describe('Duplicate action', () => {
+        const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
+        const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
+
+        beforeEach(() => {
+            createPropertyField.mockReset();
+            getPropertyFields.mockReset();
+            getPropertyFields.mockResolvedValue([]);
+        });
+
+        it('duplicates a template with no Applies-to resources immediately', async () => {
+            mockListing([makeField({
+                name: 'department',
+                attrs: {display_name: 'Department'},
+            })]);
+            createPropertyField.mockResolvedValue(makeField({
+                id: 'field-copy',
+                name: 'department_copy',
+                attrs: {display_name: 'Copy of Department'},
+            }));
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            const duplicate = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'));
+            await userEvent.click(duplicate!);
+
+            await waitFor(() => {
+                expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                    name: 'department_copy',
+                    attrs: expect.objectContaining({display_name: 'Copy of Department'}),
+                }));
+            });
+            expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('ldap');
+            expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('saml');
+            expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('openid');
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('opens a modal with Applies-to resources checked by default when the template has linked fields', async () => {
+            mockListing([makeRow(makeField({
+                name: 'department',
+                attrs: {display_name: 'Department'},
+            }), {applies_to: ['user']})]);
+            createPropertyField.mockResolvedValue(makeField({
+                id: 'field-copy',
+                name: 'department_copy',
+                attrs: {display_name: 'Copy of Department'},
+            }));
+            getPropertyFields.mockImplementation((_group, objectType) => {
+                if (objectType === 'user') {
+                    return Promise.resolve([makeField({
+                        id: 'user-1',
+                        object_type: 'user',
+                        name: 'department',
+                        linked_field_id: 'field-1',
+                        attrs: {display_name: 'Department', visibility: 'always', managed: 'admin'},
+                    })]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderWithContext(
+                <>
+                    <GlobalAttributesTable/>
+                    <ModalController/>
+                </>,
+                getBaseState(),
+            );
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            const duplicate = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'));
+            await userEvent.click(duplicate!);
+
+            const dialog = await screen.findByRole('dialog');
+            expect(dialog).toHaveTextContent('Duplicate Department');
+            expect(screen.getByTestId('global-attribute-duplicate-user')).toBeChecked();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Duplicate'}));
+
+            await waitFor(() => {
+                expect(createPropertyField).toHaveBeenCalled();
+            });
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                name: 'department_copy',
+            }));
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({
+                linked_field_id: 'field-copy',
+                attrs: expect.objectContaining({visibility: 'always', managed: 'admin'}),
+            }));
+        });
+
+        it('copies select options and omits sync links', async () => {
+            mockListing([makeField({
+                name: 'region',
+                type: 'select',
+                attrs: {
+                    display_name: 'Region',
+                    options: [{id: 'o1', name: 'West'}, {id: 'o2', name: 'East'}],
+                    ldap: 'ldapRegion',
+                    saml: 'samlRegion',
+                },
+            })]);
+            createPropertyField.mockResolvedValue(makeField({
+                id: 'field-copy',
+                name: 'region_copy',
+                type: 'select',
+                attrs: {display_name: 'Copy of Region'},
+            }));
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            await userEvent.click(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))!);
+
+            await waitFor(() => {
+                expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', {
+                    name: 'region_copy',
+                    type: 'select',
+                    target_type: 'system',
+                    target_id: '',
+                    attrs: {
+                        display_name: 'Copy of Region',
+                        options: [{id: '', name: 'West'}, {id: '', name: 'East'}],
+                    },
+                });
             });
         });
     });
@@ -1613,7 +1756,7 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(screen.getByTestId('global-attribute-actions-field-1'));
 
             const items = (await screen.findAllByRole('menuitem')).map((el) => el.textContent);
-            expect(items).toEqual(['Edit attribute', 'Delete attribute']);
+            expect(items).toEqual(['Edit attribute', 'Duplicate attribute', 'Delete attribute']);
         });
     });
 
