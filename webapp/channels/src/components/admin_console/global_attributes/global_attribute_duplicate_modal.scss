@@ -4,8 +4,8 @@
 .GlobalAttributeDuplicateModal__resources {
     display: flex;
     flex-direction: column;
-    gap: 8px;
     margin-top: 12px;
+    gap: 8px;
 
     // Compass Checkbox defaults to width: 100%; keep the label beside the box.
     > * {
