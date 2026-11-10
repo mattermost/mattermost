@@ -12,6 +12,7 @@ import {act, renderWithContext, userEvent, screen, waitFor, within} from 'tests/
 
 import Logs from './logs';
 import type {LogObjectWithAdditionalInfo} from './types';
+import {pluginLogsPath} from './url_filters';
 
 // The real router history, in place of the global mock, so the URL the viewer writes can be read back
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
@@ -974,6 +975,19 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
         expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: ERROR_AND_WARN, serverNames: ['node-a']}));
+    });
+
+    test('should open a plugin link on every level and node, whatever the saved prefs', async () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['error']}));
+        const {getLogs, history} = renderLogs(pluginLogsPath('github'));
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({logLevels: [], serverNames: [], fields: {plugin_id: ['github']}}));
+        expect(screen.getByLabelText('Levels')).toHaveValue('All levels');
+        expect(screen.getByLabelText('Node')).toHaveValue('All nodes');
+
+        // What the viewer shows is remembered, so the defaults can be left out of the URL again
+        await waitFor(() => expect(history.location.search).toBe('?field.plugin_id=github'));
     });
 
     test('should remember the levels and node of an opened link as the last used ones', async () => {

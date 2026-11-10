@@ -23,6 +23,11 @@ export type UrlFilters = {
 
 const PARAMS = ['search', 'levels', 'node', 'range', 'from', 'to'] as const;
 
+// A filter left out of the URL falls back to the saved prefs, so a link that must show every level or node says so.
+// A node is named by the server, so every node is an empty value rather than a name a node could have
+const ALL_LEVELS = 'all';
+const ALL_NODES = '';
+
 // A field filter is one parameter per value, such as field.plugin_id=github. Only the plugin is read, as it's
 // the only field the viewer shows a filter for, so a link can't filter the view in a way the admin can't see or clear
 const FIELD_PARAM_PREFIX = 'field.';
@@ -62,13 +67,14 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
         filters.search = search;
     }
 
-    const levels = params.get('levels')?.split(',').filter(isLevelGroup);
+    const levelsParam = params.get('levels');
+    const levels = levelsParam === ALL_LEVELS ? LEVEL_GROUPS : levelsParam?.split(',').filter(isLevelGroup);
     if (levels?.length) {
         filters.enabledLevels = new Set(levels);
     }
 
     const node = params.get('node');
-    if (node) {
+    if (node !== null) {
         filters.node = node;
     }
 
@@ -92,8 +98,8 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
     return filters;
 }
 
-// Keeps any other parameters, and leaves out filters at their defaults. Null removes every filter
-export function withUrlFilters(query: string, filters: UrlFilters | null): string {
+// Keeps any other parameters, and leaves out filters at their defaults unless told to keep them. Null removes every filter
+export function withUrlFilters(query: string, filters: UrlFilters | null, keepDefaults = false): string {
     const params = new URLSearchParams(query);
     PARAMS.forEach((param) => params.delete(param));
     Array.from(params.keys()).filter((param) => param.startsWith(FIELD_PARAM_PREFIX)).forEach((param) => params.delete(param));
@@ -105,9 +111,11 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
         }
         if (!LEVEL_GROUPS.every((level) => enabledLevels.has(level))) {
             params.set('levels', LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).join(','));
+        } else if (keepDefaults) {
+            params.set('levels', ALL_LEVELS);
         }
-        if (node) {
-            params.set('node', node);
+        if (node || keepDefaults) {
+            params.set('node', node || ALL_NODES);
         }
         if (typeof timeRange === 'number') {
             params.set('range', String(timeRange));
@@ -125,7 +133,8 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
 
 const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
 
-// Opens the viewer on one plugin's entries. The filters it leaves out fall back to the saved prefs
+// Opens the viewer on everything one plugin logged. Every level and node is set, so the saved prefs can't hide the
+// info lines before a failure, or a node other than the one that failed
 export function pluginLogsPath(pluginId: string): string {
     return SERVER_LOGS_PATH + withUrlFilters('', {
         search: '',
@@ -133,10 +142,16 @@ export function pluginLogsPath(pluginId: string): string {
         node: '',
         timeRange: null,
         plugins: [pluginId],
-    });
+    }, true);
 }
 
-// The rules that hide the Server Logs page in the admin definition, so links to it are only shown to admins who can open it
+// Whether the admin can open the Server Logs page. The admin definition hides the page with it too, so links to it
+// are shown to the same admins
 export function canViewServerLogs(config: DeepPartial<AdminConfig>, consoleAccess?: ConsoleAccess): boolean {
     return Boolean(consoleAccess?.read?.[RESOURCE_KEYS.REPORTING.SERVER_LOGS]) && !config.ExperimentalSettings?.RestrictSystemAdmin;
+}
+
+// Plain text logs have no fields to filter on, so a link to one plugin's entries would open the whole log
+export function canViewPluginLogs(config: DeepPartial<AdminConfig>, consoleAccess?: ConsoleAccess): boolean {
+    return canViewServerLogs(config, consoleAccess) && config.LogSettings?.FileJson !== false;
 }

@@ -1005,10 +1005,10 @@ describe('components/PluginManagement', () => {
     });
 
     describe('server logs links', () => {
-        const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false) => {
+        const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false, fileJson = true) => {
             const props = {
                 ...defaultProps,
-                config: {...defaultProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin}},
+                config: {...defaultProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin}, LogSettings: {FileJson: fileJson}},
                 consoleAccess: {read: {'reporting.server_logs': canReadLogs}, write: {}},
                 pluginStatuses: {
                     ...defaultProps.pluginStatuses,
@@ -1034,15 +1034,16 @@ describe('components/PluginManagement', () => {
             for (const id of ['plugin_0', 'plugin_1']) {
                 const row = within(screen.getByTestId(id));
                 expect(row.getAllByRole('link', {name: 'View logs'})).toHaveLength(1);
-                expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?field.plugin_id=${id}`);
+                expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=${id}`);
             }
         });
 
         test.each([
-            ['without access to the server logs', false, false],
-            ['when system admins are restricted', true, true],
-        ])('leaves the links out %s', (_, canReadLogs, restrictSystemAdmin) => {
-            renderWithLogs(canReadLogs, restrictSystemAdmin);
+            ['without access to the server logs', false, false, true],
+            ['when system admins are restricted', true, true, true],
+            ['when the server only writes plain text logs', true, false, false],
+        ])('leaves the links out %s', (_, canReadLogs, restrictSystemAdmin, fileJson) => {
+            renderWithLogs(canReadLogs, restrictSystemAdmin, fileJson);
 
             expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
         });

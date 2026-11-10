@@ -32,7 +32,7 @@ import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
-import {canViewServerLogs, pluginLogsPath} from '../server_logs/url_filters';
+import {canViewPluginLogs, pluginLogsPath} from '../server_logs/url_filters';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -1213,7 +1213,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
-                        showLogsLink={canViewServerLogs(this.props.config, this.props.consoleAccess)}
+                        showLogsLink={canViewPluginLogs(this.props.config, this.props.consoleAccess)}
                     />
                 );
             });
