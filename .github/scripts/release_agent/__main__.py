@@ -2,6 +2,11 @@
 
   run       Check the active releases, tick and post, and write run.json (public, uploaded
             as an artifact) and details.txt (private, only ever posted to Hub).
+            For a dry run against real data, in test mode only:
+              --as-of YYYY-MM-DD  run as if today were that date
+              --no-post           read everything, but write the status post, would-be asks,
+                                  reminders, proof replies and ticks to OUT_DIR/preview.md
+                                  instead of Hub. Not in Actions: the artifact is public.
   log       Post the run's one line to release-agent-log. Runs even when `run` failed.
   validate  Validate rules.yml against its schema and the playbook template.
 """
@@ -10,10 +15,11 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import agent
+from . import agent, preview
 from .clients import Community, Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
 
 
@@ -88,14 +94,33 @@ def write_outputs(out_dir: Path, body: dict, details: list) -> None:
             handle.write(step_summary(body))
 
 
+def dry_run_options(args, mode: str):
+    """(today, the preview to write to or None). Raises ValueError when an option isn't allowed."""
+    as_of, no_post = getattr(args, "as_of", None), getattr(args, "no_post", False)
+    if (as_of or no_post) and mode == "live":
+        raise ValueError("--as-of and --no-post are for test mode only, not live mode")
+    if no_post and os.environ.get("GITHUB_ACTIONS") == "true":
+        raise ValueError("--no-post writes Hub text to OUT_DIR, which Actions uploads as a public artifact; run it locally")
+    today = datetime.strptime(as_of, "%Y-%m-%d").date() if as_of else datetime.now(timezone.utc).date()
+    return today, (preview.Preview() if no_post else None)
+
+
 def command_run(args) -> int:
     today = datetime.now(timezone.utc).date()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     body, details = {"date": today.isoformat(), "started_at": started, "releases": [], "flags": []}, []
+    previewed = None
     try:
         settings = agent.env_settings()
         body["mode"] = settings.mode
-        result, details = agent.run(load_rules_module().load_rules(), settings, services_from_env(), today)
+        today, previewed = dry_run_options(args, settings.mode)
+        body["date"] = today.isoformat()
+        services = services_from_env()
+        if previewed is not None:
+            services = replace(services, hub=preview.PreviewHub(services.hub, previewed),
+                                     playbooks=preview.PreviewPlaybooks(services.playbooks, previewed))
+            body["preview"] = True
+        result, details = agent.run(load_rules_module().load_rules(), settings, services, today)
         body.update(result)
         return 0
     except Exception as err:  # noqa: BLE001 - recorded, then the step fails
@@ -110,6 +135,8 @@ def command_run(args) -> int:
         body["run_url"] = os.environ.get("RUN_URL", "")
         body.setdefault("totals", agent.totals(body))
         write_outputs(Path(args.out_dir), body, details)
+        if previewed is not None:
+            (Path(args.out_dir) / "preview.md").write_text(previewed.markdown())
 
 
 def log_line(body: dict | None, details: list, job_status: str, run_url: str, mode: str) -> str:
@@ -160,6 +187,10 @@ def main(argv=None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("run", "log"):
         sub.add_parser(name).add_argument("--out-dir", required=True)
+    run = sub.choices["run"]
+    run.add_argument("--as-of", metavar="YYYY-MM-DD", help="test mode only: run as if today were this date")
+    run.add_argument("--no-post", action="store_true",
+                     help="test mode only: write every post, reply, edit and tick to OUT_DIR/preview.md instead")
     sub.add_parser("validate")
     args = parser.parse_args(argv)
     return {"run": command_run, "log": command_log, "validate": command_validate}[args.command](args)
