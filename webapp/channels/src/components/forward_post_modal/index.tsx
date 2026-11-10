@@ -219,7 +219,11 @@ const ForwardPostModal = ({onExited, post}: Props) => {
             if (isSelectedChannelUnjoinedPublic) {
                 const {error} = await dispatch(joinChannelById(channelToForward.details.id));
                 if (error) {
-                    throw new Error(error.message);
+                    throw new Error(error.message || formatMessage({
+                        id: 'forward_post_modal.join_error',
+                        defaultMessage: 'Unable to join the channel.',
+                        description: 'Error shown in the Forward Message modal when joining the selected public channel fails without a specific error message.',
+                    }));
                 }
             }
 
