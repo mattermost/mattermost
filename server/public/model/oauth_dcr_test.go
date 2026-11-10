@@ -284,3 +284,65 @@ func TestIsValidDCRRedirectURIPattern(t *testing.T) {
 		require.False(t, IsValidDCRRedirectURIPattern(p), "expected invalid: %s", p)
 	}
 }
+
+func TestIsHTTPScheme(t *testing.T) {
+	testCases := []struct {
+		rawURL   string
+		expected bool
+	}{
+		{"http://example.com/cb", true},
+		{"https://example.com/cb", true},
+		{"HTTPS://example.com/cb", true},
+		{"Http://localhost:8080", true},
+		{"com.example.app://cb", false},
+		{"cursor://anysphere.cursor-mcp/oauth/callback", false},
+		{"javascript:alert(1)", false},
+		{"ftp://example.com", false},
+		{"/relative/path", false},
+		{"", false},
+		{"://", false},
+		{"http://[::1", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.rawURL, func(t *testing.T) {
+			require.Equal(t, tc.expected, IsHTTPScheme(tc.rawURL))
+		})
+	}
+}
+
+func TestIsDangerousRedirectScheme(t *testing.T) {
+	for _, scheme := range []string{"javascript", "data", "vbscript", "file", "blob", "about", "JavaScript", "DATA", "File"} {
+		require.True(t, IsDangerousRedirectScheme(scheme), scheme)
+	}
+
+	for _, scheme := range []string{"", "http", "https", "cursor", "com.example.app", "javascript2"} {
+		require.False(t, IsDangerousRedirectScheme(scheme), scheme)
+	}
+}
+
+func TestIsAllowedOAuthRedirectScheme(t *testing.T) {
+	allowed := []string{"com.example.app", " My.App "}
+
+	testCases := []struct {
+		rawURL   string
+		allowed  []string
+		expected bool
+	}{
+		{"https://example.com/cb", nil, true},
+		{"http://localhost/cb", []string{}, true},
+		{"com.example.app://cb", allowed, true},
+		{"COM.EXAMPLE.APP://cb", allowed, true},
+		{"my.app://cb", allowed, true},
+		{"com.example.app://cb", nil, false},
+		{"cursor://cb", allowed, false},
+		{"no-scheme", allowed, false},
+		{"", allowed, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.rawURL, func(t *testing.T) {
+			require.Equal(t, tc.expected, IsAllowedOAuthRedirectScheme(tc.rawURL, tc.allowed))
+		})
+	}
+}

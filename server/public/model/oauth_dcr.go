@@ -103,11 +103,50 @@ func IsValidDCRRedirectURI(rawURL string) bool {
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
-	switch strings.ToLower(u.Scheme) {
+	return !IsDangerousRedirectScheme(u.Scheme)
+}
+
+// IsDangerousRedirectScheme returns true for schemes that must never be used
+// as an OAuth redirect URI scheme because they can execute or expose content
+// in the user agent. The comparison is case-insensitive.
+func IsDangerousRedirectScheme(scheme string) bool {
+	switch strings.ToLower(scheme) {
 	case "javascript", "data", "vbscript", "file", "blob", "about":
+		return true
+	}
+	return false
+}
+
+// IsHTTPScheme returns true if rawURL parses and its scheme is http or https.
+func IsHTTPScheme(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
 		return false
 	}
-	return true
+	switch strings.ToLower(u.Scheme) {
+	case "http", "https":
+		return true
+	}
+	return false
+}
+
+// IsAllowedOAuthRedirectScheme returns true if rawURL uses http(s) or a scheme
+// present in allowed. Entries in allowed are compared trimmed and lowercased.
+func IsAllowedOAuthRedirectScheme(rawURL string, allowed []string) bool {
+	if IsHTTPScheme(rawURL) {
+		return true
+	}
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Scheme == "" {
+		return false
+	}
+	scheme := strings.ToLower(u.Scheme)
+	for _, a := range allowed {
+		if strings.ToLower(strings.TrimSpace(a)) == scheme {
+			return true
+		}
+	}
+	return false
 }
 
 // IsValidDCRRedirectURIPattern validates a DCR redirect URI allowlist pattern.

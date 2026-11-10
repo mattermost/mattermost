@@ -64,6 +64,8 @@ const ErrorTitle: React.FC<Props> = ({type, title}: Props) => {
             );
             break;
         case ErrorPageTypes.OAUTH_INVALID_REDIRECT_URL:
+        case ErrorPageTypes.OAUTH_PKCE_REQUIRED:
+        case ErrorPageTypes.OAUTH_IMPLICIT_NOT_ALLOWED:
         case ErrorPageTypes.OAUTH_INVALID_PARAM:
             errorTitle = (
                 <FormattedMessage

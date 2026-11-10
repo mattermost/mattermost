@@ -419,6 +419,7 @@ type ServiceSettings struct {
 	EnableOAuthServiceProvider             *bool    `access:"integrations_integration_management"`
 	EnableDynamicClientRegistration        *bool    `access:"integrations_integration_management"`
 	DCRRedirectURIAllowlist                []string `access:"integrations_integration_management"`
+	OAuthAllowedRedirectURISchemes         []string `access:"integrations_integration_management"`
 	EnableIncomingWebhooks                 *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks                 *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections         *bool    `access:"integrations_integration_management"`
@@ -649,6 +650,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.DCRRedirectURIAllowlist == nil {
 		s.DCRRedirectURIAllowlist = []string{}
+	}
+
+	if s.OAuthAllowedRedirectURISchemes == nil {
+		s.OAuthAllowedRedirectURISchemes = []string{}
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -4820,6 +4825,9 @@ func IsValidAzureStorageAccountName(name string) bool {
 	return azureStorageAccountNameRegex.MatchString(name)
 }
 
+// RFC 3986 section 3.1 scheme grammar, lowercased.
+var validURISchemeRegexp = regexp.MustCompile(`^[a-z][a-z0-9+.-]*$`)
+
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
@@ -5370,6 +5378,13 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 		if !IsValidDCRRedirectURIPattern(trimmed) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	for _, scheme := range s.OAuthAllowedRedirectURISchemes {
+		normalized := strings.ToLower(strings.TrimSpace(scheme))
+		if !validURISchemeRegexp.MatchString(normalized) || normalized == "http" || normalized == "https" || IsDangerousRedirectScheme(normalized) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.oauth_allowed_redirect_uri_schemes.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

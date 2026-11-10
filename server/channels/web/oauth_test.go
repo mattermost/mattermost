@@ -1122,6 +1122,178 @@ func TestAuthorizeOAuthPage(t *testing.T) {
 	})
 }
 
+func TestAuthorizeOAuthPageCustomScheme(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	const customCallback = "com.example.app://cb"
+	const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+	setSchemes := func(schemes ...string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+			cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = schemes
+		})
+	}
+	setSchemes("com.example.app")
+
+	oauthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         "Custom Scheme Client " + model.NewId(),
+		CreatorId:    th.BasicUser.Id,
+		Homepage:     "https://example.com",
+		Description:  "test confidential client",
+		CallbackUrls: []string{customCallback},
+		ClientSecret: model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	trusted := *oauthApp
+	trusted.IsTrusted = true
+	_, appErr = th.App.UpdateOAuthApp(oauthApp, &trusted)
+	require.Nil(t, appErr)
+
+	authorize := func(t *testing.T, query url.Values) *httptest.ResponseRecorder {
+		t.Helper()
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Token: model.NewId()}),
+			Logger:     th.TestLogger,
+		}
+		query.Set("client_id", oauthApp.Id)
+		query.Set("redirect_uri", customCallback)
+		query.Set("state", "test_state")
+
+		recorder := httptest.NewRecorder()
+		authorizeOAuthPage(c, recorder, httptest.NewRequest(http.MethodGet, "/oauth/authorize?"+query.Encode(), nil))
+		return recorder
+	}
+
+	t.Run("code flow without PKCE renders pkce error", func(t *testing.T) {
+		recorder := authorize(t, url.Values{"response_type": {model.AuthCodeResponseType}})
+
+		require.Equal(t, http.StatusBadRequest, recorder.Code)
+		assert.Contains(t, recorder.Body.String(), "type=oauth_pkce_required")
+		assert.NotContains(t, recorder.Header().Get("Location"), "code=")
+	})
+
+	t.Run("implicit flow renders implicit error", func(t *testing.T) {
+		recorder := authorize(t, url.Values{
+			"response_type":         {model.ImplicitResponseType},
+			"code_challenge":        {codeChallenge},
+			"code_challenge_method": {model.PKCECodeChallengeMethodS256},
+		})
+
+		require.Equal(t, http.StatusBadRequest, recorder.Code)
+		assert.Contains(t, recorder.Body.String(), "type=oauth_implicit_not_allowed")
+	})
+
+	t.Run("code flow with PKCE redirects to the custom scheme", func(t *testing.T) {
+		recorder := authorize(t, url.Values{
+			"response_type":         {model.AuthCodeResponseType},
+			"code_challenge":        {codeChallenge},
+			"code_challenge_method": {model.PKCECodeChallengeMethodS256},
+		})
+
+		require.Equal(t, http.StatusFound, recorder.Code)
+		location := recorder.Header().Get("Location")
+		assert.True(t, strings.HasPrefix(location, customCallback+"?code="), location)
+		assert.Contains(t, location, "state=test_state")
+	})
+
+	t.Run("scheme removed from the allowlist renders invalid redirect error", func(t *testing.T) {
+		setSchemes()
+		defer setSchemes("com.example.app")
+
+		recorder := authorize(t, url.Values{
+			"response_type":         {model.AuthCodeResponseType},
+			"code_challenge":        {codeChallenge},
+			"code_challenge_method": {model.PKCECodeChallengeMethodS256},
+		})
+
+		require.Equal(t, http.StatusBadRequest, recorder.Code)
+		assert.Contains(t, recorder.Body.String(), "type=oauth_invalid_redirect_url")
+	})
+}
+
+func TestOAuthCustomSchemeEndToEnd(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.Login(t, apiClient, th.SystemAdminUser)
+	defer apiClient.ClearOAuthToken()
+
+	const customCallback = "com.example.app://cb"
+	const codeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+	const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.OAuthAllowedRedirectURISchemes = []string{"com.example.app"}
+	})
+
+	oauthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		Name:         GenerateTestAppName(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{customCallback},
+		CreatorId:    th.SystemAdminUser.Id,
+		ClientSecret: model.NewId(),
+	})
+	require.Nil(t, appErr)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oauthApp.Id,
+		RedirectURI:  customCallback,
+		Scope:        "user",
+		State:        "123",
+	}
+
+	_, resp, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
+	require.Error(t, err, "code flow without PKCE must be rejected for custom schemes")
+	CheckBadRequestStatus(t, resp)
+
+	implicitRequest := *authRequest
+	implicitRequest.ResponseType = model.ImplicitResponseType
+	implicitRequest.CodeChallenge = codeChallenge
+	implicitRequest.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+	_, resp, err = apiClient.AuthorizeOAuthApp(context.Background(), &implicitRequest)
+	require.Error(t, err, "implicit flow must be rejected for custom schemes")
+	CheckBadRequestStatus(t, resp)
+
+	authRequest.CodeChallenge = codeChallenge
+	authRequest.CodeChallengeMethod = model.PKCECodeChallengeMethodS256
+	redirect, _, err := apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(redirect, customCallback+"?code="), redirect)
+
+	redirectURL, err := url.Parse(redirect)
+	require.NoError(t, err)
+	require.Equal(t, "com.example.app", redirectURL.Scheme)
+	code := redirectURL.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	data := url.Values{
+		"grant_type":    {model.AccessTokenGrantType},
+		"client_id":     {oauthApp.Id},
+		"client_secret": {oauthApp.ClientSecret},
+		"code":          {code},
+		"redirect_uri":  {customCallback},
+	}
+	_, _, err = apiClient.GetOAuthAccessToken(context.Background(), data)
+	require.Error(t, err, "token exchange without code_verifier must fail")
+
+	redirect, _, err = apiClient.AuthorizeOAuthApp(context.Background(), authRequest)
+	require.NoError(t, err)
+	redirectURL, err = url.Parse(redirect)
+	require.NoError(t, err)
+	data.Set("code", redirectURL.Query().Get("code"))
+	data.Set("code_verifier", codeVerifier)
+
+	tokenResponse, _, err := apiClient.GetOAuthAccessToken(context.Background(), data)
+	require.NoError(t, err)
+	require.NotEmpty(t, tokenResponse.AccessToken)
+	require.Equal(t, model.AccessTokenType, tokenResponse.TokenType)
+}
+
 func TestAuthorizeOAuthAppHandler(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 

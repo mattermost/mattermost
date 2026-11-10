@@ -122,18 +122,36 @@ func TestOAuthAppIsValid(t *testing.T) {
 		require.Equal(t, ClientAuthMethodClientSecretPost, app.GetTokenEndpointAuthMethod())
 	})
 
-	t.Run("ManualAppRejectsCustomSchemeCallback", func(t *testing.T) {
-		app := OAuthApp{
-			Id:           NewId(),
-			CreatorId:    NewId(),
-			CreateAt:     1,
-			UpdateAt:     1,
-			Name:         "Test Client",
-			CallbackUrls: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
-			Homepage:     "https://example.com",
-		}
+	t.Run("ManualAppAcceptsCustomSchemeCallback", func(t *testing.T) {
+		for _, callback := range []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://cb"} {
+			app := OAuthApp{
+				Id:           NewId(),
+				CreatorId:    NewId(),
+				CreateAt:     1,
+				UpdateAt:     1,
+				Name:         "Test Client",
+				CallbackUrls: []string{callback},
+				Homepage:     "https://example.com",
+			}
 
-		require.NotNil(t, app.IsValid())
+			require.Nil(t, app.IsValid(), callback)
+		}
+	})
+
+	t.Run("ManualAppRejectsDangerousOrMalformedCallback", func(t *testing.T) {
+		for _, callback := range []string{"javascript://x", "javascript:alert(1)", "com.example.app:cb", "com.example.app://", "not a url"} {
+			app := OAuthApp{
+				Id:           NewId(),
+				CreatorId:    NewId(),
+				CreateAt:     1,
+				UpdateAt:     1,
+				Name:         "Test Client",
+				CallbackUrls: []string{callback},
+				Homepage:     "https://example.com",
+			}
+
+			require.NotNil(t, app.IsValid(), callback)
+		}
 	})
 
 	t.Run("DynamicallyRegisteredAppAcceptsCustomSchemeCallback", func(t *testing.T) {
@@ -161,4 +179,29 @@ func TestOAuthAppIsValid(t *testing.T) {
 
 		require.NotNil(t, app.IsValid())
 	})
+}
+
+func TestOAuthAppRequiresPKCE(t *testing.T) {
+	public := &OAuthApp{}
+	confidential := &OAuthApp{ClientSecret: NewId()}
+
+	testCases := []struct {
+		name        string
+		app         *OAuthApp
+		redirectURI string
+		expected    bool
+	}{
+		{"public client with https", public, "https://example.com/cb", true},
+		{"public client with custom scheme", public, "com.example.app://cb", true},
+		{"confidential client with https", confidential, "https://example.com/cb", false},
+		{"confidential client with http", confidential, "HTTP://localhost:8080/cb", false},
+		{"confidential client with custom scheme", confidential, "com.example.app://cb", true},
+		{"confidential client with unparsable redirect", confidential, "://", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, tc.app.RequiresPKCE(tc.redirectURI))
+		})
+	}
 }
