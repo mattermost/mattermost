@@ -151,11 +151,23 @@ def files_changed_in_unique_commits() -> list[str]:
 
 
 def before_ref_for(path: str) -> str:
-    """Parent of the oldest unique commit that touches `path`.
+    """State of `path` before this PR's own changes.
 
-    That is the file's state before this PR, even when GitHub's base ref is
-    not an ancestor of the work (retarget) and MERGE_BASE would be too old.
+    When the GitHub base is an ancestor of HEAD — the branch was merged or
+    rebased onto its target — compare against that base. The parent of the
+    oldest feature commit that touches the file is too old in that case:
+    target-branch edits that landed afterward and arrived through the merge
+    would be reported as this PR's changes.
+
+    Otherwise (a retarget onto a branch that is not an ancestor) keep the
+    parent of the oldest unique commit, which MERGE_BASE would miss.
     """
+    if BASE_SHA and _git(
+        ["merge-base", "--is-ancestor", BASE_SHA, HEAD_SHA],
+        check=False,
+    ).returncode == 0:
+        return BASE_SHA
+
     oldest = None
     for sha in unique_commits():  # newest first; last match is oldest
         if path in _commit_files(sha):
