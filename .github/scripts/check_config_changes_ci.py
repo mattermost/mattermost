@@ -427,6 +427,27 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
 
 
+def _shorten_path_vars(path: str) -> str:
+    """``{name:regexp}`` path variables as ``{name}``. The pattern may hold braces of its own,
+    as in ``/{fingerprint:[a-f0-9]{32}}/mute``, so the variable ends at its matching brace."""
+    out, i = [], 0
+    while i < len(path):
+        if path[i] != "{":
+            out.append(path[i])
+            i += 1
+            continue
+        depth, j = 0, i
+        while j < len(path):
+            depth += {"{": 1, "}": -1}.get(path[j], 0)
+            if depth == 0:
+                break
+            j += 1
+        name = path[i + 1:j].split(":", 1)[0]
+        out.append(f"{{{name}}}")
+        i = j + 1
+    return "".join(out)
+
+
 def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
@@ -443,7 +464,7 @@ def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str
     for m in _HANDLE_RE.finditer(blob):
         receiver, path, handler, methods_raw = m.group(1), m.group(2), m.group(3), m.group(4)
         full = (prefixes or {}).get(receiver.rsplit(".", 1)[-1], "") + path
-        full = re.sub(r"\{(\w+):[^}]*\}", r"{\1}", full)
+        full = _shorten_path_vars(full)
         for method in _parse_methods(methods_raw):
             endpoints.add((full or "/", handler, method))
     return endpoints

@@ -323,6 +323,14 @@ class RoutePrefixTest(unittest.TestCase):
             ("/properties/ping", "pingProperties", "GET"),
         })
 
+    def test_a_path_variable_whose_pattern_has_braces_is_shortened_whole(self):
+        # api4/health_dashboard.go: the pattern's own {32} must not leave a stray brace.
+        src = ('\tapi.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", '
+               'api.APISessionRequired(muteHealthFinding)).Methods(http.MethodPost)\n')
+        self.assertEqual(checker._parse_endpoints(src, {"HealthFindings": "/health/findings"}),
+                         {("/health/findings/{fingerprint}/mute", "muteHealthFinding", "POST")})
+        self.assertEqual(checker._shorten_path_vars("/{a:[0-9]{2,3}}/{b}/{c:x}"), "/{a}/{b}/{c}")
+
     def test_a_route_on_an_unknown_router_keeps_its_own_path(self):
         self.assertEqual(checker._parse_endpoints(_HANDLE), {("/api/v4/foo", "getFoo", "GET")})
 

@@ -250,10 +250,26 @@ class AttributionTest(unittest.TestCase):
     def test_not_placed_block_is_rebuilt_each_run_and_removed_when_empty(self):
         dropped = [{"source": "mattermost/mattermost#2", "text": "Fixed `x`\nlater"}]
         body = gc.render_not_placed("Body\n", dropped)
-        self.assertIn("- `mattermost/mattermost#2`: Fixed 'x' later", body)
+        self.assertIn("- [ ] `mattermost/mattermost#2`: Fixed 'x' later", body)
         again = gc.render_not_placed(body, dropped)
         self.assertEqual(again.count("<!-- changelog-not-placed -->"), 1)
+        self.assertEqual(again.count("Fixed 'x' later"), 1)
+        # PR #2 isn't recorded, so the next run sends its note again: nothing to carry over.
         self.assertNotIn("not-placed", gc.render_not_placed(body, []))
+
+    def test_a_recorded_prs_unplaced_note_stays_listed_until_ticked(self):
+        # PR #1's other note was placed, so it's recorded and never sent again: the list is the
+        # only place its dropped note is remembered.
+        dropped = [{"source": "mattermost/mattermost#1", "text": "Second note of PR 1."}]
+        recorded = {"mattermost/mattermost#1"}
+        body = gc.render_not_placed("Body\n", dropped, recorded)
+        kept = gc.render_not_placed(body, [], recorded)
+        self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", kept)
+        ticked = kept.replace("- [ ] `mattermost/mattermost#1`", "- [x] `mattermost/mattermost#1`")
+        self.assertNotIn("not-placed", gc.render_not_placed(ticked, [], recorded))
+        # A list written before the checkboxes is carried over too.
+        old = body.replace("- [ ] `", "- `")
+        self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", gc.render_not_placed(old, [], recorded))
 
 
 NOTE_BODY = "#### Summary\nx\n\n#### Release Note\n```release-note\nAdded a thing.\n```\n"
@@ -846,7 +862,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(self._recorded(), {"mattermost/mattermost#1", "plugin:mattermost-plugin-calls@v1.12.6"})
         body = (self.out / "pr_body.md").read_text()
         self.assertIn("did not place", body)
-        self.assertIn("`mattermost/mattermost#2`: Fixed an issue found later.", body)
+        self.assertIn("- [ ] `mattermost/mattermost#2`: Fixed an issue found later.", body)
         self.assertIn("### Not placed by the model: 1 note(s)", (self.out / "summary.md").read_text())
 
     def test_a_dry_run_reports_the_dropped_note_and_still_writes_the_preview(self):
@@ -930,6 +946,23 @@ class MainTest(unittest.TestCase):
         self.assertIn("did not place", (self.out / "pr_body.md").read_text())
         self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
 
+
+    def test_update_keeps_a_recorded_prs_unplaced_note_on_the_list_until_it_is_ticked(self):
+        self.changelog.write_text(ENTRY_V12_1)
+        sources = {"mattermost/mattermost#1", "mattermost/mattermost#2", "plugin:mattermost-plugin-calls@v1.12.6"}
+        listed = gc.render_not_placed(gc.render_pr_body("Body\n", sources),
+                                      [{"source": "mattermost/mattermost#1", "text": "Second note of PR 1."}], sources)
+        body = self.tmp / "body.md"
+        body.write_text(listed)
+        os.environ.update({"MODE": "update", "PR_BODY_FILE": str(body)})
+        gc.polish_with_ai = lambda notes: ("### Bug Fixes\n", True)
+        gc.place_missing_with_ai = lambda notes: ("", True)
+        gc.main()  # PR #1 is recorded, so it isn't sent again: the list must still name its note
+        self.assertIn("- [ ] `mattermost/mattermost#1`: Second note of PR 1.", (self.out / "pr_body.md").read_text())
+        body.write_text((self.out / "pr_body.md").read_text().replace("- [ ] `mattermost", "- [x] `mattermost"))
+        gc.main()  # a reviewer added it by hand and ticked it
+        self.assertNotIn("Second note of PR 1", (self.out / "pr_body.md").read_text())
+        self.assertIn("body_changed=true", (self.tmp / "gh_output").read_text())
 
     def test_a_note_only_under_go_version_is_retried(self):
         gc.polish_with_ai = lambda notes: (self.FIRST_ANSWER + "\n### Go Version\n - Go bump. [[N2]]\n", True)

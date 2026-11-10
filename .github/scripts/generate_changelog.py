@@ -1106,26 +1106,39 @@ def require_recorded_sources_placed(recorded: set, items: list[dict]) -> None:
 _NOT_PLACED_RE = re.compile(r"\n*<!-- changelog-not-placed -->.*?<!-- /changelog-not-placed -->\n*", re.DOTALL)
 
 
-def render_not_placed(body: str, dropped: list[dict]) -> str:
-    """Write the notes the model left out into a PR body for a reviewer, replacing the last list.
+_NOT_PLACED_ITEM_RE = re.compile(r"^- (?:\[( |x|X)\] )?`([^`]+)`: (.*)$")
 
-    The block is rebuilt on every run, so it only ever lists what the latest run left out,
-    and disappears once a later run places every note.
+
+def render_not_placed(body: str, dropped: list[dict], recorded: set | frozenset = frozenset()) -> str:
+    """Write the notes the model left out into a PR body for a reviewer, as a task list.
+
+    A note whose PR has no other note in the text is listed until a run places it: its PR
+    isn't recorded in changelog-sources, so the next run sends it again. A note whose PR
+    is recorded (another of its notes was placed) is never sent again, so it stays on the
+    list, carried over from the last body, until a reviewer adds it by hand and ticks it.
     """
+    carried = []
+    block = _NOT_PLACED_RE.search(body)
+    for line in (block.group(0).splitlines() if block else []):
+        match = _NOT_PLACED_ITEM_RE.match(line.strip())
+        if match and match.group(1) in (None, " ") and match.group(2) in recorded:
+            carried.append((match.group(2), match.group(3)))
     body = _NOT_PLACED_RE.sub("\n\n", body).rstrip() + "\n"
-    if not dropped:
+    entries = [(note["source"], " ".join(note["text"].split())[:160].replace("`", "'")) for note in dropped]
+    entries += [entry for entry in carried if entry not in entries]
+    if not entries:
         return body
     lines = [
         "<!-- changelog-not-placed -->",
         "### Release notes the model did not place",
         "",
         "These notes were left out of the changelog text, even after asking again. A PR with no note in the text "
-        "is not in the changelog-sources list, so the next run tries it again. Add the others by hand, or fix the note.",
+        "is not in the changelog-sources list, so the next run tries it again. A PR whose other note was placed "
+        "is recorded and isn't tried again: add its note by hand, then tick it here. Unticked, it stays on this "
+        "list on every run.",
         "",
     ]
-    for note in dropped:
-        excerpt = " ".join(note["text"].split())[:160].replace("`", "'")
-        lines.append(f"- `{note['source']}`: {excerpt}")
+    lines += [f"- [ ] `{source}`: {excerpt}" for source, excerpt in entries]
     lines += ["<!-- /changelog-not-placed -->", ""]
     return body + "\n" + "\n".join(lines)
 
@@ -2607,7 +2620,7 @@ def main():
         pr_body = render_pr_body(pr_body, included)
         # A dry run pushes nothing; its report carries the list instead of the PR body.
         if os.environ.get("DRY_RUN", "").strip().lower() != "true":
-            pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [])
+            pr_body = render_not_placed(pr_body, dropped_notes(all_notes, referenced) if ai_polished else [], included)
 
     urls = changelog_release.docs_urls(entry)
     readiness["links_checked"] = len(urls)
