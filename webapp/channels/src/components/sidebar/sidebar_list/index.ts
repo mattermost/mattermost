@@ -33,8 +33,10 @@ import {
     getDisplayedChannels,
     getDraggingState,
     getCategoriesForCurrentTeam,
+    getCategoryIdsHiddenByProductRail,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
+import {getFirstBoardInCurrentTeam, getProductRailFilter, isProductRailShown} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -67,6 +69,9 @@ function mapStateToProps(state: GlobalState) {
         hasUnreadThreads,
         markAllAsReadWithoutConfirm: getmarkAllAsReadWithoutConfirm(state) === 'true',
         markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
+        isProductRailShown: isProductRailShown(state),
+        showNoBoards: getProductRailFilter(state) === 'boards' && !getFirstBoardInCurrentTeam(state),
+        categoryIdsHiddenByProductRail: getCategoryIdsHiddenByProductRail(state),
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
     };

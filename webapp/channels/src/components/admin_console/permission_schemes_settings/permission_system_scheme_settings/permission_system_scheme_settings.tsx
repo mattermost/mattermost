@@ -5,7 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
@@ -118,9 +118,11 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
         }
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps: Props) {
-        if (!this.state.loaded && this.rolesNeeded.every((roleName) => nextProps.roles[roleName])) {
-            this.loadRolesIntoState(nextProps);
+    componentDidUpdate() {
+        // The roles requested on mount arrive asynchronously, so keep waiting for them until
+        // they're all in props. Guarded by `loaded` so the setState can't loop.
+        if (!this.state.loaded && this.rolesNeeded.every((roleName) => this.props.roles[roleName])) {
+            this.loadRolesIntoState(this.props);
         }
     }
 
@@ -541,16 +543,18 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         onClick={this.handleSubmit}
                         savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'tertiary'})}
-                        to='/admin_console/user_management/permissions'
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                         data-testid='permission-scheme-cancel-button'
                     >
-                        <FormattedMessage
-                            id='admin.permissions.permissionSchemes.cancel'
-                            defaultMessage='Cancel'
-                        />
-                    </BlockableLink>
+                        <BlockableLink to='/admin_console/user_management/permissions'>
+                            <FormattedMessage
+                                id='admin.permissions.permissionSchemes.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </BlockableLink>
+                    </Button>
                     <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}

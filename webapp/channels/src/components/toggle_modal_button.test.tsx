@@ -41,5 +41,26 @@ describe('components/ToggleModalButton', () => {
         expect(container).toMatchSnapshot();
         const button = container.querySelector('button');
         expect(button?.textContent).toBe('Delete Channel');
+        expect(button?.className).toContain('style--none');
+    });
+
+    test('renders compass-ui Button when emphasis is set', () => {
+        const {container} = renderWithContext(
+            <ToggleModalButton
+                id='addMembers'
+                emphasis='primary'
+                size='small'
+                modalId={ModalIdentifiers.INVITATION}
+                dialogType={TestModal}
+            >
+                {'Invite'}
+            </ToggleModalButton>,
+        );
+
+        const button = container.querySelector('button');
+        expect(button).not.toBeNull();
+        expect(button?.className).not.toContain('style--none');
+        expect(button?.className).not.toContain('btn-primary');
+        expect(button?.textContent).toBe('Invite');
     });
 });

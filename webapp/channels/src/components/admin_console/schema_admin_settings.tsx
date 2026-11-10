@@ -1,22 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {AlertOutlineIcon, CheckIcon, CloseCircleIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
-import type {PluginRedux} from '@mattermost/types/plugins';
+import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BooleanSetting from 'components/admin_console/boolean_setting';
 import ColorSetting from 'components/admin_console/color_setting';
+import PluginEnableButton from 'components/admin_console/custom_plugin_settings/enable_plugin_button';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
@@ -33,11 +37,13 @@ import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n';
+import {isUnlicensedAddOn} from 'utils/addons';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -84,6 +90,7 @@ export type SchemaAdminSettingsProps = {
     isCurrentUserSystemAdmin: boolean;
     enterpriseReady: boolean;
     plugin?: PluginRedux;
+    pluginStatus?: PluginStatusRedux;
     pluginVersion?: string;
 } & WrappedComponentProps;
 
@@ -96,7 +103,8 @@ type State = {
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string;
-    prevSchemaId?: string;
+    prevSchemaKey?: string;
+    prevConfig?: Partial<AdminConfig>;
 };
 
 // Some path parts may contain periods (e.g. plugin ids), but path walking the configuration
@@ -109,6 +117,10 @@ export function escapePathPart(pathPart: string) {
 
 export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
+}
+
+export function getPluginEnabledConfigKey(pluginId: string) {
+    return 'PluginSettings.PluginStates.' + escapePathPart(pluginId) + '.Enable';
 }
 
 export function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
@@ -194,9 +206,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     }
 
     static getDerivedStateFromProps(props: SchemaAdminSettingsProps, state: State) {
-        if (props.schema && props.schema.id !== state.prevSchemaId) {
+        const schemaKey = props.schema && (props.schema.stateKey || props.schema.id);
+        if (props.schema && (schemaKey !== state.prevSchemaKey || (state.saveNeeded === false && props.config !== state.prevConfig))) {
             return {
-                prevSchemaId: props.schema.id,
+                prevSchemaKey: schemaKey,
+                prevConfig: props.config,
                 saveNeeded: false,
                 saving: false,
                 serverError: null,
@@ -339,22 +353,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             name = this.props.schema.name;
         }
 
-        if (this.props.plugin) {
-            const title = typeof name === 'string' ? (
-                name
-            ) : (
-                <FormattedMessage
-                    {...name}
-                />
-            );
-
-            return (
-                <h1 className='sr-only'>
-                    {title}
-                </h1>
-            );
-        }
-
         const betaBadge = this.props.schema.isBeta && (
             <BetaTag
                 variant='default'
@@ -363,21 +361,31 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             />
         );
 
+        const pluginStateBadge = this.props.plugin && this.renderPluginStateBadge(
+            this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING),
+        );
+
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
-                    {name}
-                    {betaBadge}
+                    <div className='admin-console__header-left'>
+                        <span>{name}</span>
+                        {pluginStateBadge}
+                        {betaBadge}
+                    </div>
                 </AdminHeader>
             );
         }
 
         return (
             <AdminHeader>
-                <FormattedMessage
-                    {...name}
-                />
-                {betaBadge}
+                <div className='admin-console__header-left'>
+                    <FormattedMessage
+                        {...name}
+                    />
+                    {pluginStateBadge}
+                    {betaBadge}
+                </div>
             </AdminHeader>
         );
     };
@@ -387,14 +395,165 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
+        const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
+        const description = (this.props.plugin.description || this.props.pluginStatus?.description || '').trim();
+
+        // Enabling an unlicensed add-on only ever returns 403, and the settings list
+        // already shows an explanation in place of the toggle.
+        const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.required_add_on, this.props.license);
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
-                <PluginMetadataPanel
-                    name={this.props.plugin.name}
-                    id={this.props.plugin.id}
-                    version={this.props.pluginVersion || this.props.plugin.version}
-                    homepageUrl={this.props.plugin.homepage_url}
-                    releaseNotesUrl={this.props.plugin.release_notes_url}
+                <AdminPanel
+                    id='plugin_metadata_panel'
+                    className='PluginMetadataPanel__actionsPanel'
+                >
+                    <div className='PluginMetadataPanel__actionsRow'>
+                        <div className='PluginMetadataPanel__identity'>
+                            <div className='PluginMetadataPanel__details'>
+                                <PluginMetadataPanel
+                                    name={this.props.plugin.name}
+                                    id={this.props.plugin.id}
+                                    version={this.props.pluginVersion || this.props.plugin.version}
+                                    homepageUrl={this.props.plugin.homepage_url}
+                                    releaseNotesUrl={this.props.plugin.release_notes_url}
+                                    hideName={true}
+                                />
+                                {description && (
+                                    <p className='PluginMetadataPanel__description'>
+                                        {description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        {!unlicensedAddOn && (
+                            <PluginEnableButton
+                                id={getPluginEnabledConfigKey(this.props.plugin.id)}
+                                disabled={this.props.isDisabled}
+                                homepageUrl={this.props.plugin.homepage_url}
+                                saveNeeded={this.state.saveNeeded}
+                                value={this.props.plugin.active}
+                            />
+                        )}
+                    </div>
+                    {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
+                </AdminPanel>
+            </div>
+        );
+    };
+
+    renderPluginStateBadge = (state: number) => {
+        const badge = (modifier: string, icon: React.ReactNode, message: React.ReactNode) => (
+            <span
+                className={`PluginMetadataPanel__statusBadge PluginMetadataPanel__statusBadge--${modifier}`}
+                data-testid='plugin-metadata-status'
+            >
+                {icon}
+                {message}
+            </span>
+        );
+
+        switch (state) {
+        case PluginState.PLUGIN_STATE_NOT_RUNNING:
+            return badge(
+                'not-running',
+                <CloseCircleIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.not_running'
+                    defaultMessage='Not running'
+                />,
+            );
+        case PluginState.PLUGIN_STATE_STARTING:
+            return badge(
+                'starting',
+                <InformationOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.starting'
+                    defaultMessage='Starting'
+                />,
+            );
+        case PluginState.PLUGIN_STATE_RUNNING:
+            return badge(
+                'running',
+                <CheckIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.running'
+                    defaultMessage='Running'
+                />,
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_START:
+            return badge(
+                'warning',
+                <AlertOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start'
+                    defaultMessage='Failed to start'
+                />,
+            );
+        case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
+            return badge(
+                'warning',
+                <AlertOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_stay_running'
+                    defaultMessage='Crashing'
+                />,
+            );
+        case PluginState.PLUGIN_STATE_STOPPING:
+            return badge(
+                'stopping',
+                <InformationOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.stopping'
+                    defaultMessage='Stopping'
+                />,
+            );
+        default:
+            return null;
+        }
+    };
+
+    renderPluginStateError = (state: number, error?: string) => {
+        let title: React.ReactNode = null;
+        let text: string | undefined;
+
+        if (state === PluginState.PLUGIN_STATE_FAILED_TO_START) {
+            title = (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start'
+                    defaultMessage='Failed to start'
+                />
+            );
+            text = error || this.props.intl.formatMessage({
+                id: 'admin.plugin.state.failed_to_start.check_logs',
+                defaultMessage: 'Check your system logs for errors.',
+            });
+        } else if (state === PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING) {
+            title = (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_stay_running'
+                    defaultMessage='Crashing'
+                />
+            );
+            text = this.props.intl.formatMessage({
+                id: 'admin.plugin.state.failed_to_stay_running.description',
+                defaultMessage: 'This plugin crashed multiple times and is no longer running. Check your system logs for errors.',
+            });
+        }
+
+        if (!title) {
+            return null;
+        }
+
+        return (
+            <div
+                className='PluginMetadataPanel__statusError'
+                data-testid='plugin-metadata-status-error'
+            >
+                <SectionNotice
+                    type='warning'
+                    title={title}
+                    description={text}
                 />
             </div>
         );
@@ -682,22 +841,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             }
         }
 
-        // used to hide help in case of cloud-starter and open-id selection to show upgrade notice.
-        let hideHelp = false;
-        if (setting.isHelpHidden) {
-            if (typeof (setting.isHelpHidden) === 'function') {
-                hideHelp = setting.isHelpHidden(this.props.config, this.state, this.props.license, this.props.enterpriseReady);
-            } else {
-                hideHelp = setting.isHelpHidden;
-            }
-        }
-
         const label = renderLabel(setting, this.props.schema, this.props.intl);
 
-        let helpText: string | JSX.Element = '';
-        if (!hideHelp) {
-            helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
-        }
+        const helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
         return (
             <DropdownSetting
                 key={this.props.schema.id + '_dropdown_' + setting.key}
@@ -892,13 +1038,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     };
 
     handleChange = (id: string, value: any, confirm = false, doSubmit = false, warning = false) => {
-        let saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
+        const saveNeeded: State['saveNeeded'] = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
 
         const clientWarning = warning === false ? this.state.clientWarning : warning;
 
@@ -1079,6 +1219,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         if (setting.showTitle) {
             return (
                 <Setting
+                    key={this.props.schema.id + '_custom_' + setting.key}
                     label={label}
                     inputId={setting.key}
                     helpText={helpText}
@@ -1124,7 +1265,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         };
 
         let header;
-        if ('header' in schema && schema.header) {
+        if ('header' in schema && schema.header && !this.props.plugin) {
             header = (
                 <div className='banner'>
                     <SchemaText
@@ -1149,12 +1290,36 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         const schemaSections = 'sections' in schema ? schema.sections : undefined;
         if ('settings' in schema && schema.settings && !schemaSections) {
+            const settingsList = buildSettingsList(schema.settings);
+
+            // Custom settings without showTitle (e.g. Localization Languages /
+            // Auto-translation) each render their own AdminPanel and must be
+            // direct flex children so schema-sections gap separates panels.
+            // Ordinary flat settings stay in SettingsGroup so the gap is between
+            // groups, not every individual control.
+            const visibleSettings = schema.settings.filter((setting) => !this.isHidden(setting));
+            const settingsSelfRenderPanels = visibleSettings.length > 0 && visibleSettings.every(
+                (setting) => setting.type === Constants.SettingsTypes.TYPE_CUSTOM && !setting.showTitle,
+            );
+
+            if (settingsSelfRenderPanels) {
+                return (
+                    <div className='admin-console__schema-sections'>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </div>
+                );
+            }
+
             return (
-                <SettingsGroup container={false}>
-                    {header}
-                    {buildSettingsList(schema.settings)}
-                    {footer}
-                </SettingsGroup>
+                <div className='admin-console__schema-sections'>
+                    <SettingsGroup container={false}>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </SettingsGroup>
+                </div>
             );
         } else if (schemaSections) {
             const sections: React.ReactNode[] = [];
@@ -1208,32 +1373,38 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     );
                 }
 
-                // This is a bit of special case since designs for plugin config expect the Enable/Disable setting
-                // to be on top and out of the sections.
+                // Plugin enable/disable is handled in the metadata panel. This leftover
+                // section only exists to hold schema footer (or a disabled-plugin warning).
                 if (section.key.startsWith('PluginSettings.PluginStates') && section.key.endsWith('Enable.Section')) {
-                    sections.push(
-                        <SettingsGroup
-                            container={false}
-                            key={section.key}
-                        >
-                            {header}
-                            {settingsList}
-                            {footer}
-                        </SettingsGroup>,
-                    );
+                    if (header || footer || settingsList.length > 0) {
+                        sections.push(
+                            <SettingsGroup
+                                container={false}
+                                key={section.key}
+                            >
+                                {header}
+                                {settingsList}
+                                {footer}
+                            </SettingsGroup>,
+                        );
+                    }
 
                     return;
                 }
 
-                // Sections with enhanced properties use AdminSectionPanel for richer UI
-                const hasEnhancedProps = section.description || section.license_sku;
+                // Prefer Compass AdminPanel chrome when the section has a title,
+                // description/subtitle, or license badge. Map legacy `subtitle` to
+                // AdminSectionPanel's `description` so LDAP wizard and similar
+                // sections pick up AdminPanel without a separate migration.
+                const sectionDescription = section.description || section.subtitle;
+                const useAdminPanel = Boolean(section.title || sectionDescription || section.license_sku);
 
-                if (hasEnhancedProps) {
+                if (useAdminPanel) {
                     sections.push(
                         <AdminSectionPanel
                             key={section.key}
                             title={section.title}
-                            description={section.description}
+                            description={sectionDescription}
                             licenseSku={section.license_sku}
                             data-testid={section.key}
                         >
@@ -1242,8 +1413,18 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                             {footer}
                         </AdminSectionPanel>,
                     );
+                } else if (!section.title && !section.subtitle) {
+                    // Untitled sections that self-render AdminPanel (e.g. Membership
+                    // Policies list) must not get legacy config-section card chrome.
+                    sections.push(
+                        <React.Fragment key={section.key}>
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </React.Fragment>,
+                    );
                 } else {
-                    // Standard sections use existing rendering
+                    // Legacy SettingsGroup path for remaining titled sections.
                     sections.push(
                         <div
                             className={'config-section'}
@@ -1265,8 +1446,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             });
 
+            // Stack sections with the same gap as admin-console__content. Without
+            // this, AdminSectionPanel siblings sit flush because Compass AdminPanel
+            // has no outer margin and this wrapper is a single flex child of content.
             return (
-                <div>
+                <div className='admin-console__schema-sections'>
                     {header}
                     {'settings' in schema && schema.settings && schema.settings.length > 0 && (
                         <SettingsGroup container={false}>

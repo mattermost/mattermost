@@ -150,6 +150,41 @@ describe('UserPropertyValues', () => {
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
 
+    it('is disabled when the field is linked to a template', () => {
+        renderComponent({...baseField, linked_field_id: 'template-field-id'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
+    });
+
+    it('renders a graph field read-only', () => {
+        // A graph field's options carry parent edges this cell knows nothing
+        // about, so it shows them and refuses every edit — the API is the only
+        // way to change them.
+        renderComponent({...baseField, type: 'graph'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled="true"]')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+    });
+
+    it('renders an omitted graph field as an option count instead of an empty picker', () => {
+        renderComponent({
+            ...baseField,
+            type: 'graph',
+            attrs: {
+                ...baseField.attrs,
+                options: [],
+                options_omitted: true,
+                options_count: 1500,
+            },
+        });
+
+        expect(screen.getByTestId('user-property-field-values__options-omitted').textContent).toBe('1,500 options');
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add values… (required)')).not.toBeInTheDocument();
+    });
+
     it('shows LDAP sync information when field has LDAP attribute', () => {
         const ldapField = {
             ...baseField,

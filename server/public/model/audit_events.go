@@ -26,6 +26,9 @@ const (
 	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
 	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
 	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
+
+	AuditEventChannelMembershipAdded   = "channelMembershipAdded"   // user auto-added to a channel by its membership policy
+	AuditEventChannelMembershipRemoved = "channelMembershipRemoved" // user removed from a channel by its membership policy
 )
 
 // Audit & Certificates
@@ -173,6 +176,16 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+
+	AuditEventSearchGlobalAttributeListing = "searchGlobalAttributeListing" // search the Global Attributes listing
+)
+
+// Property Field Options
+const (
+	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
+	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
+	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
+	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
 )
 
 // Property Values
@@ -190,6 +203,13 @@ const (
 	AuditEventPatchPolicy              = "patchPolicy"              // update data retention policy
 	AuditEventRemoveChannelsFromPolicy = "removeChannelsFromPolicy" // remove channels from data retention policy
 	AuditEventRemoveTeamsFromPolicy    = "removeTeamsFromPolicy"    // remove teams from data retention policy
+)
+
+// Ephemeral Mode
+const (
+	AuditEventAutoCacheCleanupRun = "autoCacheCleanupRun" // automatic cache cleanup run
+	AuditEventOfflinePurge        = "offlinePurge"        // offline purge
+	AuditEventSessionWipe         = "sessionWipe"         // session wipe
 )
 
 // Emojis
@@ -232,6 +252,12 @@ const (
 	AuditEventPatchGroupSyncable      = "patchGroupSyncable"      // update group synchronization settings
 	AuditEventRestoreGroup            = "restoreGroup"            // restore previously deleted group
 	AuditEventUnlinkGroupSyncable     = "unlinkGroupSyncable"     // unlink group from team or channel synchronization
+)
+
+// Health Dashboard
+const (
+	AuditEventMuteHealthFinding   = "muteHealthFinding"   // mute health dashboard finding
+	AuditEventUnmuteHealthFinding = "unmuteHealthFinding" // unmute health dashboard finding
 )
 
 // Imports
@@ -298,6 +324,8 @@ const (
 	AuditEventGetFirstAdminVisitMarketplaceStatus = "getFirstAdminVisitMarketplaceStatus" // get first admin visit status
 	AuditEventInstallMarketplacePlugin            = "installMarketplacePlugin"            // install plugin from official marketplace
 	AuditEventInstallPluginFromURL                = "installPluginFromURL"                // install plugin from external URL
+	AuditEventLocalAddPluginPublicKey             = "localAddPluginPublicKey"             // add plugin signature public key locally
+	AuditEventLocalDeletePluginPublicKey          = "localDeletePluginPublicKey"          // delete plugin signature public key locally
 	AuditEventRemovePlugin                        = "removePlugin"                        // delete plugin
 	AuditEventSetFirstAdminVisitMarketplaceStatus = "setFirstAdminVisitMarketplaceStatus" // set first admin visit status
 	AuditEventUploadPlugin                        = "uploadPlugin"                        // upload plugin file to server for installation
@@ -542,4 +570,10 @@ const (
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
+)
+
+// Post Delivery Tracking
+const (
+	AuditEventUpdateDeliveryTrackingConfig = "updateDeliveryTrackingConfig" // update post delivery tracking configuration
+	AuditEventPostDelivered                = "postDelivered"                // a post's content was delivered to a user or integration
 )

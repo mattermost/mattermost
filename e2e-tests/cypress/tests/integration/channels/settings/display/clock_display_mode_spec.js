@@ -111,7 +111,7 @@ describe('Settings > Display > Clock Display Mode', () => {
             cy.contains('[data-testid="postView"]', 'Hello from Jan 5, 2:37pm').
                 find('time').
                 should('contain', '14:37').
-                and('have.attr', 'datetime', `${nextYear}-01-05T14:37:00.000`);
+                and('have.attr', 'datetime', `${nextYear}-01-05T14:37:00.000+00:00`);
         });
     });
 });

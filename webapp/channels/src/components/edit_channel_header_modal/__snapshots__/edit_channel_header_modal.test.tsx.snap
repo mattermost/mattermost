@@ -175,16 +175,24 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -378,16 +386,24 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -581,16 +597,24 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -774,16 +798,24 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             type="button"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>
@@ -967,17 +999,25 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             disabled=""
             type="button"
           >
-            Save
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Save
+            </span>
           </button>
         </div>
       </div>

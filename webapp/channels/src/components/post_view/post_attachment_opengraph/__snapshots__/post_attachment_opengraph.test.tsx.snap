@@ -4,6 +4,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
 <div>
   <a
     class="PostAttachmentOpenGraph"
+    data-testid="link-preview"
     href="https://www.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=post_attachment_opengraph&uid=user-1&sid=&edition=team&server_version="
     location="post_attachment_opengraph"
     rel="noopener noreferrer"
@@ -60,8 +61,10 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
                       id="loadingSpinner"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        aria-label="Loading Icon"
+                        class="_spinner_3elm7_10 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
                     </span>
                     <span
@@ -96,6 +99,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
             </figure>
           </div>
           <button
+            aria-label="Hide image preview"
             class="preview-toggle style--none"
           >
             <svg
@@ -192,8 +196,10 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                     id="loadingSpinner"
                   >
                     <span
-                      class="fa fa-spinner fa-fw fa-pulse spinner"
-                      title="Loading Icon"
+                      aria-label="Loading Icon"
+                      class="_spinner_3elm7_10 spinner"
+                      role="status"
+                      style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                     />
                   </span>
                   <span
@@ -228,6 +234,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
           </figure>
         </div>
         <button
+          aria-label="Hide image preview"
           class="preview-toggle style--none"
         >
           <svg

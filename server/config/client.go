@@ -78,10 +78,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["UseAnonymousURLs"] = strconv.FormatBool(*c.PrivacySettings.UseAnonymousURLs)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
+	props["EnableFileSearch"] = strconv.FormatBool(*c.ServiceSettings.EnableFileSearch)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
 
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
-	props["EnableExperimentalLocales"] = strconv.FormatBool(*c.LocalizationSettings.EnableExperimentalLocales)
 
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
@@ -165,7 +165,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
 	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
 	props["EnableAccessControlAuditLogging"] = strconv.FormatBool(*c.AccessControlSettings.EnableAccessControlAuditLogging)
-	props["AuditLoggingActive"] = strconv.FormatBool(IsAuditLoggingActive(c.ExperimentalAuditSettings, license != nil && license.Features != nil && *license.Features.AdvancedLogging))
 	props["EnableChannelPolicyIndicators"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelPolicyIndicators)
 
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")

@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import TeamWarningBanner from 'components/channel_invite_modal/team_warning_banner/team_warning_banner';
 import type {Value} from 'components/multiselect/multiselect';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -136,5 +136,21 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
             state,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should say board for a board', () => {
+        renderWithContext(
+            <TeamWarningBanner
+                teamId={teamId}
+                channelKind='board'
+                users={createUsers(2)}
+                guests={createUsers(2)}
+            />,
+            state,
+        );
+
+        expect(screen.getByText(/to this board once they are members of the/)).toBeInTheDocument();
+        expect(screen.getByText(/before you can add them to the board\. Once they've joined the team, you can add them to this board\./)).toBeInTheDocument();
+        expect(screen.queryByText(/this channel/)).not.toBeInTheDocument();
     });
 });

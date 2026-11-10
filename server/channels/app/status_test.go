@@ -30,7 +30,7 @@ func TestCustomStatus(t *testing.T) {
 	err := th.App.SetCustomStatus(th.Context, user.Id, cs)
 	require.Nil(t, err, "failed to set custom status %v", err)
 
-	csSaved, err := th.App.GetCustomStatus(user.Id)
+	csSaved, err := th.App.GetCustomStatus(th.Context, user.Id)
 	require.Nil(t, err, "failed to get custom status after save %v", err)
 	require.Equal(t, cs, csSaved)
 
@@ -38,7 +38,7 @@ func TestCustomStatus(t *testing.T) {
 	require.Nil(t, err, "failed to clear custom status %v", err)
 
 	var csClear *model.CustomStatus
-	csSaved, err = th.App.GetCustomStatus(user.Id)
+	csSaved, err = th.App.GetCustomStatus(th.Context, user.Id)
 	require.Nil(t, err, "failed to get custom status after clear %v", err)
 	require.Equal(t, csClear, csSaved)
 }
@@ -191,7 +191,7 @@ func TestSetCustomStatus(t *testing.T) {
 				require.Nil(t, err)
 			}
 
-			customStatus, err := th.App.GetCustomStatus(th.BasicUser.Id)
+			customStatus, err := th.App.GetCustomStatus(th.Context, th.BasicUser.Id)
 
 			require.Nil(t, err)
 

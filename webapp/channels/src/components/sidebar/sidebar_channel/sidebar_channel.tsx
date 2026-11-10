@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Draggable} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React, {useState} from 'react';
 import type {AnimationEvent, ReactNode} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
@@ -20,6 +20,7 @@ function SidebarChannel({
     isCategoryDragged,
     isUnread,
     isCurrentChannel,
+    collapseCategoryWithUnreads,
     setChannelRef,
     channel,
     currentTeamName,
@@ -41,7 +42,12 @@ function SidebarChannel({
     }
 
     function isCollapsed() {
-        return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
+        if (isCategoryDragged) {
+            return true;
+        }
+
+        // The current channel always stays visible. Unread channels stay visible unless the user chose to hide them too.
+        return isCategoryCollapsed && !isCurrentChannel && (collapseCategoryWithUnreads || !isUnread);
     }
 
     function setRef(refMethod?: (element: HTMLLIElement) => void) {

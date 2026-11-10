@@ -75,6 +75,10 @@ async function openMobilePostActionsMenu(pw: PlaywrightExtended, message: string
     const copyTextMenuItem = page.getByRole('menuitem', {name: 'Copy Text'});
     await expect(copyTextMenuItem).toBeVisible();
 
+    // # Wait for the modal's entrance animation to finish, so the menu has stopped sliding before
+    // # clickDimmedArea() measures where it is
+    await expect(page.locator('.menuModal').locator('..')).toHaveCSS('opacity', '1');
+
     return {channelsPage, page, post, copyTextMenuItem};
 }
 

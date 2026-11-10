@@ -9,15 +9,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"image"
 	"io"
-	"math"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -37,7 +36,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 )
 
 const (
@@ -87,19 +86,17 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 }
 
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
-	// errors.As (rather than a type switch) so that future wrapping of
+	// errors.AsType (rather than a type switch) so that future wrapping of
 	// the backend's typed errors does not silently fall through to the
 	// generic "test_connection" message.
-	var authErr *filestore.FileBackendAuthError
-	if errors.As(connTestErr, &authErr) {
+	if authErr, ok := errors.AsType[*filestore.FileBackendAuthError](connTestErr); ok {
 		// Carry the underlying SDK detail (S3 InvalidAccessKeyId,
 		// Azure AuthenticationFailed, clock-skew, etc.) into the
 		// AppError's detail string so the Test Connection toast
 		// shows admins what actually failed.
 		return model.NewAppError("TestConnection", "api.file.test_connection_auth.app_error", nil, authErr.Error(), http.StatusInternalServerError).Wrap(authErr)
 	}
-	var noBucketErr *filestore.FileBackendNoBucketError
-	if errors.As(connTestErr, &noBucketErr) {
+	if noBucketErr, ok := errors.AsType[*filestore.FileBackendNoBucketError](connTestErr); ok {
 		return model.NewAppError("TestConnection", "api.file.test_connection_no_bucket.app_error", nil, noBucketErr.Error(), http.StatusInternalServerError).Wrap(noBucketErr)
 	}
 	return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError).Wrap(connTestErr)
@@ -868,13 +865,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	if _, err := t.saveToDatabase(rctx, t.fileinfo); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if *a.Config().FileSettings.ExtractContent && t.ExtractContent {
@@ -964,6 +958,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		decoded, imgType, release, err = t.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
 			t.Logger.Error("Unable to decode image", mlog.Err(err))
+			t.fileinfo.MiniPreview = &[]byte{}
 			return
 		}
 		defer release()
@@ -1020,6 +1015,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
 				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 				t.Logger.Info("Unable to generate mini preview image", mlog.Err(err))
+				t.fileinfo.MiniPreview = &[]byte{}
 			} else {
 				t.fileinfo.MiniPreview = &miniPreview
 			}
@@ -1134,13 +1130,10 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 	}
 
 	if _, err := a.Srv().Store().FileInfo().Save(rctx, info); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, data, appErr
-		default:
-			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// The extra boolean extractContent is used to turn off extraction
@@ -1265,15 +1258,17 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 			rctx.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-			return
-		}
-		defer release()
-		var miniPreview []byte
-		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
-			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
-			rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+			fi.MiniPreview = &[]byte{}
 		} else {
-			fi.MiniPreview = &miniPreview
+			defer release()
+			var miniPreview []byte
+			if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
+				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
+				rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+				fi.MiniPreview = &[]byte{}
+			} else {
+				fi.MiniPreview = &miniPreview
+			}
 		}
 		if _, err = a.Srv().Store().FileInfo().Upsert(rctx, fi); err != nil {
 			rctx.Logger().Debug("Creating mini preview failed", mlog.Err(err))
@@ -1299,13 +1294,10 @@ func (a *App) generateMiniPreviewForInfos(rctx request.CTX, fileInfos []*model.F
 func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	fileInfo, err := s.Store().FileInfo().Get(fileID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return fileInfo, nil
 }
@@ -1316,16 +1308,8 @@ func (a *App) GetFileInfo(rctx request.CTX, fileID string) (*model.FileInfo, *mo
 		return nil, appErr
 	}
 
-	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(fileInfo)
-	if appErr != nil {
-		return nil, appErr
-	}
-	if firstInaccessibleFileTime > 0 {
-		return nil, model.NewAppError("GetFileInfo", "app.file.cloud.get.app_error", nil, "", http.StatusForbidden)
-	}
-
 	a.generateMiniPreview(rctx, fileInfo)
-	return fileInfo, appErr
+	return fileInfo, nil
 }
 
 func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data string) *model.AppError {
@@ -1336,13 +1320,10 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 
 	err := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, data)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("SetFileSearchableContent", "app.file_info.set_searchable_content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1351,26 +1332,12 @@ func (a *App) SetFileSearchableContent(rctx request.CTX, fileID string, data str
 func (a *App) GetFileInfos(rctx request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store().FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var ltErr *store.ErrLimitExceeded
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &ltErr):
+		} else if _, ok := errors.AsType[*store.ErrLimitExceeded](err); ok {
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-	}
-
-	filterOptions := filterFileOptions{}
-	if opt != nil && (opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated) {
-		filterOptions.assumeSortedCreatedAt = true
-	}
-
-	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
-	if appErr != nil {
-		return nil, appErr
+		return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
@@ -1400,13 +1367,10 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 	for _, fileID := range fileIDs {
 		fileInfo, err := a.Srv().Store().FileInfo().Get(fileID)
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		fileInfo.Id = model.NewId()
@@ -1417,13 +1381,10 @@ func (a *App) CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) (
 		fileInfo.ChannelId = ""
 
 		if _, err := a.Srv().Store().FileInfo().Save(rctx, fileInfo); err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
+			if appErr, ok := errors.AsType[*model.AppError](err); ok {
 				return nil, appErr
-			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		newFileIds = append(newFileIds, fileInfo.Id)
@@ -1500,17 +1461,10 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 
 	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, false, appErr
-		default:
-			return nil, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
-	}
-
-	if appErr := a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, false, appErr
+		return nil, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
@@ -1619,7 +1573,7 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 	if rctx.Session().UserId == userID {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
-		user, err := a.GetUser(userID)
+		user, err := a.GetUser(rctx, userID)
 		if err != nil {
 			rctx.Logger().Warn("Failed to get user for file download permission filtering",
 				mlog.String("user_id", userID),
@@ -1721,7 +1675,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
-		return errors.Wrap(aerr, "failed to open file for extract file content")
+		return pkgerrors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	// Ownership of closing the file is handed to docextractor.Extract via
 	// ReaderCloser: with a timeout configured, extraction may continue on a
@@ -1735,14 +1689,14 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		ReaderCloser:     file,
 	})
 	if err != nil {
-		return errors.Wrap(err, "failed to extract file content")
+		return pkgerrors.Wrap(err, "failed to extract file content")
 	}
 	if text != "" {
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
 		if storeErr := a.Srv().Store().FileInfo().SetContent(rctx, fileInfo.Id, text); storeErr != nil {
-			return errors.Wrap(storeErr, "failed to save the extracted file content")
+			return pkgerrors.Wrap(storeErr, "failed to save the extracted file content")
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
@@ -1752,104 +1706,6 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		}
 	}
 	return nil
-}
-
-// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
-func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
-	license := a.Srv().License()
-	if !license.IsCloud() {
-		return 0, nil
-	}
-
-	system, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			// All files are accessible
-			return 0, nil
-		default:
-			return 0, model.NewAppError("GetLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
-	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return lastAccessibleFileTime, nil
-}
-
-// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
-// Use GetLastAccessibleFileTime() to access the result.
-func (a *App) ComputeLastAccessibleFileTime() error {
-	limit, appErr := a.getCloudFilesSizeLimit()
-	if appErr != nil {
-		return appErr
-	}
-
-	if limit == 0 {
-		// All files are accessible - we must check if a previous value was set so we can clear it
-		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
-		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				// All files are already accessible
-				return nil
-			default:
-				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-		}
-		if systemValue != nil {
-			// Previous value was set, so we must clear it
-			if _, err := a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
-				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-		}
-		return nil
-	}
-
-	createdAt, err := a.Srv().GetStore().FileInfo().GetUptoNSizeFileTime(limit)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return model.NewAppError("ComputeLastAccessibleFileTime", "app.last_accessible_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	// Update Cache
-	err = a.Srv().Store().System().SaveOrUpdate(&model.System{
-		Name:  model.SystemLastAccessibleFileTime,
-		Value: strconv.FormatInt(createdAt, 10),
-	})
-	if err != nil {
-		return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return nil
-}
-
-// getCloudFilesSizeLimit returns size in bytes
-func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
-	license := a.Srv().License()
-	if license == nil || !license.IsCloud() {
-		return 0, nil
-	}
-
-	// limits is in bits
-	limits, err := a.Cloud().GetCloudLimits("")
-	if err != nil {
-		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if limits == nil || limits.Files == nil || limits.Files.TotalStorage == nil {
-		// Cloud limit is not applicable
-		return 0, nil
-	}
-
-	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
 }
 
 func getFileExtFromMimeType(mimeType string) string {

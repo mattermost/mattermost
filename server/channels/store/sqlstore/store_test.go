@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -360,10 +360,10 @@ func TestGetReplica(t *testing.T) {
 
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -433,10 +433,10 @@ func TestGetReplica(t *testing.T) {
 
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -738,10 +738,10 @@ func TestGetAllConns(t *testing.T) {
 			}
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -1019,11 +1019,11 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			for _, entry := range assetsList {
 				assetNamesForDriver = append(assetNamesForDriver, entry.Name())
 			}
-			sort.Strings(assetNamesForDriver)
+			slices.Sort(assetNamesForDriver)
 
 			require.NotEmpty(t, assetNamesForDriver)
 			lastMigration := assetNamesForDriver[len(assetNamesForDriver)-1]
-			expectedVersion := strings.Split(lastMigration, "_")[0]
+			expectedVersion, _, _ := strings.Cut(lastMigration, "_")
 
 			version, err := store.GetDBSchemaVersion()
 			require.NoError(t, err)
@@ -1092,7 +1092,7 @@ func TestGetAppliedMigrations(t *testing.T) {
 			var migrationsFromFiles []model.AppliedMigration
 			for _, entry := range assetsList {
 				if strings.HasSuffix(entry.Name(), ".up.sql") {
-					versionString := strings.Split(entry.Name(), "_")[0]
+					versionString, _, _ := strings.Cut(entry.Name(), "_")
 					version, vErr := strconv.Atoi(versionString)
 					require.NoError(t, vErr)
 

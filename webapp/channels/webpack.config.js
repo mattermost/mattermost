@@ -270,6 +270,9 @@ var config = {
         }),
         new MonacoWebpackPlugin({
             languages: [],
+            // monaco-editor 0.57's exports map sends monaco-editor/esm/* to esm/vs/*,
+            // so the plugin cannot resolve esm/metadata.js unless given the package directory.
+            monacoEditorPath: path.resolve(__dirname, '../node_modules/monaco-editor'),
 
             // don't include features we disable. these generally correspond to the options
             // passed to editor initialization in note-content-editor.tsx
@@ -376,9 +379,9 @@ async function initializeModuleFederation() {
 
             // Other containers will be forced to use the exact versions of shared modules that the web app provides.
             makeSharedModules([
+                '@hello-pangea/dnd',
                 'history',
                 'react',
-                'react-beautiful-dnd',
                 'react-bootstrap',
                 'react-dom',
                 'react-intl',

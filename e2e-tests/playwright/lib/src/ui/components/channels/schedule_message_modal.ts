@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {getDayPickerDayCell, goToDisplayedMonth} from '../day_picker';
+
 export default class ScheduleMessageModal {
     readonly container: Locator;
     readonly dateButton: Locator;
@@ -29,34 +31,14 @@ export default class ScheduleMessageModal {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) {
-            return 'th';
-        }
-
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        const name = `${day}${daySuffix} ${month} (${dayOfWeek})`;
-        return this.container.getByRole('button', {name});
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDate(dayFromToday: number = 0) {
         await this.dateButton.click();
 
         const pacificDate = new Date();
-        const originDate = new Date();
 
         if (dayFromToday) {
             pacificDate.setDate(pacificDate.getDate() + dayFromToday);
@@ -64,16 +46,9 @@ export default class ScheduleMessageModal {
 
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        const dateLocator = this.dateLocator(day, month, dayOfWeek);
-
-        const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
-        if (!(await dateLocator.isVisible()) && isMonthChanged) {
-            await this.container.getByLabel('Go to next month').click();
-        }
-
-        await dateLocator.click();
+        await goToDisplayedMonth(this.container, pacificDate);
+        await this.dateLocator(day).click();
 
         // Wait for the date-picker calendar to fully close before returning.
         const calendarPopper = this.container.getByTestId('date-picker-popper');

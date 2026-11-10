@@ -44,11 +44,10 @@ describe('Client4', () => {
                 query({target_type: 'system', per_page: '10', cursor_id: 'abc', cursor_create_at: '999'}).
                 reply(200, fields);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system', undefined, {
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system',
                 perPage: 10,
                 cursorId: 'abc',
-                cursorCreateAt: 999,
-            });
+                cursorCreateAt: 999});
 
             expect(result).toEqual(fields);
         });
@@ -59,7 +58,7 @@ describe('Client4', () => {
                 query({target_type: 'channel', target_id: 'ch1'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'channel', 'ch1');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'channel', targetId: 'ch1'});
             expect(result).toEqual([]);
         });
 
@@ -69,8 +68,161 @@ describe('Client4', () => {
                 query({target_type: 'system'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system'});
             expect(result).toEqual([]);
+        });
+
+        test('searchGlobalAttributes should POST the search body to the access_control listing route', async () => {
+            const search = {term: 'clear', source: 'ldap' as const, resource_type: 'channel' as const};
+            const listing = {rows: []};
+            nock(client.getBaseRoute()).
+                post('/properties/groups/access_control/attributes/search', search).
+                reply(200, listing);
+
+            const result = await client.searchGlobalAttributes(search);
+            expect(result).toEqual(listing);
+        });
+
+        test('getPropertyFieldOptionsRoute should build correct URL', () => {
+            expect(client.getPropertyFieldOptionsRoute('access_control', 'user', 'field123')).toBe(
+                'http://mattermost.example.com/api/v4/properties/groups/access_control/user/fields/field123/options',
+            );
+        });
+
+        test('getPropertyFieldOptions should send per_page and both cursor halves', async () => {
+            const options = [{id: 'opt-10', name: 'Program', parents: [], create_at: 1010}];
+            const page = {options, has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200', cursor_id: 'opt-9', cursor_create_at: '1009'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
+                perPage: 200,
+                cursorId: 'opt-9',
+                cursorCreateAt: 1009,
+            });
+
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should default per_page to 200 when called with no options argument', async () => {
+            const page = {options: [], has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should send per_page and omit both cursor keys on the first request', async () => {
+            const page = {options: [], has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {perPage: 200});
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should honour an explicit perPage', async () => {
+            const page = {options: [], has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '25'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {perPage: 25});
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should omit cursor_create_at when it is 0', async () => {
+            const page = {options: [], has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200', cursor_id: 'opt-9'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
+                cursorId: 'opt-9',
+                cursorCreateAt: 0,
+            });
+
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should omit cursor_id when it is empty', async () => {
+            const page = {options: [], has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200', cursor_create_at: '1009'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
+                cursorId: '',
+                cursorCreateAt: 1009,
+            });
+
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should return options carrying read_only and create_at', async () => {
+            const options = [{id: 'o1', name: 'F-18 Program', parents: [], read_only: true, create_at: 1700000000000}];
+            const page = {options, has_more: false};
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should return has_more and both cursor halves', async () => {
+            const page = {
+                options: [{id: 'opt-10', name: 'Program', parents: [], create_at: 1010}],
+                has_more: true,
+                next_cursor_create_at: 5000,
+                next_cursor_id: 'examined-last',
+            };
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
+            expect(result).toEqual(page);
+            expect(result.has_more).toBe(true);
+            expect(result.next_cursor_create_at).toBe(5000);
+            expect(result.next_cursor_id).toBe('examined-last');
+        });
+
+        test('getPropertyFieldOptions should throw ClientError on 403', async () => {
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(403, {
+                    id: 'api.property_field.options.no_permission.app_error',
+                    message: 'forbidden',
+                    status_code: 403,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.getPropertyFieldOptions('access_control', 'user', 'field123')).rejects.toThrow(ClientError);
+        });
+
+        test('getPropertyFieldOptions should throw ClientError on 404', async () => {
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(404, {
+                    message: 'not found',
+                    status_code: 404,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.getPropertyFieldOptions('access_control', 'user', 'field123')).rejects.toThrow(ClientError);
         });
 
         test('createPropertyField should send POST with field body', async () => {
@@ -108,6 +260,36 @@ describe('Client4', () => {
 
             const result = await client.deletePropertyField('grp', 'user', 'f1');
             expect(result).toEqual({status: 'OK'});
+        });
+    });
+
+    describe('access control field autocomplete', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('getAccessControlFields sends include_resource_fields when requested', async () => {
+            const fields = [{id: 'f1', name: 'classification'}];
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query({after: '', limit: '100', include_resource_fields: 'true'}).
+                reply(200, fields);
+
+            const result = await client.getAccessControlFields('', 100, undefined, undefined, true);
+            expect(result).toEqual(fields);
+        });
+
+        test('getAccessControlFields omits include_resource_fields by default', async () => {
+            nock(client.getBaseRoute()).
+                get('/access_control_policies/cel/autocomplete/fields').
+                query((q) => q.include_resource_fields === undefined && q.after === '' && q.limit === '100').
+                reply(200, []);
+
+            const result = await client.getAccessControlFields('', 100);
+            expect(result).toEqual([]);
         });
     });
 
@@ -246,6 +428,78 @@ describe('Client4', () => {
             await expect(client.generatePostExposureReport('post123')).rejects.toMatchObject({
                 server_error_id: 'api.data_spillage.error.post_not_in_progress',
                 status_code: 400,
+            });
+        });
+    });
+
+    describe('getSupportPacket', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('should request the selected contents and return the zip with its filename', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query((query) => {
+                    expect(query).toEqual({basic_server_logs: 'false', plugin_packets: ['com.mattermost.calls', 'com.mattermost.boards']});
+                    return true;
+                }).
+                reply(200, 'zip-bytes', {
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': 'attachment; filename="mm_support_packet_2026-11-05T12-00.zip"',
+                });
+
+            const result = await client.getSupportPacket({basicServerLogs: false, pluginPackets: ['com.mattermost.calls', 'com.mattermost.boards']});
+
+            expect(result.filename).toEqual('mm_support_packet_2026-11-05T12-00.zip');
+            expect(await result.blob.text()).toEqual('zip-bytes');
+        });
+
+        test('should fall back to a generated filename when the header is absent', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query({basic_server_logs: 'true'}).
+                reply(200, 'zip-bytes', {'Content-Type': 'application/zip'});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(result.filename).toMatch(/^mm_support_packet_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.zip$/);
+        });
+
+        test.each([
+            'application/zip; charset=binary',
+            'Application/Zip',
+            'application/octet-stream',
+        ])('should return the zip unchanged when the Content-Type is %s', async (contentType) => {
+            const zipBytes = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0xff, 0xfe, 0x00, 0x80]);
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(200, zipBytes, {'Content-Type': contentType});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(Buffer.from(await result.blob.arrayBuffer())).toEqual(zipBytes);
+        });
+
+        test('should surface server errors as ClientError', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(403, {
+                    id: 'api.no_license',
+                    message: 'License required.',
+                    detailed_error: 'no license',
+                    status_code: 403,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.getSupportPacket({basicServerLogs: true})).rejects.toMatchObject({
+                message: 'License required.',
+                detailed_error: 'no license',
+                status_code: 403,
             });
         });
     });

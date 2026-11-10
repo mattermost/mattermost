@@ -191,48 +191,6 @@ func TestCreateTeam(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.Equal(t, originalName, createdTeam.Name)
 	})
-
-	t.Run("cloud limit reached returns 400", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Teams: &model.TeamsLimits{
-				Active: new(1),
-			},
-		}, nil).Once()
-		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(context.Background(), team)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Teams: &model.TeamsLimits{
-				Active: new(200),
-			},
-		}, nil).Once()
-		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-		_, resp, err := th.Client.CreateTeam(context.Background(), team)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-	})
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
@@ -1542,50 +1500,6 @@ func TestRestoreTeam(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, resp, err := client.RestoreTeam(context.Background(), teamPublic.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-	})
-
-	t.Run("cloud limit reached returns 400", func(t *testing.T) {
-		// Create an archived team to be restored later
-		team := createTeam(t, true, model.TeamOpen)
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Teams: &model.TeamsLimits{
-				Active: new(1),
-			},
-		}, nil).Once()
-
-		_, resp, err := client.RestoreTeam(context.Background(), team.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Teams: &model.TeamsLimits{
-				Active: new(200),
-			},
-		}, nil).Twice()
-		team := createTeam(t, true, model.TeamOpen)
-		_, resp, err := client.RestoreTeam(context.Background(), team.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
@@ -3870,6 +3784,63 @@ func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
 	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.NoError(t, err)
 	require.Equal(t, rolesBefore, memberAfter.Roles)
+}
+
+func TestUpdateTeamMemberRolesRejectsNonTeamScopedRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	const teamMember = "team_user"
+
+	invalidRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "system manager with team user", roles: teamMember + " " + model.SystemManagerRoleId},
+		{name: "system user manager with team user", roles: teamMember + " " + model.SystemUserManagerRoleId},
+		{name: "system read only admin with team user", roles: teamMember + " " + model.SystemReadOnlyAdminRoleId},
+		{name: "system post all with team user", roles: teamMember + " " + model.SystemPostAllRoleId},
+		{name: "team post all with team user", roles: teamMember + " " + model.TeamPostAllRoleId},
+		{name: "team post all public with team user", roles: teamMember + " " + model.TeamPostAllPublicRoleId},
+		{name: "channel user with team user", roles: teamMember + " " + model.ChannelUserRoleId},
+		{name: "custom group user with team user", roles: teamMember + " " + model.CustomGroupUserRoleId},
+	}
+
+	for _, tc := range invalidRoles {
+		t.Run("rejects "+tc.name, func(t *testing.T) {
+			memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			rolesBefore := memberBefore.Roles
+
+			resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, tc.roles)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.Equal(t, rolesBefore, memberAfter.Roles)
+		})
+	}
+
+	validRoles := []struct {
+		name  string
+		roles string
+	}{
+		{name: "team member", roles: teamMember},
+		{name: "team admin", roles: "team_user team_admin"},
+	}
+
+	for _, tc := range validRoles {
+		t.Run("accepts "+tc.name, func(t *testing.T) {
+			_, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, tc.roles)
+			require.NoError(t, err)
+
+			member, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+			require.NoError(t, err)
+			require.ElementsMatch(t, strings.Fields(tc.roles), strings.Fields(member.Roles))
+		})
+	}
 }
 
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {

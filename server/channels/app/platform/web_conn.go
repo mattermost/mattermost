@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -47,6 +48,24 @@ const (
 	reconnectFound    = "success"
 	reconnectNotFound = "failure"
 	reconnectLossless = "lossless"
+)
+
+const (
+	// reconnectFailureOldConnStillOpen means the old connection is still considered active,
+	// usually because its network vanished and the server is waiting out its pong deadline.
+	reconnectFailureOldConnStillOpen = "old_conn_still_open"
+
+	// reconnectFailureMissedEventsEvicted means the old connection was found, but the events
+	// the client missed have already been evicted from its dead queue.
+	reconnectFailureMissedEventsEvicted = "missed_events_evicted"
+
+	// reconnectFailureConnNotFound means no node has the old connection: it was reaped, its
+	// node restarted, or its send queue overflowed while it was inactive.
+	reconnectFailureConnNotFound = "conn_not_found"
+
+	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
+	// old connection.
+	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
 )
 
 const websocketMessagePluginPrefix = "custom_"
@@ -98,7 +117,7 @@ type WebConn struct {
 	PostedAck         bool
 	DisconnectErrCode string
 
-	allChannelMembers         map[string]string
+	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
 	send                      chan model.WebSocketMessage
@@ -121,7 +140,7 @@ type WebConn struct {
 	// leave that as an edge-case.
 	reuseCount   int
 	sessionToken atomic.Value
-	session      atomic.Pointer[model.Session]
+	session      atomic.Pointer[webConnSession]
 	connectionID atomic.Value
 
 	// The client type behind the connection (i.e. web, desktop or mobile)
@@ -177,12 +196,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
 	}
 
-	// This does not handle reconnect requests across nodes in a cluster.
-	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
+	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
-		// If the connection is not present, then we assume either timeout,
-		// or server restart. In that case, we set a new one.
+		ps.Log().Debug("Websocket resume failed, issuing new connection id",
+			mlog.String("user_id", s.UserId),
+			mlog.String("connection_id", cfg.ConnectionID),
+			mlog.Int("sequence_number", seqNum),
+			mlog.String("reason", reason),
+			mlog.Bool("is_remote", isRemote),
+			mlog.String("origin_client", cfg.OriginClient),
+			mlog.String("disconnect_err_code", cfg.DisconnectErrCode))
+		if m := ps.metricsIFace; m != nil {
+			m.IncrementWebsocketReconnectEvent(reconnectNotFound, cfg.DisconnectErrCode, cfg.OriginClient)
+			m.IncrementWebsocketReconnectFailure(reason, isRemote, cfg.DisconnectErrCode, cfg.OriginClient)
+		}
 		cfg.ConnectionID = model.NewId()
 	} else {
 		// Connection is present, we get the active queue, dead queue
@@ -389,18 +416,63 @@ func (wc *WebConn) isSet(val string) bool {
 	return val != UnsetPresenceIndicator
 }
 
-// GetSession returns the session of the connection.
+// webConnSession bundles the connection's session with the values that are derived
+// from it and needed on every broadcast: the parsed role names and a request context
+// carrying the session. They are computed once in SetSession instead of on every
+// ShouldSendEvent call, which keeps the hub's per-connection filtering allocation-free.
+// A bundle is immutable once stored; SetSession replaces it as a whole.
+type webConnSession struct {
+	session *model.Session
+	// roles is session.GetUserRoles(), split once.
+	roles []string
+	// rctx is request.EmptyContext(logger).WithSession(session), built once.
+	// request.Context is immutable (every With* method clones), so sharing it
+	// across calls and goroutines is safe. It is shared by the hub goroutine
+	// (ShouldSendEvent) and the readPump goroutine (IsAuthenticated) for the life
+	// of the session, and its Session() returns an interior pointer into it, so
+	// callees must treat rctx.Session() as read-only.
+	rctx request.CTX
+}
+
+// GetSession returns the session of the connection. The returned session must not
+// be mutated: it is a copy taken at SetSession time and is shared with the cached
+// request context, so a write here would diverge from what Suite.MFARequired sees.
 func (wc *WebConn) GetSession() *model.Session {
-	return wc.session.Load()
+	if s := wc.session.Load(); s != nil {
+		return s.session
+	}
+	return nil
 }
 
 // SetSession sets the session of the connection.
-func (wc *WebConn) SetSession(v *model.Session) {
-	if v != nil {
-		v = v.DeepCopy()
+func (wc *WebConn) SetSession(s *model.Session) {
+	if s == nil {
+		wc.session.Store(nil)
+		return
 	}
 
-	wc.session.Store(v)
+	s = s.DeepCopy()
+
+	var logger mlog.LoggerIFace
+	if wc.Platform != nil {
+		logger = wc.Platform.logger
+	}
+
+	wc.session.Store(&webConnSession{
+		session: s,
+		roles:   s.GetUserRoles(),
+		rctx:    request.EmptyContext(logger).WithSession(s),
+	})
+}
+
+// getSessionRoles returns the role names of the connection's session, parsed once at SetSession time.
+// The slice is handed read-only to Suite.RolesGrantPermission on every call; implementations
+// must not sort or append to it in place.
+func (wc *WebConn) getSessionRoles() []string {
+	if s := wc.session.Load(); s != nil {
+		return s.roles
+	}
+	return nil
 }
 
 // Pump starts the WebConn instance. After this, the websocket
@@ -473,16 +545,13 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		var decoder interface {
-			Decode(v any) error
-		}
-		if msgType == websocket.TextMessage {
-			decoder = json.NewDecoder(rd)
-		} else {
-			decoder = msgpack.NewDecoder(rd)
-		}
 		var req model.WebSocketRequest
-		if err = decoder.Decode(&req); err != nil {
+		if msgType == websocket.TextMessage {
+			err = json.NewDecoder(rd).Decode(&req)
+		} else {
+			err = decodeBinaryRequest(rd, &req)
+		}
+		if err != nil {
 			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
@@ -513,6 +582,40 @@ func (wc *WebConn) readPump() {
 	}
 }
 
+var errBinaryFrameTooLarge = errors.New("websocket frame exceeds max size")
+
+// binaryFramePool holds buffers one byte larger than the max frame size, so a
+// completely filled buffer means the frame is too large.
+var binaryFramePool = sync.Pool{
+	New: func() any {
+		b := make([]byte, model.SocketMaxMessageSizeKb+1)
+		return &b
+	},
+}
+
+// decodeBinaryRequest reads a binary frame into memory and walks its structure
+// before decoding it, so that the lengths its headers declare are matched
+// against the bytes the frame carries.
+func decodeBinaryRequest(rd io.Reader, req *model.WebSocketRequest) error {
+	bp := binaryFramePool.Get().(*[]byte)
+	defer binaryFramePool.Put(bp)
+
+	n, err := io.ReadFull(rd, *bp)
+	switch {
+	case err == nil:
+		return errBinaryFrameTooLarge
+	case err != io.EOF && err != io.ErrUnexpectedEOF:
+		return err
+	}
+	frame := (*bp)[:n]
+
+	if err := msgpack.NewDecoder(bytes.NewReader(frame)).Skip(); err != nil {
+		return err
+	}
+
+	return msgpack.NewDecoder(bytes.NewReader(frame)).Decode(req)
+}
+
 func (wc *WebConn) writePump() {
 	ticker := time.NewTicker(pingInterval)
 	authTicker := time.NewTicker(authCheckInterval)
@@ -530,9 +633,16 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectFound, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else if wc.hasMsgLoss() {
+			wc.Platform.Log().Debug("Websocket resume failed, missed events evicted from dead queue",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("connection_id", wc.GetConnectionID()),
+				mlog.Int("sequence_number", wc.Sequence),
+				mlog.String("origin_client", wc.originClient),
+				mlog.String("disconnect_err_code", wc.DisconnectErrCode))
+
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
@@ -548,11 +658,12 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound, wc.DisconnectErrCode, wc.originClient)
+				m.IncrementWebsocketReconnectFailure(reconnectFailureMissedEventsEvicted, false, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectLossless, wc.DisconnectErrCode, wc.originClient)
 			}
 		}
 	}
@@ -807,13 +918,21 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 	return true
 }
 
+// getRCtx returns the request context built in SetSession, or an empty one when there is no
+// session. IsMFAAuthenticated runs for every broadcast event on every connection, and building
+// a context there would allocate on each call.
+func (wc *WebConn) getRCtx() request.CTX {
+	if s := wc.session.Load(); s != nil {
+		return s.rctx
+	}
+	return request.EmptyContext(wc.Platform.logger).WithSession(nil)
+}
+
 // IsMFAAuthenticated returns whether the user has completed MFA when required.
 func (wc *WebConn) IsMFAAuthenticated() bool {
-	session := wc.GetSession()
-	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
-
 	// Check if MFA is required and user has NOT completed MFA
-	if appErr := wc.Suite.MFARequired(c); appErr != nil {
+	// WebSocket connections are established via an HTTP GET upgrade request.
+	if appErr := wc.Suite.MFARequired(wc.getRCtx(), http.MethodGet); appErr != nil {
 		return false
 	}
 
@@ -880,8 +999,10 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+// ShouldSendEvent returns whether the message should be sent or not. channelKey
+// is the event's channel ID decoded by model.DecodeId; the hub decodes it once
+// per broadcast and drops events whose ID does not decode.
+func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byte) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
@@ -919,7 +1040,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	sessionRoles := wc.GetSession().GetUserRoles()
+	sessionRoles := wc.getSessionRoles()
 	sessionHasPermission := func(permissionId string) bool {
 		if permissionId == model.PermissionManageSystem.Id {
 			// Cache the manage_system lookup because multiple broadcast filters can require it.
@@ -1011,14 +1132,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
 			}
-			wc.allChannelMembers = result
+			wc.allChannelMembers = newChannelSet(result)
 			wc.lastAllChannelMembersTime = model.GetMillis()
 		}
 
-		if _, ok := wc.allChannelMembers[chID]; ok {
-			return true
-		}
-		return false
+		return wc.allChannelMembers.has(channelKey)
 	}
 
 	// Only report events to users who are in the team for the event

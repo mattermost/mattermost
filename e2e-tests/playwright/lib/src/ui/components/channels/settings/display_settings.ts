@@ -16,6 +16,7 @@ export type DisplaySettingsSection =
     | 'messageDisplay'
     | 'clickToReply'
     | 'channelDisplayMode'
+    | 'collapseCategoryWithUnreads'
     | 'oneClickReactions'
     | 'emojiPicker'
     | 'language';
@@ -32,6 +33,7 @@ const sectionTitles: Record<DisplaySettingsSection, string> = {
     messageDisplay: 'Message Display',
     clickToReply: 'Click to open threads',
     channelDisplayMode: 'Channel Display',
+    collapseCategoryWithUnreads: 'Collapse category with unread channels',
     oneClickReactions: 'Quick reactions on messages',
     emojiPicker: 'Render emoticons as emojis',
     language: 'Language',
@@ -56,6 +58,7 @@ export default class DisplaySettings {
     readonly messageDisplayEditButton;
     readonly clickToReplyEditButton;
     readonly channelDisplayModeEditButton;
+    readonly collapseCategoryWithUnreadsEditButton;
     readonly oneClickReactionsEditButton;
     readonly emojiPickerEditButton;
     readonly languageEditButton;
@@ -78,6 +81,7 @@ export default class DisplaySettings {
         this.messageDisplayEditButton = container.locator('#message_displayEdit');
         this.clickToReplyEditButton = container.locator('#click_to_replyEdit');
         this.channelDisplayModeEditButton = container.locator('#channel_display_modeEdit');
+        this.collapseCategoryWithUnreadsEditButton = container.locator('#collapse_category_with_unreadsEdit');
         this.oneClickReactionsEditButton = container.locator('#one_click_reactions_enabledEdit');
         this.emojiPickerEditButton = container.locator('#renderEmoticonsAsEmojiEdit');
         this.languageEditButton = container.locator('#languagesEdit');

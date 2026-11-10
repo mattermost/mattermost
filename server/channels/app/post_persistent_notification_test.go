@@ -4,12 +4,14 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -449,7 +451,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
@@ -501,7 +503,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		// Make the bot a system admin so it can post to channels it's not a member of
@@ -537,5 +539,211 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 			require.NotNil(c, persistentPostNotification)
 			assert.Greater(c, persistentPostNotification.SentCount, int16(0))
 		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+
+func TestSendPersistentNotificationsFileMetadataABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	runCase := func(t *testing.T, allowed bool) *model.Post {
+		t.Helper()
+
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       th.BasicUser.Id,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "notification-secret.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			FileIds:   model.StringArray{file.Id},
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			// Simulate old timestamp so persistent notifications are sent right away
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser2.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPersistentNotificationTriggered})
+		defer closeWS()
+
+		var received *model.WebSocketEvent
+		for range 10 {
+			require.NoError(t, th.App.SendPersistentNotifications())
+
+			select {
+			case msg := <-messages:
+				received = msg
+			case <-time.After(2 * time.Second):
+			}
+
+			if received != nil {
+				break
+			}
+		}
+		require.NotNil(t, received, "expected a persistent_notification_triggered event")
+
+		postJSON, ok := received.GetData()["post"].(string)
+		require.True(t, ok)
+
+		var notifiedPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(postJSON), &notifiedPost))
+		return &notifiedPost
+	}
+
+	t.Run("file metadata is stripped when the policy denies the download action", func(t *testing.T) {
+		notifiedPost := runCase(t, false)
+
+		assert.Empty(t, notifiedPost.FileIds, "file ids should be stripped")
+		require.NotNil(t, notifiedPost.Metadata)
+		assert.Empty(t, notifiedPost.Metadata.Files, "file metadata should be stripped")
+		assert.Equal(t, 1, notifiedPost.Metadata.RedactedFileCount)
+	})
+
+	t.Run("file metadata is delivered when the policy allows the download action", func(t *testing.T) {
+		notifiedPost := runCase(t, true)
+
+		assert.Len(t, notifiedPost.FileIds, 1)
+		require.NotNil(t, notifiedPost.Metadata)
+		require.Len(t, notifiedPost.Metadata.Files, 1)
+		assert.Equal(t, 0, notifiedPost.Metadata.RedactedFileCount)
+	})
+}
+
+func TestSendPersistentNotificationsFileHintsABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	runCase := func(t *testing.T, allowed bool) *model.WebSocketEvent {
+		t.Helper()
+
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       th.BasicUser.Id,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "notification-secret-hint.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			FileIds:   model.StringArray{file.Id},
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+			// Simulate old timestamp so persistent notifications are sent right away
+			CreateAt: time.Now().Add(-5 * time.Minute).UnixMilli(),
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser2.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPersistentNotificationTriggered})
+		defer closeWS()
+
+		var received *model.WebSocketEvent
+		for range 10 {
+			require.NoError(t, th.App.SendPersistentNotifications())
+
+			select {
+			case msg := <-messages:
+				received = msg
+			case <-time.After(2 * time.Second):
+			}
+
+			if received != nil {
+				break
+			}
+		}
+		require.NotNil(t, received, "expected a persistent_notification_triggered event")
+		return received
+	}
+
+	t.Run("otherFile/image hints are withheld when the policy denies the download action", func(t *testing.T) {
+		received := runCase(t, false)
+
+		assert.Nil(t, received.GetData()["otherFile"], "otherFile hint should not be disclosed to a denied recipient")
+		assert.Nil(t, received.GetData()["image"], "image hint should not be disclosed to a denied recipient")
+	})
+
+	t.Run("otherFile/image hints are delivered when the policy allows the download action", func(t *testing.T) {
+		received := runCase(t, true)
+
+		assert.Equal(t, "true", received.GetData()["otherFile"], "otherFile hint should still be sent to an allowed recipient")
+		assert.Equal(t, "true", received.GetData()["image"], "image hint should still be sent to an allowed recipient")
 	})
 }

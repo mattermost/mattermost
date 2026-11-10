@@ -1,26 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DroppableProvided, DropResult} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {DockLeftIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import Scrollbars from 'components/common/scrollbars';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import AddTeamButton from 'components/team_sidebar/components/add_team_button';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
 import WebSocketClient from 'client/web_websocket_client';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
+import {isBackstagePath} from 'utils/path';
 import {getCurrentProduct, getTeamScopedProductURL, isTeamScopedProduct} from 'utils/products';
 import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 import * as Utils from 'utils/utils';
@@ -201,7 +205,12 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
     render() {
         const {intl} = this.props;
         const root: Element | null = document.querySelector('#root');
-        if (this.props.myTeams.length <= 1) {
+
+        // Backstage pages leave the rail out, and its team menu with it.
+        const productRailShown = this.props.isProductRailShown && !isBackstagePath(this.props.location.pathname);
+
+        // The product rail's team menu stands in for a hidden team sidebar.
+        if (this.props.myTeams.length <= 1 || (this.props.isHiddenByProductRail && productRailShown)) {
             root!.classList.remove('multi-teams');
             return null;
         }
@@ -211,7 +220,10 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
         const sortedTeams = filterAndSortTeamsByDisplayName(this.props.myTeams, this.props.locale, this.props.userTeamsOrderPreference);
 
         const currentProduct = getCurrentProduct(this.props.products, this.props.location.pathname);
-        if (currentProduct && !currentProduct.showTeamSidebar) {
+
+        // The rail keeps a team selected in every product, global ones (like Agents) included, so with
+        // it on screen the team sidebar stays too.
+        if (currentProduct && !currentProduct.showTeamSidebar && !productRailShown) {
             return null;
         }
 
@@ -240,18 +252,9 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
 
         const joinableTeams = [];
 
-        const plusIcon = (
-            <i
-                className='icon icon-plus'
-                role={'img'}
-                aria-label={intl.formatMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
-            />
-        );
-
         if (this.props.moreTeamsToJoin && !this.props.experimentalPrimaryTeam) {
             joinableTeams.push(
-                <TeamButton
-                    btnClass='team-btn__add'
+                <AddTeamButton
                     key='more_teams'
                     url='/select_team'
                     tip={
@@ -260,12 +263,11 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                             defaultMessage='Other teams you can join'
                         />
                     }
-                    content={plusIcon}
-                    switchTeam={this.props.actions.switchTeam}
-                    displayName={intl.formatMessage({
+                    label={intl.formatMessage({
                         id: 'team_sidebar.join',
                         defaultMessage: 'Other teams you can join',
                     })}
+                    switchTeam={this.props.actions.switchTeam}
                 />,
             );
         } else {
@@ -274,8 +276,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     permissions={[Permissions.CREATE_TEAM]}
                     key='more_teams'
                 >
-                    <TeamButton
-                        btnClass='team-btn__add'
+                    <AddTeamButton
                         url='/create_team'
                         tip={
                             <FormattedMessage
@@ -283,12 +284,11 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                                 defaultMessage='Create a Team'
                             />
                         }
-                        content={plusIcon}
-                        switchTeam={this.props.actions.switchTeam}
-                        displayName={intl.formatMessage({
+                        label={intl.formatMessage({
                             id: 'navbar_dropdown.create',
                             defaultMessage: 'Create a Team',
                         })}
+                        switchTeam={this.props.actions.switchTeam}
                     />
                 </SystemPermissionGate>,
             );
@@ -304,6 +304,28 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                 >
                     <Pluggable pluggableName='BottomTeamSidebar'/>
                 </div>,
+            );
+        }
+
+        // Not on mobile, where the rail (and the team menu that would bring the sidebar back) is hidden.
+        let hideButton;
+        if (productRailShown) {
+            const hideLabel = intl.formatMessage({
+                id: 'team_sidebar.hide',
+                defaultMessage: 'Hide team sidebar',
+                description: 'Tooltip and accessible name of the button at the bottom of the team sidebar that hides it. The teams then move into a menu at the top of the product navigation rail.',
+            });
+            hideButton = (
+                <WithTooltip title={hideLabel}>
+                    <button
+                        type='button'
+                        className='team-sidebar__hide'
+                        aria-label={hideLabel}
+                        onClick={() => this.props.actions.setTeamSidebarHidden(true)}
+                    >
+                        <DockLeftIcon size={20}/>
+                    </button>
+                </WithTooltip>
             );
         }
 
@@ -342,6 +364,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     </div>
                 </Scrollbars>
                 {plugins}
+                {hideButton}
             </div>
         );
     }

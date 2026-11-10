@@ -49,9 +49,16 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	}
 
 	hooks.OnPluginClusterEvent(&plugin.Context{}, model.PluginClusterEvent{
-		Id:   eventID,
-		Data: msg.Data,
+		Id:       eventID,
+		Data:     msg.Data,
+		SourceId: msg.Props["SourceID"],
 	})
+}
+
+func (s *Server) clusterSharedChannelSyncTaskHandler(msg *model.ClusterMessage) {
+	if scs := s.GetSharedChannelSyncService(); scs != nil {
+		scs.HandleClusterSyncTask(msg)
+	}
 }
 
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
@@ -63,6 +70,7 @@ func (s *Server) registerClusterHandlers() {
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 	s.platform.RegisterClusterMessageHandler(clusterEventInvalidateChannelGuardCache, s.Channels().clusterInvalidateGuardCacheHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventSharedChannelSyncTask, s.clusterSharedChannelSyncTaskHandler)
 
 	s.platform.RegisterClusterHandlers()
 }

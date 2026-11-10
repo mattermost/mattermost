@@ -6,7 +6,8 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -29,7 +30,7 @@ describe('components/ChannelHeader', () => {
         currentUser: TestHelper.getUserMock({}),
         isCustomStatusEnabled: false,
         isCustomStatusExpired: false,
-        isFileAttachmentsEnabled: true,
+        canSearchFiles: true,
         lastActivityTimestamp: 1632146562846,
         isLastActiveEnabled: true,
         memberCount: 2,
@@ -50,6 +51,7 @@ describe('components/ChannelHeader', () => {
 
         isChannelAutotranslated: false,
         hasPendingJoinRequests: false,
+        channelKind: 'channel' as const,
     };
 
     const populatedProps = {
@@ -188,11 +190,15 @@ describe('components/ChannelHeader', () => {
         const props = {
             ...populatedProps,
             rhsState: RHSStates.PIN,
+            pinnedPostsCount: 2,
         };
 
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderPinButton')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
+        expect(container.querySelector('#member_rhs')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
     });
 
@@ -206,6 +212,8 @@ describe('components/ChannelHeader', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderFilesButton')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#member_rhs')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
     });
 
@@ -219,7 +227,33 @@ describe('components/ChannelHeader', () => {
         const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render active channel members', () => {
+        const props = {
+            ...populatedProps,
+            rhsState: RHSStates.CHANNEL_MEMBERS,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(container.querySelector('#member_rhs')).toHaveAttribute('data-active', 'true');
+        expect(container.querySelector('#channelHeaderFilesButton')).not.toHaveAttribute('data-active');
+    });
+
+    test('should not render the channel files button when file search is disabled', () => {
+        const props = {
+            ...populatedProps,
+            canSearchFiles: false,
+        };
+
+        renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(document.getElementById('channelHeaderFilesButton')).not.toBeInTheDocument();
     });
 
     test('should render active flagged posts', () => {
@@ -363,5 +397,24 @@ describe('components/ChannelHeader', () => {
             <ChannelHeader {...props}/>,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should call a board a board', () => {
+        const props = {
+            ...populatedProps,
+            hasGuests: true,
+            channelKind: 'board' as const,
+        };
+
+        const boardState = boardChannelsState('channel_id');
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+            {plugins: {components: {CallButton: [], ...boardState.plugins?.components}}},
+        );
+
+        expect(screen.getByText('Board has guests')).toBeInTheDocument();
+        expect(screen.queryByText('Channel has guests')).not.toBeInTheDocument();
+        expect(container.querySelector('[aria-label="board header region"]')).not.toBeNull();
+        expect(container.querySelector('[aria-label="channel header region"]')).toBeNull();
     });
 });

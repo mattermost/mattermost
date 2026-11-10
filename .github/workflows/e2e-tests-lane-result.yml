@@ -1,0 +1,240 @@
+---
+name: E2E Tests - Lane Result (status, triage, webhook, gate)
+
+# What a lane reports once its workers have finished: its owned commit status, triage of a
+# red run, the cross-lane summary refresh, the report webhook, and the lane's pass/fail gate.
+# Cypress and Playwright templates call this last, under the SHA-scoped publication lock that
+# every status writer shares. The lane list lives in .github/e2e-status-lanes.json.
+#
+# Nesting: caller workflow -> lane template -> this workflow. Do not add a further level below it.
+
+on:
+  workflow_call:
+    inputs:
+      composite_identity_json:
+        description: Composite identity from prepare-run (TSIO identity, run and attempt)
+        type: string
+        required: true
+      context_name:
+        description: Commit-status context of the lane
+        type: string
+        required: true
+      commit_sha:
+        description: Tested commit; the publication lock is keyed on it
+        type: string
+        required: true
+      execution_success:
+        description: True only when preparation, dispatch and every worker succeeded
+        type: boolean
+        required: true
+      summary_ok:
+        description: True when the TSIO summary step succeeded
+        type: boolean
+        required: true
+      description:
+        description: Commit-status description from the TSIO summary (empty for a fallback)
+        type: string
+        required: false
+        default: ""
+      report_url:
+        description: Test System IO report URL for the run
+        type: string
+        required: false
+        default: ""
+      test_root:
+        description: Where the lane's specs live, relative to the repository root
+        type: string
+        required: true
+      history_lane:
+        description: Lane whose history the run is judged against; empty for the run's own lane
+        type: string
+        required: false
+        default: ""
+      support_paths:
+        description: Comma-separated directories of the code the specs run through (page objects, support commands, fixtures); empty turns triage's support-code check off
+        type: string
+        required: false
+        default: ""
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
+      webhook_payload:
+        description: Webhook payload from the TSIO summary
+        type: string
+        required: false
+        default: ""
+    secrets:
+      ANTHROPIC_API_KEY:
+        description: Optional; enables the second judge in E2E triage
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+
+# Callers must grant: contents: read, statuses: write, pull-requests: read
+permissions: {}
+
+jobs:
+  lane-result:
+    # Commit statuses are SHA-scoped. Every writer (claim, this result, the aggregate snapshot)
+    # holds this same lock; queued publishers are never discarded.
+    concurrency:
+      group: e2e-status-publish-${{ inputs.commit_sha }}
+      cancel-in-progress: false
+      queue: max
+    runs-on: ubuntu-24.04
+    # Holds the SHA-scoped lock through triage: a 60 s report wait, then up to 3 x 180 s per judge call
+    # (judge.ts); more failures mean more calls. A timeout cancels the job and the lane fails closed.
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      statuses: write
+      # Triage reads the PR's changed files to tell a spec it edits from one it does not.
+      pull-requests: read
+      # Triage reads the run's failed jobs to decide whether an infra-only failure is re-run.
+      actions: read
+    steps:
+      # The lane list and the reader come from this workflow's own ref (github.sha), the tree the YAML
+      # runs from. Never from the tested commit: a commit may predate the file (release cuts).
+      - name: ci/checkout-trusted-lanes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          sparse-checkout: .github
+          path: .e2e-trusted
+          fetch-depth: 1
+      - name: ci/status-lanes
+        id: lanes
+        uses: ./.e2e-trusted/.github/actions/e2e-status-lanes
+        with:
+          context-name: ${{ inputs.context_name }}
+      - name: ci/publish-result
+        id: result
+        # The diagnostic summary runs even on cancellation. A cancelled lane
+        # must leave its current pending status (or a newer owner's result) alone.
+        if: ${{ !cancelled() }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
+        with:
+          composite-identity: ${{ inputs.composite_identity_json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ inputs.summary_ok && 'success' || 'failure' }}
+          verify-reports: "true"
+          execution-success: ${{ inputs.execution_success }}
+          # Starts after the workers finish, but reports can still land late: poll three times, 20 s apart,
+          # so a clean lane isn't marked incomplete.
+          report-wait-seconds: "60"
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          description: ${{ inputs.description || 'E2E results unavailable or incomplete; triage is checking why' }}
+          target-url: ${{ inputs.report_url }}
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
+      # Answers from earlier runs on the same PR (the same commit on master), so a
+      # re-run does not pay for the same question twice. The file also keeps this
+      # lane's AI spend on the PR, for the per-PR budget (pr-budget-usd, $2 by
+      # default, split between the lanes). Restore and save are separate steps:
+      # the cache action saves only when the job succeeds, and a red run is the
+      # one most likely to be re-run.
+      - name: Restore triage answers
+        if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
+        continue-on-error: true
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-
+      - name: ci/e2e-triage
+        id: triage
+        # Runs on master as well as on PRs. On master the question changes from
+        # "is this the PR's fault" to "is master noisy or actually broken", and
+        # only intermittency clears a failure: a test that failed in the previous
+        # master run too is a streak, not a flake, and stays red. A master run has
+        # no PR to comment on, so the story lands in the job summary.
+        #
+        # Only a red run is worth triaging: the verdict can turn a red run green
+        # and never the other way round, so on a green one there is nothing for
+        # it to change.
+        if: ${{ !cancelled() && steps.result.outputs.state != 'success' }}
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-triage@main # actions/e2e-test-triage
+        with:
+          composite-identity: ${{ inputs.composite_identity_json }}
+          status-context: ${{ inputs.context_name }}
+          # Only the PR lanes listed in e2e-status-lanes.json share an aggregate. Other
+          # editions and trunk contexts get an empty value here and use the action's
+          # default per-lane triage check.
+          triage-status-context: ${{ steps.lanes.outputs.triage-context }}
+          triage-lanes: ${{ steps.lanes.outputs.triage-lanes }}
+          test-root: ${{ inputs.test_root }}
+          history-lane: ${{ inputs.history_lane }}
+          # A failure in an unchanged spec is "merge master" when master changed the code it runs through.
+          support-paths: ${{ inputs.support_paths }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Enforce by default, on every red lane: a lane whose every failure is cleared turns green, and a
+          # lane red outside its tests (a dead worker, missing reports, no results) gets a verdict of its own:
+          # green only when TSIO's orchestration shows every dispatched spec ran and passed (a no-work exit
+          # cannot stand in for a spec there), otherwise red with whose fault it is and what to do.
+          # E2E_TRIAGE_MODE=report-only turns enforcement off without a code change.
+          # A manual re-run of failed jobs keeps prepare-run's identity, so the lane reads the first attempt's TSIO
+          # run. A retried worker that finds no work records a no-work exit, so that run can read complete with a
+          # report still missing. That attempt is report-only: triage still writes its verdict on the red check,
+          # but the lane passes only on the raw result. A re-run triage asks for starts from prepare-run, so it
+          # has an identity of its own and enforces.
+          mode: ${{ fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
+          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          answers-cache: e2e-triage-answers.json
+          # A lane red only on a machine failure asks for one automatic re-run; e2e-tests-rerun.yml carries
+          # it out once the run finishes. A lane whose TSIO run began is re-run from prepare-run, so it gets
+          # a new TSIO run: re-running only its failed jobs would find the old one closed.
+          rerun-attempts: "1"
+          lane-start-job: prepare-run
+      - name: Save triage answers
+        if: always() && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
+        continue-on-error: true
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: e2e-triage-answers.json
+          key: e2e-triage-answers-${{ inputs.context_name }}-${{ fromJSON(inputs.composite_identity_json).gh_pr_number && format('pr{0}', fromJSON(inputs.composite_identity_json).gh_pr_number) || fromJSON(inputs.composite_identity_json).commit_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: ci/refresh-lane-summary
+        if: ${{ !cancelled() }}
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-status@main  # actions/e2e-test-status
+        with:
+          composite-identity: ${{ inputs.composite_identity_json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: refresh
+          triage-status-context: ${{ steps.lanes.outputs.aggregate }}
+          triage-lanes: ${{ steps.lanes.outputs.lanes }}
+      - name: ci/publish-webhook
+        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        env:
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          PAYLOAD: ${{ inputs.webhook_payload }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$REPORT_WEBHOOK_URL"
+      - name: ci/assert-results
+        env:
+          EXECUTION_SUCCESS: ${{ inputs.execution_success }}
+          REPORTS_COMPLETE: ${{ steps.result.outputs.reports-complete }}
+          RAW_STATE: ${{ steps.result.outputs.state }}
+          TRIAGE_VERDICT: ${{ steps.triage.outputs.verdict }}
+          TRIAGE_OUTCOME: ${{ steps.triage.outcome }}
+          TRIAGE_PUBLISHED: ${{ steps.triage.outputs.published }}
+          TRIAGE_MODE: ${{ steps.triage.outputs.effective-mode }}
+          TRIAGE_BASIS: ${{ steps.triage.outputs.basis }}
+        run: |
+          triage_green() {
+            [ "$TRIAGE_OUTCOME" = "success" ] && [ "$TRIAGE_PUBLISHED" = "true" ] &&
+              [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]
+          }
+          if [ "$EXECUTION_SUCCESS" = "true" ] && [ "$REPORTS_COMPLETE" = "true" ]; then
+            [ "$RAW_STATE" = "success" ] && exit 0
+            triage_green
+            exit
+          fi
+          # A job outside the tests failed, or a report never arrived. Only TSIO's orchestration can
+          # vouch for the lane then: triage turns it green only when every dispatched spec ran and passed
+          # there (basis "orchestration"). The model never clears missing results.
+          triage_green && [ "$TRIAGE_BASIS" = "orchestration" ]

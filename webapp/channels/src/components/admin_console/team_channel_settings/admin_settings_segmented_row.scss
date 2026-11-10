@@ -1,0 +1,65 @@
+.AdminSettingsSegmentedRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    &__text {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__title {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    &__description {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__segments {
+        display: inline-flex;
+        flex-shrink: 0;
+        padding: 4px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 8px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__segment {
+        padding: 4px 12px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 20px;
+
+        &:hover:not(:disabled):not(.AdminSettingsSegmentedRow__segment--active) {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            color: var(--center-channel-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        &--active {
+            background: var(--center-channel-bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+}

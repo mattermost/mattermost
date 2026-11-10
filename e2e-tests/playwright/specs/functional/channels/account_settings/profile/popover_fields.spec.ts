@@ -90,11 +90,12 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     // 6. Close the other user's profile popover
     await otherUserProfilePopover.close();
 
-    // 7. Start typing an at-mention to trigger autocomplete suggestion
-    await channelsPage.centerView.postCreate.writeMessage(`@${user.username}`);
+    // # Type an at-mention so autocomplete searches on each keystroke
+    await channelsPage.centerView.postCreate.typeMessage(`@${user.username}`);
 
     // * Verify autocomplete suggestion appears
     const suggestionList = channelsPage.centerView.postCreate.suggestionList;
+    await expect(suggestionList).toBeVisible();
     await expect(suggestionList.getByText(`@${user.username}`)).toBeVisible();
 
     // 8. Clear the message box and wait for the autocomplete overlay to fully

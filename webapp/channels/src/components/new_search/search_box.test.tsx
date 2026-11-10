@@ -6,10 +6,12 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 
 import {
+    act,
     renderWithContext,
     screen,
     userEvent,
 } from 'tests/react_testing_utils';
+import {ActionTypes} from 'utils/constants';
 
 import SearchBox from './search_box';
 
@@ -24,26 +26,28 @@ describe('components/new_search/SearchBox', () => {
         myTeams: [{id: 'team1', name: 'team1', display_name: 'Team 1', description: ''}] as Team[],
     };
 
+    const fileSearchEnabledState = {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}}};
+
     test('should have the focus on the input field', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Search messages')).toHaveFocus();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toHaveFocus();
     });
 
     test('should have set the initial search terms', () => {
         const props = {...baseProps, initialSearchTerms: 'test'};
         renderWithContext(<SearchBox {...props}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test');
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toHaveValue('test');
     });
 
     test('should have the focus on the input field after switching search type', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
-        expect(screen.getByPlaceholderText('Search files')).toHaveFocus();
+        expect(screen.getByPlaceholderText('Search files by keyword')).toHaveFocus();
     });
 
     test('should see files hints when i click on files', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         expect(screen.getByText('From:')).toBeInTheDocument();
         expect(screen.queryByText('Ext:')).not.toBeInTheDocument();
         await userEvent.click(screen.getByText('Files'));
@@ -52,7 +56,7 @@ describe('components/new_search/SearchBox', () => {
 
     test('should call close on esc keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Escape}');
         expect(baseProps.onClose).toHaveBeenCalledTimes(1);
@@ -60,16 +64,16 @@ describe('components/new_search/SearchBox', () => {
 
     test('should call search on enter keydown', async () => {
         renderWithContext(<SearchBox {...baseProps}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Enter}');
         expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
     });
 
     test('should be able to select with the up and down arrows', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...baseProps}/>, fileSearchEnabledState);
         await userEvent.click(screen.getByText('Files'));
-        await userEvent.type(screen.getByPlaceholderText('Search files'), 'ext:');
+        await userEvent.type(screen.getByPlaceholderText('Search files by keyword'), 'ext:');
         expect(screen.getByText('Text file')).toHaveClass('selected');
         expect(screen.getByText('Word Document')).not.toHaveClass('selected');
         await userEvent.keyboard('{ArrowDown}');
@@ -118,5 +122,73 @@ describe('components/new_search/SearchBox', () => {
         // The select team dropdown should not be visible
         const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
         expect(teamSelector).not.toBeInTheDocument();
+    });
+
+    describe('default search type', () => {
+        const pluginState = (priority?: number) => ({
+            plugins: {
+                components: {
+                    SearchButtons: [{id: 'ai', pluginId: 'ai-plugin', component: (() => <span>{'Ask AI'}</span>) as React.ComponentType, action: jest.fn(), priority}],
+                    SearchSuggestions: [],
+                    SearchHints: [],
+                },
+            },
+            entities: {general: {license: {IsLicensed: 'true'}}},
+        });
+
+        test.each([
+            {name: 'opens on the prioritized plugin type when no type is set', initialSearchType: '', priority: 10, expected: 'ai-plugin'},
+            {name: 'opens on messages when the plugin has no priority', initialSearchType: '', priority: undefined, expected: 'messages'},
+            {name: 'keeps an explicit keyword type', initialSearchType: 'messages', priority: 10, expected: 'messages'},
+            {name: 'falls back to the default when the saved plugin type is gone', initialSearchType: 'removed-plugin', priority: 10, expected: 'ai-plugin'},
+        ])('$name', async ({initialSearchType, priority, expected}) => {
+            const onSearch = jest.fn();
+            renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType={initialSearchType}
+                />,
+                pluginState(priority),
+            );
+
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith(expected, 'teamId', '');
+        });
+
+        test('falls back to messages when the selected plugin type is unregistered while open', async () => {
+            const onSearch = jest.fn();
+            const {store} = renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType=''
+                />,
+                pluginState(10),
+            );
+            expect(screen.getByText('Ask AI')).toBeInTheDocument();
+
+            act(() => {
+                store.dispatch({type: ActionTypes.REMOVED_PLUGIN_COMPONENT, id: 'ai'});
+            });
+
+            expect(screen.queryByText('Ask AI')).not.toBeInTheDocument();
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith('messages', 'teamId', '');
+        });
+
+        test('opens on messages when no plugin search type is registered', async () => {
+            const onSearch = jest.fn();
+            renderWithContext(
+                <SearchBox
+                    {...baseProps}
+                    onSearch={onSearch}
+                    initialSearchType=''
+                />,
+            );
+
+            await userEvent.keyboard('{Enter}');
+            expect(onSearch).toHaveBeenCalledWith('messages', 'teamId', '');
+        });
     });
 });

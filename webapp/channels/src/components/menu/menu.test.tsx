@@ -6,6 +6,8 @@ import React, {useState} from 'react';
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 
+import ModalController from 'components/modal_controller';
+
 import {
     renderWithContext,
     screen,
@@ -13,6 +15,7 @@ import {
     waitFor,
     waitForElementToBeRemoved,
 } from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 
 import {Menu} from './menu';
 import {MenuItem} from './menu_item';
@@ -263,6 +266,77 @@ function OtherMenuItem(props: any) {
         />
     );
 }
+
+/**
+ * In mobile view the menu renders as a modal with no MenuContext, so it can only dismiss
+ * once the click bubbles up to the list wrapping the menu items. Items that opt out of
+ * closing rely on that same mechanism by stopping propagation.
+ */
+describe('Menu in mobile view', () => {
+    const mobileState = {
+        views: {
+            browser: {
+                windowSize: WindowSizes.MOBILE_VIEW,
+            },
+        },
+    };
+
+    const onItemClick = jest.fn();
+
+    beforeEach(() => {
+        onItemClick.mockReset();
+    });
+
+    function MobileMenu({disableCloseOnSelect}: {disableCloseOnSelect?: boolean}) {
+        return (
+            <>
+                <Menu
+                    menu={{id: 'Menu'}}
+                    menuButton={{
+                        id: 'Menu-Button',
+                        'aria-label': 'mobile menu button',
+                        children: <DotsVerticalIcon size={16}/>,
+                    }}
+                >
+                    <MenuItem
+                        labels={<span>{'Item 1'}</span>}
+                        disableCloseOnSelect={disableCloseOnSelect}
+                        onClick={onItemClick}
+                    />
+                </Menu>
+                <ModalController/>
+            </>
+        );
+    }
+
+    function menuModal() {
+        return document.querySelector('.modal-dialog.menuModal');
+    }
+
+    test('opens as a modal and closes when a menu item is selected', async () => {
+        renderWithContext(<MobileMenu/>, mobileState);
+
+        await userEvent.click(screen.getByLabelText('mobile menu button'));
+
+        expect(menuModal()).toBeVisible();
+
+        await userEvent.click(screen.getByText('Item 1'));
+
+        expect(onItemClick).toHaveBeenCalledTimes(1);
+        expect(menuModal()).toBeNull();
+    });
+
+    test('stays open when a menu item opts out of closing on select', async () => {
+        renderWithContext(<MobileMenu disableCloseOnSelect={true}/>, mobileState);
+
+        await userEvent.click(screen.getByLabelText('mobile menu button'));
+
+        await userEvent.click(screen.getByText('Item 1'));
+
+        expect(onItemClick).toHaveBeenCalledTimes(1);
+        expect(menuModal()).toBeVisible();
+    });
+});
 
 /**
  * isMenuOpen control transition matrix.

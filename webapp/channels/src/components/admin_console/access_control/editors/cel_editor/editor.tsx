@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import * as monaco from 'monaco-editor';
-import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
+import React, {useCallback, useEffect, useRef, useState, useMemo, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult, CELExpressionError} from '@mattermost/types/access_control';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,8 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {MonacoLanguageProvider} from './language_provider';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import TestResultsModal from '../../modals/policy_test/test_modal';
-import {TestButton, HelpText} from '../shared';
+import {TestButton, TestResults, HelpText} from '../shared';
 
 import './editor.scss';
 
@@ -68,14 +66,23 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     wrappingIndent: 'none',
     wrappingStrategy: 'advanced',
     contextmenu: false,
+
+    // Monaco 0.55+ defaults to Chrome's EditContext API, whose textupdate events React does not treat
+    // as discrete, so state updates from typing are deferred. The effect syncing editorState.expression
+    // back into Monaco then runs with a stale value and calls setValue mid-typing, resetting the cursor
+    // and scrambling input on slower machines. The textarea input path keeps those updates synchronous.
+    editContext: false,
 };
 
 type CELUserAttribute = {
-    attribute: string;
+
+    // Plugins may pass incomplete proxy rows; the host helper
+    // toCELEditorAttributes does not always run first.
+    attribute?: string | null;
     values: string[];
 
     // 'session' marks a user.session.* attribute; 'user' marks a user.* /
-    // user.attributes.* attribute. Always populated by toCELEditorAttributes.
+    // user.attributes.* attribute. Plugin proxies may omit this.
     objectType?: string;
 
     // Native user attributes (e.g. user.email) complete directly off `user.`
@@ -88,9 +95,12 @@ type CELUserAttribute = {
 // offered under user.session.* — the session bucket only appears when present.
 // Native attributes (isNative) complete directly off user.* (e.g. user.email).
 export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
+    // Skip null/undefined/invalid names. Plugin proxies may pass incomplete
+    // rows that never went through toCELEditorAttributes; name.includes would
+    // throw during render.
     const cleanNames = (attrs: CELUserAttribute[]) => attrs.
         map((attr) => attr.attribute).
-        filter((name) => !name.includes(' ') && name.trim() !== '');
+        filter((name): name is string => typeof name === 'string' && !name.includes(' ') && name.trim() !== '');
     const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
     const userAttrs = userAttributes.filter((attr) => !attr.objectType || attr.objectType === USER_OBJECT_TYPE);
     const nativeNames = cleanNames(userAttrs.filter((attr) => attr.isNative));
@@ -116,8 +126,9 @@ export interface CELEditorActions {
     /** Overrides Client4.checkAccessControlExpression. */
     checkExpression?: (expression: string) => Promise<CELExpressionError[]>;
 
-    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
-    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal.
+     *  Receives the test modal's chosen channel id as the trailing arg. */
+    searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
 }
 
 export interface CELEditorProps {
@@ -130,6 +141,17 @@ export interface CELEditorProps {
     teamId?: string;
     disabled?: boolean;
     userAttributes: CELUserAttribute[];
+
+    /**
+     * Channel-object-type attributes exposed as the resource.attributes.*
+     * autocomplete root, letting a policy compare the requesting user against
+     * the accessed channel (e.g. user.attributes.clearance >=
+     * resource.attributes.minClearance). Empty for editors with no channel
+     * fields in scope (e.g. team policies), which then get no resource root.
+     */
+    resourceAttributes?: Array<{
+        attribute: string;
+    }>;
 
     /**
      * When provided, the built-in expression-only TestResultsModal is
@@ -161,6 +183,7 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    resourceAttributes = [],
     onTestClick,
     testButtonLabel,
     hasMaskedRows = false,
@@ -181,6 +204,15 @@ function CELEditor({
 
     const schemas = buildCELSchemas(userAttributes);
 
+    // Only declare the resource.attributes.* root when channel fields are in
+    // scope, so editors that can't reference a resource (e.g. team policies)
+    // don't offer an empty root.
+    if (resourceAttributes.length > 0) {
+        const validName = (attr: string) => !attr.includes(' ') && attr.trim() !== '';
+        schemas.resource = ['attributes'];
+        schemas['resource.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
+    }
+
     const injectedCheckExpression = actions?.checkExpression;
 
     const editorRef = useRef(null);
@@ -188,10 +220,10 @@ function CELEditor({
     const [showHelpModal, setShowHelpModal] = useState(false);
 
     // Store the handleChange callback in a ref to avoid recreating the editor
-    const handleChangeRef = useRef<(value: string) => void>();
+    const handleChangeRef = useRef<(value: string) => void>(undefined);
 
     // Store the validateSyntax callback in a ref to avoid recreating debounced function
-    const validateSyntaxRef = useRef<(expression: string) => Promise<void>>();
+    const validateSyntaxRef = useRef<(expression: string) => Promise<void>>(undefined);
 
     useEffect(() => {
         setEditorState((prev) => ({...prev, expression: value}));
@@ -294,7 +326,10 @@ function CELEditor({
         }
 
         // Create the editor instance
-        const editor = monaco.editor.create(editorRef.current, MONACO_EDITOR_OPTIONS);
+        const editor = monaco.editor.create(editorRef.current, {
+            ...MONACO_EDITOR_OPTIONS,
+            ariaLabel: intl.formatMessage({id: 'admin.access_control.cel.editor_aria_label', defaultMessage: 'CEL expression editor'}),
+        });
         monacoRef.current = editor;
 
         // Set the initial value from the expression state
@@ -446,7 +481,11 @@ function CELEditor({
                     style={{backgroundColor: editorState.statusBarColor}}
                     data-validation-state={getValidationState()}
                 >
-                    <div className='cel-editor__status-message'>
+                    <div
+                        className='cel-editor__status-message'
+                        role='status'
+                        aria-live='polite'
+                    >
                         {renderStatusMessage(getValidationState())}
                     </div>
                     <div className='cel-editor__cursor-position'>
@@ -478,39 +517,34 @@ function CELEditor({
                         />
                     </div>
                 </div>
-                <TestButton
-                    onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
-                    label={testButtonLabel}
-                    disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                    disabledTooltip={
-                        hasMaskedRows ?
-                            intl.formatMessage({
+                <div className='access-control-test-controls'>
+                    <TestButton
+                        onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
+                        label={testButtonLabel}
+                        disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                        disabledTooltip={
+                            hasMaskedRows ? intl.formatMessage({
                                 id: 'admin.access_control.cel_editor.masked_values_tooltip',
                                 defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                            }) :
-                            undefined
-                    }
-                />
+                            }) : undefined
+                        }
+                    />
+                </div>
             </div>
             {/* Built-in expression-only modal. Suppressed when the
               * parent provided an `onTestClick` override (used by the
               * permission-rule editor, which renders its own dual-lane
-              * SimulateAccessModal). */}
+              * SimulateAccessModal). With no channelId, a resource.attributes.*
+              * rule gets a channel-picker step inside the modal before the
+              * members list. */}
             {!onTestClick && editorState.showTestResults && (
-                <TestResultsModal
-                    onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                <TestResults
+                    expression={editorState.expression}
+                    channelId={channelId}
+                    teamId={teamId}
                     isStacked={true}
-                    actions={{
-                        openModal: () => {},
-                        searchUsers: (term: string, after: string, limit: number) => {
-                            if (actions?.searchUsers) {
-                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
-                                const search = actions.searchUsers;
-                                return () => search(editorState.expression, term, after, limit);
-                            }
-                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId, teamId);
-                        },
-                    }}
+                    onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                    searchUsers={actions?.searchUsers}
                 />
             )}
             {showHelpModal && (

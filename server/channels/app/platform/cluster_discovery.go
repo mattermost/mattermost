@@ -75,3 +75,19 @@ func (ps *PlatformService) GetClusterId() string {
 
 	return ps.Cluster().GetClusterId()
 }
+
+// ClusterNodeID returns this node's cluster ID once it has joined the cluster,
+// or "" otherwise. Unlike GetClusterId it is empty when clustering is disabled,
+// unlicensed or hasn't started, since Enterprise builds always register a
+// cluster implementation with an ID.
+func (ps *PlatformService) ClusterNodeID() string {
+	cluster := ps.Cluster()
+	if cluster == nil {
+		return ""
+	}
+	info := cluster.GetMyClusterInfo()
+	if info == nil {
+		return ""
+	}
+	return info.Id
+}

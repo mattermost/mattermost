@@ -85,6 +85,8 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 func TestRunSearchEngineWatcher(t *testing.T) {
 	t.Run("retries Start on failure then transitions to health phase", func(t *testing.T) {
 		w, engineMock := setupWatcherTest(t)
+		var logBuffer mlog.Buffer
+		require.NoError(t, mlog.AddWriterTarget(w.ps.Logger(), &logBuffer, true, mlog.StdAll...))
 
 		engineMock.On("IsEnabled").Return(true).Maybe()
 
@@ -122,6 +124,11 @@ func TestRunSearchEngineWatcher(t *testing.T) {
 			return healthChecked.Load() == 1
 		}, 2*time.Second, 5*time.Millisecond,
 			"watcher should have transitioned to health phase after Start succeeds")
+
+		require.NoError(t, w.ps.Logger().Flush())
+		logText := logBuffer.String()
+		testlib.AssertLog(t, strings.NewReader(logText), mlog.LvlError.Name, "Search engine watcher: Start() failed, will retry")
+		testlib.AssertNoLog(t, strings.NewReader(logText), mlog.LvlWarn.Name, "Search engine watcher: Start() failed, will retry")
 	})
 
 	t.Run("exponential backoff with cap", func(t *testing.T) {
@@ -725,4 +732,98 @@ func TestWatcherHealthFlag(t *testing.T) {
 		}, 2*time.Second, 5*time.Millisecond,
 			"expected log for unhealthy->healthy transition")
 	})
+}
+
+func TestSearchEngineConnectionTested(t *testing.T) {
+	// startInBackoff starts a watcher whose engine never starts, waits for its
+	// first Start() attempt, and returns the number of attempts so far.
+	startInBackoff := func(t *testing.T) (*searchEngineWatcher, *atomic.Int32) {
+		w, engineMock := setupWatcherTest(t)
+		engineMock.On("IsEnabled").Return(true).Maybe()
+		engineMock.On("IsActive").Return(false).Maybe()
+
+		// Use a long retry so the watcher is in a backoff wait.
+		searchEngineRetryInitial = 10 * time.Second
+
+		var startCalls atomic.Int32
+		engineMock.On("Start", mock.Anything).Return(func(context.Context) *model.AppError {
+			startCalls.Add(1)
+			return model.NewAppError("test", "start_failed", nil, "", 500)
+		})
+
+		w.start()
+		t.Cleanup(w.stop)
+
+		require.Eventually(t, func() bool {
+			return startCalls.Load() >= 1
+		}, 2*time.Second, 5*time.Millisecond)
+
+		return w, &startCalls
+	}
+
+	t.Run("wakes the watcher when the saved connection was tested", func(t *testing.T) {
+		w, startCalls := startInBackoff(t)
+		before := startCalls.Load()
+
+		w.ps.SearchEngineConnectionTested(w.ps.Config().ElasticsearchSettings)
+
+		require.Eventually(t, func() bool {
+			return startCalls.Load() > before
+		}, 1*time.Second, 5*time.Millisecond,
+			"a successful test of the saved connection should trigger an immediate Start retry")
+	})
+
+	t.Run("ignores a test of another connection", func(t *testing.T) {
+		w, startCalls := startInBackoff(t)
+		before := startCalls.Load()
+
+		tested := w.ps.Config().ElasticsearchSettings
+		tested.ConnectionURL = new("http://other:9200")
+		w.ps.SearchEngineConnectionTested(tested)
+
+		require.Never(t, func() bool {
+			return startCalls.Load() > before
+		}, 200*time.Millisecond, 5*time.Millisecond)
+	})
+
+	t.Run("no-op without a watcher", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		require.NotPanics(t, func() {
+			th.Service.SearchEngineConnectionTested(th.Service.Config().ElasticsearchSettings)
+		})
+	})
+}
+
+func TestSameSearchEngineConnection(t *testing.T) {
+	saved := model.ElasticsearchSettings{}
+	saved.SetDefaults()
+	saved.Password = new("secret")
+
+	tests := map[string]struct {
+		change func(s *model.ElasticsearchSettings)
+		want   bool
+	}{
+		"identical":         {change: func(s *model.ElasticsearchSettings) {}, want: true},
+		"unrelated setting": {change: func(s *model.ElasticsearchSettings) { s.EnableSearching = new(true) }, want: true},
+		"backend": {change: func(s *model.ElasticsearchSettings) {
+			s.Backend = new(model.ElasticsearchSettingsOSBackend)
+		}},
+		"connection URL": {change: func(s *model.ElasticsearchSettings) { s.ConnectionURL = new("http://other:9200") }},
+		"username":       {change: func(s *model.ElasticsearchSettings) { s.Username = new("other") }},
+		"password":       {change: func(s *model.ElasticsearchSettings) { s.Password = new("other") }},
+		"sniff":          {change: func(s *model.ElasticsearchSettings) { s.Sniff = new(!*s.Sniff) }},
+		"skip TLS verification": {change: func(s *model.ElasticsearchSettings) {
+			s.SkipTLSVerification = new(!*s.SkipTLSVerification)
+		}},
+		"CA":                 {change: func(s *model.ElasticsearchSettings) { s.CA = new("ca.pem") }},
+		"client certificate": {change: func(s *model.ElasticsearchSettings) { s.ClientCert = new("cert.pem") }},
+		"client key":         {change: func(s *model.ElasticsearchSettings) { s.ClientKey = new("key.pem") }},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			candidate := saved
+			tc.change(&candidate)
+			assert.Equal(t, tc.want, sameSearchEngineConnection(candidate, saved))
+		})
+	}
 }

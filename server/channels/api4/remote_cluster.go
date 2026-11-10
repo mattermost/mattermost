@@ -226,6 +226,14 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Remotes send the whole file from offset 0 in one request, so data already in the session
+	// means this is a transport replay after a partial write. Appending it would corrupt the file.
+	if us.FileOffset != 0 {
+		c.Err = model.NewAppError("uploadRemoteData", "api.remote_cluster.upload_resume_not_allowed.app_error",
+			nil, "", http.StatusBadRequest)
+		return
+	}
+
 	info, err := doUploadData(c, us, r)
 	if err != nil {
 		c.Err = err
@@ -289,7 +297,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterToAuditRec(auditRec, "filename", imageArray[0].Filename)
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil || !user.IsRemote() {
 		c.SetInvalidURLParam("user_id")
 		return
@@ -399,35 +407,27 @@ func createRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		rcWithTeamAndPassword.DisplayName = rcWithTeamAndPassword.Name
 	}
 
-	token := model.NewId()
 	rc := &model.RemoteCluster{
 		Name:          rcWithTeamAndPassword.Name,
 		DisplayName:   rcWithTeamAndPassword.DisplayName,
 		SiteURL:       model.SiteURLPending + model.NewId(),
 		DefaultTeamId: rcWithTeamAndPassword.DefaultTeamId,
-		Token:         token,
 		CreatorId:     c.AppContext.Session().UserId,
 	}
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "remotecluster", rc)
-
-	rcSaved, appErr := c.App.AddRemoteCluster(rc)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	rcSaved.Sanitize()
 
 	password := rcWithTeamAndPassword.Password
 	if password == "" {
 		password = utils.SecureRandString(16)
 	}
 
-	inviteCode, iErr := c.App.CreateRemoteClusterInvite(rcSaved.RemoteId, url, token, password)
-	if iErr != nil {
-		c.Err = iErr
+	rcSaved, inviteCode, appErr := c.App.CreateRemoteClusterWithInvite(rc, url, password)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+	rcSaved.Sanitize()
 
 	auditRec.Success()
 	auditRec.AddEventResultState(rcSaved)
@@ -505,10 +505,7 @@ func remoteClusterAcceptInvite(c *Context, w http.ResponseWriter, r *http.Reques
 
 	rc, aErr := rcs.AcceptInvitation(invite, rcAcceptInvite.Name, rcAcceptInvite.DisplayName, c.AppContext.Session().UserId, url, rcAcceptInvite.DefaultTeamId)
 	if aErr != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptInvite", "api.remote_cluster.accept_invitation_error", nil, "", http.StatusInternalServerError).Wrap(aErr)
-		if appErr, ok := aErr.(*model.AppError); ok {
-			c.Err = appErr
-		}
+		c.Err = aErr
 		return
 	}
 	rc.Sanitize()

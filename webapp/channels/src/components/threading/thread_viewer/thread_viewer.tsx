@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {HTMLAttributes} from 'react';
+import type {HTMLAttributes, JSX} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -54,6 +54,9 @@ export type Props = Attrs & {
     isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
+
+    /** When set, the list shows replies only. The root post stays selected so the thread still loads. */
+    hideRoot?: boolean;
     lastUpdateAt: number;
 };
 
@@ -249,6 +252,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}
                                     postIds={this.props.postIds}
+                                    hideRoot={this.props.hideRoot}
                                     selected={this.props.selected}
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}

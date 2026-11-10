@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -13,10 +12,10 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -28,10 +27,11 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import PostAttributesButton from 'components/advanced_text_editor/post_attributes_button';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
+import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
-import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -49,6 +49,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName} from 'components/tours/constant';
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
+import {useLatest} from 'hooks/useLatest';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -62,12 +63,13 @@ import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_util
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {allAtMentions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
+import {isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -77,6 +79,7 @@ import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import type {FormattingBarHandle} from './formatting_bar/formatting_bar';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
+import OutOfOfficeWarning from './out_of_office_warning';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
@@ -86,6 +89,7 @@ import useBurnOnRead from './use_burn_on_read';
 import {useComposerPlaceholder} from './use_composer_placeholder';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
+import usePendingQuote from './use_pending_quote';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -94,8 +98,6 @@ import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
-
-const FileLimitStickyBanner = makeAsyncComponent('FileLimitStickyBanner', lazy(() => import('components/file_limit_sticky_banner')));
 
 export type Props = {
 
@@ -125,7 +127,7 @@ export type Props = {
 const AdvancedTextEditor = ({
     location,
     channelId,
-    rootId,
+    rootId: rootIdProp,
     postId,
     isThreadView = false,
     placeholder,
@@ -133,6 +135,11 @@ const AdvancedTextEditor = ({
     afterSubmit,
     storageKey,
 }: Props) => {
+    // rootId is typed as required, but plugins reach this component through the untyped
+    // window.Components bridge and may omit it. Every draft carries '' rather than undefined
+    // for a non-thread composer, so an undefined prop desyncs the id comparisons below.
+    const rootId = rootIdProp ?? '';
+
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
@@ -184,6 +191,22 @@ const AdvancedTextEditor = ({
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
+    const showOooWarning = useSelector((state: GlobalState) => {
+        if (!teammateId) {
+            return false;
+        }
+        if (getConfig(state).ExperimentalEnableAutomaticReplies !== 'true') {
+            return false;
+        }
+        if (teammateId === getCurrentUserId(state)) {
+            return false;
+        }
+        const teammate = getUser(state, teammateId);
+        if (teammate?.is_bot) {
+            return false;
+        }
+        return getStatusForUserId(state, teammateId) === UserStatuses.OUT_OF_OFFICE;
+    });
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
     const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
@@ -218,9 +241,10 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const formattingBarRef = useRef<FormattingBarHandle>(null);
-    const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
-    const saveDraftFrame = useRef<NodeJS.Timeout>();
+    const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
+    const pendingDraftSave = useRef<{key: string; save: () => void; timeout: NodeJS.Timeout}>(undefined);
     const draftRef = useRef(draftFromStore);
+    const locationRef = useLatest({channelId, rootId});
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -237,10 +261,15 @@ const AdvancedTextEditor = ({
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
+    const postAttributesEnabled = useSelector(isPostAttributesEnabled);
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
+
+    if (draft.channelId !== channelId || draft.rootId !== rootId) {
+        setDraft(draftFromStore);
+    }
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -251,21 +280,44 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const handleDraftChange = useCallback((draftToChange: PostDraft, options: {instant?: boolean; show?: boolean} = {instant: false, show: false}) => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
+        let prefix = StoragePrefixes.DRAFT;
+        let suffix = draftToChange.channelId;
+        if (draftToChange.rootId) {
+            prefix = StoragePrefixes.COMMENT_DRAFT;
+            suffix = draftToChange.rootId;
+        }
+        const key = storageKey || `${prefix}${suffix}`;
+
+        const pendingSave = pendingDraftSave.current;
+        if (pendingSave) {
+            clearTimeout(pendingSave.timeout);
+            pendingDraftSave.current = undefined;
+
+            // A save still pending for another channel or thread is the only copy of that draft.
+            if (pendingSave.key !== key) {
+                pendingSave.save();
+            }
         }
 
-        setDraft(draftToChange);
+        // A draft for a channel or thread the user has left is saved right away, as leaving it does.
+        const location = locationRef.current;
+        const leftLocation = draftToChange.channelId !== location.channelId || draftToChange.rootId !== location.rootId;
+        const instant = options.instant || leftLocation;
+        const show = options.show || leftLocation;
+
+        // A late async callback (slow submit, finished file upload) may call handleDraftChange
+        // with the channelId/rootId captured when it started. If the user has since moved to
+        // another channel or thread, do not overwrite the text they have typed here.
+        setDraft((currentDraft) => {
+            if (currentDraft.channelId !== draftToChange.channelId || currentDraft.rootId !== draftToChange.rootId) {
+                // The current channel/thread has changed, so don't update the draft displayed to the user
+                return currentDraft;
+            }
+
+            return draftToChange;
+        });
 
         const saveDraft = () => {
-            let prefix = StoragePrefixes.DRAFT;
-            let suffix = draftToChange.channelId;
-            if (draftToChange.rootId) {
-                prefix = StoragePrefixes.COMMENT_DRAFT;
-                suffix = draftToChange.rootId;
-            }
-            const key = storageKey || `${prefix}${suffix}`;
-
             if (isPostDraftEmpty(draftToChange)) {
                 dispatch(removeDraft(key, draftToChange.channelId, draftToChange.rootId));
                 return;
@@ -279,7 +331,7 @@ const AdvancedTextEditor = ({
                 return;
             }
 
-            if (options.show) {
+            if (show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
             }
@@ -287,68 +339,18 @@ const AdvancedTextEditor = ({
             dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
         };
 
-        if (options.instant) {
+        if (instant) {
             saveDraft();
         } else {
-            saveDraftFrame.current = setTimeout(() => {
+            const timeout = setTimeout(() => {
+                pendingDraftSave.current = undefined;
                 saveDraft();
             }, Constants.SAVE_DRAFT_TIMEOUT);
+            pendingDraftSave.current = {key, save: saveDraft, timeout};
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch, isInEditMode, storageKey]);
-
-    const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
-        const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
-        if (isInlineMark && editor.state.selection.empty) {
-            const $from = editor.state.selection.$from;
-            const text = $from.parent.textContent;
-            const offset = $from.parentOffset;
-            if (text && offset >= 0) {
-                const isWordChar = (/\S/);
-                let start = offset;
-                while (start > 0 && isWordChar.test(text[start - 1])) {
-                    start--;
-                }
-                let end = offset;
-                while (end < text.length && isWordChar.test(text[end])) {
-                    end++;
-                }
-                if (start < end) {
-                    const parentStart = $from.pos - offset;
-                    editor.chain().focus().setTextSelection({from: parentStart + start, to: parentStart + end}).run();
-                }
-            }
-        }
-
-        const chain = editor.chain().focus();
-        switch (mode) {
-        case 'bold':
-            chain.toggleBold().run();
-            break;
-        case 'italic':
-            chain.toggleItalic().run();
-            break;
-        case 'strike':
-            chain.toggleStrike().run();
-            break;
-        case 'heading':
-            chain.toggleHeading({level: 3}).run();
-            break;
-        case 'code':
-            chain.toggleCodeBlock().run();
-            break;
-        case 'quote':
-            chain.toggleBlockquote().run();
-            break;
-        case 'ul':
-            chain.toggleBulletList().run();
-            break;
-        case 'ol':
-            chain.toggleOrderedList().run();
-            break;
-        }
-    }, []);
+    }, [dispatch, isInEditMode, locationRef, storageKey]);
 
     const applyFormatting = useCallback((mode: MarkdownMode) => {
         if (showPreview) {
@@ -390,7 +392,7 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, wysiwygEnabled, handleDraftChange, applyWysiwygFormatting]);
+    }, [showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
@@ -411,6 +413,8 @@ const AdvancedTextEditor = ({
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
+
+    usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
@@ -449,6 +453,7 @@ const AdvancedTextEditor = ({
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
+        isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
@@ -511,6 +516,8 @@ const AdvancedTextEditor = ({
         focusTextbox();
     }, [draft, handleDraftChange, focusTextbox]);
 
+    const isDraftSendable = isValidPersistentNotifications && burnOnReadSendable;
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -528,14 +535,22 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        // useKeyHandler prevents submits already when draft isn't sendable,
+        // but wysiwyg editor does not useKeyHandler, so check here too.
+        // Don't gate in edit mode because that could break the ability to remove mentions
+        // on an existing post with persistent notifications
+        if (!isInEditMode && !isDraftSendable) {
+            return;
+        }
+
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, isDraftSendable]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
         channelId,
         rootId,
-        isValidPersistentNotifications,
+        isDraftSendable,
         location,
         textboxRef,
         showFormattingBar,
@@ -695,12 +710,10 @@ const AdvancedTextEditor = ({
         handleSubmitWithErrorHandling(undefined, schedulingInfo);
     }, [handleSubmitWithErrorHandling]);
 
-    // Set the draft from store when changing post or channels, and store the previous one
+    // Store the previous draft when changing post or channels
     useEffect(() => {
         // Store the draft that existed when we opened the channel to know if it should be saved
         const draftOnOpen = draftFromStore;
-
-        setDraft(draftOnOpen);
 
         return () => {
             if (draftOnOpen !== draftRef.current) {
@@ -709,13 +722,13 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, rootId]);
 
-    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
+    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
-            allowRecurring={!draftHasAttachments(draft)}
+            repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
         />
     );
 
@@ -766,7 +779,7 @@ const AdvancedTextEditor = ({
     let loginSuccessfulLabel;
     if (!wasNotifiedOfLogIn) {
         loginSuccessfulLabel = formatMessage({
-            id: 'channelView.login.successfull',
+            id: 'channelView.login.successful',
             defaultMessage: 'Login Successful',
         });
 
@@ -861,16 +874,15 @@ const AdvancedTextEditor = ({
             className={(!rootId && !fullWidthTextBox) ? 'center' : undefined}
             onSubmit={handleSubmitWithEvent}
         >
-            {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                <FileLimitStickyBanner/>
-            )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
+            {showOooWarning && <OutOfOfficeWarning displayName={teammateDisplayName}/>}
             {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}
                     teammateDisplayName={teammateDisplayName}
                     location={location}
                     postId={rootId}
+                    hideRemoteUserHour={showOooWarning}
                 />
             )}
             <div
@@ -886,7 +898,7 @@ const AdvancedTextEditor = ({
                         className='sr-only'
                     >
                         <FormattedMessage
-                            id='channelView.login.successfull'
+                            id='channelView.login.successful'
                             defaultMessage='Login Successful'
                         />
                     </div>
@@ -978,6 +990,7 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
+                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}

@@ -1,0 +1,118 @@
+.AttributeChip {
+    display: inline-flex;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    align-items: center;
+    border-radius: 4px;
+
+    // A marking is a fact about the channel, not a control. Nothing here may
+    // read as interactive — the remove control is the exception, and only when
+    // a parent passes children.
+    cursor: default;
+    font-family: 'Open Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &--small {
+        max-width: 160px;
+        padding: 2px 4px;
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        line-height: 12px;
+        text-transform: uppercase;
+    }
+
+    // Figma Components — Chip: option casing as authored (TOP SECRET stays
+    // uppercase because the option is; Potato stays title case). Do not force
+    // text-transform here — that made long classification labels look bulkier
+    // than sentence-case multiselect chips of the same box size.
+    // max-width 148px is the Channel Info value column budget; long option
+    // names ellipsize on __value. min/max-height clamp the flex auto-minimum
+    // that the 14px remove control would otherwise push past 22px.
+    &--medium {
+        max-width: 148px;
+        height: 22px;
+        min-height: 22px;
+        max-height: 22px;
+        box-sizing: border-box;
+        padding: 4px 8px;
+        border: 1px solid transparent;
+        font-size: 10px;
+        gap: 2px;
+        letter-spacing: normal;
+        line-height: 12px;
+    }
+
+    // Tighten the trailing edge only; height/font stay identical to medium so a
+    // colored classification chip matches a neutral severity/multiselect chip.
+    &--medium.AttributeChip--dismissible {
+        padding: 4px 4px 4px 8px;
+        gap: 0;
+    }
+
+    &--neutral {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgb(var(--center-channel-color-rgb));
+    }
+
+    &--pending {
+        .AttributeChip__value {
+            width: 64px;
+            height: 12px;
+            border-radius: 2px;
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: transparent;
+        }
+    }
+
+    &--unavailable {
+        font-style: italic;
+
+        .AttributeChip__value {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__value {
+        overflow: hidden;
+        min-width: 0;
+        flex: 1 1 auto;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__remove {
+        display: inline-flex;
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        line-height: 0;
+        margin-inline-start: 4px;
+        opacity: 0.56;
+
+        &:hover:not(:disabled) {
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            opacity: 1;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 1px;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.32;
+        }
+    }
+}

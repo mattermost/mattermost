@@ -19,20 +19,22 @@ describe('Channel Switcher', () => {
     const channelNamePrefix = 'aswitchchannel';
     const channelDisplayNamePrefix = 'ASwitchChannel';
 
+    let channelA: Channel;
     let channelB: Channel;
     let channelC: Channel;
 
     before(() => {
-        cy.apiInitSetup({channelPrefix: {name: `${channelNamePrefix}-a`, displayName: `${channelDisplayNamePrefix} A`}}).then(({team, user, offTopicUrl: url}) => {
+        cy.apiInitSetup({channelPrefix: {name: `${channelNamePrefix}-a`, displayName: `${channelDisplayNamePrefix} A`}}).then(({team, channel, user, offTopicUrl: url}) => {
             testTeam = team;
+            channelA = channel;
             offTopicUrl = url;
 
             // # Add some channels
-            cy.apiCreateChannel(testTeam.id, `${channelNamePrefix}-b`, `${channelDisplayNamePrefix} B`, 'O').then(({channel}) => {
-                channelB = channel;
+            cy.apiCreateChannel(testTeam.id, `${channelNamePrefix}-b`, `${channelDisplayNamePrefix} B`, 'O').then(({channel: created}) => {
+                channelB = created;
             });
-            cy.apiCreateChannel(testTeam.id, `${channelNamePrefix}-c`, `${channelDisplayNamePrefix} C`, 'O').then(({channel}) => {
-                channelC = channel;
+            cy.apiCreateChannel(testTeam.id, `${channelNamePrefix}-c`, `${channelDisplayNamePrefix} C`, 'O').then(({channel: created}) => {
+                channelC = created;
             });
 
             // # Login as test user and go to off-topic
@@ -46,11 +48,25 @@ describe('Channel Switcher', () => {
         cy.typeCmdOrCtrl().type('K', {release: true});
 
         // # Start typing channel name in the "Switch Channels" modal message box
-        // # Use up/down arrow keys to highlight second channel
-        // # Press ENTER
         cy.findByRole('combobox', {name: 'quick switch input'}).type(`${channelDisplayNamePrefix}`);
+
+        // * Wait for all three matches, so that the server results have been merged in and the list
+        // * has stopped moving before any arrow key is sent
+        cy.findByRole('option', {name: channelA.display_name}).should('be.visible');
         cy.findByRole('option', {name: channelB.display_name}).should('be.visible');
-        cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}{downarrow}{enter}');
+        cy.findByRole('option', {name: channelC.display_name}).should('be.visible');
+
+        // * The switcher highlights the first match on its own, so ENTER alone would open it
+        cy.findByRole('option', {name: channelA.display_name}).should('have.class', 'suggestion--selected');
+
+        // # Use the down arrow key to move the highlight to the second channel
+        cy.findByRole('combobox', {name: 'quick switch input'}).type('{downarrow}');
+
+        // * Expect the second channel to be the highlighted one
+        cy.findByRole('option', {name: channelB.display_name}).should('have.class', 'suggestion--selected');
+
+        // # Press ENTER
+        cy.findByRole('combobox', {name: 'quick switch input'}).type('{enter}');
 
         // * Expect channel title to match title
         cy.get('#channelHeaderTitle').

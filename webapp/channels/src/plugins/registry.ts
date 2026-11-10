@@ -28,18 +28,21 @@ import {
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
+import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 import store from 'stores/redux_store';
 
 import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
 import {compassIconForName} from 'components/channel_type_icon';
 import {clearLoggedMatcherErrors} from 'components/channel_type_icon/channel_icon_override';
 
+import {clearLoggedChannelKindErrors} from 'utils/channel_kind';
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
 
 import type {ChannelSettingsTab} from 'types/plugins/channel_settings';
+import type {ActionFunc, MMAction} from 'types/store';
 import type {
     PluginsState,
     ProductComponent,
@@ -47,6 +50,8 @@ import type {
     PostDropdownMenuAction,
     ChannelHeaderAction,
     ChannelHeaderButtonAction,
+    ChannelInfoMenuAction,
+    ChannelBookmarksMenuAction,
     RightHandSidebarComponent,
     AppBarAction,
     FileUploadMethodAction,
@@ -76,36 +81,17 @@ import type {
     AIActionMenuItemComponent,
     ChannelTypeOptionComponent,
     ChannelIconOverrideRegistration,
+    ChannelKindRegistration,
     ChannelIntroRegistration,
+    ChannelViewRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
+import {CHANNEL_KINDS} from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
 
 type DPluginComponentProp = {component: React.ComponentType<unknown>};
-function dispatchPluginComponentAction(name: keyof PluginsState['components'], pluginId: string, component: React.ComponentType<any>, id = generateId()) {
-    store.dispatch({
-        type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-        name,
-        data: {
-            id,
-            pluginId,
-            component,
-        },
-    });
-
-    return id;
-}
-
-function dispatchPluginComponentWithData<T extends keyof PluginsState['components']>(name: T, data: PluginsState['components'][T][number]) {
-    store.dispatch({
-        type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
-        name,
-        data,
-    });
-}
-
 type ReactResolvable = React.ReactNode | React.ElementType;
 const resolveReactElement = (element: ReactResolvable): React.ReactNode => {
     if (
@@ -131,8 +117,51 @@ const standardizeRoute = (route: string) => {
 
 export default class PluginRegistry {
     id: string;
-    constructor(id: string) {
+    constructor(id: string, private readonly isActive: () => boolean = () => true) {
         this.id = id;
+    }
+
+    // Async initialization can continue after timeout cleanup. Ignore its state changes,
+    // but still return normal IDs and handles so late plugin callbacks can finish safely.
+    private dispatch(action: MMAction) {
+        if (this.isActive()) {
+            store.dispatch(action);
+        }
+    }
+
+    private guardAction(action: MMAction | ActionFunc<boolean>): ActionFunc<boolean> {
+        return (dispatch, getState, extra) => {
+            if (!this.isActive()) {
+                return {data: false};
+            }
+            if (typeof action === 'function') {
+                return action(dispatch, getState, extra);
+            }
+            dispatch(action);
+            return {data: true};
+        };
+    }
+
+    private dispatchPluginComponentAction(name: keyof PluginsState['components'], component: React.ComponentType<any>, id = generateId()) {
+        this.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name,
+            data: {
+                id,
+                pluginId: this.id,
+                component,
+            },
+        });
+
+        return id;
+    }
+
+    private dispatchPluginComponentWithData<T extends keyof PluginsState['components']>(name: T, data: PluginsState['components'][T][number]) {
+        this.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name,
+            data,
+        });
     }
 
     supports = {
@@ -145,7 +174,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerRootComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('Root', this.id, component);
+        return this.dispatchPluginComponentAction('Root', component);
     });
 
     /**
@@ -153,7 +182,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerPopoverUserAttributesComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PopoverUserAttributes', this.id, component);
+        return this.dispatchPluginComponentAction('PopoverUserAttributes', component);
     });
 
     /**
@@ -161,7 +190,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerPopoverUserActionsComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PopoverUserActions', this.id, component);
+        return this.dispatchPluginComponentAction('PopoverUserActions', component);
     });
 
     /**
@@ -169,7 +198,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerLeftSidebarHeaderComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('LeftSidebarHeader', this.id, component);
+        return this.dispatchPluginComponentAction('LeftSidebarHeader', component);
     });
 
     /**
@@ -178,7 +207,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerBottomTeamSidebarComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('BottomTeamSidebar', this.id, component);
+        return this.dispatchPluginComponentAction('BottomTeamSidebar', component);
     });
 
     /**
@@ -186,33 +215,44 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerPostMessageAttachmentComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PostMessageAttachment', this.id, component);
+        return this.dispatchPluginComponentAction('PostMessageAttachment', component);
     });
 
     /**
      * Register components for search.
-     * Accepts React components. Returns a unique identifier.
+     * Accepts the following:
+     * - buttonComponent - A react component rendered as the search type option.
+     * - suggestionsComponent - A react component rendered as the suggestions for this search type.
+     * - hintsComponent - A react component rendered as the hints for this search type.
+     * - action - A function called with the search terms when the user runs a search of this type.
+     * - priority - Optional number (default: 0). Search types with a priority greater than 0 are shown before the
+     *   built-in keyword search types, and the highest priority one is selected by default when search is opened.
+     *   Unregister the component with unregisterComponent when the search type becomes unavailable.
+     * Returns a unique identifier.
      */
     registerSearchComponents = ({
         buttonComponent,
         suggestionsComponent,
         hintsComponent,
         action,
+        priority = 0,
     }: {
         buttonComponent: SearchButtonsComponent['component'];
         suggestionsComponent: SearchSuggestionsComponent['component'];
         hintsComponent: SearchHintsComponent['component'];
         action: SearchButtonsComponent['action'];
+        priority?: number;
     }) => {
         const id = generateId();
-        dispatchPluginComponentWithData('SearchButtons', {
+        this.dispatchPluginComponentWithData('SearchButtons', {
             id,
             pluginId: this.id,
             component: buttonComponent,
             action,
+            priority,
         });
-        dispatchPluginComponentAction('SearchSuggestions', this.id, suggestionsComponent, id);
-        dispatchPluginComponentAction('SearchHints', this.id, hintsComponent, id);
+        this.dispatchPluginComponentAction('SearchSuggestions', suggestionsComponent, id);
+        this.dispatchPluginComponentAction('SearchHints', hintsComponent, id);
         return id;
     };
 
@@ -224,7 +264,7 @@ export default class PluginRegistry {
      * - show - A boolean used to signal that the user is currently hovering over this link. Use this value to initialize your component when this boolean is true for the first time, using `componentDidUpdate` or `useEffect`.
      */
     registerLinkTooltipComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('LinkTooltip', this.id, component);
+        return this.dispatchPluginComponentAction('LinkTooltip', component);
     });
 
     /**
@@ -240,7 +280,7 @@ export default class PluginRegistry {
         action: CreateBoardFromTemplateComponent['action'];
     }) => {
         const id = generateId();
-        dispatchPluginComponentWithData('CreateBoardFromTemplate', {
+        this.dispatchPluginComponentWithData('CreateBoardFromTemplate', {
             id,
             pluginId: this.id,
             component,
@@ -256,7 +296,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerChannelHeaderIcon = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('ChannelHeaderIcon', this.id, component);
+        return this.dispatchPluginComponentAction('ChannelHeaderIcon', component);
     });
 
     /**
@@ -295,8 +335,8 @@ export default class PluginRegistry {
             tooltipText: resolveReactElement(tooltipText),
         };
 
-        dispatchPluginComponentWithData('ChannelHeaderButton', data);
-        dispatchPluginComponentWithData('MobileChannelHeaderButton', data);
+        this.dispatchPluginComponentWithData('ChannelHeaderButton', data);
+        this.dispatchPluginComponentWithData('MobileChannelHeaderButton', data);
 
         return id;
     });
@@ -331,7 +371,7 @@ export default class PluginRegistry {
             text: text as PluggableText,
         };
 
-        dispatchPluginComponentWithData('ChannelIntroButton', data);
+        this.dispatchPluginComponentWithData('ChannelIntroButton', data);
 
         return id;
     });
@@ -343,6 +383,10 @@ export default class PluginRegistry {
      * - button - A React element to use as the main button to be displayed in case of a single registration.
      * - dropdownButton -A React element to use as the dropdown button to be displayed in case of multiple registrations.
      * - action - A function called when the button is clicked, passed the channel and channel member as arguments.
+     * - phoneAction - Optional. A function that places an outbound phone call, passed the number, the user it
+     *   belongs to, and the label and ID of the profile attribute it came from. When given, and the other person
+     *   in a DM or profile popover has a phone number, the call button opens a menu offering a call through
+     *   action or a phone call to each number.
      * Returns an unique identifier
      * Minimum required version: 6.5
      */
@@ -352,18 +396,21 @@ export default class PluginRegistry {
         'action',
         'icon',
         'dropdownText',
+        'phoneAction',
     ], ({
         button,
         dropdownButton,
         action,
         icon,
         dropdownText,
+        phoneAction,
     }: {
         button: ReactResolvable;
         dropdownButton: ReactResolvable;
         action: CallButtonAction['action'];
         icon: ReactResolvable;
         dropdownText: ReactResolvable;
+        phoneAction?: CallButtonAction['phoneAction'];
     }) => {
         const id = generateId();
 
@@ -375,10 +422,11 @@ export default class PluginRegistry {
             icon: resolveReactElement(icon),
             dropdownText: resolveReactElement(dropdownText),
             action,
+            phoneAction,
         };
 
-        dispatchPluginComponentWithData('CallButton', data);
-        dispatchPluginComponentWithData('MobileChannelHeaderButton', data);
+        this.dispatchPluginComponentWithData('CallButton', data);
+        this.dispatchPluginComponentWithData('MobileChannelHeaderButton', data);
 
         return id;
     });
@@ -393,7 +441,7 @@ export default class PluginRegistry {
     registerPostTypeComponent = reArg(['type', 'component'], ({type, component}) => {
         const id = generateId();
 
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT,
             data: {
                 id,
@@ -415,7 +463,7 @@ export default class PluginRegistry {
     registerPostCardTypeComponent = reArg(['type', 'component'], ({type, component}) => {
         const id = generateId();
 
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_POST_CARD_COMPONENT,
             data: {
                 id,
@@ -451,7 +499,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('PostWillRenderEmbedComponent', {
+        this.dispatchPluginComponentWithData('PostWillRenderEmbedComponent', {
             id,
             pluginId: this.id,
             component,
@@ -485,7 +533,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('MainMenu', {
+        this.dispatchPluginComponentWithData('MainMenu', {
             id,
             pluginId: this.id,
             text: resolveReactElement(text),
@@ -520,12 +568,101 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('ChannelHeader', {
+        this.dispatchPluginComponentWithData('ChannelHeader', {
             id,
             pluginId: this.id,
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register an item in the channel bookmarks "+" / header Bookmarks Bar menus
+     * (alongside Add a link / Attach a file).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channelId) => boolean for conditional display
+     * Returns a unique identifier.
+     */
+    registerChannelBookmarksMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelBookmarksMenuAction['text'];
+        action: ChannelBookmarksMenuAction['action'];
+        shouldRender?: ChannelBookmarksMenuAction['shouldRender'];
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelBookmarksMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a Channel Info RHS menu item (below Files / Pinned messages).
+     * Accepts the following:
+     * - icon - A React element for the leading icon
+     * - text - A string or React element to display
+     * - action - A function that receives the channelId when the item is clicked
+     * - shouldRender - Optional. (state, channel) => boolean for conditional display
+     * - badge - Optional. Count or React node shown on the trailing edge
+     * - opensSubpanel - Optional. Show a chevron (default false)
+     * Returns a unique identifier.
+     */
+    registerChannelInfoMenuAction = reArg([
+        'icon',
+        'text',
+        'action',
+        'shouldRender',
+        'badge',
+        'opensSubpanel',
+    ], ({
+        icon,
+        text,
+        action,
+        shouldRender = defaultShouldRender,
+        badge,
+        opensSubpanel = false,
+    }: {
+        icon: ReactResolvable;
+        text: ChannelInfoMenuAction['text'];
+        action: ChannelInfoMenuAction['action'];
+        shouldRender?: ChannelInfoMenuAction['shouldRender'];
+        badge?: ChannelInfoMenuAction['badge'];
+        opensSubpanel?: boolean;
+    }) => {
+        const id = generateId();
+
+        this.dispatchPluginComponentWithData('ChannelInfoMenu', {
+            id,
+            pluginId: this.id,
+            icon: resolveReactElement(icon),
+            text: resolveReactElement(text),
+            action,
+            shouldRender,
+            badge: badge === undefined || badge === null ? badge : resolveReactElement(badge as ReactResolvable),
+            opensSubpanel,
         });
 
         return id;
@@ -558,7 +695,7 @@ export default class PluginRegistry {
 
         // The raw registration is validated and normalized in the plugins
         // reducer (see `extractChannelSettingsTab`), mirroring user settings.
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB,
             data: {...registration, id, pluginId: this.id},
         });
@@ -589,7 +726,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('FilesDropdown', {
+        this.dispatchPluginComponentWithData('FilesDropdown', {
             id,
             pluginId: this.id,
             match,
@@ -619,7 +756,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('UserGuideDropdown', {
+        this.dispatchPluginComponentWithData('UserGuideDropdown', {
             id,
             pluginId: this.id,
             text: resolveReactElement(text),
@@ -634,7 +771,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerPostActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PostAction', this.id, component);
+        return this.dispatchPluginComponentAction('PostAction', component);
     });
 
     /**
@@ -642,7 +779,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerPostEditorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PostEditorAction', this.id, component);
+        return this.dispatchPluginComponentAction('PostEditorAction', component);
     });
 
     /**
@@ -661,7 +798,7 @@ export default class PluginRegistry {
         ({icon, text, sortOrder, component, action}: {icon: React.ReactNode; text: PluggableText; sortOrder: number; component?: AIActionMenuItemComponent['component']; action?: AIActionMenuItemComponent['action']}) => {
             const id = generateId();
 
-            dispatchPluginComponentWithData('AIActionMenuItem', {
+            this.dispatchPluginComponentWithData('AIActionMenuItem', {
                 id,
                 pluginId: this.id,
                 icon,
@@ -680,7 +817,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerCodeBlockActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('CodeBlockAction', this.id, component);
+        return this.dispatchPluginComponentAction('CodeBlockAction', component);
     });
 
     /**
@@ -688,7 +825,7 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerNewMessagesSeparatorActionComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('NewMessagesSeparatorAction', this.id, component);
+        return this.dispatchPluginComponentAction('NewMessagesSeparatorAction', component);
     });
 
     /**
@@ -714,7 +851,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('PostDropdownMenu', {
+        this.dispatchPluginComponentWithData('PostDropdownMenu', {
             id,
             pluginId: this.id,
             text: resolveReactElement(text),
@@ -758,7 +895,7 @@ export default class PluginRegistry {
             innerAction: PostDropdownMenuAction['action'],
             innerFilter: PostDropdownMenuAction['filter'],
         ) => {
-            dispatchPluginComponentWithData('PostDropdownMenu', {
+            this.dispatchPluginComponentWithData('PostDropdownMenu', {
                 id,
                 parentMenuId,
                 pluginId,
@@ -774,7 +911,7 @@ export default class PluginRegistry {
                 innerFilter: PostDropdownMenuAction['filter'],
             ];
 
-            return function registerSubMenuItem(...args: TInnerParams) {
+            return (...args: TInnerParams) => {
                 if (parentMenuId) {
                     throw new Error('Submenus are currently limited to a single level.');
                 }
@@ -806,7 +943,7 @@ export default class PluginRegistry {
             );
             this.warnedAboutRegisterPostDropdownMenuComponent = true;
         }
-        return dispatchPluginComponentAction('PostDropdownMenuItem', this.id, component);
+        return this.dispatchPluginComponentAction('PostDropdownMenuItem', component);
     });
 
     /**
@@ -832,7 +969,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('FileUploadMethod', {
+        this.dispatchPluginComponentWithData('FileUploadMethod', {
             id,
             pluginId: this.id,
             text: text as PluggableText,
@@ -857,7 +994,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('FilesWillUploadHook', {
+        this.dispatchPluginComponentWithData('FilesWillUploadHook', {
             id,
             pluginId: this.id,
             hook,
@@ -872,7 +1009,7 @@ export default class PluginRegistry {
      * Returns undefined in all cases.
      */
     unregisterComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.REMOVED_PLUGIN_COMPONENT,
             id: componentId,
         });
@@ -884,7 +1021,7 @@ export default class PluginRegistry {
      * Returns undefined in all cases.
      */
     unregisterPostTypeComponent = reArg(['componentId'], ({componentId}: {componentId: string}) => {
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.REMOVED_PLUGIN_POST_COMPONENT,
             id: componentId,
         });
@@ -896,7 +1033,9 @@ export default class PluginRegistry {
      * Accepts a reducer. Returns undefined.
      */
     registerReducer = reArg(['reducer'], ({reducer}: {reducer: Reducer}) => {
-        reducerRegistry.register('plugins-' + this.id, reducer);
+        if (this.isActive()) {
+            reducerRegistry.register('plugins-' + this.id, reducer);
+        }
     });
 
     /**
@@ -917,7 +1056,9 @@ export default class PluginRegistry {
         event: string;
         handler: (msg: WebSocketMessages.Unknown) => void;
     }) => {
-        registerPluginWebSocketEvent(this.id, event, handler);
+        if (this.isActive()) {
+            registerPluginWebSocketEvent(this.id, event, handler);
+        }
     });
 
     /**
@@ -926,7 +1067,9 @@ export default class PluginRegistry {
      * Returns undefined.
      */
     unregisterWebSocketEventHandler = reArg(['event'], ({event}: {event: string}) => {
-        unregisterPluginWebSocketEvent(this.id, event);
+        if (this.isActive()) {
+            unregisterPluginWebSocketEvent(this.id, event);
+        }
     });
 
     /**
@@ -935,7 +1078,9 @@ export default class PluginRegistry {
      * Accepts a function to handle the event. Returns undefined.
      */
     registerReconnectHandler = reArg(['handler'], ({handler}: {handler: () => void}) => {
-        registerPluginReconnectHandler(this.id, handler);
+        if (this.isActive()) {
+            registerPluginReconnectHandler(this.id, handler);
+        }
     });
 
     /**
@@ -943,7 +1088,9 @@ export default class PluginRegistry {
      * Returns undefined.
      */
     unregisterReconnectHandler() {
-        unregisterPluginReconnectHandler(this.id);
+        if (this.isActive()) {
+            unregisterPluginReconnectHandler(this.id);
+        }
     }
 
     /**
@@ -964,7 +1111,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('MessageWillBePosted', {
+        this.dispatchPluginComponentWithData('MessageWillBePosted', {
             id,
             pluginId: this.id,
             hook,
@@ -1000,7 +1147,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('SlashCommandWillBePosted', {
+        this.dispatchPluginComponentWithData('SlashCommandWillBePosted', {
             id,
             pluginId: this.id,
             hook,
@@ -1021,7 +1168,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('MessageWillFormat', {
+        this.dispatchPluginComponentWithData('MessageWillFormat', {
             id,
             pluginId: this.id,
             hook,
@@ -1045,7 +1192,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('FilePreview', {
+        this.dispatchPluginComponentWithData('FilePreview', {
             id,
             pluginId: this.id,
             override,
@@ -1056,7 +1203,9 @@ export default class PluginRegistry {
     });
 
     registerTranslations = reArg(['getTranslationsForLocale'], ({getTranslationsForLocale}: {getTranslationsForLocale: TranslationPluginFunction}) => {
-        store.dispatch(registerPluginTranslationsSource(this.id, getTranslationsForLocale));
+        if (this.isActive()) {
+            store.dispatch(registerPluginTranslationsSource(this.id, getTranslationsForLocale));
+        }
     });
 
     /**
@@ -1070,7 +1219,9 @@ export default class PluginRegistry {
      * replacing older ones.
      */
     registerAdminConsolePlugin = reArg(['func'], ({func}) => {
-        store.dispatch(registerAdminConsolePlugin(this.id, func));
+        if (this.isActive()) {
+            store.dispatch(registerAdminConsolePlugin(this.id, func));
+        }
     });
 
     /**
@@ -1078,7 +1229,9 @@ export default class PluginRegistry {
      * Returns undefined.
      */
     unregisterAdminConsolePlugin() {
-        store.dispatch(unregisterAdminConsolePlugin(this.id));
+        if (this.isActive()) {
+            store.dispatch(unregisterAdminConsolePlugin(this.id));
+        }
     }
 
     /**
@@ -1104,7 +1257,9 @@ export default class PluginRegistry {
         component: AdminConsolePluginComponent['component'];
         options?: {showTitle: boolean};
     }) => {
-        store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
+        if (this.isActive()) {
+            store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
+        }
     });
 
     /**
@@ -1123,7 +1278,9 @@ export default class PluginRegistry {
         key: string;
         component: AdminConsolePluginCustomSection['component'];
     }) => {
-        store.dispatch(registerAdminConsoleCustomSection(this.id, key, component));
+        if (this.isActive()) {
+            store.dispatch(registerAdminConsoleCustomSection(this.id, key, component));
+        }
     });
 
     /**
@@ -1153,7 +1310,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('RightHandSidebarComponent', {
+        this.dispatchPluginComponentWithData('RightHandSidebarComponent', {
             id,
             pluginId: this.id,
             component,
@@ -1161,7 +1318,12 @@ export default class PluginRegistry {
             showPopout,
         });
 
-        return {id, showRHSPlugin: showRHSPlugin(id), hideRHSPlugin: hideRHSPlugin(id), toggleRHSPlugin: toggleRHSPlugin(id)};
+        return {
+            id,
+            showRHSPlugin: this.guardAction(showRHSPlugin(id)),
+            hideRHSPlugin: this.guardAction(hideRHSPlugin(id)),
+            toggleRHSPlugin: this.guardAction(toggleRHSPlugin(id)),
+        };
     });
 
     /**
@@ -1186,7 +1348,7 @@ export default class PluginRegistry {
         let fixedRoute = standardizeRoute(route);
         fixedRoute = this.id + '/' + fixedRoute;
 
-        dispatchPluginComponentWithData('NeedsTeamComponent', {
+        this.dispatchPluginComponentWithData('NeedsTeamComponent', {
             id,
             pluginId: this.id,
             component,
@@ -1218,7 +1380,7 @@ export default class PluginRegistry {
         let fixedRoute = standardizeRoute(route);
         fixedRoute = this.id + '/' + fixedRoute;
 
-        dispatchPluginComponentWithData('CustomRouteComponent', {
+        this.dispatchPluginComponentWithData('CustomRouteComponent', {
             id,
             pluginId: this.id,
             component,
@@ -1264,7 +1426,7 @@ export default class PluginRegistry {
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('Product', {
+        this.dispatchPluginComponentWithData('Product', {
             id,
             pluginId: this.id,
             switcherIcon: resolveReactElement(switcherIcon),
@@ -1302,7 +1464,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('MessageWillBeUpdated', {
+        this.dispatchPluginComponentWithData('MessageWillBeUpdated', {
             id,
             pluginId: this.id,
             hook,
@@ -1318,7 +1480,7 @@ export default class PluginRegistry {
      * Returns a unique identifier.
      */
     registerSidebarChannelLinkLabelComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('SidebarChannelLinkLabel', this.id, component);
+        return this.dispatchPluginComponentAction('SidebarChannelLinkLabel', component);
     });
 
     /**
@@ -1327,29 +1489,35 @@ export default class PluginRegistry {
      * - text - A string or React element to display in the menu
      * - action - A function to trigger when component is clicked on. It receives the teamId as an argument.
      * - icon - A React element to use as the button's icon
+     * - placement - Optional. 'afterCreateChannel' shows the item right below "Create new channel";
+     *   by default it follows the built-in items.
      * Returns a unique identifier.
      */
     registerSidebarBrowseOrAddChannelMenuAction = reArg([
         'text',
         'action',
         'icon',
+        'placement',
     ], ({
         text,
         action,
         icon,
+        placement,
     }: {
         text: ReactResolvable;
         action: SidebarBrowseOrAddChannelMenuAction['action'];
         icon: ReactResolvable;
+        placement?: SidebarBrowseOrAddChannelMenuAction['placement'];
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('SidebarBrowseOrAddChannelMenu', {
+        this.dispatchPluginComponentWithData('SidebarBrowseOrAddChannelMenu', {
             id,
             pluginId: this.id,
             text: resolveReactElement(text),
             action,
             icon: resolveReactElement(icon),
+            placement,
         });
 
         return id;
@@ -1367,6 +1535,9 @@ export default class PluginRegistry {
      * `isAvailable(state)` receives the full Redux state and gates whether this option appears. Plugins
      * may read their own plugin-scoped state (e.g. `state['plugins-<pluginId>']`) to decide visibility.
      *
+     * `showInNewChannelModal: false` keeps the option out of "Create a new channel"; it is then offered
+     * only when the plugin opens the published `new_channel_modal` with its own `channelTypePluginId`.
+     *
      * Returns a unique identifier for the registered option, which can be passed to
      * `unregisterComponent`.
      */
@@ -1378,6 +1549,7 @@ export default class PluginRegistry {
         'extraContent',
         'onCreate',
         'createButtonText',
+        'showInNewChannelModal',
     ], ({
         label,
         description,
@@ -1386,6 +1558,7 @@ export default class PluginRegistry {
         extraContent,
         onCreate,
         createButtonText,
+        showInNewChannelModal,
     }: {
         label: ReactResolvable;
         description: ReactResolvable;
@@ -1394,9 +1567,10 @@ export default class PluginRegistry {
         extraContent?: ChannelTypeOptionComponent['extraContent'];
         onCreate: ChannelTypeOptionComponent['onCreate'];
         createButtonText?: ReactResolvable;
+        showInNewChannelModal?: boolean;
     }) => {
         const id = generateId();
-        dispatchPluginComponentWithData('ChannelTypeOption', {
+        this.dispatchPluginComponentWithData('ChannelTypeOption', {
             id,
             pluginId: this.id,
             label: resolveReactElement(label),
@@ -1406,6 +1580,7 @@ export default class PluginRegistry {
             extraContent,
             onCreate,
             createButtonText: createButtonText === undefined ? undefined : resolveReactElement(createButtonText),
+            showInNewChannelModal,
         });
 
         return id;
@@ -1439,13 +1614,50 @@ export default class PluginRegistry {
             );
             return generateId();
         }
-        clearLoggedMatcherErrors(this.id);
+        if (this.isActive()) {
+            clearLoggedMatcherErrors(this.id);
+        }
         const id = generateId();
-        dispatchPluginComponentWithData('ChannelIconOverride', {
+        this.dispatchPluginComponentWithData('ChannelIconOverride', {
             id,
             pluginId: this.id,
             matcher,
             iconName,
+        });
+        return id;
+    });
+
+    /**
+     * Register a kind for matching channels, which the webapp then names with that kind's own
+     * words: a 'board' is a board everywhere the webapp would say channel ("Board Settings",
+     * "Leave Board", "Add a board header", "joined the board"). Each such string is its own
+     * translated message beside the channel one.
+     *
+     * `matcher` receives the full GlobalState and a Channel, as for registerChannelIconOverride;
+     * throws are caught and treated as no-match, and the first match wins. Its answer is kept until
+     * the channel or the registrations change, so it should decide from the channel. `kind` must be one the
+     * webapp knows: 'board'. Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerChannelKind = reArg(['matcher', 'kind'], ({matcher, kind}: {
+        matcher: ChannelKindRegistration['matcher'];
+        kind: ChannelKindRegistration['kind'];
+    }) => {
+        if (!(CHANNEL_KINDS as readonly string[]).includes(kind)) {
+            // eslint-disable-next-line no-console
+            console.error(`ChannelKind: plugin '${this.id}' supplied unknown kind '${kind}' — registration ignored.`);
+            return generateId();
+        }
+        if (this.isActive()) {
+            clearLoggedChannelKindErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelKind', {
+            id,
+            pluginId: this.id,
+            matcher,
+            kind,
         });
         return id;
     });
@@ -1456,7 +1668,7 @@ export default class PluginRegistry {
      * Multiple registrations stack. Cleaned up automatically when the plugin is removed.
      */
     registerChannelComposerBannerComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('ChannelComposerBanner', this.id, component);
+        return this.dispatchPluginComponentAction('ChannelComposerBanner', component);
     });
 
     /**
@@ -1472,9 +1684,52 @@ export default class PluginRegistry {
         matcher: ChannelIntroRegistration['matcher'];
         component: ChannelIntroRegistration['component'];
     }) => {
-        clearLoggedChannelIntroErrors(this.id);
+        if (this.isActive()) {
+            clearLoggedChannelIntroErrors(this.id);
+        }
         const id = generateId();
-        dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        this.dispatchPluginComponentWithData('ChannelIntro', {id, pluginId: this.id, matcher, component});
+        return id;
+    });
+
+    /**
+     * Register a component that replaces the center view of channels the matcher selects. The
+     * channel header, channel banner, and bookmarks bar stay rendered by core; the post list and
+     * the message composer (including the archived-channel and read-only notices that replace it)
+     * are not rendered, and the component fills the remaining space instead.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second, so it can read plugin-owned slices (e.g. state['plugins-<id>']). It runs on every
+     * store update while a channel is open, so it should be cheap or memoized by the plugin.
+     * Matcher throws are caught and treated as no-match. The first registration whose matcher
+     * returns exactly `true` wins (alphabetical pluginId, then insertion order).
+     *
+     * `component` receives {channel, channelId, teamId, focusedPostId}, where teamId is the current
+     * team's id. Core marks the channel as read when the component mounts and whenever the channel
+     * changes, as the post list would, and skips that on a permalink.
+     *
+     * Permalinks (`/:team/channels/:channel/:postid`) render the component too. It receives the
+     * linked post id as `focusedPostId` and is responsible for showing that post. `focusedPostId`
+     * stays set after the post id is removed from the URL, until the user switches channels.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
+     */
+    registerChannelViewComponent = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: ChannelViewRegistration['matcher'];
+        component: ChannelViewRegistration['component'];
+    }) => {
+        if (this.isActive()) {
+            clearLoggedChannelViewErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('ChannelView', {
+            id,
+            pluginId: this.id,
+            matcher,
+            component,
+        });
         return id;
     });
 
@@ -1491,7 +1746,7 @@ export default class PluginRegistry {
      * @returns Auto-generated unique id for this registration.
      */
     registerPostHeaderComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('PostHeader', this.id, component);
+        return this.dispatchPluginComponentAction('PostHeader', component);
     });
 
     /**
@@ -1508,9 +1763,11 @@ export default class PluginRegistry {
     registerComposerPlaceholder = reArg(['transform'], ({transform}: {
         transform: ComposerPlaceholderRegistration['transform'];
     }) => {
-        clearComposerPlaceholderErrors(this.id);
+        if (this.isActive()) {
+            clearComposerPlaceholderErrors(this.id);
+        }
         const id = generateId();
-        dispatchPluginComponentWithData('ComposerPlaceholder', {
+        this.dispatchPluginComponentWithData('ComposerPlaceholder', {
             id,
             pluginId: this.id,
             transform,
@@ -1549,7 +1806,7 @@ export default class PluginRegistry {
         isHidden?: ProductSwitcherMenuItemRegistration['isHidden'];
     }) => {
         const id = generateId();
-        dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
+        this.dispatchPluginComponentWithData('ProductSwitcherMenuItem', {
             id,
             pluginId: this.id,
             text,
@@ -1567,7 +1824,7 @@ export default class PluginRegistry {
      * Returns a unique identifier.
      */
     registerChannelToastComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('ChannelToast', this.id, component);
+        return this.dispatchPluginComponentAction('ChannelToast', component);
     });
 
     /**
@@ -1577,7 +1834,7 @@ export default class PluginRegistry {
      * Returns a unique identifier.
      */
     registerGlobalComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('Global', this.id, component);
+        return this.dispatchPluginComponentAction('Global', component);
     });
 
     /**
@@ -1623,7 +1880,7 @@ export default class PluginRegistry {
 
         const registeredRhsComponent = rhsComponent && this.registerRightHandSidebarComponent({title: rhsTitle, component: rhsComponent});
 
-        dispatchPluginComponentWithData('AppBar', {
+        this.dispatchPluginComponentWithData('AppBar', {
             id,
             pluginId: this.id,
             iconUrl,
@@ -1652,7 +1909,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             handler,
         };
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_STATS_HANDLER,
             data,
         });
@@ -1697,7 +1954,7 @@ export default class PluginRegistry {
     }) => {
         const id = generateId();
 
-        dispatchPluginComponentWithData('DesktopNotificationHooks', {
+        this.dispatchPluginComponentWithData('DesktopNotificationHooks', {
             id,
             pluginId: this.id,
             hook,
@@ -1720,7 +1977,7 @@ export default class PluginRegistry {
             pluginId: this.id,
             setting,
         };
-        store.dispatch({
+        this.dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
             data,
         });
@@ -1731,10 +1988,12 @@ export default class PluginRegistry {
      * Accepts a React component. Returns a unique identifier.
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('SystemConsoleGroupTable', this.id, component);
+        return this.dispatchPluginComponentAction('SystemConsoleGroupTable', component);
     });
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void}) => {
-        registerRHSPluginPopoutListener(pluginId, onPopoutOpened);
+        if (this.isActive()) {
+            registerRHSPluginPopoutListener(pluginId, onPopoutOpened);
+        }
     });
 }

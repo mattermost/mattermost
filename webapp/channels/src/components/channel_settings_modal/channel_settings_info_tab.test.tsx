@@ -6,6 +6,7 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsInfoTab from './channel_settings_info_tab';
@@ -55,16 +56,6 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
         return true;
     }),
     getRoles: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('selectors/views/textbox', () => ({
-    showPreviewOnChannelSettingsHeaderModal: jest.fn().mockReturnValue(false),
-    showPreviewOnChannelSettingsPurposeModal: jest.fn().mockReturnValue(false),
-}));
-
-jest.mock('actions/views/textbox', () => ({
-    setShowPreviewOnChannelSettingsHeaderModal: jest.fn(),
-    setShowPreviewOnChannelSettingsPurposeModal: jest.fn(),
 }));
 
 // Mock the isChannelAdmin function
@@ -160,6 +151,25 @@ describe('ChannelSettingsInfoTab', () => {
 
         // Check that the public channel button is selected.
         expect(screen.getByRole('button', {name: /Public Channel/}).classList.contains('selected')).toBe(true);
+    });
+
+    it('says board rather than channel for a board', () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>, boardChannelsState(mockChannel.id));
+
+        expect(screen.getByText('Board Info')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Info')).not.toBeInTheDocument();
+        expect(screen.getByRole('textbox', {name: 'Board name'})).toHaveValue('Test Channel');
+        expect(screen.queryByRole('textbox', {name: 'Channel name'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Public Board/})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Private Board/})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /Public Channel/})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /Private Channel/})).not.toBeInTheDocument();
+        expect(screen.getByText('Board Purpose')).toBeInTheDocument();
+        expect(screen.getByText('Board Header')).toBeInTheDocument();
+        expect(screen.getByText('Describe how this board should be used.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Purpose')).not.toBeInTheDocument();
+        expect(screen.queryByText('Channel Header')).not.toBeInTheDocument();
+        expect(screen.queryByText('Describe how this channel should be used.')).not.toBeInTheDocument();
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
@@ -514,6 +524,30 @@ describe('ChannelSettingsInfoTab', () => {
         expect(previewButtons.length).toBeGreaterThan(0);
     });
 
+    it('should toggle the purpose and header previews independently', async () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        const [purposePreviewToggle, headerPreviewToggle] = screen.getAllByTestId('mock-show-format');
+        const purposeWrapper = screen.getByTestId('channel_settings_purpose_textbox').closest('.textarea-wrapper');
+        const headerWrapper = screen.getByTestId('channel_settings_header_textbox').closest('.textarea-wrapper');
+
+        expect(purposeWrapper).not.toHaveClass('textarea-wrapper-preview');
+        expect(headerWrapper).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(purposePreviewToggle);
+
+        expect(purposePreviewToggle).toHaveClass('active');
+        expect(purposeWrapper).toHaveClass('textarea-wrapper-preview');
+        expect(headerPreviewToggle).not.toHaveClass('active');
+        expect(headerWrapper).not.toHaveClass('textarea-wrapper-preview');
+
+        await userEvent.click(headerPreviewToggle);
+        await userEvent.click(purposePreviewToggle);
+
+        expect(purposeWrapper).not.toHaveClass('textarea-wrapper-preview');
+        expect(headerWrapper).toHaveClass('textarea-wrapper-preview');
+    });
+
     it('should not allow channel type change when user lacks permissions', async () => {
         // Set permissions to false
         mockConvertToPublicPermission = false;
@@ -733,7 +767,7 @@ describe('ChannelSettingsInfoTab', () => {
                 stateWithDiscoverableFlag,
             );
             expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeInTheDocument();
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'false');
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).not.toBeChecked();
         });
 
         it('reflects the channel\'s existing discoverable value on mount', () => {
@@ -745,7 +779,7 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
                 stateWithDiscoverableFlag,
             );
-            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByTestId('channel-settings-discoverable-toggle')).toBeChecked();
         });
 
         it('disables the toggle when the user lacks manage_private_channel_discoverability', () => {
@@ -813,6 +847,90 @@ describe('ChannelSettingsInfoTab', () => {
             const calls = patchChannel.mock.calls;
             const lastPatch = calls[calls.length - 1][1];
             expect(lastPatch).not.toHaveProperty('discoverable');
+        });
+    });
+
+    describe('URL editing', () => {
+        const defaultChannel = TestHelper.getChannelMock({
+            id: 'town-square-id',
+            team_id: 'team1',
+            display_name: 'Town Square',
+            name: 'town-square',
+            purpose: '',
+            header: '',
+            type: 'O',
+        });
+
+        it('should not offer the URL Edit button for the default channel', () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={defaultChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+            expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+            expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
+        });
+
+        it('should keep the default channel display name editable while the URL is locked', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={defaultChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            await act(async () => {
+                const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+                await userEvent.clear(nameInput);
+                await userEvent.type(nameInput, 'Company Wide');
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('town-square-id', {display_name: 'Company Wide'});
+            expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+        });
+
+        it('should keep the default channel URL locked when the user also lacks manage permission', () => {
+            mockChannelPropertiesPermission = false;
+
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={defaultChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
+
+            expect(screen.getByRole('textbox', {name: 'Channel name'})).toBeDisabled();
+            expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+            expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
+        });
+
+        it('should patch the URL for an ordinary channel', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
+
+            await act(async () => {
+                const urlInput = screen.getByTestId('channelURLInput');
+                await userEvent.clear(urlInput);
+                await userEvent.type(urlInput, 'renamed-channel');
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', {name: 'renamed-channel'});
         });
     });
 

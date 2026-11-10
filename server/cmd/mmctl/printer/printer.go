@@ -62,6 +62,11 @@ func SetFormat(t string) {
 	printer.Format = t
 }
 
+// GetFormat returns the format for the final output of the printer
+func GetFormat() string {
+	return printer.Format
+}
+
 func SetCommand(cmd *cobra.Command) {
 	printer.cmd = cmd
 }
@@ -256,7 +261,7 @@ func PrintWarning(msg string) {
 	if printer.Quiet {
 		return
 	}
-	fmt.Fprintf(printer.eWriter, "%s\n", color.YellowString("WARNING: %s", msg))
+	fmt.Fprintf(printer.eWriter, "%s\n", color.YellowString("WARNING: %s", SanitizeForTerminal(msg)))
 }
 
 func (p Printer) linesToBytes(opts printOpts) (b []byte, err error) {
@@ -323,6 +328,6 @@ func (p Printer) printBytes(b []byte, opts printOpts) error {
 
 func (p Printer) printErrors() {
 	for i := range printer.ErrorLines {
-		fmt.Fprintln(printer.eWriter, printer.ErrorLines[i])
+		fmt.Fprintln(printer.eWriter, SanitizeForTerminal(printer.ErrorLines[i]))
 	}
 }

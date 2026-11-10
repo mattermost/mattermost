@@ -8,7 +8,13 @@ Cypress.Commands.add('uiGetEmojiPicker', (): ChainableT<JQuery> => {
 });
 
 Cypress.Commands.add('uiOpenEmojiPicker', (): ChainableT<JQuery> => {
-    cy.findByRole('button', {name: 'select an emoji'}).click();
+    cy.get('body').then(($body) => {
+        if ($body.find('#emojiPicker:visible').length) {
+            cy.get('body').type('{esc}');
+        }
+    });
+    cy.get('#emojiPicker').should('not.exist');
+    cy.findByRole('button', {name: 'select an emoji'}).should('be.visible').click();
     return cy.get('#emojiPicker').should('be.visible');
 });
 

@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -415,5 +416,32 @@ func TestScheduledRecapStore(t *testing.T) {
 			// nil is serialized as "null", should unmarshal back to nil
 			assert.Nil(t, retrievedSR.ChannelIds)
 		})
+	})
+}
+
+func TestScheduledRecapStorePermanentDeleteByUser(t *testing.T) {
+	StoreTestWithSqlStore(t, func(t *testing.T, rctx request.CTX, ss store.Store, s storetest.SqlStore) {
+		userID := model.NewId()
+		otherUserID := model.NewId()
+
+		_, err := ss.ScheduledRecap().Save(createTestScheduledRecap(userID))
+		require.NoError(t, err)
+		softDeleted, err := ss.ScheduledRecap().Save(createTestScheduledRecap(userID))
+		require.NoError(t, err)
+		require.NoError(t, ss.ScheduledRecap().Delete(softDeleted.Id))
+		_, err = ss.ScheduledRecap().Save(createTestScheduledRecap(otherUserID))
+		require.NoError(t, err)
+
+		count := func(userID string) int {
+			var n int
+			require.NoError(t, s.GetMaster().Get(&n, "SELECT COUNT(*) FROM ScheduledRecaps WHERE UserId = ?", userID))
+			return n
+		}
+
+		require.NoError(t, ss.ScheduledRecap().PermanentDeleteByUser(userID))
+		assert.Zero(t, count(userID), "soft-deleted scheduled recaps must be removed too")
+		assert.Equal(t, 1, count(otherUserID))
+
+		require.NoError(t, ss.ScheduledRecap().PermanentDeleteByUser(userID), "deleting again must succeed")
 	})
 }

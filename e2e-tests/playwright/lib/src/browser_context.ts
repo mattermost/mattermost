@@ -5,7 +5,7 @@ import {writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import type {Browser, BrowserContext} from '@playwright/test';
+import type {Browser, BrowserContext, Page} from '@playwright/test';
 import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -22,7 +22,7 @@ export class TestBrowser {
     }
 
     async login(user: UserProfile) {
-        const options = {storageState: ''};
+        const options = {storageState: '', ignoreHTTPSErrors: true};
         if (user) {
             // Log in via API request and save user storage
             const storagePath = await loginByAPI(user.username, user.password);
@@ -31,7 +31,10 @@ export class TestBrowser {
 
         // Sign in a user in new browser context
         const context = await this.browser.newContext(options);
+        await routeInternalBaseUrlToHost(context);
+        await routeUnprefixedApiToSubpath(context);
         const page = await context.newPage();
+        patchGotoToUseBaseUrl(page);
 
         const channelsPage = new pages.ChannelsPage(page);
         const systemConsolePage = new pages.SystemConsolePage(page);
@@ -56,6 +59,19 @@ export class TestBrowser {
         };
     }
 
+    /** Unauthenticated context/page for specs that need custom context options (e.g. userAgent). */
+    async newPage(options: Parameters<Browser['newContext']>[0] = {}) {
+        const context = await this.browser.newContext(options);
+        await routeInternalBaseUrlToHost(context);
+        await routeUnprefixedApiToSubpath(context);
+        const page = await context.newPage();
+        patchGotoToUseBaseUrl(page);
+
+        this.contexts.push(context);
+
+        return {context, page};
+    }
+
     /**
      * Switch the auth state of an existing context to a different user
      * without creating a new context. After switching, pages in the context
@@ -74,8 +90,71 @@ export class TestBrowser {
     }
 }
 
+/**
+ * Plugin webapp bundles build absolute URLs from ServiceSettings.SiteURL, which in `testcontainers`
+ * mode is a Docker network alias that only other containers can resolve. Left alone those fetches
+ * hang from the host browser, so anything waiting on network idle never settles. Rewrite them onto
+ * the host-mapped URL, which serves the same server. No-op in `external` mode, where the two match.
+ */
+async function routeInternalBaseUrlToHost(context: BrowserContext) {
+    const {internalBaseURL, baseURL} = testConfig;
+    if (internalBaseURL === baseURL) {
+        return;
+    }
+
+    await context.route(`${internalBaseURL}/**`, async (route) => {
+        await route.continue({url: route.request().url().replace(internalBaseURL, baseURL)});
+    });
+}
+
+/**
+ * Specs often call the API from the page with an absolute path (`fetch('/api/v4/...')`). Under a
+ * subpath that path misses the prefix and the server 302-redirects it, which drops a POST/PUT body.
+ * Rewrite such requests onto the prefixed path instead. No-op without a subpath.
+ */
+async function routeUnprefixedApiToSubpath(context: BrowserContext) {
+    const {subpathPrefix, baseURL} = testConfig;
+    if (!subpathPrefix) {
+        return;
+    }
+
+    const {origin} = new URL(baseURL);
+    await context.route(`${origin}/api/**`, async (route) => {
+        const url = new URL(route.request().url());
+        url.pathname = `${subpathPrefix}${url.pathname}`;
+        await route.continue({url: url.href});
+    });
+}
+
+/**
+ * Playwright's own baseURL merging (`new URL(url, baseURL)`, used when `page.goto()` gets a path
+ * instead of a full URL) replaces baseURL's pathname rather than appending to it, silently dropping
+ * any path segment baseURL has — e.g. a subpath deployment's prefix. It's also frozen to whatever
+ * testConfig.baseURL was at config-load time. This makes goto() resolve against the current
+ * testConfig.baseURL instead, preserving its path segment, for every navigation given a path rather
+ * than an already-absolute URL (external logins, permalinks, about:blank, etc. pass through as-is).
+ */
+export function patchGotoToUseBaseUrl(page: Page): void {
+    const originalGoto = page.goto.bind(page);
+    page.goto = ((url: string, options?: Parameters<Page['goto']>[1]) =>
+        originalGoto(resolveAgainstBaseUrl(url), options)) as Page['goto'];
+}
+
+function resolveAgainstBaseUrl(target: string): string {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+        return target;
+    }
+
+    const given = new URL(target, 'http://placeholder.invalid');
+    const url = new URL(testConfig.baseURL);
+    url.pathname = `${url.pathname.replace(/\/+$/, '')}${given.pathname.startsWith('/') ? given.pathname : `/${given.pathname}`}`;
+    url.search = given.search;
+    url.hash = given.hash;
+    return url.href;
+}
+
 export async function loginByAPI(loginId: string, password: string, token = '', ldapOnly = false) {
-    const requestContext = await request.newContext();
+    const requestContext = await request.newContext({ignoreHTTPSErrors: true});
 
     const data: any = {
         login_id: loginId,

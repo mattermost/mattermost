@@ -1,5 +1,5 @@
 ---
-title: "Legal Hold"
+title: "Legal hold"
 ---
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
@@ -42,10 +42,18 @@ Establishing a Legal Hold policy first enables you to configure the Mattermost s
 
 #### Install the plugin
 
+From Mattermost v12.0, the Legal Hold plugin is pre-packaged with the Mattermost Server, so there's no need to download the plugin binary. Because the plugin ships with the server, it's also available from the Marketplace on servers without internet access.
+
 1.  Log in to your Mattermost [workspace](/end-user-guide/end-user-guide-index) as a system administrator.
-2.  Download the latest version of the [plugin binary release](https://github.com/mattermost/mattermost-plugin-legal-hold/releases/), compatible with Mattermost v8.0.1 and later. If you are using an earlier version of Mattermost, [follow our documentation](/administration-guide/upgrade/upgrading-mattermost-server) to upgrade to Mattermost v8.0.1 or later.
-3.  Go to **System Console \> Plugins \> Plugin Management \> Upload Plugin**, and upload the plugin binary you downloaded in the previous step.
-4.  In the **Installed Plugins** section, scroll to **Legal Hold Plugin**, and select **Enable**.
+2.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+3.  Search for or scroll to **Legal Hold Plugin**, and select **Install**.
+4.  Go to **System Console \> Plugins \> Plugin Management**, and in the **Installed Plugins** section, scroll to **Legal Hold Plugin** and select **Enable**.
+
+<Note>
+
+If your deployment is on a release prior to v12.0, download the latest version of the [plugin binary release](https://github.com/mattermost/mattermost-plugin-legal-hold/releases/), compatible with Mattermost v8.0.1 and later, and upload it via **System Console \> Plugins \> Plugin Management \> Upload Plugin**. If you are using a version of Mattermost earlier than v8.0.1, [follow our documentation](/administration-guide/upgrade/upgrading-mattermost-server) to upgrade first.
+
+</Note>
 
 #### Configure the plugin
 

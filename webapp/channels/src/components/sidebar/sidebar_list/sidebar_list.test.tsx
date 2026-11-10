@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MovementMode, DropResult} from '@hello-pangea/dnd';
 import React from 'react';
-import type {MovementMode, DropResult} from 'react-beautiful-dnd';
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {ChannelType} from '@mattermost/types/channels';
@@ -146,6 +146,9 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         markAllAsReadWithoutConfirm: false,
         markAllAsReadShortcutEnabled: false,
+        isProductRailShown: false,
+        showNoBoards: false,
+        categoryIdsHiddenByProductRail: new Set<string>(),
         currentStaticPageId: '',
         staticPages: [],
         actions: {
@@ -347,6 +350,80 @@ describe('SidebarList', () => {
         querySpy.mockRestore();
     });
 
+    // The drag lifecycle resizes the scroll box by looking the droppable up by
+    // its library-generated data attribute, so the selector has to keep matching
+    // what @hello-pangea/dnd actually renders. Deliberately no querySelectorAll
+    // mock here: that is what let a stale data-rbd-* selector ship unnoticed.
+    test('should resize the categories droppable over the drag lifecycle', () => {
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
+        );
+        const instance = sidebarListRef.current!;
+
+        const droppable = document.querySelector<HTMLDivElement>('#sidebar-droppable-categories')!;
+        expect(droppable).toBeInTheDocument();
+        jest.spyOn(droppable, 'scrollHeight', 'get').mockReturnValue(500);
+
+        instance.onBeforeCapture({
+            draggableId: currentChannel.id,
+            mode: 'SNAP' as MovementMode,
+        });
+        expect(droppable.style.height).toBe('500px');
+
+        instance.onDragStart({
+            draggableId: currentChannel.id,
+            mode: 'SNAP' as MovementMode,
+            type: 'SIDEBAR_CHANNEL',
+            source: {droppableId: 'category1', index: 0},
+        });
+        expect(droppable.style.height).toBe('');
+    });
+
+    test('should translate a category drop past categories the product rail hides', () => {
+        const categories = [
+            {...baseProps.categories[0], id: 'category_a', type: CategoryTypes.CUSTOM},
+            {...baseProps.categories[0], id: 'category_b', type: CategoryTypes.CUSTOM},
+            {...baseProps.categories[0], id: 'category_c', type: CategoryTypes.CUSTOM},
+        ];
+        const props = {
+            ...baseProps,
+            categories,
+            categoryIdsHiddenByProductRail: new Set(['category_b']),
+            actions: {...baseProps.actions, moveCategory: jest.fn()},
+        };
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...props}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
+        );
+
+        const drop = (draggableId: string, index: number): DropResult => ({
+            reason: 'DROP',
+            type: 'SIDEBAR_CATEGORY',
+            source: {droppableId: 'droppable-categories', index: 0},
+            destination: {droppableId: 'droppable-categories', index},
+            combine: null,
+            draggableId,
+            mode: 'SNAP' as MovementMode,
+        });
+
+        // Shown as [a, c]: c dropped first goes before a in the full list.
+        sidebarListRef.current!.onDragEnd(drop('category_c', 0));
+        expect(props.actions.moveCategory).toHaveBeenLastCalledWith(baseProps.currentTeam.id, 'category_c', 0);
+
+        // a dropped last goes after c, past the hidden b.
+        sidebarListRef.current!.onDragEnd(drop('category_a', 1));
+        expect(props.actions.moveCategory).toHaveBeenLastCalledWith(baseProps.currentTeam.id, 'category_a', 2);
+    });
+
     test('should call correct action on dropping item', () => {
         const sidebarListRef = React.createRef<SidebarListComponent>();
         renderWithContext(
@@ -369,6 +446,7 @@ describe('SidebarList', () => {
                 droppableId: 'droppable-categories',
                 index: 5,
             },
+            combine: null,
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
         };
@@ -387,6 +465,7 @@ describe('SidebarList', () => {
                 droppableId: baseProps.categories[0].id,
                 index: 5,
             },
+            combine: null,
             draggableId: baseProps.categories[0].id,
             mode: 'SNAP' as MovementMode,
         };

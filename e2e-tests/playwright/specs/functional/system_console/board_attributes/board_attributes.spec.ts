@@ -94,7 +94,7 @@ test.describe('System Console - Board Attributes', {tag: '@board_attributes'}, (
         await ba.saveAndWaitForSettled();
 
         // * Field exists on the server
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const created = (fields ?? []).find((f) => f.name === name);
         expect(created).toBeDefined();
         expect(created!.type).toBe('text');

@@ -96,19 +96,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           >
             <input
               autocomplete="off"
-              class="form-control disabled"
-              disabled=""
+              class="form-control"
               id="client_secret"
-              type="text"
-              value="••••••••••••••••••••••••••••••••••••••••"
+              type="password"
+              value=""
             />
-            <span
-              class="outgoing-oauth-connections-edit-secret"
-            >
-              <i
-                class="icon icon-pencil-outline"
-              />
-            </span>
             <div
               class="form__help"
             >
@@ -143,11 +135,15 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               class="outgoing-oauth-connection-validate-button-container"
             >
               <button
-                class="btn btn-tertiary btn-sm"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
                 id="validateConnection"
                 type="button"
               >
-                Validate Connection
+                <span
+                  class="_button__label_we8pe_31"
+                >
+                  Validate Connection
+                </span>
               </button>
             </div>
           </div>
@@ -182,17 +178,25 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/outgoing-oauth2-connections"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveConnection"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra
@@ -311,19 +315,11 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
           >
             <input
               autocomplete="off"
-              class="form-control disabled"
-              disabled=""
+              class="form-control"
               id="client_secret"
-              type="text"
-              value="••••••••••••••••••••••••••••••••••••••••"
+              type="password"
+              value=""
             />
-            <span
-              class="outgoing-oauth-connections-edit-secret"
-            >
-              <i
-                class="icon icon-pencil-outline"
-              />
-            </span>
             <div
               class="form__help"
             >
@@ -358,11 +354,15 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               class="outgoing-oauth-connection-validate-button-container"
             >
               <button
-                class="btn btn-tertiary btn-sm"
+                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53"
                 id="validateConnection"
                 type="button"
               >
-                Validate Connection
+                <span
+                  class="_button__label_we8pe_31"
+                >
+                  Validate Connection
+                </span>
               </button>
             </div>
           </div>
@@ -400,21 +400,29 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
             <label
               class="control-label"
             >
-              One or more audience URLs are required.
+              Client Secret for the OAuth connection is required.
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/test/integrations/outgoing-oauth2-connections"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveConnection"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
           <div>
             renderExtra

@@ -187,6 +187,18 @@ func (s *SqlScheduledRecapStore) Delete(id string) error {
 	return nil
 }
 
+func (s *SqlScheduledRecapStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("ScheduledRecaps").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ScheduledRecaps with userId=%s", userId)
+	}
+
+	return nil
+}
+
 // GetForUser retrieves paginated ScheduledRecaps for a user (excluding soft-deleted).
 func (s *SqlScheduledRecapStore) GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error) {
 	offset := page * perPage

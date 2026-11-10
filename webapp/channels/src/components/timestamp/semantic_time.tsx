@@ -17,9 +17,7 @@ const SemanticTime: FC<Props> = ({
     timeZone,
     ...props
 }: Props) => {
-    const dateTime = timeZone ?
-        DateTime.fromJSDate(value, {zone: timeZone}) :
-        DateTime.fromJSDate(value).toLocal();
+    const dateTime = timeZone ? DateTime.fromJSDate(value, {zone: timeZone}) : DateTime.fromJSDate(value).toLocal();
 
     return (
         <time
@@ -28,7 +26,7 @@ const SemanticTime: FC<Props> = ({
 
             // The offset is required for this to name a single instant; without it the
             // attribute is only a wall-clock reading and cannot be parsed unambiguously.
-            dateTime={dateTime.toISO()}
+            dateTime={dateTime.toISO() ?? undefined}
         >
             {children}
         </time>
