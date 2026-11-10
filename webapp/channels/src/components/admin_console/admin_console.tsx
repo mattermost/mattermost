@@ -18,6 +18,7 @@ import SchemaAdminSettings from 'components/admin_console/schema_admin_settings'
 import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
+import useAdminConfigSync from 'components/common/hooks/useAdminConfigSync';
 import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
@@ -85,6 +86,10 @@ const useFocusScroller = (location: Location): RefCallback<HTMLElement> => {
 const AdminConsole = (props: Props) => {
     const [search, setSearch] = useState('');
     const handleFocusScroller = useFocusScroller(props.location);
+
+    // Keep the config fresh while the System Console is open so that concurrent
+    // saves by different admins do not clobber each other.
+    useAdminConfigSync();
 
     useEffect(() => {
         props.actions.getConfig();
