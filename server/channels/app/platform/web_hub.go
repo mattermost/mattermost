@@ -23,9 +23,8 @@ import (
 )
 
 const (
-	broadcastQueueSize           = 4096
-	inactiveConnReaperInterval   = 5 * time.Minute
-	webConnMembershipLockStripes = 256
+	broadcastQueueSize         = 4096
+	inactiveConnReaperInterval = 5 * time.Minute
 )
 
 type SuiteIFace interface {
@@ -116,13 +115,11 @@ type Hub struct {
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
 
-	// Striped per-user locks, held from loading a user's channels until the hub receives them, so
-	// the hub gets each user's lists in load order. The hub goroutine must never take one: the
-	// holder may be blocked sending to the hub, and the two would wait on each other forever.
-	membershipLocks [webConnMembershipLockStripes]sync.Mutex
-	// membershipSeed picks a user's stripe; it differs from the seed that picks
-	// the hub, so a hub's users spread over all its stripes.
-	membershipSeed maphash.Seed
+	// membershipMu is held from loading a user's channels until the hub receives them, so the hub
+	// gets each user's lists in load order and this node runs one membership load per hub at a
+	// time, as it did when the hub goroutine ran the loads. The hub goroutine must never take it:
+	// the holder may be blocked sending to the hub, and the two would wait on each other forever.
+	membershipMu sync.Mutex
 }
 
 // newWebHub creates a new Hub.
@@ -144,7 +141,6 @@ func newWebHub(ps *PlatformService) *Hub {
 		connCount:          make(chan *webConnCountMessage),
 		hasUser:            make(chan *webConnHasUserMessage),
 		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
-		membershipSeed:     maphash.MakeSeed(),
 	}
 }
 
@@ -157,9 +153,6 @@ func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 	// Read once: the hub index is built for one mode at start, so a live change
 	// would leave the broadcast path and the index disagreeing until restart.
 	ps.hubChannelIteration = *ps.Config().ServiceSettings.EnableWebHubChannelIteration
-	// One membership load in flight per hub: the concurrency the hubs had when each ran its
-	// own loads one at a time, kept now that the loads run on the callers.
-	ps.membershipLoads = make(chan struct{}, numberOfHubs)
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs), mlog.Bool("channel_iteration", ps.hubChannelIteration))
 
 	hubs := make([]*Hub, numberOfHubs)
@@ -408,17 +401,9 @@ func (ps *PlatformService) WebConnCountForUser(userID string) int {
 	return 0
 }
 
-// membershipLock returns the lock a caller holds while it loads userID's channels and sends them to the hub; never take it on the hub goroutine.
-func (h *Hub) membershipLock(userID string) *sync.Mutex {
-	return &h.membershipLocks[maphash.String(h.membershipSeed, userID)%webConnMembershipLockStripes]
-}
-
-// loadChannelMembership loads the user's channel IDs from the primary, holding one of the
-// node's membershipLoads slots while the query runs.
+// loadChannelMembership loads the user's channel IDs from the primary.
 func (ps *PlatformService) loadChannelMembership(userID string) (channelList, error) {
-	ps.membershipLoads <- struct{}{}
 	cm, err := ps.Store.Channel().GetAllChannelMembersForUser(store.RequestContextWithMaster(request.EmptyContext(ps.logger)), userID, false, false)
-	<-ps.membershipLoads
 	if err != nil {
 		return channelList{}, fmt.Errorf("error getChannelMembersForUser: %w", err)
 	}
@@ -434,9 +419,8 @@ func (h *Hub) Register(webConn *WebConn) error {
 	}
 	var channels channelList
 	if h.platform.hubChannelIteration {
-		mu := h.membershipLock(webConn.UserId)
-		mu.Lock()
-		defer mu.Unlock()
+		h.membershipMu.Lock()
+		defer h.membershipMu.Unlock()
 		var err error
 		if channels, err = h.platform.loadChannelMembership(webConn.UserId); err != nil {
 			return err
@@ -541,9 +525,8 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 func (h *Hub) InvalidateUser(userID string) {
 	msg := &webConnInvalidateUserMessage{userID: userID}
 	if h.platform.hubChannelIteration {
-		mu := h.membershipLock(userID)
-		mu.Lock()
-		defer mu.Unlock()
+		h.membershipMu.Lock()
+		defer h.membershipMu.Unlock()
 		if !h.HasUser(userID) {
 			return
 		}

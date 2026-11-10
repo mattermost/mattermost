@@ -5,7 +5,6 @@ package platform
 
 import (
 	"fmt"
-	"hash/maphash"
 	"maps"
 	"slices"
 	"sync"
@@ -197,9 +196,9 @@ func requireDone(t *testing.T, done <-chan struct{}, what string) {
 	}
 }
 
-// membershipLockHeld reports whether userID's membership lock is held.
+// membershipLockHeld reports whether the membership lock of userID's hub is held.
 func membershipLockHeld(ps *PlatformService, userID string) bool {
-	mu := ps.GetHubForUserId(userID).membershipLock(userID)
+	mu := &ps.GetHubForUserId(userID).membershipMu
 	if mu.TryLock() {
 		mu.Unlock()
 		return false
@@ -330,25 +329,6 @@ func TestHubMembershipChannelsUnbuffered(t *testing.T) {
 	require.Zero(t, cap(hub.invalidateUser), "a completed send must mean the hub has the invalidation")
 }
 
-// TestHubMembershipLockStripesSpread checks that the users of one hub spread over all of its lock stripes.
-func TestHubMembershipLockStripesSpread(t *testing.T) {
-	ps := &PlatformService{hashSeed: maphash.MakeSeed()}
-	for range 16 {
-		ps.hubs = append(ps.hubs, newWebHub(ps))
-	}
-	hub := ps.hubs[0]
-	stripes := map[*sync.Mutex]struct{}{}
-	for n := 0; n < 10000; {
-		userID := model.NewId()
-		if ps.GetHubForUserId(userID) != hub {
-			continue
-		}
-		stripes[hub.membershipLock(userID)] = struct{}{}
-		n++
-	}
-	require.Len(t, stripes, webConnMembershipLockStripes, "10000 users of one hub must reach every stripe")
-}
-
 // twoChannelIDs returns two channel IDs with ch1 < ch2, the order loadedLists reports them in.
 func twoChannelIDs() (ch1, ch2 string) {
 	ch1, ch2 = model.NewId(), model.NewId()
@@ -426,23 +406,27 @@ func TestHubMembershipLockOrdersRegisterAndInvalidate(t *testing.T) {
 }
 
 // TestHubMembershipLoadsAreCapped checks that a load waits for a membershipLoads slot while the slots are taken.
-func TestHubMembershipLoadsAreCapped(t *testing.T) {
+// TestHubMembershipLoadsSerializePerHub checks that two users of one hub load one after the other.
+func TestHubMembershipLoadsSerializePerHub(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	ps, channelStore := newMembershipTestPlatform(t, th, true)
-	ps.membershipLoads = make(chan struct{}, 1)
-	first, second := model.NewId(), model.NewId()
+	first := model.NewId()
+	second := model.NewId()
+	for ps.GetHubForUserId(second) != ps.GetHubForUserId(first) {
+		second = model.NewId()
+	}
 	channelStore.setMembers(first, model.NewId())
 	channelStore.setMembers(second, model.NewId())
 
-	// The first load pauses inside the store call, holding the only slot.
+	// The first load pauses inside the store call, holding the hub's lock.
 	pause := channelStore.pauseNextLoad()
 	firstRegistered := startGoroutine(func() { require.NoError(t, ps.HubRegister(newBroadcastBenchConn(ps, first))) })
 	<-pause.paused
 
 	secondRegistered := startGoroutine(func() { require.NoError(t, ps.HubRegister(newBroadcastBenchConn(ps, second))) })
 	require.Never(t, func() bool { return channelStore.numCalls.Load() > 1 }, 100*time.Millisecond, 10*time.Millisecond,
-		"the second load must wait for the slot the paused first load holds")
+		"the second load must wait for the lock the paused first load holds")
 
 	close(pause.resume)
 	<-firstRegistered
