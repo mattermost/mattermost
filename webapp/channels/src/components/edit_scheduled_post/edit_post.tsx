@@ -131,6 +131,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const draftRef = useRef<PostDraft>(draft);
     const saveDraftFrame = useRef<number | null>(undefined);
     const isFirstRender = useRef(true);
+    const isCancelled = useRef(false);
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -344,6 +345,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleCancel = useCallback(() => {
+        isCancelled.current = true;
         onCancel?.();
         handleAutomatedRefocusAndExit();
     }, [onCancel, handleAutomatedRefocusAndExit]);
@@ -370,6 +372,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, post);
+        if (isCancelled.current) {
+            return;
+        }
+
         if (hookResult.error && hookResult.error.message) {
             setPostError(<>{hookResult.error.message}</>);
             return;
@@ -431,6 +437,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         const response = await actions.updateScheduledPost(updatedScheduledPost, connectionId);
+        if (isCancelled.current) {
+            return;
+        }
+
         if (response.error) {
             setPostError(response.error.message);
         } else {
@@ -499,6 +509,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
+            isCancelled.current = true;
             onCancel?.();
             handleAutomatedRefocusAndExit();
         } else if (ctrlAltCombo && markdownLinkKey) {

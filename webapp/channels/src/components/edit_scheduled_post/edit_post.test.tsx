@@ -309,6 +309,26 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(store.getState().storage.storage[draftStorageKey].value.message).toBe('Typed while hook ran');
         });
 
+        test('should not close a reopened editor when a save finishes after cancelling', async () => {
+            nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                delay(100).
+                reply(200, {...scheduledPost, message: 'Updated message'});
+
+            const {afterSave, onCancel} = renderEditor();
+
+            fireEvent.input(getTextbox(), {target: {value: 'Updated message'}});
+            fireEvent.click(screen.getByText('Save'));
+            fireEvent.click(screen.getByText('Cancel'));
+
+            await act(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            });
+
+            expect(onCancel).toHaveBeenCalledTimes(1);
+            expect(afterSave).not.toHaveBeenCalled();
+        });
+
         test('should close the editor when saving an unchanged message', async () => {
             const {afterSave} = renderEditor();
 
