@@ -253,6 +253,30 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(getTextbox().value).toBe('Typed while saving');
         });
 
+        test('should not keep a draft when a plugin hook changed the submitted message', async () => {
+            const hook = jest.fn().mockImplementation((newPost) => Promise.resolve({post: {...newPost, message: 'Hooked message'}}));
+            nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                reply(200, {...scheduledPost, message: 'Hooked message'});
+
+            const {store, afterSave, remount} = renderEditor({
+                ...scheduledPostState,
+                plugins: {components: {MessageWillBeUpdated: [{id: 'hook', pluginId: 'plugin', hook}]}},
+            });
+
+            await typeAndPersistDraft(store, 'Updated message');
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
+
+            remount();
+
+            expect(getTextbox().value).toBe('Original scheduled message');
+        });
+
         test('should close the editor when saving an unchanged message', async () => {
             const {afterSave} = renderEditor();
 

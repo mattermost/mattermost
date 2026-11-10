@@ -420,7 +420,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         if (response.error) {
             setPostError(response.error.message);
         } else {
-            if (draftRef.current.message === updatedPost.message) {
+            if (draftRef.current.message === editText) {
                 handleAutomatedRefocusAndExit();
             } else {
                 // text typed while the save was in flight is kept as a draft
