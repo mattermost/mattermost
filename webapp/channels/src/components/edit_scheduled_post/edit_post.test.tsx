@@ -114,12 +114,13 @@ describe('components/edit_scheduled_post/edit_post', () => {
         function renderEditor(state: Record<string, unknown> = scheduledPostState) {
             const afterSave = jest.fn();
             const onCancel = jest.fn();
+            const onDeleteScheduledPost = jest.fn().mockResolvedValue({});
             const editor = (
                 <EditScheduledPost
                     scheduledPost={scheduledPost}
                     afterSave={afterSave}
                     onCancel={onCancel}
-                    onDeleteScheduledPost={jest.fn().mockResolvedValue({})}
+                    onDeleteScheduledPost={onDeleteScheduledPost}
                 />
             );
             const result = renderWithContext(editor, state);
@@ -128,6 +129,7 @@ describe('components/edit_scheduled_post/edit_post', () => {
                 ...result,
                 afterSave,
                 onCancel,
+                onDeleteScheduledPost,
                 remount: () => {
                     result.rerender(<></>);
                     result.rerender(editor);
@@ -337,17 +339,37 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
         });
 
-        test('should not leave an edit draft behind when the delete confirmation is shown', async () => {
-            const {store, unmount} = renderEditor();
+        test('should not discard the stored draft when the delete confirmation is shown', async () => {
+            const {store} = renderEditor();
 
+            await typeAndPersistDraft(store, 'Draft text');
             fireEvent.input(getTextbox(), {target: {value: ''}});
             fireEvent.click(screen.getByText('Save'));
 
             await waitFor(() => {
                 expect(store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT]?.open).toBe(true);
             });
+
+            expect(store.getState().storage.storage[draftStorageKey].value).not.toBeNull();
+        });
+
+        test('should not leave an edit draft behind when the scheduled post is deleted', async () => {
+            const {store, unmount, onDeleteScheduledPost} = renderEditor();
+
+            await typeAndPersistDraft(store, 'Text before deleting');
+            fireEvent.input(getTextbox(), {target: {value: ''}});
+            fireEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT]?.open).toBe(true);
+            });
+
+            await act(async () => {
+                await store.getState().views.modals.modalState[ModalIdentifiers.DELETE_DRAFT].dialogProps.onConfirm();
+            });
             unmount();
 
+            expect(onDeleteScheduledPost).toHaveBeenCalledTimes(1);
             expect(store.getState().storage.storage[draftStorageKey]?.value ?? null).toBeNull();
         });
 

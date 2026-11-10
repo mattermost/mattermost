@@ -264,16 +264,20 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         actions.unsetEditingPost();
     };
 
-    const handleAutomatedRefocusAndExit = () => {
+    const discardDraft = () => {
         if (saveDraftFrame.current) {
             clearTimeout(saveDraftFrame.current);
             saveDraftFrame.current = null;
         }
+        actions.setDraft(draftStorageId, null);
+    };
+
+    const handleAutomatedRefocusAndExit = () => {
+        discardDraft();
         draftRef.current = {
             ...draftRef.current,
             message: '',
         };
-        actions.setDraft(draftStorageId, null);
         handleRefocusAndExit(editingPost.refocusId || null);
     };
 
@@ -381,14 +385,25 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
             scheduledPost.file_ids && scheduledPost.file_ids.length > 0,
         );
         if (updatedPost.message.trim().length === 0 && !hasAttachment) {
-            handleAutomatedRefocusAndExit();
+            handleRefocusAndExit(null);
+
+            const confirmDelete = async () => {
+                const pendingDraft = draftRef.current;
+                discardDraft();
+
+                const response = await onDeleteScheduledPost();
+                if (response.error) {
+                    actions.setDraft(draftStorageId, pendingDraft);
+                }
+                return response;
+            };
 
             const deleteScheduledPostModalData = {
                 modalId: ModalIdentifiers.DELETE_DRAFT,
                 dialogType: DeleteScheduledPostModal,
                 dialogProps: {
                     channelDisplayName: channel.display_name,
-                    onConfirm: onDeleteScheduledPost,
+                    onConfirm: confirmDelete,
                 },
             };
 
