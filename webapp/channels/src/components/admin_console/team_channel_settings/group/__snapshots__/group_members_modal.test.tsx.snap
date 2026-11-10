@@ -112,7 +112,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
                   >
                     <span
                       aria-label="Loading Icon"
-                      class="_spinner_3elm7_10 spinner"
+                      class="_spinner_mvrwe_21 spinner"
                       role="status"
                       style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                     />
@@ -127,12 +127,12 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
           class="modal-footer"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="closeModalButton"
             type="button"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Close
             </span>

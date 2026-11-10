@@ -359,7 +359,7 @@ const LDAPWizard = (props: Props) => {
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
-                    {name}
+                    <span>{name}</span>
                 </AdminHeader>
             );
         }

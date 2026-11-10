@@ -60,6 +60,12 @@ func (s *Server) clusterReloadSamlHandler(_ *model.ClusterMessage) {
 	s.Channels().configureSaml(request.EmptyContext(s.Log()))
 }
 
+func (s *Server) clusterSharedChannelSyncTaskHandler(msg *model.ClusterMessage) {
+	if scs := s.GetSharedChannelSyncService(); scs != nil {
+		scs.HandleClusterSyncTask(msg)
+	}
+}
+
 // registerClusterHandlers registers the cluster message handlers that are handled by the server.
 //
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
@@ -70,6 +76,7 @@ func (s *Server) registerClusterHandlers() {
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 	s.platform.RegisterClusterMessageHandler(clusterEventInvalidateChannelGuardCache, s.Channels().clusterInvalidateGuardCacheHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventReloadSaml, s.clusterReloadSamlHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventSharedChannelSyncTask, s.clusterSharedChannelSyncTaskHandler)
 
 	s.platform.RegisterClusterHandlers()
 }

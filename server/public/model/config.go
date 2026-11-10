@@ -3693,6 +3693,7 @@ type CloudSettings struct {
 	CWSAPIURL             *string `access:"write_restrictable"`
 	Disable               *bool   `access:"write_restrictable,cloud_restrictable"`
 	PreviewModalBucketURL *string `access:"write_restrictable"`
+	PreviewLandingPath    *string `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3720,6 +3721,10 @@ func (s *CloudSettings) SetDefaults() {
 
 	if s.PreviewModalBucketURL == nil {
 		s.PreviewModalBucketURL = new("")
+	}
+
+	if s.PreviewLandingPath == nil {
+		s.PreviewLandingPath = new("")
 	}
 }
 

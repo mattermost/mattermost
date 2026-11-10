@@ -49,19 +49,19 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_ft92e_41"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -107,24 +107,24 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Stay as "Away"
                     </span>
                   </button>
                   <button
-                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                     id="confirmModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Set status to "Online"
                     </span>
@@ -189,19 +189,19 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
             </div>
             <button
               aria-label="Close"
-              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 GenericModal__close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_ft92e_41"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -237,24 +237,24 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
                   class="ConfirmModal__footer"
                 >
                   <button
-                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+                    class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
                     data-testid="cancel-button"
                     id="cancelModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Stay "Out of office"
                     </span>
                   </button>
                   <button
-                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                     id="confirmModalButton"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Set status to "Online"
                     </span>

@@ -13,7 +13,7 @@ We strongly recommend installing the desktop app on a local drive. Network share
 
 <Note>
 
-When you log into Mattermost using external user credentials, such as Google or Entra ID, you'll temporarily leave the desktop app during login while authenticating your credentials. Once you're successfully logged in to Mattermost, you'll be returned to the desktop app. See the [Single Sign-On (SSO)](#single-sign-on-sso) section below for details on the external providers that Mattermosts supports.
+When you log into Mattermost using external user credentials, such as Google or Entra ID, you'll temporarily leave the desktop app during login while authenticating your credentials. Once you're successfully logged in to Mattermost, you'll be returned to the desktop app. See [Single Sign-On (SSO)](/end-user-guide/access/access-your-workspace#single-sign-on-sso) for details on the external providers that Mattermost supports.
 
 </Note>
 
@@ -46,15 +46,4 @@ In enterprise deployments, your system administrator may disable update notifica
 
 ### Upgrading to v6.1.0 using Windows MSI installer
 
-If you're upgrading from a version earlier than v6.1.0 using the Windows MSI installer, you may need to recreate your taskbar shortcut once after upgrading. This one-time change improves shortcut reliability and prevents shortcuts from breaking during future upgrades.
-
-Prior to v6.1.0, installing over an older Desktop App version could break shortcuts. The v6.1.0 MSI installer uses a more reliable method for shortcut icons that prevents this issue in future upgrades. This only affects Windows MSI installer upgrades. The Windows Store version is not affected, and future upgrades to v6.1.1 and later won't require shortcut recreation.
-
-If your taskbar shortcut shows the wrong icon or fails to launch after upgrading to v6.1.0:
-
-1.  Right-click the broken shortcut on your taskbar and select **Unpin from taskbar**.
-2.  Launch Mattermost Desktop from the Start Menu or desktop shortcut.
-3.  Right-click the Mattermost icon in the taskbar while it's running.
-4.  Select **Pin to taskbar**.
-
-Your new shortcut will work correctly for all future updates.
+If your taskbar shortcut shows the wrong icon or fails to launch after upgrading, see [Why does the taskbar shortcut show the wrong icon after upgrading?](/deployment-guide/desktop/windows-desktop-install#why-does-the-taskbar-shortcut-show-the-wrong-icon-after-upgrading).

@@ -1111,6 +1111,10 @@
     "defaultMessage": "Common Expression Language (CEL)",
     "description": "Title of the help modal explaining Common Expression Language; CEL is a technology name and should stay as-is."
   },
+  "admin.access_control.cel.editor_aria_label": {
+    "defaultMessage": "CEL expression editor",
+    "description": "Accessible name read by screen readers for the code editor where admins type a CEL access rule expression (advanced mode of the access policy editors in the System Console)."
+  },
   "admin.access_control.cel.help_text": {
     "defaultMessage": "Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.",
     "description": "Help text (markdown) under the advanced CEL expression editor for access policies; the placeholders all resolve to literal angle-bracket characters, and backticked fragments are code."
@@ -5522,14 +5526,6 @@
   "admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title": {
     "defaultMessage": "User's Status and Profile Fetching Poll Interval:",
     "description": "Admin console field label on the Experimental Features page for the poll interval (milliseconds) used to fetch user statuses and profiles."
-  },
-  "admin.experimental.youtubeReferrerPolicy.desc": {
-    "defaultMessage": "When true, the referrer policy for embedded YouTube videos will be set to \"strict-origin-when-cross-origin\" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to \"no-referrer\" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.",
-    "description": "Admin console help text under the YouTube Referrer Policy toggle on the Experimental Features page; strict-origin-when-cross-origin and no-referrer are literal HTTP referrer policy values and must not be translated."
-  },
-  "admin.experimental.youtubeReferrerPolicy.title": {
-    "defaultMessage": "YouTube Referrer Policy:",
-    "description": "Setting label (toggle) on the Experimental Features admin page controlling the referrer policy of embedded YouTube previews; ends with a colon."
   },
   "admin.false": {
     "defaultMessage": "False",
@@ -16783,6 +16779,26 @@
     "defaultMessage": "Remove policy",
     "description": "Accessibility label for the trash icon button on a policy row; opens a confirmation to unlink the policy from the team."
   },
+  "admin.team_settings.team_detail.rules.advanced_locked": {
+    "defaultMessage": "These rules use advanced logic. Only a System Admin can change them.",
+    "description": "Notice above a read-only Advanced (CEL) editor on a team's page in the System Console, shown to admins who are not System Admins (for example a System Manager) when the team's membership rule uses logic the simple rule table can't display. Only System Admins can edit such rules."
+  },
+  "admin.team_settings.team_detail.rules.error.invalid_expression": {
+    "defaultMessage": "Fix the errors in the team-specific membership rules before saving.",
+    "description": "Error shown in the save bar of the System Console per-team page when Save is clicked while the Team-specific membership rules expression is invalid or can't be saved; nothing is saved."
+  },
+  "admin.team_settings.team_detail.rules.error.parent_resource_attributes": {
+    "defaultMessage": "A linked membership policy references resource attributes, which team membership rules can't use.",
+    "description": "Save bar error on the System Console per-team page when the server rejects the save because a parent membership policy linked to the team references resource.attributes.*; team membership rules can't use those."
+  },
+  "admin.team_settings.team_detail.rules.error.resource_attributes": {
+    "defaultMessage": "Team membership rules can't reference resource attributes.",
+    "description": "Error on the System Console per-team page, shown inline under the Team-specific membership rules editor and in the save bar when the server rejects the save, because the rule references resource.attributes.*, which team membership rules can't use."
+  },
+  "admin.team_settings.team_detail.rules.error.session_attributes": {
+    "defaultMessage": "Team membership rules can't reference session attributes.",
+    "description": "Error in the save bar on the System Console per-team page when the server rejects the save because the team membership rule references user.session.* attributes, which team membership rules can't use."
+  },
   "admin.team_settings.team_detail.rules.subtitle": {
     "defaultMessage": "User attributes and values as additional rules to restrict team membership",
     "description": "Subtitle of the Custom access rules panel on the admin console team configuration page (attribute-based membership)."
@@ -20683,6 +20699,14 @@
     "defaultMessage": "Enter a purpose for this board (optional)",
     "description": "Placeholder of the channel purpose text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
   },
+  "channel_settings.access_rules.advanced_rules_locked": {
+    "defaultMessage": "These rules use advanced logic and can't be edited here. Contact a System Admin to change them.",
+    "description": "Notice on the Access Rules tab of Channel Settings, shown to channel admins above a read-only copy of the channel's membership rule when it uses logic (such as OR across attributes or grouping) that this tab's simple rule table can't display or edit. Only a System Admin can change such a rule."
+  },
+  "channel_settings.access_rules.advanced_rules_locked_admin": {
+    "defaultMessage": "These rules use advanced logic and can't be edited here.",
+    "description": "Notice on the Access Rules tab of Channel Settings, shown to System Admins above a read-only copy of the channel's membership rule when it uses logic (such as OR across attributes or grouping) that this tab's simple rule table can't display or edit."
+  },
   "channel_settings.access_rules.auto_sync": {
     "defaultMessage": "Auto-add members based on access rules",
     "description": "Checkbox label on the Access Rules tab of channel settings; enables automatically adding users who match the rules."
@@ -22191,6 +22215,58 @@
     "defaultMessage": "You",
     "description": "Pronoun substituted for the current user's own username inside combined join/leave system messages (e.g. 'You joined the channel'); subject position."
   },
+  "commercial_support_modal.basic_contents.description": {
+    "defaultMessage": "Server version, license details, system diagnostics, sanitized configuration, usage counts, job status, permissions, plugin list, database schema, and performance profiles. Does not include message content.",
+    "description": "Helper text under the mandatory 'Basic contents' checkbox in the Commercial Support modal, summarizing what the Support Packet always includes; 'Support Packet' is a product term."
+  },
+  "commercial_support_modal.basic_contents.included.config": {
+    "defaultMessage": "Configuration with credentials removed",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the server configuration with passwords, keys, and tokens stripped out."
+  },
+  "commercial_support_modal.basic_contents.included.database_schema": {
+    "defaultMessage": "Database table structure (no data)",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the database schema (table structure) without any stored data."
+  },
+  "commercial_support_modal.basic_contents.included.diagnostics": {
+    "defaultMessage": "System diagnostics: OS, CPU, memory, database, file storage, and connectivity checks",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: system diagnostics and connectivity checks; text after the colon lists examples."
+  },
+  "commercial_support_modal.basic_contents.included.jobs": {
+    "defaultMessage": "Background job status",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: status of the server's background jobs."
+  },
+  "commercial_support_modal.basic_contents.included.permissions": {
+    "defaultMessage": "Permission schemes and roles",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: permission schemes and user roles."
+  },
+  "commercial_support_modal.basic_contents.included.plugin_data": {
+    "defaultMessage": "Usage counts and settings from installed plugins",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: usage counts and settings flags that installed plugins add to the Support Packet."
+  },
+  "commercial_support_modal.basic_contents.included.plugins": {
+    "defaultMessage": "Installed plugins and their versions",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: the installed plugins and their version numbers."
+  },
+  "commercial_support_modal.basic_contents.included.profiles": {
+    "defaultMessage": "Performance profiles (CPU, memory, goroutines)",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: performance profiles; 'goroutines' is a Go programming term and should not be translated."
+  },
+  "commercial_support_modal.basic_contents.included.server_info": {
+    "defaultMessage": "Server version, license, and server ID",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: server version, license, and server identifier."
+  },
+  "commercial_support_modal.basic_contents.included.usage": {
+    "defaultMessage": "Usage counts: users, posts, channels, teams",
+    "description": "Item in the expandable 'What's included' list for Basic contents in the Commercial Support modal: counts of users, posts, channels, and teams; text after the colon lists examples."
+  },
+  "commercial_support_modal.basic_contents.label": {
+    "defaultMessage": "Basic contents",
+    "description": "Label of the mandatory checkbox in the Commercial Support modal for the core contents that every Support Packet includes; 'Support Packet' is a product term."
+  },
+  "commercial_support_modal.basic_contents.whats_included": {
+    "defaultMessage": "What's included",
+    "description": "Toggle under the 'Basic contents' option in the Commercial Support modal that expands or collapses a detailed list of what Basic contents includes."
+  },
   "commercial_support_modal.description": {
     "defaultMessage": "If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment.",
     "description": "Intro paragraph of the Commercial Support modal; <supportLink> tags wrap the clickable phrase that opens the support ticket site."
@@ -22198,6 +22274,22 @@
   "commercial_support_modal.download_contents": {
     "defaultMessage": "Select your Support Packet contents to download",
     "description": "Bold heading above the checkboxes where the admin selects which contents to include in the Support Packet download."
+  },
+  "commercial_support_modal.download_error": {
+    "defaultMessage": "Unable to download the Support Packet. Please try again.",
+    "description": "Error shown below the download button in the Commercial Support modal when the Support Packet download fails and the server gave no specific error message."
+  },
+  "commercial_support_modal.required": {
+    "defaultMessage": "(required)",
+    "description": "Marker shown next to the 'Basic contents' option in the Commercial Support modal, indicating that this Support Packet content is always included and cannot be deselected."
+  },
+  "commercial_support_modal.server_logs.description": {
+    "defaultMessage": "Recent server log files, including any advanced and audit log files. May contain usernames, email addresses, IP addresses, and error details.",
+    "description": "Helper text under the optional 'Server logs' checkbox in the Commercial Support modal, warning what personal or diagnostic data the server log files may contain."
+  },
+  "commercial_support_modal.server_logs.label": {
+    "defaultMessage": "Server logs",
+    "description": "Label of the optional checkbox in the Commercial Support modal that adds the server log files to the Support Packet download."
   },
   "commercial_support_modal.warning.banner": {
     "defaultMessage": "Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.",
@@ -30240,11 +30332,11 @@
     "description": "Accessibility label for the search box popup panel; not visible text."
   },
   "search_bar.search_files": {
-    "defaultMessage": "Search files",
+    "defaultMessage": "Search files by keyword",
     "description": "Label for the file search mode/option in the search box."
   },
   "search_bar.search_messages": {
-    "defaultMessage": "Search messages",
+    "defaultMessage": "Search messages by keyword",
     "description": "Label for the message search mode/option in the search box."
   },
   "search_bar.search_types.files": {
@@ -32174,6 +32266,14 @@
   "team_settings.discoverability.title": {
     "defaultMessage": "Discoverability",
     "description": "Section title in team settings for choosing whether the team is public or private."
+  },
+  "team_settings.membership_tab.advanced_rules_locked": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the System Console. Contact a System Admin to change them.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown above a read-only copy of the team's membership rule when a System Admin wrote it in the System Console's Advanced (CEL) editor, which this tab's simple rule table can't display or edit."
+  },
+  "team_settings.membership_tab.advanced_rules_locked_admin": {
+    "defaultMessage": "These rules use advanced logic and can only be edited in the <link>System Console</link>.",
+    "description": "Notice on the Team Membership tab of Team Settings, shown to System Admins above a read-only copy of a membership rule written in the System Console's Advanced (CEL) editor. <link> wraps \"System Console\" and opens that team's page in the System Console, where the rule can be edited."
   },
   "team_settings.membership_tab.auto_add": {
     "defaultMessage": "Auto-add members based on access rules",

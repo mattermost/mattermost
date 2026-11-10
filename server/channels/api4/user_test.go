@@ -6041,10 +6041,14 @@ func TestLoginCookies(t *testing.T) {
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
-		th.App.Srv().SetCWSTokenOverride(token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		user := th.CreateUser(t)
+		th.App.Srv().SetCWSTokenOverride(token)
+		th.App.Srv().SetCWSLoginIDOverride(user.Email)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 
 		form := url.Values{}
 		form.Add("login_id", user.Email)
@@ -6073,6 +6077,183 @@ func TestLoginCookies(t *testing.T) {
 			}
 		}
 		assert.True(t, found, "should have found cookie")
+	})
+
+	t.Run("cws login with the CWS login ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name           string
+			cloud          bool
+			bindTo         func(user, otherUser *model.User) string
+			prepare        func(t *testing.T, user *model.User)
+			expectedStatus int
+			expectSession  bool
+		}{
+			{
+				name:           "self-hosted license with a matching login ID",
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "self-hosted license without the CWS login ID",
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "self-hosted license with a mismatched login ID",
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a deactivated user",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					_, appErr := th.App.UpdateActive(th.Context, user, false)
+					require.Nil(t, appErr)
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a user who has logged in before",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license without the CWS login ID",
+				cloud:          true,
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license with a matching login ID",
+				cloud:          true,
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "Cloud license with a mismatched login ID",
+				cloud:          true,
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				token := model.NewRandomString(64)
+				license := model.NewTestLicense()
+				license.Features.Cloud = new(tc.cloud)
+				th.App.Srv().SetLicense(license)
+				user := th.CreateUser(t)
+				otherUser := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+				if tc.prepare != nil {
+					tc.prepare(t, user)
+				}
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, tc.expectedStatus, r.StatusCode)
+				hasSession := false
+				for _, cookie := range r.Cookies() {
+					if cookie.Name == model.SessionCookieToken && cookie.Value != "" {
+						hasSession = true
+					}
+				}
+				assert.Equal(t, tc.expectSession, hasSession)
+			})
+		}
+	})
+
+	t.Run("cws login redirect for cloud previews", func(t *testing.T) {
+		siteURL := "https://testchips.cloud.mattermost.com"
+		th := SetupAndApplyConfigBeforeLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+		}).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name             string
+			preview          bool
+			useCase          string
+			landing          string
+			expectedLocation string
+		}{
+			{name: "use case wins over the landing path", preview: true, useCase: "mission-ops", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/mission-ops-hq"},
+			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
+			{name: "landing path is ignored outside a preview", landing: "/nato", expectedLocation: siteURL},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				license := model.NewTestLicense("cloud")
+				if tc.preview {
+					license.IsTrial = true
+					license.StartsAt = model.GetMillis()
+					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
+				}
+				th.App.Srv().SetLicense(license)
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.CloudSettings.PreviewLandingPath = tc.landing
+				})
+				token := model.NewRandomString(64)
+				user := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(user.Username)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				form.Add("use_case", tc.useCase)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, http.StatusFound, r.StatusCode)
+				assert.Equal(t, tc.expectedLocation, r.Header.Get("Location"))
+			})
+		}
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
