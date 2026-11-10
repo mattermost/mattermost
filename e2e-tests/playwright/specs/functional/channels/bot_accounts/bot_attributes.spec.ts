@@ -55,7 +55,7 @@ function botAttributeCombobox(page: Page, fieldId: string) {
 }
 
 // Focus alone doesn't open the menu, so click and wait for it; the listbox is portaled to the page.
-async function pickBotAttributeOption(page: Page, fieldId: string, optionName: string) {
+async function openBotAttributeListbox(page: Page, fieldId: string) {
     const combobox = botAttributeCombobox(page, fieldId);
     await combobox.click();
     await expect(combobox).toHaveAttribute('aria-expanded', 'true');
@@ -63,8 +63,13 @@ async function pickBotAttributeOption(page: Page, fieldId: string, optionName: s
     if (!listboxId) {
         throw new Error(`Bot attribute combobox ${fieldId} has no aria-controls`);
     }
-    await page.locator(`#${listboxId}`).getByRole('option', {name: optionName, exact: true}).click();
-    await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+    return page.locator(`#${listboxId}`);
+}
+
+async function pickBotAttributeOption(page: Page, fieldId: string, optionName: string) {
+    const listbox = await openBotAttributeListbox(page, fieldId);
+    await listbox.getByRole('option', {name: optionName, exact: true}).click();
+    await expect(botAttributeCombobox(page, fieldId)).toHaveAttribute('aria-expanded', 'false');
 }
 
 async function openBotEdit(page: Page, teamName: string, username: string) {
@@ -497,4 +502,95 @@ test.describe('Bot account attributes @bot_accounts', () => {
                 .toMatchObject({[selectField.id]: optionId(selectField, GOLD)});
         },
     );
+
+    test.describe('rank attribute', () => {
+        const RANK_LABEL = `Bot Level ${suffix}`;
+        let rankField: UserPropertyField | undefined;
+
+        test.beforeAll(async () => {
+            const {adminClient} = await getAdminClient();
+            rankField = await adminClient.createCustomProfileAttributeField({
+                name: `bot_level_${suffix}`,
+                type: 'rank',
+                attrs: {
+                    sort_order: 3,
+                    visibility: 'always',
+                    display_name: RANK_LABEL,
+                    options: [
+                        {name: 'Low', rank: 1},
+                        {name: 'High', rank: 2},
+                    ],
+                },
+            } as any);
+        });
+
+        test.afterAll(async () => {
+            if (!rankField) {
+                return;
+            }
+            const {adminClient} = await getAdminClient();
+            await deleteCustomProfileAttributes(adminClient, {[rankField.id]: rankField});
+        });
+
+        /**
+         * @objective Verify a rank attribute on a bot edits like the other dropdown attributes: it shows the assigned value with its badge, and both picking another value and clearing it persist.
+         */
+        test('edits and clears a rank attribute on a bot', {tag: '@bot_accounts'}, async ({pw}) => {
+            test.setTimeout(120000);
+            const field = rankField!;
+            const {adminUser, adminClient, team} = await pw.initSetup();
+
+            // # Seed a bot with the lowest rank and open its edit page
+            const bot = await seedBot(adminClient, {[field.id]: optionId(field, 'Low')});
+            const {page} = await pw.testBrowser.login(adminUser);
+            await openBotEdit(page, team.name, bot.username);
+            const rank = botAttributeCombobox(page, field.id);
+            const badge = page.getByTestId(`bot-attribute-label-${field.id}`).getByTestId('rank-badge');
+
+            // * The rank is a combobox named after the field, showing the assigned value with its badge
+            await expect(rank).toHaveAccessibleName(RANK_LABEL);
+            await expect(rank).toHaveValue('Low');
+            await expect(badge).toHaveText('1');
+
+            // # Open the listbox
+            const listbox = await openBotAttributeListbox(page, field.id);
+
+            // * Values are listed highest-rank-first and the assigned value is selected
+            await expect(listbox.getByRole('option')).toHaveText([/^2\s*High$/, /^1\s*Low$/]);
+            await expect(listbox.getByRole('option', {name: 'Low', exact: true})).toHaveAttribute(
+                'aria-selected',
+                'true',
+            );
+
+            // # Close the listbox
+            await rank.press('Escape');
+            await expect(rank).toHaveAttribute('aria-expanded', 'false');
+
+            // # Pick the higher rank and save
+            await pickBotAttributeOption(page, field.id, 'High');
+            await expect(badge).toHaveText('2');
+            await saveBotEdit(page, team.name);
+
+            // * The new value was saved
+            await expect
+                .poll(() => adminClient.getUserCustomProfileAttributesValues(bot.user_id))
+                .toMatchObject({[field.id]: optionId(field, 'High')});
+
+            // # Reopen the bot and clear the rank
+            await openBotEdit(page, team.name, bot.username);
+            await expect(rank).toHaveValue('High');
+            await page.getByTestId(`bot-attribute-combobox-${field.id}-clear`).click();
+
+            // * The input is empty
+            await expect(rank).toHaveValue('');
+
+            // # Save the bot
+            await saveBotEdit(page, team.name);
+
+            // * The value was cleared
+            await expect
+                .poll(async () => (await adminClient.getUserCustomProfileAttributesValues(bot.user_id))[field.id] ?? '')
+                .toBe('');
+        });
+    });
 });

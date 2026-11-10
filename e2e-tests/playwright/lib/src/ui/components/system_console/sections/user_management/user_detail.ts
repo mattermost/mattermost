@@ -200,9 +200,9 @@ class AdminUserCard {
         return this.getFieldColumn(labelText).getByTestId('fieldError');
     }
 
-    // ── Select / multiselect CPA combobox ───────────────────────────────
+    // ── Select / multiselect / rank CPA combobox ────────────────────────
 
-    /** The combobox input of a select or multiselect CPA field, located by its exact label. */
+    /** The combobox input of a select, multiselect or rank CPA field, located by its exact label. */
     getCpaCombobox(labelText: string): Locator {
         return this.getFieldColumn(labelText).getByRole('combobox', {name: labelText, exact: true});
     }
@@ -241,9 +241,14 @@ class AdminUserCard {
         await expect(this.getCpaCombobox(labelText)).toHaveAttribute('aria-expanded', 'false');
     }
 
-    /** The clear (×) button of a select CPA combobox. It renders only while the field has a value. */
+    /** The clear (×) button of a single-value (select or rank) CPA combobox. It renders only while the field has a value. */
     getCpaComboboxClearButton(labelText: string): Locator {
         return this.getFieldColumn(labelText).getByRole('button', {name: `Clear ${labelText}`, exact: true});
+    }
+
+    /** The rank badge in the closed field of a rank CPA combobox. The option rows' badges are in the portaled listbox. */
+    getCpaRankBadge(labelText: string): Locator {
+        return this.getFieldColumn(labelText).getByTestId('rank-badge');
     }
 
     /** Selected-value chips of a multiselect CPA field, in display order. */
@@ -257,33 +262,6 @@ class AdminUserCard {
             .filter({has: this.body.page().getByText(chipText, {exact: true})})
             .locator('[data-chip-remove]')
             .click();
-    }
-
-    // ── Ranked CPA picker ───────────────────────────────────────────────
-
-    /** The menu-button for a ranked CPA field, located by its exact label. */
-    getCpaRankPicker(labelText: string): Locator {
-        return this.getFieldColumn(labelText).getByRole('button');
-    }
-
-    /** The open ranked-value menu (rendered at page level via portal). */
-    cpaRankMenu(): Locator {
-        return this.body.page().getByRole('menu', {name: 'Select an option'});
-    }
-
-    /** Menu option rows, in DOM order (highest rank first). */
-    cpaRankMenuItems(): Locator {
-        return this.cpaRankMenu().getByRole('menuitemradio');
-    }
-
-    async openCpaRankPicker(labelText: string): Promise<void> {
-        await this.getCpaRankPicker(labelText).click();
-    }
-
-    /** Open the picker and choose an option by its exact label. */
-    async selectCpaRankValue(labelText: string, optionName: string): Promise<void> {
-        await this.openCpaRankPicker(labelText);
-        await this.cpaRankMenu().getByText(optionName, {exact: true}).click();
     }
 }
 
