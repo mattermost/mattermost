@@ -135,12 +135,12 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     const saveDraft = useCallback(() => {
         // to be run on unmount and only when there is an active saveDraftFrame timer
-        if (saveDraftFrame.current && editingPost.postId) {
+        if (saveDraftFrame.current && id) {
             actions.setDraft(draftStorageId, draftRef.current);
             clearTimeout(saveDraftFrame.current);
             saveDraftFrame.current = null;
         }
-    }, [actions, draftStorageId, editingPost.postId]);
+    }, [actions, draftStorageId, id]);
 
     useEffect(() => saveDraft, [saveDraft]);
 
@@ -255,17 +255,21 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleAutomatedRefocusAndExit = () => {
+        if (saveDraftFrame.current) {
+            clearTimeout(saveDraftFrame.current);
+            saveDraftFrame.current = null;
+        }
         draftRef.current = {
             ...draftRef.current,
             message: '',
         };
+        actions.setDraft(draftStorageId, null);
         handleRefocusAndExit(editingPost.refocusId || null);
     };
 
     const handleEdit = async () => {
         if (scheduledPost) {
             await handleEditScheduledPost();
-            afterSave?.();
             return;
         }
 
@@ -357,6 +361,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         if (updatedPost.message === post.message) {
             handleAutomatedRefocusAndExit();
+            afterSave?.();
             return;
         }
 
