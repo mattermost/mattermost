@@ -40,7 +40,7 @@ func storeDecision(t *testing.T, c *accessDecisionCache, l accessDecisionLookup,
 	t.Helper()
 	_, hit := c.get(&l)
 	require.False(t, hit)
-	c.put(&l, allowed)
+	c.put(&l, allowed, 0)
 }
 
 func cached(c *accessDecisionCache, l accessDecisionLookup) (bool, bool) {
@@ -117,7 +117,7 @@ func TestAccessDecisionCacheInvalidationScopes(t *testing.T) {
 		for _, e := range entries {
 			l := e.l
 			if _, hit := c.get(&l); !hit {
-				c.put(&l, true)
+				c.put(&l, true, 0)
 			}
 		}
 	}
@@ -162,7 +162,7 @@ func TestAccessDecisionCacheInvalidationDuringBuildIsNotStored(t *testing.T) {
 
 	// The user changes while the decision is being computed.
 	c.invalidateUser(userID)
-	c.put(&l, true)
+	c.put(&l, true, 0)
 
 	_, hit = cached(c, readLookup(t, c, accessSubjectSession, sessionID, userID, channelID))
 	require.False(t, hit, "a decision computed from pre-invalidation inputs must not be served")
@@ -218,7 +218,7 @@ func TestAccessDecisionCacheSlowBuildDoesNotOutliveSweep(t *testing.T) {
 	clock.advance(time.Second)
 	c.invalidateUser(userID)
 	clock.advance(10 * time.Second)
-	c.put(&l, true)
+	c.put(&l, true, 0)
 
 	// Sweeping the bump makes the user read as 0 again; the entry must have expired by then.
 	clock.advance(51 * time.Second) // 1s past the sweep cutoff, well before put + maxAge
@@ -299,4 +299,100 @@ func TestAccessDecisionCachePrepare(t *testing.T) {
 	require.True(t, ok)
 	_, ok = c.prepare(accessSubjectUser, id, id, model.AccessControlPolicyTypeChannel, id, model.AccessControlPolicyActionChannelReadAccess)
 	require.True(t, ok)
+}
+
+func TestAccessDecisionCacheDeadline(t *testing.T) {
+	sessionID, userID := model.NewId(), model.NewId()
+
+	t.Run("a deadline before max age ends the entry at the deadline", func(t *testing.T) {
+		c, clock := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
+		_, hit := c.get(&l)
+		require.False(t, hit)
+		c.put(&l, true, clock.now+int64(5*time.Second))
+
+		clock.advance(4 * time.Second)
+		_, hit = cached(c, l)
+		require.True(t, hit)
+
+		clock.advance(time.Second)
+		_, hit = cached(c, l)
+		require.False(t, hit, "the entry ends at the deadline")
+	})
+
+	t.Run("a deadline after max age changes nothing", func(t *testing.T) {
+		c, clock := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
+		_, hit := c.get(&l)
+		require.False(t, hit)
+		c.put(&l, true, clock.now+int64(time.Hour))
+
+		clock.advance(59 * time.Second)
+		_, hit = cached(c, l)
+		require.True(t, hit)
+
+		clock.advance(time.Second)
+		_, hit = cached(c, l)
+		require.False(t, hit, "max age still applies")
+	})
+
+	t.Run("a deadline already past is not stored", func(t *testing.T) {
+		c, clock := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
+		_, hit := c.get(&l)
+		require.False(t, hit)
+		c.put(&l, true, clock.now)
+
+		require.Zero(t, c.len(), "storing it could only evict an entry that can still hit")
+	})
+}
+
+func TestSessionAttributeDeadline(t *testing.T) {
+	const deviceExpiry, networkExpiry = int64(1_700_000_010_000), int64(1_700_000_005_000)
+	subject := &model.Subject{
+		Session:          map[string]any{"device_compliant": "true", "network_status": "corp"},
+		SessionExpiresAt: map[string]int64{"device_compliant": deviceExpiry, "network_status": networkExpiry},
+	}
+	ms := func(v int64) int64 { return v * int64(time.Millisecond) }
+
+	for name, tc := range map[string]struct {
+		subject  *model.Subject
+		decision model.AccessDecision
+		want     int64
+	}{
+		"a decision that read no session attribute has none": {
+			subject:  subject,
+			decision: model.AccessDecision{SessionAttributeRefsReported: true},
+			want:     0,
+		},
+		"a decision ends with the one attribute it read": {
+			subject:  subject,
+			decision: model.AccessDecision{SessionAttributeRefs: []string{"device_compliant"}, SessionAttributeRefsReported: true},
+			want:     ms(deviceExpiry),
+		},
+		"a decision ends with the earliest attribute it read": {
+			subject:  subject,
+			decision: model.AccessDecision{SessionAttributeRefs: []string{"device_compliant", "network_status"}, SessionAttributeRefsReported: true},
+			want:     ms(networkExpiry),
+		},
+		"an attribute the session lacks can't expire": {
+			subject:  subject,
+			decision: model.AccessDecision{SessionAttributeRefs: []string{"client_type"}, SessionAttributeRefsReported: true},
+			want:     0,
+		},
+		"an unreported decision ends with the earliest attribute the session has": {
+			subject:  subject,
+			decision: model.AccessDecision{},
+			want:     ms(networkExpiry),
+		},
+		"a subject with no session attributes has none": {
+			subject:  &model.Subject{},
+			decision: model.AccessDecision{},
+			want:     0,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.want, sessionAttributeDeadline(tc.subject, &tc.decision))
+		})
+	}
 }

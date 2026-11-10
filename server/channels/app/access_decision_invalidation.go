@@ -456,9 +456,38 @@ func (a *App) evaluateAccessCached(rctx request.CTX, ref accessSubjectRef, resou
 	}
 
 	if cacheable {
-		c.put(&lookup, decision.Decision)
+		c.put(&lookup, decision.Decision, sessionAttributeDeadline(&subject, &decision))
 	}
 	return decision, nil
+}
+
+func sessionAttributeDeadline(subject *model.Subject, decision *model.AccessDecision) int64 {
+	if len(subject.SessionExpiresAt) == 0 {
+		return 0
+	}
+
+	var earliest int64
+	consider := func(ms int64) {
+		if earliest == 0 || ms < earliest {
+			earliest = ms
+		}
+	}
+	if decision.SessionAttributeRefsReported {
+		for _, name := range decision.SessionAttributeRefs {
+			if ms, ok := subject.SessionExpiresAt[name]; ok {
+				consider(ms)
+			}
+		}
+	} else {
+		// The evaluator didn't say what it read, so assume every attribute.
+		for _, ms := range subject.SessionExpiresAt {
+			consider(ms)
+		}
+	}
+	if earliest == 0 {
+		return 0
+	}
+	return earliest * int64(time.Millisecond)
 }
 
 // accessSubjectRef names the subject a cached decision belongs to.

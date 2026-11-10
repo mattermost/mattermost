@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -319,6 +320,70 @@ func TestEvaluateAccessCachedBuildError(t *testing.T) {
 	require.Nil(t, appErr)
 	require.True(t, decision.Decision)
 	require.Equal(t, 1, h.evaluations(), "a failed build left nothing in the cache")
+}
+
+func TestEvaluateAccessCachedSessionAttributeExpiry(t *testing.T) {
+	const attr = "device_compliant"
+
+	// setup returns a run func that evaluates read access for a session subject whose attr goes
+	// stale 5s from now, with the PDP answering decision.
+	setup := func(t *testing.T, decision model.AccessDecision) (*accessDecisionCacheHarness, *fakeAccessClock, func() bool) {
+		h := setupAccessDecisionCacheTest(t)
+		h.acs.On("AccessEvaluation", mock.Anything, mock.Anything).Return(decision, nil)
+
+		clock := &fakeAccessClock{now: time.Unix(1_700_000_000, 0).UnixNano()}
+		h.th.App.Srv().Channels().accessDecisions.now = clock.get
+		expiresAt := clock.now/int64(time.Millisecond) + 5_000
+
+		var rctx request.CTX = h.th.Context.WithSession(h.session)
+		ref := accessSubjectRefFor(rctx, h.th.BasicUser.Id)
+		require.Equal(t, accessSubjectSession, ref.kind)
+		resource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: h.th.BasicChannel.Id}
+
+		run := func() bool {
+			got, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, *model.AppError) {
+				return model.Subject{
+					ID:               h.th.BasicUser.Id,
+					Session:          map[string]any{attr: "true"},
+					SessionExpiresAt: map[string]int64{attr: expiresAt},
+				}, nil
+			})
+			require.Nil(t, appErr)
+			return got.Decision
+		}
+		return h, clock, run
+	}
+
+	t.Run("a decision that read an attribute ends when it goes stale", func(t *testing.T) {
+		h, clock, run := setup(t, model.AccessDecision{Decision: true, SessionAttributeRefs: []string{attr}, SessionAttributeRefsReported: true})
+
+		require.True(t, run())
+		clock.advance(4 * time.Second)
+		require.True(t, run())
+		require.Equal(t, 1, h.evaluations())
+
+		clock.advance(time.Second)
+		require.True(t, run())
+		require.Equal(t, 2, h.evaluations(), "re-evaluated once the attribute expired")
+	})
+
+	t.Run("a decision that read no session attribute keeps the max age", func(t *testing.T) {
+		h, clock, run := setup(t, model.AccessDecision{Decision: true, SessionAttributeRefsReported: true})
+
+		require.True(t, run())
+		clock.advance(30 * time.Second)
+		require.True(t, run())
+		require.Equal(t, 1, h.evaluations())
+	})
+
+	t.Run("a decision that doesn't say what it read ends with the session's attributes", func(t *testing.T) {
+		h, clock, run := setup(t, model.AccessDecision{Decision: true})
+
+		require.True(t, run())
+		clock.advance(5 * time.Second)
+		require.True(t, run())
+		require.Equal(t, 2, h.evaluations())
+	})
 }
 
 func TestAccessDecisionCachePrepareSkipsCachedChannels(t *testing.T) {

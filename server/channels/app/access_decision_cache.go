@@ -416,8 +416,18 @@ func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (a
 }
 
 // put stores a decision under the versions get captured. Expiry counts from the capture, not
-// from now, so a slow build can't outlive a swept version.
-func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool) {
+// from now, so a slow build can't outlive a swept version. A non-zero deadline (epoch ns) ends
+// the entry sooner: the time an input the decision read, such as a session attribute, goes stale.
+func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadline int64) {
+	expiresAt := l.capturedAt + c.maxAge
+	if deadline > 0 && deadline < expiresAt {
+		expiresAt = deadline
+	}
+	if expiresAt <= l.capturedAt {
+		// Already stale: it could never hit, and storing it could evict an entry that can.
+		return
+	}
+
 	s := &c.shards[l.shard]
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -443,7 +453,7 @@ func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool) {
 	slot := &s.slots[i]
 	slot.key = l.key
 	slot.versions = l.versions
-	slot.expiresAt = l.capturedAt + c.maxAge
+	slot.expiresAt = expiresAt
 	slot.allowed = allowed
 }
 
