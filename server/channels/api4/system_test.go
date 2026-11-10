@@ -664,8 +664,8 @@ func TestLogsAudit(t *testing.T) {
 }
 
 func TestDecodeLogLines(t *testing.T) {
-	t.Run("decodes JSON lines and counts the others", func(t *testing.T) {
-		entries, skipped, firstErr := decodeLogLines([]string{
+	t.Run("decodes JSON lines and skips the others", func(t *testing.T) {
+		entries := decodeLogLines([]string{
 			`{"level":"info","msg":"first"}`,
 			"2026-11-05T12:00:00.000Z info plain text",
 			`{"level":"warn","msg":"second"}`,
@@ -675,16 +675,12 @@ func TestDecodeLogLines(t *testing.T) {
 			map[string]any{"level": "info", "msg": "first"},
 			map[string]any{"level": "warn", "msg": "second"},
 		}, entries)
-		assert.Equal(t, 2, skipped)
-		assert.Error(t, firstErr)
 	})
 
 	t.Run("no lines", func(t *testing.T) {
-		entries, skipped, firstErr := decodeLogLines(nil)
+		entries := decodeLogLines(nil)
 		require.NotNil(t, entries, "a node without lines is still sent as an empty array")
 		assert.Empty(t, entries)
-		assert.Zero(t, skipped)
-		assert.NoError(t, firstErr)
 	})
 }
 

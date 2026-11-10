@@ -381,14 +381,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	logsJSON := make(map[string][]any, len(logs))
 	for node, logLines := range logs {
-		entries, skipped, firstErr := decodeLogLines(logLines)
-		// Logged once per node, not per line: each warning is a line in the log file, and a
-		// client polling the logs, as mmctl logs --follow does, would read it back and log
-		// another one, so a plain-text log file would grow without bound
-		if skipped > 0 {
-			c.Logger.Warn("Skipped log lines that aren't JSON in Server Logs", mlog.String("from_node", node), mlog.Int("skipped", skipped), mlog.Err(firstErr))
-		}
-		logsJSON[node] = entries
+		logsJSON[node] = decodeLogLines(logLines)
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)
@@ -400,22 +393,19 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// decodeLogLines decodes the JSON log lines, and counts the lines that aren't JSON, with the
-// error of the first one.
-func decodeLogLines(logLines []string) (entries []any, skipped int, firstErr error) {
-	entries = make([]any, 0, len(logLines))
+// decodeLogLines decodes the JSON log lines and skips the others, as a log file holds plain-text
+// lines when LogSettings.FileJson is off. It doesn't log them: each message would be a line in
+// the log file, which a client polling the logs would read back on its next query.
+func decodeLogLines(logLines []string) []any {
+	entries := make([]any, 0, len(logLines))
 	for _, line := range logLines {
 		var entry any
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
-			skipped++
-			if firstErr == nil {
-				firstErr = err
-			}
 			continue
 		}
 		entries = append(entries, entry)
 	}
-	return entries, skipped, firstErr
+	return entries
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
