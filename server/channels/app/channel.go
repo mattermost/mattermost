@@ -2219,7 +2219,7 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 	var userRequestor *model.User
 	var err *model.AppError
 	if opts.UserRequestorID != "" {
-		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+		if userRequestor, err = a.GetUser(rctx, opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
@@ -2237,7 +2237,7 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 	// later post failure can roll back the whole call without leaving a partial
 	// visible history for members that were never successfully completed.
 	for _, userID := range toAdd {
-		user, userErr := a.GetUser(userID)
+		user, userErr := a.GetUser(rctx, userID)
 		if userErr != nil {
 			compensate()
 			return nil, userErr
@@ -2270,7 +2270,7 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 	// present requested members only get one when a prior partial failure left
 	// that row without its system post.
 	for _, userID := range newlyAdded {
-		user, userErr := a.GetUser(userID)
+		user, userErr := a.GetUser(rctx, userID)
 		if userErr != nil {
 			compensate()
 			return nil, userErr
@@ -2301,7 +2301,7 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 			continue
 		}
 
-		user, userErr := a.GetUser(member.UserId)
+		user, userErr := a.GetUser(rctx, member.UserId)
 		if userErr != nil {
 			compensate()
 			return nil, userErr
