@@ -161,12 +161,16 @@ WHERE datname = current_database()`
 func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		NDeadTup         int64        `db:"n_dead_tup"`
-		NLiveTup         int64        `db:"n_live_tup"`
+		EstimatedRows    int64        `db:"estimated_rows"`
 		VacuumInProgress bool         `db:"vacuum_in_progress"`
 		LastVacuum       sql.NullTime `db:"last_vacuum"`
 		LastAutovacuum   sql.NullTime `db:"last_autovacuum"`
 	}
 
+	// reltuples is the row estimate autovacuum compares n_dead_tup against. Unlike n_live_tup it is
+	// stored in pg_class, so it survives a statistics reset; it is -1 until the table is first
+	// vacuumed or analyzed.
+	//
 	// A plain VACUUM reports to pg_stat_progress_vacuum and holds ShareUpdateExclusiveLock on the table.
 	// VACUUM FULL and CLUSTER rewrite the table, report to pg_stat_progress_cluster, and hold
 	// AccessExclusiveLock. Both progress views hide relid and command from other roles unless the
@@ -174,7 +178,7 @@ func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagno
 	const query = `
 SELECT
     stats.n_dead_tup,
-    stats.n_live_tup,
+    class.reltuples::bigint AS estimated_rows,
     EXISTS (
         SELECT 1
         FROM (
@@ -200,6 +204,7 @@ SELECT
     stats.last_vacuum,
     stats.last_autovacuum
 FROM pg_stat_user_tables AS stats
+JOIN pg_class AS class ON class.oid = stats.relid
 WHERE lower(stats.relname) = 'posts'
   AND stats.schemaname = current_schema()
 LIMIT 1`
@@ -212,7 +217,7 @@ LIMIT 1`
 	}
 
 	diagnostics.PostsDeadTuples = &row.NDeadTup
-	diagnostics.PostsLiveTuples = &row.NLiveTup
+	diagnostics.PostsEstimatedRows = &row.EstimatedRows
 	diagnostics.PostsVacuumInProgress = &row.VacuumInProgress
 	if row.LastVacuum.Valid {
 		ts := row.LastVacuum.Time.UTC()

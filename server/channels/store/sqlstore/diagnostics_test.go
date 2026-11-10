@@ -50,7 +50,7 @@ func TestGetDiagnostics(t *testing.T) {
 		require.NotNil(t, diagnostics.LongestQueryDurationSeconds)
 		require.NotNil(t, diagnostics.WaitingForLockCount)
 		require.NotNil(t, diagnostics.PostsDeadTuples)
-		require.NotNil(t, diagnostics.PostsLiveTuples)
+		require.NotNil(t, diagnostics.PostsEstimatedRows)
 		require.NotNil(t, diagnostics.PostsVacuumInProgress)
 
 		const lastVacuumQuery = `
@@ -74,6 +74,9 @@ LIMIT 1`
 		require.NotNil(t, diagnostics.PostsLastVacuum)
 		assert.Equal(t, time.UTC, diagnostics.PostsLastVacuum.Location())
 		assert.Equal(t, lastVacuumAfter.Time.UTC(), *diagnostics.PostsLastVacuum)
+		// reltuples is -1 until the first VACUUM or ANALYZE; after one it is a real estimate.
+		require.NotNil(t, diagnostics.PostsEstimatedRows)
+		assert.GreaterOrEqual(t, *diagnostics.PostsEstimatedRows, int64(0))
 	})
 }
 

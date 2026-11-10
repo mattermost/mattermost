@@ -1667,7 +1667,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	longestQuerySeconds := 7.25
 	waitingForLock := int64(5)
 	postsDeadTuples := int64(9)
-	postsLiveTuples := int64(41)
+	postsEstimatedRows := int64(41)
 	postsLastVacuum := time.Date(2026, 7, 9, 11, 12, 13, 0, time.UTC)
 	postsLastAutovacuum := time.Date(2026, 7, 10, 12, 13, 14, 0, time.UTC)
 
@@ -1727,7 +1727,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.LongestQueryDurationSeconds = &longestQuerySeconds
 	diagnostics.Database.WaitingForLockCount = &waitingForLock
 	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
-	diagnostics.Database.PostsLiveTuples = &postsLiveTuples
+	diagnostics.Database.PostsEstimatedRows = &postsEstimatedRows
 	diagnostics.Database.PostsVacuumInProgress = new(true)
 	diagnostics.Database.PostsLastVacuum = &postsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum

@@ -352,7 +352,7 @@ database:
   version: "15.8"
   master_connections_in_use: 1
   posts_dead_tuples: 0
-  posts_live_tuples: 1000
+  posts_estimated_rows: 1000
   posts_vacuum_in_progress: false
   posts_last_vacuum: 2026-09-25T09:00:00Z
 elastic:
@@ -527,8 +527,8 @@ Version
 		)
 		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
 			files[model.SupportPacketDiagnosticsFileName],
-			"  posts_live_tuples: 1000\n",
-			"  posts_live_tuples: 500000\n",
+			"  posts_estimated_rows: 1000\n",
+			"  posts_estimated_rows: 500000\n",
 			1,
 		)
 
@@ -545,7 +545,7 @@ Version
 		s.Require().NotEqual(-1, index)
 		finding := list.Findings[index]
 		s.Equal("Posts table has many dead tuples", finding.Title)
-		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 live rows), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 rows), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
 		s.Contains(finding.Remediation, "verify autovacuum is enabled")
 	})
 
@@ -561,8 +561,8 @@ Version
 		)
 		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
 			files[model.SupportPacketDiagnosticsFileName],
-			"  posts_live_tuples: 1000\n",
-			"  posts_live_tuples: 500000\n",
+			"  posts_estimated_rows: 1000\n",
+			"  posts_estimated_rows: 500000\n",
 			1,
 		)
 
@@ -578,7 +578,7 @@ Version
 		})
 		s.Require().NotEqual(-1, index)
 		finding := list.Findings[index]
-		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 live rows), even though it was last vacuumed at 2026-09-25T09:00:00Z. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 rows), even though it was last vacuumed at 2026-09-25T09:00:00Z. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
 		s.Contains(finding.Remediation, "pg_replication_slots")
 	})
 
