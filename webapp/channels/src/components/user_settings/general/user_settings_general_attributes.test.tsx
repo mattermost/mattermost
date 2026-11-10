@@ -229,7 +229,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             renderEditor(buildField('select'), '');
 
             expect(getCombobox()).toHaveValue('');
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select an option');
             expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
         });
 
@@ -286,7 +286,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test('shows an empty multiselect with the placeholder, no chips and no clear button, and saves []', async () => {
             const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), '');
 
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select options');
             expect(getChipLabels()).toEqual([]);
             expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -480,7 +480,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             await user.keyboard('{Enter}');
 
             expect(getCombobox()).toHaveValue('');
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select an option');
             expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
             expect(documentKeys()).not.toContain('Enter');
 
