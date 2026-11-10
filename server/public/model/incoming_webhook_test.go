@@ -242,7 +242,7 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 				"author_name": "\u0000author",
 				"fields": [{"title": "ti\u0000tle", "value": "va\u0000lue", "short": true}]
 			}],
-			"props": {"ke\u0000y": "va\u0000lue", "count": 3}
+			"props": {"ke\u0000y": "va\u0000lue", "count": 3, "items": [{"ke\u0000y": "a\u0000b"}]}
 		}`
 
 		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
@@ -262,6 +262,7 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		assert.Equal(t, "value", iwr.Props["key"])
 		assert.NotContains(t, iwr.Props, "ke\x00y")
 		assert.Equal(t, float64(3), iwr.Props["count"])
+		assert.Equal(t, []any{map[string]any{"key": "ab"}}, iwr.Props["items"])
 	})
 
 	t.Run("removes NULL characters from payloads that need control characters escaped", func(t *testing.T) {
