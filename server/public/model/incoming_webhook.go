@@ -228,13 +228,13 @@ func removeNullCharacters(v reflect.Value) {
 		}
 		removeNullCharacters(elem)
 	case reflect.Struct:
-		for i := 0; i < v.NumField(); i++ {
-			if field := v.Field(i); field.CanSet() {
+		for _, field := range v.Fields() {
+			if field.CanSet() {
 				removeNullCharacters(field)
 			}
 		}
 	case reflect.Slice, reflect.Array:
-		for i := 0; i < v.Len(); i++ {
+		for i := range v.Len() {
 			removeNullCharacters(v.Index(i))
 		}
 	case reflect.String:
