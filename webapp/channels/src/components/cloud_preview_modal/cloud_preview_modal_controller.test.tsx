@@ -403,6 +403,23 @@ describe('CloudPreviewModal', () => {
         expect(lastContentData[0].title.defaultMessage).toBe('Welcome to your Mattermost preview');
     });
 
+    it('should show the mission-ops content for a team without its own content', () => {
+        const state = JSON.parse(JSON.stringify(initialState));
+        state.entities.teams.teams['mission-ops-hq'].name = 'nato';
+
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+
+        renderWithContext(
+            <CloudPreviewModal/>,
+            state,
+        );
+
+        expect(screen.getByTestId('preview-modal-controller')).toBeInTheDocument();
+        const missionOpsContent = modalContent.filter((content) => content.useCase === 'mission-ops');
+        expect(lastContentData).toEqual(missionOpsContent);
+    });
+
     it('should not show modal when content is loading', () => {
         mockUseGetCloudPreviewModalContent.mockReturnValue({
             data: null,

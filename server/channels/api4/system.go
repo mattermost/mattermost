@@ -593,7 +593,7 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	// after the only supported test endpoint at the time it was introduced.
 	// The new /file/test endpoint is backend-agnostic but reuses the same
 	// permission to avoid a role migration.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}

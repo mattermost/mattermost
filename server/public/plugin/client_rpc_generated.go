@@ -8093,6 +8093,37 @@ func (s *apiRPCServer) UpdateSharedChannelCursor(args *Z_UpdateSharedChannelCurs
 	return nil
 }
 
+type Z_GetSharedChannelCursorArgs struct {
+	A string
+	B string
+}
+
+type Z_GetSharedChannelCursorReturns struct {
+	A model.GetPostsSinceForSyncCursor
+	B error
+}
+
+func (g *apiRPCClient) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	_args := &Z_GetSharedChannelCursorArgs{channelID, remoteID}
+	_returns := &Z_GetSharedChannelCursorReturns{}
+	if err := g.client.Call("Plugin.GetSharedChannelCursor", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSharedChannelCursor API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSharedChannelCursor(args *Z_GetSharedChannelCursorArgs, returns *Z_GetSharedChannelCursorReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error)
+	}); ok {
+		returns.A, returns.B = hook.GetSharedChannelCursor(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetSharedChannelCursor called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SyncSharedChannelArgs struct {
 	A string
 }
