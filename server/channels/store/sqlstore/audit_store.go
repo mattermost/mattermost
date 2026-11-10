@@ -61,7 +61,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 		Offset(uint64(offset))
 
 	if userId != "" {
-		query = query.Where(sq.Eq{"UserId": userId})
+		query = query.Where("UserId = '" + userId + "'")
 	}
 
 	queryString, args, err := query.ToSql()

@@ -135,7 +135,7 @@ func (a *App) CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*m
 	if us.Type == model.UploadTypeAttachment {
 		us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
 	} else if us.Type == model.UploadTypeImport {
-		us.Path = filepath.Clean(*a.Config().ImportSettings.Directory) + "/" + us.Id + "_" + filepath.Base(us.Filename)
+		us.Path = filepath.Clean(*a.Config().ImportSettings.Directory) + "/" + us.Id + "_" + us.Filename
 	}
 	if err := us.IsValid(); err != nil {
 		return nil, err

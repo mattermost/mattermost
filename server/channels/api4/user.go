@@ -2837,11 +2837,6 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.AddEventParameterAuditableToAuditRec(auditRec, "user", user)
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
 	audits, err := c.App.GetAuditsPage(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
