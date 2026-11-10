@@ -204,6 +204,9 @@ func TestAccessDecisionCacheInvalidationSources(t *testing.T) {
 		{"the channel's deactivated members are removed", func(t *testing.T, h *accessDecisionCacheHarness) {
 			require.NoError(t, h.th.App.Srv().Store().Channel().RemoveAllDeactivatedMembers(h.th.Context, h.th.BasicChannel.Id))
 		}},
+		{"the decision max age changes", func(t *testing.T, h *accessDecisionCacheHarness) {
+			h.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.DecisionCacheMaxAgeSeconds = 30 })
+		}},
 		{"a policy changes", func(t *testing.T, h *accessDecisionCacheHarness) {
 			h.th.App.InvalidateAccessDecisionsForPolicyChange()
 		}},
@@ -283,6 +286,21 @@ func TestAccessDecisionCacheScopedMembershipWritesKeepOtherEntries(t *testing.T)
 
 	require.True(t, h.check(t))
 	require.Equal(t, 1, h.evaluations())
+}
+
+func TestAccessDecisionCacheAppliesSettingChanges(t *testing.T) {
+	h := setupAccessDecisionCacheTest(t)
+	decides(h.acs, true)
+	require.True(t, h.check(t))
+	c := h.th.App.Srv().Channels().accessDecisions
+
+	h.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.DecisionCacheSize = 2_000_000 })
+	assert.Equal(t, 2_000_000/accessDecisionLRUShards, c.shards[0].limit)
+	require.True(t, h.check(t))
+	assert.Equal(t, 1, h.evaluations(), "growing the cache keeps its entries")
+
+	h.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AccessControlSettings.DecisionCacheMaxAgeSeconds = 30 })
+	assert.Equal(t, int64(30*time.Second), c.maxAge.Load())
 }
 
 func TestAccessDecisionCacheBroadcastsInvalidations(t *testing.T) {

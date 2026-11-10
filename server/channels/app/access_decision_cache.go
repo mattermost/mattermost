@@ -305,7 +305,7 @@ type accessDecisionStats struct {
 }
 
 type accessDecisionCache struct {
-	maxAge int64 // nanoseconds
+	maxAge atomic.Int64 // nanoseconds
 	now    func() int64
 
 	shards [accessDecisionLRUShards]accessDecisionShard
@@ -324,7 +324,6 @@ func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache
 	perShard := max(size/accessDecisionLRUShards, 1)
 
 	c := &accessDecisionCache{
-		maxAge:        int64(maxAge),
 		now:           func() int64 { return time.Now().UnixNano() },
 		users:         newAccessVersionTable[accessID](),
 		sessions:      newAccessVersionTable[accessID](),
@@ -339,7 +338,33 @@ func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache
 		s.limit = perShard
 		s.head, s.tail = accessDecisionNoSlot, accessDecisionNoSlot
 	}
+	c.maxAge.Store(int64(maxAge))
 	return c
+}
+
+// setMaxAge applies a new max age and drops every entry, so none outlives the new bound. The
+// bump must follow the store: a sweep under a shorter max age forgets versions sooner, which
+// is only safe once no entry from before it can match.
+func (c *accessDecisionCache) setMaxAge(maxAge time.Duration) {
+	c.maxAge.Store(int64(maxAge))
+	c.invalidateAll()
+}
+
+// resize applies a new size. A shard holding more than its new limit is emptied, which frees
+// its slab; the others keep their entries.
+func (c *accessDecisionCache) resize(size int) {
+	perShard := max(size/accessDecisionLRUShards, 1)
+	for i := range c.shards {
+		s := &c.shards[i]
+		s.mu.Lock()
+		if len(s.slots) > perShard {
+			s.index = make(map[accessDecisionKey]int32)
+			s.slots = nil
+			s.head, s.tail = accessDecisionNoSlot, accessDecisionNoSlot
+		}
+		s.limit = perShard
+		s.mu.Unlock()
+	}
 }
 
 // prepare reports false when the decision can't be cached: a non-26-byte ID, or an op past the
@@ -427,7 +452,7 @@ func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (a
 // the entry sooner: the time an input the decision read, such as a session attribute, goes stale.
 // readsSession false keeps the entry across session-version bumps; pass true when unsure.
 func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadline int64, readsSession bool) {
-	expiresAt := l.capturedAt + c.maxAge
+	expiresAt := l.capturedAt + c.maxAge.Load()
 	if deadline > 0 && deadline < expiresAt {
 		expiresAt = deadline
 	}
@@ -500,7 +525,7 @@ func (c *accessDecisionCache) invalidateUserResource(userID, resourceID string) 
 // sweep drops versions bumped more than maxAge ago. Any entry captured before such a bump has
 // expired, so dropping the version (reads as 0 again) can't revive it.
 func (c *accessDecisionCache) sweep() int {
-	cutoff := c.now() - c.maxAge
+	cutoff := c.now() - c.maxAge.Load()
 	return c.users.sweep(cutoff) +
 		c.sessions.sweep(cutoff) +
 		c.resources.sweep(cutoff) +

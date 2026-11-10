@@ -216,22 +216,44 @@ func (ch *Channels) invalidateAccessDecisionsOnLicenseChange(_, _ *model.License
 	}
 }
 
+func accessDecisionCacheSettings(cfg *model.Config) (size int, maxAge time.Duration) {
+	size = model.AccessControlDecisionCacheSizeDefault
+	maxAgeSeconds := model.AccessControlDecisionCacheMaxAgeSecondsDefault
+	if cfg != nil {
+		if cfg.AccessControlSettings.DecisionCacheSize != nil {
+			size = *cfg.AccessControlSettings.DecisionCacheSize
+		}
+		if cfg.AccessControlSettings.DecisionCacheMaxAgeSeconds != nil {
+			maxAgeSeconds = *cfg.AccessControlSettings.DecisionCacheMaxAgeSeconds
+		}
+	}
+	return size, time.Duration(maxAgeSeconds) * time.Second
+}
+
+// applyAccessDecisionCacheSettings runs on every node, so it applies locally only.
+func (ch *Channels) applyAccessDecisionCacheSettings(prevCfg, cfg *model.Config) {
+	if ch.accessDecisions == nil {
+		return
+	}
+	prevSize, prevMaxAge := accessDecisionCacheSettings(prevCfg)
+	size, maxAge := accessDecisionCacheSettings(cfg)
+	if size != prevSize {
+		ch.accessDecisions.resize(size)
+	}
+	if maxAge != prevMaxAge {
+		ch.accessDecisions.setMaxAge(maxAge)
+	}
+}
+
 // initAccessDecisionCache builds the cache from the startup config and registers its listeners.
 func (ch *Channels) initAccessDecisionCache() {
-	cfg := ch.cfgSvc.Config().AccessControlSettings
-	size := model.AccessControlDecisionCacheSizeDefault
-	if cfg.DecisionCacheSize != nil {
-		size = *cfg.DecisionCacheSize
-	}
-	maxAge := model.AccessControlDecisionCacheMaxAgeSecondsDefault
-	if cfg.DecisionCacheMaxAgeSeconds != nil {
-		maxAge = *cfg.DecisionCacheMaxAgeSeconds
-	}
+	size, maxAge := accessDecisionCacheSettings(ch.cfgSvc.Config())
 
-	ch.accessDecisions = newAccessDecisionCache(size, time.Duration(maxAge)*time.Second)
+	ch.accessDecisions = newAccessDecisionCache(size, maxAge)
 	ch.accessDecisionBroadcaster = newAccessDecisionBroadcaster(ch.sendAccessDecisionInvalidation)
 
 	ch.AddConfigListener(ch.invalidateAccessDecisionsOnConfigChange)
+	ch.AddConfigListener(ch.applyAccessDecisionCacheSettings)
 	ch.srv.platform.AddLicenseListener(ch.invalidateAccessDecisionsOnLicenseChange)
 
 	if l, ok := ch.srv.Store().(interface {

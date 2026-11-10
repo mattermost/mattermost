@@ -227,6 +227,82 @@ func TestAccessDecisionCacheSlowBuildDoesNotOutliveSweep(t *testing.T) {
 	require.False(t, hit)
 }
 
+func TestAccessDecisionCacheSetMaxAge(t *testing.T) {
+	c, clock := newTestAccessDecisionCache(t, 10_000, time.Hour)
+	userID, channelID := model.NewId(), model.NewId()
+	lookup := func() accessDecisionLookup {
+		return readLookup(t, c, accessSubjectSession, model.NewId(), userID, channelID)
+	}
+
+	stored := lookup()
+	storeDecision(t, c, stored, true)
+	clock.advance(time.Second)
+	c.invalidateUser(userID)
+	clock.advance(30 * time.Second)
+
+	c.setMaxAge(10 * time.Second)
+	_, hit := cached(c, stored)
+	require.False(t, hit, "entries from before the change are dropped")
+
+	// The shorter max age sweeps the user's bump, so its version reads as 0 again. The entry
+	// stored at 0 must stay dead.
+	require.Equal(t, 1, c.sweep())
+	_, hit = cached(c, stored)
+	require.False(t, hit)
+
+	fresh := lookup()
+	storeDecision(t, c, fresh, true)
+	_, hit = cached(c, fresh)
+	require.True(t, hit)
+	clock.advance(11 * time.Second)
+	_, hit = cached(c, fresh)
+	require.False(t, hit, "new entries get the new max age")
+}
+
+func TestAccessDecisionCacheResize(t *testing.T) {
+	// 4 slots per shard.
+	c, _ := newTestAccessDecisionCache(t, 4*accessDecisionLRUShards, time.Minute)
+	userID, channelID := model.NewId(), model.NewId()
+
+	sameShard := func(n int) []accessDecisionLookup {
+		byShard := map[uint32][]accessDecisionLookup{}
+		for {
+			l := readLookup(t, c, accessSubjectSession, model.NewId(), userID, channelID)
+			byShard[l.shard] = append(byShard[l.shard], l)
+			if len(byShard[l.shard]) == n {
+				return byShard[l.shard]
+			}
+		}
+	}
+	hits := func(ls []accessDecisionLookup) int {
+		n := 0
+		for _, l := range ls {
+			if _, hit := cached(c, l); hit {
+				n++
+			}
+		}
+		return n
+	}
+
+	ls := sameShard(4)
+	for _, l := range ls {
+		storeDecision(t, c, l, true)
+	}
+	require.Equal(t, 4, hits(ls))
+
+	c.resize(8 * accessDecisionLRUShards)
+	require.Equal(t, 4, hits(ls), "growing keeps entries")
+
+	c.resize(2 * accessDecisionLRUShards)
+	require.Equal(t, 0, hits(ls), "a shard over its new limit is emptied")
+	require.Zero(t, cap(c.shards[ls[0].shard].slots), "and its slab is freed")
+
+	for _, l := range ls[:3] {
+		storeDecision(t, c, l, true)
+	}
+	require.Equal(t, 2, hits(ls), "the new limit applies")
+}
+
 func TestAccessDecisionCacheLRUEviction(t *testing.T) {
 	// 2 slots per shard.
 	c, _ := newTestAccessDecisionCache(t, 2*accessDecisionLRUShards, time.Minute)
