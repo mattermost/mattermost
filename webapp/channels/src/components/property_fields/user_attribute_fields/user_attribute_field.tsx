@@ -7,18 +7,16 @@ import {FormattedList, FormattedMessage, defineMessages, useIntl} from 'react-in
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
-import {getPropertyFieldSyncSources, sortOptionsByRank} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldSyncSources} from 'mattermost-redux/utils/property_utils';
 import type {PropertySyncSource} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import RankBadge from 'components/admin_console/system_properties/rank_badge';
-import * as Menu from 'components/menu';
 import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
@@ -31,75 +29,6 @@ import {canEditUserAttribute, isAdminManagedLocked} from './user_attribute_utils
 import type {UserAttributeValue} from './user_attribute_utils';
 
 import './user_attribute_fields.scss';
-
-// Private component for CPA ranked fields. Renders a menu of the field's options
-// in descending rank order (highest first), each prefixed with its rank badge and
-// a trailing checkmark on the selected value. The set of options is
-// already filtered server-side per the viewer's authorization; this component does
-// not apply the visibility rule itself.
-type CPARankSelectProps = {
-    fieldId: string;
-    options: PropertyFieldOption[];
-    value: string;
-    onChange: (optionId: string) => void;
-    disabled: boolean;
-    placeholder: string;
-    errorId?: string;
-};
-
-const CPARankSelect: React.FC<CPARankSelectProps> = ({fieldId, options, value, onChange, disabled, placeholder, errorId}) => {
-    const orderedOptions = sortOptionsByRank(options);
-    const selectedOption = options.find((option) => option.id === value);
-
-    return (
-        <Menu.Container
-            menuButton={{
-                id: `cpa-rank-button-${fieldId}`,
-                class: classNames('cpa-rank-select__button', {disabled}),
-                children: (
-                    <span className='cpa-rank-select__button-inner'>
-                        {selectedOption ? (
-                            <span className='cpa-rank-select__value'>
-                                <RankBadge rank={selectedOption.rank}/>
-                                <span>{selectedOption.name}</span>
-                            </span>
-                        ) : (
-                            <span className='cpa-rank-select__placeholder'>{placeholder}</span>
-                        )}
-                        <ChevronDownIcon
-                            size={18}
-                            color='rgba(var(--center-channel-color-rgb), 0.5)'
-                        />
-                    </span>
-                ),
-                dataTestId: `cpa-rank-select-${fieldId}`,
-                disabled,
-                'aria-describedby': errorId,
-            }}
-            menu={{
-                id: `cpa-rank-menu-${fieldId}`,
-                'aria-label': placeholder,
-            }}
-        >
-            {orderedOptions.map((option) => {
-                const isSelected = option.id === value;
-                return (
-                    <Menu.Item
-                        id={`cpa-rank-option-${option.id}`}
-                        key={option.id}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={isSelected}
-                        onClick={() => onChange(option.id)}
-                        leadingElement={<RankBadge rank={option.rank}/>}
-                        labels={<span>{option.name}</span>}
-                        trailingElements={isSelected ? <CheckIcon/> : undefined}
-                    />
-                );
-            })}
-        </Menu.Container>
-    );
-};
 
 // Private component to get plugin display name
 type PluginDisplayNameProps = {
@@ -299,7 +228,8 @@ export default function UserAttributeField({
 
         switch (field.type) {
         case 'select':
-        case 'multiselect': {
+        case 'multiselect':
+        case 'rank': {
             const comboboxId = `${testIdPrefix}-combobox-${field.id}`;
             const multiple = field.type === 'multiselect';
             return {
@@ -323,21 +253,6 @@ export default function UserAttributeField({
                 ),
             };
         }
-        case 'rank':
-            return {
-                controlId: `cpa-rank-button-${field.id}`,
-                control: (
-                    <CPARankSelect
-                        fieldId={field.id}
-                        options={field.attrs?.options || []}
-                        value={Array.isArray(value) ? value[0] || '' : value}
-                        onChange={(optionId) => onChange(field.id, optionId)}
-                        disabled={isDisabled}
-                        errorId={describedErrorId}
-                        placeholder={intl.formatMessage(messages.selectOption)}
-                    />
-                ),
-            };
         case 'graph': {
             const buttonId = `cpa-graph-button-${field.id}`;
             return {

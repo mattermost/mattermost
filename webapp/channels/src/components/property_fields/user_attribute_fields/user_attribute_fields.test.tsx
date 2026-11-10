@@ -7,7 +7,7 @@ import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import UserAttributeFields from './user_attribute_fields';
 import type {UserAttributeFieldsProps} from './user_attribute_fields';
@@ -31,6 +31,11 @@ const buildField = (overrides: Partial<UserPropertyField> = {}, attrs: Partial<U
 
 const ADMIN_MANAGED = 'This field can only be changed by an administrator.';
 const OPTIONS = [{id: 'opt-1', name: 'One'}, {id: 'opt-2', name: 'Two'}];
+const RANK_OPTIONS = [
+    {id: 'low', name: 'Low', color: '', rank: 1},
+    {id: 'top', name: 'Top', color: '', rank: 3},
+    {id: 'mid', name: 'Mid', color: '#c8102e', rank: 2},
+];
 const COMBOBOX_ID = 'user-detail-custom-attribute-combobox-field-1';
 
 const chipLabels = (root: HTMLElement) => Array.from(root.querySelectorAll('[data-chip]')).map((chip) => chip.textContent);
@@ -167,6 +172,7 @@ describe('UserAttributeFields', () => {
     test.each([
         ['select', 'opt-1'],
         ['multiselect', ['opt-1']],
+        ['rank', 'opt-1'],
     ] as const)('shows an error for a %s field and links it to the input', (type, value) => {
         const field = buildField({type}, {options: [{id: 'opt-1', name: 'One'}]});
         const values = {'field-1': typeof value === 'string' ? value : [...value]};
@@ -182,18 +188,6 @@ describe('UserAttributeFields', () => {
         expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-invalid');
         expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-describedby');
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    });
-
-    test('shows an error for a rank field and links it to the menu button', () => {
-        const field = buildField({type: 'rank'}, {options: [{id: 'opt-1', name: 'Low', rank: 1}, {id: 'opt-2', name: 'High', rank: 2}]});
-        const {unmount} = renderFields({fields: [field], values: {'field-1': 'opt-1'}, errors: {'field-1': 'Bad'}});
-
-        expect(screen.getByRole('alert')).toHaveTextContent('Bad');
-        expect(screen.getByTestId('cpa-rank-select-field-1')).toHaveAccessibleDescription('Bad');
-        unmount();
-
-        renderFields({fields: [field], values: {'field-1': 'opt-1'}});
-        expect(screen.getByTestId('cpa-rank-select-field-1')).not.toHaveAttribute('aria-describedby');
     });
 
     test('renders no error element without an error', () => {
@@ -246,8 +240,8 @@ describe('UserAttributeFields', () => {
         expect(screen.getByTestId('user-detail-custom-attribute-list')).toBeEmptyDOMElement();
     });
 
-    describe('select and multiselect comboboxes', () => {
-        test.each(['select', 'multiselect'] as const)('renders a %s as a combobox in a div root named by a label', (type) => {
+    describe('select, multiselect and rank comboboxes', () => {
+        test.each(['select', 'multiselect', 'rank'] as const)('renders a %s as a combobox in a div root named by a label', (type) => {
             renderFields({fields: [buildField({type}, {options: OPTIONS})]});
 
             const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
@@ -270,7 +264,6 @@ describe('UserAttributeFields', () => {
 
         test.each([
             ['text', buildField({id: 'text'}), 'textbox'],
-            ['rank', buildField({id: 'rank', type: 'rank'}, {options: [{id: 'opt-1', name: 'Low', rank: 1}]}), 'button'],
             ['omitted select', buildField({id: 'omitted', type: 'select'}, {options_omitted: true}), 'textbox'],
             ['omitted multiselect', buildField({id: 'omitted-multi', type: 'multiselect'}, {options_omitted: true}), 'textbox'],
         ] as const)('names a %s field the same way: a div root whose first child labels the control', (_, field, role) => {
@@ -300,6 +293,7 @@ describe('UserAttributeFields', () => {
         test.each([
             ['select', 'opt-1'],
             ['multiselect', ['opt-1']],
+            ['rank', 'opt-1'],
         ] as const)('Enter on a closed %s inside a form does not submit it', async (type, value) => {
             const user = userEvent.setup();
             const onSubmit = jest.fn();
@@ -337,13 +331,14 @@ describe('UserAttributeFields', () => {
             expect(onSubmit).toHaveBeenCalledTimes(1);
         });
 
-        test('a locked select hides its clear button and a locked multiselect its chip remove buttons', () => {
+        test('a locked select or rank hides its clear button and a locked multiselect its chip remove buttons', () => {
             renderFields({
                 fields: [
                     buildField({id: 'single', type: 'select'}, {options: OPTIONS, protected: true}),
                     buildField({id: 'multi', type: 'multiselect'}, {options: OPTIONS, protected: true}),
+                    buildField({id: 'rank', type: 'rank'}, {options: RANK_OPTIONS, protected: true}),
                 ],
-                values: {single: 'opt-1', multi: ['opt-1', 'opt-2']},
+                values: {single: 'opt-1', multi: ['opt-1', 'opt-2'], rank: 'low'},
             });
 
             const single = screen.getByTestId('user-detail-custom-attribute-combobox-single');
@@ -355,6 +350,11 @@ describe('UserAttributeFields', () => {
             expect(screen.getByTestId('user-detail-custom-attribute-combobox-multi')).toBeDisabled();
             expect(chipLabels(multiRoot)).toEqual(['One', 'Two']);
             expect(multiRoot.querySelector('[data-chip-remove]')).toBeNull();
+
+            const rank = screen.getByTestId('user-detail-custom-attribute-combobox-rank');
+            expect(rank).toBeDisabled();
+            expect(rank).toHaveValue('Low');
+            expect(screen.queryByTestId('user-detail-custom-attribute-combobox-rank-clear')).not.toBeInTheDocument();
         });
 
         test('a disabled list hides the clear and chip remove buttons of unlocked fields', () => {
@@ -379,9 +379,9 @@ describe('UserAttributeFields', () => {
             expect(multiRoot.querySelector('[data-chip-remove]')).toBeNull();
         });
 
-        test('shows a stale select id as is and clears it to an empty string', async () => {
+        test.each(['select', 'rank'] as const)('shows a stale %s id as is and clears it to an empty string', async (type) => {
             const user = userEvent.setup();
-            const field = buildField({type: 'select'}, {options: OPTIONS});
+            const field = buildField({type}, {options: OPTIONS});
             const {onChange} = renderFields({fields: [field], values: {'field-1': 'gone'}});
 
             expect(screen.getByRole('combobox', {name: 'department'})).toHaveValue('gone');
@@ -390,8 +390,8 @@ describe('UserAttributeFields', () => {
             expect(onChange).toHaveBeenCalledWith('field-1', '');
         });
 
-        test('shows the first id of an array value on a select', () => {
-            const field = buildField({type: 'select'}, {options: OPTIONS});
+        test.each(['select', 'rank'] as const)('shows the first id of an array value on a %s', (type) => {
+            const field = buildField({type}, {options: OPTIONS});
             renderFields({fields: [field], values: {'field-1': ['opt-2', 'opt-1']}});
 
             expect(screen.getByRole('combobox', {name: 'department'})).toHaveValue('Two');
@@ -412,10 +412,44 @@ describe('UserAttributeFields', () => {
         test.each([
             ['select', 'Select an option'],
             ['multiselect', 'Select options'],
+            ['rank', 'Select an option'],
         ] as const)('gives an empty %s the "%s" placeholder', (type, placeholder) => {
             renderFields({fields: [buildField({type}, {options: OPTIONS})]});
 
             expect(screen.getByRole('combobox', {name: 'department'})).toHaveAttribute('placeholder', placeholder);
+        });
+
+        test('lists rank options highest first with a badge, or a swatch when coloured', async () => {
+            const user = userEvent.setup();
+            renderFields({fields: [buildField({type: 'rank'}, {options: RANK_OPTIONS})], values: {'field-1': 'low'}});
+
+            const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
+            expect(within(root).getByTestId('rank-badge')).toHaveTextContent('1');
+
+            await user.click(screen.getByRole('combobox', {name: 'department'}));
+
+            expect(screen.getAllByRole('option').map((option) => option.id)).toEqual([
+                `${COMBOBOX_ID}-listbox-option-top`,
+                `${COMBOBOX_ID}-listbox-option-mid`,
+                `${COMBOBOX_ID}-listbox-option-low`,
+            ]);
+            const top = within(screen.getByTestId(`${COMBOBOX_ID}-option-top`));
+            const mid = within(screen.getByTestId(`${COMBOBOX_ID}-option-mid`));
+            expect(top.getByTestId('rank-badge')).toHaveTextContent('3');
+            expect(mid.getByTestId('attribute-option-swatch')).toBeInTheDocument();
+            expect(mid.queryByTestId('rank-badge')).not.toBeInTheDocument();
+        });
+
+        test('emits the picked rank id as a string and an empty string on clear', async () => {
+            const user = userEvent.setup();
+            const {onChange} = renderFields({fields: [buildField({type: 'rank'}, {options: RANK_OPTIONS})], values: {'field-1': 'low'}});
+
+            await user.click(screen.getByRole('combobox', {name: 'department'}));
+            await user.click(screen.getByRole('option', {name: 'Top'}));
+            expect(onChange).toHaveBeenLastCalledWith('field-1', 'top');
+
+            await user.click(screen.getByTestId(`${COMBOBOX_ID}-clear`));
+            expect(onChange).toHaveBeenLastCalledWith('field-1', '');
         });
 
         test('uses the bot prefix for the combobox id and label', () => {
