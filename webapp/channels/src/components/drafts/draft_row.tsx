@@ -9,7 +9,8 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
+import type {SchedulingInfo, ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
@@ -32,12 +33,14 @@ import {getChannelURL} from 'selectors/urls';
 
 import usePriority from 'components/advanced_text_editor/use_priority';
 import useSubmit from 'components/advanced_text_editor/use_submit';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 import ScheduledPostActions from 'components/drafts/draft_actions/schedule_post_actions/scheduled_post_actions';
 import PlaceholderScheduledPostsTitle
     from 'components/drafts/placeholder_scheduled_post_title/placeholder_scheduled_posts_title';
 import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -75,10 +78,18 @@ function DraftRow({
     const [isEditing, setIsEditing] = useState(false);
 
     const isScheduledPost = 'scheduled_at' in item;
+    const isWeeklyRecurringScheduledPost = isScheduledPost && isRecurringScheduledPost(item);
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
     const channelId = ('channelId' in item) ? item.channelId : item.channel_id;
+
+    // A draft keeps its burn-on-read type after the policy stops allowing one, so the
+    // drafts list can offer Send and Schedule for a post the server will refuse. Ask only
+    // for burn-on-read drafts: an ordinary draft in the same channel is unaffected.
+    const isBurnOnReadItem = item.type === PostTypes.BURN_ON_READ;
+    const burnOnReadAllowed = useCreateBurnOnReadAccess(isBurnOnReadItem ? channelId : undefined);
+    const invalidBurnOnRead = isBurnOnReadItem && !burnOnReadAllowed;
 
     const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
@@ -130,7 +141,10 @@ function DraftRow({
         postError = intl.formatMessage({id: 'drafts.error.read_only', defaultMessage: 'Channel is read only'});
     }
 
-    const canSend = !postError;
+    // Withdraws Schedule alongside Send, which DraftActions gates on the same flag.
+    // Both are creation paths the server enforces, so scheduling a draft that can no
+    // longer be sent would only move the rejection later.
+    const canSend = !postError && !invalidBurnOnRead;
     const canEdit = !(rootPostDeleted || readOnly);
 
     const channelUrl = useSelector((state: GlobalState) => {
@@ -156,7 +170,6 @@ function DraftRow({
         history.push(channelUrl);
     }, [channelUrl, dispatch, history, rootId, rootPostDeleted, isEditing]);
 
-    const isBeingScheduled = useRef(false);
     const isScheduledPostBeingSent = useRef(false);
 
     const thread = useSelector((state: GlobalState) => {
@@ -180,18 +193,22 @@ function DraftRow({
     }, [dispatch, channelId, rootId]);
 
     const afterSubmit = useCallback((response: SubmitPostReturnType) => {
-        // if draft was being scheduled, delete the draft after it's been scheduled
-        if (isBeingScheduled.current && response.created && !response.error) {
-            handleOnDelete();
-            isBeingScheduled.current = false;
+        if (!response.created || response.error) {
+            return;
         }
 
         // if scheduled posts was being sent, delete the scheduled post after it's been sent
-        if (isScheduledPostBeingSent.current && response.created && !response.error) {
+        if (isScheduledPostBeingSent.current) {
             const scheduledPost = item as ScheduledPost;
             dispatch(deleteScheduledPost(scheduledPost.user_id, scheduledPost.id, connectionId));
             isScheduledPostBeingSent.current = false;
+            return;
         }
+
+        // createPost only clears the local copy of the draft, through storeDraft's
+        // setGlobalItem, so the draft has to be removed here or the surviving server copy
+        // syncs back in on the next fetch.
+        handleOnDelete();
     }, [connectionId, dispatch, handleOnDelete, item]);
 
     // TODO LOL verify the types and handled it better
@@ -213,14 +230,13 @@ function DraftRow({
         true,
     );
 
-    const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
-        isBeingScheduled.current = true;
-        await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
+    const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
+        await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {
-        if (!channel) {
+        if (!channel || isScheduledPost) {
             return null;
         }
         return (
@@ -236,6 +252,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
+                repeatDisabledReason={getDraftRepeatDisabledReason(item)}
             />
         );
     }, [
@@ -245,6 +262,8 @@ function DraftRow({
         goToMessage,
         handleOnDelete,
         handleOnSend,
+        isScheduledPost,
+        item,
         user.id,
         onScheduleDraft,
     ]);
@@ -253,12 +272,14 @@ function DraftRow({
         setIsEditing(false);
     }, []);
 
-    const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+    const handleSchedulePostOnReschedule = useCallback(async (schedulingInfo: SchedulingInfo) => {
         handleCancelEdit();
 
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
-            scheduled_at: updatedScheduledAtTime,
+            scheduled_at: schedulingInfo.scheduled_at,
+            repeat_type: schedulingInfo.repeat_type,
+            repeat_timezone: schedulingInfo.repeat_timezone,
         };
 
         const result = await dispatch(updateScheduledPost(updatedScheduledPost, connectionId));
@@ -393,6 +414,7 @@ function DraftRow({
                 timestamp={timestamp}
                 remote={isRemote || false}
                 error={postError || serverError?.message}
+                repeatsWeekly={isWeeklyRecurringScheduledPost}
             />
             {isEditing && (
                 <EditScheduledPost

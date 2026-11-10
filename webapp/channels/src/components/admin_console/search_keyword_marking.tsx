@@ -20,7 +20,7 @@ export default function SearchKeywordMarking({
     children,
 }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const markJsRef = useRef<Mark>();
+    const markJsRef = useRef<Mark>(undefined);
 
     function doMark(keyword: string, container: HTMLDivElement) {
         markJsRef.current = new Mark(container);

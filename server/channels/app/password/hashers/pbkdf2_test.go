@@ -5,9 +5,9 @@ package hashers
 
 import (
 	"crypto/pbkdf2"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
-	"math/rand"
 	"strings"
 	"testing"
 

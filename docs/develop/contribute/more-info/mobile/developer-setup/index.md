@@ -1,5 +1,7 @@
 ---
-title: "Developer setup"
+title: "Developer setup for Mattermost mobile apps"
+description: "Set up a development environment for the React Native Mattermost mobile apps for iOS and Android."
+sidebar_label: "Developer setup"
 sidebar_position: 1
 ---
 
@@ -110,7 +112,7 @@ Install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?ls=1&mt=12) to b
 
 ### Install Ruby
 
-A version of Ruby is automatically installed on macOS, but Mattermost React Native app development requires Ruby 3.2.0. You can check the current version of Ruby by running the following command.
+A version of Ruby is automatically installed on macOS, but Mattermost React Native app development requires the Ruby version pinned in the repository's `.ruby-version` file (currently 3.2.11). You can check the current version of Ruby by running the following command.
 ```sh
 ruby --version
 ```
@@ -132,12 +134,29 @@ If it isn't, we recommend using [Ruby Version Manager](https://rvm.io) or your p
     ```
 4. Install the required version of Ruby
     ```sh
-    rvm install 3.2.0
+    rvm install 3.2.11
     ```
-5. (Optional) If you don't need to use a different version of Ruby for anything else, you'll want to change the default version of Ruby. Without this, you'll need to run `rvm use 3.2.0` any time you want to work on the mobile app.
+5. (Optional) If you don't need to use a different version of Ruby for anything else, you'll want to change the default version of Ruby. Without this, you'll need to run `rvm use 3.2.11` any time you want to work on the mobile app.
     ```sh
-    rvm alias create default 3.2.0
+    rvm alias create default 3.2.11
     ```
+
+:::note[Apple Silicon]
+On recent Apple Silicon Macs, installing Ruby through RVM can fail with repeated OpenSSL errors. If you hit those, [`rv`](https://github.com/spinel-coop/rv) (a Ruby version manager) is a reliable alternative:
+
+```sh
+brew install rv
+rv ruby install 3.2.11
+```
+
+To have `rv` switch Ruby versions automatically, install its shell integration once. For example, for `zsh`:
+
+```sh
+echo 'eval "$(rv shell init zsh)"' >> ~/.zshrc
+```
+
+Run `rv shell <your-shell>` (`bash`, `fish`, etc.) to see the equivalent for your shell, then open a new terminal. After that, `rv` reads the repository's `.ruby-version` file and selects the pinned version automatically when you `cd` into the project.
+:::
 
 ## Additional setup for Android
 

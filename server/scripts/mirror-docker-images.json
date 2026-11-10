@@ -9,8 +9,7 @@
     "17": "postgres:17@sha256:4f6c1ec9743885ba6438a91f7c08c4ef4d645a41eae31fc8521c2d831c622107"
   },
   "minio": {
-    "RELEASE.2019-10-11T00-38-09Z-1": "minio/minio:RELEASE.2019-10-11T00-38-09Z@sha256:0d02f16a1662653f9b961211b21ed7de04bf04492f44c2b7594bacbfcc519eb5",
-    "RELEASE.2024-06-22T05-26-45Z": "minio/minio:RELEASE.2024-06-22T05-26-45Z@sha256:dda5e13d3df07fae2c1877701998742bcbe3bbb2b9c24c18ed5b9469cc777761"
+    "RELEASE.2026-07-17T12-07-51Z": "cgr.dev/chainguard/minio@sha256:039800e64ec7247d2fde7cff3697e964f6fe20b6d7d2c46aa7d82cc63355d512"
   },
   "redis": {
     "7.4.0": "redis:7.4.0@sha256:6725a7dc7a44a6486b9d0a5172b10ccaf0c2ea600df87c0b93450d0e7769297f"

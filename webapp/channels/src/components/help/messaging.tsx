@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
@@ -127,8 +127,8 @@ const HelpMessaging = (): JSX.Element => {
                                 <td><code className='Help__inline-code'>{'In-line code'}</code></td>
                             </tr>
                             <tr>
-                                <td><code>{'[hyperlink](https://www.mattermost.com)'}</code></td>
-                                <td><a href='https://www.mattermost.com'>{'hyperlink'}</a></td>
+                                <td><code>{'[hyperlink](https://mattermost.com)'}</code></td>
+                                <td><a href='https://mattermost.com'>{'hyperlink'}</a></td>
                             </tr>
                             <tr>
                                 <td><code>{'![embedded image](travis-ci.org/mattermost/platform.svg)'}</code></td>

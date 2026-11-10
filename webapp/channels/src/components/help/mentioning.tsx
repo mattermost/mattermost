@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import LeonardRileyAvatar from './avatar.svg';
@@ -148,7 +148,7 @@ const HelpMentioning = (): JSX.Element => {
                     <p>
                         <FormattedMessage
                             id='help.mentioning.recent.description'
-                            defaultMessage='Click <code>@</code> icon in right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.'
+                            defaultMessage='Click the <code>@</code> icon on the right side of the top bar next to your profile picture to view your most recent @mentions and words that trigger mentions.'
                             values={{
                                 code: (chunks: React.ReactNode) => <code>{chunks}</code>,
                             }}

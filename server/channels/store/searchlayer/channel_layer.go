@@ -4,8 +4,6 @@
 package searchlayer
 
 import (
-	"context"
-
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -354,7 +352,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, user
 }
 
 func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}
@@ -371,7 +369,7 @@ func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, chann
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}

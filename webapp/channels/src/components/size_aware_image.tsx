@@ -243,10 +243,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
+        // Size an SVG only when the server derived a real width. A dimensionless SVG (no width,
+        // height, or viewBox) has no intrinsic size, and forcing MIN_IMAGE_SIZE with an auto height
+        // left the browser to fall back to its 150px default, rendering the file as a tall, empty
+        // sliver. Leaving it unstyled lets the browser size it at its default instead.
         let conditionalSVGStyleAttribute: CSSProperties | undefined;
-        if (fileType === FileTypes.SVG) {
+        if (fileType === FileTypes.SVG && dimensions?.width) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: dimensions.width,
                 height: 'auto',
             };
         }
@@ -397,7 +401,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {image}
                 {utilityButtons}
             </>,
-            shouldShowImg ? 'block' : 'none',
+            !shouldShowImg,
         );
     };
 
@@ -444,7 +448,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
     };
 
-    renderImageContainer = (children: React.ReactNode, display?: string) => {
+    // The container only ever sets `display` inline to hide itself. The visible display mode is
+    // left to CSS so that each surface can keep images inline (Markdown, channel header) or make
+    // them block-level (attachments, blocks) instead of being forced to block-level here.
+    renderImageContainer = (children: React.ReactNode, hidden = false) => {
         let containerClass;
         let containerStyle;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
@@ -463,7 +470,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
-                style={{display}}
+                style={hidden ? {display: 'none'} : undefined}
             >
                 <figure
                     className={containerClass}

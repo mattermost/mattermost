@@ -1,4 +1,5 @@
 with-expecter: false
+resolve-type-alias: false
 packages:
   github.com/mattermost/mattermost/server/v8/einterfaces:
     config:

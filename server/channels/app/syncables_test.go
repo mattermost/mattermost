@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -537,7 +537,7 @@ type mokeUserStore struct {
 	store.UserStore
 }
 
-func (us *mokeUserStore) Get(_ context.Context, id string) (*model.User, error) {
+func (us *mokeUserStore) Get(_ request.CTX, id string) (*model.User, error) {
 	return nil, fmt.Errorf("some error for %s", id)
 }
 
@@ -672,6 +672,170 @@ func TestSyncSyncableRoles(t *testing.T) {
 		cm, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, cm.SchemeAdmin)
+	}
+}
+
+func TestSyncSyncableRoles_SessionPermissionMatchesChannelSchemeRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Each row checks that SessionHasPermissionToChannel reports
+	// PermissionManageChannelRoles for the channel scheme role stored by
+	// SyncSyncableRoles. lookupBeforeSync performs that lookup while the
+	// member holds channel admin. lookupWhileNotAdmin performs that lookup
+	// before the member holds channel admin. includeSecondMember adds another
+	// member of the same channel who is not looked up before the later sync.
+	tests := []struct {
+		name                 string
+		lookupBeforeSync     bool
+		lookupWhileNotAdmin  bool
+		schemeAdminAfterSync bool
+		wantPermission       bool
+		includeSecondMember  bool
+	}{
+		{
+			name:                 "prior lookup, scheme admin true",
+			lookupBeforeSync:     true,
+			schemeAdminAfterSync: true,
+			wantPermission:       true,
+		},
+		{
+			name:                 "prior lookup, scheme admin false",
+			lookupBeforeSync:     true,
+			schemeAdminAfterSync: false,
+			wantPermission:       false,
+		},
+		{
+			name:                 "no prior lookup, scheme admin false",
+			lookupBeforeSync:     false,
+			schemeAdminAfterSync: false,
+			wantPermission:       false,
+		},
+		{
+			name:                 "prior lookup while not admin, scheme admin true",
+			lookupWhileNotAdmin:  true,
+			schemeAdminAfterSync: true,
+			wantPermission:       true,
+		},
+		{
+			name:                 "two members, one prior lookup, scheme admin false",
+			lookupBeforeSync:     true,
+			schemeAdminAfterSync: false,
+			wantPermission:       false,
+			includeSecondMember:  true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			team := th.CreateTeam(t)
+
+			channel := th.CreateChannel(t, team)
+			channel.GroupConstrained = new(true)
+			channel, err := th.App.UpdateChannel(th.Context, channel)
+			require.Nil(t, err)
+
+			user := th.CreateUser(t)
+			group := th.CreateGroup(t)
+
+			channelSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+				SyncableId: channel.Id,
+				Type:       model.GroupSyncableTypeChannel,
+				GroupId:    group.Id,
+			})
+			require.Nil(t, err)
+
+			_, err = th.App.UpsertGroupMember(group.Id, user.Id)
+			require.Nil(t, err)
+
+			_, err = th.App.AddTeamMember(th.Context, team.Id, user.Id)
+			require.Nil(t, err)
+
+			cm := th.AddUserToChannel(t, user, channel)
+			require.False(t, cm.SchemeAdmin)
+
+			var secondUser *model.User
+			if tc.includeSecondMember {
+				secondUser = th.CreateUser(t)
+				_, err = th.App.UpsertGroupMember(group.Id, secondUser.Id)
+				require.Nil(t, err)
+
+				_, err = th.App.AddTeamMember(th.Context, team.Id, secondUser.Id)
+				require.Nil(t, err)
+
+				secondCM := th.AddUserToChannel(t, secondUser, channel)
+				require.False(t, secondCM.SchemeAdmin)
+			}
+
+			session := model.Session{
+				UserId: user.Id,
+				Roles:  user.Roles,
+			}
+
+			if tc.lookupWhileNotAdmin {
+				hasPermission, isMember := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManageChannelRoles)
+				require.False(t, hasPermission)
+				require.True(t, isMember)
+			}
+
+			channelSyncable.SchemeAdmin = true
+			_, err = th.App.UpdateGroupSyncable(channelSyncable)
+			require.Nil(t, err)
+
+			err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
+			require.Nil(t, err)
+
+			cm, err = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+			require.Nil(t, err)
+			require.True(t, cm.SchemeAdmin)
+
+			if secondUser != nil {
+				secondCM, memberErr := th.App.GetChannelMember(th.Context, channel.Id, secondUser.Id)
+				require.Nil(t, memberErr)
+				require.True(t, secondCM.SchemeAdmin)
+			}
+
+			if tc.lookupWhileNotAdmin {
+				hasPermission, isMember := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManageChannelRoles)
+				assert.True(t, hasPermission)
+				assert.True(t, isMember)
+			}
+
+			if tc.lookupBeforeSync {
+				hasPermission, isMember := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManageChannelRoles)
+				require.True(t, hasPermission)
+				require.True(t, isMember)
+			}
+
+			channelSyncable.SchemeAdmin = tc.schemeAdminAfterSync
+			_, err = th.App.UpdateGroupSyncable(channelSyncable)
+			require.Nil(t, err)
+
+			err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
+			require.Nil(t, err)
+
+			cm, err = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+			require.Nil(t, err)
+			require.Equal(t, tc.schemeAdminAfterSync, cm.SchemeAdmin)
+
+			hasPermission, isMember := th.App.SessionHasPermissionToChannel(th.Context, session, channel.Id, model.PermissionManageChannelRoles)
+			assert.Equal(t, tc.wantPermission, hasPermission)
+			assert.True(t, isMember)
+
+			if secondUser != nil {
+				secondCM, memberErr := th.App.GetChannelMember(th.Context, channel.Id, secondUser.Id)
+				require.Nil(t, memberErr)
+				require.Equal(t, tc.schemeAdminAfterSync, secondCM.SchemeAdmin)
+
+				secondSession := model.Session{
+					UserId: secondUser.Id,
+					Roles:  secondUser.Roles,
+				}
+				hasPermission, isMember = th.App.SessionHasPermissionToChannel(th.Context, secondSession, channel.Id, model.PermissionManageChannelRoles)
+				assert.Equal(t, tc.wantPermission, hasPermission)
+				assert.True(t, isMember)
+			}
+		})
 	}
 }
 

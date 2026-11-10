@@ -107,7 +107,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		if !resp.IsSuccess() {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "send file failed",
 				mlog.String("remote", rc.DisplayName),
-				mlog.String("uploadId", usResp.Id),
+				mlog.String("upload_id", usResp.Id),
 				mlog.String("err", resp.Err),
 			)
 			return
@@ -118,7 +118,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		if err2 := json.Unmarshal(resp.Payload, &fi); err2 != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "invalid file info response after send file",
 				mlog.String("remote", rc.DisplayName),
-				mlog.String("uploadId", usResp.Id),
+				mlog.String("upload_id", usResp.Id),
 				mlog.Err(err2),
 			)
 			return
@@ -128,7 +128,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		if err2 := scs.saveSharedAttachment(&fi, rc); err2 != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error saving SharedChannelAttachment",
 				mlog.String("remote", rc.DisplayName),
-				mlog.String("uploadId", usResp.Id),
+				mlog.String("upload_id", usResp.Id),
 				mlog.Err(err2),
 			)
 			return
@@ -136,7 +136,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "send file successful",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("uploadId", usResp.Id),
+			mlog.String("upload_id", usResp.Id),
 		)
 	})
 }
@@ -199,12 +199,27 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
-	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(scs.server.Log()), &us)
+	rctx := request.EmptyContext(scs.server.Log())
+	usSaved, appErr := scs.app.CreateUploadSession(rctx, &us)
 	if appErr != nil {
-		return appErr
+		// The transport can resend this request after the first copy already saved the session.
+		existing, err := scs.server.GetStore().UploadSession().Get(rctx, us.Id)
+		if err != nil || !isSameUploadRequest(existing, &us) {
+			return appErr
+		}
+		usSaved = existing
 	}
 
 	response.SetPayload(usSaved)
 	return nil
+}
+
+func isSameUploadRequest(saved, req *model.UploadSession) bool {
+	return saved.RemoteId == req.RemoteId &&
+		saved.Type == req.Type &&
+		saved.UserId == req.UserId &&
+		saved.ChannelId == req.ChannelId &&
+		saved.Filename == req.Filename &&
+		saved.FileSize == req.FileSize &&
+		saved.ReqFileId == req.ReqFileId
 }

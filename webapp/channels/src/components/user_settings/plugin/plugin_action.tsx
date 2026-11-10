@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentProps} from 'react';
-import React, {useMemo} from 'react';
+import React from 'react';
 
-import SectionNotice from 'components/section_notice';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+
+import Markdown from 'components/markdown';
 
 import type {PluginConfigurationAction} from 'types/plugins/user_settings';
 
@@ -17,27 +18,18 @@ type Props = {
 const PluginAction = ({
     action,
 }: Props) => {
-    const props = useMemo<ComponentProps<typeof SectionNotice>>(() => {
-        return action ? {
-            text: action.text,
-            title: action.title,
-            primaryButton: {
-                onClick: action?.onClick,
-                text: action?.buttonText,
-            },
-        } : {
-            text: '',
-            title: '',
-        };
-    }, [action]);
-
     if (!action) {
         return null;
     }
 
     return (
         <div className={'pluginActionContainer'}>
-            <SectionNotice {...props}/>
+            <SectionNotice
+                title={action.title}
+                description={action.text ? <Markdown message={action.text}/> : undefined}
+                primaryButtonLabel={action.buttonText}
+                onPrimaryAction={action.onClick}
+            />
         </div>
     );
 };

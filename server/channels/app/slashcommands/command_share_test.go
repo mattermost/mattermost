@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func setupForSharedChannels(tb testing.TB) *TestHelper {
@@ -100,17 +102,10 @@ func TestShareProviderDoCommand(t *testing.T) {
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
-		remoteCluster, err := th.App.AddRemoteCluster(&model.RemoteCluster{
-			RemoteId:   model.NewId(),
-			Name:       "remote",
-			SiteURL:    "example.com",
-			Token:      model.NewId(),
-			Topics:     "topic",
-			CreateAt:   model.GetMillis(),
-			LastPingAt: model.GetMillis(),
-			CreatorId:  model.NewId(),
+		remoteCluster := seedRemoteCluster(t, th, func(rc *model.RemoteCluster) {
+			rc.Topics = "topic"
+			rc.LastPingAt = model.GetMillis()
 		})
-		require.Nil(t, err)
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true)) // will create with generated remoteID
@@ -130,18 +125,11 @@ func TestShareProviderDoCommand(t *testing.T) {
 func TestShareProviderDoStatus(t *testing.T) {
 	seedInvitedRemote := func(t *testing.T, th *TestHelper, channelID string) *model.SharedChannelRemote {
 		t.Helper()
-		rc, err := th.App.AddRemoteCluster(&model.RemoteCluster{
-			RemoteId:    model.NewId(),
-			Name:        "remote-" + model.NewId(),
-			DisplayName: "Remote Status Display",
-			SiteURL:     "https://remote-status.example.com",
-			Token:       model.NewId(),
-			Topics:      "topic",
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			CreatorId:   model.NewId(),
+		rc := seedRemoteCluster(t, th, func(rc *model.RemoteCluster) {
+			rc.DisplayName = "Remote Status Display"
+			rc.Topics = "topic"
+			rc.LastPingAt = model.GetMillis()
 		})
-		require.Nil(t, err)
 
 		scr, saveErr := th.App.SaveSharedChannelRemote(&model.SharedChannelRemote{
 			Id:                model.NewId(),
@@ -215,19 +203,11 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 
 	seedRemote := func(t *testing.T, th *TestHelper) *model.RemoteCluster {
 		t.Helper()
-		rc, err := th.App.AddRemoteCluster(&model.RemoteCluster{
-			RemoteId:    model.NewId(),
-			Name:        "remote-" + model.NewId(),
-			DisplayName: "Remote Display Name Sentinel",
-			SiteURL:     "https://remote-sentinel.example.com",
-			Token:       model.NewId(),
-			Topics:      "topic",
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			CreatorId:   model.NewId(),
+		return seedRemoteCluster(t, th, func(rc *model.RemoteCluster) {
+			rc.DisplayName = "Remote Display Name Sentinel"
+			rc.Topics = "topic"
+			rc.LastPingAt = model.GetMillis()
 		})
-		require.Nil(t, err)
-		return rc
 	}
 
 	assertNoRemoteData := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
@@ -243,7 +223,7 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	t.Run("invite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, th.BasicUser.Id, model.PermissionManageSharedChannels),
 			"precondition: BasicUser must not have manage_shared_channels for this subtest")
 
 		rc := seedRemote(t, th)
@@ -270,7 +250,7 @@ func TestShareProviderGetAutoCompleteListItemsPermission(t *testing.T) {
 	t.Run("uninvite without manage_shared_channels permission returns no remote cluster data", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.False(t, th.App.HasPermissionTo(th.BasicUser.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, th.BasicUser.Id, model.PermissionManageSharedChannels),
 			"precondition: BasicUser must not have manage_shared_channels for this subtest")
 
 		rc := seedRemote(t, th)
@@ -364,19 +344,11 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 
 	seedRemote := func(t *testing.T, th *TestHelper) *model.RemoteCluster {
 		t.Helper()
-		rc, err := th.App.AddRemoteCluster(&model.RemoteCluster{
-			RemoteId:    model.NewId(),
-			Name:        "remote-" + model.NewId(),
-			DisplayName: "Adjacent Sentinel Display",
-			SiteURL:     "https://adjacent-sentinel.example.com",
-			Token:       model.NewId(),
-			Topics:      "topic",
-			CreateAt:    model.GetMillis(),
-			LastPingAt:  model.GetMillis(),
-			CreatorId:   model.NewId(),
+		return seedRemoteCluster(t, th, func(rc *model.RemoteCluster) {
+			rc.DisplayName = "Adjacent Sentinel Display"
+			rc.Topics = "topic"
+			rc.LastPingAt = model.GetMillis()
 		})
-		require.Nil(t, err)
-		return rc
 	}
 
 	assertNoRemoteData := func(t *testing.T, items []model.AutocompleteListItem, rc *model.RemoteCluster) {
@@ -393,7 +365,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
-		require.False(t, th.App.HasPermissionTo(guest.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, guest.Id, model.PermissionManageSharedChannels),
 			"precondition: a freshly-created guest must not have manage_shared_channels")
 
 		rc := seedRemote(t, th)
@@ -420,7 +392,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
 		guest := th.createGuest(t)
-		require.False(t, th.App.HasPermissionTo(guest.Id, model.PermissionManageSharedChannels),
+		require.False(t, th.App.HasPermissionTo(th.Context, guest.Id, model.PermissionManageSharedChannels),
 			"precondition: a freshly-created guest must not have manage_shared_channels")
 
 		rc := seedRemote(t, th)
@@ -446,7 +418,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 	t.Run("system admin receives remote cluster data on invite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
+		require.True(t, th.App.HasPermissionTo(th.Context, th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
 			"precondition: SystemAdminUser must have manage_shared_channels via inherited permissions")
 
 		rc := seedRemote(t, th)
@@ -479,7 +451,7 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 	t.Run("system admin receives remote cluster data on uninvite", func(t *testing.T) {
 		th := setupForSharedChannels(t).initBasic(t)
 
-		require.True(t, th.App.HasPermissionTo(th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
+		require.True(t, th.App.HasPermissionTo(th.Context, th.SystemAdminUser.Id, model.PermissionManageSharedChannels),
 			"precondition: SystemAdminUser must have manage_shared_channels via inherited permissions")
 
 		rc := seedRemote(t, th)
@@ -507,5 +479,265 @@ func TestShareProviderGetAutoCompleteListItemsAdjacentRoles(t *testing.T) {
 			}
 		}
 		require.True(t, found, "expected seeded RemoteId %q to appear for system admin", rc.RemoteId)
+	})
+}
+
+func shareHomeChannel(t *testing.T, th *TestHelper, channel *model.Channel) {
+	t.Helper()
+	_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: channel.Name,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+}
+
+// UpdateConfig cannot change feature flags in this test helper and environment overrides
+// always win, so the flag is pinned through the environment before the config is loaded.
+func setupForSharedChannelsWithoutDMs(t *testing.T) *TestHelper {
+	t.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELSDMS", "false")
+	return setupForSharedChannels(t)
+}
+
+func TestShareProviderDoCommandGuards(t *testing.T) {
+	T := i18n.GetUserTranslations("en")
+
+	t.Run("rejects users without manage_shared_channels", func(t *testing.T) {
+		th := setupForSharedChannels(t).initBasic(t)
+		require.False(t, th.App.HasPermissionTo(th.Context, th.BasicUser.Id, model.PermissionManageSharedChannels))
+
+		text := runCommand(th, &ShareProvider{}, th.BasicUser.Id, th.BasicChannel.Id, "/share-channel share")
+
+		require.Equal(t, T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}), text)
+		shared, err := th.App.HasSharedChannel(th.BasicChannel.Id)
+		require.NoError(t, err)
+		require.False(t, shared)
+	})
+
+	t.Run("shared channel service disabled", func(t *testing.T) {
+		th := setupConfig(t, func(cfg *model.Config) {
+			*cfg.ConnectedWorkspacesSettings.EnableRemoteClusterService = true
+			*cfg.ConnectedWorkspacesSettings.EnableSharedChannels = false
+		}).initBasic(t)
+		require.Nil(t, th.Server.GetSharedChannelSyncService())
+		require.NotNil(t, th.Server.GetRemoteClusterService())
+
+		text := runCommand(th, &ShareProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/share-channel status")
+		require.Equal(t, T("api.command_share.service_disabled"), text)
+	})
+
+	t.Run("remote cluster service disabled", func(t *testing.T) {
+		th := setup(t).initBasic(t)
+		th.Server.SetSharedChannelSyncService(app.NewMockSharedChannelService(nil))
+		require.Nil(t, th.Server.GetRemoteClusterService())
+
+		text := runCommand(th, &ShareProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/share-channel status")
+		require.Equal(t, T("api.command_remote.service_disabled"), text)
+	})
+
+	th := setupForSharedChannels(t).initBasic(t)
+
+	t.Run("missing action", func(t *testing.T) {
+		text := runCommand(th, &ShareProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/share-channel")
+		require.Equal(t, T("api.command_share.missing_action", map[string]any{"Actions": AvailableShareActions}), text)
+	})
+
+	t.Run("unknown action", func(t *testing.T) {
+		text := runCommand(th, &ShareProvider{}, th.SystemAdminUser.Id, th.BasicChannel.Id, "/share-channel bogus")
+		require.Equal(t, T("api.command_share.unknown_action", map[string]any{"Action": "bogus", "Actions": AvailableShareActions}), text)
+	})
+}
+
+func TestShareProviderShareUnshareStatusErrors(t *testing.T) {
+	T := i18n.GetUserTranslations("en")
+	th := setupForSharedChannelsWithoutDMs(t).initBasic(t)
+	adminID := th.SystemAdminUser.Id
+
+	isShared := func(t *testing.T, channelID string) bool {
+		t.Helper()
+		shared, err := th.App.HasSharedChannel(channelID)
+		require.NoError(t, err)
+		return shared
+	}
+
+	t.Run("share with an invalid readonly value", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel share --readonly maybe")
+
+		_, parseErr := parseBool("maybe")
+		require.Error(t, parseErr)
+		require.Equal(t, T("api.command_share.invalid_value.error", map[string]any{"Arg": "readonly", "Error": parseErr.Error()}), text)
+		require.False(t, isShared(t, channel.Id))
+	})
+
+	t.Run("share with readonly", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel share --readonly Y")
+
+		require.Equal(t, "##### "+T("api.command_share.channel_shared"), text)
+		sc, err := th.App.GetSharedChannel(channel.Id)
+		require.NoError(t, err)
+		require.True(t, sc.ReadOnly)
+		require.True(t, sc.Home)
+	})
+
+	t.Run("share a channel that does not exist", func(t *testing.T) {
+		text := runCommand(th, &ShareProvider{}, adminID, model.NewId(), "/share-channel share")
+		require.True(t, strings.HasPrefix(text, T("api.command_share.share_channel.error", map[string]any{"Error": ""})), text)
+	})
+
+	t.Run("share a direct message channel", func(t *testing.T) {
+		dm := th.createDmChannel(t, th.BasicUser2)
+
+		text := runCommand(th, &ShareProvider{}, adminID, dm.Id, "/share-channel share")
+
+		require.Equal(t, T("api.command_share.share_channel.error", map[string]any{"Error": "cannot share a direct or group channel"}), text)
+		require.False(t, isShared(t, dm.Id))
+	})
+
+	t.Run("unshare a channel that is not shared", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel unshare")
+		require.Equal(t, T("api.command_share.not_shared_channel_unshare"), text)
+	})
+
+	t.Run("status of a channel that is not shared", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel status")
+		prefix := strings.TrimSuffix(T("api.command_share.fetch_remote_status.error", map[string]any{"Error": ""}), ".")
+		require.True(t, strings.HasPrefix(text, prefix), text)
+		require.Contains(t, text, model.ErrChannelNotShared.Error())
+	})
+
+	t.Run("status of a shared channel with no remotes", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		shareHomeChannel(t, th, channel)
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel status")
+		require.Equal(t, T("api.command_share.no_remote_invited"), text)
+	})
+}
+
+func TestShareProviderDoInviteRemote(t *testing.T) {
+	T := i18n.GetUserTranslations("en")
+	th := setupForSharedChannelsWithoutDMs(t).initBasic(t)
+	adminID := th.SystemAdminUser.Id
+
+	hasRemote := func(t *testing.T, channelID, remoteID string) bool {
+		t.Helper()
+		has, err := th.App.HasRemote(channelID, remoteID)
+		require.NoError(t, err)
+		return has
+	}
+
+	t.Run("missing connection ID", func(t *testing.T) {
+		for _, command := range []string{"/share-channel invite", "/share-channel invite --connectionID"} {
+			text := runCommand(th, &ShareProvider{}, adminID, th.BasicChannel.Id, command)
+			require.Equal(t, T("api.command_share.must_specify_valid_remote"), text, command)
+		}
+	})
+
+	t.Run("remote already invited", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		rc := seedRemoteCluster(t, th)
+		shareHomeChannel(t, th, channel)
+		_, err := th.App.SaveSharedChannelRemote(&model.SharedChannelRemote{
+			ChannelId: channel.Id,
+			RemoteId:  rc.RemoteId,
+			CreatorId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel invite --connectionID "+rc.RemoteId)
+		require.Equal(t, T("api.command_share.remote_already_invited"), text)
+	})
+
+	t.Run("unknown connection ID", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		shareHomeChannel(t, th, channel)
+		remoteID := model.NewId()
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel invite --connectionID "+remoteID)
+
+		require.True(t, strings.HasPrefix(text, T("api.command_share.remote_id_invalid.error", map[string]any{"Error": ""})), text)
+		require.False(t, hasRemote(t, channel.Id, remoteID))
+	})
+
+	t.Run("invite to a channel that cannot be shared", func(t *testing.T) {
+		dm := th.createDmChannel(t, th.BasicUser2)
+		rc := seedRemoteCluster(t, th)
+
+		text := runCommand(th, &ShareProvider{}, adminID, dm.Id, "/share-channel invite --connectionID "+rc.RemoteId)
+
+		shareErr, inviteErr, found := strings.Cut(text, "\n")
+		require.True(t, found, "expected the share error followed by the invite error, got:\n%s", text)
+		require.Equal(t, T("api.command_share.share_channel.error", map[string]any{"Error": "cannot share a direct or group channel"}), shareErr)
+		require.True(t, strings.HasPrefix(inviteErr, T("api.command_share.invite_remote_to_channel.error", map[string]any{"Error": ""})), inviteErr)
+		require.False(t, hasRemote(t, dm.Id, rc.RemoteId))
+	})
+
+	t.Run("invite to a channel that is already shared", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		shareHomeChannel(t, th, channel)
+		rc := seedRemoteCluster(t, th)
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel invite --connectionID "+rc.RemoteId)
+
+		require.Equal(t, "##### "+T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}), text)
+		require.True(t, hasRemote(t, channel.Id, rc.RemoteId))
+	})
+
+	t.Run("invite to a channel that is not shared yet shares it first", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		rc := seedRemoteCluster(t, th)
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel invite --connectionID "+rc.RemoteId)
+
+		require.Equal(t,
+			"##### "+T("api.command_share.channel_shared")+"\n"+
+				"##### "+T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}),
+			text)
+		sc, err := th.App.GetSharedChannel(channel.Id)
+		require.NoError(t, err)
+		require.True(t, sc.Home)
+		require.True(t, hasRemote(t, channel.Id, rc.RemoteId))
+	})
+}
+
+func TestShareProviderDoUninviteRemote(t *testing.T) {
+	T := i18n.GetUserTranslations("en")
+	th := setupForSharedChannels(t).initBasic(t)
+	adminID := th.SystemAdminUser.Id
+
+	t.Run("missing connection ID", func(t *testing.T) {
+		for _, command := range []string{"/share-channel uninvite", "/share-channel uninvite --connectionID"} {
+			text := runCommand(th, &ShareProvider{}, adminID, th.BasicChannel.Id, command)
+			require.Equal(t, T("api.command_share.remote_not_valid"), text, command)
+		}
+	})
+
+	t.Run("remote not invited to the channel", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		shareHomeChannel(t, th, channel)
+		rc := seedRemoteCluster(t, th)
+
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel uninvite --connectionID "+rc.RemoteId)
+		require.Contains(t, text, T("api.command_share.channel_remote_id_not_exists", map[string]any{"RemoteId": rc.RemoteId}))
+	})
+
+	t.Run("success", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		rc := seedRemoteCluster(t, th)
+		text := runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel invite --connectionID "+rc.RemoteId)
+		require.Contains(t, text, T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
+
+		text = runCommand(th, &ShareProvider{}, adminID, channel.Id, "/share-channel uninvite --connectionID "+rc.RemoteId)
+
+		require.Equal(t, "##### "+T("api.command_share.remote_uninvited", map[string]any{"RemoteId": rc.RemoteId}), text)
+		has, err := th.App.HasRemote(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		require.False(t, has)
 	})
 }

@@ -572,6 +572,11 @@ func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error 
 	return r0
 }
 
+// OnLicenseChanged provides a mock function with given fields: oldLicense, newLicense
+func (_m *Hooks) OnLicenseChanged(oldLicense *model.License, newLicense *model.License) {
+	_m.Called(oldLicense, newLicense)
+}
+
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)
@@ -695,6 +700,11 @@ func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
 // PreferencesHaveChanged provides a mock function with given fields: c, preferences
 func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
 	_m.Called(c, preferences)
+}
+
+// PropertyValuesHaveBeenUpdated provides a mock function with given fields: c, userID, groupID, targetType, targetID, values, previousValues
+func (_m *Hooks) PropertyValuesHaveBeenUpdated(c *plugin.Context, userID string, groupID string, targetType string, targetID string, values []*model.PropertyValue, previousValues []*model.PropertyValue) {
+	_m.Called(c, userID, groupID, targetType, targetID, values, previousValues)
 }
 
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction

@@ -16,6 +16,20 @@ describe('components/widgets/inputs/Input', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should keep defaultValue across re-renders when value is omitted (uncontrolled / IME)', () => {
+        const {rerender} = renderWithContext(
+            <Input defaultValue=''/>,
+        );
+        const input = screen.getByRole('textbox') as HTMLInputElement;
+
+        fireEvent.input(input, {target: {value: '그'}});
+        rerender(
+            <Input defaultValue=''/>,
+        );
+
+        expect(input.value).toBe('그');
+    });
+
     test('should render with clearable enabled', async () => {
         const value = 'value';
         const clearableTooltipText = 'tooltip text';

@@ -1,0 +1,106 @@
+#!/usr/bin/env node
+/*
+ * Wrap the PR diffs/files for the model (as files to Read, not prompt text —
+ * keeps an unbounded diff out of GITHUB_OUTPUT) and render docs-gap-analysis.md.
+ *
+ *   node gap/prepare.mjs --code-diff <f> --docs-diff <f> --files <f> --out-dir <d>
+ *                        [--prompt <f>]
+ */
+
+import {mkdirSync, readFileSync, writeFileSync, appendFileSync} from 'node:fs';
+import {randomUUID} from 'node:crypto';
+import {join} from 'node:path';
+import {renderPrompt} from './prompt.mjs';
+import {block} from '../lib/untrusted.mjs';
+
+// ~80 chars per unified-diff / path line.
+const CAP = {
+  code: 800_000, // ~10k LoC
+  docs: 80_000, // ~1k LoC
+  files: 10_000, // ~100 paths
+};
+
+function arg(name) {
+  const i = process.argv.indexOf(`--${name}`);
+  return i === -1 ? null : process.argv[i + 1];
+}
+
+function require_(name) {
+  const value = arg(name);
+  if (!value) throw new Error(`--${name} <file> is required`);
+  return value;
+}
+
+function wrap({source, dir, name, tag, cap, describe}) {
+  const raw = readFileSync(source, 'utf8');
+  const path = join(dir, name);
+  writeFileSync(path, `${block(tag, raw, {maxChars: cap})}\n`);
+
+  const note = raw.trim() ? describe.present(raw) : describe.empty;
+  return `- \`${path}\` — ${note}`;
+}
+
+function main() {
+  const dir = require_('out-dir');
+  mkdirSync(dir, {recursive: true});
+
+  const lines = [
+    wrap({
+      source: require_('files'),
+      dir,
+      name: 'changed-files.txt',
+      tag: 'changed-files',
+      cap: CAP.files,
+      describe: {
+        present: (raw) => `every path this pull request touches (${raw.trim().split('\n').length})`,
+        empty: 'the changed-file list, which came back empty',
+      },
+    }),
+    wrap({
+      source: require_('code-diff'),
+      dir,
+      name: 'code-diff.txt',
+      tag: 'code-diff',
+      cap: CAP.code,
+      describe: {
+        present: () => 'the code side of the diff, truncated if long',
+        empty: 'the code side of the diff — **empty**: this pull request changes no code',
+      },
+    }),
+    wrap({
+      source: require_('docs-diff'),
+      dir,
+      name: 'docs-diff.txt',
+      tag: 'docs-diff',
+      cap: CAP.docs,
+      describe: {
+        present: () => 'the documentation this pull request already carries, truncated if long',
+        empty: 'the documentation side of the diff — **empty**: this pull request documents nothing',
+      },
+    }),
+  ];
+
+  const prompt = renderPrompt({inputs: lines.join('\n')});
+
+  const out = arg('prompt');
+  if (out) writeFileSync(out, prompt);
+
+  if (process.env.GITHUB_OUTPUT) {
+    // Random delimiter: the prompt is repo-derived and could contain a fixed one.
+    const delimiter = `EOF_${randomUUID()}`;
+    appendFileSync(process.env.GITHUB_OUTPUT, `prompt<<${delimiter}\n${prompt}\n${delimiter}\n`);
+    appendFileSync(
+      process.env.GITHUB_OUTPUT,
+      `schema=${JSON.stringify(JSON.parse(readFileSync(new URL('./schema.json', import.meta.url), 'utf8')))}\n`,
+    );
+  }
+
+  console.error(`[gap-prepare] prompt is ${prompt.length} characters\n${lines.join('\n')}`);
+}
+
+try {
+  main();
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as monaco from 'monaco-editor';
 import React from 'react';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
@@ -130,7 +131,7 @@ describe('CELEditor', () => {
         await userEvent.click(screen.getByRole('button', {name: /test access rule/i}));
 
         await waitFor(() => {
-            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50);
+            expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, undefined);
         });
         expect(searchUsersForExpression).not.toHaveBeenCalled();
     });
@@ -155,6 +156,21 @@ describe('CELEditor', () => {
             expect(searchUsersForExpression).toHaveBeenCalledWith(expression, '', '', 50, 'channel1', 'team1');
         });
         expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
+    });
+
+    test('should announce the validation status to screen readers', async () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const status = (await screen.findByText('Valid')).closest('.cel-editor__status-message');
+        expect(status).toHaveAttribute('role', 'status');
+        expect(status).toHaveAttribute('aria-live', 'polite');
+    });
+
+    test('should give the Monaco editor an accessible name', () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const createMock = monaco.editor.create as jest.Mock;
+        expect(createMock.mock.calls.at(-1)[1]).toEqual(expect.objectContaining({ariaLabel: 'CEL expression editor'}));
     });
 });
 
@@ -202,5 +218,16 @@ describe('buildCELSchemas', () => {
 
         expect(schemas['user.attributes']).toEqual(['valid']);
         expect(schemas['user.session']).toEqual(['ip_address']);
+    });
+
+    test('skips null or undefined attribute names without throwing', () => {
+        const schemas = buildCELSchemas([
+            {attribute: null, values: [], objectType: 'user'},
+            {attribute: undefined, values: [], isNative: true},
+            {attribute: 'department', values: [], objectType: 'user'},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes']);
+        expect(schemas['user.attributes']).toEqual(['department']);
     });
 });

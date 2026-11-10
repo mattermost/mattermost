@@ -7,7 +7,7 @@ import {promisify} from 'node:util';
 import {GenericContainer} from 'testcontainers';
 import type {WaitStrategy} from 'testcontainers';
 
-import {MATTERMOST_ALIAS, MATTERMOST_PORT, TESTCONTAINERS_LABELS} from './constants';
+import {TESTCONTAINERS_LABELS} from './constants';
 
 import {testConfig} from '@/test_config';
 
@@ -33,7 +33,7 @@ function buildCredentialsFileContent(username: string, authToken: string): strin
             username,
             authToken,
             authMethod: 'T',
-            instanceUrl: `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}`,
+            instanceUrl: testConfig.internalBaseURL,
             active: true,
         },
     };
@@ -116,5 +116,28 @@ export async function runMmctl(args: string[], username: string, authToken: stri
         return {exitCode, output};
     } finally {
         await container.stop({remove: true});
+    }
+}
+
+/**
+ * Runs mmctl inside the already-running server container over its `--local` unix socket
+ * (enabled by SERVER_ENV_BASELINE's MM_SERVICESETTINGS_ENABLELOCALMODE).
+ *
+ * Unlike runMmctl(), this needs no admin session, which makes it the only way to change server
+ * config before global setup creates the first user.
+ */
+export async function runMmctlLocal(args: string[]): Promise<MmctlResult> {
+    if (!testConfig.mattermostContainerId) {
+        throw new Error('No running Mattermost container to exec mmctl --local in.');
+    }
+
+    const execArgs = ['exec', testConfig.mattermostContainerId, MMCTL_ENTRYPOINT, '--local', ...args];
+    try {
+        const {stdout, stderr} = await execFileAsync('docker', execArgs, {timeout: 60_000});
+        return {exitCode: 0, output: `${stdout}${stderr}`};
+    } catch (error) {
+        const failure = error as {code?: unknown; stdout?: string; stderr?: string};
+        const output = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
+        return {exitCode: typeof failure.code === 'number' ? failure.code : 1, output: output || String(error)};
     }
 }

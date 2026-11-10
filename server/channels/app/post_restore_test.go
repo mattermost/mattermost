@@ -27,7 +27,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "new message 3", fetchedPost.Message)
 
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(editHistory))
 		require.Equal(t, "new message 2", editHistory[0].Message)
@@ -44,7 +44,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, "new message 2", fetchedPost.Message)
 
 		// verify that we now have 3 items in post's edit history
-		editHistory, appErr = th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr = th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 3, len(editHistory))
 		require.Equal(t, "new message 3", editHistory[0].Message)
@@ -75,7 +75,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, "new message 3", fetchedPost.Message)
 		require.Empty(t, fetchedPost.FileIds)
 
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(editHistory))
 		require.Equal(t, "new message 2", editHistory[0].Message)
@@ -98,7 +98,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, 1, len(fetchedPost.FileIds))
 
 		// verify edit history\
-		editHistory, appErr = th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr = th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 3, len(editHistory))
 
@@ -167,7 +167,7 @@ func TestRestorePostVersion(t *testing.T) {
 		})
 		th.PostPatch(t, otherPost, "other post new message 2")
 
-		otherPostEditHistory, appErr := th.App.GetEditHistoryForPost(otherPost.Id)
+		otherPostEditHistory, appErr := th.App.GetEditHistoryForPost(th.Context, otherPost.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(otherPostEditHistory))
 		require.Equal(t, "other post original message", otherPostEditHistory[0].Message)

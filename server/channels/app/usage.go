@@ -7,28 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
-
-// GetPostsUsage returns the total posts count rounded down to the most
-// significant digit
-func (a *App) GetPostsUsage() (int64, *model.AppError) {
-	count, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true, AllowFromCache: true})
-	if err != nil {
-		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return utils.RoundOffToZeroesResolution(float64(count), 3), nil
-}
-
-// GetStorageUsage returns the sum of files' sizes stored on this instance
-func (a *App) GetStorageUsage() (int64, *model.AppError) {
-	usage, err := a.Srv().Store().FileInfo().GetStorageUsage(true, false)
-	if err != nil {
-		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return usage, nil
-}
 
 func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
 	usage := &model.TeamsUsage{}

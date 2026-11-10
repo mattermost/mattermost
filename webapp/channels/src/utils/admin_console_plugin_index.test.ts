@@ -54,17 +54,77 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
         expect(entries['plugin_plugin-with-markdown']).toContain('Markdown plugin label');
     });
 
-    it('should index the enable plugin setting', () => {
+    it('should index plugin action settings', () => {
         const entries = getPluginEntries({[samplePlugin3.id]: samplePlugin3}, intl);
         expect(entries).toHaveProperty('plugin_plugin-with-markdown');
-        expect(entries['plugin_plugin-with-markdown']).toContain('Enable Plugin: ');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Enable plugin');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Disable plugin');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Uninstall plugin');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Enabled');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Disabled');
         expect(entries['plugin_plugin-with-markdown']).toContain('PluginSettings.PluginStates.plugin-with-markdown.Enable');
     });
 
-    it('should index the enable plugin setting even if other settings are not present', () => {
+    it('should index plugin action settings even if other settings are not present', () => {
         const entries = getPluginEntries({[samplePlugin4.id]: samplePlugin4}, intl);
         expect(entries).toHaveProperty('plugin_plugin-without-settings');
-        expect(entries['plugin_plugin-without-settings']).toContain('Enable Plugin: ');
+        expect(entries['plugin_plugin-without-settings']).toContain('Enable plugin');
+        expect(entries['plugin_plugin-without-settings']).toContain('Disable plugin');
+        expect(entries['plugin_plugin-without-settings']).toContain('Uninstall plugin');
+        expect(entries['plugin_plugin-without-settings']).toContain('Enabled');
+        expect(entries['plugin_plugin-without-settings']).toContain('Disabled');
         expect(entries['plugin_plugin-without-settings']).toContain('PluginSettings.PluginStates.plugin-without-settings.Enable');
+    });
+
+    it('should index More about this plugin when the plugin has a homepage URL', () => {
+        const pluginWithHomepage = {
+            ...samplePlugin4,
+            homepage_url: 'https://mattermost.com/marketplace/demo',
+        };
+        const entries = getPluginEntries({[pluginWithHomepage.id]: pluginWithHomepage}, intl);
+        expect(entries[`plugin_${pluginWithHomepage.id}`]).toContain('More about this plugin');
+    });
+
+    it('should not index More about this plugin when there is no homepage URL', () => {
+        const entries = getPluginEntries({[samplePlugin4.id]: samplePlugin4}, intl);
+        expect(entries[`plugin_${samplePlugin4.id}`]).not.toContain('More about this plugin');
+    });
+
+    it('should index plugin section content and nested settings', () => {
+        const plugin = {
+            ...samplePlugin4,
+            settings_schema: {
+                ...samplePlugin4.settings_schema,
+                sections: [{
+                    key: 'connection',
+                    title: 'Connection Settings',
+                    subtitle: 'Configure the service connection',
+                    header: 'Read the [connection guide](https://example.com/header)',
+                    footer: 'Restart after [saving](https://example.com/footer)',
+                    settings: [{
+                        key: 'ServiceURL',
+                        display_name: 'Service URL',
+                        type: 'text',
+                        help_text: 'Address of the [external service](https://example.com/service)',
+                        placeholder: '',
+                        default: '',
+                    }],
+                }],
+            },
+        };
+
+        const entries = getPluginEntries({[plugin.id]: plugin}, intl)[`plugin_${plugin.id}`];
+
+        expect(entries).toEqual(expect.arrayContaining([
+            'connection',
+            'Connection Settings',
+            'Configure the service connection',
+            'Read the connection guide',
+            'Restart after saving',
+            'ServiceURL',
+            'Service URL',
+            'Address of the external service',
+        ]));
+        expect(entries.join(' ')).not.toContain('https://example.com');
     });
 });

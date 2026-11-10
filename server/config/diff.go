@@ -43,7 +43,6 @@ var configSensitivePaths = map[string]bool{
 	"FileSettings.AzureAccessKey":                            true,
 	"FileSettings.ExportAzureAccessKey":                      true,
 	"SqlSettings.DataSource":                                 true,
-	"SqlSettings.AtRestEncryptKey":                           true,
 	"SqlSettings.DataSourceReplicas":                         true,
 	"SqlSettings.DataSourceSearchReplicas":                   true,
 	"EmailSettings.SMTPPassword":                             true,
@@ -52,6 +51,7 @@ var configSensitivePaths = map[string]bool{
 	"Office365Settings.Secret":                               true,
 	"OpenIdSettings.Secret":                                  true,
 	"ElasticsearchSettings.Password":                         true,
+	"CacheSettings.RedisPassword":                            true,
 	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
 	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
 	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
@@ -127,7 +127,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 		if base.NumField() != actual.NumField() {
 			return nil, fmt.Errorf("not same number of fields in struct")
 		}
-		for i := 0; i < base.NumField(); i++ {
+		for i := range base.NumField() {
 			fieldLabel := baseType.Field(i).Name
 			if label != "" {
 				fieldLabel = label + "." + fieldLabel

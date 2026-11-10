@@ -5,7 +5,9 @@ import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {isMobile} from 'components/widgets/menu/is_mobile_view_hack';
+
+import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
@@ -27,6 +29,13 @@ jest.mock('utils/utils', () => {
         isMobile: jest.fn(() => false),
     };
 });
+
+// MenuWrapperAnimation reads the mobile-view flag from the global store; keep it in sync with the
+// isMobileView prop so the deprecated widget renders the menu directly (as it does on real devices)
+// instead of wrapping the portal in a CSSTransition.
+jest.mock('components/widgets/menu/is_mobile_view_hack', () => ({
+    isMobile: jest.fn(() => false),
+}));
 
 const dropdownMenuActions: PostDropdownMenuAction[] = [
     {
@@ -54,6 +63,7 @@ describe('components/actions_menu/ActionsMenu', () => {
         teamId: 'team_id_1',
         handleDropdownOpened: jest.fn(),
         isMenuOpen: true,
+        isMobileView: false,
         isSysAdmin: true,
         pluginMenuItems: [],
         post: TestHelper.getPostMock({id: 'post_id_1', is_pinned: false, type: '' as PostType}),
@@ -68,6 +78,10 @@ describe('components/actions_menu/ActionsMenu', () => {
             fetchBindings: jest.fn(),
         },
     };
+
+    afterEach(() => {
+        jest.mocked(isMobile).mockReturnValue(false);
+    });
 
     test('sysadmin - should have divider when plugin menu item exists', () => {
         const {container, rerender} = renderWithContext(
@@ -144,6 +158,76 @@ describe('components/actions_menu/ActionsMenu', () => {
             />,
         );
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
+    });
+
+    test('mobile view - renders the menu in a portal on the document body so it is not trapped in the scroll container', () => {
+        jest.mocked(isMobile).mockReturnValue(true);
+
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                isMobileView={true}
+                pluginMenuItems={dropdownMenuActions}
+                canOpenMarketplace={true}
+            />,
+        );
+
+        const portal = document.body.querySelector('.post-actions-menu-mobile');
+        expect(portal).not.toBeNull();
+
+        // The menu is portaled onto the body, outside the component's own container.
+        expect(portal?.parentElement).toBe(document.body);
+        expect(container.querySelector('.post-actions-menu-mobile')).toBeNull();
+
+        // The menu and its items render inside the portal.
+        expect(portal).toHaveTextContent('App Marketplace');
+        expect(portal?.querySelector('.Menu')).not.toBeNull();
+    });
+
+    test('mobile view - items in the portaled menu are reachable and invoke their action with the post id', () => {
+        jest.mocked(isMobile).mockReturnValue(true);
+
+        const action = jest.fn();
+        const pluginMenuItems: PostDropdownMenuAction[] = [{
+            id: 'the_component_id',
+            pluginId: 'playbooks',
+            text: 'Run playbook',
+            action,
+            filter: jest.fn(() => true),
+        }];
+
+        renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                isMobileView={true}
+                pluginMenuItems={pluginMenuItems}
+                canOpenMarketplace={true}
+            />,
+        );
+
+        const portal = document.body.querySelector('.post-actions-menu-mobile');
+        const item = [...(portal?.querySelectorAll('button, a') ?? [])].
+            find((el) => el.textContent === 'Run playbook');
+        expect(item).toBeDefined();
+
+        fireEvent.click(item as Element);
+
+        expect(action).toHaveBeenCalledWith('post_id_1');
+    });
+
+    test('desktop view - renders the menu inline without a portal', () => {
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                isMobileView={false}
+                pluginMenuItems={dropdownMenuActions}
+                canOpenMarketplace={true}
+            />,
+        );
+
+        expect(document.body.querySelector('.post-actions-menu-mobile')).toBeNull();
+        expect(container.querySelector('.Menu')).not.toBeNull();
+        expect(container).toHaveTextContent('App Marketplace');
     });
 
     test('end user - should not have divider when pluggable menu item exists', () => {

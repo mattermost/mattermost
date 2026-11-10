@@ -1,0 +1,102 @@
+-- Split the single AttributeView matview into per-object-type views so ABAC
+-- policies can reference channel attributes independently of user attributes:
+-- a channel and a user can each carry a field of the same name without the two
+-- colliding in one keyed-by-name row. Splitting also makes it possible to later
+-- refresh only the view whose attributes changed (callers refresh both today).
+-- UserAttributeView keeps the existing user-scoped definition; ChannelAttributeView
+-- is the identical shape scoped to channels. The two SELECTs differ only in the
+-- pf.ObjectType filter.
+--
+-- AttributeView itself is left in place rather than dropped. Upgraded code
+-- never reads it, but a server still running a release from before this
+-- migration -- the last ESR, 11.10 -- reads and refreshes it, and during a
+-- rolling upgrade such servers keep serving while the upgraded one works
+-- through the migrations that follow. Dropping it here would fail every one of
+-- their attribute reads until 000242 brought it back. 000242 rebuilds it to
+-- resolve options from PropertyOptions, since this definition stops resolving
+-- them once upgraded code writes a field.
+--
+-- This migration did drop AttributeView as first shipped, in v12.0.0, v12.0.1
+-- and v12.1.0-rc1 through rc2. v12.0.2 and v12.1.0 amended it to keep the view,
+-- and added 000242, which also recreates the view on a database that one of
+-- those earlier releases already migrated.
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS UserAttributeView AS
+SELECT
+    pv.GroupID,
+    pv.TargetID,
+    pv.TargetType,
+    jsonb_object_agg(
+        pf.Name,
+        CASE
+            WHEN pf.Type = 'select' THEN (
+                SELECT to_jsonb(options.name)
+                FROM jsonb_to_recordset(pf.Attrs->'options') AS options(id text, name text)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+                SELECT jsonb_agg(option_names.name)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN jsonb_to_recordset(pf.Attrs->'options') AS option_names(id text, name text)
+                ON option_id = option_names.id
+            )
+            WHEN pf.Type = 'rank' THEN (
+                SELECT jsonb_build_object(
+                    'name', options.name,
+                    'rank', options.rank
+                )
+                FROM jsonb_to_recordset(pf.Attrs->'options')
+                     AS options(id text, name text, rank int)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            ELSE pv.Value
+        END
+    ) AS Attributes
+FROM PropertyValues pv
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
+WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
+  AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
+  AND pf.ObjectType = 'user'
+GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS ChannelAttributeView AS
+SELECT
+    pv.GroupID,
+    pv.TargetID,
+    pv.TargetType,
+    jsonb_object_agg(
+        pf.Name,
+        CASE
+            WHEN pf.Type = 'select' THEN (
+                SELECT to_jsonb(options.name)
+                FROM jsonb_to_recordset(pf.Attrs->'options') AS options(id text, name text)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            WHEN pf.Type = 'multiselect' AND jsonb_typeof(pv.Value) = 'array' THEN (
+                SELECT jsonb_agg(option_names.name)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN jsonb_to_recordset(pf.Attrs->'options') AS option_names(id text, name text)
+                ON option_id = option_names.id
+            )
+            WHEN pf.Type = 'rank' THEN (
+                SELECT jsonb_build_object(
+                    'name', options.name,
+                    'rank', options.rank
+                )
+                FROM jsonb_to_recordset(pf.Attrs->'options')
+                     AS options(id text, name text, rank int)
+                WHERE options.id = pv.Value #>> '{}'
+                LIMIT 1
+            )
+            ELSE pv.Value
+        END
+    ) AS Attributes
+FROM PropertyValues pv
+LEFT JOIN PropertyFields pf ON pf.ID = pv.FieldID
+WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
+  AND (pf.DeleteAt = 0 OR pf.DeleteAt IS NULL)
+  AND pf.ObjectType = 'channel'
+GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;

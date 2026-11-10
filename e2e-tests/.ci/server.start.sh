@@ -7,6 +7,12 @@ cd "$(dirname "$0")"
 mme2e_log "Waiting for server image to be available"
 mme2e_wait_image "$SERVER_IMAGE" 4 30
 
+# Registries (quay.io, Docker Hub) answer a pull with 5xx for minutes at a time; `create` pulls once and fails the shard.
+if ! mme2e_wait_command_success "${MME2E_DC_SERVER} pull --quiet" "Pulling E2E images" 5 30; then
+  mme2e_log "Pulling E2E images failed, retry attempts exhausted. Giving up." >&2
+  exit 1
+fi
+
 # Launch mattermost-server, and wait for it to be healthy
 mme2e_log "Starting E2E containers"
 ${MME2E_DC_SERVER} create
@@ -83,14 +89,26 @@ if ! mme2e_wait_command_success "${MME2E_DC_SERVER} exec -T -- postgres pg_isrea
   exit 1
 fi
 
+# What a container that never became healthy left behind: its state and its last log lines, so the job log says why
+# (a server that failed on one worker of forty left nothing to read before this).
+mme2e_dump_unhealthy() {
+  local service="$1"
+  mme2e_log "----- ${service} state -----"
+  docker inspect --format '{{json .State}}' "$(${MME2E_DC_SERVER} ps -aq -- "${service}" 2>/dev/null)" 2>&1 | head -c 2000 || true
+  mme2e_log "----- ${service} log (last 200) -----"
+  ${MME2E_DC_SERVER} logs --no-log-prefix --tail=200 -- "${service}" 2>&1 || true
+  mme2e_log "----- end ${service} -----"
+}
+
 if ! mme2e_wait_service_healthy server 60 10; then
   mme2e_log "Mattermost container not healthy, retry attempts exhausted. Giving up." >&2
+  mme2e_dump_unhealthy server
   exit 1
 fi
 # shellcheck disable=SC2043
 for MIGRATION in migration_advanced_permissions_phase_2; do
   # Query explanation: if it doesn't find the migration in the table, there are 0 results and the command fails with a divide-by-zero error. Otherwise the command succeeds
-  MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T postgres sh -c 'PGPASSWORD=mostest psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '\''${MIGRATION}'\'' and value = '\''true'\'');\"'"
+  MIGRATION_CHECK_COMMAND="${MME2E_DC_SERVER} exec -T postgres sh -c 'PGPASSWORD=mostest_password psql -U mmuser mattermost_test -c \"select 1 / (select count(*) from Systems where name = '\''${MIGRATION}'\'' and value = '\''true'\'');\"'"
   if ! mme2e_wait_command_success "$MIGRATION_CHECK_COMMAND" "Waiting for migration to be completed: ${MIGRATION}" "10" "10"; then
     mme2e_log "Migration ${MIGRATION} not completed, retry attempts exhausted. Giving up." >&2
 
@@ -115,8 +133,10 @@ mme2e_log "Mattermost container is running and healthy"
 if [ "$TEST" = "cypress" ] || [ "$TEST" = "playwright" ]; then
   mme2e_log "Checking webhook-interactions container health"
   ${MME2E_DC_SERVER} logs --no-log-prefix -- webhook-interactions 2>&1 | tail -5
-  if ! mme2e_wait_service_healthy webhook-interactions 2 10; then
+  # 12 x 5 s: two tries 10 s apart failed workers whose container was healthy seconds later.
+  if ! mme2e_wait_service_healthy webhook-interactions 12 5; then
     mme2e_log "Webhook interactions container not healthy, retry attempts exhausted. Giving up." >&2
+    mme2e_dump_unhealthy webhook-interactions
     exit 1
   fi
   mme2e_log "Webhook interactions container is running and healthy"

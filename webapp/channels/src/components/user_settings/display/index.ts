@@ -11,6 +11,7 @@ import {CollapsedThreads} from '@mattermost/types/config';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {patchUser, updateMe} from 'mattermost-redux/actions/users';
+import {General} from 'mattermost-redux/constants';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     get,
@@ -57,9 +58,16 @@ export function makeMapStateToProps() {
             lastActiveDisplay = false;
         }
 
+        // DefaultClientLocale is normalized to a supported locale server side by
+        // fixInvalidLocales, but user_settings_display reads the name off this
+        // value without a guard, so don't rely on an invariant three layers away
+        // to keep the settings modal from throwing.
         let userLocale = props.user.locale;
         if (!isLanguageAvailable(state, userLocale)) {
             userLocale = config.DefaultClientLocale as string;
+        }
+        if (!isLanguageAvailable(state, userLocale)) {
+            userLocale = General.DEFAULT_LOCALE;
         }
 
         return {
@@ -81,6 +89,7 @@ export function makeMapStateToProps() {
             messageDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT, userPreference),
             colorizeUsernames: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLORIZE_USERNAMES, Preferences.COLORIZE_USERNAMES_DEFAULT, userPreference),
             collapseDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT, userPreference),
+            collapseCategoryWithUnreads: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_CATEGORY_WITH_UNREADS, Preferences.COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT, userPreference),
             collapsedReplyThreadsAllowUserPreference: isCollapsedThreadsAllowed(state) && getConfig(state).CollapsedThreads !== CollapsedThreads.ALWAYS_ON,
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
             clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT, userPreference),

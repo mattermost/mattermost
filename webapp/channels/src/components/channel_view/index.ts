@@ -18,9 +18,13 @@ import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 
+import {loadPostAttributeFields} from 'actions/post_attributes';
 import {goToLastViewedChannel} from 'actions/views/channel';
+import {getChannelViewPluginComponent} from 'selectors/channel_view_plugin';
 
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+
+import {getChannelKind} from 'utils/channel_kind';
 
 import type {GlobalState} from 'types/store';
 
@@ -52,12 +56,15 @@ function mapStateToProps(state: GlobalState) {
         restrictDirectMessage: channel ? state.entities.channels.restrictedDMs[channel.id] : false,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
         missingChannelRole,
+        channelViewPluginComponent: getChannelViewPluginComponent(state, channel),
+        channelKind: getChannelKind(state, channel),
     };
 }
 
 const mapDispatchToProps = ({
     goToLastViewedChannel,
     fetchIsRestrictedDM,
+    loadPostAttributeFields,
 });
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

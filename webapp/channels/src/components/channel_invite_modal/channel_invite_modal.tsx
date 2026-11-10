@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {ButtonSize} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
@@ -41,7 +42,9 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {useChannelKind} from 'hooks/useChannelKind';
 import {getHistory} from 'utils/browser_history';
+import type {KindMessages} from 'utils/channel_kind';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {formatAttributeName} from 'utils/format_attribute_name';
@@ -134,6 +137,8 @@ const ChannelInviteModalComponent = (props: Props) => {
     // Monotonic token for fetchAbacUsers — stale HTTP responses must not
     // overwrite abacFilteredUsers after the user switches channels.
     const abacProfilesFetchRequestId = useRef<number>(0);
+
+    const channelKind = useChannelKind(props.channel);
 
     // Public channels with a membership policy are advisory — the invite
     // list is not filtered and matching users are merely surfaced as a
@@ -648,7 +653,7 @@ const ChannelInviteModalComponent = (props: Props) => {
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
-                userMapping[ProfilesInGroup[i]] = 'Already in channel';
+                userMapping[ProfilesInGroup[i]] = props.intl.formatMessage(messages.alreadyMember[channelKind]);
             }
             const displayName = displayUsername(option, props.teammateNameDisplaySetting);
             const isRecommended = isPolicyRecommendedPublic && recommendedUserIds.has(option.id);
@@ -683,10 +688,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                             id: 'channel_invite.recommended_tag',
                                             defaultMessage: 'Recommended',
                                         })}
-                                        tooltipTitle={props.intl.formatMessage({
-                                            id: 'channel_invite.recommended_tag.tooltip',
-                                            defaultMessage: 'Matches the suggested membership for this channel',
-                                        })}
+                                        tooltipTitle={props.intl.formatMessage(messages.recommendedTagTooltip[channelKind])}
                                     />
                                 )}
                                 <span
@@ -700,7 +702,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     <div className='more-modal__actions'>
                         <button
                             className='more-modal__actions--round'
-                            aria-label='Add channel to invite'
+                            aria-label={props.intl.formatMessage({id: 'accessibility.add_user_to_invite', defaultMessage: 'Add user to invite'})}
                         >
                             <i
                                 className='icon icon-plus'
@@ -722,7 +724,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 selectedItemRef={selectedItemRef}
             />
         );
-    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds]);
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds, channelKind]);
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
@@ -854,6 +856,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                             channel={channel}
                             closeMembersInviteModal={closeMembersInviteModal}
                             inviteAsGuest={false}
+                            size='large'
                             term={term}
                         >
                             {chunks}
@@ -892,6 +895,10 @@ const ChannelInviteModalComponent = (props: Props) => {
             customNoOptionsMessage={(props.emailInvitationsEnabled && !isGroupMessage) ? customNoOptionsMessage : null}
         />
     );
+
+    const isPublicChannel = channel.type === Constants.OPEN_CHANNEL;
+    const policyBannerTitle = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedTitle : messages.policyEnforcedTitle)[channelKind]}/>;
+    const policyBannerMessage = <FormattedMessage {...(isPublicChannel ? messages.policyRecommendedDescription : messages.policyEnforcedDescription)[channelKind]}/>;
 
     const inviteGuestLink = (
         <InviteModalLink
@@ -950,28 +957,8 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <AlertBanner
                             mode='info'
                             variant='app'
-                            title={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.title'
-                                    defaultMessage='This channel has recommended members based on user attributes'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.title'
-                                    defaultMessage='Channel access is restricted by user attributes'
-                                />
-                            )}
-                            message={channel.type === Constants.OPEN_CHANNEL ? (
-                                <FormattedMessage
-                                    id='channel_invite.policy_recommended.description'
-                                    defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
-                                />
-                            ) : (
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.description'
-                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
-                                />
-                            )}
+                            title={policyBannerTitle}
+                            message={policyBannerMessage}
                         >
                             {accessControlTags}
                         </AlertBanner>
@@ -983,6 +970,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <TeamWarningBanner
                             guests={guestsNotInTeam}
                             teamId={inviteTeamId}
+                            channelKind={channelKind}
                             users={usersNotInTeam}
                         />
                     )}
@@ -1000,6 +988,10 @@ interface InviteModalLinkProps extends Pick<Props, 'channel'> {
     id: string;
     inviteAsGuest: boolean;
     term: string;
+
+    // The Compass label takes its font size from the size class, so callers set
+    // it to match whatever copy the link sits in.
+    size?: ButtonSize;
 }
 
 const InviteModalLink = ({
@@ -1009,11 +1001,14 @@ const InviteModalLink = ({
     closeMembersInviteModal,
     id,
     inviteAsGuest,
+    size,
     term,
 }: InviteModalLinkProps) => {
     return (
         <ToggleModalButton
-            className={`${inviteAsGuest ? 'invite-as-guest' : ''} btn btn-link`}
+            className={inviteAsGuest ? 'invite-as-guest' : undefined}
+            emphasis='link'
+            size={size}
             modalId={ModalIdentifiers.INVITATION}
             dialogType={InvitationModal}
             dialogProps={{
@@ -1030,5 +1025,68 @@ const InviteModalLink = ({
         </ToggleModalButton>
     );
 };
+
+const messages = {
+    alreadyMember: {
+        channel: defineMessage({
+            id: 'channel_invite.already_member',
+            defaultMessage: 'Already in channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.already_member.board',
+            defaultMessage: 'Already in board',
+        }),
+    },
+    recommendedTagTooltip: {
+        channel: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip',
+            defaultMessage: 'Matches the suggested membership for this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.recommended_tag.tooltip.board',
+            defaultMessage: 'Matches the suggested membership for this board',
+        }),
+    },
+    policyRecommendedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.title',
+            defaultMessage: 'This channel has recommended members based on user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.title.board',
+            defaultMessage: 'This board has recommended members based on user attributes',
+        }),
+    },
+    policyRecommendedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_recommended.description',
+            defaultMessage: 'A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_recommended.description.board',
+            defaultMessage: 'A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.',
+        }),
+    },
+    policyEnforcedTitle: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.title',
+            defaultMessage: 'Channel access is restricted by user attributes',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.title.board',
+            defaultMessage: 'Board access is restricted by user attributes',
+        }),
+    },
+    policyEnforcedDescription: {
+        channel: defineMessage({
+            id: 'channel_invite.policy_enforced.description',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_invite.policy_enforced.description.board',
+            defaultMessage: 'Only people who match the specified access rules can be selected and added to this board.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default injectIntl(ChannelInviteModalComponent);

@@ -46,7 +46,10 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
             test channel 1
             <span
               class="channel-name"
-            />
+            >
+              ~
+              test-channel-1
+            </span>
           </div>
           <div
             aria-label="Remove [object Object]"
@@ -117,7 +120,10 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
             test channel 2
             <span
               class="channel-name"
-            />
+            >
+              ~
+              test-channel-2
+            </span>
           </div>
           <div
             aria-label="Remove [object Object]"

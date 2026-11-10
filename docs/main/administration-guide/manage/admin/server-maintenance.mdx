@@ -1,17 +1,32 @@
 ---
-title: "Server maintenance"
+title: "Manage Mattermost"
 ---
-This Server Maintenance Guide is organized into sections that provide the tools and knowledge needed to maintain your Mattermost server effectively, ensuring optimal security, scalability, and reliability.
+Running Mattermost day to day: who has access to what, the tools you operate the server with, your license and billing, the notices your users see, and getting your data out.
 
-Whether you’re installing a license key, performing backups, upgrading the server, or using administrative tools like mmctl and the CLI, this guide offers comprehensive instructions to help you manage your server with confidence. Use the navigation below to access detailed information on each topic.
+## Access control
 
-- [Install a license key](/administration-guide/manage/admin/installing-license-key) - Learn how to install a license key for Mattermost.
-- [Generate a support packet](/administration-guide/manage/admin/generating-support-packet) - Learn how to generate a support packet for Mattermost.
-- [Backup and disaster recovery](/deployment-guide/backup-disaster-recovery) - Learn about backup and disaster recovery for Mattermost.
-- [Upgrade Mattermost server](/administration-guide/upgrade-mattermost) - Learn how to upgrading Mattermost server.
-- [Secure Mattermost](/security-guide/secure-mattermost) - Learn about securing Mattermost server.
-- [Mattermost error codes](/administration-guide/manage/admin/error-codes) - Learn about Mattermost error codes and troubleshooting.
-- [Logging](/administration-guide/manage/logging) - Learn how to customize logging options based on business practices and needs.
-- [mmctl](/administration-guide/manage/mmctl-command-line-tool) - Learn about the mmctl command line tool for Mattermost.
-- [CLI](/administration-guide/manage/command-line-tools) - Learn about command line tools for Mattermost.
-- [Feature labels](/administration-guide/manage/feature-labels) - Learn about Mattermost feature labels and their meanings.
+- [Access control](/administration-guide/manage/admin/user-management) - Permissions, roles, user attributes, team and channel membership, and attribute-based access control.
+
+## Server operations
+
+- [mmctl command line tool](/administration-guide/manage/mmctl-command-line-tool) - Administer the server from the command line.
+- [Command line tools](/administration-guide/manage/command-line-tools) - The `mattermost` binary's own commands.
+- [Mattermost logging](/administration-guide/manage/logging) - Customize logging options based on your business practices and needs.
+
+## Licensing and billing
+
+- [Self-hosted billing](/administration-guide/manage/admin/self-hosted-billing) - Billing and payment options for self-hosted deployments.
+- [Install a license key](/administration-guide/manage/admin/installing-license-key) - Apply a license to a self-hosted deployment.
+
+## Cloud, notices, and data
+
+- [Cloud workspace management](/administration-guide/manage/cloud-workspace-management) - Data residency, IP filtering, encryption keys, and workspace export.
+- [Data import, export, and migration](/administration-guide/manage/admin/migration) - Bulk import and export, database migration, and FIPS-compliant images.
+- [Product limits](/administration-guide/manage/product-limits) and [feature labels](/administration-guide/manage/feature-labels) - What each plan includes, and what a feature label means.
+
+## Related
+
+- [Backup and disaster recovery](/deployment-guide/backup-disaster-recovery) - Back up and restore a Mattermost deployment.
+- [Upgrade Mattermost Server](/administration-guide/upgrade/upgrade-index) - Upgrade, downgrade, and post-upgrade rollout.
+- [Secure Mattermost](/security-guide/secure-mattermost) - Harden your deployment.
+- [Monitor and troubleshoot](/administration-guide/manage/admin/monitoring-and-performance) - Metrics, health checks, support packets, and error codes.

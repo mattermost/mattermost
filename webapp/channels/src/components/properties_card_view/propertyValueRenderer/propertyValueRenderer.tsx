@@ -15,8 +15,10 @@ import type {
 } from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
+import {toValueList} from './multi_value_utils';
+import OptionPropertyRenderer from './option_property_renderer/option_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
-import SelectPropertyRenderer from './select_property_renderer/selectPropertyRenderer';
+import {textSubtype} from './renderable';
 import TeamPropertyRenderer from './team_property_renderer/team_property_renderer';
 import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer';
 import TimestampPropertyRenderer from './timestamp_property_renderer/timestamp_property_renderer';
@@ -28,9 +30,10 @@ type Props = {
     field: PropertyField;
     value: PropertyValue<unknown>;
     metadata?: FieldMetadata;
+    maxItems?: number;
 };
 
-export default function PropertyValueRenderer({field, value, metadata}: Props) {
+export default function PropertyValueRenderer({field, value, metadata, maxItems}: Props) {
     switch (field.type) {
     case 'text':
         return (
@@ -48,33 +51,56 @@ export default function PropertyValueRenderer({field, value, metadata}: Props) {
                 metadata={metadata as UserPropertyMetadata}
             />
         );
+
+    // One `UserPropertyRenderer` per stored id, capped the same way the
+    // option-bearing family is. `toValueList` applies the cap and already
+    // normalises a bare value into a one-element list, so a `multiuser` field
+    // holding a single id behaves as `user` does.
+    case 'multiuser':
+        return (
+            <>
+                {toValueList(value.value, maxItems).map((userId, index) => (
+                    <UserPropertyRenderer
+
+                        // Indexed, because nothing stops a stored array naming
+                        // the same user twice and two identical keys would make
+                        // React drop one of the two slots the budget paid for.
+                        key={`${index}:${String(userId)}`}
+                        field={field}
+                        value={{...value, value: userId}}
+                        metadata={metadata as UserPropertyMetadata}
+                    />
+                ))}
+            </>
+        );
+
+    // The whole option-bearing family shares one renderer. `resolveOptionChips`
+    // caps `select` and `rank` at a single chip, so `maxItems` only bites on
+    // `multiselect`.
     case 'select':
     case 'rank':
+    case 'multiselect':
         return (
-            <SelectPropertyRenderer
+            <OptionPropertyRenderer
                 value={value}
                 field={field}
+                maxItems={maxItems}
             />
         );
+
     default:
         return null;
     }
 }
 
-function RenderTextSubtype({field, value, metadata}: Props) {
+function RenderTextSubtype({field, value, metadata}: Omit<Props, 'maxItems'>) {
     if (field.type !== 'text') {
         return null;
     }
 
-    const subType = field.attrs?.subType ?? 'text';
-    switch (subType) {
-    case 'text':
-        return (
-            <TextPropertyRenderer
-                value={value}
-                metadata={metadata as TextFieldMetadata}
-            />
-        );
+    // Keep the arms below in step with `SPECIALISED_TEXT_SUBTYPES`; a test
+    // asserts the two agree.
+    switch (textSubtype(field)) {
     case 'post':
         return (
             <PostPreviewPropertyRenderer
@@ -98,7 +124,17 @@ function RenderTextSubtype({field, value, metadata}: Props) {
         );
     case 'timestamp':
         return <TimestampPropertyRenderer value={value}/>;
+
+    // A subtype this client does not know about still stores a string, so it
+    // renders as one. Returning nothing would blank the value and, on the post
+    // chip row, spend a slot drawing it.
+    case 'text':
     default:
-        return null;
+        return (
+            <TextPropertyRenderer
+                value={value}
+                metadata={metadata as TextFieldMetadata}
+            />
+        );
     }
 }

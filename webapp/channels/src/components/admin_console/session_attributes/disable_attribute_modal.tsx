@@ -21,7 +21,7 @@ export default function DisableAttributeModal({attributeName, onConfirm, onCance
     return (
         <GenericModal
             compassDesign={true}
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={formatMessage({id: 'admin.session_attributes.disable.confirm', defaultMessage: 'Disable'})}
             modalHeaderText={formatMessage({id: 'admin.session_attributes.disable.title', defaultMessage: 'Disable attribute'})}
             handleConfirm={onConfirm}

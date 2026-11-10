@@ -27,7 +27,7 @@ function hasLicenseForFeature(license, key) {
 }
 
 Cypress.Commands.add('apiGetClientLicense', () => {
-    return cy.request('/api/v4/license/client?format=old').then((response) => {
+    return cy.request('/api/v4/license/client').then((response) => {
         expect(response.status).to.equal(200);
 
         const license = response.body;
@@ -305,13 +305,6 @@ Cypress.Commands.add('shouldHaveClusterEnabled', () => {
 
         const sameClusterName = ClusterName === Cypress.expose('serverClusterName');
         expect(sameClusterName, sameClusterName ? '' : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${Cypress.expose('serverClusterName')}"`).to.equal(true);
-    });
-});
-
-Cypress.Commands.add('shouldRunWithSubpath', () => {
-    return cy.apiGetConfig().then(({config}) => {
-        const isSubpath = Boolean(config.ServiceSettings.SiteURL.replace(/^https?:\/\//, '').split('/')[1]);
-        expect(isSubpath, isSubpath ? '' : 'Should run on server running with subpath only').to.equal(true);
     });
 });
 
