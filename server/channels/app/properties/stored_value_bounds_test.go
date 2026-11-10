@@ -1010,10 +1010,12 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 			name     string
 			start    model.PropertyFieldMutability
 			callSets model.PropertyFieldMutability
+			unlink   bool
 			refused  bool
 		}{
-			{"locked field unlocked in the call", once, mutable, false},
-			{"mutable field locked in the call", mutable, once, true},
+			{"locked field unlocked in the call", once, mutable, false, false},
+			{"mutable field locked in the call", mutable, once, false, true},
+			{"locked field unlinked in the call", once, once, true, false},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				_, _, createDirect := boundsSetup(t, th, rctx)
@@ -1026,11 +1028,20 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 				inCall, err := th.service.GetPropertyField(rctx, linked.GroupID, linked.ID)
 				require.NoError(t, err)
 				inCall.Mutability = tc.callSets
+				if tc.unlink {
+					inCall.LinkedFieldID = model.NewPointer("")
+				}
 				_, _, _, err = th.service.UpdatePropertyFields(rctx, linked.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
 				if tc.refused {
 					requireAppErrorID(t, err, refusedID, http.StatusConflict)
-				} else {
+					return
+				}
+				require.NoError(t, err)
+				if tc.unlink {
+					// The unlinked field kept its own copy of the option its value names.
+					got, err := th.dbStore.PropertyField().GetExistingOptionIDs(inCall, []string{"optmid"})
 					require.NoError(t, err)
+					assert.Equal(t, []string{"optmid"}, got)
 				}
 			})
 		}

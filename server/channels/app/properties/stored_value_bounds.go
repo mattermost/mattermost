@@ -305,6 +305,11 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 	firstID, selfID, heldID := "", "", ""
 	for _, field := range append([]*model.PropertyField{owner}, linked...) {
 		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
+			// A field this call unlinks takes over its own copy of owner's options before the
+			// drop is applied, so its values keep naming an option it still has.
+			if inc.LinkSourceID() != owner.ID {
+				continue
+			}
 			field = inc
 		}
 		if field.IsPSAv1() {
