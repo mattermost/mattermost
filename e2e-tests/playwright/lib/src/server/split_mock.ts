@@ -32,6 +32,11 @@ const CONTROL_TIMEOUT_MS = 10_000;
 // What a change needs besides the server's sync interval: the mock pushes it to the server's Split client, which
 // fetches it, and the server saves the config once it reads the new value.
 const FLAG_PROPAGATION_MARGIN_MS = 5000;
+// waitForServerFeatureFlags() polls through testConfig.baseURL, same as the browser — in subpath mode that is the
+// nginx proxy, an extra hop each poll pays that direct-to-server mode does not. Pad the deadline for it so transient
+// proxy/CI latency doesn't fail a propagation that is otherwise on time (observed in CI: subpath-only timeouts on
+// this wait, never on the identical non-subpath job).
+const SUBPATH_PROPAGATION_MARGIN_MS = 10_000;
 const FLAG_POLL_INTERVAL_MS = 250;
 
 async function control<T>(path: string, init: {method: string; body?: unknown}): Promise<T> {
@@ -84,9 +89,13 @@ export async function getSplitMockState(): Promise<{
     return control('/flags', {method: 'GET'});
 }
 
-/** How long a flag change may take to reach the server: its sync interval, plus FLAG_PROPAGATION_MARGIN_MS. */
+/**
+ * How long a flag change may take to reach the server: its sync interval, plus FLAG_PROPAGATION_MARGIN_MS, plus
+ * SUBPATH_PROPAGATION_MARGIN_MS in subpath mode (see its comment).
+ */
 export function flagPropagationTimeoutMs(): number {
-    return testConfig.featureFlagSyncIntervalSeconds * 1000 + FLAG_PROPAGATION_MARGIN_MS;
+    const margin = FLAG_PROPAGATION_MARGIN_MS + (testConfig.subpathMode ? SUBPATH_PROPAGATION_MARGIN_MS : 0);
+    return testConfig.featureFlagSyncIntervalSeconds * 1000 + margin;
 }
 
 /**
@@ -116,9 +125,10 @@ export async function waitForServerFeatureFlags(
         Object.keys(expected)
             .map((name) => `${name}=${String(flags[name])}`)
             .join(', ');
+    const margin = timeoutMs - testConfig.featureFlagSyncIntervalSeconds * 1000;
     throw new Error(
         `Server still reports feature flags ${describe(actual)} ${timeoutMs / 1000}s after the mock Split service ` +
             `changed them to ${describe(expected)} (sync interval ${testConfig.featureFlagSyncIntervalSeconds}s plus ` +
-            `${FLAG_PROPAGATION_MARGIN_MS / 1000}s).`,
+            `${margin / 1000}s margin${testConfig.subpathMode ? ', including the subpath proxy allowance' : ''}).`,
     );
 }
