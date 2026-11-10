@@ -68,36 +68,28 @@ func (ch *Channels) invalidateAccessDecisions(inv accessDecisionInvalidation, br
 
 func (ch *Channels) applyAccessDecisionInvalidation(inv *accessDecisionInvalidation) {
 	c := ch.accessDecisions
-	if c == nil {
+	if c == nil || inv.empty() {
 		return
 	}
 
-	n := 0
 	if inv.Global {
 		c.invalidateAll()
-		n++
 	}
 	for _, id := range inv.Users {
 		c.invalidateUser(id)
-		n++
 	}
 	for _, id := range inv.Sessions {
 		c.invalidateSession(id)
-		n++
 	}
 	for _, id := range inv.Resources {
 		c.invalidateResource(id)
-		n++
 	}
 	for _, pair := range inv.UserResources {
 		c.invalidateUserResource(pair[0], pair[1])
-		n++
 	}
 
 	if metrics := ch.srv.GetMetrics(); metrics != nil {
-		for range n {
-			metrics.IncrementMemCacheInvalidationCounter(accessDecisionCacheName)
-		}
+		metrics.IncrementMemCacheInvalidationCounter(accessDecisionCacheName)
 	}
 }
 
