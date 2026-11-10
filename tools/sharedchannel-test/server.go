@@ -186,7 +186,7 @@ func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
-		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
+		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b"),
 	)
 	sm.procB.Env = append(sm.procB.Env, sm.pluginEnv("b")...)
 	flags := os.O_CREATE | os.O_WRONLY | os.O_APPEND
@@ -220,7 +220,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerAURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9065",
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
-		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
+		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a"),
 	)
 	sm.procA.Env = append(sm.procA.Env, sm.pluginEnv("a")...)
 	outA, err := os.Create(filepath.Join(logsDir, "server_a_stdout.log"))
