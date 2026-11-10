@@ -231,6 +231,28 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(store.getState().storage.storage[draftStorageKey].value).toBeNull();
         });
 
+        test('should keep text typed while the save is pending as a draft', async () => {
+            nock(Client4.getBaseRoute()).
+                put(`/posts/schedule/${scheduledPost.id}`).
+                delay(100).
+                reply(200, {...scheduledPost, message: 'Updated message'});
+
+            const {store, afterSave, remount} = renderEditor();
+
+            fireEvent.input(getTextbox(), {target: {value: 'Updated message'}});
+            fireEvent.click(screen.getByText('Save'));
+            fireEvent.input(getTextbox(), {target: {value: 'Typed while saving'}});
+
+            await waitFor(() => {
+                expect(afterSave).toHaveBeenCalledTimes(1);
+            });
+            expect(store.getState().storage.storage[draftStorageKey].value.message).toBe('Typed while saving');
+
+            remount();
+
+            expect(getTextbox().value).toBe('Typed while saving');
+        });
+
         test('should close the editor when saving an unchanged message', async () => {
             const {afterSave} = renderEditor();
 

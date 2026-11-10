@@ -420,7 +420,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         if (response.error) {
             setPostError(response.error.message);
         } else {
-            handleAutomatedRefocusAndExit();
+            if (draftRef.current.message === updatedPost.message) {
+                handleAutomatedRefocusAndExit();
+            } else {
+                // text typed while the save was in flight is kept as a draft
+                saveDraft();
+                handleRefocusAndExit(editingPost.refocusId || null);
+            }
             afterSave?.();
         }
     }, [
@@ -429,6 +435,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         editText,
         handleAutomatedRefocusAndExit,
         handleRefocusAndExit,
+        saveDraft,
         isSaveDisabled,
         hasLengthError,
         scheduledPost,
