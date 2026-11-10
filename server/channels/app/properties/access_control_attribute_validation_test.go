@@ -4444,6 +4444,34 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable)
 	})
 
+	t.Run("update: attrs rebuilt without the old keys keep the lock, change_policy any lifts it", func(t *testing.T) {
+		boundsEnabled = true
+		t.Cleanup(func() { boundsEnabled = false })
+		field := newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		f := create(t, field)
+		require.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+
+		for _, mutability := range []model.PropertyFieldMutability{model.PropertyFieldMutabilityWriteOnce, ""} {
+			f.Mutability = mutability
+			f.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: model.PropertyFieldVisibilityAlways}
+			_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+			require.NoError(t, updateErr)
+			f = stored(t, f.ID)
+			assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability, "mutability %q", mutability)
+			assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+			assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+		}
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		delete(f.Attrs, model.PropertyFieldAttrEditable)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+	})
+
 	t.Run("update: a stored change_policy with no mutability is the baseline", func(t *testing.T) {
 		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
 		f.Attrs = model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}

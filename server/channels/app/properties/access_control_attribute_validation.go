@@ -269,6 +269,11 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	// that isn't a rank is stripped by the validation below; read it first so
 	// that is logged too.
 	oldKeys := oldPolicyKeysWritten(field, existing)
+	// Read before validation, which deletes change_policy "any" and nulls.
+	_, statesPolicy := field.Attrs[model.PropertyFieldAttrChangePolicy]
+	if _, ok := field.Attrs[model.PropertyFieldAttrEditable]; ok {
+		statesPolicy = true
+	}
 	loggable := false
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		dropOldPolicyKeys(field)
@@ -285,12 +290,12 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
-	oldFormatWrite, err := translateChangePolicy(field, existing)
+	oldFormatWrite, err := translateChangePolicy(field, existing, statesPolicy)
 	if err != nil {
 		return err
 	}
 	if oldFormatWrite && len(oldKeys) == 0 {
-		// Unlocking by leaving the keys out names none of them.
+		// Unlocking with change_policy "any" or editable=true names none of them.
 		oldKeys = []string{model.PropertyFieldAttrChangePolicy}
 	}
 	if oldFormatWrite || loggable {
@@ -1465,15 +1470,19 @@ func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMut
 // stored field's. That write sets the settings from the policy; any other save
 // keeps the settings it states, with unstated ones (mutability "", bounds nil)
 // taken from the baseline. A caller sending back the policy it was shown is not
-// using the old format.
-func translateChangePolicy(field, existing *model.PropertyField) (bool, error) {
+// using the old format, and nor is one whose attrs carry neither old key
+// (statesPolicy false): every locked field's attrs carry the keys the server
+// derived, so a whole-object update that rebuilds attrs without them would
+// otherwise unlock a field it never meant to. Like an omitted mutability, an
+// omitted key is not an unlock; change_policy "any" or editable=true is.
+func translateChangePolicy(field, existing *model.PropertyField, statesPolicy bool) (bool, error) {
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		return false, nil
 	}
 
 	policy := model.GetPropertyFieldChangePolicy(field)
-	oldFormatWrite := existing == nil && policy != model.PropertyFieldChangePolicyAny ||
-		existing != nil && policy != model.GetPropertyFieldChangePolicy(existing)
+	oldFormatWrite := statesPolicy && (existing == nil && policy != model.PropertyFieldChangePolicyAny ||
+		existing != nil && policy != model.GetPropertyFieldChangePolicy(existing))
 
 	mutability, bounds := field.Mutability, field.Bounds
 	baseMutability, baseBounds := changePolicyBaseline(existing)
