@@ -142,6 +142,7 @@ app/data/*
 cover.out
 ecover.out
 cprofile.out
+server/bench-results
 *.test
 webapp/coverage
 /report.xml

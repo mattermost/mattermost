@@ -518,6 +518,14 @@ go-cache: setup-go-work install-ci-tools ## Pre-warm Go module and build cache f
 	$(GO) test -run=^$$ -count=1 -short ./...
 	@(cd public && $(GO) test -run=^$$ -count=1 -short ./...)
 
+.PHONY: bench-user-search
+bench-user-search: setup-go-work ## Runs the user search benchmarks; see scripts/bench-user-search.sh for options.
+	./scripts/bench-user-search.sh run
+
+.PHONY: bench-user-search-compare
+bench-user-search-compare: setup-go-work ## Compares user search benchmarks of the working tree against BENCH_BASE (default origin/master).
+	./scripts/bench-user-search.sh compare $(BENCH_BASE)
+
 .PHONY: test-compile
 test-compile: setup-go-work gotestsum ## Compile tests.
 	@echo COMPILE TESTS
