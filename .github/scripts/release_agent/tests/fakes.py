@@ -63,8 +63,9 @@ class FakeGitHub:
     def milestones(self, repo):
         return list(self.milestone_list.get(repo, []))
 
-    def branch_exists(self, repo, branch):
-        return (repo, branch) in self.branches
+    def release_branches(self, repo):
+        found = (re.fullmatch(r"release-(\d+)\.(\d+)", branch) for name, branch in self.branches if name == repo)
+        return {(int(m.group(1)), int(m.group(2))) for m in found if m}
 
     def commit_files(self, repo, sha):
         return next(c.get("files", []) for commits in self.branch_commits.values() for c in commits if c["sha"] == sha)

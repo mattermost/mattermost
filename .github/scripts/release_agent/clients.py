@@ -220,14 +220,11 @@ class GitHub:
     def milestones(self, repo: str) -> list[dict]:
         return self._pages(f"/repos/{repo}/milestones", state="all")
 
-    def branch_exists(self, repo: str, branch: str) -> bool:
-        try:
-            self.http.get(f"/repos/{repo}/branches/{urllib.parse.quote(branch, safe='')}")
-            return True
-        except ServiceError as err:
-            if err.status == 404:
-                return False
-            raise
+    def release_branches(self, repo: str) -> set[tuple[int, int]]:
+        """(major, minor) of each release-X.Y branch."""
+        refs = self.http.get(f"/repos/{repo}/git/matching-refs/heads/release-") or []
+        found = (re.fullmatch(r"refs/heads/release-(\d+)\.(\d+)", ref.get("ref") or "") for ref in refs)
+        return {(int(m.group(1)), int(m.group(2))) for m in found if m}
 
     def commit_files(self, repo: str, sha: str) -> list[str]:
         """The paths a commit changed (GitHub lists up to 3,000)."""

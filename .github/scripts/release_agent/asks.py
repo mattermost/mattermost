@@ -364,10 +364,15 @@ def needed_manual_test_areas_changed(env: AskEnv, rule: dict):
         if key not in versions:
             continue
         repo = env.settings[f"{key}_repo"]
-        major, minor = (int(part) for part in versions[key].lstrip("v").split("."))
-        head, base = f"release-{major}.{minor}", f"release-{major}.{minor - 1}"
-        if not env.ctx.github.branch_exists(repo, head):
+        line = tuple(int(part) for part in versions[key].lstrip("v").split("."))
+        head = f"release-{line[0]}.{line[1]}"
+        branches = env.ctx.github.release_branches(repo)
+        if line not in branches:
             return None, f"waiting for {repo.split('/')[-1]} {head}", {}
+        earlier = sorted(b for b in branches if b < line)
+        if not earlier:
+            return None, f"no earlier {repo.split('/')[-1]} release branch to compare with", {}
+        base = f"release-{earlier[-1][0]}.{earlier[-1][1]}"
         compared.append(f"{key.title()} {versions[key]}")
         for area in env.rules["manual_test_areas"]:
             if area["repo"] == key:

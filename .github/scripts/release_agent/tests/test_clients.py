@@ -120,6 +120,12 @@ class GitHubTest(unittest.TestCase):
         self.assertFalse(github.is_on_branch("o/r", "abc", "release-12.2"))
         self.assertEqual(http.calls[0][1], "/repos/o/r/compare/abc...release-12.2")
 
+    def test_release_branches(self):
+        refs = [{"ref": "refs/heads/release-2.47"}, {"ref": "refs/heads/release-3.0"}, {"ref": "refs/heads/release-2.47-hotfix"}]
+        http = RecordingHttp([({}, refs)])
+        self.assertEqual(GitHub("t", http).release_branches("o/r"), {(2, 47), (3, 0)})
+        self.assertEqual(http.calls[0][1], "/repos/o/r/git/matching-refs/heads/release-")
+
 
 class JiraTest(unittest.TestCase):
     def test_search_follows_next_page_token(self):

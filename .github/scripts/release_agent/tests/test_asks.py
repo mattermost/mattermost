@@ -436,7 +436,7 @@ class LoadtestResultsTest(unittest.TestCase):
 class ManualTestsTest(unittest.TestCase):
     def harness(self, mobile_files=(), desktop_files=()):
         h = Harness()
-        h.github.branches = {(MOBILE, "release-2.47"), (DESKTOP, "release-6.4")}
+        h.github.branches = {(MOBILE, "release-2.47"), (MOBILE, "release-2.46"), (DESKTOP, "release-6.4"), (DESKTOP, "release-6.3")}
         h.github.dates.update({(MOBILE, "release-2.46"): "2026-10-10T00:00:00Z", (DESKTOP, "release-6.3"): "2026-08-10T00:00:00Z"})
         h.github.branch_commits = {
             (MOBILE, "release-2.47"): [commit(f"m{n}", f"Change {n} (#{9000 + n})", path) for n, path in enumerate(mobile_files)],
@@ -464,6 +464,23 @@ class ManualTestsTest(unittest.TestCase):
         self.assertIn("**Mobile: Sharing into Mattermost from another app**", text)
         self.assertIn("**Desktop: Certificates**", text)
         self.assertNotIn("#9002", text)  # scripts/build.sh is in no area
+
+    def test_compares_with_the_newest_earlier_release_branch(self):
+        h = self.harness(mobile_files=["share_extension/index.tsx"])
+        h.github.milestone_list[MOBILE] = [{"title": "v3.0.0", "due_on": "2026-11-16T00:00:00Z"}]
+        h.github.branches = {(MOBILE, "release-3.0"), (MOBILE, "release-2.47"), (DESKTOP, "release-6.4"), (DESKTOP, "release-6.3")}
+        h.github.branch_commits.update({(MOBILE, "release-3.0"): [commit("m0", "Change (#9000)", "share_extension/index.tsx")],
+                                        (MOBILE, "release-2.47"): []})
+        h.github.dates[(MOBILE, "release-2.47")] = "2026-10-10T00:00:00Z"
+        self.assertEqual(h.ask("manual-tests", date(2026, 10, 26)).state, asks.WAITING)
+        self.assertIn("mattermost-mobile#9000", h.sent("c122")[0]["message"])
+
+    def test_waits_without_an_earlier_release_branch(self):
+        h = self.harness(mobile_files=["share_extension/index.tsx"])
+        h.github.branches = {(MOBILE, "release-2.47")}
+        handoff = h.ask("manual-tests", date(2026, 10, 26))
+        self.assertEqual((handoff.state, handoff.summary),
+                         (asks.NOT_READY, "no earlier mattermost-mobile release branch to compare with"))
 
     def test_done_when_qa_replies_or_reacts(self):
         h = self.harness(mobile_files=["share_extension/index.tsx"])
