@@ -1861,6 +1861,13 @@ func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControlBatch(userID, resourceType, action, resourceIDs)
+	api.recordTime(startTime, "EvaluateAccessControlBatch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
@@ -1886,6 +1893,13 @@ func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceTyp
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpression(actingUserID, resourceType, expression)
 	api.recordTime(startTime, "CheckAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpressionForSearch", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

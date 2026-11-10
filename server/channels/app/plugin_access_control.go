@@ -24,6 +24,11 @@ const (
 	pluginAccessControlQueryLimitMax     = 100
 )
 
+// pluginAccessControlBatchMax caps the distinct resource IDs a single
+// EvaluatePluginAccessRequestBatch call may evaluate. It stays under the store
+// search page cap so the unavailable-path existence probe is a single query.
+const pluginAccessControlBatchMax = 500
+
 // pluginAccessControlScopeCheck validates resourceType's format and that its
 // plugin-ID prefix matches pluginID.
 func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) *model.AppError {
@@ -155,6 +160,135 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 	return &decision, nil
 }
 
+// EvaluatePluginAccessRequestBatch evaluates whether userID may perform action
+// on each plugin-owned resource in resourceIDs and returns the decisions keyed
+// by resource ID. The subject is built once; each ID is then evaluated through
+// the engine, whose compiled-policy and no-policy caches make the per-ID cost
+// a lookup.
+//
+// A resource ID absent from the result could not be evaluated and must be
+// treated as a deny by the caller. Whole-batch failures (bad arguments, batch
+// too large, store unreachable while the engine is unavailable) are returned
+// as an AppError and likewise mean deny-all.
+//
+// When evaluation is impossible, existence is resolved for the whole batch
+// with one store search filtered to the caller's type: IDs without a row of
+// that type are no_policy, IDs with one are omitted (fail closed), matching
+// resolvePluginPolicyExistence. That probe reads the replica, so it is only
+// used on this path; when the engine is available every ID goes through it.
+func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	const where = "EvaluatePluginAccessRequestBatch"
+
+	if appErr := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); appErr != nil {
+		return nil, appErr
+	}
+	if !model.IsValidPolicyAction(action) {
+		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_action.app_error", nil, "action="+action, http.StatusBadRequest)
+	}
+	if !model.IsValidId(userID) {
+		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	ids := make([]string, 0, len(resourceIDs))
+	seen := make(map[string]struct{}, len(resourceIDs))
+	for _, id := range resourceIDs {
+		if !model.IsValidId(id) {
+			return nil, model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "resource_id="+id, http.StatusBadRequest)
+		}
+		if _, dup := seen[id]; dup {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+	if len(ids) > pluginAccessControlBatchMax {
+		return nil, model.NewAppError(where, "app.access_control.plugin.batch_too_large.app_error", map[string]any{"Max": pluginAccessControlBatchMax}, "", http.StatusBadRequest)
+	}
+
+	decisions := make(map[string]*model.AccessDecision, len(ids))
+	if len(ids) == 0 {
+		return decisions, nil
+	}
+
+	if !a.pluginAccessControlAvailable() {
+		return a.resolvePluginPolicyExistenceBatch(rctx, where, pluginID, resourceType, ids, "abac_unavailable")
+	}
+
+	user, appErr := a.GetUser(rctx, userID)
+	if appErr != nil {
+		rctx.Logger().Warn("Plugin access batch evaluation: failed to load user; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr))
+		return a.resolvePluginPolicyExistenceBatch(rctx, where, pluginID, resourceType, ids, "user_load_failed")
+	}
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
+	if appErr != nil {
+		rctx.Logger().Warn("Plugin access batch evaluation: failed to build subject; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr))
+		return a.resolvePluginPolicyExistenceBatch(rctx, where, pluginID, resourceType, ids, "subject_build_failed")
+	}
+
+	acs := a.Srv().ch.AccessControl
+	for _, id := range ids {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject:  *subject,
+			Resource: model.Resource{ID: id, Type: resourceType},
+			Action:   action,
+		})
+		if evalErr != nil {
+			// Omitting the key is the batch form of the single call's
+			// error: the caller must deny this resource.
+			rctx.Logger().Warn("Plugin access batch evaluation: evaluator error; resource omitted",
+				mlog.String("plugin_id", pluginID),
+				mlog.String("resource_id", id),
+				mlog.Err(evalErr))
+			continue
+		}
+		d := decision
+		decisions[id] = &d
+	}
+
+	return decisions, nil
+}
+
+// resolvePluginPolicyExistenceBatch is the batch form of
+// resolvePluginPolicyExistence: one store search filtered to resourceType
+// decides which IDs are policy-gated. Those are omitted from the result (the
+// caller fails closed); every other ID is the vacuous no-policy allow. A
+// failing search makes existence unknown for the whole batch, so it is an
+// error rather than a partial map.
+func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginID, resourceType string, ids []string, reason string) (map[string]*model.AccessDecision, *model.AppError) {
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		Type:  resourceType,
+		IDs:   ids,
+		Limit: len(ids),
+	})
+	if err != nil {
+		rctx.Logger().Warn("Plugin access batch evaluation: existence fallback store search failed",
+			mlog.String("plugin_id", pluginID), mlog.Int("resource_count", len(ids)),
+			mlog.String("reason", reason), mlog.Err(err))
+		return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
+	}
+
+	gated := make(map[string]struct{}, len(policies))
+	for _, p := range policies {
+		gated[p.ID] = struct{}{}
+	}
+
+	decisions := make(map[string]*model.AccessDecision, len(ids))
+	for _, id := range ids {
+		if _, ok := gated[id]; ok {
+			continue
+		}
+		decision := model.NewNoPolicyAccessDecision()
+		decisions[id] = &decision
+	}
+	return decisions, nil
+}
+
 // SavePluginAccessControlPolicy creates or updates a plugin-owned access
 // control policy. Version is forced to v0.5 and Active to true (plugin types
 // have no separate activation lifecycle); policy.ID must be the resource's
@@ -266,19 +400,42 @@ func (a *App) readStoredPolicyType(rctx request.CTX, where, id string) (string, 
 	return policy.Type, nil
 }
 
+// readStoredPolicy returns the row stored under id when its type is owned by
+// pluginID, read straight from the store. It is the ABAC-unavailable form of
+// GetPluginAccessControlPolicy: no enterprise normalization, so CPA field
+// references come back as stored. Absent, foreign-type and unreadable collapse
+// into the same uniform 404 as the normal path.
+func (a *App) readStoredPolicy(rctx request.CTX, where, pluginID, id string) (*model.AccessControlPolicy, *model.AppError) {
+	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, id)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, pluginPolicyNotFoundError(where)
+		}
+		return nil, model.NewAppError(where, "app.pap.get_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if !model.PluginOwnsAccessControlPolicyType(pluginID, policy.Type) {
+		return nil, pluginPolicyNotFoundError(where)
+	}
+	return policy, nil
+}
+
 // GetPluginAccessControlPolicy returns the policy stored under id when its
 // type is owned by the calling plugin. Absent and foreign-type collapse into
 // one byte-identical 404.
+//
+// When the access control engine is unavailable (not registered, unlicensed,
+// or disabled) the raw stored policy is returned instead, so a plugin can
+// still show and manage its restrictions after a license lapse.
 func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string) (*model.AccessControlPolicy, *model.AppError) {
 	const where = "GetPluginAccessControlPolicy"
 
-	acs := a.Srv().ch.AccessControl
-	if acs == nil {
-		return nil, model.NewAppError(where, "app.pap.get_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
-	}
-
 	if !model.IsValidId(id) {
 		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	acs := a.Srv().ch.AccessControl
+	if acs == nil || !a.pluginAccessControlAvailable() {
+		return a.readStoredPolicy(rctx, where, pluginID, id)
 	}
 
 	storedType, appErr := a.readStoredPolicyType(rctx, where, id)
@@ -320,6 +477,11 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 // DeletePluginAccessControlPolicy deletes the policy stored under id when its
 // stored type equals resourceType; absent and type-mismatch fail closed with
 // the same 404.
+//
+// When the access control engine is unavailable (not registered, unlicensed,
+// or disabled) the row is deleted straight from the store so a plugin can
+// always clear a restriction; any registered engine then drops its caches.
+// Saves have no such fallback.
 func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID, resourceType, id string) *model.AppError {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusFail)
@@ -331,11 +493,6 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	model.AddEventParameterToAuditRec(auditRec, "operation", "delete")
 
 	const where = "DeletePluginAccessControlPolicy"
-
-	acs := a.Srv().ch.AccessControl
-	if acs == nil {
-		return model.NewAppError(where, "app.pap.delete_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
-	}
 
 	if appErr := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); appErr != nil {
 		return appErr
@@ -360,7 +517,15 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	// deleted on the caller's behalf. Reaching that needs a cross-plugin
 	// resource-ID collision plus an owner or admin recreating mid-flight, so it
 	// is not adversary-reachable by the calling plugin.
-	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil || !a.pluginAccessControlAvailable() {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, id); err != nil {
+			return model.NewAppError(where, "app.pap.delete_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if acs != nil {
+			acs.InvalidateAllPolicyCaches(rctx)
+		}
+	} else if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}
 
@@ -380,6 +545,21 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 	}
 
 	return a.CheckExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+}
+
+// CheckPluginAccessControlExpressionForSearch is CheckPluginAccessControlExpression
+// plus the search-lane constraints: the expression must also be translatable
+// to a user search (no session attributes, no functions without a SQL form).
+// Plugins whose policies drive "which users match" questions gate saves on it.
+func (a *App) CheckPluginAccessControlExpressionForSearch(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	if appErr := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpressionForSearch", pluginID, resourceType); appErr != nil {
+		return nil, appErr
+	}
+	if appErr := a.validatePluginActingUser(rctx, "CheckPluginAccessControlExpressionForSearch", actingUserID); appErr != nil {
+		return nil, appErr
+	}
+
+	return a.CheckMembershipExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
 }
 
 // QueryUsersForPluginAccessControlExpression returns the users matching the

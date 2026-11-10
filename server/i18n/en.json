@@ -6855,6 +6855,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."
+  },
+  {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
     "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."

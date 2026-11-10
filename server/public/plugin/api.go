@@ -1866,6 +1866,24 @@ type API interface {
 	// Minimum server version: 11.10
 	EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError)
 
+	// EvaluateAccessControlBatch evaluates whether userID may perform action on
+	// each of the plugin-owned resources (resourceType, resourceIDs[i]) and
+	// returns one decision per resource ID, keyed by ID. The user's subject is
+	// built once for the whole batch, so this is the method to use when
+	// filtering a list of resources for a single user.
+	//
+	// Each decision has the same semantics as EvaluateAccessControl, including
+	// IsNoPolicy(). A resource ID that is missing from the returned map could
+	// not be evaluated and the plugin MUST treat it as a deny. The returned
+	// error covers failures that affect the whole batch (invalid arguments,
+	// more than 500 distinct resource IDs, or the store being unreachable while
+	// the access control engine is unavailable); the plugin MUST treat it as a
+	// deny for every resource.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError)
+
 	// SaveAccessControlPolicy creates or updates a policy whose Type is
 	// "<callingPluginID>:<type>". Version is forced to v0.5 and Active to
 	// true. policy.ID must be the resource's stable 26-char ID.
@@ -1896,6 +1914,18 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+
+	// CheckAccessControlExpressionForSearch runs CheckAccessControlExpression
+	// and additionally reports anything that would stop the expression from
+	// being translated to a user search (SQL), such as a session attribute or
+	// a function with no SQL equivalent. Plugins whose policies must also
+	// answer "which users match this rule" (for example to decide who receives
+	// a notification) should gate saves on this check; an empty slice means
+	// the expression is valid in both lanes.
+	//
+	// @tag AccessControl
+	// Minimum server version: 12.3
+	CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
 
 	// QueryUsersForAccessControlExpression returns users matching the
 	// expression (test modal support for policy editors).
