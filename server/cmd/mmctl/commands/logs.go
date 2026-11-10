@@ -361,12 +361,11 @@ func (f *logFollower) run(ctx context.Context) error {
 		since = start.Add(-f.opts.since)
 	}
 
-	// Following plain-text logs would print nothing, and servers before v12.2 log a warning for
-	// every line the query skips, which the next poll reads back
-	if f.opts.follow {
-		if isJSON, known := f.logsAreJSON(ctx); known && !isJSON {
-			return errPlainTextLogs
-		}
+	// The query skips the lines that aren't JSON. After LogSettings.FileJson is turned off, the
+	// file can still hold JSON lines from before, which the query would return as the latest
+	// logs, so the config decides before querying. Without it, an empty result decides below
+	if isJSON, known := f.logsAreJSON(ctx); known && !isJSON {
+		return f.printPlainTextLogs(ctx)
 	}
 
 	// With --number 0, one entry per node still shows where the logs end, by the server's clock
@@ -388,11 +387,7 @@ func (f *logFollower) run(ctx context.Context) error {
 	}
 	f.setFloors(logs, perPage)
 	if !f.print(logs, since, start, f.opts.number > 0) && f.hasPlainTextLogs(ctx) {
-		if f.opts.needsQuery() {
-			return errPlainTextLogs
-		}
-		f.warn("the server's log file is not in JSON format, printing the logs unfiltered instead")
-		return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
+		return f.printPlainTextLogs(ctx)
 	}
 
 	if !f.opts.follow {
@@ -452,6 +447,16 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 	return f.c.QueryLogs(ctx, 0, perPage, filter)
 }
 
+// printPlainTextLogs prints the logs unfiltered, as they're plain text, or fails when the options
+// need the query.
+func (f *logFollower) printPlainTextLogs(ctx context.Context) error {
+	if f.opts.needsQuery() {
+		return errPlainTextLogs
+	}
+	f.warn("the server's log file is not in JSON format, printing the logs unfiltered instead")
+	return printUnfilteredLogs(ctx, f.c, f.opts, f.out)
+}
+
 type logFileFormat struct {
 	isJSON bool
 	known  bool
@@ -480,8 +485,8 @@ func (f *logFollower) logsAreJSON(ctx context.Context) (isJSON, known bool) {
 }
 
 // hasPlainTextLogs reports whether the server writes its log file as plain text, which the query
-// skips. It's only called when a query returned no entries, as that's the only way plain-text
-// logs show. It goes by the config, and without it, by the last log line.
+// skips. It's only called when a query returned no entries. When the config could be read, it
+// already decided before the query, so this goes by the last log line.
 func (f *logFollower) hasPlainTextLogs(ctx context.Context) bool {
 	if isJSON, known := f.logsAreJSON(ctx); known {
 		return !isJSON

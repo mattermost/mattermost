@@ -66,6 +66,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Display single log line", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
 
 		s.client.
@@ -82,6 +83,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Accept the deprecated logrus flag", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
 		s.Require().NoError(cmd.Flags().Set("logrus", "true"))
 
@@ -105,6 +107,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.T().Setenv("NO_COLOR", "")
 		s.T().Setenv("CLICOLOR_FORCE", "1")
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
 
 		s.client.
@@ -122,6 +125,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Map flags to the query", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "50"))
 		s.Require().NoError(cmd.Flags().Set("level", "error,Info"))
 		s.Require().NoError(cmd.Flags().Set("level", "error"))
@@ -158,6 +162,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Fail when the query fails", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 
 		s.client.
 			EXPECT().
@@ -228,16 +233,13 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Empty(warnings)
 	})
 
-	s.Run("Fall back to unfiltered logs when the config says they're plain text", func() {
+	s.Run("Fall back to unfiltered logs without querying when the config says they're plain text", func() {
 		const plainLine = "2026-11-03 08:00:00.000 Z info Server is listening"
 
-		s.client.
-			EXPECT().
-			QueryLogs(gomock.Any(), 0, 2, gomock.Any()).
-			Return(map[string][]json.RawMessage{"default": {}}, &model.Response{}, nil).
-			Times(1)
+		// No QueryLogs: after FileJson is turned off, the file can still hold JSON lines from
+		// before, which the query would return as the latest logs. No GetLogs for the last line
+		// either: the config tells
 		expectLogFormat(new(false))
-		// No GetLogs for the last line: the config tells
 		s.client.
 			EXPECT().
 			GetLogs(gomock.Any(), 0, 2).
@@ -333,6 +335,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Fall back to unfiltered logs when the server can't query them", func() {
+		expectLogFormat(new(true))
 		s.client.
 			EXPECT().
 			QueryLogs(gomock.Any(), 0, 1, gomock.Any()).
@@ -370,6 +373,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Cap the number of entries at the server's limit", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "50000"))
 
 		s.client.
@@ -470,6 +474,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		} {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
+				expectLogFormat(new(true))
 				s.Require().NoError(cmd.Flags().Set("level", "error"))
 
 				expectServerVersion(tc.version)
@@ -488,6 +493,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Allow the flags that need a v12.2 server when the ping fails", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("search", "abc"))
 
 		s.client.
@@ -507,6 +513,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 	s.Run("Don't read the server version without the flags that need it", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
+		expectLogFormat(new(true))
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
 
 		// No GetPing expected: -n works on older servers too

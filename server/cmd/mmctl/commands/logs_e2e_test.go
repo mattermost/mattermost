@@ -159,6 +159,22 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Require().ErrorIs(err, errPlainTextLogs)
 	})
 
+	s.RunForSystemAdminAndLocal("Print the logs unfiltered when the config says they're plain text", func(c client.Client) {
+		// The file still holds the JSON lines from before, as it does right after FileJson is
+		// turned off. The query would return them as the latest logs
+		fileJSON := *s.th.App.Config().LogSettings.FileJson
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.LogSettings.FileJson = new(false) })
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.LogSettings.FileJson = new(fileJSON) })
+
+		var stdout bytes.Buffer
+		var warnings []string
+		follower := newLogFollower(c, &logsOptions{number: 5}, &stdout)
+		follower.warn = func(msg string) { warnings = append(warnings, msg) }
+		s.Require().NoError(follower.run(s.T().Context()))
+		s.Equal([]string{"the server's log file is not in JSON format, printing the logs unfiltered instead"}, warnings)
+		s.NotEmpty(stdout.String())
+	})
+
 	s.Run("Should not allow normal user to retrieve logs", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		s.Require().NoError(cmd.Flags().Set("number", "1"))
