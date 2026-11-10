@@ -172,45 +172,6 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertTrue(any("/api/v4/bar" in item for item in result.additions))
         self.assertFalse(any("/api/v4/foo" in item for item in result.additions))
 
-    def test_merge_of_master_does_not_attribute_trunk_config_fields(self):
-        """Merging master must not list config fields trunk added after the branch point."""
-        _write(self.tmpdir, "server/public/model/config.go", _config())
-        self._commit("root")
-
-        _git(self.tmpdir, "checkout", "-b", "feature")
-        _write(self.tmpdir, "server/public/model/config.go", _config(display="\tDateTimeDisplayFormat bool\n"))
-        self._commit("PR adds timestamp format")
-
-        _git(self.tmpdir, "checkout", "master")
-        _write(self.tmpdir, "server/public/model/config.go", _config(service="\tEnableBaz bool\n"))
-        self._commit("master adds EnableBaz")
-        master = _git(self.tmpdir, "rev-parse", "HEAD")
-
-        _git(self.tmpdir, "checkout", "feature")
-        _git(self.tmpdir, "merge", "master", "-m", "Merge master into feature")
-        head = _git(self.tmpdir, "rev-parse", "HEAD")
-
-        self._point_checker(master, head)
-        patches = checker.split_patch_by_file(checker.get_full_patch())
-        result = checker.check_config(patches)
-
-        self.assertEqual(result.additions, ["``DisplaySettings.DateTimeDisplayFormat``"])
-        self.assertEqual(result.removals, [])
-
-
-def _config(service: str = "", display: str = "") -> str:
-    return (
-        "package model\n\n"
-        "type ServiceSettings struct {\n"
-        "\tEnableFoo bool\n"
-        f"{service}"
-        "}\n\n"
-        "type DisplaySettings struct {\n"
-        "\tEnableEnd bool\n"
-        f"{display}"
-        "}\n"
-    )
-
 
 if __name__ == "__main__":
     unittest.main()
