@@ -18,8 +18,12 @@ jest.mock('utils/browser_history', () => ({
 
 jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
 
-jest.mock('./channel_attributes_settings', () => (props: {onChange: (values: Record<string, string>) => void}) => (
-    <button onClick={() => props.onChange({field1: 'value1'})}>{'EditChannelAttribute'}</button>
+jest.mock('./channel_attributes_settings', () => (props: {onChange: (values: Record<string, string>) => void; onMissingRequiredChange?: (missing: boolean) => void}) => (
+    <>
+        <button onClick={() => props.onChange({field1: 'value1'})}>{'EditChannelAttribute'}</button>
+        <button onClick={() => props.onMissingRequiredChange?.(true)}>{'MissRequiredAttribute'}</button>
+        <button onClick={() => props.onMissingRequiredChange?.(false)}>{'FillRequiredAttribute'}</button>
+    </>
 ));
 
 const mockChannelLevelAccessRules = jest.fn();
@@ -329,5 +333,71 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]);
         expect(patchChannel).not.toHaveBeenCalled();
         expect(setNavigationBlocked).toHaveBeenLastCalledWith(true);
+    });
+
+    test('holds back Save with a message while a required attribute is missing and releases it once filled', async () => {
+        renderWithContext(
+            <ChannelDetails
+                teamScheme={teamScheme}
+                groups={groups}
+                team={team}
+                totalGroups={groups.length}
+                actions={actions}
+                channel={testChannel}
+                channelID={testChannel.id}
+                allGroups={allGroups}
+                channelPermissions={[]}
+                guestAccountsEnabled={true}
+                channelModerationEnabled={false}
+                channelGroupsEnabled={false}
+                abacSupported={false}
+                channelAttributesEnabled={true}
+                isDisabled={false}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+        expect(screen.getByTestId('saveSetting')).toBeEnabled();
+
+        await userEvent.click(screen.getByRole('button', {name: 'MissRequiredAttribute'}));
+        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByText('Set the required channel attributes to save.')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+        expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        expect(screen.queryByText('Set the required channel attributes to save.')).not.toBeInTheDocument();
+    });
+
+    test('keeps a save error visible next to the required-attributes message', async () => {
+        const patchChannelAttributeValues = jest.fn().mockResolvedValue({error: {message: 'attribute save failed'}});
+
+        renderWithContext(
+            <ChannelDetails
+                teamScheme={teamScheme}
+                groups={groups}
+                team={team}
+                totalGroups={groups.length}
+                actions={{...actions, patchChannelAttributeValues}}
+                channel={testChannel}
+                channelID={testChannel.id}
+                allGroups={allGroups}
+                channelPermissions={[]}
+                guestAccountsEnabled={true}
+                channelModerationEnabled={false}
+                channelGroupsEnabled={false}
+                abacSupported={false}
+                channelAttributesEnabled={true}
+                isDisabled={false}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+        await userEvent.click(screen.getByTestId('saveSetting'));
+        await waitFor(() => expect(screen.getByText('attribute save failed')).toBeInTheDocument());
+
+        await userEvent.click(screen.getByRole('button', {name: 'MissRequiredAttribute'}));
+
+        expect(screen.getByText('attribute save failed')).toBeInTheDocument();
+        expect(screen.getByText('Set the required channel attributes to save.')).toBeInTheDocument();
     });
 });

@@ -81,6 +81,8 @@ export type HierarchicalValueMenuProps = {
 
     placeholder?: string;
     ariaLabel?: string;
+    ariaInvalid?: boolean;
+    ariaDescribedBy?: string;
 
     className?: string;
     buttonClassName?: string;
@@ -120,6 +122,8 @@ export default function HierarchicalValueMenu({
     buttonDataTestId,
     placeholder,
     ariaLabel,
+    ariaInvalid,
+    ariaDescribedBy,
     className,
     buttonClassName,
     variant = 'input',
@@ -469,6 +473,8 @@ export default function HierarchicalValueMenu({
                     class: classNames('hierarchical-value-menu__button', buttonClassName, {disabled}),
                     disabled,
                     'aria-label': resolvedAriaLabel,
+                    'aria-invalid': ariaInvalid,
+                    'aria-describedby': ariaDescribedBy,
                     children: triggerChildren,
                 }}
                 menu={{

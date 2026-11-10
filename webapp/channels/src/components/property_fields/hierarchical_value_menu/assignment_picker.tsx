@@ -20,7 +20,7 @@ export type AssignmentGraphPickerProps = {
     disabled?: boolean;
 } & Pick<
     HierarchicalValueMenuProps,
-'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
+'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' | 'ariaInvalid' | 'ariaDescribedBy' |
 'className' | 'buttonClassName' | 'variant'
 >;
 

@@ -26,6 +26,10 @@
             cursor: not-allowed;
             opacity: 0.64;
         }
+
+        &--error {
+            border-color: var(--error-text);
+        }
     }
 
     // Matches the bordered, chevroned trigger the graph/hierarchical picker
@@ -59,6 +63,22 @@
             cursor: not-allowed;
             opacity: 0.64;
         }
+    }
+
+    &__select--error,
+    &__graph--error {
+        border-color: var(--error-text);
+        box-shadow: 0 0 0 1px var(--error-text);
+
+        &:hover:not(:disabled) {
+            border-color: var(--error-text);
+        }
+    }
+
+    &__error {
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
     }
 
     &__selectInner {

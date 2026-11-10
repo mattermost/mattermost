@@ -111,6 +111,9 @@ interface ChannelDetailsState {
     // a null value means "clear this field".
     channelAttributeValues: Record<string, string | string[] | null>;
 
+    // True while an editable required attribute has no value; holds back Save.
+    channelAttributesMissingRequired: boolean;
+
     // Access rules confirmation modal state
     showAccessRulesConfirmModal: boolean;
     accessRulesUsersToAdd: string[];
@@ -196,6 +199,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             userAttributes: [],
             attributesLoaded: false,
             channelAttributeValues: {},
+            channelAttributesMissingRequired: false,
 
             // Access rules confirmation modal state
             showAccessRulesConfirmModal: false,
@@ -1067,6 +1071,10 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.props.actions.setNavigationBlocked(true);
     };
 
+    private handleChannelAttributesMissingRequiredChange = (missing: boolean) => {
+        this.setState({channelAttributesMissingRequired: missing});
+    };
+
     private onPolicySelected = (policy: AccessControlPolicy) => {
         const {accessControlPolicies} = this.state;
 
@@ -1329,12 +1337,15 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             showArchiveConfirmModal,
             policyToggled,
             accessControlPolicies,
+            channelAttributesMissingRequired,
         } = this.state;
         const {channel, team} = this.props;
 
         if (!channel) {
             return null;
         }
+
+        const attributesBlockSave = channelAttributesMissingRequired && !isLocalArchived && Boolean(this.props.channelAttributesEnabled);
 
         const missingGroup = (og: {id: string}) => !groups.find((g: Group) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
@@ -1502,6 +1513,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 channelId={channel.id}
                                 isDisabled={this.props.isDisabled}
                                 onChange={this.handleChannelAttributeValuesChange}
+                                onMissingRequiredChange={this.handleChannelAttributesMissingRequiredChange}
                             />
                         )}
                         {!isLocalArchived && nonArchivedContent}
@@ -1512,9 +1524,19 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                     saving={saving}
                     saveNeeded={saveNeeded}
                     onClick={this.onSave}
-                    serverError={serverError}
+                    serverError={attributesBlockSave ? (
+                        <>
+                            {serverError}
+                            <div data-testid='channelAttributesRequiredToSave'>
+                                <FormattedMessage
+                                    id='admin.channel_settings.channel_detail.attributes.required_to_save'
+                                    defaultMessage='Set the required channel attributes to save.'
+                                />
+                            </div>
+                        </>
+                    ) : serverError}
                     cancelLink='/admin_console/user_management/channels'
-                    isDisabled={this.props.isDisabled}
+                    isDisabled={this.props.isDisabled || attributesBlockSave}
                 />
             </div>
         );

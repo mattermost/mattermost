@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -11,14 +12,19 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
-import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
+import {hasEditor} from 'components/channel_attributes/channel_attribute_editor_support';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 import {asGraphFieldRef} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
+import type {GlobalState} from 'types/store';
 
 import './channel_attributes_settings.scss';
 
@@ -28,6 +34,10 @@ type Props = {
     channelId: string;
     isDisabled?: boolean;
     onChange: (values: Record<string, PendingChannelAttributeValue>) => void;
+
+    // Reports whether an editable required field is still empty, so the page can
+    // hold back its Save.
+    onMissingRequiredChange?: (missing: boolean) => void;
 };
 
 function fieldOptions(field: PropertyField): PropertyFieldOption[] {
@@ -56,7 +66,7 @@ function selectedOptionIds(rawValue: unknown): string[] {
  * Attributes and Channel Info use: a bordered dropdown with wrapping value
  * chips for select/multiselect/rank, and the hierarchical picker for graph.
  */
-const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => {
+const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -65,11 +75,13 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
     // Fields are warmed by useChannelAttributes; this channel's own values are
     // not fetched anywhere on this page, so they need their own warm-up here.
     const [valuesLoaded, setValuesLoaded] = useState(false);
+    const [valuesFailed, setValuesFailed] = useState(false);
     useEffect(() => {
         if (!enabled) {
             return;
         }
         setValuesLoaded(false);
+        setValuesFailed(false);
         Client4.getPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId).then((values) => {
             if (values && values.length > 0) {
                 dispatch({
@@ -80,7 +92,9 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
             setValuesLoaded(true);
         }).catch(() => {
             // Fields still render with "Not set"; a fetch failure here should
-            // not hide the whole section.
+            // not hide the whole section. It also must not read as "every value
+            // empty", which would block Save on a channel that is fully set.
+            setValuesFailed(true);
             setValuesLoaded(true);
         });
     }, [enabled, channelId, dispatch]);
@@ -96,6 +110,30 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
             return next;
         });
     }, [onChange]);
+
+    const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
+    const channelArchived = useSelector((state: GlobalState) => (getChannel(state, channelId)?.delete_at ?? 0) !== 0);
+
+    // A required field blocks Save only when this admin can fill it right now:
+    // values are loaded (so an unloaded value never reads as empty), the page is
+    // editable and the field is neither locked nor a type with no editor.
+    const isRequiredMissing = (field: PropertyField, savedRaw: unknown) => {
+        if (!requiredEnforced || channelArchived || !valuesLoaded || valuesFailed || isDisabled) {
+            return false;
+        }
+        if (!isPropertyFieldRequired(field) || field.permission_values === 'none' || !hasEditor(field)) {
+            return false;
+        }
+        return !isPropertyValueSet(field.id in pending ? pending[field.id] : savedRaw);
+    };
+
+    const hasMissingRequired = attributes.some(({field, value}) => isRequiredMissing(field, value?.value));
+    useEffect(() => {
+        onMissingRequiredChange?.(hasMissingRequired);
+    }, [hasMissingRequired, onMissingRequiredChange]);
+    useEffect(() => {
+        return () => onMissingRequiredChange?.(false);
+    }, [onMissingRequiredChange]);
 
     if (!enabled || (!fieldsLoading && fields.length === 0)) {
         return null;
@@ -125,6 +163,9 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                     const rawValue = field.id in pending ? pending[field.id] : (savedRaw ?? null);
                     const label = getPropertyFieldLabel(field);
                     const inputId = `channelAttributesSettings-${field.name}`;
+                    const showRequiredError = isRequiredMissing(field, savedRaw);
+                    const errorId = `${inputId}-error`;
+                    const describedBy = showRequiredError ? errorId : undefined;
 
                     let control: React.ReactNode;
                     if (field.type === 'text') {
@@ -133,7 +174,9 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                             <input
                                 id={inputId}
                                 type='text'
-                                className='ChannelAttributesSettings__input'
+                                className={classNames('ChannelAttributesSettings__input', {'ChannelAttributesSettings__input--error': showRequiredError})}
+                                aria-invalid={showRequiredError ? true : undefined}
+                                aria-describedby={describedBy}
                                 value={text}
                                 disabled={disabled}
                                 onChange={(e) => handleFieldChange(field.id, e.target.value || null)}
@@ -154,6 +197,9 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                 buttonDataTestId={inputId}
                                 placeholder={formatMessage({id: 'admin.channel_settings.channel_detail.attributes.not_set', defaultMessage: 'Not set'})}
                                 ariaLabel={label}
+                                ariaInvalid={showRequiredError ? true : undefined}
+                                ariaDescribedBy={describedBy}
+                                buttonClassName={showRequiredError ? 'ChannelAttributesSettings__graph--error' : undefined}
                                 disabled={disabled}
                             />
                         );
@@ -181,9 +227,11 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                     id: inputId,
                                     dataTestId: inputId,
                                     as: 'button',
-                                    class: 'ChannelAttributesSettings__select',
+                                    class: classNames('ChannelAttributesSettings__select', {'ChannelAttributesSettings__select--error': showRequiredError}),
                                     disabled,
                                     'aria-label': label,
+                                    'aria-invalid': showRequiredError ? true : undefined,
+                                    'aria-describedby': describedBy,
                                     children: (
                                         <span className='ChannelAttributesSettings__selectInner'>
                                             {selectedOptions.length > 0 ? (
@@ -287,6 +335,18 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                 {label}
                             </label>
                             {control}
+                            {showRequiredError && (
+                                <span
+                                    id={errorId}
+                                    className='ChannelAttributesSettings__error'
+                                    data-testid={`channelAttributeRequiredError-${field.name}`}
+                                >
+                                    <FormattedMessage
+                                        id='admin.channel_settings.channel_detail.attributes.required'
+                                        defaultMessage='This attribute is required.'
+                                    />
+                                </span>
+                            )}
                         </div>
                     );
                 })}

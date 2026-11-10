@@ -2851,6 +2851,14 @@
     "defaultMessage": "Remove {value}",
     "description": "Accessible label for the button that removes one selected value from a multi-select attribute in the System Console > Channels > channel details page, \"Channel attributes\" section; {value} is the option's name."
   },
+  "admin.channel_settings.channel_detail.attributes.required": {
+    "defaultMessage": "This attribute is required.",
+    "description": ""
+  },
+  "admin.channel_settings.channel_detail.attributes.required_to_save": {
+    "defaultMessage": "Set the required channel attributes to save.",
+    "description": ""
+  },
   "admin.channel_settings.channel_detail.attributesDescription": {
     "defaultMessage": "Set this channel's value for each channel attribute.",
     "description": "Description under the heading of the System Console > Channels > channel details page, \"Channel attributes\" section."
