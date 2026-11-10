@@ -1049,8 +1049,8 @@ func (i *hubConnectionIndex) InvalidateCMCacheForUser(userID string, channels ch
 
 	// Remove all user connections from existing channels
 	for conn := range conns {
-		if channels, ok := i.byConnection[conn]; ok {
-			i.removeFromChannels(channels, conn)
+		if previous, ok := i.byConnection[conn]; ok {
+			i.removeFromChannels(previous, conn)
 		}
 	}
 
