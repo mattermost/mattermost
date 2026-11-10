@@ -55,7 +55,6 @@ export type RenderDecisionIdentifier = {
     action: string;
 };
 
-// A registered system action the current user is allowed, with the permissions of it they hold.
 export type DelegatedAction = {
     name: string;
     permissions: string[];
@@ -69,16 +68,9 @@ export type DelegatedActionsResponse = {
     results: DelegatedAction[];
 };
 
-// The union of the permissions of every allowed DelegatedAction. Like render decisions it only
-// decides what the System Console shows; each request is re-evaluated server-side.
 export type DelegatedPermissionsState = {
     permissions: string[];
-
-    // False until a fetch completes and again once invalidated, so the console's route guard can
-    // wait for the set rather than redirect a delegate who holds no admin role.
     loaded: boolean;
-
-    // Of the last applied fetch or invalidation; a completion at or below it is dropped.
     generation: number;
 };
 

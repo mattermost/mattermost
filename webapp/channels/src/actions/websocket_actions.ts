@@ -2057,21 +2057,33 @@ export function handlePluginDisabled(msg: WebSocketMessages.Plugin) {
     removePlugin(manifest);
 }
 
-function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
+export function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
     const user = store.getState().entities.users.profiles[msg.data.user_id];
 
     if (user) {
         const roles = msg.data.roles;
         const newRoles = roles.split(' ');
         const demoted = user.roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN) && !roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN);
+        const demotedInConsole = demoted && global.location.pathname.startsWith('/admin_console');
+        const isCurrentUser = msg.data.user_id === getCurrentUserId(store.getState());
+
+        // Mark stale before updating roles so the console guard waits for the refetch rather than
+        // bouncing a newly-eligible delegate whose role just changed.
+        if (isCurrentUser && demotedInConsole && !hasAnyDelegatedPermission(store.getState())) {
+            store.dispatch(invalidateDelegatedPermissions());
+        }
 
         store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
-        const demotedInConsole = demoted && global.location.pathname.startsWith('/admin_console');
+        if (isCurrentUser) {
+            store.dispatch((async (doDispatch, doGetState) => {
+                await doDispatch(refreshDelegatedPermissions());
 
-        if (msg.data.user_id === getCurrentUserId(store.getState())) {
-            store.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(demotedInConsole));
+                if (demotedInConsole && !hasAnyDelegatedPermission(doGetState())) {
+                    redirectUserToDefaultTeam();
+                }
+            }) as ThunkActionFunc<Promise<void>>);
 
             if (isPermissionPoliciesEnabled(store.getState())) {
                 store.dispatch(clearRenderDecisions());
@@ -2081,18 +2093,6 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
             redirectUserToDefaultTeam();
         }
     }
-}
-
-// A delegated permission keeps a demoted admin in the console, so the set is refreshed before
-// deciding to redirect.
-export function refreshDelegatedPermissionsAfterRoleUpdate(demotedInConsole: boolean): ThunkActionFunc<Promise<void>> {
-    return async (doDispatch, doGetState) => {
-        await doDispatch(refreshDelegatedPermissions());
-
-        if (demotedInConsole && !hasAnyDelegatedPermission(doGetState())) {
-            redirectUserToDefaultTeam();
-        }
-    };
 }
 
 function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {

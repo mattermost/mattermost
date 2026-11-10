@@ -22,7 +22,6 @@ function dispatchEvent(values: Record<string, unknown>) {
         entities: {
             general: {config: {}, license: {}},
             users: {currentUserId: USER_ID, profiles: {}},
-            renderPermissions: {delegatedPermissions: {permissions: [], loaded: true, generation: 1}},
         },
     });
 

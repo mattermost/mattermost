@@ -91,7 +91,39 @@ describe('components/AdminConsole route guard', () => {
     test('redirects a user with neither an admin role nor a delegated permission', () => {
         renderWithContext(<AdminConsole {...baseProps}/>);
 
-        expect(jest.mocked(Redirect).mock.calls[0][0]).toEqual({to: baseProps.unauthorizedRoute});
+        expect(jest.mocked(Redirect)).toHaveBeenCalledWith(
+            expect.objectContaining({to: baseProps.unauthorizedRoute}),
+            undefined,
+        );
+    });
+
+    test('redirects to the first visible section even when its settings are disabled', () => {
+        renderWithContext(
+            <AdminConsole
+                {...baseProps}
+                config={{SiteName: 'Mattermost'} as Props['config']}
+                hasAnyDelegatedPermission={true}
+                delegatedPermissions={['create_compliance_export_job']}
+                adminDefinition={{
+                    compliance: {
+                        isHidden: false,
+                        subsections: {
+                            message_export: {
+                                url: 'compliance/export',
+                                isHidden: false,
+                                isDisabled: true,
+                                schema: {id: 'MessageExportSettings', component: () => null},
+                            },
+                        },
+                    },
+                } as unknown as Props['adminDefinition']}
+            />,
+        );
+
+        expect(jest.mocked(Redirect)).toHaveBeenCalledWith(
+            expect.objectContaining({to: '/admin_console/compliance/export'}),
+            undefined,
+        );
     });
 
     test('admits a delegate without an admin role', () => {

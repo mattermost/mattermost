@@ -149,6 +149,7 @@ const AdminConsole = (props: Props) => {
         });
 
         let defaultUrl = '';
+        let firstAvailableUrl = '';
 
         const schemaRoutes = schemas.map((item: AdminDefinitionSubSection, index: number) => {
             if (typeof item.isHidden !== 'undefined') {
@@ -166,12 +167,12 @@ const AdminConsole = (props: Props) => {
                 isItemDisabled = Boolean(item.isDisabled);
             }
 
-            if (!isItemDisabled && defaultUrl === '') {
-                const {url} = schemas[index];
-
-                // Don't use a url as default if it requires an additional ID
-                // in the path.
-                if (!url.includes(':')) {
+            const {url} = schemas[index];
+            if (!url.includes(':')) {
+                if (firstAvailableUrl === '') {
+                    firstAvailableUrl = url;
+                }
+                if (!isItemDisabled && defaultUrl === '') {
                     defaultUrl = url;
                 }
             }
@@ -193,10 +194,12 @@ const AdminConsole = (props: Props) => {
             );
         });
 
+        const fallbackUrl = defaultUrl || firstAvailableUrl;
+
         return (
             <Switch>
                 {schemaRoutes}
-                {<Redirect to={`${props.match.url}/${defaultUrl}`}/>}
+                {<Redirect to={`${props.match.url}/${fallbackUrl}`}/>}
             </Switch>
         );
     };

@@ -28,6 +28,7 @@ import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
+import * as GlobalActions from 'actions/global_actions';
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -72,8 +73,8 @@ import {
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
     handleJobUpdated,
+    handleUserRoleUpdated,
     refreshDelegatedPermissions,
-    refreshDelegatedPermissionsAfterRoleUpdate,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/render_permissions', () => ({
@@ -133,7 +134,6 @@ jest.mock('actions/user_actions', () => ({
 }));
 
 jest.mock('actions/global_actions', () => ({
-    ...jest.requireActual('actions/global_actions'),
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
@@ -1756,21 +1756,30 @@ describe('render permission invalidation via existing events', () => {
 });
 
 describe('delegated permission refresh', () => {
-    function stateWithDelegatedPermissions(permissions: string[]) {
+    const currentUserId = 'current-user-id';
+
+    function stateWithDelegatedPermissions(permissions: string[], roles = 'system_user system_admin') {
         return {
             entities: {
+                general: {config: {}},
+                roles: {roles: {system_user: {permissions: []}, system_admin: {permissions: []}}},
+                users: {
+                    currentUserId,
+                    profiles: {
+                        [currentUserId]: {id: currentUserId, roles},
+                    },
+                },
                 renderPermissions: {delegatedPermissions: {permissions, loaded: true, generation: 1}},
             },
         };
     }
 
-    let redirectUserToDefaultTeam: jest.Mock;
     beforeEach(() => {
-        redirectUserToDefaultTeam = require('actions/global_actions').redirectUserToDefaultTeam;
-        redirectUserToDefaultTeam.mockReset();
+        jest.mocked(GlobalActions.redirectUserToDefaultTeam).mockReset();
     });
 
     afterEach(() => {
+        jest.mocked(store.dispatch).mockReset();
         window.history.pushState({}, '', '/');
     });
 
@@ -1803,31 +1812,58 @@ describe('delegated permission refresh', () => {
         expect(types).not.toContain('MOCK_FETCH_DELEGATED_PERMISSIONS');
     });
 
+    async function dispatchRoleUpdateOnStore(testStore: ReturnType<typeof configureStore>, roles: string) {
+        const prevMockState = mockState;
+        mockState = testStore.getState() as GlobalState;
+        const dispatchedPromises: Array<Promise<unknown>> = [];
+        jest.mocked(store.dispatch).mockImplementation(((action: unknown) => {
+            const result = testStore.dispatch(action as AnyAction);
+            if (result instanceof Promise) {
+                dispatchedPromises.push(result);
+            }
+            return result;
+        }) as typeof store.dispatch);
+
+        try {
+            handleUserRoleUpdated(wsMessage<WebSocketMessages.UserRoleUpdated>({
+                event: WebSocketEvents.UserRoleUpdated,
+                data: {user_id: currentUserId, roles},
+            }));
+            await Promise.all(dispatchedPromises);
+        } finally {
+            mockState = prevMockState;
+        }
+    }
+
     test('a demoted admin holding a delegated permission stays in the System Console', async () => {
         window.history.pushState({}, '', '/admin_console/compliance/export');
         const testStore = configureStore(stateWithDelegatedPermissions(['create_compliance_export_job']));
 
-        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(true));
+        await dispatchRoleUpdateOnStore(testStore, 'system_user');
 
-        expect(redirectUserToDefaultTeam).not.toHaveBeenCalled();
+        expect(GlobalActions.redirectUserToDefaultTeam).not.toHaveBeenCalled();
+        expect(testStore.getActions().map((a) => a.type)).not.toContain(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS);
     });
 
-    test('a demoted admin without a delegated permission is redirected out of the System Console', async () => {
+    test('a demoted admin without a delegated permission marks the set stale, refetches, and redirects out of the System Console', async () => {
         window.history.pushState({}, '', '/admin_console/compliance/export');
         const testStore = configureStore(stateWithDelegatedPermissions([]));
 
-        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(true));
+        await dispatchRoleUpdateOnStore(testStore, 'system_user');
 
-        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types.indexOf(RenderPermissionTypes.INVALIDATE_DELEGATED_PERMISSIONS)).toBeLessThan(types.indexOf('RECEIVED_PROFILE'));
+        expect(types).toContain('MOCK_FETCH_DELEGATED_PERMISSIONS');
+        expect(GlobalActions.redirectUserToDefaultTeam).toHaveBeenCalled();
     });
 
     test('a role update that is not a demotion does not redirect', async () => {
         window.history.pushState({}, '', '/admin_console/compliance/export');
-        const testStore = configureStore(stateWithDelegatedPermissions([]));
+        const testStore = configureStore(stateWithDelegatedPermissions([], 'system_user'));
 
-        await testStore.dispatch(refreshDelegatedPermissionsAfterRoleUpdate(false));
+        await dispatchRoleUpdateOnStore(testStore, 'system_user system_manager');
 
-        expect(redirectUserToDefaultTeam).not.toHaveBeenCalled();
+        expect(GlobalActions.redirectUserToDefaultTeam).not.toHaveBeenCalled();
     });
 });
 

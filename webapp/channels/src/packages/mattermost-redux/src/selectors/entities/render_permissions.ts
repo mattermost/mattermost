@@ -11,12 +11,14 @@ export function getRenderDecision(state: GlobalState, identifier: RenderDecision
     return state.entities.renderPermissions.byResource[resourceType]?.[resourceId]?.[action];
 }
 
+const EMPTY_PERMISSIONS: string[] = [];
+
 export function getDelegatedPermissions(state: GlobalState): string[] {
-    return state.entities.renderPermissions.delegatedPermissions.permissions;
+    return state.entities.renderPermissions?.delegatedPermissions?.permissions ?? EMPTY_PERMISSIONS;
 }
 
 export function isDelegatedPermissionsLoaded(state: GlobalState): boolean {
-    return state.entities.renderPermissions.delegatedPermissions.loaded;
+    return Boolean(state.entities.renderPermissions?.delegatedPermissions?.loaded);
 }
 
 export function hasDelegatedPermission(state: GlobalState, permission: string): boolean {
