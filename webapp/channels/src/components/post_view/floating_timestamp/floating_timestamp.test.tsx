@@ -35,6 +35,6 @@ describe('components/post_view/FloatingTimestamp', () => {
         expect(floatingTimeStamp).toHaveClass('post-list__timestamp scrolling toastAdjustment');
 
         expect(time).toBeInTheDocument();
-        expect(time).toHaveAttribute('datetime', '1970-01-01T00:00:01.234');
+        expect(time).toHaveAttribute('datetime', '1970-01-01T00:00:01.234Z');
     });
 });

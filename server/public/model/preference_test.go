@@ -98,6 +98,34 @@ func TestPreferenceIsValid(t *testing.T) {
 		preference.Value = "-10"
 		require.NotNil(t, preference.IsValid())
 	})
+
+	t.Run("datetime display format is invalid", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameDateTimeDisplayFormat
+		preference.Value = "invalid"
+		require.NotNil(t, preference.IsValid())
+	})
+
+	t.Run("datetime display format is valid", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameDateTimeDisplayFormat
+		preference.Value = DateTimeDisplayFormatRelative
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("show timestamp seconds is valid", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameShowTimestampSeconds
+		preference.Value = "true"
+		require.Nil(t, preference.IsValid())
+	})
+
+	t.Run("show timestamp seconds is invalid", func(t *testing.T) {
+		preference.Category = PreferenceCategoryDisplaySettings
+		preference.Name = PreferenceNameShowTimestampSeconds
+		preference.Value = "yes"
+		require.NotNil(t, preference.IsValid())
+	})
 }
 
 func TestPreferencePreUpdate(t *testing.T) {

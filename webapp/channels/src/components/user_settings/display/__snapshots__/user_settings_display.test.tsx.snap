@@ -89,43 +89,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -764,43 +730,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -1350,681 +1282,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 </div>
 `;
 
-exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, clock section 1`] = `
-<div>
-  <div
-    aria-labelledby="displayButton"
-    id="displaySettings"
-    role="tabpanel"
-  >
-    <div
-      class="modal-header"
-    >
-      <button
-        class="close"
-        data-dismiss="modal"
-        id="closeButton"
-        type="button"
-      >
-        <span
-          aria-hidden="true"
-        >
-          ×
-        </span>
-      </button>
-      <h4
-        class="modal-title"
-      >
-        <button
-          class="style--none modal-back"
-        >
-          <i
-            aria-label="Collapse Icon"
-            class="fa fa-angle-left"
-          />
-        </button>
-        Display Settings
-      </h4>
-    </div>
-    <div
-      class="user-settings"
-    >
-      <div
-        class="userSettingDesktopHeader"
-      >
-        <h3
-          class="tab-header"
-          id="displaySettingsTitle"
-        >
-          Display Settings
-        </h3>
-      </div>
-      <div
-        class="divider-dark first"
-      />
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapsed_reply_threadsTitle"
-            >
-              Threaded Discussions
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
-              class="color--link style--none section-min__edit"
-              id="collapsed_reply_threadsEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapsed_reply_threadsDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <section
-          class="section-max form-horizontal a11y--active a11y--focused"
-        >
-          <h4
-            class="col-sm-12 section-title"
-            id="settingTitle"
-          >
-            Clock Display
-          </h4>
-          <div
-            class="sectionContent col-sm-10 col-sm-offset-2"
-          >
-            <div
-              class="setting-list"
-              tabindex="-1"
-            >
-              <div
-                class="setting-list-item"
-              >
-                <fieldset>
-                  <legend
-                    class="form-legend hidden-label"
-                  >
-                    Clock Display
-                  </legend>
-                  <div
-                    class="settings-radio-group"
-                  >
-                    <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="clockFormatA"
-                    >
-                      <input
-                        class="_radio__input_h0rbb_17"
-                        id="clockFormatA"
-                        name="clockFormat"
-                        type="radio"
-                      />
-                      <span
-                        class="_radio__circle_h0rbb_36"
-                      >
-                        <span
-                          aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
-                        />
-                      </span>
-                      <span
-                        class="_radio__label_h0rbb_119"
-                      >
-                        12-hour clock (example: 4:00 PM)
-                      </span>
-                    </label>
-                    <label
-                      class="_radio_h0rbb_2 _radio--size-medium_h0rbb_143"
-                      for="clockFormatB"
-                    >
-                      <input
-                        class="_radio__input_h0rbb_17"
-                        id="clockFormatB"
-                        name="clockFormat"
-                        type="radio"
-                      />
-                      <span
-                        class="_radio__circle_h0rbb_36"
-                      >
-                        <span
-                          aria-hidden="true"
-                          class="_radio__dot_h0rbb_62"
-                        />
-                      </span>
-                      <span
-                        class="_radio__label_h0rbb_119"
-                      >
-                        24-hour clock (example: 16:00)
-                      </span>
-                    </label>
-                  </div>
-                  <div>
-                    <br />
-                    Select how you prefer time displayed.
-                  </div>
-                </fieldset>
-              </div>
-              <div
-                class="setting-list-item"
-              >
-                <hr />
-                <div
-                  role="alert"
-                />
-                <div
-                  class="setting-list-item__buttons"
-                >
-                  <button
-                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-                    data-testid="saveSetting"
-                    id="saveSetting"
-                    type="submit"
-                  >
-                    <span
-                      class="_button__label_we8pe_31"
-                    >
-                      Save
-                    </span>
-                  </button>
-                  <button
-                    class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
-                    data-testid="cancelButton"
-                    id="cancelSetting"
-                    type="button"
-                  >
-                    <span
-                      class="_button__label_we8pe_31"
-                    >
-                      Cancel
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="name_formatTitle"
-            >
-              Teammate Name Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="name_formatTitle name_formatEdit"
-              class="color--link style--none section-min__edit"
-              id="name_formatEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="name_formatDesc"
-          >
-            Show first and last name
-          </div>
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="availabilityStatusTitle"
-            >
-              Show online availability on profile images
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="availabilityStatusTitle availabilityStatusEdit"
-              class="color--link style--none section-min__edit"
-              id="availabilityStatusEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="availabilityStatusDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="lastactiveTitle"
-            >
-              Share last active time
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="lastactiveTitle lastactiveEdit"
-              class="color--link style--none section-min__edit"
-              id="lastactiveEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="lastactiveDesc"
-          >
-            On
-          </div>
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="linkpreviewTitle"
-            >
-              Website Link Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="linkpreviewTitle linkpreviewEdit"
-              class="color--link style--none section-min__edit"
-              id="linkpreviewEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="linkpreviewDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapseTitle"
-            >
-              Default Appearance of Image Previews
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapseTitle collapseEdit"
-              class="color--link style--none section-min__edit"
-              id="collapseEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapseDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="message_displayTitle"
-            >
-              Message Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="message_displayTitle message_displayEdit"
-              class="color--link style--none section-min__edit"
-              id="message_displayEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="message_displayDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="click_to_replyTitle"
-            >
-              Click to open threads
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="click_to_replyTitle click_to_replyEdit"
-              class="color--link style--none section-min__edit"
-              id="click_to_replyEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="click_to_replyDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="channel_display_modeTitle"
-            >
-              Channel Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
-              class="color--link style--none section-min__edit"
-              id="channel_display_modeEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="channel_display_modeDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="collapse_category_with_unreadsTitle"
-            >
-              Collapse category with unread channels
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="collapse_category_with_unreadsTitle collapse_category_with_unreadsEdit"
-              class="color--link style--none section-min__edit"
-              id="collapse_category_with_unreadsEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="collapse_category_with_unreadsDesc"
-          >
-            Off
-          </div>
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="one_click_reactions_enabledTitle"
-            >
-              Quick reactions on messages
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="one_click_reactions_enabledTitle one_click_reactions_enabledEdit"
-              class="color--link style--none section-min__edit"
-              id="one_click_reactions_enabledEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="one_click_reactions_enabledDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="renderEmoticonsAsEmojiTitle"
-            >
-              Render emoticons as emojis
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="renderEmoticonsAsEmojiTitle renderEmoticonsAsEmojiEdit"
-              class="color--link style--none section-min__edit"
-              id="renderEmoticonsAsEmojiEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="renderEmoticonsAsEmojiDesc"
-          >
-            Off
-          </div>
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="languagesTitle"
-            >
-              Language
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="languagesTitle languagesEdit"
-              class="color--link style--none section-min__edit"
-              id="languagesEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="languagesDesc"
-          >
-            English (US)
-          </div>
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, collapse section 1`] = `
 <div>
   <div
@@ -2114,43 +1371,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -2700,6 +1923,572 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 </div>
 `;
 
+exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, date and time section 1`] = `
+<div>
+  <div
+    aria-labelledby="displayButton"
+    id="displaySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <button
+          class="style--none modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </button>
+        Display Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+          id="displaySettingsTitle"
+        >
+          Display Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapsed_reply_threadsTitle"
+            >
+              Threaded Discussions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapsed_reply_threadsTitle collapsed_reply_threadsEdit"
+              class="color--link style--none section-min__edit"
+              id="collapsed_reply_threadsEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapsed_reply_threadsDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div
+        data-testid="date-and-time-setting"
+      >
+        <button
+          data-testid="saveSetting"
+        />
+        <button
+          data-testid="cancelButton"
+        />
+        <input
+          id="dateAndTimeClockFormatA"
+          type="radio"
+        />
+        <input
+          id="dateAndTimeClockFormatB"
+          type="radio"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="name_formatTitle"
+            >
+              Teammate Name Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="name_formatTitle name_formatEdit"
+              class="color--link style--none section-min__edit"
+              id="name_formatEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="name_formatDesc"
+          >
+            Show first and last name
+          </div>
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="availabilityStatusTitle"
+            >
+              Show online availability on profile images
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="availabilityStatusTitle availabilityStatusEdit"
+              class="color--link style--none section-min__edit"
+              id="availabilityStatusEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="availabilityStatusDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="lastactiveTitle"
+            >
+              Share last active time
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="lastactiveTitle lastactiveEdit"
+              class="color--link style--none section-min__edit"
+              id="lastactiveEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="lastactiveDesc"
+          >
+            On
+          </div>
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="linkpreviewTitle"
+            >
+              Website Link Previews
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="linkpreviewTitle linkpreviewEdit"
+              class="color--link style--none section-min__edit"
+              id="linkpreviewEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="linkpreviewDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapseTitle"
+            >
+              Default Appearance of Image Previews
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapseTitle collapseEdit"
+              class="color--link style--none section-min__edit"
+              id="collapseEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapseDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="message_displayTitle"
+            >
+              Message Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="message_displayTitle message_displayEdit"
+              class="color--link style--none section-min__edit"
+              id="message_displayEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="message_displayDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="click_to_replyTitle"
+            >
+              Click to open threads
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="click_to_replyTitle click_to_replyEdit"
+              class="color--link style--none section-min__edit"
+              id="click_to_replyEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="click_to_replyDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channel_display_modeTitle"
+            >
+              Channel Display
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channel_display_modeTitle channel_display_modeEdit"
+              class="color--link style--none section-min__edit"
+              id="channel_display_modeEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channel_display_modeDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="collapse_category_with_unreadsTitle"
+            >
+              Collapse category with unread channels
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="collapse_category_with_unreadsTitle collapse_category_with_unreadsEdit"
+              class="color--link style--none section-min__edit"
+              id="collapse_category_with_unreadsEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="collapse_category_with_unreadsDesc"
+          >
+            Off
+          </div>
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="one_click_reactions_enabledTitle"
+            >
+              Quick reactions on messages
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="one_click_reactions_enabledTitle one_click_reactions_enabledEdit"
+              class="color--link style--none section-min__edit"
+              id="one_click_reactions_enabledEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="one_click_reactions_enabledDesc"
+          />
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="renderEmoticonsAsEmojiTitle"
+            >
+              Render emoticons as emojis
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="renderEmoticonsAsEmojiTitle renderEmoticonsAsEmojiEdit"
+              class="color--link style--none section-min__edit"
+              id="renderEmoticonsAsEmojiEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="renderEmoticonsAsEmojiDesc"
+          >
+            Off
+          </div>
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+      <div>
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="languagesTitle"
+            >
+              Language
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="languagesTitle languagesEdit"
+              class="color--link style--none section-min__edit"
+              id="languagesEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="languagesDesc"
+          >
+            English (US)
+          </div>
+        </div>
+        <div
+          class="divider-dark"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, languages section 1`] = `
 <div>
   <div
@@ -2789,43 +2578,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -3343,43 +3098,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -3891,43 +3612,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -4566,43 +4253,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -5253,43 +4906,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -5838,43 +5457,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -6423,43 +6008,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -7016,43 +6567,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -7601,43 +7118,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"
@@ -8186,43 +7669,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           class="divider-dark"
         />
       </div>
-      <div>
-        <div
-          class="section-min"
-          data-testid="section-min"
-        >
-          <div
-            class="section-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="clockTitle"
-            >
-              Clock Display
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="clockTitle clockEdit"
-              class="color--link style--none section-min__edit"
-              id="clockEdit"
-            >
-              <i
-                aria-hidden="true"
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="clockDesc"
-          />
-        </div>
-        <div
-          class="divider-dark"
-        />
-      </div>
+      <div
+        data-testid="date-and-time-setting-min"
+      />
       <div>
         <div
           class="section-min"

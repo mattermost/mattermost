@@ -10,7 +10,7 @@ import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import FilePreviewModal from 'components/file_preview_modal';
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Timestamp from 'components/timestamp';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Tag from 'components/widgets/tag/tag';
@@ -29,11 +29,6 @@ type Props = OwnProps & PropsFromRedux;
 type State = {
     keepOpen: boolean;
 };
-
-const FILE_TOOLTIP_RANGES = [
-    RelativeRanges.TODAY_TITLE_CASE,
-    RelativeRanges.YESTERDAY_TITLE_CASE,
-];
 
 export default class FileSearchResultItem extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -142,7 +137,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             <span>{' • '}</span>
                             <Timestamp
                                 value={fileInfo.create_at}
-                                ranges={FILE_TOOLTIP_RANGES}
+                                usePreferredFormat={true}
                             />
                         </div>
                     </div>

@@ -6,8 +6,9 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Posts} from 'mattermost-redux/constants';
+import {Posts, Preferences} from 'mattermost-redux/constants';
 import {COMBINED_USER_ACTIVITY, DATE_LINE, START_OF_NEW_MESSAGES, isDateLine} from 'mattermost-redux/utils/post_list';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -34,7 +35,23 @@ describe('virtualized thread viewer connector', () => {
         Viewer.mockClear();
     });
 
-    function renderViewer(hideRoot: boolean, useRelativeTimestamp: boolean, rootAt: number, replyAt: number) {
+    function timestampPreference(showDateSeparators: boolean) {
+        if (showDateSeparators) {
+            return {};
+        }
+
+        // Relative format hides thread date separators. Standard, the default, shows them.
+        const key = getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT);
+        return {
+            [key]: {
+                category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                name: Preferences.DATETIME_DISPLAY_FORMAT,
+                value: 'relative',
+            },
+        };
+    }
+
+    function renderViewer(hideRoot: boolean, showDateSeparators: boolean, rootAt: number, replyAt: number) {
         const root = TestHelper.getPostMock({
             id: 'root-id',
             channel_id: channel.id,
@@ -72,6 +89,9 @@ describe('virtualized thread viewer connector', () => {
                         [reply.id]: reply,
                     },
                 },
+                preferences: {
+                    myPreferences: timestampPreference(showDateSeparators),
+                },
             },
             views: {
                 threads: {
@@ -85,7 +105,6 @@ describe('virtualized thread viewer connector', () => {
                 channelId={channel.id}
                 postIds={[reply.id, root.id]}
                 selected={root}
-                useRelativeTimestamp={useRelativeTimestamp}
                 onCardClick={() => {}}
                 hideRoot={hideRoot}
                 isThreadView={false}
@@ -97,7 +116,7 @@ describe('virtualized thread viewer connector', () => {
     }
 
     it('keeps the new-messages line on the first unread reply when the root is hidden', () => {
-        const ids = renderViewer(true, true, 1_000, 3_000);
+        const ids = renderViewer(true, false, 1_000, 3_000);
 
         expect(ids).toEqual(['reply-id', START_OF_NEW_MESSAGES]);
     });
@@ -105,7 +124,7 @@ describe('virtualized thread viewer connector', () => {
     it('drops the date line that belonged only to the hidden root', () => {
         const rootAt = Date.UTC(2024, 0, 1);
         const replyAt = Date.UTC(2024, 1, 15);
-        const ids = renderViewer(true, false, rootAt, replyAt);
+        const ids = renderViewer(true, true, rootAt, replyAt);
 
         expect(ids).not.toContain('root-id');
         expect(ids).toContain(START_OF_NEW_MESSAGES);
@@ -152,6 +171,9 @@ describe('virtualized thread viewer connector', () => {
                         [reply.id]: reply,
                     },
                 },
+                preferences: {
+                    myPreferences: timestampPreference(false),
+                },
             },
             views: {
                 threads: {
@@ -165,7 +187,6 @@ describe('virtualized thread viewer connector', () => {
                 channelId={channel.id}
                 postIds={[reply.id, root.id]}
                 selected={root}
-                useRelativeTimestamp={true}
                 onCardClick={() => {}}
                 hideRoot={true}
                 isThreadView={false}

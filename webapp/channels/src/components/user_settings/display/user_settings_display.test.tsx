@@ -10,6 +10,35 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UserSettingsDisplay from './user_settings_display';
 
+jest.mock('./date_time_display_format_setting/index', () => ({
+    __esModule: true,
+    isDateAndTimeSectionActive: (section: string) => section === 'date_and_time' || section === 'clock' || section === 'datetime_display_format',
+    default: ({active, updateSection}: {active: boolean; updateSection: (section?: string) => void}) => (
+        active ? (
+            <div data-testid='date-and-time-setting'>
+                <button
+                    data-testid='saveSetting'
+                    onClick={() => updateSection('')}
+                />
+                <button
+                    data-testid='cancelButton'
+                    onClick={() => updateSection('')}
+                />
+                <input
+                    id='dateAndTimeClockFormatA'
+                    type='radio'
+                />
+                <input
+                    id='dateAndTimeClockFormatB'
+                    type='radio'
+                />
+            </div>
+        ) : (
+            <div data-testid='date-and-time-setting-min'/>
+        )
+    ),
+}));
+
 jest.mock('./manage_timezones', () => ({
     __esModule: true,
     default: () => <div data-testid='manage-timezones'/>,
@@ -152,8 +181,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, clock section', () => {
-        const props = {...requiredProps, activeSection: 'clock'};
+    test('should match snapshot, date and time section', () => {
+        const props = {...requiredProps, activeSection: 'date_and_time'};
         const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
         expect(container).toMatchSnapshot();
     });
@@ -217,7 +246,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called handleSubmit', async () => {
         const updateSection = jest.fn();
 
-        const props = {...requiredProps, updateSection, activeSection: 'clock'};
+        const props = {...requiredProps, updateSection, activeSection: 'date_and_time'};
         renderWithContext(<UserSettingsDisplay {...props}/>);
 
         await userEvent.click(screen.getByTestId('saveSetting'));
@@ -227,7 +256,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     test('should have called updateSection', async () => {
         const updateSection = jest.fn();
 
-        const props = {...requiredProps, updateSection, activeSection: 'clock'};
+        const props = {...requiredProps, updateSection, activeSection: 'date_and_time'};
         renderWithContext(<UserSettingsDisplay {...props}/>);
 
         // Click Save → handleSubmit → updateSection('')
@@ -259,11 +288,11 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     test('should update militaryTime state', async () => {
-        const props = {...requiredProps, activeSection: 'clock'};
+        const props = {...requiredProps, activeSection: 'date_and_time'};
         const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
 
-        const radioA = container.querySelector('#clockFormatA') as HTMLInputElement;
-        const radioB = container.querySelector('#clockFormatB') as HTMLInputElement;
+        const radioA = container.querySelector('#dateAndTimeClockFormatA') as HTMLInputElement;
+        const radioB = container.querySelector('#dateAndTimeClockFormatB') as HTMLInputElement;
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();

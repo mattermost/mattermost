@@ -199,7 +199,6 @@ const GlobalThreads = () => {
                         >
                             <ThreadViewer
                                 rootPostId={selectedThread.id}
-                                useRelativeTimestamp={true}
                                 isThreadView={true}
                             />
                         </ThreadPane>

@@ -131,6 +131,22 @@ export function descriptorOrStringToString(text: string | MessageDescriptor | un
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
+export function resolveOptionDisplayNameValues(
+    option: {display_name_values?: AdminDefinitionSettingDropdownOption['display_name_values']},
+    config: Partial<AdminConfig>,
+    state: State,
+): {[key: string]: any} | undefined {
+    if (!option.display_name_values) {
+        return undefined;
+    }
+
+    if (typeof option.display_name_values === 'function') {
+        return option.display_name_values(config, state);
+    }
+
+    return option.display_name_values;
+}
+
 function getSchemaSettings(schema: AdminDefinitionSubSectionSchema | null): AdminDefinitionSetting[] {
     if (!schema || !('settings' in schema || 'sections' in schema)) {
         return [];
@@ -807,7 +823,14 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             }
         });
 
-        const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
+        const values = options.map((o) => ({
+            value: o.value,
+            text: descriptorOrStringToString(
+                o.display_name,
+                this.props.intl,
+                resolveOptionDisplayNameValues(o, this.props.config, this.state),
+            )!,
+        }));
         const selectedValue = this.state[setting.key] ?? values[0].value;
 
         let selectedOptionForHelpText = null;
@@ -938,7 +961,14 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         }
 
         const options = setting.options || [];
-        const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
+        const values = options.map((o) => ({
+            value: o.value,
+            text: descriptorOrStringToString(
+                o.display_name,
+                this.props.intl,
+                resolveOptionDisplayNameValues(o, this.props.config, this.state),
+            )!,
+        }));
         const defaultOption = values.find((v) => v.value === setting.default)?.value || values[0].value;
 
         const label = renderLabel(setting, this.props.schema, this.props.intl);

@@ -8,7 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled, shouldShowThreadDateSeparators} from 'mattermost-redux/selectors/entities/preferences';
 import {isDateLine, makeCombineUserActivityPosts} from 'mattermost-redux/utils/post_list';
 
 import {measureRhsOpened} from 'actions/views/rhs';
@@ -24,7 +24,6 @@ type OwnProps = {
     channelId: string;
     postIds: Array<Post['id'] | FakePost['id']>;
     selected: Post | FakePost;
-    useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
     hideRoot?: boolean;
 };
@@ -35,12 +34,13 @@ function makeMapStateToProps() {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channelId, hideRoot} = ownProps;
+        const {postIds, selected, channelId, hideRoot} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
+        const showDate = shouldShowThreadDateSeparators(state);
 
         // postIds is newest-first and includes the root. Separators skip the oldest post, so the
         // root stays in that list or the first unread reply loses its new-messages line. Remove it
@@ -51,7 +51,7 @@ function makeMapStateToProps() {
 
         const separatedIds = getRepliesListWithSeparators(state, {
             postIds,
-            showDate: !useRelativeTimestamp,
+            showDate,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
         const visibleIds = hideRoot ? withoutRoot(separatedIds, selected.id) : separatedIds;
@@ -66,6 +66,7 @@ function makeMapStateToProps() {
             replyListIds,
             newMessagesSeparatorActions,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
+            showDate,
         };
     };
 }

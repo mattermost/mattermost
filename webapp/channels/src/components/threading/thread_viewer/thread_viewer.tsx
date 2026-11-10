@@ -48,7 +48,6 @@ export type Props = Attrs & {
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
         updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
     };
-    useRelativeTimestamp?: boolean;
     postIds: string[];
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
@@ -255,7 +254,6 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     postIds={this.props.postIds}
                                     hideRoot={this.props.hideRoot}
                                     selected={this.props.selected}
-                                    useRelativeTimestamp={this.props.useRelativeTimestamp || false}
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}

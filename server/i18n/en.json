@@ -17212,6 +17212,11 @@
     "description": "Config validation error shown to system admins for the custom URL schemes display setting; {{.Scheme}} is the rejected scheme string."
   },
   {
+    "id": "model.config.is_valid.display.datetime_display_format.app_error",
+    "translation": "Invalid date and time display format.",
+    "description": "Config validation error shown to system admins when DisplaySettings.DateTimeDisplayFormat is not standard, relative, or date_and_time. Also used when a user preference for the timestamp format is rejected."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Search AggregatePostsAfterDays setting must be a number greater than or equal to 1.",
     "description": "Config validation error shown to system admins for Elasticsearch/OpenSearch; 'AggregatePostsAfterDays' is the config setting name."

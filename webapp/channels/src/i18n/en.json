@@ -12979,6 +12979,14 @@
     "defaultMessage": "Maximum time to live for burn-on-read messages",
     "description": "Setting label for a dropdown on the Posts admin page; time to live is how long an unread burn-on-read message may exist before forced deletion."
   },
+  "admin.posts.defaultTimestampFormat.desc": {
+    "defaultMessage": "Sets the default format for message timestamps. Users can override this in Account Settings > Display.",
+    "description": "Help text under the \"Default timestamp format\" dropdown in System Console > Site Configuration > Posts. Tells admins that users can override the default in Account Settings > Display."
+  },
+  "admin.posts.defaultTimestampFormat.title": {
+    "defaultMessage": "Default timestamp format:",
+    "description": "Label of the dropdown in System Console > Site Configuration > Posts that sets the default message timestamp format. Keep the trailing colon."
+  },
   "admin.posts.enableUserTypingMessages.desc": {
     "defaultMessage": "This setting determines whether \"user is typing...\" messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.",
     "description": "Help text under the \"Enable User Typing Messages\" toggle in System Console > Site Configuration > Posts. The quoted \"user is typing...\" is the end-user indicator itself; translate it to match how that indicator reads in this language."
@@ -13072,12 +13080,12 @@
     "description": "Section heading on the System Console Posts settings page grouping client performance and rendering limit settings."
   },
   "admin.posts.sections.previews.description": {
-    "defaultMessage": "Configure link previews and how advanced formatting renders.",
-    "description": "Section description under the 'Content & Previews' heading on the System Console Posts settings page."
+    "defaultMessage": "Configure link previews, message formatting, and how timestamps appear on posts.",
+    "description": "Section description under the 'Content & Message Display' heading on the System Console Posts settings page."
   },
   "admin.posts.sections.previews.title": {
-    "defaultMessage": "Content & Previews",
-    "description": "Section heading on the System Console Posts settings page grouping link preview and formatting settings."
+    "defaultMessage": "Content & Message Display",
+    "description": "Section heading on the System Console Posts settings page grouping link preview, formatting, and timestamp settings."
   },
   "admin.posts.sections.priority.description": {
     "defaultMessage": "Set message priority and repeating notifications for urgent delivery.",
@@ -13094,6 +13102,14 @@
   "admin.posts.sections.threads.title": {
     "defaultMessage": "Threads",
     "description": "Section heading on the System Console Posts settings page grouping threaded-discussion settings; 'Threads' refers to message threads (noun)."
+  },
+  "admin.posts.showTimestampSeconds.desc": {
+    "defaultMessage": "Sets the default for showing seconds in message timestamps when using Standard or Date and Time format. Users can override this in Account Settings > Display.",
+    "description": "Help text under the \"Show seconds in timestamps\" toggle in System Console > Site Configuration > Posts. Applies when the format is Standard or Date and Time; users can override it in Account Settings > Display."
+  },
+  "admin.posts.showTimestampSeconds.title": {
+    "defaultMessage": "Show seconds in timestamps:",
+    "description": "Label of the toggle in System Console > Site Configuration > Posts that sets whether timestamps include seconds by default. Keep the trailing colon."
   },
   "admin.posts.timeBetweenUserTypingUpdatesMilliseconds.desc": {
     "defaultMessage": "The number of milliseconds to wait between emitting user typing websocket events.",
@@ -22767,14 +22783,6 @@
     "defaultMessage": "Time",
     "description": "Label, accessible name, and placeholder label of the time field in the combined date/time picker."
   },
-  "datetime.today": {
-    "defaultMessage": "today",
-    "description": "Relative day word inserted into the edited-post tooltip's '{relativeOrDate} at {time}' pattern; lowercase, mid-sentence."
-  },
-  "datetime.yesterday": {
-    "defaultMessage": "yesterday",
-    "description": "Relative day word inserted into the edited-post tooltip's '{relativeOrDate} at {time}' pattern; lowercase, mid-sentence."
-  },
   "deactivate_member_modal.deactivate": {
     "defaultMessage": "Deactivate",
     "description": "Destructive confirm button of the modal that deactivates a user account, in the System Console user management area; verb."
@@ -28707,6 +28715,10 @@
     "defaultMessage": "Edited",
     "description": "Small indicator label appended to a message that has been edited; compact space, also used as the button's accessible name."
   },
+  "post_message_view.edited_at": {
+    "defaultMessage": "Edited {timestamp}",
+    "description": "Tooltip on the Edited indicator of a message. {timestamp} is a full date and time, for example 'Edited Wednesday, January 1, 2020 at 12:00:00 AM'."
+  },
   "post_message_view.view_post_edit_history": {
     "defaultMessage": "Click to view history",
     "description": "Hint line in the tooltip on the 'Edited' indicator telling the post author they can click to open the edit history."
@@ -32895,9 +32907,37 @@
     "defaultMessage": "Choose a time",
     "description": "Accessible label (aria-label) of the dropdown menu listing selectable times in the date/time picker."
   },
+  "timestamp_format.date_and_time": {
+    "defaultMessage": "Date and Time (example: Jun 1, {timeExample})",
+    "description": "Option for the timestamp format that shows the calendar date and the clock time, in System Console and in Settings > Display. {timeExample} is a sample clock time such as '4:32 PM'."
+  },
+  "timestamp_format.date_and_time_short": {
+    "defaultMessage": "Date and Time",
+    "description": "Short name of the Date and Time timestamp format, used in the collapsed Date and Time setting summary."
+  },
+  "timestamp_format.relative": {
+    "defaultMessage": "Relative (example: 3 hours ago)",
+    "description": "Option for the timestamp format that shows a relative time such as '3 hours ago', in System Console and in Settings > Display."
+  },
+  "timestamp_format.relative_short": {
+    "defaultMessage": "Relative",
+    "description": "Short name of the Relative timestamp format, used in the collapsed Date and Time setting summary."
+  },
+  "timestamp_format.standard": {
+    "defaultMessage": "Standard (example: {timeExample})",
+    "description": "Option for the timestamp format that shows the clock time, in System Console and in Settings > Display. {timeExample} is a sample clock time such as '4:32 PM'."
+  },
+  "timestamp_format.standard_short": {
+    "defaultMessage": "Standard",
+    "description": "Short name of the Standard timestamp format, used in the collapsed Date and Time setting summary."
+  },
   "timestamp.datetime": {
     "defaultMessage": "{relativeOrDate} at {time}",
     "description": "Pattern combining a day and a clock time (e.g. 'yesterday at 3:15 PM'); {relativeOrDate} is a day word or date and {time} a formatted time; used in tooltips and timestamps."
+  },
+  "timestamp.justNow": {
+    "defaultMessage": "just now",
+    "description": "Relative timestamp label shown when a message was posted a few seconds ago; lowercase, mid-sentence."
   },
   "trial_benefits_modal.trial_just_started.buttons.close": {
     "defaultMessage": "Close",
@@ -33715,6 +33755,22 @@
     "defaultMessage": "Use colors to distinguish users in compact mode",
     "description": "Checkbox label in Settings > Display under the Compact message display option; enables colored usernames to tell users apart."
   },
+  "user.settings.display.dateAndTimeSummary": {
+    "defaultMessage": "{clock}{secondsPrefix}{formatPrefix}",
+    "description": "Collapsed summary of the Date and Time setting in Settings > Display. {clock} is '12-hour clock' or '24-hour clock'; {secondsPrefix} is ', with seconds' or empty; {formatPrefix} is ' · ' followed by the format name."
+  },
+  "user.settings.display.dateAndTimeSummaryFormat": {
+    "defaultMessage": " · {format}",
+    "description": "Fragment appended to the Date and Time setting summary. {format} is the short format name (Standard, Relative, or Date and Time). Keep the leading middle dot and spaces."
+  },
+  "user.settings.display.dateAndTimeSummarySeconds": {
+    "defaultMessage": ", with seconds",
+    "description": "Fragment inserted into the Date and Time setting summary when seconds are shown. Keep the leading comma."
+  },
+  "user.settings.display.dateAndTimeTitle": {
+    "defaultMessage": "Date and Time",
+    "description": "Setting row title in Settings > Display for the clock, seconds, and timestamp format."
+  },
   "user.settings.display.fixedWidthCentered": {
     "defaultMessage": "Fixed width, centered",
     "description": "Radio option for the Channel Display setting; center pane has a fixed, centered width."
@@ -33791,9 +33847,17 @@
     "defaultMessage": "24-hour clock (example: 16:00)",
     "description": "Radio option for the Clock Display setting; 24-hour time format with an example."
   },
+  "user.settings.display.militaryClockShort": {
+    "defaultMessage": "24-hour clock",
+    "description": "Short label for the 24-hour clock, used in the collapsed Date and Time setting summary."
+  },
   "user.settings.display.normalClock": {
     "defaultMessage": "12-hour clock (example: 4:00 PM)",
     "description": "Radio option for the Clock Display setting; 12-hour AM/PM time format with an example."
+  },
+  "user.settings.display.normalClockShort": {
+    "defaultMessage": "12-hour clock",
+    "description": "Short label for the 12-hour clock, used in the collapsed Date and Time setting summary."
   },
   "user.settings.display.oneClickReactionsOnPostsDescription": {
     "defaultMessage": "When enabled, you can react quickly with recently used reactions when hovering over a message.",
@@ -33803,10 +33867,6 @@
     "defaultMessage": "Quick reactions on messages",
     "description": "Setting title in Settings > Display; shows recently used emoji reactions when hovering a message."
   },
-  "user.settings.display.preferTime": {
-    "defaultMessage": "Select how you prefer time displayed.",
-    "description": "Help text for the Clock Display setting asking the preferred time format."
-  },
   "user.settings.display.renderEmoticonsAsEmojiDesc": {
     "defaultMessage": "When enabled, text emoticons in messages will automatically be rendered as emojis (For example :D as 😄)",
     "description": "Help text for the emoticon rendering setting; ':D' is a literal text emoticon example converted to an emoji."
@@ -33814,6 +33874,10 @@
   "user.settings.display.renderEmoticonsAsEmojiTitle": {
     "defaultMessage": "Render emoticons as emojis",
     "description": "Setting title in Settings > Display; converts text emoticons like :) into emoji images."
+  },
+  "user.settings.display.showTimestampSeconds": {
+    "defaultMessage": "Show seconds in timestamps (example: {timeExample})",
+    "description": "Checkbox label in Settings > Display > Date and Time. {timeExample} is a sample time that includes seconds, such as '4:32:17 PM'."
   },
   "user.settings.display.teammateNameDisplay": {
     "defaultMessage": "This field is handled through your System Administrator. If you want to change it, you need to do so through your System Administrator.",
@@ -33862,6 +33926,10 @@
   "user.settings.display.theme.title": {
     "defaultMessage": "Theme",
     "description": "Setting row title in Settings > Display for the color theme."
+  },
+  "user.settings.display.timestampFormatTitle": {
+    "defaultMessage": "Timestamp Format",
+    "description": "Label above the timestamp format options in Settings > Display > Date and Time."
   },
   "user.settings.display.timezone": {
     "defaultMessage": "Timezone",

@@ -11,6 +11,21 @@ export const TODAY_YESTERDAY: RangeDescriptor = {
     display: ['day'],
 };
 
+// Unlike STANDARD_UNITS.now (which renders Intl's bare "now"), this keeps the
+// wording explicit. updateIntervalInSeconds must be set here because ReactNode
+// displays don't inherit defaultRefreshIntervals, and without it the label
+// would never advance to "1 minute ago".
+export const JUST_NOW: RangeDescriptor = {
+    within: ['second', -45],
+    display: (
+        <FormattedMessage
+            id='timestamp.justNow'
+            defaultMessage='just now'
+        />
+    ),
+    updateIntervalInSeconds: 15,
+};
+
 export const TODAY_TITLE_CASE: RangeDescriptor = {
     equals: ['day', 0],
     display: (
