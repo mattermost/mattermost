@@ -688,6 +688,39 @@ describe('components/dot_menu/DotMenu', () => {
             await waitFor(() => expect(listener).toHaveBeenCalledWith('channel_id_1', 'root_id_1', '> line one\n>\n> line two\n\n'));
         });
 
+        test.each([
+            ['show', ['create_post']],
+            ['hide', []],
+        ])('should %s quote reply based on the create_post permission', async (expected, permissions) => {
+            const state: DeepPartial<GlobalState> = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    roles: {
+                        roles: {
+                            system_role: TestHelper.getRoleMock({id: 'system_role', name: 'system_role', permissions}),
+                        },
+                    },
+                },
+            };
+            renderWithContext(
+                <DotMenuRoot
+                    {...baseProps}
+                    post={post1}
+                    location={Locations.CENTER}
+                />,
+                state,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+
+            if (expected === 'show') {
+                expect(screen.getByTestId(`quote_reply_${post1.id}`)).toBeInTheDocument();
+            } else {
+                expect(screen.queryByTestId(`quote_reply_${post1.id}`)).not.toBeInTheDocument();
+            }
+        });
+
         test('should not show quote reply in a read-only channel', async () => {
             renderWithContext(
                 <DotMenu

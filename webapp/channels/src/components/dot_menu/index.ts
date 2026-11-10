@@ -10,10 +10,12 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
+import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -110,6 +112,9 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
+        // Channel moderation can remove posting without making the channel read-only
+        const canPost = Boolean(channel && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST));
+
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -138,7 +143,7 @@ function makeMapStateToProps() {
             ),
             canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
             canCopyText: !systemMessage && !isBoRPost,
-            canQuoteReply: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && (
+            canQuoteReply: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && canPost && (
                 !ownProps.location ||
                 ownProps.location === Locations.CENTER ||
                 ownProps.location === Locations.RHS_ROOT ||
