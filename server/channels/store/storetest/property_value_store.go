@@ -6,6 +6,7 @@ package storetest
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 	"testing"
@@ -2455,7 +2456,7 @@ func testCountValuesHoldingOptions(t *testing.T, rctx request.CTX, ss store.Stor
 		n, examples := count(t, []string{optA}, nil, 10)
 		require.EqualValues(t, 2, n)
 		require.ElementsMatch(t, []string{targets[0], targets[4]}, examples)
-		require.True(t, sort.StringsAreSorted(examples))
+		require.True(t, slices.IsSorted(examples))
 
 		n, _ = count(t, []string{optA, optB}, nil, 0)
 		require.EqualValues(t, 4, n)
@@ -2479,7 +2480,7 @@ func testCountValuesHoldingOptions(t *testing.T, rctx request.CTX, ss store.Stor
 		for _, id := range ids {
 			put(t, g, f, "test_type", id, `"`+optA+`"`)
 		}
-		sort.Strings(ids)
+		slices.Sort(ids)
 
 		n, examples, err := ss.PropertyValue().CountValuesHoldingOptions(g, f, []string{optA}, nil, 1)
 		require.NoError(t, err)
