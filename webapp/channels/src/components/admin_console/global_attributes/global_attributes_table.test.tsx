@@ -1092,6 +1092,15 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
             expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
         });
+
+        it('hides Duplicate for a field type the page cannot recreate', async () => {
+            mockListing([makeField({type: 'date'})]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            expect(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
+        });
     });
 
     describe('Duplicate action', () => {
@@ -1131,6 +1140,58 @@ describe('GlobalAttributesTable', () => {
             expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('saml');
             expect(createPropertyField.mock.calls[0][2].attrs).not.toHaveProperty('openid');
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-copy');
+            });
+        });
+
+        it('ignores a second Duplicate while the first is still running', async () => {
+            mockListing([makeField({name: 'department', attrs: {display_name: 'Department'}})]);
+            let finishCreate: (field: PropertyField) => void = () => {};
+            createPropertyField.mockReturnValue(new Promise((resolve) => {
+                finishCreate = resolve;
+            }));
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            for (let i = 0; i < 2; i++) {
+                // eslint-disable-next-line no-await-in-loop
+                await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+                // eslint-disable-next-line no-await-in-loop
+                await userEvent.click(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))!);
+            }
+
+            await waitFor(() => {
+                expect(createPropertyField).toHaveBeenCalledTimes(1);
+            });
+            finishCreate(makeField({id: 'field-copy'}));
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledTimes(1);
+            });
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+        });
+
+        it('creates nothing when the modal is cancelled', async () => {
+            mockListing([makeRow(makeField({name: 'department', attrs: {display_name: 'Department'}}), {applies_to: ['user']})]);
+
+            renderWithContext(
+                <>
+                    <GlobalAttributesTable/>
+                    <ModalController/>
+                </>,
+                getBaseState(),
+            );
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            await userEvent.click(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))!);
+            await screen.findByRole('dialog');
+            await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+            await waitFor(() => {
+                expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+            });
+            expect(createPropertyField).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
         it('opens a modal with Applies-to resources checked by default when the template has linked fields', async () => {
@@ -1184,6 +1245,9 @@ describe('GlobalAttributesTable', () => {
                 linked_field_id: 'field-copy',
                 attrs: expect.objectContaining({visibility: 'always', managed: 'admin'}),
             }));
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-copy');
+            });
         });
 
         it('copies select options and omits sync links', async () => {
@@ -1238,6 +1302,41 @@ describe('GlobalAttributesTable', () => {
             await waitFor(() => {
                 expect(screen.getByRole('alert')).toHaveTextContent('An error occurred while duplicating this attribute');
             });
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        it('says the copy is partial and relists when cleanup could not finish', async () => {
+            const row = makeRow(makeField({name: 'department', attrs: {display_name: 'Department'}}), {applies_to: ['user']});
+            searchGlobalAttributes.mockResolvedValue(makeListing([row]));
+            getPropertyFields.mockImplementation((_group, objectType) => Promise.resolve(objectType === 'user' ? [makeField({
+                id: 'user-1',
+                object_type: 'user',
+                linked_field_id: 'field-1',
+            })] : []));
+            createPropertyField.mockImplementation((_group, objectType) => (
+                objectType === 'template' ? Promise.resolve(makeField({id: 'field-copy'})) : Promise.reject(new Error('boom'))
+            ));
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockRejectedValue(new Error('delete failed'));
+
+            renderWithContext(
+                <>
+                    <GlobalAttributesTable/>
+                    <ModalController/>
+                </>,
+                getBaseState(),
+            );
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            await userEvent.click(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))!);
+            await screen.findByRole('dialog');
+            const callsBefore = searchGlobalAttributes.mock.calls.length;
+            await userEvent.click(screen.getByRole('button', {name: 'Duplicate'}));
+
+            await waitFor(() => {
+                expect(screen.getByRole('alert')).toHaveTextContent('The attribute was only partly duplicated');
+            });
+            expect(searchGlobalAttributes.mock.calls.length).toBeGreaterThan(callsBefore);
+            deletePropertyField.mockReset();
         });
     });
 

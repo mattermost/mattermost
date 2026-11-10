@@ -299,10 +299,10 @@ type ActionsCellProps = ClassificationAwareCellProps & {
     disabled: boolean;
     onActionError: (message: string | null) => void;
     onChanged: () => void;
-    onDeleteModalExited: () => void;
+    onModalExited: () => void;
 };
 
-function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActionError, onChanged, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActionError, onChanged, onModalExited}: ActionsCellProps) {
     const {field, owners, applies_to: appliesTo} = row;
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -338,8 +338,13 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActi
     const isDeleteDisabled = disabled || isPluginManaged || isOwnerManaged;
 
     // Duplicate is template-only: it recreates a Managed-here definition (and
-    // optionally linked resources) without plugin ownership or sync links.
-    const canDuplicate = !disabled && !isPluginOwned && field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+    // optionally linked resources) without plugin ownership or sync links. A
+    // field type this page has no descriptor for would be recreated as Text.
+    const canDuplicate = !disabled &&
+        !isPluginOwned &&
+        field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE &&
+        getAttributeTypeDescriptor(field).fieldType === field.type;
+    const duplicating = useRef(false);
 
     let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
     if (isOwned) {
@@ -365,35 +370,49 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActi
         onChanged();
     }, [dispatch, field.id, field.object_type, formatMessage, onActionError, onChanged]);
 
+    // Two overlapping runs would pick the same free name, and the second would
+    // fail on the server even though the first succeeded.
     const runDuplicate = useCallback(async (resourceTypes: ResourceObjectType[]) => {
-        onActionError(null);
-
-        const result = await duplicateAttribute(dispatch, field, resourceTypes, allowedResourceTypes);
-        if (!result.ok) {
-            onActionError(formatMessage(actionsLabels.duplicateErrorGeneric));
+        if (duplicating.current) {
             return;
         }
+        duplicating.current = true;
+        onActionError(null);
 
-        onChanged();
+        try {
+            const result = await duplicateAttribute(dispatch, field, resourceTypes, allowedResourceTypes, formatMessage);
+            if (!result.ok) {
+                onActionError(formatMessage(result.partial ? actionsLabels.duplicateErrorPartial : actionsLabels.duplicateErrorGeneric));
+
+                // Part of the copy is still on the server; list it rather than leave it for a reload.
+                if (result.partial) {
+                    onChanged();
+                }
+                return;
+            }
+
+            // The copy is usually renamed next, and active filters could hide its new row.
+            getHistory().push(attributeDetailsRoute(result.field.id));
+        } finally {
+            duplicating.current = false;
+        }
     }, [allowedResourceTypes, dispatch, field, formatMessage, onActionError, onChanged]);
 
     const handleDuplicate = useCallback(() => {
-        if (!canDuplicate) {
-            return;
-        }
-
         // Only offer resources this server can actually create linked fields for.
         const resources = appliesTo.filter((type): type is ResourceObjectType => (
             allowedResourceTypes.includes(type)
         ));
 
         if (resources.length === 0) {
+            // No modal will return focus, so a failure may move it to the banner at once.
+            onModalExited();
             runDuplicate([]);
             return;
         }
 
-        promptDuplicate(getDisplayName(field), resources, runDuplicate);
-    }, [allowedResourceTypes, appliesTo, canDuplicate, field, promptDuplicate, runDuplicate]);
+        promptDuplicate(getDisplayName(field), resources, runDuplicate, onModalExited);
+    }, [allowedResourceTypes, appliesTo, field, onModalExited, promptDuplicate, runDuplicate]);
 
     // Classification's definition lives on Classification Markings; this row only
     // offers the open-in-new link there. Row click still opens the attribute page
@@ -461,7 +480,7 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActi
                     getDisplayName(field),
                     handleConfirmed,
                     orphanInfo,
-                    onDeleteModalExited,
+                    onModalExited,
                 )}
                 labels={(
                     <>
@@ -493,8 +512,8 @@ type GlobalAttributesTableProps = {
 };
 
 export default function GlobalAttributesTable({searchQuery = '', source, resourceType, onClearFilters, disabled = false}: GlobalAttributesTableProps) {
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [deleteModalExited, setDeleteModalExited] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [actionModalExited, setActionModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
 
     const classificationAttributePageReachable = useClassificationAttributePageReachable();
@@ -529,9 +548,9 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
     const pluginInventoryLoadedRef = useRef(pluginInventoryLoaded);
     pluginInventoryLoadedRef.current = pluginInventoryLoaded;
 
-    const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
+    const handleActionModalExited = useCallback(() => setActionModalExited(true), []);
 
-    // The banner sits above the table, so a delete triggered from a row further
+    // The banner sits above the table, so a delete or duplicate triggered from a row further
     // down can land off-screen. Two things make the timing here load-bearing:
     //
     // GenericModal passes restoreFocus, so on close react-bootstrap returns focus
@@ -543,13 +562,13 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
     // delete request may finish either side of the modal's fade. So the error and
     // the exit arrive in either order; act only once both have landed.
     useEffect(() => {
-        if (!deleteError || !deleteModalExited) {
+        if (!actionError || !actionModalExited) {
             return;
         }
 
         // Disarmed so the next delete waits for its own modal to close rather
         // than acting on this attempt's stale exit.
-        setDeleteModalExited(false);
+        setActionModalExited(false);
 
         // Focus without its own scroll, then scroll deliberately: the banner ends
         // up owning focus for keyboard and screen reader users -- who would
@@ -557,7 +576,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
         // and the browser never scrolls anywhere we did not ask it to.
         bannerRef.current?.focus?.({preventScroll: true});
         bannerRef.current?.closest('.admin-console__wrapper')?.scrollTo?.({top: 0});
-    }, [deleteError, deleteModalExited]);
+    }, [actionError, actionModalExited]);
 
     const handleRowClick = useCallback((fieldId: string) => {
         const row = rows.find((candidate) => candidate.id === fieldId);
@@ -638,15 +657,15 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                         isMobileView={isMobileView}
                         pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                         disabled={disabled}
-                        onActionError={setDeleteError}
+                        onActionError={setActionError}
                         onChanged={refetch}
-                        onDeleteModalExited={handleDeleteModalExited}
+                        onModalExited={handleActionModalExited}
                     />
                 </div>
             ),
             enableHiding: false,
         }),
-    ], [isMobileView, handleDeleteModalExited, refetch, disabled]);
+    ], [isMobileView, handleActionModalExited, refetch, disabled]);
 
     const table = useReactTable<ListingTableRow>({
         data: rows,
@@ -722,16 +741,16 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                 ref={bannerRef}
                 role='alert'
 
-                // Focused programmatically when a delete fails, so it takes focus
+                // Focused programmatically when a row action fails, so it takes focus
                 // without becoming a stop in the normal tab order.
                 tabIndex={-1}
             >
-                {deleteError && (
+                {actionError && (
                     <AlertBanner
                         id='global-attributes-delete-error'
                         mode='danger'
-                        message={deleteError}
-                        onDismiss={() => setDeleteError(null)}
+                        message={actionError}
+                        onDismiss={() => setActionError(null)}
                     />
                 )}
             </div>
@@ -815,6 +834,10 @@ export const actionsLabels = defineMessages({
     duplicateErrorGeneric: {
         id: 'admin.global_attributes.confirm.duplicate.error.generic',
         defaultMessage: 'An error occurred while duplicating this attribute. Please try again.',
+    },
+    duplicateErrorPartial: {
+        id: 'admin.global_attributes.confirm.duplicate.error.partial',
+        defaultMessage: 'The attribute was only partly duplicated. Review or delete the copy before trying again.',
     },
     classificationLink: {
         id: 'admin.global_attributes.table.actions.classification_link',

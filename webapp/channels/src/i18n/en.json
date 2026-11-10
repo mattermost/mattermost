@@ -6747,6 +6747,10 @@
     "defaultMessage": "An error occurred while duplicating this attribute. Please try again.",
     "description": "Error banner on the attributes listing when duplicating an attribute fails for a reason other than a specific named conflict."
   },
+  "admin.global_attributes.confirm.duplicate.error.partial": {
+    "defaultMessage": "The attribute was only partly duplicated. Review or delete the copy before trying again.",
+    "description": "Error banner on the attributes listing when duplicating an attribute failed and the partial copy could not be cleaned up, so some of the copy still exists."
+  },
   "admin.global_attributes.confirm.duplicate.group_label": {
     "defaultMessage": "Resources to copy",
     "description": "Accessible name of the checklist of resource types (Users, Channels, Posts) in the duplicate attribute confirmation dialog."
@@ -6766,6 +6770,14 @@
   "admin.global_attributes.confirm.remove_applies_to.title": {
     "defaultMessage": "Remove {resources}?",
     "description": "Title of the confirmation dialog shown from the attribute details page in System Console > System Attributes > Attribute Management before removing an attribute from resources. {resources} is a list of resource names."
+  },
+  "admin.global_attributes.duplicate.display_name": {
+    "defaultMessage": "Copy of {name}",
+    "description": "Display name given to a duplicated global attribute in System Console > System Attributes > Attribute Management. {name} is the original attribute's display name. The admin can rename it afterwards."
+  },
+  "admin.global_attributes.duplicate.display_name_numbered": {
+    "defaultMessage": "Copy of {name} ({number})",
+    "description": "Display name given to the second or later copy of the same global attribute. {name} is the original attribute's display name; {number} is the copy number (2, 3, ...)."
   },
   "admin.global_attributes.filter.resource_type": {
     "defaultMessage": "Resource type",

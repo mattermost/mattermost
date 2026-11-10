@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createIntl} from 'react-intl';
+
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {
+    MissingLinkedFieldError,
     buildDuplicateAttributeName,
     buildDuplicateDisplayName,
     duplicateAttribute,
@@ -19,6 +22,8 @@ jest.mock('components/property_fields/graph/page_all_access_control_field_option
 const {pageAllAccessControlFieldOptions} = jest.requireMock('components/property_fields/graph/page_all_access_control_field_options') as {
     pageAllAccessControlFieldOptions: jest.Mock;
 };
+
+const {formatMessage} = createIntl({locale: 'en', defaultLocale: 'en', messages: {}});
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -42,28 +47,54 @@ function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
 describe('duplicate_attribute helpers', () => {
     describe('buildDuplicateDisplayName', () => {
         it('prefixes Copy of', () => {
-            expect(buildDuplicateDisplayName('Department')).toBe('Copy of Department');
+            expect(buildDuplicateDisplayName('Department', 1, formatMessage)).toBe('Copy of Department');
         });
 
-        it('truncates to the display-name max length', () => {
+        it('numbers later copies', () => {
+            expect(buildDuplicateDisplayName('Department', 3, formatMessage)).toBe('Copy of Department (3)');
+        });
+
+        it('truncates the source label to the display-name max length', () => {
             const long = 'A'.repeat(40);
-            expect(buildDuplicateDisplayName(long)).toHaveLength(40);
-            expect(buildDuplicateDisplayName(long)).toBe(`Copy of ${'A'.repeat(32)}`);
+            expect(buildDuplicateDisplayName(long, 1, formatMessage)).toBe(`Copy of ${'A'.repeat(32)}`);
+            expect(buildDuplicateDisplayName(long, 2, formatMessage)).toBe(`Copy of ${'A'.repeat(28)} (2)`);
+        });
+
+        it('does not split a character outside the BMP when truncating', () => {
+            const label = `${'A'.repeat(31)}😀😀`;
+            expect(buildDuplicateDisplayName(label, 1, formatMessage)).toBe(`Copy of ${'A'.repeat(31)}😀`);
+        });
+
+        it('uses the translated wrapper', () => {
+            const intl = createIntl({
+                locale: 'fr',
+                defaultLocale: 'en',
+                messages: {'admin.global_attributes.duplicate.display_name': 'Copie de {name}'},
+            });
+            expect(buildDuplicateDisplayName('Service', 1, intl.formatMessage)).toBe('Copie de Service');
         });
     });
 
     describe('buildDuplicateAttributeName', () => {
         it('appends _copy when free', () => {
-            expect(buildDuplicateAttributeName('department', new Set())).toBe('department_copy');
+            expect(buildDuplicateAttributeName('department', new Set())).toEqual({name: 'department_copy', copyNumber: 1});
         });
 
         it('increments when _copy is taken', () => {
-            expect(buildDuplicateAttributeName('department', new Set(['department_copy']))).toBe('department_copy2');
-            expect(buildDuplicateAttributeName('department', new Set(['department_copy', 'department_copy2']))).toBe('department_copy3');
+            expect(buildDuplicateAttributeName('department', new Set(['department_copy']))).toEqual({name: 'department_copy2', copyNumber: 2});
+            expect(buildDuplicateAttributeName('department', new Set(['department_copy', 'department_copy2']))).toEqual({name: 'department_copy3', copyNumber: 3});
         });
 
         it('compares existing names case-insensitively', () => {
-            expect(buildDuplicateAttributeName('department', new Set(['DEPARTMENT_COPY']))).toBe('department_copy2');
+            expect(buildDuplicateAttributeName('department', new Set(['DEPARTMENT_COPY'])).name).toBe('department_copy2');
+        });
+
+        it('keeps a valid name as written', () => {
+            expect(buildDuplicateAttributeName('costCenter', new Set()).name).toBe('costCenter_copy');
+        });
+
+        it('slugifies a legacy name the server would now reject', () => {
+            expect(buildDuplicateAttributeName('Cost Center', new Set()).name).toBe('cost_center_copy');
         });
     });
 
@@ -98,9 +129,20 @@ describe('duplicate_attribute helpers', () => {
 
     describe('duplicateAttribute', () => {
         const dispatch = jest.fn();
+        const linkedField = (objectType: string, id: string, overrides: Partial<PropertyField> = {}) => makeField({
+            id,
+            object_type: objectType,
+            linked_field_id: 'field-1',
+            ...overrides,
+        });
+
+        function mockListings(byType: Record<string, PropertyField[]>) {
+            (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => Promise.resolve(byType[objectType] ?? []));
+        }
 
         beforeEach(() => {
             jest.restoreAllMocks();
+            pageAllAccessControlFieldOptions.mockReset();
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
             jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(makeField({
                 id: 'copy-1',
@@ -113,7 +155,7 @@ describe('duplicate_attribute helpers', () => {
         it('creates a template without sync links or linked fields when none are requested', async () => {
             const result = await duplicateAttribute(dispatch, makeField({
                 attrs: {display_name: 'Department', ldap: 'dept', saml: 'dept'},
-            }), [], ['user', 'channel', 'post']);
+            }), [], ['user', 'channel', 'post'], formatMessage);
 
             expect(result.ok).toBe(true);
             expect(Client4.createPropertyField).toHaveBeenCalledTimes(1);
@@ -123,31 +165,95 @@ describe('duplicate_attribute helpers', () => {
             }));
         });
 
-        describe('failures', () => {
-            const templateCopy = () => makeField({id: 'copy-1', name: 'department_copy'});
-            const linkedField = (objectType: string, id: string, overrides: Partial<PropertyField> = {}) => makeField({
-                id,
-                object_type: objectType,
-                linked_field_id: 'field-1',
-                ...overrides,
+        it('skips a name already used by a standalone resource field and numbers the display name to match', async () => {
+            mockListings({
+                template: [makeField()],
+                user: [makeField({id: 'standalone', object_type: 'user', name: 'Department_Copy'})],
             });
 
-            function mockLinkedSources(...types: string[]) {
-                (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => {
-                    if (types.includes(objectType)) {
-                        return Promise.resolve([linkedField(objectType, `source-${objectType}`)]);
-                    }
-                    return Promise.resolve([]);
-                });
-            }
+            await duplicateAttribute(dispatch, makeField(), [], ['user'], formatMessage);
+
+            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                name: 'department_copy2',
+                attrs: expect.objectContaining({display_name: 'Copy of Department (2)'}),
+            }));
+        });
+
+        it('ignores deleted fields when picking a name', async () => {
+            mockListings({template: [makeField({id: 'gone', name: 'department_copy', delete_at: 5})]});
+
+            await duplicateAttribute(dispatch, makeField(), [], [], formatMessage);
+
+            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                name: 'department_copy',
+            }));
+        });
+
+        it('copies rank values', async () => {
+            await duplicateAttribute(dispatch, makeField({
+                type: 'rank',
+                attrs: {display_name: 'Clearance', options: [{id: 'a', name: 'Low', rank: 1}, {id: 'b', name: 'High', rank: 2}]},
+            }), [], [], formatMessage);
+
+            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'rank',
+                attrs: expect.objectContaining({
+                    options: [{id: '', name: 'Low', rank: 1}, {id: '', name: 'High', rank: 2}],
+                }),
+            }));
+        });
+
+        it('copies a hierarchy with parents referenced by name', async () => {
+            pageAllAccessControlFieldOptions.mockResolvedValue([
+                {id: 'r', name: 'Org', parents: []},
+                {id: 'c', name: 'Engineering', parents: ['Org']},
+            ]);
+
+            await duplicateAttribute(dispatch, makeField({type: 'graph', attrs: {display_name: 'Org chart'}}), [], [], formatMessage);
+
+            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'graph',
+                attrs: expect.objectContaining({
+                    options: [
+                        {id: '', name: 'Org', parents: []},
+                        {id: '', name: 'Engineering', parents: ['Org']},
+                    ],
+                }),
+            }));
+        });
+
+        it('copies the channel configuration onto the new linked channel field', async () => {
+            mockListings({
+                channel: [linkedField('channel', 'source-channel', {
+                    attrs: {display_name: 'Department', required: true, change_policy: 'never', editable: false},
+                })],
+            });
+            (Client4.createPropertyField as jest.Mock).mockImplementation((_group, objectType) => Promise.resolve(makeField({
+                id: `copy-${objectType}`,
+                object_type: objectType,
+            })));
+
+            const result = await duplicateAttribute(dispatch, makeField(), ['channel'], ['channel'], formatMessage);
+
+            expect(result.ok).toBe(true);
+            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({
+                linked_field_id: 'copy-template',
+                permission_values: 'admin',
+                attrs: expect.objectContaining({required: true, change_policy: 'never', editable: false}),
+            }));
+        });
+
+        describe('failures', () => {
+            const templateCopy = () => makeField({id: 'copy-1', name: 'department_copy'});
 
             it('returns the error without cleanup when the template cannot be created', async () => {
                 const error = new Error('create failed');
+                mockListings({user: [linkedField('user', 'source-user')]});
                 (Client4.createPropertyField as jest.Mock).mockRejectedValue(error);
 
-                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user']);
+                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user'], formatMessage);
 
-                expect(result).toEqual({ok: false, error});
+                expect(result).toEqual({ok: false, error, partial: false});
                 expect(Client4.deletePropertyField).not.toHaveBeenCalled();
             });
 
@@ -155,58 +261,35 @@ describe('duplicate_attribute helpers', () => {
                 const error = new Error('options failed');
                 pageAllAccessControlFieldOptions.mockRejectedValue(error);
 
-                const result = await duplicateAttribute(dispatch, makeField({type: 'graph'}), [], []);
+                const result = await duplicateAttribute(dispatch, makeField({type: 'graph'}), [], [], formatMessage);
 
-                expect(result).toEqual({ok: false, error});
+                expect(result).toEqual({ok: false, error, partial: false});
                 expect(Client4.createPropertyField).not.toHaveBeenCalled();
             });
 
-            it('returns the error when existing names cannot be loaded, without creating anything', async () => {
-                const error = new Error('names failed');
-                (Client4.getPropertyFields as jest.Mock).mockRejectedValue(error);
+            it('returns the error when existing fields cannot be listed, without creating anything', async () => {
+                const error = new Error('list failed');
+                (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => (
+                    objectType === 'user' ? Promise.reject(error) : Promise.resolve([])
+                ));
 
-                const result = await duplicateAttribute(dispatch, makeField(), [], []);
+                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user'], formatMessage);
 
-                expect(result).toEqual({ok: false, error});
+                expect(result).toEqual({ok: false, error, partial: false});
                 expect(Client4.createPropertyField).not.toHaveBeenCalled();
             });
 
-            it('deletes the new template when the linked source fields cannot be fetched', async () => {
-                const error = new Error('fetch failed');
-                (Client4.createPropertyField as jest.Mock).mockResolvedValue(templateCopy());
-                (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => {
-                    if (objectType === 'template') {
-                        return Promise.resolve([]);
-                    }
-                    return Promise.reject(error);
-                });
+            it('fails without creating anything when a selected resource no longer has a source linked field', async () => {
+                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user'], formatMessage);
 
-                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user']);
-
-                expect(result).toEqual({ok: false, error});
-                expect(Client4.deletePropertyField).toHaveBeenCalledTimes(1);
-                expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'copy-1');
-            });
-
-            it('still reports the original error when cleanup of the template also fails', async () => {
-                const error = new Error('fetch failed');
-                (Client4.createPropertyField as jest.Mock).mockResolvedValue(templateCopy());
-                (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => {
-                    if (objectType === 'template') {
-                        return Promise.resolve([]);
-                    }
-                    return Promise.reject(error);
-                });
-                (Client4.deletePropertyField as jest.Mock).mockRejectedValue(new Error('delete failed'));
-
-                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user']);
-
-                expect(result).toEqual({ok: false, error});
+                expect(result.ok).toBe(false);
+                expect(!result.ok && result.error).toBeInstanceOf(MissingLinkedFieldError);
+                expect(Client4.createPropertyField).not.toHaveBeenCalled();
             });
 
             it('rolls back earlier linked fields and the template when a later linked field fails', async () => {
                 const error = new Error('linked create failed');
-                mockLinkedSources('user', 'channel');
+                mockListings({user: [linkedField('user', 'source-user')], channel: [linkedField('channel', 'source-channel')]});
                 (Client4.createPropertyField as jest.Mock).mockImplementation((_group, objectType) => {
                     if (objectType === 'template') {
                         return Promise.resolve(templateCopy());
@@ -217,17 +300,21 @@ describe('duplicate_attribute helpers', () => {
                     return Promise.reject(error);
                 });
 
-                const result = await duplicateAttribute(dispatch, makeField(), ['user', 'channel'], ['user', 'channel']);
+                const result = await duplicateAttribute(dispatch, makeField(), ['user', 'channel'], ['user', 'channel'], formatMessage);
 
-                expect(result).toEqual({ok: false, error});
+                expect(result).toEqual({ok: false, error, partial: false});
                 expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'copy-user');
                 expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'copy-1');
                 expect(Client4.deletePropertyField).toHaveBeenCalledTimes(2);
             });
 
-            it('keeps rolling back when one cleanup delete fails', async () => {
+            it('reports a partial copy and leaves the template when a linked cleanup delete fails', async () => {
                 const error = new Error('linked create failed');
-                mockLinkedSources('user', 'channel', 'post');
+                mockListings({
+                    user: [linkedField('user', 'source-user')],
+                    channel: [linkedField('channel', 'source-channel')],
+                    post: [linkedField('post', 'source-post')],
+                });
                 (Client4.createPropertyField as jest.Mock).mockImplementation((_group, objectType) => {
                     if (objectType === 'template') {
                         return Promise.resolve(templateCopy());
@@ -237,47 +324,30 @@ describe('duplicate_attribute helpers', () => {
                     }
                     return Promise.resolve(linkedField(objectType, `copy-${objectType}`, {linked_field_id: 'copy-1'}));
                 });
-                (Client4.deletePropertyField as jest.Mock).mockImplementation((_group, objectType) => {
-                    if (objectType === 'user') {
-                        return Promise.reject(new Error('delete failed'));
-                    }
-                    return Promise.resolve({status: 'OK'});
-                });
+                (Client4.deletePropertyField as jest.Mock).mockImplementation((_group, objectType) => (
+                    objectType === 'user' ? Promise.reject(new Error('delete failed')) : Promise.resolve({status: 'OK'})
+                ));
 
-                const result = await duplicateAttribute(dispatch, makeField(), ['user', 'channel', 'post'], ['user', 'channel', 'post']);
+                const result = await duplicateAttribute(dispatch, makeField(), ['user', 'channel', 'post'], ['user', 'channel', 'post'], formatMessage);
 
-                expect(result).toEqual({ok: false, error});
+                expect(result).toEqual({ok: false, error, partial: true});
                 expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'copy-user');
                 expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'channel', 'copy-channel');
-                expect(Client4.deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'copy-1');
+                expect(Client4.deletePropertyField).not.toHaveBeenCalledWith('access_control', 'template', 'copy-1');
             });
-        });
 
-        it('copies the channel configuration onto the new linked channel field', async () => {
-            (Client4.getPropertyFields as jest.Mock).mockImplementation((_group, objectType) => {
-                if (objectType === 'channel') {
-                    return Promise.resolve([makeField({
-                        id: 'source-channel',
-                        object_type: 'channel',
-                        linked_field_id: 'field-1',
-                        attrs: {display_name: 'Department', required: true, change_policy: 'never', editable: false},
-                    })]);
-                }
-                return Promise.resolve([]);
+            it('reports a partial copy when only the template cleanup fails', async () => {
+                const error = new Error('linked create failed');
+                mockListings({user: [linkedField('user', 'source-user')]});
+                (Client4.createPropertyField as jest.Mock).mockImplementation((_group, objectType) => (
+                    objectType === 'template' ? Promise.resolve(templateCopy()) : Promise.reject(error)
+                ));
+                (Client4.deletePropertyField as jest.Mock).mockRejectedValue(new Error('delete failed'));
+
+                const result = await duplicateAttribute(dispatch, makeField(), ['user'], ['user'], formatMessage);
+
+                expect(result).toEqual({ok: false, error, partial: true});
             });
-            (Client4.createPropertyField as jest.Mock).mockImplementation((_group, objectType) => Promise.resolve(makeField({
-                id: `copy-${objectType}`,
-                object_type: objectType,
-            })));
-
-            const result = await duplicateAttribute(dispatch, makeField(), ['channel'], ['channel']);
-
-            expect(result.ok).toBe(true);
-            expect(Client4.createPropertyField).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({
-                linked_field_id: 'copy-template',
-                permission_values: 'admin',
-                attrs: expect.objectContaining({required: true, change_policy: 'never', editable: false}),
-            }));
         });
     });
 });
