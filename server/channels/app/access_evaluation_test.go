@@ -239,13 +239,20 @@ func TestAccessEvaluation(t *testing.T) {
 			assert.True(t, decision.IsError())
 		})
 
-		t.Run("a subject for another user is not used", func(t *testing.T) {
+		t.Run("a subject for another user or with an empty ID is not used", func(t *testing.T) {
 			expectNoPDP(t)
 			rctx := th.Context.
 				WithSession(&model.Session{Id: model.NewId(), UserId: th.BasicUser.Id, Roles: th.BasicUser.Roles}).
 				WithSubject(&model.Subject{ID: th.BasicUser2.Id, Type: "user"})
 
 			_, appErr := th.App.AccessEvaluation(rctx, systemRequest(testDelegablePermission))
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.access_control.missing_subject.app_error", appErr.Id)
+
+			emptySubject := th.Context.
+				WithSession(&model.Session{Roles: model.SystemAdminRoleId}).
+				WithSubject(&model.Subject{})
+			_, appErr = th.App.AccessEvaluation(emptySubject, systemRequest(testDelegablePermission))
 			require.NotNil(t, appErr)
 			assert.Equal(t, "app.access_control.missing_subject.app_error", appErr.Id)
 		})
@@ -281,27 +288,47 @@ func TestAccessEvaluation(t *testing.T) {
 			assert.False(t, decision.Decision)
 		})
 
-		t.Run("channel membership is reported from whichever engine decides", func(t *testing.T) {
+		t.Run("a registered channel action without a channel ID is rejected before RBAC", func(t *testing.T) {
+			expectNoPDP(t)
+			decision, appErr := th.App.AccessEvaluation(admin, model.AccessRequest{Action: testChannelPermission.Id})
+			require.NotNil(t, appErr)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			assert.False(t, decision.Decision)
+		})
+
+		t.Run("channel membership comes from RBAC only", func(t *testing.T) {
+			acs.ExpectedCalls = nil
+			acs.Calls = nil
+			unregistered := model.AccessRequest{
+				Action:   model.PermissionReadChannel.Id,
+				Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id},
+			}
+			decision, appErr := th.App.AccessEvaluation(user, unregistered)
+			require.Nil(t, appErr)
+			assert.True(t, decision.Decision)
+			isMember, ok := decision.IsMember()
+			assert.True(t, ok)
+			assert.True(t, isMember)
+			acs.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+
 			req := model.AccessRequest{
 				Action:   testChannelPermission.Id,
 				Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id},
 			}
 
 			expectPDP(t, model.NewNoPolicyAccessDecision(), nil)
-			decision, appErr := th.App.AccessEvaluation(user, req)
+			decision, appErr = th.App.AccessEvaluation(user, req)
 			require.Nil(t, appErr)
 			assert.True(t, decision.Decision)
-			isMember, ok := decision.IsMember()
-			assert.True(t, ok)
-			assert.True(t, isMember)
+			_, ok = decision.IsMember()
+			assert.False(t, ok)
 
 			expectPDP(t, model.AccessDecision{Decision: false}, nil)
 			decision, appErr = th.App.AccessEvaluation(user, req)
 			require.Nil(t, appErr)
 			assert.False(t, decision.Decision)
-			isMember, ok = decision.IsMember()
-			assert.True(t, ok)
-			assert.True(t, isMember)
+			_, ok = decision.IsMember()
+			assert.False(t, ok)
 
 			expectPDP(t, model.AccessDecision{Decision: true}, nil)
 			nonMember := th.CreateUser(t)
@@ -311,9 +338,8 @@ func TestAccessEvaluation(t *testing.T) {
 			})
 			require.Nil(t, appErr)
 			assert.True(t, decision.Decision, "a policy grants the action to a non-member")
-			isMember, ok = decision.IsMember()
-			assert.True(t, ok)
-			assert.False(t, isMember)
+			_, ok = decision.IsMember()
+			assert.False(t, ok)
 		})
 	})
 
@@ -346,7 +372,7 @@ func TestAccessEvaluation(t *testing.T) {
 			assert.True(t, decision.Decision, "a policy on another action does not govern this one")
 		})
 
-		t.Run("a stored-policy lookup error denies with the error", func(t *testing.T) {
+		t.Run("a stored-policy lookup error denies role holders with the error, while non-holders deny without querying", func(t *testing.T) {
 			original := th.App.Srv().Store()
 			th.App.Srv().SetStore(&policySearchFailureStore{Store: original})
 			t.Cleanup(func() { th.App.Srv().SetStore(original) })
@@ -355,6 +381,10 @@ func TestAccessEvaluation(t *testing.T) {
 			require.NotNil(t, appErr)
 			assert.Equal(t, "app.access_control.has_stored_policy.app_error", appErr.Id)
 			assert.True(t, decision.IsError())
+
+			decision, appErr = th.App.AccessEvaluation(user, systemRequest(testDelegablePermission))
+			require.Nil(t, appErr)
+			assert.False(t, decision.Decision)
 		})
 
 		t.Run("an unlicensed server with ABAC enabled uses the stored-policy check", func(t *testing.T) {

@@ -4,7 +4,6 @@
 package app
 
 import (
-	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -76,9 +75,17 @@ func (a *App) SessionAccessEvaluation(rctx request.CTX, permissionID string) boo
 func (a *App) AccessEvaluation(rctx request.CTX, req model.AccessRequest) (model.AccessDecision, *model.AppError) {
 	session := rctx.Session()
 
+	entry, registered := model.ActionForPermission(req.Action)
+	if registered {
+		if req.Resource.Type == "" {
+			req.Resource.Type = entry.ResourceType
+		} else if req.Resource.Type != entry.ResourceType {
+			appErr := model.NewAppError("AccessEvaluation", "app.access_control.access_evaluation.resource_type_mismatch.app_error", nil, "action "+entry.Name+" is evaluated on "+entry.ResourceType+", not "+req.Resource.Type, http.StatusInternalServerError)
+			return model.NewErrorAccessDecision(appErr), appErr
+		}
+	}
+
 	if session.IsUnrestricted() {
-		// evaluateRBAC allows local mode, after rejecting a missing or
-		// nonexistent team or channel as the RBAC helpers do.
 		return a.evaluateRBAC(rctx, req)
 	}
 
@@ -94,31 +101,31 @@ func (a *App) AccessEvaluation(rctx request.CTX, req model.AccessRequest) (model
 		return rbac, nil
 	}
 
-	entry, registered := model.ActionForPermission(req.Action)
 	if !registered {
 		return rbac, nil
 	}
 
-	if req.Resource.Type == "" {
-		req.Resource = model.Resource{Type: entry.ResourceType}
-	} else if req.Resource.Type != entry.ResourceType {
-		appErr := model.NewAppError("AccessEvaluation", "app.access_control.access_evaluation.resource_type_mismatch.app_error", nil, "action "+entry.Name+" is evaluated on "+entry.ResourceType+", not "+req.Resource.Type, http.StatusInternalServerError)
-		return model.NewErrorAccessDecision(appErr), appErr
-	}
-
 	if !a.AttributeBasedAccessControlActive() {
-		governed, appErr := a.hasStoredPolicy(rctx, entry.Name)
-		if appErr != nil {
-			return model.NewErrorAccessDecision(appErr), appErr
-		}
-		if governed {
+		if rbac.IsNoPolicy() {
 			return model.AccessDecision{Decision: false}, nil
 		}
-		return rbacDecidedAccess(rbac), nil
+		policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:    model.AccessControlPolicyTypePermission,
+			Actions: []string{entry.Name},
+			Limit:   1,
+		})
+		if err != nil {
+			appErr := model.NewAppError("AccessEvaluation", "app.access_control.has_stored_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewErrorAccessDecision(appErr), appErr
+		}
+		if len(policies) > 0 {
+			return model.AccessDecision{Decision: false}, nil
+		}
+		return model.AccessDecision{Decision: true}, nil
 	}
 
 	ctxSubject := rctx.Subject()
-	if ctxSubject == nil || ctxSubject.ID != session.UserId {
+	if ctxSubject == nil || ctxSubject.ID == "" || ctxSubject.ID != session.UserId {
 		appErr := model.NewAppError("AccessEvaluation", "app.access_control.missing_subject.app_error", nil, "", http.StatusForbidden)
 		return model.NewErrorAccessDecision(appErr), appErr
 	}
@@ -130,37 +137,10 @@ func (a *App) AccessEvaluation(rctx request.CTX, req model.AccessRequest) (model
 		return model.NewErrorAccessDecision(appErr), appErr
 	}
 	if !abac.IsNoPolicy() {
-		return withMembershipOf(abac, rbac), nil
+		return abac, nil
 	}
 
-	return rbacDecidedAccess(rbac), nil
-}
-
-// withMembershipOf returns d with the channel membership RBAC found, so
-// callers can read it from whichever engine decided.
-func withMembershipOf(d, rbac model.AccessDecision) model.AccessDecision {
-	isMember, ok := rbac.IsMember()
-	if !ok {
-		return d
-	}
-	if _, has := d.IsMember(); has {
-		return d
-	}
-	ctx := make(map[string]any, len(d.Context)+1)
-	maps.Copy(ctx, d.Context)
-	ctx[model.AccessDecisionContextKeyIsMember] = isMember
-	d.Context = ctx
-	return d
-}
-
-// rbacDecidedAccess is the decision when RBAC alone decides: its allow stands
-// and its no opinion denies. Channel membership is carried over.
-func rbacDecidedAccess(rbac model.AccessDecision) model.AccessDecision {
-	d := model.AccessDecision{Decision: !rbac.IsNoPolicy()}
-	if isMember, ok := rbac.IsMember(); ok {
-		d.Context = map[string]any{model.AccessDecisionContextKeyIsMember: isMember}
-	}
-	return d
+	return model.AccessDecision{Decision: !rbac.IsNoPolicy()}, nil
 }
 
 // evaluateRBAC runs the RBAC check for the request's resource type and returns
@@ -207,21 +187,4 @@ func (a *App) evaluateRBAC(rctx request.CTX, req model.AccessRequest) (model.Acc
 		d.Context[model.AccessDecisionContextKeyReason] = string(model.AccessDecisionReasonNoPolicy)
 	}
 	return d, nil
-}
-
-// hasStoredPolicy reports whether a saved permission policy governs the
-// registered action. It reads the store directly, so it answers while ABAC
-// can't evaluate. Like the PDP's permission lane, it counts every saved
-// permission policy on the action regardless of Active, and ignores other
-// policy types, including plugin policies that reuse the action name.
-func (a *App) hasStoredPolicy(rctx request.CTX, action string) (bool, *model.AppError) {
-	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-		Type:    model.AccessControlPolicyTypePermission,
-		Actions: []string{action},
-		Limit:   1,
-	})
-	if err != nil {
-		return false, model.NewAppError("hasStoredPolicy", "app.access_control.has_stored_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return len(policies) > 0, nil
 }

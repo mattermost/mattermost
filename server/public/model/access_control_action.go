@@ -19,18 +19,11 @@ import (
 // applies to every caller, system admins included, and a stored policy still
 // denies while ABAC cannot evaluate it.
 type ActionEntry struct {
-	// Name is the policy action the permissions are evaluated under.
-	Name string
-	// ResourceType is the resource the action is evaluated against: one of
-	// AccessControlPolicyTypeSystem, AccessControlPolicyTypeTeam or
-	// AccessControlPolicyTypeChannel.
+	Name         string
 	ResourceType string
-	// Grantable makes RBAC abstain, rather than deny, when no role grants one of
-	// Permissions, so that a policy can grant it. A registered but non-grantable
-	// action can only be restricted by policy, never granted.
-	Grantable bool
-	// Permissions are the RBAC permission IDs the action covers. Each permission
-	// belongs to at most one action.
+	// Grantable makes RBAC abstain rather than deny when no role grants one of
+	// Permissions, so a policy can grant it.
+	Grantable   bool
 	Permissions []string
 }
 

@@ -374,7 +374,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil {
-		c.attachAccessControlSubject()
+		if rctx, appErr := c.App.WithAccessControlSubject(c.AppContext); appErr != nil {
+			// Debug, not Warn: an attribute-store outage would otherwise log once per request.
+			c.Logger.Debug("Failed to build the access control subject for the request", mlog.Err(appErr))
+		} else {
+			c.AppContext = rctx
+		}
 	}
 
 	if c.Err == nil {

@@ -149,20 +149,6 @@ func (c *Context) SessionRequired() {
 	}
 }
 
-// attachAccessControlSubject builds the subject for an authenticated request
-// and attaches it to AppContext, where App.AccessEvaluation reads it. A build
-// failure attaches nothing, so checks that need the subject deny.
-func (c *Context) attachAccessControlSubject() {
-	rctx, appErr := c.App.WithAccessControlSubject(c.AppContext)
-	if appErr != nil {
-		// Debug, not Warn: an attribute-store outage would otherwise log once
-		// per request, and the subject build logs the underlying failure.
-		c.Logger.Debug("Failed to build the access control subject for the request", mlog.Err(appErr))
-		return
-	}
-	c.AppContext = rctx
-}
-
 func (c *Context) CloudKeyRequired() {
 	if license := c.App.Channels().License(); license == nil || !license.IsCloud() || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
