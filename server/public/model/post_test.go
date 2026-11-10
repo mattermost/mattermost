@@ -793,11 +793,12 @@ func TestPostShallowCopy(t *testing.T) {
 
 func TestUpdatePostOptionsCopy(t *testing.T) {
 	original := &UpdatePostOptions{
-		SafeUpdate:                 true,
-		IsRestorePost:              true,
-		AllowMmBlocksActionsUpdate: true,
-		AllowIdentityPropsUpdate:   true,
-		FileCreatorID:              NewId(),
+		SafeUpdate:                       true,
+		IsRestorePost:                    true,
+		AllowMmBlocksActionsUpdate:       true,
+		AllowAccessControlResourceUpdate: true,
+		AllowIdentityPropsUpdate:         true,
+		FileCreatorID:                    NewId(),
 	}
 
 	// Every field must be non-zero so a new field fails this test until the

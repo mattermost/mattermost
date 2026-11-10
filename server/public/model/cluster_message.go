@@ -88,6 +88,12 @@ const (
 	ClusterSendReliable   = "reliable"
 )
 
+// ClusterEventInvalidateCacheForAccessControlResourceRecipients drops the
+// cached recipient sets of posts marked with props.access_control_resource
+// for one plugin policy (Data holds the policy ID). Also listed in
+// m.ClusterEventMap in metrics/metrics.go.
+const ClusterEventInvalidateCacheForAccessControlResourceRecipients ClusterEvent = "inv_access_control_resource_recipients"
+
 type ClusterMessage struct {
 	Event            ClusterEvent      `json:"event"`
 	SendType         string            `json:"-"`
