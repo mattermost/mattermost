@@ -225,7 +225,14 @@ export function isOrderedChangePolicy(policy: PropertyChangePolicy): boolean {
 export type PropertiesState = {
     fields: PropertyFieldsState;
     values: PropertyValuesState;
+    loadedValueTargets: LoadedValueTargetsState;
     groups: PropertyGroupsState;
+};
+
+// Targets whose values have been fetched, so an empty bucket in values.byTargetId
+// can be told apart from one that was never loaded.
+export type LoadedValueTargetsState = {
+    [targetId: string]: true;
 };
 
 export type PropertyFieldsState = {

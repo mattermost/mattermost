@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import type {Dispatch} from 'redux';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
+import {fetchPropertyValues} from 'mattermost-redux/actions/properties';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
+import {arePropertyValuesLoadedForTarget, makeGetPropertyValuesForTarget} from 'mattermost-redux/selectors/entities/properties';
 import {isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
+import type {GlobalState} from 'types/store';
 
 import useChannelAttributes from './useChannelAttributes';
 
@@ -27,6 +31,48 @@ type RequestState = {
 
 const IDLE: RequestState = {channelId: '', status: 'loaded', missing: []};
 
+// RECEIVED_PROPERTY_VALUES only merges, so a cached value for a field the
+// server now omits must be dropped explicitly.
+function dropOmittedValues(
+    dispatch: Dispatch,
+    channelId: string,
+    requiredFields: PropertyField[],
+    values: Array<PropertyValue<unknown>> | undefined,
+) {
+    const returnedFieldIds = new Set((values ?? []).map((v) => v.field_id));
+    for (const field of requiredFields) {
+        if (!returnedFieldIds.has(field.id)) {
+            dispatch({
+                type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                data: {targetId: channelId, fieldId: field.id},
+            });
+        }
+    }
+}
+
+export type MissingRequiredChannelAttributesOptions = {
+
+    /**
+     * Read the channel's values from the store when they have already been
+     * loaded, and fetch them once otherwise. The default is a fresh fetch on
+     * every channel change, which the unarchive dialog wants.
+     */
+    preferStore?: boolean;
+};
+
+export function missingRequiredFields(
+    fields: PropertyField[],
+    values: Array<PropertyValue<unknown>> | undefined,
+): PropertyField[] {
+    return fields.filter((field) => {
+        if (!isPropertyFieldRequired(field)) {
+            return false;
+        }
+        const value = values?.find((v) => v.field_id === field.id);
+        return !isPropertyValueSet(value?.value);
+    });
+}
+
 /**
  * Reports which required channel attributes lack a value on this channel --
  * the advisory check behind the unarchive warning (MM-70717; unarchive itself
@@ -42,7 +88,10 @@ const IDLE: RequestState = {channelId: '', status: 'loaded', missing: []};
  * Reports nothing while ChannelAttributesRequired is off: the server enforces
  * Required on no channel attribute then, so there is nothing to warn about.
  */
-export default function useMissingRequiredChannelAttributes(channelId: string): MissingRequiredChannelAttributesState {
+export default function useMissingRequiredChannelAttributes(
+    channelId: string,
+    {preferStore = false}: MissingRequiredChannelAttributesOptions = {},
+): MissingRequiredChannelAttributesState {
     const dispatch = useDispatch();
 
     const {enabled: attributesEnabled, loading: fieldsLoading, fields} = useChannelAttributes();
@@ -52,7 +101,44 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
 
     const [request, setRequest] = useState<RequestState>(IDLE);
 
+    const getValuesForTarget = useMemo(() => makeGetPropertyValuesForTarget(), []);
+    const loadedInStore = useSelector((state: GlobalState) => arePropertyValuesLoadedForTarget(state, channelId));
+    const storeValues = useSelector((state: GlobalState) => getValuesForTarget(state, channelId));
+
+    const inFlightChannelId = useRef<string | null>(null);
+    const active = enabled && requiredFields.length > 0;
+
+    // Store-first mode: fetch whenever this channel's values aren't marked
+    // loaded -- on first sight, and again when a reconnect clears the marker
+    // while the hook stays mounted. The ref keeps one request per channel in
+    // flight, and the marker flipping when the fetch lands doesn't cancel it,
+    // so the stale-value cleanup below always runs.
     useEffect(() => {
+        if (!preferStore || !active || loadedInStore || inFlightChannelId.current === channelId) {
+            return;
+        }
+        inFlightChannelId.current = channelId;
+        setRequest({channelId, status: 'loading', missing: []});
+
+        dispatch(fetchPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId)).then((result) => {
+            dropOmittedValues(dispatch, channelId, requiredFields, result.data);
+            setRequest({channelId, status: 'loaded', missing: []});
+        }).catch(() => {
+            // Fail open -- see doc comment above.
+            setRequest({channelId, status: 'failed', missing: []});
+        }).finally(() => {
+            if (inFlightChannelId.current === channelId) {
+                inFlightChannelId.current = null;
+            }
+        });
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferStore, active, loadedInStore, channelId]);
+
+    useEffect(() => {
+        if (preferStore) {
+            return undefined;
+        }
         if (!enabled || requiredFields.length === 0) {
             setRequest({channelId, status: 'loaded', missing: []});
             return undefined;
@@ -65,33 +151,14 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
         let current = true;
         setRequest({channelId, status: 'loading', missing: []});
 
-        Client4.getPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId).then((values) => {
+        dispatch(fetchPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId)).then((result) => {
             if (!current) {
                 return;
             }
+            const values = result.data;
 
-            // RECEIVED_PROPERTY_VALUES only merges, so a cached value for a
-            // field the server now omits must be dropped explicitly.
-            const returnedFieldIds = new Set((values ?? []).map((v) => v.field_id));
-            for (const field of requiredFields) {
-                if (!returnedFieldIds.has(field.id)) {
-                    dispatch({
-                        type: PropertyTypes.PROPERTY_VALUE_DELETED,
-                        data: {targetId: channelId, fieldId: field.id},
-                    });
-                }
-            }
-            if (values && values.length > 0) {
-                dispatch({
-                    type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-                    data: {values},
-                });
-            }
-            const missing = requiredFields.filter((field) => {
-                const value = (values as Array<PropertyValue<unknown>> | undefined)?.find((v) => v.field_id === field.id);
-                return !isPropertyValueSet(value?.value);
-            });
-            setRequest({channelId, status: 'loaded', missing});
+            dropOmittedValues(dispatch, channelId, requiredFields, values);
+            setRequest({channelId, status: 'loaded', missing: missingRequiredFields(requiredFields, values)});
         }).catch(() => {
             if (!current) {
                 return;
@@ -106,7 +173,15 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
         };
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabled, channelId, requiredFields.length]);
+    }, [enabled, channelId, requiredFields.length, preferStore]);
+
+    if (preferStore) {
+        const failed = request.channelId === channelId && request.status === 'failed';
+        return {
+            loading: fieldsLoading || (active && !loadedInStore && !failed),
+            missing: active && loadedInStore ? missingRequiredFields(requiredFields, storeValues) : [],
+        };
+    }
 
     // A request still in flight for this channelId (or one that hasn't
     // started yet after channelId just changed) reports loading with an

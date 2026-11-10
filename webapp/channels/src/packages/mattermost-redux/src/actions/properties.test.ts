@@ -6,7 +6,7 @@ import nock from 'nock';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {fetchPropertyFields, patchPropertyField, patchPropertyValues} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, fetchPropertyValues, patchPropertyField, patchPropertyValues} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
@@ -272,5 +272,54 @@ describe('Actions.patchPropertyValues', () => {
 
         const state = store.getState() as GlobalState;
         expect(state.entities.properties.values.byTargetId[TARGET_ID]).toBeUndefined();
+    });
+});
+
+describe('Actions.fetchPropertyValues', () => {
+    const TARGET = 'channel-1';
+    const ROUTE = `/properties/groups/${GROUP}/${OBJECT_TYPE}/values/${TARGET}`;
+
+    beforeAll(() => {
+        TestHelper.initBasic(Client4);
+    });
+
+    afterAll(() => {
+        TestHelper.tearDown();
+    });
+
+    it('stores the values and marks the target loaded', async () => {
+        const store = configureStore();
+        const value = {id: 'v1', target_id: TARGET, field_id: 'field-1', value: 'a', update_at: 1, delete_at: 0};
+
+        nock(Client4.getBaseRoute()).get(ROUTE).reply(200, [value]);
+
+        await store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET));
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.values.byTargetId[TARGET]['field-1']).toMatchObject({id: 'v1'});
+        expect(state.entities.properties.loadedValueTargets[TARGET]).toBe(true);
+    });
+
+    it('marks the target loaded for an empty list', async () => {
+        const store = configureStore();
+
+        nock(Client4.getBaseRoute()).get(ROUTE).reply(200, []);
+
+        await store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET));
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.values.byTargetId[TARGET]).toBeUndefined();
+        expect(state.entities.properties.loadedValueTargets[TARGET]).toBe(true);
+    });
+
+    it('does not mark the target loaded when the fetch fails', async () => {
+        const store = configureStore();
+
+        nock(Client4.getBaseRoute()).get(ROUTE).reply(500, {message: 'boom'});
+
+        await expect(store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET))).rejects.toBeDefined();
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.loadedValueTargets[TARGET]).toBeUndefined();
     });
 });
