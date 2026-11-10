@@ -326,11 +326,7 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 				held.add(count, examples)
 			}
 		}
-		mutable := field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable
-		// A locked field is counted once, as locked, whatever rules it carries.
-		if mutable && !slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool {
-			return r.Reference == model.PropertyBoundsReferenceSelf
-		}) {
+		if !storedValueMatters(field) {
 			continue
 		}
 		var scope *store.PostValueScope
@@ -342,7 +338,8 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 		if err != nil {
 			return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
 		}
-		if mutable {
+		// A locked field is counted once, as locked, whatever rules it carries.
+		if field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
 			if count > 0 && selfID == "" {
 				selfID = field.ID
 			}
