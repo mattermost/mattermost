@@ -359,15 +359,16 @@ test.describe('Permission Policies - Bot accounts scope', () => {
     );
 
     /**
-     * @objective Verify a saved Bot accounts policy constrains only bots on file upload: non-bot users are
-     * unaffected, botSecret ("Secret") is allowed, and botMember ("Member") is denied by ABAC.
+     * @objective Verify a saved Bot accounts policy governs file upload like any other permission policy:
+     * botSecret ("Secret") is allowed, botMember ("Member") is denied by ABAC, and the non-bot user is denied
+     * because no Members upload policy exists.
      *
      * @precondition
      * The Bot accounts policy created by the previous test, no Members upload policy, botSecret holding "Secret" and
      * botMember holding "Member", and bot personal access tokens
      */
     test(
-        'enforces the Bot accounts policy on file upload: non-bot user allowed, bot with "Secret" allowed, bot with "Member" denied',
+        'enforces the Bot accounts policy on file upload: bot with "Secret" allowed, bot with "Member" and non-bot user denied',
         {tag: '@abac_permission_policies'},
         async ({pw}) => {
             test.setTimeout(pw.duration.two_min);
@@ -380,14 +381,16 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             // * Verify botMember is denied once the policy is live
             await expectEventually(() => uploadStatus(botMemberClient, channelId), denied);
 
-            // * Verify botSecret and the non-bot user can still upload
+            // * Verify botSecret can still upload
             await expectEventually(() => uploadStatus(botSecretClient, channelId), allowed);
-            await expectEventually(() => uploadStatus(systemUserClient, channelId), allowed);
+
+            // * Verify the non-bot user is denied, since no Members policy covers the governed upload permission
+            await expectEventually(() => uploadStatus(systemUserClient, channelId), denied);
 
             // * Verify each decision is stable on a repeat upload
             expect(await uploadStatus(botMemberClient, channelId)).toEqual(denied);
             expect(await uploadStatus(botSecretClient, channelId)).toEqual(allowed);
-            expect(await uploadStatus(systemUserClient, channelId)).toEqual(allowed);
+            expect(await uploadStatus(systemUserClient, channelId)).toEqual(denied);
         },
     );
 
