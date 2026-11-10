@@ -51,8 +51,8 @@ import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTy
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from './constants';
 import {duplicateAttribute} from './duplicate_attribute';
-import {useGlobalAttributeDuplicatePrompt} from './global_attribute_duplicate_modal';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import {useGlobalAttributeDuplicatePrompt} from './global_attribute_duplicate_modal';
 import type {NameConflict} from './name_conflict';
 import {nameConflictText} from './name_conflict';
 import useAllowedResourceTypes from './use_allowed_resource_types';

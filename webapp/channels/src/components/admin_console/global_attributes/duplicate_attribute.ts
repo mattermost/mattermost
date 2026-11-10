@@ -143,9 +143,7 @@ function linkedCreatePayload(type: ResourceObjectType, linked: PropertyField): {
     }
 }
 
-export type DuplicateAttributeResult =
-    | {ok: true; field: PropertyField}
-    | {ok: false; error: unknown};
+export type DuplicateAttributeResult = {ok: true; field: PropertyField} | {ok: false; error: unknown};
 
 // Creates a template copy of `source` without ldap/saml/openid links. Options
 // are copied for select-like types. `resourceTypes` selects which linked
@@ -158,8 +156,14 @@ export async function duplicateAttribute(
 ): Promise<DuplicateAttributeResult> {
     const typeId = getAttributeTypeDescriptor(source).id;
     const displayName = buildDuplicateDisplayName(getPropertyFieldLabel(source));
-    const options = await loadOptionsForDuplicate(source);
-    const name = buildDuplicateAttributeName(source.name, await existingTemplateNames());
+    let options: PropertyFieldOption[];
+    let name: string;
+    try {
+        options = await loadOptionsForDuplicate(source);
+        name = buildDuplicateAttributeName(source.name, await existingTemplateNames());
+    } catch (error) {
+        return {ok: false, error};
+    }
 
     let templateField: PropertyField;
     try {
@@ -219,6 +223,7 @@ export async function duplicateAttribute(
                 }
             }
             try {
+                // eslint-disable-next-line no-await-in-loop
                 await deleteAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, templateField.id);
             } catch {
                 // Template may still exist if a linked delete failed.

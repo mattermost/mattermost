@@ -1222,6 +1222,23 @@ describe('GlobalAttributesTable', () => {
                 });
             });
         });
+
+        it('shows an error banner when duplicating fails', async () => {
+            mockListing([makeField({
+                name: 'department',
+                attrs: {display_name: 'Department'},
+            })]);
+            createPropertyField.mockRejectedValue(new Error('boom'));
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+            await userEvent.click(screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Duplicate attribute'))!);
+
+            await waitFor(() => {
+                expect(screen.getByRole('alert')).toHaveTextContent('An error occurred while duplicating this attribute');
+            });
+        });
     });
 
     describe('Delete action', () => {
