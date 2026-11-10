@@ -198,6 +198,12 @@ func TestAccessDecisionCacheInvalidationSources(t *testing.T) {
 			})
 			require.NoError(t, err)
 		}},
+		{"the user is promoted from guest", func(t *testing.T, h *accessDecisionCacheHarness) {
+			require.NoError(t, h.th.App.Srv().Store().User().PromoteGuestToUser(h.th.Context, h.th.BasicUser.Id))
+		}},
+		{"the channel's deactivated members are removed", func(t *testing.T, h *accessDecisionCacheHarness) {
+			require.NoError(t, h.th.App.Srv().Store().Channel().RemoveAllDeactivatedMembers(h.th.Context, h.th.BasicChannel.Id))
+		}},
 		{"a policy changes", func(t *testing.T, h *accessDecisionCacheHarness) {
 			h.th.App.InvalidateAccessDecisionsForPolicyChange()
 		}},
@@ -252,6 +258,28 @@ func TestAccessDecisionCacheUnrelatedChangesKeepEntries(t *testing.T) {
 	h.th.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeChannel, model.NewId())
 	h.th.App.invalidateAccessDecisionsForSession(model.NewId())
 	h.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://example.com" })
+
+	require.True(t, h.check(t))
+	require.Equal(t, 1, h.evaluations())
+}
+
+// Membership writes scoped to one user or one channel drop only that user's or that channel's
+// decisions, not every decision on every node.
+func TestAccessDecisionCacheScopedMembershipWritesKeepOtherEntries(t *testing.T) {
+	h := setupAccessDecisionCacheTest(t)
+	decides(h.acs, true)
+	require.True(t, h.check(t))
+
+	ss := h.th.App.Srv().Store()
+	otherUser := h.th.BasicUser2.Id
+	otherChannel := h.th.CreateChannel(t, h.th.BasicTeam).Id
+
+	require.NoError(t, ss.User().PromoteGuestToUser(h.th.Context, otherUser))
+	_, err := ss.User().DemoteUserToGuest(h.th.Context, otherUser)
+	require.NoError(t, err)
+	require.NoError(t, ss.Channel().PermanentDeleteMembersByUser(h.th.Context, otherUser))
+	require.NoError(t, ss.Channel().RemoveAllDeactivatedMembers(h.th.Context, otherChannel))
+	require.NoError(t, ss.Channel().PermanentDeleteMembersByChannel(h.th.Context, otherChannel))
 
 	require.True(t, h.check(t))
 	require.Equal(t, 1, h.evaluations())

@@ -406,11 +406,29 @@ func (s LocalCacheChannelStore) invalidateChannelMemberRoles(channelID string, u
 // clearChannelMemberRoles drops every cached membership role, for the writes that change
 // memberships without saying which.
 func (s LocalCacheChannelStore) clearChannelMemberRoles() {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyAllChannelMembershipsChanged()
+}
+
+// clearChannelMemberRolesForUser is clearChannelMemberRoles for a write that only changed
+// userID's memberships. The cache is keyed by user and channel, so it is still purged in full.
+func (s LocalCacheChannelStore) clearChannelMemberRolesForUser(userID string) {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyUserChannelMembershipsChanged(userID)
+}
+
+// clearChannelMemberRolesForChannel is clearChannelMemberRoles for a write that only changed
+// channelID's memberships.
+func (s LocalCacheChannelStore) clearChannelMemberRolesForChannel(channelID string) {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyChannelMembersChanged(channelID)
+}
+
+func (s LocalCacheChannelStore) purgeChannelMemberRoles() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesCache)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
 	}
-	s.rootStore.notifyAllChannelMembershipsChanged()
 }
 
 func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error) {
@@ -674,7 +692,7 @@ func (s LocalCacheChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, ch
 	if err := s.ChannelStore.RemoveAllDeactivatedMembers(rctx, channelID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForChannel(channelID)
 	return nil
 }
 
@@ -682,7 +700,7 @@ func (s LocalCacheChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX
 	if err := s.ChannelStore.PermanentDeleteMembersByChannel(rctx, channelID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForChannel(channelID)
 	return nil
 }
 
@@ -690,7 +708,7 @@ func (s LocalCacheChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, u
 	if err := s.ChannelStore.PermanentDeleteMembersByUser(rctx, userID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForUser(userID)
 	return nil
 }
 

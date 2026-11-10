@@ -135,6 +135,16 @@ func (ch *Channels) ChannelMembershipsChanged(channelID string, userIDs []string
 	ch.invalidateAccessDecisions(accessDecisionInvalidation{UserResources: pairs}, true)
 }
 
+// UserChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.
+func (ch *Channels) UserChannelMembershipsChanged(userID string) {
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Users: []string{userID}}, true)
+}
+
+// ChannelMembersChanged implements localcachelayer.MembershipChangeListener.
+func (ch *Channels) ChannelMembersChanged(channelID string) {
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Resources: []string{channelID}}, true)
+}
+
 // AllChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.
 func (ch *Channels) AllChannelMembershipsChanged() {
 	ch.invalidateAccessDecisions(accessDecisionInvalidation{Global: true}, true)

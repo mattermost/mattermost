@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -679,6 +680,32 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 		})
 	}
 
+	// Each write tells the membership listener the narrowest scope it changed.
+	notifications := []struct {
+		name  string
+		write func(t *testing.T, cachedStore LocalCacheStore)
+		want  string
+	}{
+		{"updating the membership", invalidations["updating the membership"], "members channel1 user1"},
+		{"removing deactivated members", invalidations["removing deactivated members"], "channel channel1"},
+		{"deleting the channel's members", invalidations["deleting the channel's members"], "channel channel1"},
+		{"deleting the user's memberships", invalidations["deleting the user's memberships"], "user user1"},
+		{"promoting the guest", invalidations["promoting the guest"], "user user1"},
+		{"demoting the user", invalidations["demoting the user"], "user user1"},
+		{"migrating channel members", invalidations["migrating channel members"], "all"},
+		{"clearing custom role assignments", invalidations["clearing custom role assignments"], "all"},
+	}
+	for _, tc := range notifications {
+		t.Run(tc.name+" notifies the listener", func(t *testing.T) {
+			cachedStore, _ := newCachedStore(t)
+			listener := &recordingMembershipListener{}
+			cachedStore.SetMembershipChangeListener(listener)
+
+			tc.write(t, cachedStore)
+			assert.Equal(t, []string{tc.want}, listener.calls)
+		})
+	}
+
 	// Per-user invalidations (profile updates, moderation patches) must not cost every one of
 	// the user's memberships a re-read on the websocket hub.
 	kept := map[string]func(t *testing.T, cachedStore LocalCacheStore){
@@ -720,4 +747,24 @@ func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {
 
 	_, err = cachedStore.Channel().GetAllChannelMembersForUser(request.TestContext(t), "u1", true, false)
 	require.NoError(t, err)
+}
+
+type recordingMembershipListener struct {
+	calls []string
+}
+
+func (l *recordingMembershipListener) ChannelMembershipsChanged(channelID string, userIDs []string) {
+	l.calls = append(l.calls, "members "+channelID+" "+strings.Join(userIDs, ","))
+}
+
+func (l *recordingMembershipListener) UserChannelMembershipsChanged(userID string) {
+	l.calls = append(l.calls, "user "+userID)
+}
+
+func (l *recordingMembershipListener) ChannelMembersChanged(channelID string) {
+	l.calls = append(l.calls, "channel "+channelID)
+}
+
+func (l *recordingMembershipListener) AllChannelMembershipsChanged() {
+	l.calls = append(l.calls, "all")
 }

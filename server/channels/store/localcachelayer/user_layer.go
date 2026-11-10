@@ -373,7 +373,7 @@ func (s *LocalCacheUserStore) PromoteGuestToUser(rctx request.CTX, userID string
 	if err := s.UserStore.PromoteGuestToUser(rctx, userID); err != nil {
 		return err
 	}
-	s.rootStore.channel.clearChannelMemberRoles()
+	s.rootStore.channel.clearChannelMemberRolesForUser(userID)
 	return nil
 }
 
@@ -382,6 +382,6 @@ func (s *LocalCacheUserStore) DemoteUserToGuest(rctx request.CTX, userID string)
 	if err != nil {
 		return nil, err
 	}
-	s.rootStore.channel.clearChannelMemberRoles()
+	s.rootStore.channel.clearChannelMemberRolesForUser(userID)
 	return user, nil
 }
