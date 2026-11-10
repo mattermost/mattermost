@@ -88,12 +88,7 @@ func (e *Engine) EvaluateRule(s *Snapshot, code string) ([]Evaluation, error) {
 }
 
 func (e *Engine) evaluateRule(s *Snapshot, rule Rule, evaluatedAt time.Time) []Evaluation {
-	deployment := Deployment{}
-	if s != nil {
-		deployment = s.Deployment
-	}
-
-	if !rule.AppliesTo(deployment) {
+	if !rule.AppliesTo(s.IsCloud()) {
 		return nil
 	}
 

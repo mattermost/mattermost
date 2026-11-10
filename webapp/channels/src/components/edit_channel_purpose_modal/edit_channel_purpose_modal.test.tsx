@@ -5,10 +5,12 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ConnectedEditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal/edit_channel_purpose_modal';
 
 import {testComponentForLineBreak} from 'tests/helpers/line_break_helpers';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -64,6 +66,36 @@ describe('comoponents/EditChannelPurposeModal', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    it('should call a board a board', () => {
+        const board = {...channel, id: 'board1', type: 'O' as const};
+
+        renderWithContext(
+            <ConnectedEditChannelPurposeModal
+                channel={board}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState('board1'),
+        );
+
+        expect(screen.getByText(/Describe how this board should be used/)).toBeInTheDocument();
+        expect(screen.queryByText(/Describe how this channel should be used/)).not.toBeInTheDocument();
+    });
+
+    it('should call a private board a board', () => {
+        const board: Channel = {...channel, id: 'board1', type: 'P'};
+
+        renderWithContext(
+            <ConnectedEditChannelPurposeModal
+                channel={board}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState('board1'),
+        );
+
+        expect(screen.getByText('This text appears in the "View Info" modal of the private board.')).toBeInTheDocument();
+        expect(screen.queryByText('This text appears in the "View Info" modal of the private channel.')).not.toBeInTheDocument();
     });
 
     it('should match submitted', () => {

@@ -54,6 +54,63 @@ $positions: 't'top,
     box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
 }
 
+// Compass draws its own focus ring; for composite fields, target the inner
+// a11y--focused control so only the outer Compass ring remains. Portalled UI such as popovers
+// mounts in #root-portal, which is a sibling of #root.
+:is(#root, #root-portal) [class*="_text-input__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_text-area__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_search-input__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_select__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_combobox__wrapper"] .a11y--focused,
+:is(#root, #root-portal) [class*="_date-range-picker__trigger"].a11y--focused,
+:is(#root, #root-portal) button[class*="_button--emphasis-"].a11y--focused,
+:is(#root, #root-portal) button[class*="_icon-button"].a11y--focused,
+:is(#root, #root-portal) button[class*="_action-button"].a11y--focused {
+    box-shadow: none;
+}
+
+// ...and let that Compass ring actually render. The global `*:focus { outline:
+// none }` in base/_structure.scss resets outline-style and outline-width, and
+// Compass's own :focus-visible rule only overrides outline-color and
+// outline-offset -- so with our box-shadow suppressed above, these controls
+// ended up with no focus indicator at all. Restoring style and width here
+// leaves Compass to supply the colour and offset, and keeps the blast radius
+// to Compass controls rather than narrowing the global reset for the whole app.
+#root [class*="_text-input__wrapper"]:focus-visible,
+#root [class*="_text-area__wrapper"]:focus-visible,
+#root [class*="_search-input__wrapper"]:focus-visible,
+#root [class*="_select__wrapper"]:focus-visible,
+#root [class*="_combobox__wrapper"]:focus-visible,
+#root [class*="_date-range-picker__trigger"]:focus-visible,
+#root button[class*="_button--emphasis-"]:focus-visible,
+#root button[class*="_icon-button"]:focus-visible,
+#root button[class*="_action-button"]:focus-visible {
+    outline-style: solid;
+    outline-width: 2px;
+}
+
+// Temporary until a compass-ui release fixes the IconButton transitions (mattermost/compass-design#184).
+// These buttons switched state instantly before the Compass migration, and two things now flash
+// when moving between neighbouring buttons (e.g. Recent mentions -> Saved messages):
+// - Compass fades background/color over --duration-quick on every state change.
+// - Compass rests with a transparent outline, but the global `*:focus { outline: none }` above
+//   resets it to `none` + currentcolor while focused. When focus leaves, the outline comes back
+//   and its colour fades from opaque to transparent, drawing a ring on the button that just
+//   lost focus.
+// So no transition at rest, and the outline transitions only on :focus-visible so the keyboard
+// focus ring still animates in. Remove once Compass no longer does either.
+button[class*="_icon-button_"],
+a[class*="_icon-button_"] {
+    transition: none;
+}
+
+button[class*="_icon-button_"]:focus-visible,
+a[class*="_icon-button_"]:focus-visible {
+    transition:
+        outline-color var(--duration-quick) var(--ease-transition),
+        outline-offset var(--duration-quick) var(--ease-transition);
+}
+
 .pos-relative {
     position: relative;
 }
@@ -70,6 +127,13 @@ $positions: 't'top,
 
 .overflow--visible {
     overflow: visible;
+}
+
+// For surfaces that stay dark in every theme, like the file preview header and footer: gives Compass's inverted
+// IconButton style fixed light colors instead of the sidebar theme colors. Drop it once Compass has a style for these.
+.icon-buttons-on-dark {
+    --sidebar-text: white;
+    --sidebar-text-rgb: 255, 255, 255;
 }
 
 .bg--white {

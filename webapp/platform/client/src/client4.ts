@@ -4,7 +4,7 @@
 /* eslint-disable max-lines */
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
@@ -34,11 +34,8 @@ import type {
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
 import {LogLevel} from '@mattermost/types/client4';
 import type {
-    Address,
     Product,
     CloudCustomer,
-    CloudCustomerPatch,
-    Invoice,
     Limits,
     NotifyAdminRequest,
     Subscription,
@@ -73,6 +70,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
 import type {SystemSetting} from '@mattermost/types/general';
+import type {GlobalAttributeListing, GlobalAttributeListingSearch} from '@mattermost/types/global_attributes';
 import type {
     Group,
     GroupPatch,
@@ -89,6 +87,7 @@ import type {
     GroupStats,
     GroupMember,
 } from '@mattermost/types/groups';
+import type {HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {PostActionResponse} from '@mattermost/types/integration_actions';
 import type {
     Command,
@@ -118,7 +117,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -542,10 +541,6 @@ export default class Client4 {
         return `${this.getBaseRoute()}/cloud`;
     }
 
-    getHostedCustomerRoute() {
-        return `${this.getBaseRoute()}/hosted_customer`;
-    }
-
     getUsageRoute() {
         return `${this.getBaseRoute()}/usage`;
     }
@@ -592,6 +587,10 @@ export default class Client4 {
 
     getDeliveryTrackingRoute() {
         return `${this.getBaseRoute()}/delivery_tracking`;
+    }
+
+    getHealthFindingsRoute() {
+        return `${this.getBaseRoute()}/health/findings`;
     }
 
     getCSRFFromCookie() {
@@ -2530,20 +2529,33 @@ export default class Client4 {
 
     // Generic Property Field Routes
 
-    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string, options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number}) => {
-        const params = new URLSearchParams({target_type: targetType});
-        if (targetId) {
-            params.set('target_id', targetId);
+    getPropertyFields = async (groupName: string, objectType: string, query: PropertyFieldsQuery) => {
+        const params = new URLSearchParams();
+
+        if (query.channelId) {
+            params.set('channel_id', query.channelId);
         }
-        if (options?.perPage) {
-            params.set('per_page', String(options.perPage));
+        if (query.teamId) {
+            params.set('team_id', query.teamId);
         }
-        if (options?.cursorId) {
-            params.set('cursor_id', options.cursorId);
+
+        if (query.targetType) {
+            params.set('target_type', query.targetType);
         }
-        if (options?.cursorCreateAt !== undefined) {
-            params.set('cursor_create_at', String(options.cursorCreateAt));
+        if (query.targetId) {
+            params.set('target_id', query.targetId);
         }
+
+        if (query.perPage) {
+            params.set('per_page', String(query.perPage));
+        }
+        if (query.cursorId) {
+            params.set('cursor_id', query.cursorId);
+        }
+        if (query.cursorCreateAt !== undefined) {
+            params.set('cursor_create_at', String(query.cursorCreateAt));
+        }
+
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
             {method: 'GET'},
@@ -2573,6 +2585,13 @@ export default class Client4 {
         return this.doFetch<PropertyFieldOptionPage>(
             `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
+        );
+    };
+
+    searchGlobalAttributes = async (search: GlobalAttributeListingSearch) => {
+        return this.doFetch<GlobalAttributeListing>(
+            `${this.getBaseRoute()}/properties/groups/access_control/attributes/search`,
+            {method: 'POST', body: JSON.stringify(search)},
         );
     };
 
@@ -3780,9 +3799,9 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery) => {
-        return this.doFetch<string[]>(
-            `${this.getBaseRoute()}/logs/query`,
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+        return this.doFetch<LogsByNode>(
+            `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
             {method: 'post', body: JSON.stringify(logFilter)},
         );
     };
@@ -4709,20 +4728,6 @@ export default class Client4 {
         );
     };
 
-    updateCloudCustomer = (customerPatch: CloudCustomerPatch) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer`,
-            {method: 'put', body: JSON.stringify(customerPatch)},
-        );
-    };
-
-    updateCloudCustomerAddress = (address: Address) => {
-        return this.doFetch<CloudCustomer>(
-            `${this.getCloudRoute()}/customer/address`,
-            {method: 'put', body: JSON.stringify(address)},
-        );
-    };
-
     notifyAdmin = (req: NotifyAdminRequest) => {
         return this.doFetchWithResponse<StatusOK>(
             `${this.getUsersRoute()}/notify-admin`,
@@ -4763,17 +4768,6 @@ export default class Client4 {
             `${this.getCloudRoute()}/preview/modal_data`,
             {method: 'get'},
         );
-    };
-
-    getInvoices = () => {
-        return this.doFetch<Invoice[]>(
-            `${this.getCloudRoute()}/subscription/invoices`,
-            {method: 'get'},
-        );
-    };
-
-    getInvoicePdfUrl = (invoiceId: string) => {
-        return `${this.getCloudRoute()}/subscription/invoices/${invoiceId}/pdf`;
     };
 
     getCloudLimits = () => {
@@ -4878,6 +4872,27 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -4920,13 +4935,16 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+
+            // The media type without parameters such as "; charset=binary", which proxies may add.
+            const mediaType = contentType?.split(';')[0].trim().toLowerCase();
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (mediaType === 'application/zip' || mediaType === 'application/octet-stream' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -5284,13 +5302,17 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
-        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
+    // membership also rejects what the membership sync can't evaluate.
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string, membership?: boolean) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string; membership?: boolean} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
         }
         if (teamId) {
             requestBody.teamId = teamId;
+        }
+        if (membership) {
+            requestBody.membership = true;
         }
 
         return this.doFetch<CELExpressionError[]>(
@@ -5483,6 +5505,27 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getDeliveryTrackingRoute()}/config`,
             {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getHealthFindings = (filter: HealthFindingFilter = {}) => {
+        return this.doFetch<HealthFindingList>(
+            `${this.getHealthFindingsRoute()}${buildQueryString(filter)}`,
+            {method: 'get'},
+        );
+    };
+
+    muteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'post'},
+        );
+    };
+
+    unmuteHealthFinding = (fingerprint: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getHealthFindingsRoute()}/${fingerprint}/mute`,
+            {method: 'delete'},
         );
     };
 

@@ -634,7 +634,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // already on the page -- so scope to the AttributeModal dialog once
                 // it's open, rather than the whole page.
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
                 const ldapDialog = systemConsolePage.page.getByRole('dialog');
                 await expect(ldapDialog).toBeVisible();
                 await ldapDialog.getByRole('textbox').fill('employeeID');
@@ -662,9 +662,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure both AD/LDAP and SAML can be linked on the same attribute, that an
-         * already-linked source is excluded from the "add" menu (and the trigger disappears
-         * once both are linked), and that each chip shows the actual linked value, not just the
-         * source name.
+         * already-linked source is excluded from the "add" menu (once both are linked, only
+         * OpenID Connect is left, disabled because it can't be combined with them), and that
+         * each chip shows the actual linked value, not just the source name.
          */
         test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
             pw,
@@ -686,11 +686,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
                 // # Before anything is linked, the menu offers both sources
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/})).toBeVisible();
                 await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
 
                 // # Link AD/LDAP
-                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
                 await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
@@ -702,22 +702,28 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // # Reopen the trigger -- AD/LDAP is no longer offered, only SAML
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
                 await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
-                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).not.toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/})).not.toBeVisible();
 
                 // # Link SAML too
                 await systemConsolePage.page.getByRole('menuitem', {name: /^SAML/}).click();
                 await systemConsolePage.page.getByPlaceholder('department').fill('position');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
-                // * Both chips are shown with their own values, and the trigger disappears
-                // entirely -- there is nothing left to add
+                // * Both chips are shown with their own values
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
                     'AD/LDAP: employeeID',
                 );
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
                     'SAML: position',
                 );
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).not.toBeVisible();
+
+                // * Only OpenID Connect is left, disabled because it can't be combined with them
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem')).toHaveCount(1);
+                const openIdItem = systemConsolePage.page.getByRole('menuitem', {name: /^OpenID Connect/});
+                await expect(openIdItem).toBeDisabled();
+                await expect(openIdItem).toContainText("Can't be combined with AD/LDAP and SAML");
+                await systemConsolePage.page.keyboard.press('Escape');
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
@@ -840,7 +846,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // # Link AD/LDAP
             await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
             await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
             await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
             await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
@@ -868,47 +874,83 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
-         * @objective Ensure the picker warns before converting a non-Text field to Text, and that
-         * once a source is linked the Type control is locked to Text until the last chip is removed.
+         * @objective Ensure linking a source keeps a Select, hands its options to the sync and holds
+         * Save until the attribute applies to Users, whose sync provides them, while a type the source
+         * cannot populate is converted to Text after a warning. Either way Type stays locked until
+         * the last chip is removed.
          */
-        test('warns before converting a non-Text field, and locks Type to Text while a source is linked', async ({
+        test('keeps a Select linked to a source, and warns before converting a type the source cannot populate', async ({
             pw,
         }) => {
             await pw.ensureFeatureFlag({ChannelAttributes: true, PostAttributes: true, PropertyFieldGraph: true});
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            const page = systemConsolePage.page;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await page.getByTestId('newAttributeButton').click();
+            await page.getByTestId('attributeDisplayNameInput').fill(`Playwright Synced Select ${Date.now()}`);
 
-            // # Switch to Select, then try linking AD/LDAP
-            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
-            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
-            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            // # Switch to Select, then link AD/LDAP
+            const typeButton = page.getByTestId('attributeTypeMenuButton');
+            await typeButton.click();
+            await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
+
+            // * The source can populate a Select, so the modal warns of no conversion
+            await expect(page.getByPlaceholder('department')).toBeVisible();
+            await expect(page.getByText(/converted to a TEXT attribute/i)).not.toBeVisible();
+
+            await page.getByPlaceholder('department').fill('departmentNumber');
+            await page.getByRole('button', {name: 'Save'}).click();
+
+            // * Type stays Select and is locked, and the sync owns the options
+            await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+            await expect(typeButton).toContainText('Select');
+            await expect(typeButton).toBeDisabled();
+            await expect(page.getByTestId('attributeOptionsSyncedHelp')).toContainText(
+                'Options are managed by the AD/LDAP sync.',
+            );
+
+            // * Save waits for Users, whose sync provides the options
+            await expect(page.getByTestId('attributeOptionsNeedUsersError')).toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeDisabled();
+
+            // # Apply it to Users
+            await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await page.getByRole('menuitem', {name: 'Users'}).click();
+
+            // * Save is available
+            await expect(page.getByTestId('attributeOptionsNeedUsersError')).not.toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+            // # Remove the chip and switch to Ranked, a type the source cannot populate
+            await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await expect(typeButton).toBeEnabled();
+            await typeButton.click();
+            await page.getByRole('menuitemradio', {name: 'Ranked', exact: true}).click();
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /^AD\/LDAP/}).click();
 
             // * The modal warns the field will convert to Text
-            await expect(systemConsolePage.page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
+            await expect(page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
 
             // # Save the link anyway
-            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
-            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await page.getByPlaceholder('department').fill('employeeID');
+            await page.getByRole('button', {name: 'Save'}).click();
 
-            // * Type switched to Text, a chip appeared, and Type is locked
-            const typeButton = systemConsolePage.page.getByTestId('attributeTypeMenuButton');
+            // * Type switched to Text and is locked
+            await expect(page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
             await expect(typeButton).toContainText('Text');
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
             await expect(typeButton).toBeDisabled();
 
             // # Remove the chip
-            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
 
             // * Type is editable again
             await expect(typeButton).toBeEnabled();
-            await typeButton.click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
-            await expect(typeButton).toContainText('Select');
         });
     });
 
@@ -1067,13 +1109,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 // * Exactly two linked fields exist, pointing back at the template
-                const templateFields = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFields = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
                 expect(templateField).toBeDefined();
 
@@ -1146,27 +1185,22 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(systemConsolePage.page.getByTestId('saveSetting')).not.toBeDisabled();
 
                 // * Nothing survived the rollback -- no template, no user/channel linked fields
-                const templateFieldsAfterFailure = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFieldsAfterFailure = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 expect(
                     templateFieldsAfterFailure.find((f) => f.name === expectedName && f.delete_at === 0),
                 ).toBeUndefined();
 
-                const userFields = await adminClient.getPropertyFields('access_control', 'user', 'system', undefined, {
+                const userFields = await adminClient.getPropertyFields('access_control', 'user', {
+                    targetType: 'system',
                     perPage: 200,
                 });
-                const channelFields = await adminClient.getPropertyFields(
-                    'access_control',
-                    'channel',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const channelFields = await adminClient.getPropertyFields('access_control', 'channel', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 expect(userFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
                 expect(channelFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
 
@@ -1177,13 +1211,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // * This time it succeeds
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
-                const templateFieldsAfterRetry = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFieldsAfterRetry = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 const templateField = templateFieldsAfterRetry.find(
                     (f) => f.name === expectedName && f.delete_at === 0,
                 );
@@ -1610,13 +1641,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await page.getByTestId('saveSetting').click();
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
-                const templateFields = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
-                );
+                const templateFields = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
                 expect(templateField).toBeDefined();
 
@@ -2180,15 +2208,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
                 const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
                 expect(remaining).toHaveLength(0);
-                const templates = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
-                );
+                const templates = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 expect(templates.some((template) => template.id === field.id && template.delete_at === 0)).toBe(true);
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
@@ -2465,15 +2488,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(page.getByTestId('saveSetting')).toBeEnabled();
 
                 // * The rename was never persisted
-                const templates = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
-                );
+                const templates = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 const stillRenaming = templates.find((f) => f.id === renamingField.id);
                 expect(stillRenaming?.name).toBe(renamingName);
             } finally {
@@ -2552,15 +2570,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 });
                 await expect(row.getByTestId('global-attribute-options')).toContainText('3 options');
 
-                const templates = await adminClient.getPropertyFields(
-                    'access_control',
-                    'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
-                );
+                const templates = await adminClient.getPropertyFields('access_control', 'template', {
+                    targetType: 'system',
+                    perPage: 200,
+                });
                 const updated = templates.find((f) => f.id === field.id);
                 const optionNames = (updated?.attrs?.options as Array<{name: string}> | undefined)
                     ?.map((option) => option.name)

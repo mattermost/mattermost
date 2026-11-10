@@ -83,7 +83,7 @@ The tables below show what comes with you from Slack and what you set up again i
 | User groups | No | Recreate with [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) |
 | Profile pictures | No | Users add their own picture. See [Manage your profile](/end-user-guide/preferences/manage-your-profile) |
 | Presence | No | Users set [status and availability](/end-user-guide/preferences/set-your-status-availability) in Mattermost |
-| Custom profile fields | No | Recreate them as [user attributes](/administration-guide/manage/admin/user-attributes) |
+| Custom profile fields | No | Recreate them as [user attributes](/administration-guide/manage/admin/attribute-management) |
 
 ### Integrations
 
@@ -91,7 +91,7 @@ Integrations are not included in the Slack export file, so Mattermost has no way
 
 | Slack integration | Migrates? | Mattermost mapping | What to recreate |
 | --- | --- | --- | --- |
-| Slack Marketplace apps | No | [Pre-built plugins](/integrations-guide/popular-integrations), such as Jira, GitHub, GitLab, Zoom, and ServiceNow | Install the matching plugin and set up channels, credentials, and notifications again. Use a webhook, slash command, or [custom plugin](/integrations-guide/plugins) when Mattermost has no equivalent |
+| Slack Marketplace apps | No | [Pre-built plugins](/integrations-guide/popular-integrations), such as Jira, GitHub, GitLab, and Zoom | Install the matching plugin and set up channels, credentials, and notifications again. Use a webhook, slash command, or [custom plugin](/integrations-guide/plugins) when Mattermost has no equivalent |
 | Custom apps | No | [Plugins](/integrations-guide/plugins) and the [REST API](/integrations-guide/restful-api) | Rebuild the app, including its tokens and where it is installed |
 | Incoming webhooks | No | [Incoming webhooks](/integrations-guide/incoming-webhooks). Payloads are [Slack-compatible](/integrations-guide/incoming-webhooks#slack-compatibility) | Each webhook URL and the channel it posts to |
 | Outgoing webhooks | No | [Outgoing webhooks](/integrations-guide/outgoing-webhooks) | Trigger words, channels, and callback URLs |

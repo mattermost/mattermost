@@ -76,7 +76,7 @@ describe('Interactive Dialog - File Upload', () => {
                     cy.get('label').should('be.visible').and('contain', singleElement.display_name);
 
                     // * Verify "Choose File" button for allow_multiple=false
-                    cy.get('button.btn-tertiary').should('be.visible').and('have.text', 'Choose File');
+                    cy.findByRole('button', {name: 'Choose File'}).should('be.visible');
 
                     // * Verify placeholder / help text is visible before any upload
                     cy.get('.help-text').should('be.visible');
@@ -87,7 +87,7 @@ describe('Interactive Dialog - File Upload', () => {
                     cy.get('label').should('be.visible').and('contain', multipleElement.display_name);
 
                     // * Verify "Choose Files" button for allow_multiple=true
-                    cy.get('button.btn-tertiary').should('be.visible').and('have.text', 'Choose Files');
+                    cy.findByRole('button', {name: 'Choose Files'}).should('be.visible');
 
                     // * Verify placeholder / help text is visible before any upload
                     cy.get('.help-text').should('be.visible');

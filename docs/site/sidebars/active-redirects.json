@@ -875,7 +875,7 @@
     },
     {
       "from": "/deploy/desktop/desktop-app-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/deploy/mobile/mobile-app-deployment",
@@ -883,11 +883,11 @@
     },
     {
       "from": "/deploy/desktop/desktop-custom-dictionaries",
-      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     },
     {
       "from": "/deploy/desktop/desktop-msi-installer-and-group-policy-install",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/deploy/desktop/desktop-troubleshooting",
@@ -903,7 +903,7 @@
     },
     {
       "from": "/deploy/desktop/silent-windows-desktop-distribution",
-      "to": "/deployment-guide/desktop/silent-windows-desktop-distribution"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/deploy/encryption-options",
@@ -1427,15 +1427,15 @@
     },
     {
       "from": "/install/desktop-app-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/install/desktop-custom-dictionaries",
-      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     },
     {
       "from": "/install/desktop-msi-installer-and-group-policy-install",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/install/installing-mattermost-omnibus",
@@ -1523,11 +1523,11 @@
     },
     {
       "from": "/install/desktop-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/install/desktop-msi-gpo",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/install/docker-ebs",
@@ -1727,7 +1727,7 @@
     },
     {
       "from": "/install/config-ssl-http2-nginx",
-      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http-2"
+      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2"
     },
     {
       "from": "/install/config-proxy-nginx",
@@ -1803,7 +1803,11 @@
     },
     {
       "from": "/integrate/servicenow",
-      "to": "/integrations-guide/servicenow"
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/integrations-guide/servicenow",
+      "to": "/integrations-guide/popular-integrations"
     },
     {
       "from": "/integrate/zoom",
@@ -4172,6 +4176,22 @@
     {
       "from": "/administration-guide/onboard/moving-from-slack",
       "to": "/administration-guide/onboard/slack-migration-overview"
+    },
+    {
+      "from": "/deployment-guide/desktop/silent-windows-desktop-distribution",
+      "to": "/deployment-guide/desktop/windows-desktop-install"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install",
+      "to": "/deployment-guide/desktop/windows-desktop-install"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-app-managed-resources",
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-custom-dictionaries",
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     }
   ]
 }

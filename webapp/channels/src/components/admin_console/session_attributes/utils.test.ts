@@ -168,7 +168,6 @@ describe('session_attributes utils', () => {
 
     describe('formatDuration', () => {
         it('renders the exact preset labels', () => {
-            expect(formatDuration(30)).toBe('30s');
             expect(formatDuration(60)).toBe('1m');
             expect(formatDuration(300)).toBe('5m');
             expect(formatDuration(3600)).toBe('1h');
@@ -176,6 +175,7 @@ describe('session_attributes utils', () => {
         });
 
         it('renders non-preset values via the fallback', () => {
+            expect(formatDuration(30)).toBe('30s');
             expect(formatDuration(45)).toBe('45s');
             expect(formatDuration(90)).toBe('2m');
             expect(formatDuration(7200)).toBe('2h');
@@ -185,7 +185,7 @@ describe('session_attributes utils', () => {
 
     describe('DURATION_PRESETS_SECONDS', () => {
         it('exposes the supported preset values', () => {
-            expect([...DURATION_PRESETS_SECONDS]).toEqual([30, 60, 300, 3600, 86400]);
+            expect([...DURATION_PRESETS_SECONDS]).toEqual([60, 300, 3600, 86400]);
         });
     });
 });

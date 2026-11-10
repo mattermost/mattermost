@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -68,26 +69,33 @@ export default function ResetToDefaultButton(props: Props) {
         return null;
     }
 
-    if (props.sectionName === SectionName.Desktop && areDesktopNotificationsSameAsDefault) {
-        return null;
-    }
-
-    if (props.sectionName === SectionName.Mobile && areMobileNotificationsSameAsDefault) {
-        return null;
-    }
+    const isHidden = props.sectionName === SectionName.Desktop ? areDesktopNotificationsSameAsDefault : areMobileNotificationsSameAsDefault;
 
     function handleOnClick() {
+        if (isHidden) {
+            return;
+        }
+
         const channelNotifyPropsDefaultedToUserNotifyProps = resetChannelsNotificationToUsersDefault(props.userNotifyProps, props.sectionName);
         props.onClick(channelNotifyPropsDefaultedToUserNotifyProps, props.sectionName);
     }
 
     return (
         <button
-            className='ChannelNotificationModal__reset-btn'
+            type='button'
+            className={classNames('ChannelNotificationModal__reset-btn', {
+                'ChannelNotificationModal__reset-btn--hidden': isHidden,
+            })}
             onClick={handleOnClick}
             data-testid={`resetToDefaultButton-${props.sectionName}`}
+            disabled={isHidden}
+            aria-hidden={isHidden || undefined}
+            tabIndex={isHidden ? -1 : undefined}
         >
-            <i className='icon icon-refresh'/>
+            <i
+                className='icon icon-refresh'
+                aria-hidden={true}
+            />
             <FormattedMessage
                 id='channel_notifications.resetToDefault'
                 defaultMessage='Reset to default'

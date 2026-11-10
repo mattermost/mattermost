@@ -14,6 +14,10 @@ type PluginClusterEvent struct {
 	Id string
 	// Data is the event payload.
 	Data []byte
+	// SourceId is the cluster node ID of the sender. The server sets it on
+	// events delivered to the OnPluginClusterEvent hook; it is ignored when
+	// publishing.
+	SourceId string
 }
 
 // PluginClusterEventSendOptions defines some properties that apply when sending

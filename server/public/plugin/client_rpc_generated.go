@@ -2240,6 +2240,63 @@ func (s *hooksRPCServer) DraftWillBeUpserted(args *Z_DraftWillBeUpsertedArgs, re
 	return nil
 }
 
+func init() {
+	hookNameToId["PropertyValuesHaveBeenUpdated"] = PropertyValuesHaveBeenUpdatedID
+}
+
+type Z_PropertyValuesHaveBeenUpdatedArgs struct {
+	A *Context
+	B string
+	C string
+	D string
+	E string
+	F []*model.PropertyValue
+	G []*model.PropertyValue
+}
+
+type Z_PropertyValuesHaveBeenUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) {
+	_args := &Z_PropertyValuesHaveBeenUpdatedArgs{c, userID, groupID, targetType, targetID, values, previousValues}
+	_returns := &Z_PropertyValuesHaveBeenUpdatedReturns{}
+	if g.implemented[PropertyValuesHaveBeenUpdatedID] {
+		if err := g.client.Call("Plugin.PropertyValuesHaveBeenUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call PropertyValuesHaveBeenUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// PropertyValuesHaveBeenUpdatedWithRPCErr returns the same values as PropertyValuesHaveBeenUpdated, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error {
+	_args := &Z_PropertyValuesHaveBeenUpdatedArgs{c, userID, groupID, targetType, targetID, values, previousValues}
+	_returns := &Z_PropertyValuesHaveBeenUpdatedReturns{}
+	var _err error
+	if g.implemented[PropertyValuesHaveBeenUpdatedID] {
+		_err = g.client.Call("Plugin.PropertyValuesHaveBeenUpdated", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_PropertyValuesHaveBeenUpdatedReturns{}
+			g.log.Debug("RPC call PropertyValuesHaveBeenUpdated to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) PropertyValuesHaveBeenUpdated(args *Z_PropertyValuesHaveBeenUpdatedArgs, returns *Z_PropertyValuesHaveBeenUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
+	}); ok {
+		hook.PropertyValuesHaveBeenUpdated(args.A, args.B, args.C, args.D, args.E, args.F, args.G)
+	} else {
+		return encodableError(fmt.Errorf("Hook PropertyValuesHaveBeenUpdated called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2334,6 +2391,8 @@ type HooksWithRPCErrGenerated interface {
 	ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error)
 
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
+
+	PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error
 }
 
 type Z_RegisterCommandArgs struct {
@@ -5553,6 +5612,65 @@ func (s *apiRPCServer) GetPostThread(args *Z_GetPostThreadArgs, returns *Z_GetPo
 	return nil
 }
 
+type Z_GetThreadFollowersArgs struct {
+	A string
+}
+
+type Z_GetThreadFollowersReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	_args := &Z_GetThreadFollowersArgs{threadID}
+	_returns := &Z_GetThreadFollowersReturns{}
+	if err := g.client.Call("Plugin.GetThreadFollowers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetThreadFollowers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetThreadFollowers(args *Z_GetThreadFollowersArgs, returns *Z_GetThreadFollowersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetThreadFollowers(threadID string) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetThreadFollowers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetThreadFollowers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SetThreadFollowingArgs struct {
+	A string
+	B string
+	C bool
+}
+
+type Z_SetThreadFollowingReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	_args := &Z_SetThreadFollowingArgs{userID, threadID, following}
+	_returns := &Z_SetThreadFollowingReturns{}
+	if err := g.client.Call("Plugin.SetThreadFollowing", _args, _returns); err != nil {
+		log.Printf("RPC call to SetThreadFollowing API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SetThreadFollowing(args *Z_SetThreadFollowingArgs, returns *Z_SetThreadFollowingReturns) error {
+	if hook, ok := s.impl.(interface {
+		SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+	}); ok {
+		returns.A = hook.SetThreadFollowing(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SetThreadFollowing called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPostArgs struct {
 	A string
 }
@@ -5761,6 +5879,36 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 		returns.A, returns.B = hook.UpdatePost(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API UpdatePost called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePostWithOptionsArgs struct {
+	A *model.Post
+	B *model.UpdatePostOptions
+}
+
+type Z_UpdatePostWithOptionsReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	_args := &Z_UpdatePostWithOptionsArgs{post, options}
+	_returns := &Z_UpdatePostWithOptionsReturns{}
+	if err := g.client.Call("Plugin.UpdatePostWithOptions", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePostWithOptions API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdatePostWithOptions(args *Z_UpdatePostWithOptionsArgs, returns *Z_UpdatePostWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdatePostWithOptions(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePostWithOptions called but not implemented."))
 	}
 	return nil
 }
@@ -7441,6 +7589,62 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 	return nil
 }
 
+type Z_GetClusterNodeIDArgs struct {
+}
+
+type Z_GetClusterNodeIDReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetClusterNodeID() string {
+	_args := &Z_GetClusterNodeIDArgs{}
+	_returns := &Z_GetClusterNodeIDReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodeID", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodeID API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetClusterNodeID(args *Z_GetClusterNodeIDArgs, returns *Z_GetClusterNodeIDReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodeID() string
+	}); ok {
+		returns.A = hook.GetClusterNodeID()
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodeID called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetClusterNodesArgs struct {
+}
+
+type Z_GetClusterNodesReturns struct {
+	A []*model.ClusterInfo
+	B error
+}
+
+func (g *apiRPCClient) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	_args := &Z_GetClusterNodesArgs{}
+	_returns := &Z_GetClusterNodesReturns{}
+	if err := g.client.Call("Plugin.GetClusterNodes", _args, _returns); err != nil {
+		log.Printf("RPC call to GetClusterNodes API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetClusterNodes(args *Z_GetClusterNodesArgs, returns *Z_GetClusterNodesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetClusterNodes() ([]*model.ClusterInfo, error)
+	}); ok {
+		returns.A, returns.B = hook.GetClusterNodes()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetClusterNodes called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RequestTrialLicenseArgs struct {
 	A string
 	B int
@@ -7885,6 +8089,37 @@ func (s *apiRPCServer) UpdateSharedChannelCursor(args *Z_UpdateSharedChannelCurs
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateSharedChannelCursor called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSharedChannelCursorArgs struct {
+	A string
+	B string
+}
+
+type Z_GetSharedChannelCursorReturns struct {
+	A model.GetPostsSinceForSyncCursor
+	B error
+}
+
+func (g *apiRPCClient) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	_args := &Z_GetSharedChannelCursorArgs{channelID, remoteID}
+	_returns := &Z_GetSharedChannelCursorReturns{}
+	if err := g.client.Call("Plugin.GetSharedChannelCursor", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSharedChannelCursor API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSharedChannelCursor(args *Z_GetSharedChannelCursorArgs, returns *Z_GetSharedChannelCursorReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error)
+	}); ok {
+		returns.A, returns.B = hook.GetSharedChannelCursor(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetSharedChannelCursor called but not implemented."))
 	}
 	return nil
 }

@@ -127,12 +127,21 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -196,17 +205,25 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -342,12 +359,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -411,17 +437,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -557,12 +591,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -626,17 +669,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -772,12 +823,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -850,17 +910,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -996,12 +1064,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1039,17 +1116,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1185,12 +1270,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1228,17 +1322,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1374,12 +1476,21 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             Lock to this channel
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="channelLocked"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              for="channelLocked"
+            >
+              <input
+                class="_checkbox__input_18swc_25"
+                id="channelLocked"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18swc_44"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -1452,17 +1563,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_we8pe_31"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>

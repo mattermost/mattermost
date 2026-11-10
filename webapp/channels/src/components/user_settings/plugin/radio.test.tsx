@@ -84,12 +84,8 @@ describe('radio', () => {
         };
         renderWithContext(<RadioInput {...getBaseProps()}/>, state);
 
-        const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
-        const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];
-        expect(option0Radio.nodeName).toBe('INPUT');
-        expect(option1Radio.nodeName).toBe('INPUT');
-        expect((option0Radio as HTMLInputElement).checked).toBeFalsy();
-        expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
+        expect(screen.getByRole('radio', {name: OPTION_0_TEXT})).not.toBeChecked();
+        expect(screen.getByRole('radio', {name: OPTION_1_TEXT})).toBeChecked();
     });
 
     it('properly get the default from props', () => {
@@ -113,26 +109,18 @@ describe('radio', () => {
         props.setting.default = '1';
         renderWithContext(<RadioInput {...props}/>, state);
 
-        const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
-        const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];
-        expect(option0Radio.nodeName).toBe('INPUT');
-        expect(option1Radio.nodeName).toBe('INPUT');
-        expect((option0Radio as HTMLInputElement).checked).toBeFalsy();
-        expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
+        expect(screen.getByRole('radio', {name: OPTION_0_TEXT})).not.toBeChecked();
+        expect(screen.getByRole('radio', {name: OPTION_1_TEXT})).toBeChecked();
     });
 
     it('properly persist changes', async () => {
         renderWithContext(<RadioInput {...getBaseProps()}/>);
 
-        const option0Radio = screen.getByText(OPTION_0_TEXT).children[0];
-        const option1Radio = screen.getByText(OPTION_1_TEXT).children[0];
-        expect(option0Radio.nodeName).toBe('INPUT');
-        expect(option1Radio.nodeName).toBe('INPUT');
-        expect((option0Radio as HTMLInputElement).checked).toBeTruthy();
-        expect((option1Radio as HTMLInputElement).checked).toBeFalsy();
+        expect(screen.getByRole('radio', {name: OPTION_0_TEXT})).toBeChecked();
+        expect(screen.getByRole('radio', {name: OPTION_1_TEXT})).not.toBeChecked();
 
-        await userEvent.click(option1Radio);
-        expect((option0Radio as HTMLInputElement).checked).toBeFalsy();
-        expect((option1Radio as HTMLInputElement).checked).toBeTruthy();
+        await userEvent.click(screen.getByRole('radio', {name: OPTION_1_TEXT}));
+        expect(screen.getByRole('radio', {name: OPTION_0_TEXT})).not.toBeChecked();
+        expect(screen.getByRole('radio', {name: OPTION_1_TEXT})).toBeChecked();
     });
 });

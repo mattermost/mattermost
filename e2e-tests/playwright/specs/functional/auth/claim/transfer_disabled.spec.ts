@@ -16,30 +16,23 @@ test('hides Sign-in Method when authentication transfer is disabled', {tag: '@au
     await pw.ensureSiteUrl();
     await pw.ensureKeycloakOpenId();
 
-    try {
-        // # Disable authentication transfer while another sign-in method is available
-        await adminClient.patchConfig({
-            ServiceSettings: {ExperimentalEnableAuthenticationTransfer: false},
-        });
+    // # Disable authentication transfer while another sign-in method is available
+    await adminClient.patchConfig({
+        ServiceSettings: {ExperimentalEnableAuthenticationTransfer: false},
+    });
 
-        // # Log in and open Profile -> Security
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
-        await pw.channelsPage.goto(team.name);
-        await pw.channelsPage.toBeVisible();
+    // # Log in and open Profile -> Security
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.login(user);
+    await pw.channelsPage.goto(team.name);
+    await pw.channelsPage.toBeVisible();
 
-        const profileModal = await pw.channelsPage.openProfileModal();
-        await profileModal.openSecurityTab();
+    const profileModal = await pw.channelsPage.openProfileModal();
+    await profileModal.openSecurityTab();
 
-        // * Verify the Sign-in Method section is not offered
-        await expect(profileModal.securityTab.signInHeading).toBeHidden();
-        await expect(profileModal.securityTab.editSignInMethod).toBeHidden();
-    } finally {
-        await adminClient.patchConfig({
-            OpenIdSettings: {Enable: false},
-            ServiceSettings: {ExperimentalEnableAuthenticationTransfer: true},
-        });
-    }
+    // * Verify the Sign-in Method section is not offered
+    await expect(profileModal.securityTab.signInHeading).toBeHidden();
+    await expect(profileModal.securityTab.editSignInMethod).toBeHidden();
 });

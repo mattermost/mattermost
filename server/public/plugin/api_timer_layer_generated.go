@@ -804,6 +804,20 @@ func (api *apiTimerLayer) GetPostThread(postId string) (*model.PostList, *model.
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetThreadFollowers(threadID)
+	api.recordTime(startTime, "GetThreadFollowers", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SetThreadFollowing(userID, threadID string, following bool) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SetThreadFollowing(userID, threadID, following)
+	api.recordTime(startTime, "SetThreadFollowing", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetPost(postId string) (*model.Post, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPost(postId)
@@ -850,6 +864,13 @@ func (api *apiTimerLayer) UpdatePost(post *model.Post) (*model.Post, *model.AppE
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpdatePost(post)
 	api.recordTime(startTime, "UpdatePost", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdatePostWithOptions(post, options)
+	api.recordTime(startTime, "UpdatePostWithOptions", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1077,6 +1098,13 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.KVListWithOptions(page, perPage, options)
+	api.recordTime(startTime, "KVListWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)
@@ -1289,6 +1317,20 @@ func (api *apiTimerLayer) PublishPluginClusterEvent(ev model.PluginClusterEvent,
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetClusterNodeID() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetClusterNodeID()
+	api.recordTime(startTime, "GetClusterNodeID", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) GetClusterNodes() ([]*model.ClusterInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetClusterNodes()
+	api.recordTime(startTime, "GetClusterNodes", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
@@ -1399,6 +1441,13 @@ func (api *apiTimerLayer) UpdateSharedChannelCursor(channelID, remoteID string, 
 	_returnsA := api.apiImpl.UpdateSharedChannelCursor(channelID, remoteID, cusror)
 	api.recordTime(startTime, "UpdateSharedChannelCursor", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSharedChannelCursor(channelID, remoteID)
+	api.recordTime(startTime, "GetSharedChannelCursor", _returnsB == nil)
+	return _returnsA, _returnsB
 }
 
 func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {

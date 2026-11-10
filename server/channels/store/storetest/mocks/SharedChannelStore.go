@@ -248,6 +248,36 @@ func (_m *SharedChannelStore) GetRemoteByIds(channelID string, remoteID string) 
 	return r0, r1
 }
 
+// GetRemoteByIdsFromMaster provides a mock function with given fields: channelID, remoteID
+func (_m *SharedChannelStore) GetRemoteByIdsFromMaster(channelID string, remoteID string) (*model.SharedChannelRemote, error) {
+	ret := _m.Called(channelID, remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRemoteByIdsFromMaster")
+	}
+
+	var r0 *model.SharedChannelRemote
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.SharedChannelRemote, error)); ok {
+		return rf(channelID, remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelRemote); ok {
+		r0 = rf(channelID, remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelRemote)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRemoteForUser provides a mock function with given fields: remoteID, userID, includeDeleted
 func (_m *SharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 	ret := _m.Called(remoteID, userID, includeDeleted)
@@ -484,6 +514,24 @@ func (_m *SharedChannelStore) HasRemote(channelID string, remoteID string) (bool
 	return r0, r1
 }
 
+// PermanentDeleteUsersByUser provides a mock function with given fields: userID
+func (_m *SharedChannelStore) PermanentDeleteUsersByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteUsersByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: sc
 func (_m *SharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	ret := _m.Called(sc)
@@ -698,6 +746,34 @@ func (_m *SharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPost
 	}
 
 	return r0
+}
+
+// UpdateRemoteCursorIfUnchanged provides a mock function with given fields: id, expectedUpdateAt, next
+func (_m *SharedChannelStore) UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error) {
+	ret := _m.Called(id, expectedUpdateAt, next)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRemoteCursorIfUnchanged")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, model.GetPostsSinceForSyncCursor) (bool, error)); ok {
+		return rf(id, expectedUpdateAt, next)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, model.GetPostsSinceForSyncCursor) bool); ok {
+		r0 = rf(id, expectedUpdateAt, next)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, model.GetPostsSinceForSyncCursor) error); ok {
+		r1 = rf(id, expectedUpdateAt, next)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateRemoteMembershipCursor provides a mock function with given fields: id, syncTime

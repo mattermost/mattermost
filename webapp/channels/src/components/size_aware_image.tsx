@@ -401,7 +401,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {image}
                 {utilityButtons}
             </>,
-            shouldShowImg ? 'block' : 'none',
+            !shouldShowImg,
         );
     };
 
@@ -448,7 +448,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
     };
 
-    renderImageContainer = (children: React.ReactNode, display?: string) => {
+    // The container only ever sets `display` inline to hide itself. The visible display mode is
+    // left to CSS so that each surface can keep images inline (Markdown, channel header) or make
+    // them block-level (attachments, blocks) instead of being forced to block-level here.
+    renderImageContainer = (children: React.ReactNode, hidden = false) => {
         let containerClass;
         let containerStyle;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
@@ -467,7 +470,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
-                style={{display}}
+                style={hidden ? {display: 'none'} : undefined}
             >
                 <figure
                     className={containerClass}

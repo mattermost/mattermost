@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, useEffect, useMemo, useRef} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -15,26 +16,19 @@ import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCat
 import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
-import {
-    showPreviewOnChannelSettingsHeaderModal,
-    showPreviewOnChannelSettingsPurposeModal,
-} from 'selectors/views/textbox';
-
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
 import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
 import type {ChannelInfoAttributesHandle} from 'components/channel_attributes/channel_info_attributes';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
@@ -64,11 +58,12 @@ function ChannelSettingsInfoTab({
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const channelKind = useChannelKind(channel);
 
     const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
 
-    const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
-    const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
+    const [shouldShowPreviewPurpose, setShouldShowPreviewPurpose] = useState(false);
+    const [shouldShowPreviewHeader, setShouldShowPreviewHeader] = useState(false);
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const isDirect = channel.type === Constants.DM_CHANNEL;
@@ -130,12 +125,7 @@ function ChannelSettingsInfoTab({
     // does not constrain the channel type, so the privacy toggle must stay
     // enabled in that case.
     const channelTypeLockedByMembershipPolicy = isMembershipPolicyEnforced(channel);
-    const channelTypeLockTooltip = channelTypeLockedByMembershipPolicy ?
-        formatMessage({
-            id: 'channel_settings.policy_enforced.cannot_change_channel_type',
-            defaultMessage: 'This channel has a membership policy applied. Remove the policy before changing between public and private.',
-        }) :
-        undefined;
+    const channelTypeLockTooltip = channelTypeLockedByMembershipPolicy ? formatMessage(messages.typeLocked[channelKind]) : undefined;
 
     const [defaultCategoryName, setDefaultCategoryName] = useState<string | undefined>(channel.default_category_name);
     const [serverDefaultCategoryName, setServerDefaultCategoryName] = useState<string | undefined>(channel.default_category_name);
@@ -240,21 +230,18 @@ function ChannelSettingsInfoTab({
     }, [internalUrlError]);
 
     const togglePurposePreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(!shouldShowPreviewPurpose));
-    }, [dispatch, shouldShowPreviewPurpose]);
+        setShouldShowPreviewPurpose((prev) => !prev);
+    }, []);
 
     const toggleHeaderPreview = useCallback(() => {
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(!shouldShowPreviewHeader));
-    }, [dispatch, shouldShowPreviewHeader]);
+        setShouldShowPreviewHeader((prev) => !prev);
+    }, []);
 
     const discoverableTitle = formatMessage({
         id: 'channel_settings.discoverable.title',
         defaultMessage: 'Discoverable (Users can request to join)',
     });
-    const discoverableDescription = formatMessage({
-        id: 'channel_settings.discoverable.description',
-        defaultMessage: 'Non-members can see this channel in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.',
-    });
+    const discoverableDescription = formatMessage(messages.discoverableDescription[channelKind]);
 
     const handleDiscoverableToggle = useCallback(() => {
         if (!canManageDiscoverability) {
@@ -293,18 +280,13 @@ function ChannelSettingsInfoTab({
 
         // Check for character limit
         if (newValue.trim().length > HEADER_MAX_LENGTH) {
-            setFormError(formatMessage({
-                id: 'edit_channel_header_modal.error',
-                defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
-            }, {
-                maxLength: HEADER_MAX_LENGTH,
-            }));
+            setFormError(formatMessage(channelKindMessages.headerLengthError[channelKind], {maxLength: HEADER_MAX_LENGTH}));
         } else if (formError && !channelNameError) {
             // Only clear form error if there's no channel name error
             // This prevents clearing channel name errors when editing the header
             setFormError('');
         }
-    }, [HEADER_MAX_LENGTH, formError, channelNameError, setFormError, formatMessage]);
+    }, [HEADER_MAX_LENGTH, formError, channelNameError, setFormError, formatMessage, channelKind]);
 
     const handlePurposeChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
         const newValue = e.target.value;
@@ -314,18 +296,13 @@ function ChannelSettingsInfoTab({
 
         // Check for character limit
         if (newValue.trim().length > Constants.MAX_CHANNELPURPOSE_LENGTH) {
-            setFormError(formatMessage({
-                id: 'channel_settings.error_purpose_length',
-                defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
-            }, {
-                maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-            }));
+            setFormError(formatMessage(messages.purposeLengthError[channelKind], {maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH}));
         } else if (formError && !channelNameError) {
             // Only clear server error if there's no channel name error
             // This prevents clearing channel name errors when editing the purpose
             setFormError('');
         }
-    }, [formError, channelNameError, setFormError, formatMessage]);
+    }, [formError, channelNameError, setFormError, formatMessage, channelKind]);
 
     const handleServerError = useCallback((err: ServerError) => {
         const errorMsg = err.message || formatMessage({id: 'channel_settings.unknown_error', defaultMessage: 'Something went wrong.'});
@@ -349,10 +326,7 @@ function ChannelSettingsInfoTab({
         }
 
         if (!isDMorGroupChannel && !displayName.trim()) {
-            setFormError(formatMessage({
-                id: 'channel_settings.error_display_name_required',
-                defaultMessage: 'Channel name is required',
-            }));
+            setFormError(formatMessage(messages.displayNameRequired[channelKind]));
             return false;
         }
 
@@ -370,10 +344,7 @@ function ChannelSettingsInfoTab({
         const attributesSaved = await attributesRef.current?.flush() ?? true;
         if (!attributesSaved) {
             handleServerError({
-                message: formatMessage({
-                    id: 'channel_settings.error_attributes_save_failed',
-                    defaultMessage: "Couldn't save one or more channel attributes. Try again.",
-                }),
+                message: formatMessage(messages.attributesSaveFailed[channelKind]),
             } as ServerError);
             return false;
         }
@@ -433,7 +404,7 @@ function ChannelSettingsInfoTab({
         }
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle, channelKind]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -527,16 +498,14 @@ function ChannelSettingsInfoTab({
             <div
                 className='ChannelSettingsModal__infoTabTitle'
             >
-                {formatMessage({id: 'channel_settings.channel_info_tab.name', defaultMessage: 'Channel Info'})}
+                {formatMessage(messages.tabTitle[channelKind])}
             </div>
             {!isDMorGroupChannel && (
                 <ChannelNameFormField
                     value={displayName}
                     name='channel-settings-name'
-                    placeholder={formatMessage({
-                        id: 'channel_settings_modal.name.placeholder',
-                        defaultMessage: 'Enter a name for your channel',
-                    })}
+                    label={formatMessage(channelKindMessages.nameLabel[channelKind])}
+                    placeholder={formatMessage(messages.namePlaceholder[channelKind])}
                     onDisplayNameChange={(name) => {
                         setDisplayName(name);
                     }}
@@ -555,7 +524,7 @@ function ChannelSettingsInfoTab({
                     className='ChannelSettingsModal__typeSelector'
                     selected={channelType}
                     publicButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.public.title', defaultMessage: 'Public Channel'}),
+                        title: formatMessage(messages.publicTitle[channelKind]),
                         description: formatMessage({id: 'channel_modal.type.public.description', defaultMessage: 'Anyone can join'}),
 
                         // Always disable public button if current channel is private, regardless of permissions
@@ -563,7 +532,7 @@ function ChannelSettingsInfoTab({
                         tooltip: channelTypeLockTooltip,
                     }}
                     privateButtonProps={{
-                        title: formatMessage({id: 'channel_modal.type.private.title', defaultMessage: 'Private Channel'}),
+                        title: formatMessage(messages.privateTitle[channelKind]),
                         description: formatMessage({id: 'channel_modal.type.private.description', defaultMessage: 'Only invited members'}),
                         disabled: !canConvertToPrivate || channelTypeLockedByMembershipPolicy,
                         tooltip: channelTypeLockTooltip,
@@ -578,35 +547,19 @@ function ChannelSettingsInfoTab({
                 still visible (transparency) but not editable. */}
             {showDiscoverableToggle && (
                 <div className='ChannelSettingsModal__discoverableSection'>
-                    <div className='channel_banner_header'>
-                        <div className='channel_banner_header__text'>
-                            <label
-                                className='Input_legend'
-                                aria-label={discoverableTitle}
-                            >
-                                {discoverableTitle}
-                            </label>
-                            <label
-                                className='Input_subheading'
-                                aria-label={discoverableDescription}
-                            >
-                                {discoverableDescription}
-                            </label>
-                        </div>
-                        <div className='channel_banner_header__toggle'>
-                            <Toggle
-                                id='channel-settings-discoverable-toggle'
-                                overrideTestId={true}
-                                ariaLabel={discoverableTitle}
-                                size='btn-md'
-                                disabled={!canManageDiscoverability}
-                                onToggle={handleDiscoverableToggle}
-                                toggled={discoverable}
-                                tabIndex={0}
-                                toggleClassName='btn-toggle-primary'
-                            />
-                        </div>
-                    </div>
+                    <Switch
+                        id='channel-settings-discoverable-toggle'
+                        size='medium'
+                        checked={discoverable}
+                        disabled={!canManageDiscoverability}
+                        onChange={handleDiscoverableToggle}
+                        data-testid='channel-settings-discoverable-toggle'
+                        tabIndex={0}
+                        semiBold={true}
+                        secondaryLabel={discoverableDescription}
+                    >
+                        {discoverableTitle}
+                    </Switch>
                     {!canManageDiscoverability && (
                         <p className='ChannelSettingsModal__discoverableReadOnly'>
                             {formatMessage({
@@ -625,7 +578,7 @@ function ChannelSettingsInfoTab({
                     getOptions={getSidebarCategoryNamesForTeam.current}
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelProperties}
-                    helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                    helpText={formatMessage(messages.defaultCategoryHelp[channelKind])}
                 />
             )}
             {/* Managed Sidebar Category Selector */}
@@ -648,30 +601,18 @@ function ChannelSettingsInfoTab({
                     value={channelPurpose}
                     channelId={channel.id}
                     onChange={handlePurposeChange}
-                    createMessage={formatMessage({
-                        id: 'channel_settings_modal.purpose.placeholder',
-                        defaultMessage: 'Enter a purpose for this channel (optional)',
-                    })}
+                    createMessage={formatMessage(messages.purposePlaceholder[channelKind])}
                     maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                     preview={shouldShowPreviewPurpose}
                     togglePreview={togglePurposePreview}
                     useChannelMentions={false}
                     onKeyPress={() => {}}
-                    descriptionMessage={formatMessage({
-                        id: 'channel_settings.purpose.description',
-                        defaultMessage: 'Describe how this channel should be used.',
-                    })}
+                    descriptionMessage={formatMessage(messages.purposeDescription[channelKind])}
                     hasError={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
-                    errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
-                        id: 'channel_settings.error_purpose_length',
-                        defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
-                    }, {
-                        maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
-                    }) : undefined
-                    }
+                    errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage(messages.purposeLengthError[channelKind], {maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH}) : undefined}
                     showCharacterCount={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
                     readOnly={!canManageChannelProperties}
-                    name={formatMessage({id: 'channel_settings.purpose.label', defaultMessage: 'Channel Purpose'})}
+                    name={formatMessage(messages.purposeLabel[channelKind])}
                 />
             )}
 
@@ -681,30 +622,18 @@ function ChannelSettingsInfoTab({
                 value={channelHeader}
                 channelId={channel.id}
                 onChange={handleHeaderChange}
-                createMessage={formatMessage({
-                    id: 'channel_settings_modal.header.placeholder',
-                    defaultMessage: 'Enter a header for this channel',
-                })}
+                createMessage={formatMessage(messages.headerPlaceholder[channelKind])}
                 maxLength={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
                 togglePreview={toggleHeaderPreview}
                 useChannelMentions={false}
                 onKeyPress={() => {}}
-                descriptionMessage={formatMessage({
-                    id: 'channel_settings.purpose.header',
-                    defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
-                })}
+                descriptionMessage={formatMessage(messages.headerDescription[channelKind])}
                 hasError={channelHeader.length > HEADER_MAX_LENGTH}
-                errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage({
-                    id: 'edit_channel_header_modal.error',
-                    defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
-                }, {
-                    maxLength: HEADER_MAX_LENGTH,
-                }) : undefined
-                }
+                errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage(channelKindMessages.headerLengthError[channelKind], {maxLength: HEADER_MAX_LENGTH}) : undefined}
                 showCharacterCount={channelHeader.length > HEADER_MAX_LENGTH}
                 readOnly={!canManageChannelProperties}
-                name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
+                name={formatMessage(messages.headerLabel[channelKind])}
             />
 
             {/* Same attribute editor as Channel Info RHS, but staged here: edits
@@ -744,5 +673,170 @@ function ChannelSettingsInfoTab({
         </div>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    typeLocked: {
+        channel: defineMessage({
+            id: 'channel_settings.policy_enforced.cannot_change_channel_type',
+            defaultMessage: 'This channel has a membership policy applied. Remove the policy before changing between public and private.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.policy_enforced.cannot_change_channel_type.board',
+            defaultMessage: 'This board has a membership policy applied. Remove the policy before changing between public and private.',
+        }),
+    },
+    discoverableDescription: {
+        channel: defineMessage({
+            id: 'channel_settings.discoverable.description',
+            defaultMessage: 'Non-members can see this channel in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.discoverable.description.board',
+            defaultMessage: 'Non-members can see this board in Browse Channels, the channel switcher, and shared permalinks. Message contents stay hidden until they join.',
+        }),
+    },
+    purposeLengthError: {
+        channel: defineMessage({
+            id: 'channel_settings.error_purpose_length',
+            defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.error_purpose_length.board',
+            defaultMessage: 'The text entered exceeds the character limit. The board purpose is limited to {maxLength} characters.',
+        }),
+    },
+    displayNameRequired: {
+        channel: defineMessage({
+            id: 'channel_settings.error_display_name_required',
+            defaultMessage: 'Channel name is required',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.error_display_name_required.board',
+            defaultMessage: 'Board name is required',
+        }),
+    },
+    attributesSaveFailed: {
+        channel: defineMessage({
+            id: 'channel_settings.error_attributes_save_failed',
+            defaultMessage: "Couldn't save one or more channel attributes. Try again.",
+        }),
+        board: defineMessage({
+            id: 'channel_settings.error_attributes_save_failed.board',
+            defaultMessage: "Couldn't save one or more board attributes. Try again.",
+        }),
+    },
+    tabTitle: {
+        channel: defineMessage({
+            id: 'channel_settings.channel_info_tab.name',
+            defaultMessage: 'Channel Info',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.channel_info_tab.name.board',
+            defaultMessage: 'Board Info',
+        }),
+    },
+    namePlaceholder: {
+        channel: defineMessage({
+            id: 'channel_settings_modal.name.placeholder',
+            defaultMessage: 'Enter a name for your channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings_modal.name.placeholder.board',
+            defaultMessage: 'Enter a name for your board',
+        }),
+    },
+    publicTitle: {
+        channel: defineMessage({
+            id: 'channel_modal.type.public.title',
+            defaultMessage: 'Public Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_modal.type.public.title.board',
+            defaultMessage: 'Public Board',
+        }),
+    },
+    privateTitle: {
+        channel: defineMessage({
+            id: 'channel_modal.type.private.title',
+            defaultMessage: 'Private Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_modal.type.private.title.board',
+            defaultMessage: 'Private Board',
+        }),
+    },
+    defaultCategoryHelp: {
+        channel: defineMessage({
+            id: 'default_category.help_text',
+            defaultMessage: 'Sets the default sidebar category for users when they join the channel.',
+        }),
+        board: defineMessage({
+            id: 'default_category.help_text.board',
+            defaultMessage: 'Sets the default sidebar category for users when they join the board.',
+        }),
+    },
+    purposePlaceholder: {
+        channel: defineMessage({
+            id: 'channel_settings_modal.purpose.placeholder',
+            defaultMessage: 'Enter a purpose for this channel (optional)',
+        }),
+        board: defineMessage({
+            id: 'channel_settings_modal.purpose.placeholder.board',
+            defaultMessage: 'Enter a purpose for this board (optional)',
+        }),
+    },
+    purposeDescription: {
+        channel: defineMessage({
+            id: 'channel_settings.purpose.description',
+            defaultMessage: 'Describe how this channel should be used.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.purpose.description.board',
+            defaultMessage: 'Describe how this board should be used.',
+        }),
+    },
+    purposeLabel: {
+        channel: defineMessage({
+            id: 'channel_settings.purpose.label',
+            defaultMessage: 'Channel Purpose',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.purpose.label.board',
+            defaultMessage: 'Board Purpose',
+        }),
+    },
+    headerPlaceholder: {
+        channel: defineMessage({
+            id: 'channel_settings_modal.header.placeholder',
+            defaultMessage: 'Enter a header for this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings_modal.header.placeholder.board',
+            defaultMessage: 'Enter a header for this board',
+        }),
+    },
+    headerDescription: {
+        channel: defineMessage({
+            id: 'channel_settings.purpose.header',
+            defaultMessage: 'This is the text that will appear in the header of the channel beside the channel name. You can use markdown to include links by typing [Link Title](http://example.com).',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.purpose.header.board',
+            defaultMessage: 'This is the text that will appear in the header of the board beside the board name. You can use markdown to include links by typing [Link Title](http://example.com).',
+        }),
+    },
+    headerLabel: {
+        channel: defineMessage({
+            id: 'channel_settings.header.label',
+            defaultMessage: 'Channel Header',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.header.label.board',
+            defaultMessage: 'Board Header',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelSettingsInfoTab;

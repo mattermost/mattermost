@@ -10,6 +10,7 @@ export const OPENLDAP_IMAGE = 'osixia/openldap:1.4.0';
 export const KEYCLOAK_IMAGE = 'quay.io/keycloak/keycloak:23.0.7';
 export const MINIO_IMAGE = 'cgr.dev/chainguard/minio:latest';
 export const AZURITE_IMAGE = 'mcr.microsoft.com/azure-storage/azurite:3.34.0';
+export const NGINX_IMAGE = 'nginx:1.31.6-alpine';
 // Built from a Dockerfile on top of docker.elastic.co/elasticsearch/elasticsearch, rather than
 // pulled as a fixed image — so only the version is fixed here.
 export const ELASTICSEARCH_VERSION = '9.0.0';

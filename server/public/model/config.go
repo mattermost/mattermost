@@ -55,6 +55,9 @@ const (
 
 	DatabaseDriverPostgres = "postgres"
 
+	// MinimumPostgresMajorVersion is the oldest PostgreSQL major version the server supports.
+	MinimumPostgresMajorVersion = 15
+
 	SearchengineElasticsearch = "elasticsearch"
 
 	MinioAccessKey = "minioaccesskey"
@@ -142,7 +145,8 @@ const (
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
-	TeamSettingsDefaultMaxUsersPerTeam       = 50
+	TeamSettingsDefaultMaxUsersPerTeam       = 0
+	TeamSettingsDefaultMaxChannelsPerTeam    = 0
 	TeamSettingsDefaultCustomBrandText       = ""
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
@@ -468,7 +472,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
-	EnableFileSearch                                  *bool   `access:"write_restrictable"`
+	EnableFileSearch                                  *bool   `access:"site_file_sharing_and_downloads,write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -528,6 +532,18 @@ type ServiceSettings struct {
 }
 
 var MattermostGiphySdkKey string
+
+func (s *ServiceSettings) CompressResponses() bool {
+	return *s.WebserverMode == "gzip"
+}
+
+// CompressResponsesWithBrotli reports whether API responses should negotiate
+// Brotli compression with clients that advertise support for it, falling back
+// to gzip otherwise. Requires both gzip compression and the EnableBrotliCompression
+// feature flag.
+func (s *ServiceSettings) CompressResponsesWithBrotli(enableBrotliCompression bool) bool {
+	return s.CompressResponses() && enableBrotliCompression
+}
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
@@ -1115,6 +1131,11 @@ type CacheSettings struct {
 	RedisPassword      *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisDB            *int    `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	RedisCachePrefix   *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisEnableTLS     *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSSkipVerify *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSCA         *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientCert *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
+	RedisTLSClientKey  *string `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 	DisableClientCache *bool   `access:",write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
@@ -1139,6 +1160,26 @@ func (s *CacheSettings) SetDefaults() {
 		s.RedisCachePrefix = new("")
 	}
 
+	if s.RedisEnableTLS == nil {
+		s.RedisEnableTLS = new(false)
+	}
+
+	if s.RedisTLSSkipVerify == nil {
+		s.RedisTLSSkipVerify = new(false)
+	}
+
+	if s.RedisTLSCA == nil {
+		s.RedisTLSCA = new("")
+	}
+
+	if s.RedisTLSClientCert == nil {
+		s.RedisTLSClientCert = new("")
+	}
+
+	if s.RedisTLSClientKey == nil {
+		s.RedisTLSClientKey = new("")
+	}
+
 	if s.DisableClientCache == nil {
 		s.DisableClientCache = new(false)
 	}
@@ -1155,6 +1196,16 @@ func (s *CacheSettings) isValid() *AppError {
 
 	if *s.CacheType == CacheTypeRedis && *s.RedisDB < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_db.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Keys are namespaced as "<prefix>:<cache>:<key>" and purged with SCAN MATCH "<prefix>:<cache>:*",
+	// so a separator or glob character in the prefix would let one server match another's keys.
+	if *s.CacheType == CacheTypeRedis && strings.ContainsAny(*s.RedisCachePrefix, `:*?[]\`) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.invalid_redis_cache_prefix.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CacheType == CacheTypeRedis && *s.RedisEnableTLS && (*s.RedisTLSClientCert == "") != (*s.RedisTLSClientKey == "") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.redis_tls_client_cert_key.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -1358,6 +1409,10 @@ type SSOSettings struct {
 	ButtonText           *string `access:"authentication_openid"` // telemetry: none
 	ButtonColor          *string `access:"authentication_openid"` // telemetry: none
 	UsePreferredUsername *bool   `access:"authentication_openid"` // telemetry: none
+	// AdditionalScopes are requested on top of Scope, space-separated, so that a
+	// provider releases claims it only sends for those scopes. Applied to OpenID
+	// Connect only.
+	AdditionalScopes *string `access:"authentication_openid"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEndpoint, buttonColor string) {
@@ -1405,6 +1460,49 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userAPIEnd
 	if s.UsePreferredUsername == nil {
 		s.UsePreferredUsername = new(false)
 	}
+
+	if s.AdditionalScopes == nil {
+		s.AdditionalScopes = new("")
+	}
+}
+
+// SSOSettingsAdditionalScopesMaxLength bounds SSOSettings.AdditionalScopes.
+const SSOSettingsAdditionalScopesMaxLength = 1024
+
+func (s *SSOSettings) isValid() *AppError {
+	if s.AdditionalScopes != nil {
+		if len(*s.AdditionalScopes) > SSOSettingsAdditionalScopesMaxLength || !isValidOAuthScopeList(*s.AdditionalScopes) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.sso_additional_scopes.app_error", map[string]any{"MaxLength": SSOSettingsAdditionalScopesMaxLength}, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
+// isValidOAuthScopeList reports whether scopes is a space-separated list of
+// scope tokens as defined by RFC 6749 section 3.3. An empty list is valid.
+func isValidOAuthScopeList(scopes string) bool {
+	for scope := range strings.SplitSeq(scopes, " ") {
+		for _, c := range scope {
+			if c != 0x21 && (c < 0x23 || c > 0x5B) && (c < 0x5D || c > 0x7E) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// JoinOAuthScopes returns the space-separated union of the given scope lists,
+// in order of first appearance.
+func JoinOAuthScopes(scopeLists ...string) string {
+	var scopes []string
+	for _, list := range scopeLists {
+		for scope := range strings.FieldsSeq(list) {
+			if !slices.Contains(scopes, scope) {
+				scopes = append(scopes, scope)
+			}
+		}
+	}
+	return strings.Join(scopes, " ")
 }
 
 type Office365Settings struct {
@@ -1648,11 +1746,11 @@ func NewLogSettings() *LogSettings {
 }
 
 func (s *LogSettings) isValid() *AppError {
-	if !isValidLogLevelName(*s.ConsoleLevel) {
+	if *s.EnableConsole && !isValidLogLevelName(*s.ConsoleLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.ConsoleLevel", "Value": *s.ConsoleLevel}, "", http.StatusBadRequest)
 	}
 
-	if !isValidLogLevelName(*s.FileLevel) {
+	if *s.EnableFile && !isValidLogLevelName(*s.FileLevel) {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.FileLevel", "Value": *s.FileLevel}, "", http.StatusBadRequest)
 	}
 
@@ -2598,7 +2696,7 @@ func (s *ThemeSettings) SetDefaults() {
 
 type TeamSettings struct {
 	SiteName                        *string `access:"site_customization"`
-	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"`
+	MaxUsersPerTeam                 *int    `access:"site_users_and_teams"` // 0 means no limit
 	EnableJoinLeaveMessageByDefault *bool   `access:"site_users_and_teams"`
 	EnableUserCreation              *bool   `access:"authentication_signup"`
 	EnableOpenServer                *bool   `access:"authentication_signup"`
@@ -2612,7 +2710,7 @@ type TeamSettings struct {
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"site_users_and_teams"`
-	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
+	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"` // 0 means no limit
 	EnableChannelCategorySorting        *bool    `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64   `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool    `access:"site_notifications"`
@@ -2682,7 +2780,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.MaxChannelsPerTeam == nil {
-		s.MaxChannelsPerTeam = new(int64(2000))
+		s.MaxChannelsPerTeam = new(int64(TeamSettingsDefaultMaxChannelsPerTeam))
 	}
 
 	if s.EnableChannelCategorySorting == nil {
@@ -3302,6 +3400,7 @@ type ElasticsearchSettings struct {
 	Trace                                       *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 	IgnoredPurgeIndexes                         *string `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSearchPublicChannelsWithoutMembership *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
+	EnableFileIndexing                          *bool   `access:"environment_elasticsearch,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -3419,6 +3518,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
 		s.EnableSearchPublicChannelsWithoutMembership = new(true)
+	}
+
+	if s.EnableFileIndexing == nil {
+		s.EnableFileIndexing = new(true)
 	}
 }
 
@@ -3639,9 +3742,12 @@ type PluginSettings struct {
 	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
 	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
+	// RestrictUnauthenticatedWebappPlugins limits the webapp plugins exposed to clients without a
+	// session to those whose manifest sets webapp.pre_auth.
+	RestrictUnauthenticatedWebappPlugins *bool `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
-func (s *PluginSettings) SetDefaults(ls LogSettings) {
+func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.Enable == nil {
 		s.Enable = new(true)
 	}
@@ -3694,6 +3800,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates[PluginIdAI] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates[PluginIdMetrics] == nil && ms.Enable != nil && *ms.Enable {
+		// Left unset otherwise, so the plugin gets enabled once performance monitoring is turned on
+		s.PluginStates[PluginIdMetrics] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = new(PluginSettingsDefaultEnableMarketplace)
 	}
@@ -3716,6 +3827,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.SignaturePublicKeyFiles == nil {
 		s.SignaturePublicKeyFiles = []string{}
+	}
+
+	// Existing installations are reset to false by an app migration on upgrade.
+	if s.RestrictUnauthenticatedWebappPlugins == nil {
+		s.RestrictUnauthenticatedWebappPlugins = new(true)
 	}
 }
 
@@ -4382,7 +4498,8 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.CacheSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.LogSettings.SetDefaults()
+	o.PluginSettings.SetDefaults(o.LogSettings, o.MetricsSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
@@ -4393,7 +4510,6 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
-	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
@@ -4469,6 +4585,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.OpenIdSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4599,11 +4719,11 @@ func (o *Config) IsValid() *AppError {
 }
 
 func (s *TeamSettings) isValid() *AppError {
-	if *s.MaxUsersPerTeam <= 0 {
+	if *s.MaxUsersPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_users.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxChannelsPerTeam <= 0 {
+	if *s.MaxChannelsPerTeam < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -4889,12 +5009,14 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
-		return appErr
-	}
+	if *s.Enable || *s.EnableSync {
+		if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+			return appErr
+		}
 
-	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
-		return appErr
+		if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+			return appErr
+		}
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
@@ -5080,7 +5202,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return appErr
 	}
 
-	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "uncompressed" || *s.WebserverMode == "disabled") {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 

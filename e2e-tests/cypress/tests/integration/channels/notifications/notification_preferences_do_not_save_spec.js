@@ -31,38 +31,23 @@ describe('Notifications', () => {
     });
 
     it('MM-T555 Notification Preferences do not save when modal is closed without saving', () => {
-        // # Call function that clicks on Settings -> Notifications -> Email notifications -> Send Email notifications -> Never without saving
-        openSettingsAndClickEmailEdit(true);
+        // # Open Settings → Notifications → Email, select Off/Never without saving
+        cy.uiOpenSettingsModal('Notifications');
+        cy.get('#emailEdit').should('be.visible').click();
 
-        // # Call function that checks Settings -> Notifications -> Email notifications -> Send Email notifications -> Never is not saved
-        openSettingsAndClickEmailEdit(false);
+        // Compass Radio hides the native input (opacity:0).
+        cy.get('#emailNotificationImmediately').should('exist').and('be.checked');
+        cy.get('#emailNotificationNever').should('exist').and('not.be.checked').check({force: true});
+        cy.wait(TIMEOUTS.HALF_SEC);
+
+        // # Close the modal without saving
+        cy.uiClose();
+        cy.get('#accountSettingsModal').should('not.exist');
+
+        // # Re-open and confirm the unsaved change was discarded
+        cy.uiOpenSettingsModal('Notifications');
+        cy.get('#emailEdit').should('be.visible').click();
+        cy.get('#emailNotificationImmediately').should('exist').and('be.checked');
+        cy.get('#emailNotificationNever').should('exist').and('not.be.checked');
     });
-
-    function openSettingsAndClickEmailEdit(shouldBeClicked = false) {
-        // # Open 'Settings' modal
-        cy.uiOpenSettingsModal().within(() => {
-            // # Click on the 'Edit' button next to Email notifications
-            cy.get('#emailEdit').click();
-
-            if (shouldBeClicked) {
-                // * Ensure that 'Send email notifications' is set to 'Immediately'
-                cy.get('#emailNotificationImmediately').should('be.visible').and('be.checked');
-
-                // # Check that 'Never' is not currently checked, and click it
-                cy.get('#emailNotificationNever').should('be.visible').and('not.be.checked').click();
-
-                // # Wait for half a second just to be sure the setting was correctly checked
-                cy.wait(TIMEOUTS.HALF_SEC);
-
-                // # Close the modal
-                cy.uiClose();
-            } else {
-                // * Ensure that 'Send email notifications' is set to 'Immediately'
-                cy.get('#emailNotificationImmediately').should('be.visible').and('be.checked');
-
-                // * Ensure that 'Send email notifications' is not set to 'Never'
-                cy.get('#emailNotificationNever').should('be.visible').and('not.be.checked');
-            }
-        });
-    }
 });

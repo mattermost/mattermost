@@ -6,9 +6,12 @@ package commands
 import (
 	"archive/zip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -327,13 +330,64 @@ const healthTestPacketGeneratedAt = 1790330400000
 
 func healthTestPacketFiles() map[string]string {
 	return map[string]string{
-		model.PacketMetadataFileName:           "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
-		model.SupportPacketDiagnosticsFileName: "version: 2\nserver:\n  hostname: mm.example.com\n  version: 11.0.4\n",
-		model.SupportPacketConfigFileName: `{
-    "ServiceSettings": {"SiteURL": "https://chat.example.com"},
-    "EmailSettings": {"SendPushNotifications": true, "PushNotificationServer": "http://push.example.com"}
-}`,
+		model.PacketMetadataFileName: "version: 1\ntype: support-packet\ngenerated_at: 1790330400000\nserver_version: 11.0.4\n",
+		model.SupportPacketDiagnosticsFileName: `version: 2
+license:
+  users: 500
+  sku_short_name: enterprise
+  expires_at: 1821866400000
+  features:
+    metrics: true
+    compliance: true
+    data_retention: true
+    message_export: true
+server:
+  os: linux
+  hostname: mm.example.com
+  open_file_descriptors: 120
+  max_file_descriptors: 65536
+  version: 11.0.4
+database:
+  type: postgres
+  version: "15.8"
+  master_connections_in_use: 1
+elastic:
+  status: disabled
+file_store:
+  file_status: OK
+  file_driver: local
+  total_mb: 102400
+  available_mb: 51200
+notifications:
+  email:
+    status: OK
+`,
+		model.SupportPacketStatsFileName:   "registered_users: 100\nactive_users: 100\nsingle_channel_guests: 0\nposts: 1000\n",
+		model.SupportPacketJobsFileName:    "data_retention_jobs: []\n",
+		model.SupportPacketConfigFileName:  healthTestPacketConfig(),
+		model.SupportPacketPluginsFileName: `{"enabled": [], "disabled": []}`,
 	}
+}
+
+// healthTestPacketConfig starts from defaults so new rules see a realistic config without editing this fixture.
+func healthTestPacketConfig() string {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.SiteURL = model.NewPointer("https://chat.example.com")
+	cfg.GuestAccountsSettings.Enable = model.NewPointer(true)
+	cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+	cfg.EmailSettings.PushNotificationServer = model.NewPointer("http://push.example.com")
+	cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.IdLoadedNotification)
+	cfg.SqlSettings.DataSource = model.NewPointer("postgres://****:****@db.example.com:5432/mattermost")
+	cfg.RateLimitSettings.Enable = model.NewPointer(true)
+	cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+	cfg.MetricsSettings.Enable = model.NewPointer(true)
+
+	b, err := json.Marshal(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return string(b)
 }
 
 func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) string {
@@ -363,6 +417,16 @@ func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *c
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
+	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  total_mb: 102400\n  available_mb: 51200\n",
+			"  total_mb: "+strconv.FormatUint(totalMB, 10)+"\n  available_mb: "+strconv.FormatUint(availableMB, 10)+"\n",
+			1,
+		)
+		return s.writeHealthTestPacket(files)
+	}
 
 	s.Run("runs with no server configured", func() {
 		printer.Clean()
@@ -398,7 +462,46 @@ Notifications
             PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
             → Prefix PushNotificationServer with https:// and verify reachability from the app node.
 
-1 critical`, s.printedHealthFindings())
+Version
+  CRITICAL  Mattermost version is past end-of-life
+            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
+            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
+
+Could not evaluate
+  WARNING   GOMAXPROCS exceeds the container CPU limit on mm.example.com
+            Server diagnostics unavailable.
+  WARNING   Host memory is running low on mm.example.com
+            Server diagnostics unavailable.
+  INFO      Host load is high on mm.example.com
+            Server diagnostics unavailable.
+
+2 critical, 3 could not be evaluated`, s.printedHealthFindings())
+	})
+
+	s.Run("plain output localizes a full filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "CRITICAL  File storage disk is nearly full on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 4.0 GiB (4.00%) available of 100.0 GiB. File uploads and other file operations can fail when the volume fills.")
+		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
+	})
+
+	s.Run("plain output localizes a low filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "WARNING   File storage disk space is low on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.")
+		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
@@ -441,11 +544,55 @@ Notifications
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 1)
-		s.Equal("PUSH_BAD_SCHEME", findings[0].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[0].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[0].FirstSeenAt)
+		s.Require().Len(findings, 5)
+		codes := make([]string, 0, len(findings))
+		for _, finding := range findings {
+			codes = append(codes, finding.Code)
+		}
+		s.ElementsMatch([]string{
+			"VERSION_EOL",
+			"PUSH_BAD_SCHEME",
+			"NODE_HOST_MEMORY_LOW",
+			"NODE_GOMAXPROCS_ABOVE_CPU_LIMIT",
+			"NODE_HOST_LOAD_HIGH",
+		}, codes)
+
+		pushIndex := slices.IndexFunc(findings, func(finding *model.HealthFinding) bool { return finding.Code == "PUSH_BAD_SCHEME" })
+		s.Require().NotEqual(-1, pushIndex)
+		s.Equal("PushNotificationServer does not use https://", findings[pushIndex].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[pushIndex].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {
+		var cfg model.Config
+		s.Require().NoError(json.Unmarshal([]byte(healthTestPacketConfig()), &cfg))
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(false)
+		noAuditTargets, err := json.Marshal(cfg)
+		s.Require().NoError(err)
+
+		reportsAuditLogOff := func(serverAuditActive bool) bool {
+			files := healthTestPacketFiles()
+			files[model.SupportPacketDiagnosticsFileName] += "config:\n  audit_logging_configured: " + strconv.FormatBool(serverAuditActive) + "\n"
+			files[model.SupportPacketStatsFileName] = "registered_users: 6000\n"
+			files[model.SupportPacketConfigFileName] = string(noAuditTargets)
+
+			printer.Clean()
+			printer.SetFormat(printer.FormatJSON)
+			cmd := newTestCmd(s.T(), HealthCheckCmd)
+			s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+			s.Require().NoError(healthCheckRunE(cmd, []string{}))
+			s.Require().Len(printer.GetLines(), 1)
+			list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+			s.Require().True(ok)
+			return slices.ContainsFunc(list.Findings, func(f *model.HealthFinding) bool { return f.Code == "AUDIT_LOG_OFF" })
+		}
+
+		s.True(reportsAuditLogOff(false))
+		s.False(reportsAuditLogOff(true), "the server audits through targets its config doesn't show")
+
+		s.T().Setenv("MM_EXPERIMENTALAUDITSETTINGS_ADDITIONAL", `{"audit": {"type": "file", "format": "json", "levels": [{"id": 100, "name": "audit-api"}], "options": {"filename": "audit.log"}}}`)
+		s.True(reportsAuditLogOff(false), "audit targets on the evaluating machine say nothing about the server")
 	})
 
 	s.Run("packet warnings follow the disclaimer and contain no em dash", func() {

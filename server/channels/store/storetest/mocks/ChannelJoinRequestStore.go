@@ -176,6 +176,24 @@ func (_m *ChannelJoinRequestStore) GetPendingForChannelAndUser(channelId string,
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userId
+func (_m *ChannelJoinRequestStore) PermanentDeleteByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: req
 func (_m *ChannelJoinRequestStore) Save(req *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
 	ret := _m.Called(req)

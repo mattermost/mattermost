@@ -93,7 +93,7 @@ describe('Collapsed Reply Threads', () => {
         cy.get('#click_to_replyTitle').click();
 
         // # Click radio button with option B ('off')
-        cy.get('#click_to_replyFormatB').click();
+        cy.get('#click_to_replyFormatB').check({force: true});
 
         // # Save settings
         cy.get('#saveSetting').click();
@@ -382,7 +382,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get('#mark-all-threads-as-read-modal').should('exist');
 
             // # Click close button
-            cy.get('button.close').click();
+            cy.get('#mark-all-threads-as-read-modal').find('button[aria-label="Close"]').click();
 
             // * Verify mark_all_threads_as_read_modal is closed
             cy.get('#mark-all-threads-as-read-modal').should('not.exist');

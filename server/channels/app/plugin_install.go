@@ -340,7 +340,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 
 			marketplaceVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackaged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			if prepackagedVersion.LessThan(marketplaceVersion) { // Always true if no prepackaged plugin was found

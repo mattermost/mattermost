@@ -16,19 +16,36 @@ const (
 	SupportPacketPluginsFileName     = "plugins.json"
 )
 
+type SupportPacketLicense struct {
+	Company         string `yaml:"company"`
+	Users           int    `yaml:"users"`
+	SkuShortName    string `yaml:"sku_short_name"`
+	IsTrial         bool   `yaml:"is_trial,omitempty"`
+	IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
+	IsNonProduction bool   `yaml:"is_non_production,omitempty"`
+	IsCloud         bool   `yaml:"is_cloud,omitempty"`
+	// ExpiresAt is in epoch milliseconds.
+	ExpiresAt           int64 `yaml:"expires_at,omitempty"`
+	IsSeatCountEnforced bool  `yaml:"is_seat_count_enforced,omitempty"`
+	ExtraUsers          *int  `yaml:"extra_users,omitempty"`
+	// Features is nil in packets from servers that predate it.
+	Features *Features `yaml:"features,omitempty"`
+}
+
+func (l *SupportPacketLicense) IsMattermostEntry() bool {
+	return l != nil && l.SkuShortName == LicenseShortSkuMattermostEntry
+}
+
+// MinimumEnterprise reports whether the license is at least Enterprise, as MinimumEnterpriseLicense does for a License.
+func (l *SupportPacketLicense) MinimumEnterprise() bool {
+	return l != nil && MinimumEnterpriseLicense(&License{SkuShortName: l.SkuShortName})
+}
+
 // SupportPacketDiagnostics reports one node's diagnostics. A nil pointer field was not collected, which is not the same as zero.
 type SupportPacketDiagnostics struct {
 	Version int `yaml:"version"`
 
-	License struct {
-		Company         string `yaml:"company"`
-		Users           int    `yaml:"users"`
-		SkuShortName    string `yaml:"sku_short_name"`
-		IsTrial         bool   `yaml:"is_trial,omitempty"`
-		IsGovSKU        bool   `yaml:"is_gov_sku,omitempty"`
-		IsNonProduction bool   `yaml:"is_non_production,omitempty"`
-		IsCloud         bool   `yaml:"is_cloud,omitempty"`
-	} `yaml:"license"`
+	License SupportPacketLicense `yaml:"license"`
 
 	Server struct {
 		// Machine
@@ -38,15 +55,30 @@ type SupportPacketDiagnostics struct {
 		InstallationType string  `yaml:"installation_type"`
 
 		// Capacity
-		CPUCores               int     `yaml:"cpu_cores"`
-		TotalMemoryMB          *uint64 `yaml:"total_memory_mb,omitempty"`
-		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
-		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+		CPUCores                     int      `yaml:"cpu_cores"`
+		TotalMemoryMB                *uint64  `yaml:"total_memory_mb,omitempty"`
+		AvailableMemoryMB            *uint64  `yaml:"available_memory_mb,omitempty"`
+		SwapTotalMB                  *uint64  `yaml:"swap_total_mb,omitempty"`
+		SwapUsedMB                   *uint64  `yaml:"swap_used_mb,omitempty"`
+		ContainerCPULimit            float64  `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB       uint64   `yaml:"container_memory_limit_mb,omitempty"`
+		ContainerMemoryUsageMB       *uint64  `yaml:"container_memory_usage_mb,omitempty"`
+		ContainerMemoryWorkingSetMB  *uint64  `yaml:"container_memory_working_set_mb,omitempty"`
+		ContainerOOMKills            *uint64  `yaml:"container_oom_kills,omitempty"`
+		LoadAverage1m                *float64 `yaml:"load_average_1m,omitempty"`
+		LoadAverage5m                *float64 `yaml:"load_average_5m,omitempty"`
+		LoadAverage15m               *float64 `yaml:"load_average_15m,omitempty"`
+		ContainerCPUPeriods          *uint64  `yaml:"container_cpu_periods,omitempty"`
+		ContainerCPUThrottledPeriods *uint64  `yaml:"container_cpu_throttled_periods,omitempty"`
+		ContainerCPUThrottledSeconds *float64 `yaml:"container_cpu_throttled_seconds,omitempty"`
+		GoMaxProcs                   *int     `yaml:"go_max_procs,omitempty"`
 
 		// Process lifecycle
 		ProcessID           int       `yaml:"process_id"`
 		StartedAt           time.Time `yaml:"started_at"`
 		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		ProcessRSSMB        *uint64   `yaml:"process_rss_mb,omitempty"`
+		GoMemoryLimitMB     *uint64   `yaml:"go_memory_limit_mb,omitempty"`
 		OpenFileDescriptors *int64    `yaml:"open_file_descriptors,omitempty"`
 		MaxFileDescriptors  *int64    `yaml:"max_file_descriptors,omitempty"`
 
@@ -58,6 +90,10 @@ type SupportPacketDiagnostics struct {
 
 	Config struct {
 		Source string `yaml:"store_type"`
+		// AuditLoggingConfigured is the server's own audit check of its config, license, environment and
+		// platform at packet time. The audit logger applies its targets only at startup, so after a runtime
+		// config or license change this can differ from what the server is writing.
+		AuditLoggingConfigured *bool `yaml:"audit_logging_configured,omitempty"`
 	} `yaml:"config"`
 
 	Database struct {
@@ -79,6 +115,7 @@ type SupportPacketDiagnostics struct {
 		ReplicaPoolWaitDurationMs           *int64     `yaml:"replica_pool_wait_duration_ms,omitempty"`
 		ReplicaConnectionsClosedMaxIdle     *int64     `yaml:"replica_connections_closed_max_idle,omitempty"`
 		ReplicaConnectionsClosedMaxLifetime *int64     `yaml:"replica_connections_closed_max_lifetime,omitempty"`
+		ReplicasOnline                      *int       `yaml:"replicas_online,omitempty"`
 		CacheHitRatio                       *float64   `yaml:"cache_hit_ratio,omitempty"`
 		Deadlocks                           *int64     `yaml:"deadlocks,omitempty"`
 		TempFiles                           *int64     `yaml:"temp_files,omitempty"`
@@ -107,7 +144,9 @@ type SupportPacketDiagnostics struct {
 	Cluster struct {
 		ID            string `yaml:"id"`
 		NumberOfNodes *int   `yaml:"number_of_nodes,omitempty"`
-		IsLeader      bool   `yaml:"is_leader,omitempty"`
+		// NumberOfConnectedNodes leaves out nodes that are registered in the database but not in the gossip cluster.
+		NumberOfConnectedNodes *int `yaml:"number_of_connected_nodes,omitempty"`
+		IsLeader               bool `yaml:"is_leader,omitempty"`
 	} `yaml:"cluster"`
 
 	Notifications struct {

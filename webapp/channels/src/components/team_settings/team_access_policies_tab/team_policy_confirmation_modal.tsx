@@ -4,8 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 
 import './team_policy_confirmation_modal.scss';
 
@@ -87,9 +87,9 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
                     </Button>
                     <Button
                         type='button'
-                        variant='destructive'
                         onClick={onConfirm}
                         disabled={saving}
+                        destructive={true}
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.apply', defaultMessage: 'Apply policy'})}
                     </Button>

@@ -85,7 +85,7 @@ function PersistNotificationConfirmModal({
         body = (
             <FormattedMessage
                 id='persist_notification.too_few.description'
-                defaultMessage='There are no recipients mentioned in your message. You’ll need add mentions to be able to send persistent notifications.'
+                defaultMessage='There are no recipients mentioned in your message. You’ll need to add mentions to be able to send persistent notifications.'
             />
         );
         confirmBtn = (

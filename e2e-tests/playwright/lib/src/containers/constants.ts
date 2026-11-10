@@ -67,6 +67,15 @@ export const OPENSEARCH_ALIAS = 'opensearch';
 export const OPENSEARCH_PORT = 9201;
 export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
 
+// General-purpose nginx reverse proxy fronting the Mattermost server.
+export const NGINX_ALIAS = 'nginx';
+export const NGINX_PORT = 80;
+export const NGINX_FIXED_HOST_PORT = 8057;
+export const NGINX_SSL_PORT = 443;
+export const NGINX_SSL_FIXED_HOST_PORT = 8043;
+// Subpath used when SiteURL is pointed at the proxy in subpath mode.
+export const SUBPATH_DEFAULT = '/subpath';
+
 // Applied to every container this module starts, so `npm run testcontainers:down` can find and
 // remove them from a fresh process, since stack.ts's in-memory `started` state doesn't persist.
 export const TESTCONTAINERS_LABEL_KEY = 'mm-playwright-testcontainers';

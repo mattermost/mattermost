@@ -49,6 +49,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		mockServer := &MockServerIface{}
 		mockServer.On("GetStore").Return(mockStore)
 		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("GetCluster").Return(nil)
 		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
 
 		return &Service{
@@ -86,7 +87,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		task := newSyncTask(channelID, "", remoteID, nil, nil)
 		scs.addTask(task)
 
-		scs.doSync()
+		scs.doSync(nil)
 
 		assert.Empty(t, scs.tasks, "the orphaned task must be drained, not re-enqueued for retry")
 		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
@@ -220,6 +221,8 @@ type mockRCSForSync struct {
 	cbErr        error
 
 	enqueueErr error // when set, SendMsg returns this WITHOUT invoking the callback
+
+	sent []model.RemoteClusterMsg
 }
 
 func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
@@ -239,6 +242,9 @@ func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.Conne
 }
 func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
 func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	m.mu.Lock()
+	m.sent = append(m.sent, msg)
+	m.mu.Unlock()
 	// Simulate an enqueue failure (e.g. BufferFullError): the callback never runs.
 	if m.enqueueErr != nil {
 		return m.enqueueErr
@@ -261,7 +267,7 @@ func (m *mockRCSForSync) SendFile(_ context.Context, _ *model.UploadSession, _ *
 func (m *mockRCSForSync) SendProfileImage(_ context.Context, _ string, _ *model.RemoteCluster, _ remotecluster.ProfileImageProvider, _ remotecluster.SendProfileImageResultFunc) error {
 	return errors.New("remote unreachable")
 }
-func (m *mockRCSForSync) AcceptInvitation(_ *model.RemoteClusterInvite, _, _, _, _, _ string) (*model.RemoteCluster, error) {
+func (m *mockRCSForSync) AcceptInvitation(_ *model.RemoteClusterInvite, _, _, _, _, _ string) (*model.RemoteCluster, *model.AppError) {
 	return nil, nil
 }
 func (m *mockRCSForSync) ReceiveIncomingMsg(_ *model.RemoteCluster, _ model.RemoteClusterMsg) remotecluster.Response {
@@ -295,6 +301,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail immediately
 
 	scs := &Service{
@@ -307,7 +314,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	scs.addTask(task)
 
 	before := time.Now()
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -341,6 +348,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs makes syncForRemote fail for each remote
 
 	scs := &Service{
@@ -352,7 +360,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	// Fan-out task: empty remoteID.
 	scs.addTask(newSyncTask(channelID, "", "", nil, nil))
 
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -492,6 +500,109 @@ func TestSendSyncMsgToRemote_EnqueueErrorDoesNotHang(t *testing.T) {
 	assert.Zero(t, notifyCount, "no sync-failed notification should fire when the enqueue itself failed")
 }
 
+func TestRemoveOldestTask_CatchUpYieldsToLiveTasks(t *testing.T) {
+	t.Run("ready live task is processed before older catch-up tasks", func(t *testing.T) {
+		scs := newTestService()
+		for _, channelID := range []string{"catchup-1", "catchup-2"} {
+			task := newSyncTask(channelID, "", "remote-1", nil, nil)
+			task.catchUp = true
+			scs.addTask(task)
+		}
+		time.Sleep(time.Millisecond)
+		scs.addTask(newSyncTask("live", "", "remote-1", nil, nil))
+
+		var order []string
+		for {
+			task, ok, _ := scs.removeOldestTask()
+			if !ok {
+				break
+			}
+			order = append(order, task.channelID)
+		}
+
+		require.Len(t, order, 3)
+		assert.Equal(t, "live", order[0])
+		assert.ElementsMatch(t, []string{"catchup-1", "catchup-2"}, order[1:])
+	})
+
+	t.Run("catch-up task is processed when no live task is ready", func(t *testing.T) {
+		scs := newTestService()
+		catchUp := newSyncTask("catchup", "", "remote-1", nil, nil)
+		catchUp.catchUp = true
+		scs.addTask(catchUp)
+		live := newSyncTask("live", "", "remote-1", nil, nil)
+		live.schedule = time.Now().Add(time.Hour)
+		scs.addTask(live)
+
+		task, ok, wait := scs.removeOldestTask()
+
+		require.True(t, ok)
+		assert.Equal(t, "catchup", task.channelID)
+		assert.Positive(t, wait, "the delayed live task should still be reported as pending")
+	})
+}
+
+func TestAddTask_MergeCatchUpFlag(t *testing.T) {
+	tests := []struct {
+		name          string
+		queuedCatchUp bool
+		addedCatchUp  bool
+		expected      bool
+	}{
+		{name: "live task merged into catch-up task clears the flag", queuedCatchUp: true, addedCatchUp: false, expected: false},
+		{name: "catch-up task merged into live task does not set the flag", queuedCatchUp: false, addedCatchUp: true, expected: false},
+		{name: "catch-up task merged into catch-up task keeps the flag", queuedCatchUp: true, addedCatchUp: true, expected: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			scs := newTestService()
+
+			queued := newSyncTask("channel-1", "", "remote-1", nil, nil)
+			queued.catchUp = tc.queuedCatchUp
+			scs.addTask(queued)
+
+			added := newSyncTask("channel-1", "", "remote-1", nil, nil)
+			added.catchUp = tc.addedCatchUp
+			scs.addTask(added)
+
+			require.Len(t, scs.tasks, 1)
+			assert.Equal(t, tc.expected, scs.tasks[queued.id].catchUp)
+		})
+	}
+}
+
+func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
+	remoteID := model.NewId()
+	rc := &model.RemoteCluster{RemoteId: remoteID, LastPingAt: model.GetMillis()}
+
+	rcStoreMock := &mocks.RemoteClusterStore{}
+	rcStoreMock.On("Get", remoteID, false).Return(rc, nil)
+	mockStore := &mocks.Store{}
+	mockStore.On("RemoteCluster").Return(rcStoreMock)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
+	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail
+
+	scs := newTestService()
+	scs.server = mockServer
+
+	task := newSyncTask(model.NewId(), "", remoteID, nil, nil)
+	task.catchUp = true
+	scs.addTask(task)
+
+	scs.doSync(nil)
+
+	require.Len(t, scs.tasks, 1, "failed task should be re-enqueued for retry")
+	for _, retried := range scs.tasks {
+		assert.Equal(t, 1, retried.retryCount)
+		assert.True(t, retried.catchUp, "retry of a catch-up task should stay a catch-up task")
+	}
+}
+
 func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	sd := &syncData{
 		posts: []*model.Post{
@@ -505,4 +616,217 @@ func TestStripSharedChannelStatePostsForSync(t *testing.T) {
 	require.Len(t, sd.posts, 1)
 	assert.Equal(t, "user-1", sd.posts[0].Id)
 	assert.Equal(t, model.PostTypeDefault, sd.posts[0].Type)
+}
+
+// TestUpdateCursorForRemote_KeepsCursorSetDuringBatch covers a cursor set with
+// UpdateSharedChannelCursor while a batch is in flight: the batch's write-back must not
+// overwrite it.
+func TestUpdateCursorForRemote_KeepsCursorSetDuringBatch(t *testing.T) {
+	channelID := model.NewId()
+	rc := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		DisplayName: "plugin-remote",
+		PluginID:    "com.example.plugin",
+		LastPingAt:  model.GetMillis(),
+	}
+	start := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 1000, LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 2000, LastPostUpdateID: model.NewId(),
+	}
+	next := model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: 3000, LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: 4000, LastPostUpdateID: model.NewId(),
+	}
+	rewind := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1, LastPostUpdateAt: 1}
+
+	newScr := func() *model.SharedChannelRemote {
+		return &model.SharedChannelRemote{
+			Id:               model.NewId(),
+			ChannelId:        channelID,
+			RemoteId:         rc.RemoteId,
+			LastPostCreateAt: start.LastPostCreateAt,
+			LastPostCreateID: start.LastPostCreateID,
+			LastPostUpdateAt: start.LastPostUpdateAt,
+			LastPostUpdateID: start.LastPostUpdateID,
+			UpdateAt:         1,
+		}
+	}
+
+	// The stored row is kept in memory; the conditional update mirrors the store's WHERE clause.
+	newService := func(t *testing.T, scr *model.SharedChannelRemote, rewindTo *model.GetPostsSinceForSyncCursor) (*Service, func() model.GetPostsSinceForSyncCursor) {
+		t.Helper()
+
+		var mu sync.Mutex
+		stored := start
+		storedUpdateAt := scr.UpdateAt
+
+		scStore := &mocks.SharedChannelStore{}
+		scStore.On("GetRemoteByIdsFromMaster", channelID, rc.RemoteId).Return(scr, nil)
+		scStore.On("UpdateRemoteCursor", scr.Id, mock.Anything).Return(func(_ string, cursor model.GetPostsSinceForSyncCursor) error {
+			mu.Lock()
+			defer mu.Unlock()
+			stored = cursor
+			storedUpdateAt++
+			return nil
+		})
+		scStore.On("UpdateRemoteCursorIfUnchanged", scr.Id, mock.Anything, mock.Anything).Return(
+			func(_ string, expectedUpdateAt int64, cursor model.GetPostsSinceForSyncCursor) (bool, error) {
+				mu.Lock()
+				defer mu.Unlock()
+				if storedUpdateAt != expectedUpdateAt {
+					return false, nil
+				}
+				stored = cursor
+				storedUpdateAt++
+				return true, nil
+			})
+
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(scStore)
+
+		mockServer := &MockServerIface{}
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("GetRemoteClusterService").Return(&mockRCSForSync{})
+		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+		mockApp := &MockAppIface{}
+		mockApp.On("OnSharedChannelsSyncMsg", mock.Anything, rc).Run(func(mock.Arguments) {
+			if rewindTo != nil {
+				require.NoError(t, scStore.UpdateRemoteCursor(scr.Id, *rewindTo))
+			}
+		}).Return(model.SyncResponse{}, nil)
+
+		scs := &Service{
+			server:       mockServer,
+			app:          mockApp,
+			changeSignal: make(chan struct{}, 1),
+			tasks:        make(map[string]syncTask),
+		}
+		return scs, func() model.GetPostsSinceForSyncCursor {
+			mu.Lock()
+			defer mu.Unlock()
+			return stored
+		}
+	}
+
+	newBatch := func(scr *model.SharedChannelRemote) *syncData {
+		sd := newSyncData(newSyncTask(channelID, "", rc.RemoteId, nil, nil), rc, scr)
+		sd.posts = []*model.Post{{Id: model.NewId(), ChannelId: channelID, Message: "hello"}}
+		sd.resultNextCursor = next
+		return sd
+	}
+
+	t.Run("batch advances the cursor when it was not changed", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, nil)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, next, stored())
+	})
+
+	t.Run("rewind made by the plugin hook survives the batch write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &rewind)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, rewind, stored())
+	})
+
+	t.Run("rewind to the batch's starting cursor survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &start)
+
+		require.NoError(t, scs.sendSyncData(newBatch(scr)))
+		assert.Equal(t, start, stored())
+	})
+
+	t.Run("rewind made before a batch with no posts survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, nil)
+		sd := newBatch(scr)
+		sd.posts = nil
+
+		require.NoError(t, scs.server.GetStore().SharedChannel().UpdateRemoteCursor(scr.Id, rewind))
+		require.NoError(t, scs.sendSyncData(sd))
+		assert.Equal(t, rewind, stored())
+	})
+
+	t.Run("rewind made during a post retry survives the write-back", func(t *testing.T) {
+		scr := newScr()
+		scs, stored := newService(t, scr, &rewind)
+		retryMsg := model.NewSyncMsg(channelID)
+		retryMsg.Posts = []*model.Post{{Id: model.NewId(), ChannelId: channelID, Message: "hello"}}
+
+		require.NoError(t, scs.syncForRemote(newSyncTask(channelID, "", rc.RemoteId, nil, retryMsg), rc))
+		assert.Equal(t, rewind, stored())
+	})
+}
+
+func TestFilterPostsForSync(t *testing.T) {
+	mockServer := &MockServerIface{}
+	mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+	scs := &Service{server: mockServer}
+
+	rc := &model.RemoteCluster{RemoteId: model.NewId()}
+	scr := &model.SharedChannelRemote{LastPostUpdateAt: 1000}
+	sd := newSyncData(syncTask{channelID: model.NewId()}, rc, scr)
+
+	editedID := model.NewId()
+	newID := model.NewId()
+	sd.posts = []*model.Post{
+		{Id: editedID, Message: "edited", CreateAt: 100, EditAt: 500, UpdateAt: 2000},
+		{Id: model.NewId(), Message: "original", CreateAt: 100, UpdateAt: 500, DeleteAt: 500, OriginalId: editedID},
+		{Id: newID, Message: "new", CreateAt: 1500, UpdateAt: 1500},
+		{Id: model.NewId(), Message: "from remote", CreateAt: 1500, UpdateAt: 1500, RemoteId: model.NewPointer(rc.RemoteId)},
+	}
+
+	scs.filterPostsForSync(sd)
+
+	ids := make([]string, 0, len(sd.posts))
+	for _, p := range sd.posts {
+		ids = append(ids, p.Id)
+	}
+	assert.Equal(t, []string{editedID, newID}, ids)
+}
+
+func TestFetchReactionsAndAcknowledgementsForSync(t *testing.T) {
+	remoteID := model.NewId()
+	postID := model.NewId()
+
+	reactions := []*model.Reaction{
+		{UserId: model.NewId(), PostId: postID, EmojiName: "smile", CreateAt: 100, UpdateAt: 100},
+		{UserId: model.NewId(), PostId: postID, EmojiName: "sad", CreateAt: 200, UpdateAt: 300, DeleteAt: 300},
+	}
+	acks := []*model.PostAcknowledgement{
+		{UserId: model.NewId(), PostId: postID, AcknowledgedAt: 100},
+		{UserId: model.NewId(), PostId: postID, AcknowledgedAt: 0},
+	}
+
+	mockReactionStore := &mocks.ReactionStore{}
+	mockReactionStore.On("GetForPostSince", postID, int64(0), remoteID, true).Return(reactions, nil)
+	mockAckStore := &mocks.PostAcknowledgementStore{}
+	mockAckStore.On("GetForPostSince", postID, int64(0), remoteID, true).Return(acks, nil)
+
+	mockStore := &mocks.Store{}
+	mockStore.On("Reaction").Return(mockReactionStore)
+	mockStore.On("PostAcknowledgement").Return(mockAckStore)
+
+	mockServer := &MockServerIface{}
+	mockServer.On("GetStore").Return(mockStore)
+	mockServer.On("GetMetrics").Return(nil)
+	scs := &Service{server: mockServer}
+
+	rc := &model.RemoteCluster{RemoteId: remoteID}
+	scr := &model.SharedChannelRemote{LastPostUpdateAt: 5000}
+	sd := newSyncData(syncTask{channelID: model.NewId()}, rc, scr)
+	sd.posts = []*model.Post{{Id: postID, CreateAt: 50, UpdateAt: 6000}}
+
+	require.NoError(t, scs.fetchReactionsForSync(sd))
+	require.NoError(t, scs.fetchAcknowledgementsForSync(sd))
+
+	assert.Equal(t, reactions, sd.reactions)
+	assert.Equal(t, acks, sd.acknowledgements)
+	mockReactionStore.AssertExpectations(t)
+	mockAckStore.AssertExpectations(t)
 }

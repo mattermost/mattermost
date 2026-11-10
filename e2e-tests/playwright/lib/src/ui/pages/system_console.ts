@@ -10,7 +10,9 @@ import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
 import SystemConsoleHeader from '@/ui/components/system_console/header';
 import EditionAndLicense from '@/ui/components/system_console/sections/about/edition_and_license';
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
+import ServerLogs from '@/ui/components/system_console/sections/reporting/server_logs';
 import Users from '@/ui/components/system_console/sections/user_management/users';
+import ChannelDetail from '@/ui/components/system_console/sections/user_management/channel_detail';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
 import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
 import MobileSecurity from '@/ui/components/system_console/sections/environment/mobile_security';
@@ -28,7 +30,6 @@ import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ld
 import PasswordSettings from '@/ui/components/system_console/sections/authentication/password';
 import MfaSettings from '@/ui/components/system_console/sections/authentication/mfa';
 import PublicLinks from '@/ui/components/system_console/sections/site_configuration/public_links';
-import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -43,9 +44,11 @@ export default class SystemConsolePage {
 
     // Reporting
     readonly teamStatistics: TeamStatistics;
+    readonly serverLogs: ServerLogs;
 
     // User Management
     readonly users: Users;
+    readonly channelDetail: ChannelDetail;
     readonly delegatedGranularAdministration: DelegatedGranularAdministration;
     readonly permissionsSystemScheme: PermissionsSystemScheme;
 
@@ -94,9 +97,11 @@ export default class SystemConsolePage {
 
         // Reporting
         this.teamStatistics = new TeamStatistics(adminConsoleWrapper);
+        this.serverLogs = new ServerLogs(adminConsoleWrapper);
 
         // User Management
         this.users = new Users(adminConsoleWrapper);
+        this.channelDetail = new ChannelDetail(adminConsoleWrapper);
         this.delegatedGranularAdministration = new DelegatedGranularAdministration(adminConsoleWrapper);
         this.permissionsSystemScheme = new PermissionsSystemScheme(adminConsoleWrapper);
 
@@ -137,56 +142,64 @@ export default class SystemConsolePage {
     }
 
     async goto() {
-        await this.page.goto(new URL('/admin_console', testConfig.baseURL).href);
+        await this.page.goto('/admin_console');
     }
 
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
-        await this.page.goto(new URL('/admin_console/environment/notifications', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/environment/notifications');
     }
 
     async gotoPluginManagement() {
-        await this.page.goto(new URL('/admin_console/plugins/plugin_management', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/plugins/plugin_management');
         await this.pluginManagement.toBeVisible();
     }
 
     async gotoEditionAndLicense() {
-        await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/about/license');
         await this.editionAndLicense.toBeVisible();
     }
 
+    /**
+     * @param query - Filters to open the page with, e.g. '?search=timeout&range=60'
+     */
+    async gotoServerLogs(query = '') {
+        await this.page.goto(`/admin_console/reporting/server_logs${query}`);
+        await this.page.waitForLoadState('networkidle');
+    }
+
     async gotoOpenIdConnect() {
-        await this.page.goto(new URL('/admin_console/authentication/openid', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/openid');
         await this.openIdConnect.toBeVisible();
     }
 
     async gotoUser(userId: string) {
-        await this.page.goto(new URL(`/admin_console/user_management/user/${userId}`, testConfig.baseURL).href);
+        await this.page.goto(`/admin_console/user_management/user/${userId}`);
         await this.users.userDetail.toBeVisible();
     }
 
     async gotoUsers() {
-        await this.page.goto(new URL('/admin_console/user_management/users', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/user_management/users');
         await this.users.toBeVisible();
     }
 
     async gotoAdLdap() {
-        await this.page.goto(new URL('/admin_console/authentication/ldap', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/ldap');
         await this.adLdap.toBeVisible();
     }
 
     async gotoPasswordSettings() {
-        await this.page.goto(new URL('/admin_console/authentication/password', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/password');
         await this.passwordSettings.toBeVisible();
     }
 
     async gotoMfaSettings() {
-        await this.page.goto(new URL('/admin_console/authentication/mfa', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/authentication/mfa');
         await this.mfaSettings.toBeVisible();
     }
 
     async gotoPublicLinks() {
-        await this.page.goto(new URL('/admin_console/site_config/public_links', testConfig.baseURL).href);
+        await this.page.goto('/admin_console/site_config/public_links');
         await this.publicLinks.toBeVisible();
     }
 
