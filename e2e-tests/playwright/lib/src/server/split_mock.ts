@@ -30,12 +30,16 @@ export type FeatureFlagDefinition = {
 
 const CONTROL_TIMEOUT_MS = 10_000;
 // What a change needs besides the server's sync interval: the mock pushes it to the server's Split client, which
-// fetches it, and the server saves the config once it reads the new value.
-const FLAG_PROPAGATION_MARGIN_MS = 5000;
+// fetches it, and the server saves the config once it reads the new value. CI runs ~30 of these specs' shards in
+// parallel, each with its own full Testcontainers stack, and a shard can see a burst of contention (shared runner
+// CPU/network, not this one container) that stalls several consecutive polls; a 5s margin wasn't enough headroom
+// for that (observed in CI: one shard failed 4 unrelated specs back to back, same mode, same 6s timeout, all other
+// shards fine) even outside subpath mode, so this is padded well past the common case rather than the minimum.
+const FLAG_PROPAGATION_MARGIN_MS = 15_000;
 // waitForServerFeatureFlags() polls through testConfig.baseURL, same as the browser — in subpath mode that is the
-// nginx proxy, an extra hop each poll pays that direct-to-server mode does not. Pad the deadline for it so transient
-// proxy/CI latency doesn't fail a propagation that is otherwise on time (observed in CI: subpath-only timeouts on
-// this wait, never on the identical non-subpath job).
+// nginx proxy, an extra hop each poll pays that direct-to-server mode does not. Pad the deadline further for it so
+// that hop's own latency, on top of the general CI contention above, doesn't fail a propagation that is otherwise
+// on time.
 const SUBPATH_PROPAGATION_MARGIN_MS = 10_000;
 const FLAG_POLL_INTERVAL_MS = 250;
 
