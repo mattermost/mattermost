@@ -5577,6 +5577,77 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
 	})
 
+	t.Run("Posts modified after creation are paged in CreateAt order", func(t *testing.T) {
+		modifiedChannelID := model.NewId()
+		base := model.GetMillis()
+
+		posts := make([]*model.Post, 5)
+		for i := range posts {
+			p, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: modifiedChannelID,
+				UserId:    model.NewId(),
+				Message:   fmt.Sprintf("modified test post %d", i),
+				CreateAt:  base + int64(i+1)*100,
+			})
+			require.NoError(t, err)
+			posts[i] = p
+		}
+
+		// Posts of excluded types, one live and one deleted, interleaved with the others.
+		for _, p := range []*model.Post{
+			{Type: model.PostTypeHeaderChange, CreateAt: base + 150},
+			{Type: model.PostTypeCard, CreateAt: base + 350, DeleteAt: base + 360},
+		} {
+			p.ChannelId = modifiedChannelID
+			p.UserId = model.NewId()
+			_, err := ss.Post().Save(rctx, p)
+			require.NoError(t, err)
+		}
+
+		// The second post is modified (e.g. reacted to) after all the others were created,
+		// and the fourth is deleted after that.
+		_, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", base+900, posts[1].Id)
+		require.NoError(t, err)
+		_, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ?, DeleteAt = ? WHERE Id = ?", base+1000, base+1000, posts[3].Id)
+		require.NoError(t, err)
+
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         modifiedChannelID,
+			SinceCreateAt:                     true,
+			IncludeDeleted:                    true,
+			ExcludeChannelMetadataSystemPosts: true,
+			ExcludedPostTypes:                 []string{model.PostTypeCard},
+		}
+		start := model.GetPostsSinceForSyncCursor{LastPostCreateAt: base}
+
+		page1, cursor, err := ss.Post().GetPostsSinceForSync(opt, start, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[0:3]), getPostIds(page1))
+		require.Equal(t, posts[2].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[2].Id, cursor.LastPostCreateID)
+
+		page2, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[3:5]), getPostIds(page2))
+		require.Equal(t, posts[4].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[4].Id, cursor.LastPostCreateID)
+
+		page3, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Empty(t, page3)
+
+		// A page ending on the deleted post takes its cursor from that post.
+		page1, cursor, err = ss.Post().GetPostsSinceForSync(opt, start, 4)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[0:4]), getPostIds(page1))
+		require.Equal(t, posts[3].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[3].Id, cursor.LastPostCreateID)
+
+		page2, _, err = ss.Post().GetPostsSinceForSync(opt, cursor, 4)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[4:5]), getPostIds(page2))
+	})
+
 	t.Run("CreateAt collisions", func(t *testing.T) {
 		// this test requires all the CreateAt timestamps to be the same.
 		result, err := s.GetMaster().Exec("UPDATE Posts SET CreateAt = ?", model.GetMillis())
@@ -5586,7 +5657,8 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Greater(t, rows, int64(0))
 
 		opt := model.GetPostsSinceForSyncOptions{
-			ChannelId: channelID,
+			ChannelId:     channelID,
+			SinceCreateAt: true,
 		}
 		cursor := model.GetPostsSinceForSyncCursor{}
 		posts1, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
@@ -5598,6 +5670,20 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Len(t, posts2, 3, "should get 3 posts")
 
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
+
+		// Live and deleted posts share the CreateAt, so pages must continue across both by Id.
+		opt.IncludeDeleted = true
+		cursor = model.GetPostsSinceForSyncCursor{}
+		var all []*model.Post
+		for _, expected := range []int{4, 4, 2, 0} {
+			var page []*model.Post
+			page, cursor, err = ss.Post().GetPostsSinceForSync(opt, cursor, 4)
+			require.NoError(t, err)
+			require.Len(t, page, expected)
+			all = append(all, page...)
+		}
+		require.ElementsMatch(t, getPostIds(data), getPostIds(all))
+		require.IsIncreasing(t, getPostIds(all))
 	})
 }
 

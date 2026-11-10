@@ -1569,12 +1569,11 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
-	query := s.postsQuery.
-		OrderBy("Posts.UpdateAt", "Id").
-		Limit(uint64(limit))
+	query := s.postsQuery
 
 	if options.SinceCreateAt {
-		query = query.Where(sq.Or{
+		// The redundant lower bound lets the CreateAt index range start at the cursor.
+		query = query.Where(sq.GtOrEq{"Posts.CreateAt": cursor.LastPostCreateAt}).Where(sq.Or{
 			sq.Gt{"Posts.CreateAt": cursor.LastPostCreateAt},
 			sq.And{
 				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt},
@@ -1610,6 +1609,24 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 
 	if len(options.ExcludedPostTypes) > 0 {
 		query = query.Where(sq.NotEq{"Posts.Type": options.ExcludedPostTypes})
+	}
+
+	switch {
+	case options.SinceCreateAt && options.IncludeDeleted:
+		// No index orders a channel's posts by CreateAt across all DeleteAt values, so page
+		// live and deleted posts separately; each can then use idx_posts_channel_id_delete_at_create_at.
+		page := query.PlaceholderFormat(sq.Question).OrderBy("Posts.CreateAt", "Posts.Id").Limit(uint64(limit))
+		live := page.Where(sq.Eq{"Posts.DeleteAt": 0})
+		deleted := page.Where(sq.NotEq{"Posts.DeleteAt": 0})
+		query = s.getQueryBuilder().
+			Select(postSliceColumnsWithName("Posts")...).
+			FromSelect(live.Prefix("(").Suffix(") UNION ALL (?)", deleted), "Posts").
+			OrderBy("Posts.CreateAt", "Posts.Id").
+			Limit(uint64(limit))
+	case options.SinceCreateAt:
+		query = query.OrderBy("Posts.CreateAt", "Posts.Id").Limit(uint64(limit))
+	default:
+		query = query.OrderBy("Posts.UpdateAt", "Id").Limit(uint64(limit))
 	}
 
 	posts := []*model.Post{}
