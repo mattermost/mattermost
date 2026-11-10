@@ -15,6 +15,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
@@ -344,12 +345,12 @@ const PluginItem = ({
         logsButton = (
             <span>
                 {' - '}
-                <Link to={pluginLogsPath(pluginStatus.id)}>
+                <BlockableLink to={pluginLogsPath(pluginStatus.id)}>
                     <FormattedMessage
                         id='admin.plugin.viewLogs'
                         defaultMessage='View logs'
                     />
-                </Link>
+                </BlockableLink>
             </span>
         );
     }

@@ -4,7 +4,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {connect} from 'react-redux';
-import {Link} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
@@ -16,6 +15,7 @@ import {Switch} from '@mattermost/compass-ui/components/switch';
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -223,12 +223,12 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, logsPath
                         size='small'
                         leadingIcon={<Icon glyph={<TextBoxOutlineIcon/>}/>}
                     >
-                        <Link to={logsPath}>
+                        <BlockableLink to={logsPath}>
                             <FormattedMessage
                                 id='admin.plugin.viewLogs'
                                 defaultMessage='View logs'
                             />
-                        </Link>
+                        </BlockableLink>
                     </Button>
                 )}
                 <Menu.Container

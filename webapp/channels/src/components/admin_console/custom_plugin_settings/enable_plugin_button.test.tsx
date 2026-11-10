@@ -108,6 +108,26 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeDisabled();
     });
 
+    it('asks before leaving unsaved settings for the plugin logs', async () => {
+        const {store} = renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                logsPath='/admin_console/reporting/server_logs?field.plugin_id=com.mattermost.calls'
+                saveNeeded='config'
+                value={true}
+                actions={{disablePlugin: jest.fn(), enablePlugin: jest.fn(), removePlugin: jest.fn()}}
+            />,
+            {views: {admin: {navigationBlock: {blocked: true}}}},
+        );
+        const pathname = window.location.pathname;
+
+        await userEvent.click(screen.getByRole('link', {name: 'View logs'}));
+
+        expect(window.location.pathname).toBe(pathname);
+        expect(store.getState().views.admin.navigationBlock.showNavigationPrompt).toBe(true);
+    });
+
     it('leaves out the logs link without access to the logs', () => {
         renderWithContext(
             <PluginEnableButton
