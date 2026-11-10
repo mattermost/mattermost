@@ -238,8 +238,29 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
 			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
+			if sessionAttributesVisiblyChanged(attrsToMerge, cached, timestamps, fieldsByName, now) {
+				a.invalidateAccessDecisionsForSession(rctx.Session().Id)
+			}
 		}
 	}
+}
+
+func sessionAttributesVisiblyChanged(attrs, cached map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField, now int64) bool {
+	for name, value := range attrs {
+		previous, ok := cached[name]
+		if !ok || previous != value {
+			return true
+		}
+		field, ok := fieldsByName[name]
+		timestamp, hasTimestamp := timestamps[name]
+		if !ok || !hasTimestamp {
+			return true
+		}
+		if now > timestamp+int64(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds)*1000 {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, attrs map[string]any, refreshAt int64) {
@@ -298,33 +319,48 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 }
 
 func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
+	attrs, _, appErr := a.getSessionAttributesWithExpiry(rctx, sessionID)
+	return attrs, appErr
+}
+
+// getSessionAttributesWithExpiry is GetSessionAttributes plus, for each value it returns, the
+// epoch ms at which filterStaleSessionAttributes would start dropping it.
+func (a *App) getSessionAttributesWithExpiry(rctx request.CTX, sessionID string) (map[string]any, map[string]int64, *model.AppError) {
 	if !a.sessionAttributesEnabled() {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	attrs, timestamps, err := a.Srv().Store().SessionAttribute().Get(sessionID)
 	if err != nil {
 		if errors.Is(err, cache.ErrKeyNotFound) {
-			return nil, nil
+			return nil, nil, nil
 		}
-		return nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, model.NewAppError("GetSessionAttributes", "app.access_control.get_session_attributes.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	fieldsByName, appErr := a.getSessionAttributeFieldsByName(rctx)
 	if appErr != nil {
-		return nil, appErr
+		return nil, nil, appErr
 	}
 
-	return filterStaleSessionAttributes(attrs, timestamps, fieldsByName), nil
+	filtered, expiresAt := filterStaleSessionAttributesWithExpiry(attrs, timestamps, fieldsByName, time.Now())
+	return filtered, expiresAt, nil
 }
 
 func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField) map[string]any {
+	filtered, _ := filterStaleSessionAttributesWithExpiry(attrs, timestamps, fieldsByName, time.Now())
+	return filtered
+}
+
+// filterStaleSessionAttributesWithExpiry drops values past their TTL plus grace period at now,
+// and returns the epoch ms at which each kept value goes stale.
+func filterStaleSessionAttributesWithExpiry(attrs map[string]any, timestamps map[string]int64, fieldsByName map[string]*sessionAttributeField, now time.Time) (map[string]any, map[string]int64) {
 	if len(attrs) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	now := time.Now()
 	filtered := make(map[string]any, len(attrs))
+	expiresAt := make(map[string]int64, len(attrs))
 	for name, value := range attrs {
 		field, ok := fieldsByName[name]
 		if !ok {
@@ -334,14 +370,15 @@ func filterStaleSessionAttributes(attrs map[string]any, timestamps map[string]in
 		if !ok {
 			continue
 		}
-		expiry := time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second
-		if now.After(time.UnixMilli(timestamp).Add(expiry)) {
+		expiry := time.UnixMilli(timestamp).Add(time.Duration(field.Attrs.TTLSeconds+field.Attrs.GracePeriodSeconds) * time.Second)
+		if now.After(expiry) {
 			continue
 		}
 		filtered[name] = value
+		expiresAt[name] = expiry.UnixMilli()
 	}
 	if len(filtered) == 0 {
-		return nil
+		return nil, nil
 	}
-	return filtered
+	return filtered, expiresAt
 }

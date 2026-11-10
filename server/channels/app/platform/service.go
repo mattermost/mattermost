@@ -158,6 +158,9 @@ type PlatformService struct {
 	// prePublishHook runs on every event Publish sends, before the cluster copy is
 	// serialized. Set by the app layer, which platform can't call into directly.
 	prePublishHook func(message *model.WebSocketEvent)
+
+	// accessDecisionInvalidator is told about user and session changes. Set by the app layer.
+	accessDecisionInvalidator AccessDecisionInvalidator
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.

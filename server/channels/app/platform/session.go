@@ -104,6 +104,7 @@ func (ps *PlatformService) ClearAllUsersSessionCacheLocal() error {
 
 func (ps *PlatformService) ClearUserSessionCache(userID string) {
 	ps.ClearSessionCacheForUserSkipClusterSend(userID)
+	ps.invalidateAccessDecisionsForUser(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -121,6 +122,7 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 	// peer nodes. The broadcast still runs on local-purge failure so peers
 	// can act independently.
 	err := ps.ClearSessionCacheForAllUsersSkipClusterSend()
+	ps.invalidateAllAccessDecisions(true)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -139,6 +141,7 @@ func (ps *PlatformService) invalidateSessionAttributes(sessionID string) {
 	if err := ps.Store.SessionAttribute().Invalidate(sessionID); err != nil {
 		ps.logger.Warn("Failed to invalidate session attributes", mlog.String("session_id", sessionID), mlog.Err(err))
 	}
+	ps.invalidateAccessDecisionsForSession(sessionID)
 }
 
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {

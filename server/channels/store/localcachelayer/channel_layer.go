@@ -387,24 +387,52 @@ func (s LocalCacheChannelStore) GetChannelMemberRoles(rctx request.CTX, userID s
 	return memberRoles, nil
 }
 
-// invalidateChannelMemberRoles drops the cached roles of userIDs in channelID.
-func (s LocalCacheChannelStore) invalidateChannelMemberRoles(channelID string, userIDs ...string) {
-	if len(userIDs) == 0 {
+// invalidateChannelMemberRoles drops the cached roles of the given memberships.
+func (s LocalCacheChannelStore) invalidateChannelMemberRoles(memberships []UserChannel) {
+	if len(memberships) == 0 {
 		return
 	}
-	keys := make([]string, len(userIDs))
-	for i, userID := range userIDs {
-		keys[i] = channelMemberRolesKey(userID, channelID)
+	keys := make([]string, len(memberships))
+	for i, m := range memberships {
+		keys[i] = channelMemberRolesKey(m[0], m[1])
 	}
 	s.rootStore.doMultiInvalidateCacheCluster(s.rootStore.channelMemberRolesCache, keys, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
 	}
+	s.rootStore.notifyChannelMembershipsChanged(memberships)
+}
+
+func membershipsOf(members []*model.ChannelMember) []UserChannel {
+	memberships := make([]UserChannel, len(members))
+	for i, member := range members {
+		memberships[i] = UserChannel{member.UserId, member.ChannelId}
+	}
+	return memberships
 }
 
 // clearChannelMemberRoles drops every cached membership role, for the writes that change
 // memberships without saying which.
 func (s LocalCacheChannelStore) clearChannelMemberRoles() {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyAllChannelMembershipsChanged()
+}
+
+// clearChannelMemberRolesForUser is clearChannelMemberRoles for a write that only changed
+// userID's memberships. The cache is keyed by user and channel, so it is still purged in full.
+func (s LocalCacheChannelStore) clearChannelMemberRolesForUser(userID string) {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyUserChannelMembershipsChanged(userID)
+}
+
+// clearChannelMemberRolesForChannel is clearChannelMemberRoles for a write that only changed
+// channelID's memberships.
+func (s LocalCacheChannelStore) clearChannelMemberRolesForChannel(channelID string) {
+	s.purgeChannelMemberRoles()
+	s.rootStore.notifyChannelMembersChanged(channelID)
+}
+
+func (s LocalCacheChannelStore) purgeChannelMemberRoles() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesCache)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
@@ -545,6 +573,7 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	} else {
 		s.InvalidateMemberCount(member.ChannelId)
 	}
+	s.rootStore.notifyChannelMembershipsChanged([]UserChannel{{member.UserId, member.ChannelId}})
 	return member, nil
 }
 
@@ -564,6 +593,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 			s.InvalidateMemberCount(member.ChannelId)
 		}
 	}
+	s.rootStore.notifyChannelMembershipsChanged(membershipsOf(members))
 	return members, nil
 }
 
@@ -608,7 +638,7 @@ func (s LocalCacheChannelStore) UpdateMember(rctx request.CTX, member *model.Cha
 		return nil, err
 	}
 	s.InvalidateMemberCount(member.ChannelId)
-	s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
+	s.invalidateChannelMemberRoles([]UserChannel{{member.UserId, member.ChannelId}})
 	return member, nil
 }
 
@@ -619,8 +649,8 @@ func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMe
 	}
 	for _, member := range members {
 		s.InvalidateMemberCount(member.ChannelId)
-		s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
 	}
+	s.invalidateChannelMemberRoles(membershipsOf(members))
 	return members, nil
 }
 
@@ -629,7 +659,7 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	if err != nil {
 		return err
 	}
-	s.invalidateChannelMemberRoles(channelId, userId)
+	s.invalidateChannelMemberRoles([]UserChannel{{userId, channelId}})
 
 	// For redis, directly decrement member count.
 	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
@@ -645,7 +675,11 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
-	s.invalidateChannelMemberRoles(channelId, userIds...)
+	memberships := make([]UserChannel, len(userIds))
+	for i, userID := range userIds {
+		memberships[i] = UserChannel{userID, channelId}
+	}
+	s.invalidateChannelMemberRoles(memberships)
 	// For redis, directly decrement member count.
 	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
 		s.rootStore.doDecrementCache(externalCache, channelId, len(userIds))
@@ -660,9 +694,7 @@ func (s LocalCacheChannelStore) UpdateMembersRole(channelID string, userIDs []st
 	if err != nil {
 		return nil, err
 	}
-	for _, member := range updated {
-		s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
-	}
+	s.invalidateChannelMemberRoles(membershipsOf(updated))
 	return updated, nil
 }
 
@@ -670,7 +702,7 @@ func (s LocalCacheChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, ch
 	if err := s.ChannelStore.RemoveAllDeactivatedMembers(rctx, channelID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForChannel(channelID)
 	return nil
 }
 
@@ -678,7 +710,7 @@ func (s LocalCacheChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX
 	if err := s.ChannelStore.PermanentDeleteMembersByChannel(rctx, channelID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForChannel(channelID)
 	return nil
 }
 
@@ -686,7 +718,7 @@ func (s LocalCacheChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, u
 	if err := s.ChannelStore.PermanentDeleteMembersByUser(rctx, userID); err != nil {
 		return err
 	}
-	s.clearChannelMemberRoles()
+	s.clearChannelMemberRolesForUser(userID)
 	return nil
 }
 

@@ -247,6 +247,7 @@ func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.InvalidateChannelCacheForUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
+	ps.invalidateAccessDecisionsForUser(userID)
 }
 
 func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {

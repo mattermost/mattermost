@@ -46,15 +46,35 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 // sanitized under the old attributes.
 func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) {
 	seen := make(map[string]bool, len(values))
+	var channelIDs []string
+	seenChannels := map[string]bool{}
 	for _, v := range values {
-		if v == nil || v.TargetType != model.PropertyFieldObjectTypeUser || seen[v.TargetID] {
+		if v == nil {
+			continue
+		}
+		// Channel values feed rules that read resource.attributes.*.
+		if v.TargetType == model.PropertyFieldObjectTypeChannel && !seenChannels[v.TargetID] {
+			seenChannels[v.TargetID] = true
+			channelIDs = append(channelIDs, v.TargetID)
+			continue
+		}
+		if v.TargetType != model.PropertyFieldObjectTypeUser || seen[v.TargetID] {
 			continue
 		}
 		seen[v.TargetID] = true
 	}
+	if len(channelIDs) > 0 {
+		a.invalidateAccessDecisionsForResources(channelIDs)
+	}
 	if len(seen) == 0 {
 		return
 	}
+
+	userIDs := make([]string, 0, len(seen))
+	for userID := range seen {
+		userIDs = append(userIDs, userID)
+	}
+	a.invalidateAccessDecisionsForUsers(userIDs)
 
 	a.invalidateAttributeViewCache()
 
@@ -73,11 +93,16 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 // invalidateUserPropertyValuesEpoch is the single-target form, for delete paths that have a target
 // ID rather than a set of values. Same split gate as above.
 func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
+	if targetType == model.PropertyFieldObjectTypeChannel {
+		a.invalidateAccessDecisionsForResources([]string{targetID})
+		return
+	}
 	if targetType != model.PropertyFieldObjectTypeUser {
 		return
 	}
 
 	a.invalidateAttributeViewCache()
+	a.invalidateAccessDecisionsForUsers([]string{targetID})
 
 	if !a.attributeBasedAccessControlEnabled() {
 		return
@@ -91,6 +116,7 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 // PropertyValues row, and so are invisible to an epoch computed from that table.
 func (a *App) invalidateAllUserAttributeCaches() {
 	a.invalidateAttributeViewCache()
+	a.invalidateAllAccessDecisions()
 
 	if !a.attributeBasedAccessControlEnabled() {
 		return

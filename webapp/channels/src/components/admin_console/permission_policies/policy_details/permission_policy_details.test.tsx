@@ -85,6 +85,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         EnableAccessControlAuditLogging: false,
         SyncJobIntervalSeconds: 3600,
         AttributeRefreshIntervalSeconds: 30,
+        DecisionCacheMaxAgeSeconds: 60,
+        DecisionCacheSize: 1000000,
     };
 
     const baseProps = {
@@ -333,6 +335,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         EnableAccessControlAuditLogging: false,
         SyncJobIntervalSeconds: 3600,
         AttributeRefreshIntervalSeconds: 30,
+        DecisionCacheMaxAgeSeconds: 60,
+        DecisionCacheSize: 1000000,
     };
 
     const baseProps = {

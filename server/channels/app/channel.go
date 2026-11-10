@@ -3923,6 +3923,7 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
+	a.invalidateAccessDecisionsForResources([]string{channel.Id})
 
 	if channel.IsSpace() {
 		return nil

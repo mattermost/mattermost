@@ -27,6 +27,8 @@ describe('TeamAccessPoliciesTab', () => {
             EnableAccessControlAuditLogging: false,
             SyncJobIntervalSeconds: 3600,
             AttributeRefreshIntervalSeconds: 30,
+            DecisionCacheMaxAgeSeconds: 60,
+            DecisionCacheSize: 1000000,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),

@@ -4258,6 +4258,10 @@ type AccessControlSettings struct {
 	// applied at scheduler construction (needs a restart to take effect).
 	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
 	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
+	// ABAC decision cache entry lifetime and per-node capacity. Applied live: changing the max
+	// age drops every cached decision, and lowering the size empties each shard above its new limit.
+	DecisionCacheMaxAgeSeconds *int `access:"write_restrictable,cloud_restrictable"`
+	DecisionCacheSize          *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4294,6 +4298,14 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.AttributeRefreshIntervalSeconds == nil {
 		s.AttributeRefreshIntervalSeconds = new(30)
 	}
+
+	if s.DecisionCacheMaxAgeSeconds == nil {
+		s.DecisionCacheMaxAgeSeconds = new(AccessControlDecisionCacheMaxAgeSecondsDefault)
+	}
+
+	if s.DecisionCacheSize == nil {
+		s.DecisionCacheSize = new(AccessControlDecisionCacheSizeDefault)
+	}
 }
 
 func (s *AccessControlSettings) isValid() *AppError {
@@ -4307,9 +4319,25 @@ func (s *AccessControlSettings) isValid() *AppError {
 	if *s.AttributeRefreshIntervalSeconds < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
 	}
+	if *s.DecisionCacheMaxAgeSeconds < AccessControlDecisionCacheMaxAgeSecondsMin || *s.DecisionCacheMaxAgeSeconds > AccessControlDecisionCacheMaxAgeSecondsMax {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_decision_cache_max_age.app_error", map[string]any{"Min": AccessControlDecisionCacheMaxAgeSecondsMin, "Max": AccessControlDecisionCacheMaxAgeSecondsMax}, "", http.StatusBadRequest)
+	}
+	if *s.DecisionCacheSize < AccessControlDecisionCacheSizeMin || *s.DecisionCacheSize > AccessControlDecisionCacheSizeMax {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_decision_cache_size.app_error", map[string]any{"Min": AccessControlDecisionCacheSizeMin, "Max": AccessControlDecisionCacheSizeMax}, "", http.StatusBadRequest)
+	}
 
 	return nil
 }
+
+const (
+	AccessControlDecisionCacheMaxAgeSecondsDefault = 60
+	AccessControlDecisionCacheMaxAgeSecondsMin     = 1
+	AccessControlDecisionCacheMaxAgeSecondsMax     = 3600
+
+	AccessControlDecisionCacheSizeDefault = 1_000_000
+	AccessControlDecisionCacheSizeMin     = 1_000
+	AccessControlDecisionCacheSizeMax     = 50_000_000
+)
 
 type ConfigFunc func() *Config
 

@@ -688,7 +688,9 @@
         "EnforceDeviceIDConsistency": null,
         "EnableAccessControlAuditLogging": null,
         "SyncJobIntervalSeconds": null,
-        "AttributeRefreshIntervalSeconds": null
+        "AttributeRefreshIntervalSeconds": null,
+        "DecisionCacheMaxAgeSeconds": null,
+        "DecisionCacheSize": null
     },
     "ContentFlaggingSettings": {
         "EnableContentFlagging": null,

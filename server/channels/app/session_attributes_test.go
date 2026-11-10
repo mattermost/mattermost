@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -558,7 +559,10 @@ func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
 	})
 
 	t.Run("an IP older than half its TTL is rewritten, fresher user agent fields are not", func(t *testing.T) {
-		seededAt, _, timestamps := process(t, 10_000, "192.0.2.10:1234")
+		// Past half the IP's TTL, still short of half the user agent fields' TTL.
+		age := int64(model.SessionAttributeDefaultTTLNetworkIdentity)*500 + 10_000
+		require.Less(t, age, int64(model.SessionAttributeDefaultTTLIdentity)*500)
+		seededAt, _, timestamps := process(t, age, "192.0.2.10:1234")
 		requireOnlyIPRewritten(t, seededAt, timestamps)
 	})
 }
@@ -616,6 +620,61 @@ func TestFilterStaleSessionAttributes(t *testing.T) {
 			fields,
 		)
 		assert.Nil(t, pastGrace)
+	})
+}
+
+func TestFilterStaleSessionAttributesWithExpiry(t *testing.T) {
+	fieldName := staleAttributeFieldName
+	now := time.UnixMilli(1_700_000_000_000)
+
+	t.Run("reports when a kept attribute goes stale", func(t *testing.T) {
+		timestamp := now.UnixMilli() - 30_000
+		filtered, expiresAt := filterStaleSessionAttributesWithExpiry(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: timestamp},
+			staleAttributeFields(100, 60),
+			now,
+		)
+
+		assert.Equal(t, "value", filtered[fieldName])
+		assert.Equal(t, timestamp+160_000, expiresAt[fieldName], "refresh time plus TTL plus grace")
+	})
+
+	t.Run("reports nothing for a dropped attribute", func(t *testing.T) {
+		filtered, expiresAt := filterStaleSessionAttributesWithExpiry(
+			map[string]any{fieldName: "value"},
+			map[string]int64{fieldName: now.UnixMilli() - 200_000},
+			staleAttributeFields(100, 60),
+			now,
+		)
+
+		assert.Nil(t, filtered)
+		assert.Nil(t, expiresAt)
+	})
+}
+
+func TestSessionAttributesVisiblyChanged(t *testing.T) {
+	fieldName := staleAttributeFieldName
+	fields := staleAttributeFields(100, 60)
+	now := int64(1_700_000_000_000)
+	live := map[string]int64{fieldName: now - 60_000}
+
+	t.Run("extending a live, unchanged value is not a change", func(t *testing.T) {
+		assert.False(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, map[string]any{fieldName: "a"}, live, fields, now))
+	})
+
+	t.Run("a different value is a change", func(t *testing.T) {
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "b"}, map[string]any{fieldName: "a"}, live, fields, now))
+	})
+
+	t.Run("a new value is a change", func(t *testing.T) {
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, nil, nil, fields, now))
+	})
+
+	t.Run("an unchanged value that had gone stale is a change", func(t *testing.T) {
+		stale := map[string]int64{fieldName: now - 161_000}
+		assert.True(t, sessionAttributesVisiblyChanged(map[string]any{fieldName: "a"}, map[string]any{fieldName: "a"}, stale, fields, now),
+			"decisions computed while it was missing never saw it")
 	})
 }
 

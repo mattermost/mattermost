@@ -273,8 +273,9 @@ func TestHasChannelReadAccess(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
 	})
 
-	t.Run("evaluates every call when no memo is installed", func(t *testing.T) {
-		// Background jobs and websocket fan-out build contexts with no memo.
+	t.Run("reuses the cached decision when no memo is installed", func(t *testing.T) {
+		// Background jobs and websocket fan-out build contexts with no memo; the
+		// cross-request decision cache answers them instead.
 		h := setupChannelReadAccessTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -285,7 +286,11 @@ func TestHasChannelReadAccess(t *testing.T) {
 		for range 3 {
 			require.True(t, h.th.App.HasChannelReadAccess(bare, h.th.BasicUser.Id, h.th.BasicChannel))
 		}
-		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+
+		h.th.App.InvalidateAccessDecisionsForPolicyChange()
+		require.True(t, h.th.App.HasChannelReadAccess(bare, h.th.BasicUser.Id, h.th.BasicChannel))
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
 
 	t.Run("does not reuse one user's decision for another", func(t *testing.T) {
@@ -886,8 +891,9 @@ func TestChannelReadAccessSubjectIsBuiltOncePerRequest(t *testing.T) {
 		// Swap the memoised subject for a marked one: the next channel only sees the
 		// mark if it reuses the memo instead of building its own.
 		memo := getChannelAccessMemo(h.rctx)
-		require.NotNil(t, memo.getSubject(h.th.BasicUser.Id))
-		memo.setSubject(h.th.BasicUser.Id, &model.Subject{
+		ref := accessSubjectRefFor(h.rctx, h.th.BasicUser.Id)
+		require.NotNil(t, memo.getSubject(ref))
+		memo.setSubject(ref, &model.Subject{
 			ID:         h.th.BasicUser.Id,
 			Type:       "user",
 			Attributes: map[string]any{"marker": "reused"},
@@ -915,7 +921,7 @@ func TestChannelReadAccessSubjectIsBuiltOncePerRequest(t *testing.T) {
 		require.Len(t, *requests, 2)
 		require.NotEmpty(t, (*requests)[0].Subject.RoleForScope(model.AccessControlSubjectScopeChannel))
 		require.Empty(t, (*requests)[1].Subject.RoleForScope(model.AccessControlSubjectScopeChannel))
-		require.Empty(t, getChannelAccessMemo(h.rctx).getSubject(h.th.BasicUser.Id).RoleForScope(model.AccessControlSubjectScopeChannel),
+		require.Empty(t, getChannelAccessMemo(h.rctx).getSubject(accessSubjectRefFor(h.rctx, h.th.BasicUser.Id)).RoleForScope(model.AccessControlSubjectScopeChannel),
 			"the memoised subject must stay free of channel roles")
 	})
 }

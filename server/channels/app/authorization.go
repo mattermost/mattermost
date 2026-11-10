@@ -995,6 +995,12 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 // and any added later.
 // Returns true if allowed (or if ABAC is not active), false if denied.
 func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	// Read access has one enforcement path, with its own gates (DM/GM exemption, governance)
+	// and the decision cache. Evaluating it here instead could disagree with what is enforced.
+	if action == model.AccessControlPolicyActionChannelReadAccess {
+		return a.HasChannelReadAccessByID(rctx, userID, channelID)
+	}
+
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
 		return true
