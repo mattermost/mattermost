@@ -11553,7 +11553,7 @@
   {
     "id": "app.property_value.bounds_contained_values.app_error",
     "translation": "{{.Count}} values inside would be out of bounds after this change, for example on {{.Examples}}. Change those values first.",
-    "description": "API error (409) when a channel's property value is changed while values of posts in that channel would then break a parent bounds rule; Examples lists up to five post IDs."
+    "description": "API error (409) when a channel's or the server's property value is changed while values beneath it (posts in that channel, or channels, users and posts that fall back to the server value) would then break a parent bounds rule; Examples lists up to five IDs of those posts, channels or users."
   },
   {
     "id": "app.property_value.bounds_violated.app_error",
