@@ -209,15 +209,16 @@ class CommunityTest(unittest.TestCase):
 
     def test_it_has_no_method_that_writes(self):
         public = {name for name in dir(Community) if not name.startswith("_")}
-        self.assertEqual(public, {"posts_since", "user_by_username", "post_link"})
+        self.assertEqual(public, {"posts_since", "user_by_username", "user", "post_link"})
 
     def test_every_request_is_a_get(self):
-        http = RecordingHttp([({}, {"posts": {"p1": {"id": "p1"}}}), ({}, {"id": "u1"})])
+        http = RecordingHttp([({}, {"posts": {"p1": {"id": "p1"}}}), ({}, {"id": "u1"}), ({}, {"id": "u1"})])
         community = Community("https://community.example", "t", http)
         self.assertEqual(community.posts_since("perf", 1000), [{"id": "p1"}])
         self.assertEqual(community.user_by_username("builder"), {"id": "u1"})
+        self.assertEqual(community.user("u1"), {"id": "u1"})
         self.assertEqual(community.post_link("p1"), "https://community.example/_redirect/pl/p1")
-        self.assertEqual([method for method, *_ in http.calls], ["GET", "GET"])
+        self.assertEqual([method for method, *_ in http.calls], ["GET", "GET", "GET"])
         self.assertEqual(http.calls[0][1:3], ("/api/v4/channels/perf/posts", {"since": 1000}))
 
     def test_a_failed_read_is_tried_once_more(self):

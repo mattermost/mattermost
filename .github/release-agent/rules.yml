@@ -80,9 +80,10 @@ channels:
 ask_settings:
   # Formatted with the release's values, as the rules' queries are.
   changelog_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog.html#release-v{major}-{minor}-feature-release"
-  # The loadtest ask links the RC build's announcement on Community
-  # (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID); with none a working day after it could first go
-  # out, or no channel set, this build.
+  # The loadtest ask links the RC build's announcement on Community: the "Release 12.2.0
+  # Download Links" post in Release: Self-Hosted & Cloud (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID)
+  # that names the exact RC. With none a working day after the ask could first go out, or no
+  # channel set, this build.
   rc_build_url: "https://releases.mattermost.com/{rc1_plain}/mattermost-{rc1_plain}-linux-amd64.tar.gz"
   healthcheck_repo: mattermost/mattermost-healthcheck  # private: read with the read app, never written
   # The mobile and desktop releases shipping with a server release are the ones whose GitHub

@@ -581,33 +581,50 @@ def rc1_tag_day(env: AskEnv) -> date:
     return _parse_time(env.ctx.github.commit_date(SERVER_REPO, f"{env.ctx.release.version}-rc1")).date()
 
 
+def _is_author(user: dict | None, wanted: str) -> bool:
+    """Whether a Community user is ``wanted``: their username, or their display name. A bot's
+    display name, such as "Mattermost Release bot", is its user's first name."""
+    if not user:
+        return False
+    wanted = " ".join(wanted.split()).casefold()
+    names = {user.get("username") or "", user.get("nickname") or "",
+             " ".join(f"{user.get('first_name') or ''} {user.get('last_name') or ''}".split())}
+    return wanted in {name.casefold() for name in names if name}
+
+
 def rc_announcement(env: AskEnv, rc: int = 1) -> dict | None:
-    """The RC build's announcement on Community: the newest post in the announcements channel
-    (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID) since the RC was tagged that names this release's
-    exact RC (v12.2.0-rc1 or 12.2.0-RC1, never v12.20.0-rc1 or rc10), by
-    RELEASE_AGENT_RC_ANNOUNCE_AUTHOR when that is set. Only that channel is read, with the
-    read-only Community client. None when there's none, or no client or channel."""
+    """The RC build's announcement on Community: the newest post in Release: Self-Hosted &
+    Cloud (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID) since the RC was tagged whose first line is
+    "Release 12.2.0 Download Links" (or "Release 12.2.0-rc1 Download Links") and that names
+    this exact RC (12.2.0-rc1 or v12.2.0-RC1, never 12.20.0-rc1 or rc10). When
+    RELEASE_AGENT_RC_ANNOUNCE_AUTHOR is set (a username or display name, "Mattermost Release
+    bot"), only that author's posts count. Only that channel is read, with the read-only
+    Community client. None when there's none, or no client or channel."""
     release, community = env.ctx.release, env.community
     if community is None or not env.rc_announce_channel:
         return None
     tag = f"{release.version}-rc{rc}"
     since = int(_parse_time(env.ctx.github.commit_date(SERVER_REPO, tag)).timestamp() * 1000)
+    heading = re.compile(rf"^Release v?{release.major}\.{release.minor}\.0(?:-rc\d+)? Download Links$", re.IGNORECASE)
     names_rc = re.compile(rf"(?<![\w.])v?{release.major}\.{release.minor}\.0-rc0*{rc}(?!\d)", re.IGNORECASE)
-    author_id = None
+
+    def first_line(text: str) -> str:
+        line = next((candidate for candidate in (text or "").splitlines() if candidate.strip()), "")
+        return " ".join(line.strip().strip("#*_ ").split())
+
     try:
-        if env.rc_announce_author:
-            author = community.user_by_username(env.rc_announce_author)
-            if not author:
-                env.flag("RELEASE_AGENT_RC_ANNOUNCE_AUTHOR isn't a Community user, so no RC build announcement is linked.")
-                return None
-            author_id = author["id"]
         posts = community.posts_since(env.rc_announce_channel, since)
+        found = [p for p in posts if p.get("create_at", 0) >= since and not p.get("delete_at") and not p.get("root_id")
+                 and heading.match(first_line(p.get("message"))) and names_rc.search(p.get("message") or "")]
+        if env.rc_announce_author:
+            authors = {}
+            for post in found:
+                if post.get("user_id") not in authors:
+                    authors[post.get("user_id")] = _is_author(community.user(post.get("user_id") or ""), env.rc_announce_author)
+            found = [p for p in found if authors[p.get("user_id")]]
     except ServiceError:
         env.flag("Couldn't read the RC build announcements on Community: check the Community bot is in that channel.")
         return None
-    found = [p for p in posts
-             if p.get("create_at", 0) >= since and not p.get("delete_at") and names_rc.search(p.get("message") or "")
-             and (author_id is None or p.get("user_id") == author_id)]
     return max(found, key=lambda p: p.get("create_at", 0)) if found else None
 
 

@@ -281,6 +281,10 @@ class FakeCommunity:
         self._read(("user_by_username", username))
         return self.users.get(username)
 
+    def user(self, user_id):
+        self._read(("user", user_id))
+        return next((u for u in self.users.values() if u.get("id") == user_id), None)
+
     def post_link(self, post_id):
         return f"{self.base_url}/_redirect/pl/{post_id}"
 

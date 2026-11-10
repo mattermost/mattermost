@@ -296,12 +296,21 @@ LOADTEST_EPIC = {"Loadtest 12.2": [{"key": "MM-71198", "fields": {"summary": "ðŸ
 RELEASES_BUILD = "[v12.2.0-rc1 build](https://releases.mattermost.com/12.2.0-rc1/mattermost-12.2.0-rc1-linux-amd64.tar.gz)"
 
 
+def download_links(version: str, rc: str) -> str:
+    """An RC build announcement as the Mattermost Release bot posts it in Release: Self-Hosted & Cloud."""
+    return (f"#### Release {version} Download Links\n"
+            f"- [Enterprise](https://releases.mattermost.com/{version}-{rc}/mattermost-{version}-{rc}-linux-amd64.tar.gz)\n"
+            f"- [Team](https://releases.mattermost.com/{version}-{rc}/mattermost-team-{version}-{rc}-linux-amd64.tar.gz)")
+
+
 class LoadtestTest(unittest.TestCase):
     def harness(self, author=""):
         h = Harness(jira=FakeJira(copy.deepcopy(LOADTEST_EPIC)))
         h.rc_announce_channel, h.rc_announce_author = "rc-announce", author
         h.github.dates[(MM, "v12.2.0-rc1")] = "2026-10-26T08:00:00Z"  # tagged on T-15, Mon Oct 26
-        h.community.users = {"builder": {"id": "u-builder", "username": "builder"}}
+        h.community.users = {"release-bot": {"id": "u-bot", "username": "release-bot", "first_name": "Mattermost Release bot",
+                                             "is_bot": True},
+                             "someone": {"id": "u-someone", "username": "someone", "first_name": "Some", "last_name": "One"}}
         return h
 
     def test_waits_for_rc1_and_without_an_announcement_channel_links_the_build(self):
@@ -314,15 +323,18 @@ class LoadtestTest(unittest.TestCase):
                          f"v12.2.0-RC1 is available for loadtesting: {RELEASES_BUILD}. Loadtest epic: "
                          "[MM-71198](https://jira.example/browse/MM-71198). cc @alejandro.garcia @dylan.haussermann")
 
-    def test_links_the_newest_exact_announcement_on_community(self):
+    def test_links_the_newest_exact_download_links_post_on_community(self):
         h = self.harness()
         tagged = ms(date(2026, 10, 26), 8)
-        h.community.add_post("rc-announce", "Mattermost v12.2.0-RC1 is ready (before the tag)", create_at=tagged - 1)
-        h.community.add_post("rc-announce", "Mattermost v12.20.0-rc1 is ready", create_at=tagged + 1)  # another release
-        h.community.add_post("rc-announce", "Mattermost v12.2.0-rc10 is ready", create_at=tagged + 2)  # another RC
-        h.community.add_post("other", "Mattermost v12.2.0-rc1 is ready", create_at=tagged + 3)  # another channel
-        h.community.add_post("rc-announce", "Mattermost 12.2.0-RC1 is ready", create_at=tagged + 4)
-        newest = h.community.add_post("rc-announce", "Rebuilt: Mattermost v12.2.0-rc1 is ready", create_at=tagged + 5)
+        h.community.add_post("rc-announce", download_links("12.2.0", "rc1"), create_at=tagged - 1)  # before the tag
+        h.community.add_post("rc-announce", download_links("12.20.0", "rc1"), create_at=tagged + 1)  # another release
+        h.community.add_post("rc-announce", download_links("12.2.0", "rc10"), create_at=tagged + 2)  # another RC
+        h.community.add_post("other", download_links("12.2.0", "rc1"), create_at=tagged + 3)  # another channel
+        h.community.add_post("rc-announce", "Is 12.2.0-rc1 out yet? Release 12.2.0 Download Links please",
+                             create_at=tagged + 4)  # names the RC, but isn't a Download Links post
+        h.community.add_post("rc-announce", download_links("12.2.0", "rc1"), create_at=tagged + 5)
+        newest = h.community.add_post("rc-announce", download_links("12.2.0", "rc1").replace("Release 12.2.0",
+                                      "Release 12.2.0-rc1"), create_at=tagged + 6)
         posts_before = copy.deepcopy(h.community.posts)
         self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).state, asks.DONE)
         self.assertIn(f"[v12.2.0-RC1 build announcement](https://community.example/_redirect/pl/{newest['id']})",
@@ -332,15 +344,18 @@ class LoadtestTest(unittest.TestCase):
         self.assertEqual(h.community.posts, posts_before)
         self.assertFalse(any(hasattr(h.community, name) for name in ("create_post", "patch_post", "add_reaction")))
 
-    def test_a_post_by_someone_else_isnt_the_announcement_when_the_author_is_set(self):
-        h = self.harness(author="builder")
-        tagged = ms(date(2026, 10, 26), 8)
-        h.community.add_post("rc-announce", "Mattermost v12.2.0-rc1 is ready, I think", user_id="u-someone", create_at=tagged + 1)
-        self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).summary,
-                         "waiting for the v12.2.0-RC1 build announcement on Community")
-        mine = h.community.add_post("rc-announce", "Mattermost v12.2.0-rc1 is ready", user_id="u-builder", create_at=tagged + 2)
-        h.ask("loadtest-ask", date(2026, 10, 26))
-        self.assertIn(f"build announcement](https://community.example/_redirect/pl/{mine['id']})", h.sent("c122")[0]["message"])
+    def test_only_the_release_bots_post_counts_when_the_author_is_set(self):
+        for author in ("Mattermost Release bot", "release-bot", "mattermost release BOT"):
+            h = self.harness(author=author)
+            tagged = ms(date(2026, 10, 26), 8)
+            h.community.add_post("rc-announce", download_links("12.2.0", "rc1"), user_id="u-someone", create_at=tagged + 1)
+            self.assertEqual(h.ask("loadtest-ask", date(2026, 10, 26)).summary,
+                             "waiting for the v12.2.0-RC1 build announcement on Community", author)
+            bots = h.community.add_post("rc-announce", download_links("12.2.0", "rc1"), user_id="u-bot", create_at=tagged + 2)
+            h.ask("loadtest-ask", date(2026, 10, 26))
+            self.assertIn(f"build announcement](https://community.example/_redirect/pl/{bots['id']})",
+                          h.sent("c122")[0]["message"], author)
+            self.assertTrue(all(method in ("posts_since", "user") for method, _ in h.community.reads))
 
     def test_without_an_announcement_it_waits_a_working_day_then_links_the_build(self):
         h = self.harness()

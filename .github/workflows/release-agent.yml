@@ -10,9 +10,9 @@ name: Release Agent
 # by a hidden post prop.
 #
 # The Hub bot must be a member of each release channel, Platform Engineering, Monthly Mugs
-# and Release: Testing Alerts. Developers: Performance Comparisons and the RC build
-# announcements are on the Community server instead, read by a separate Community bot that
-# only reads (it never posts there). Anyone on the release
+# and Release: Testing Alerts. Developers: Performance Comparisons and Release: Self-Hosted &
+# Cloud (the RC build announcements) are on the Community server instead, read by a separate
+# Community bot that only reads (it never posts there). Anyone on the release
 # team can run it by hand: Actions → Release Agent → Run workflow, with a release and a mode.
 #
 # This repo is public, so its Actions logs are too: check details, Hub content and
@@ -70,9 +70,11 @@ name: Release Agent
 #                                            and is flagged. Names are shown in Hub only.
 #   RELEASE_AGENT_COMMUNITY_URL            — https://community.mattermost.com
 #   RELEASE_AGENT_PERF_CHANNEL_ID          — Developers: Performance Comparisons, on Community
-#   RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID   — the RC build announcements channel, on Community
-#   RELEASE_AGENT_RC_ANNOUNCE_AUTHOR       — optional; the Community username that posts RC build
-#                                            announcements. When set, only their posts count.
+#   RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID   — Release: Self-Hosted & Cloud, on Community, where each
+#                                            RC's "Release X.Y.0 Download Links" post goes
+#   RELEASE_AGENT_RC_ANNOUNCE_AUTHOR       — optional; who posts those: a Community username or
+#                                            display name ("Mattermost Release bot"). When set,
+#                                            only their posts count.
 #   RELEASE_AGENT_MM_URL                   — optional; defaults to https://hub.mattermost.com
 #   CHANGELOG_READ_CLIENT_ID               — the read app's client ID
 on:

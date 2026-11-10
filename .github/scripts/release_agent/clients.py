@@ -416,6 +416,14 @@ class Community:
                 return None
             raise
 
+    def user(self, user_id: str) -> dict | None:
+        try:
+            return self._get(f"/api/v4/users/{urllib.parse.quote(user_id)}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+
     def post_link(self, post_id: str) -> str:
         return f"{self.base_url}/_redirect/pl/{post_id}"
 
