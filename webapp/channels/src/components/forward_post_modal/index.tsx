@@ -11,8 +11,8 @@ import {GenericModal} from '@mattermost/components';
 import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General, Permissions} from 'mattermost-redux/constants';
-import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getMyChannelMember, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -83,11 +83,19 @@ const ForwardPostModal = ({onExited, post}: Props) => {
 
     const selectedChannelId = selectedChannel?.details?.id || '';
 
+    const isSelectedChannelUnjoinedPublic = useSelector((state: GlobalState) => (
+        selectedChannel?.details?.type === Constants.OPEN_CHANNEL && !getMyChannelMember(state, selectedChannelId)
+    ));
+
     const canPostInSelectedChannel = useSelector(
         (state: GlobalState) => {
             const channelId = isPrivateConversation ? post.channel_id : selectedChannelId;
             const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
             const teamId = isPrivateConversation ? currentTeam?.id : selectedChannel?.details?.team_id;
+
+            if (isSelectedChannelUnjoinedPublic) {
+                return Boolean(haveITeamPermission(state, teamId, Permissions.JOIN_PUBLIC_CHANNELS));
+            }
 
             const hasChannelPermission = haveIChannelPermission(
                 state,
@@ -203,9 +211,16 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 return dispatch(openDirectChannelToUserId(userId));
             }
             return {data: false} as ActionResult;
-        }).then(({data}) => {
+        }).then(async ({data}) => {
             if (data) {
                 channelToForward.details.id = data.id;
+            }
+
+            if (isSelectedChannelUnjoinedPublic) {
+                const {error} = await dispatch(joinChannelById(channelToForward.details.id));
+                if (error) {
+                    throw new Error(error.message);
+                }
             }
 
             return dispatch(forwardPost(
@@ -213,11 +228,6 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 channelToForward.details,
                 comment,
             ));
-        }).then(() => {
-            if (type === Constants.MENTION_MORE_CHANNELS && type === Constants.OPEN_CHANNEL) {
-                return dispatch(joinChannelById(channelToForward.details.id));
-            }
-            return {data: false};
         }).then(() => {
             // only switch channels when we are not in a private conversation
             if (!isPrivateConversation) {
@@ -227,7 +237,9 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         }).then(() => {
             onHide();
         }).catch((result) => {
-            if (result?.error) {
+            if (result instanceof Error) {
+                handlePostError(result.message);
+            } else if (result?.error) {
                 handlePostError(result.error);
             }
         });
