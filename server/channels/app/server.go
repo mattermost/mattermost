@@ -123,6 +123,8 @@ type Server struct {
 	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
+	entityCardCache         cache.Cache
+	entityPatternCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
@@ -513,6 +515,20 @@ func NewServer(options ...Option) (*Server, error) {
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
+	}
+	if s.entityCardCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_card",
+		Size:          openGraphMetadataCacheSize,
+		DefaultExpiry: 30 * time.Minute,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity card cache")
+	}
+	if s.entityPatternCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_pattern",
+		Size:          entityPatternCacheSize,
+		DefaultExpiry: entityPatternTTL,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity pattern cache")
 	}
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))

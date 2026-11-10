@@ -37,7 +37,17 @@ export type FakePost = {
     user_id: UserProfile['id'];
 };
 
+export type EntitySelection = {
+    typeId: string;
+    value: string;
+    url?: string;
+    label?: string;
+    postId?: string;
+    occurrence?: string;
+};
+
 export type RhsViewState = {
+    selectedEntity: EntitySelection | null;
     selectedPostId: Post['id'];
     selectedPostFocussedAt: number;
     selectedPostCardId: Post['id'];

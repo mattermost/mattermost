@@ -1,0 +1,181 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {EntityCard} from '@mattermost/types/posts';
+
+import {Client4} from 'mattermost-redux/client';
+
+import {closeRightHandSide} from 'actions/views/rhs';
+import {getSelectedEntity} from 'selectors/rhs';
+
+import {entityLabel} from 'components/entity_mention/labels';
+import ExternalLink from 'components/external_link';
+
+import EntityCardView, {type EntityOpenTarget} from './entity_card';
+
+const ENTITY_CARD_FALLBACK_SUMMARY = 'No additional information';
+
+function isAllowedEntityURL(url: string) {
+    return url.startsWith('https://') ||
+        url.startsWith('http://') ||
+        (url.startsWith('/') && !url.startsWith('//') && !url.includes('..'));
+}
+
+type EntityFrame = EntityOpenTarget & {
+    postId?: string;
+    occurrence?: string;
+};
+
+function isRich(card: EntityCard) {
+    return Boolean(
+        (card.summary && card.summary !== ENTITY_CARD_FALLBACK_SUMMARY) ||
+        card.score ||
+        card.severity ||
+        card.exploited ||
+        card.rows?.length ||
+        card.vector?.length ||
+        card.related?.length ||
+        card.sections?.length ||
+        card.blocks?.length ||
+        card.map?.points?.length ||
+        card.map?.geojson ||
+        card.instant,
+    );
+}
+
+export default function EntityRhs() {
+    const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+    const entity = useSelector(getSelectedEntity);
+    const [card, setCard] = useState<EntityCard | null | undefined>();
+    const [deeper, setDeeper] = useState<EntityFrame[]>([]);
+    const [reloadKey, setReloadKey] = useState(0);
+    const entityKey = entity ? `${entity.typeId}\0${entity.value}\0${entity.postId}\0${entity.occurrence}` : '';
+    const [seenEntityKey, setSeenEntityKey] = useState(entityKey);
+    if (entityKey !== seenEntityKey) {
+        setSeenEntityKey(entityKey);
+        setDeeper([]);
+        setCard(undefined);
+    }
+    const trail = entityKey === seenEntityKey ? deeper : [];
+
+    let frame: EntityFrame | undefined;
+    if (trail.length > 0) {
+        frame = trail[trail.length - 1];
+    } else if (entity) {
+        frame = {
+            typeId: entity.typeId,
+            value: entity.value,
+            label: entity.label,
+            postId: entity.postId,
+            occurrence: entity.occurrence,
+        };
+    }
+
+    const frameTypeId = frame?.typeId;
+    const frameValue = frame?.value;
+    const framePostId = frame?.postId;
+    const frameOccurrence = frame?.occurrence;
+    const frameKey = frameTypeId ? `${frameTypeId}\0${frameValue}\0${framePostId}\0${frameOccurrence}` : '';
+    const [seenFrameKey, setSeenFrameKey] = useState(frameKey);
+    if (frameKey !== seenFrameKey) {
+        setSeenFrameKey(frameKey);
+        setCard(undefined);
+    }
+
+    useEffect(() => {
+        if (!frameTypeId || frameValue === undefined) {
+            setCard(undefined);
+            return undefined;
+        }
+        let cancel = false;
+        setCard(undefined);
+        Client4.getEntityCard(frameTypeId, frameValue, framePostId, frameOccurrence).then((next) => {
+            if (!cancel) {
+                setCard(next);
+            }
+        }).catch(() => {
+            if (!cancel) {
+                setCard(null);
+            }
+        });
+        return () => {
+            cancel = true;
+        };
+    }, [frameTypeId, frameValue, framePostId, frameOccurrence, reloadKey]);
+
+    if (!entity) {
+        return null;
+    }
+
+    const openEntity = (target: EntityOpenTarget) => {
+        setDeeper((stack) => [...stack, target]);
+    };
+
+    const entityURL = trail.length === 0 && entity.url && isAllowedEntityURL(entity.url) ? entity.url : undefined;
+    const url = (card?.url && isAllowedEntityURL(card.url) ? card.url : undefined) || entityURL;
+
+    return (
+        <div
+            className='sidebar-right__body'
+            data-testid='entity-rhs'
+        >
+            <div className='sidebar--right__header'>
+                <span className='sidebar--right__title'>
+                    {trail.length > 0 && (
+                        <button
+                            type='button'
+                            aria-label={formatMessage({id: 'entity_rhs.back', defaultMessage: 'Back'})}
+                            onClick={() => setDeeper((stack) => stack.slice(0, -1))}
+                            style={{background: 'none', border: 'none', padding: '0 8px 0 0', font: 'inherit', color: 'inherit', cursor: 'pointer'}}
+                        >{'‹'}</button>
+                    )}
+                    <h2 id='rhsPanelTitle'>{frame?.label || entityLabel(frame?.typeId || entity.typeId, formatMessage)}</h2>
+                </span>
+                <button
+                    id='rhsCloseButton'
+                    type='button'
+                    className='sidebar--right__close btn btn-icon btn-sm'
+                    aria-label={formatMessage({id: 'entity_rhs.close', defaultMessage: 'Close'})}
+                    onClick={() => dispatch(closeRightHandSide())}
+                >
+                    <i className='icon icon-close'/>
+                </button>
+            </div>
+            <div style={{overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 20px 32px', color: 'var(--center-channel-color)'}}>
+                {card && isRich(card) ? (
+                    <EntityCardView
+                        card={card}
+                        onOpen={openEntity}
+                        reload={() => setReloadKey((key) => key + 1)}
+                    />
+                ) : (
+                    <>
+                        <div style={{fontSize: 20, fontWeight: 600}}>{frame?.value || entity.value}</div>
+                        {card !== undefined && (
+                            <p style={{marginTop: 12, opacity: 0.72}}>
+                                <FormattedMessage
+                                    id='entity_rhs.no_additional_information'
+                                    defaultMessage='No additional information'
+                                />
+                            </p>
+                        )}
+                        {url && card !== undefined && (
+                            <ExternalLink
+                                href={url}
+                                location='entity_rhs'
+                                data-testid='entity-rhs-link'
+                            >
+                                {url}
+                            </ExternalLink>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}

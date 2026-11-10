@@ -16,7 +16,7 @@ import {ActionTypes, RHSStates, Threads} from 'utils/constants';
 import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {MMAction} from 'types/store';
-import type {MentionFilters, RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -162,6 +162,20 @@ function previousRhsStates(state: any = [], action: MMAction) {
         return newState;
     case UserTypes.LOGOUT_SUCCESS:
         return [];
+    default:
+        return state;
+    }
+}
+
+function selectedEntity(state: EntitySelection | null = null, action: MMAction): EntitySelection | null {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_STATE:
+        return action.state === RHSStates.ENTITY ? action.entity ?? null : null;
+    case ActionTypes.SELECT_POST:
+    case ActionTypes.SELECT_POST_CARD:
+    case ActionTypes.RHS_GO_BACK:
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
     default:
         return state;
     }
@@ -454,6 +468,7 @@ export default combineReducers({
     highlightedPostId,
     previousRhsStates,
     filesSearchExtFilter,
+    selectedEntity,
     rhsState,
     searchTerms,
     searchTeam,

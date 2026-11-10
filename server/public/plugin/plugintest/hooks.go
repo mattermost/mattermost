@@ -210,6 +210,36 @@ func (_m *Hooks) EmailNotificationWillBeSent(emailNotification *model.EmailNotif
 	return r0, r1
 }
 
+// EntityLookup provides a mock function with given fields: c, req
+func (_m *Hooks) EntityLookup(c *plugin.Context, req *model.EntityLookupRequest) (*model.EntityCard, error) {
+	ret := _m.Called(c, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EntityLookup")
+	}
+
+	var r0 *model.EntityCard
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityLookupRequest) (*model.EntityCard, error)); ok {
+		return rf(c, req)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.EntityLookupRequest) *model.EntityCard); ok {
+		r0 = rf(c, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.EntityCard)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.EntityLookupRequest) error); ok {
+		r1 = rf(c, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExecuteCommand provides a mock function with given fields: c, args
 func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	ret := _m.Called(c, args)

@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 )
@@ -169,6 +170,10 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	a.ch.initPlugins(rctx, pluginDir, webappPluginDir)
 }
 
+func (ch *Channels) dropPluginEntities(id string) {
+	entities.RemovePlugin(id)
+}
+
 func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
@@ -214,6 +219,7 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		ch.srv.Log().Error("Failed to start up plugins", mlog.Err(err))
 		return
 	}
+	env.SetDeactivated(ch.dropPluginEntities)
 	ch.pluginsLock.Lock()
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()

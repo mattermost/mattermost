@@ -1695,7 +1695,7 @@ func (a *App) GetPostsEtag(rctx request.CTX, channel *model.Channel, collapsedTh
 	}
 	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
 	base = a.AppendABACEtag(rctx, base, channel.Id)
-	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
+	return a.AppendEntityEtag(fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages))
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

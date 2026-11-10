@@ -1917,6 +1917,40 @@ type API interface {
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError)
+
+	// RegisterEntityType registers a type owned by the calling plugin.
+	// The id must be the plugin id, a dot, and a short name.
+	// Registration is idempotent. The same id replaces the previous display name.
+	// Returns an error with id EntitiesDisabledError when entities are off.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityType(t *model.EntityType) *model.AppError
+
+	// RegisterEntityMatcher registers a RE2 pattern for a core type or a type
+	// this plugin registered. The matcher id must be unique and start with the
+	// plugin id. Registration is idempotent for the same matcher id.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError
+
+	// UnregisterEntityMatcher removes one matcher this plugin registered.
+	//
+	// Minimum server version: 12.2
+	UnregisterEntityMatcher(id string) *model.AppError
+
+	// RegisterEntityProvider registers this plugin as a source of cards or
+	// links for types it is allowed to provide. HasCard asks the server to
+	// call EntityLookup when a reader opens a value of that type.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityProvider(p *model.EntityProvider) *model.AppError
+
+	// RegisterEntityTerms replaces the exact tokens this plugin contributes
+	// to one type it owns. Each term is an autolink: the hover shows Title
+	// and URL. An empty list clears the type.
+	//
+	// Minimum server version: 12.2
+	RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

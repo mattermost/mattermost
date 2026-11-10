@@ -301,6 +301,24 @@ describe('PluginRegistry — registerChannelIconOverride', () => {
     });
 });
 
+describe('PluginRegistry — registerEntityCardPart', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    it('keeps a map part and a later part on the same card', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerEntityCardPart({part: 'map', component: () => null});
+        registry.registerEntityCardPart({part: 'timeline', component: () => null});
+
+        const parts = mockCurrentStore.getState().components.EntityCardPart;
+        expect(parts.map((part: {part: string}) => part.part)).toEqual(['map', 'timeline']);
+        expect(parts.every((part: {pluginId: string}) => part.pluginId === PLUGIN_ID)).toBe(true);
+    });
+});
+
 describe('PluginRegistry — registerChannelComposerBannerComponent', () => {
     const PLUGIN_ID = 'test_plugin';
 

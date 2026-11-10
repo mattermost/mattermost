@@ -1,0 +1,63 @@
+  /api/v4/entities/card:
+    get:
+      tags:
+        - entities
+      summary: Get an entity card
+      description: >
+        Returns the detail card for a detected entity. Prefer a post-scoped
+        lookup (`post_id` plus occurrence `id`, or `post_id` with `type_id` and
+        `value`) so provider cache policy can use the post context. A bare
+        `type_id` and `value` lookup is limited to shared-cache providers.
+
+
+        Feature-gated behind `FeatureFlags.Entities` /
+        `MM_FEATUREFLAGS_ENTITIES=true`.
+
+
+        ##### Permissions
+
+        Must be authenticated. Post-scoped lookups also require permission to
+        read the post's channel.
+
+        __Minimum server version__: 12.2
+      operationId: GetEntityCard
+      parameters:
+        - name: type_id
+          in: query
+          description: Entity type id (for example `mm.time`)
+          required: false
+          schema:
+            type: string
+        - name: value
+          in: query
+          description: Canonical entity value for the type
+          required: false
+          schema:
+            type: string
+        - name: post_id
+          in: query
+          description: Post id when resolving a card from a specific post
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: query
+          description: Occurrence id from post metadata (`start:end`) when resolving by post
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Entity card retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityCard"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

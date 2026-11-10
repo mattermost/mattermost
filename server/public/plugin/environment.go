@@ -61,6 +61,7 @@ type Environment struct {
 	prepackagedPlugins               []*PrepackagedPlugin
 	transitionallyPrepackagedPlugins []*PrepackagedPlugin
 	prepackagedPluginsLock           sync.RWMutex
+	deactivated                      func(id string)
 }
 
 func NewEnvironment(
@@ -297,6 +298,9 @@ func (env *Environment) startPluginServer(pluginInfo *model.BundleInfo, opts ...
 	env.setPluginState(pluginInfo.Manifest.Id, model.PluginStateRunning)
 
 	if err := sup.Hooks().OnActivate(); err != nil {
+		if env.deactivated != nil {
+			env.deactivated(pluginInfo.Manifest.Id)
+		}
 		sup.Shutdown()
 		return err
 	}
@@ -459,11 +463,20 @@ func (env *Environment) RemovePlugin(id string) {
 // meant to be running, so the error no longer applies. Callers that want to record a more specific
 // state deactivate first and set it afterward, as the health check job does when a plugin exceeds
 // its restart limit.
+// SetDeactivated registers the function called when a plugin is torn down,
+// including an OnActivate failure, so callers can drop that plugin's state.
+func (env *Environment) SetDeactivated(fn func(id string)) {
+	env.deactivated = fn
+}
+
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
 	if rp.supervisor == nil || !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
+		if env.deactivated != nil {
+			env.deactivated(id)
+		}
 		return false
 	}
 
@@ -483,6 +496,9 @@ func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 
 	env.setPluginState(id, model.PluginStateNotRunning)
 	rp.supervisor.Shutdown()
+	if env.deactivated != nil {
+		env.deactivated(id)
+	}
 
 	return true
 }
