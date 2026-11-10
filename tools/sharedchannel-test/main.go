@@ -101,8 +101,8 @@ func main() {
 	}
 }
 
-// Names are restricted so they can be used unquoted in SQL (Postgres folds
-// unquoted identifiers to lower case) and unescaped in a datasource URL.
+// Names are restricted so they are safe inside a quoted SQL identifier and
+// need no escaping in a datasource URL.
 var dbNamePattern = regexp.MustCompile(`^[a-z_][a-z0-9_]{0,62}$`)
 
 func validateDBNames(cfg Config) error {

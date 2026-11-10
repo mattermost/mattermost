@@ -128,8 +128,8 @@ func (sm *ServerManager) resetDatabases(ctx context.Context) error {
 	sm.logger.Info("Resetting databases...")
 	for _, db := range []string{sm.cfg.DBNameA, sm.cfg.DBNameB} {
 		for _, sql := range []string{
-			fmt.Sprintf("DROP DATABASE IF EXISTS %s", db),
-			fmt.Sprintf("CREATE DATABASE %s", db),
+			fmt.Sprintf(`DROP DATABASE IF EXISTS "%s"`, db),
+			fmt.Sprintf(`CREATE DATABASE "%s"`, db),
 		} {
 			cmd := exec.CommandContext(ctx, "docker", "exec",
 				"-e", "PGPASSWORD=mostest_password",
