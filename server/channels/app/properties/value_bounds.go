@@ -515,11 +515,11 @@ func clearRefusal(field *model.PropertyField) (rule string, err error) {
 	return "", nil
 }
 
-// refuseLockedFieldClear audits and refuses the field's clearRefusal, reading the field from master,
-// or lets the delete go ahead without Enterprise Advanced. value is the row being deleted, nil when
-// every value of the field goes.
-func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master request.CTX, groupID, fieldID string, value *model.PropertyValue) error {
-	fields, err := h.propertyService.getPropertyFields(master, groupID, []string{fieldID})
+// refuseLockedFieldClear audits and refuses the field's clearRefusal, or lets the delete go ahead
+// without Enterprise Advanced. Callers pass a master rctx so the field read sees the latest
+// definition. value is the row being deleted, nil when every value of the field goes.
+func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string, value *model.PropertyValue) error {
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, []string{fieldID})
 	if errors.Is(err, ErrFieldNotFound) {
 		return nil
 	}
@@ -534,7 +534,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(master req
 	if value != nil {
 		e.TargetType, e.TargetID, e.ValueID, e.Prev = value.TargetType, value.TargetID, value.ID, value
 	}
-	return h.boundsBreak(master, groupID, e, err)
+	return h.boundsBreak(rctx, groupID, e, err)
 }
 
 // refuseLockedTargetDelete refuses deleting everything on a target when it holds a set value of a
