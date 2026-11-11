@@ -62,7 +62,7 @@ describe('pinned messages', () => {
             cy.uiGetChannelPinButton().click();
 
             // * Should not have any pinned messages
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
+            cy.get('#search-items-container [data-testid="no-results-title"]').should('have.text', 'No pinned messages yet');
         });
     });
 
@@ -87,7 +87,7 @@ describe('pinned messages', () => {
             cy.get('#sidebarItem_town-square').should('be.visible').click();
 
             // * Should not have any pinned messages
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
+            cy.get('#search-items-container [data-testid="no-results-title"]').should('have.text', 'No pinned messages yet');
 
             // * Number of pinned messages in RHS should be 0
             cy.findByTestId('search-item-container').should('not.exist');
@@ -141,7 +141,7 @@ describe('pinned messages', () => {
         cy.uiGetChannelPinButton().click();
 
         // * Should not have any pinned messages
-        cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
+        cy.get('#search-items-container [data-testid="no-results-title"]').should('have.text', 'No pinned messages yet');
 
         // # Post a message
         cy.postMessage('Hello again');
@@ -162,7 +162,7 @@ describe('pinned messages', () => {
             cy.get('#deletePostModalButton').should('be.visible').click();
 
             // * Should not have any pinned messages
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
+            cy.get('#search-items-container [data-testid="no-results-title"]').should('have.text', 'No pinned messages yet');
 
             // * Post should be deleted
             cy.get(`#post_${postId}`).should('not.exist');
@@ -200,7 +200,7 @@ describe('pinned messages', () => {
             cy.uiGetChannelPinButton().click();
 
             // * Should not have any pinned messages
-            cy.get('#search-items-container .no-results__title').should('have.text', 'No pinned messages yet');
+            cy.get('#search-items-container [data-testid="no-results-title"]').should('have.text', 'No pinned messages yet');
 
             // * The old post should be gone
             cy.get(`#post_${postId}`).should('not.exist');
