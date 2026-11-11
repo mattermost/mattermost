@@ -68,7 +68,7 @@ describe('SearchableSyncJobTeamList', () => {
         expect(onViewDetails).toHaveBeenCalledWith('team1', 'Engineering', syncResults.team1);
     });
 
-    test('shows a neutral "no changes" message when there are no teams and no search term', () => {
+    test('shows empty state with search icon when no teams match', () => {
         renderWithContext(
             <SearchableSyncJobTeamList
                 {...baseProps}
@@ -76,39 +76,6 @@ describe('SearchableSyncJobTeamList', () => {
             />,
         );
 
-        expect(screen.getByText('No teams were affected by this job.')).toBeInTheDocument();
-        expect(screen.getByLabelText('No teams were affected by this job.')).toBeInTheDocument();
-        expect(screen.queryByText('No results')).not.toBeInTheDocument();
-        expect(screen.queryByText(/No results for/)).not.toBeInTheDocument();
-    });
-
-    test('keeps the search empty state when it mounts with a search the parent is already filtering by', () => {
-        renderWithContext(
-            <SearchableSyncJobTeamList
-                {...baseProps}
-                teams={[]}
-                searchTerm='nomatch'
-            />,
-        );
-
-        expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
         expect(screen.getByText('No results')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Search teams')).toHaveValue('nomatch');
-        expect(screen.queryByText('No teams were affected by this job.')).not.toBeInTheDocument();
-    });
-
-    test('shows the search empty state only after a search term yields no matches', async () => {
-        renderWithContext(
-            <SearchableSyncJobTeamList
-                {...baseProps}
-                teams={[]}
-            />,
-        );
-
-        await userEvent.type(screen.getByPlaceholderText('Search teams'), 'nomatch');
-
-        expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
-        expect(screen.getByText('No results')).toBeInTheDocument();
-        expect(screen.queryByText('No teams were affected by this job.')).not.toBeInTheDocument();
     });
 });

@@ -5,13 +5,12 @@ import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
-import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
-import SearchIllustration from '@mattermost/compass-ui/illustrations/search';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {ChannelIcon} from 'components/channel_type_icon';
+import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
@@ -30,10 +29,6 @@ interface Props extends WrappedComponentProps {
     channelsPerPage: number;
     nextPage: (page: number) => void;
     isSearch: boolean;
-
-    // The search term the parent is filtering by. The list remounts when its tab is switched, so
-    // without this its local copy would reset to '' while the parent's filter still applies.
-    searchTerm?: string;
     search: (term: string) => void;
     onViewDetails?: (channelId: string, channelName: string, results: ChannelMembersSyncResults) => void;
     noResultsText: JSX.Element;
@@ -44,7 +39,7 @@ interface Props extends WrappedComponentProps {
 const SearchableSyncJobChannelList = (props: Props) => {
     const [page, setPage] = useState(0);
     const [nextDisabled, setNextDisabled] = useState(false);
-    const [channelSearchValue, setChannelSearchValue] = useState(props.searchTerm ?? '');
+    const [channelSearchValue, setChannelSearchValue] = useState('');
     const [isSearch, setIsSearch] = useState(props.isSearch);
 
     const channelListScroll = useRef<HTMLDivElement>(null);
@@ -94,14 +89,14 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
         const team = props.teams[channel.team_id];
 
-        const channelMoreInfoContainer = team ? (
+        const channelMoreInfoContainer = (
             <div
                 id='channelMoreInfoContainer'
                 aria-label={`${team.display_name}`}
             >
                 <span className='more-modal__description'>{`${team.display_name}`}</span>
             </div>
-        ) : null;
+        );
 
         const channelSyncData = props.syncResults[channel.id];
         const syncChangesDisplay = channelSyncData ? (
@@ -173,6 +168,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
             return (
                 <FormattedMessage
                     id='more_channels.noMore'
+                    tagName='strong'
                     defaultMessage='No results for "{text}"'
                     values={{text: channelSearchValue}}
                 />
@@ -182,6 +178,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
         return (
             <FormattedMessage
                 id='admin.jobTable.syncResults.noChanges'
+                tagName='strong'
                 defaultMessage='No channels were affected by this job.'
             />
         );
@@ -197,17 +194,14 @@ const SearchableSyncJobChannelList = (props: Props) => {
     } else if (channels.length === 0) {
         listContent = (
             <div
-                className='sync-job-empty-state'
+                className='no-channel-message channel-switcher__suggestion-box'
                 aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage(messages.noChanges)}
             >
-                <EmptyState
-                    illustration={{
-                        'aria-label': '',
-                        children: <SearchIllustration/>,
-                    }}
-                    title={getEmptyStateMessage()}
-                    description={channelSearchValue.length > 0 ? props.noResultsText : undefined}
-                />
+                <MagnifyingGlassSVG/>
+                <h3 className='primary-message'>
+                    {getEmptyStateMessage()}
+                </h3>
+                {channelSearchValue.length > 0 && props.noResultsText}
             </div>
         );
     } else {

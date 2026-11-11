@@ -8347,10 +8347,6 @@
     "defaultMessage": "No channels match your search or filter.",
     "description": "Empty-state hint in the channels tab of the sync job details modal when the search/filter matches no channels."
   },
-  "admin.jobTable.syncResults.noTeamChanges": {
-    "defaultMessage": "No teams were affected by this job.",
-    "description": "Empty-state headline in the teams tab of the sync job details modal when the job did not modify any team."
-  },
   "admin.jobTable.syncResults.removed": {
     "defaultMessage": "Removed ({count, number})",
     "description": "Tab label in the membership changes modal listing users removed by a sync job; {count} is the number of users removed."
@@ -19470,10 +19466,6 @@
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
-  },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -35546,6 +35538,10 @@
   "widgets.channels_input.loading": {
     "defaultMessage": "Loading",
     "description": "Loading indicator text shown in the channel multi-select input while channel search results load."
+  },
+  "widgets.teams_input.empty": {
+    "defaultMessage": "No teams found",
+    "description": "Empty-state accessibility text in team pickers and the sync-job teams list when no teams are available."
   },
   "widgets.users_emails_input.loading": {
     "defaultMessage": "Loading",
