@@ -155,7 +155,7 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	var rejectionReason string
