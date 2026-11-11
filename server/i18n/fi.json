@@ -644,11 +644,11 @@
     "translation": "Mattermost Turvallisuusilmoitus"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Ei voitu hakea kanavia"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Ei voitu parsia URL arvoa"
   },
   {
@@ -3016,10 +3016,6 @@
     "translation": "Id={{.PostId}} on jo poistettu."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Ei löydetty viestiä tai kommentia päivitettäväksi."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
   },
@@ -3138,15 +3134,15 @@
     "translation": "Järjestelmänvalvoja on estänyt ulos suunnatut webhookit."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Rekisteröitymislinkki ei näytä olevan kelvollinen."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Rekisteröitymislinkki on umpeutunut."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Käyttäjän liittyminen on pois käytöstä."
   },
   {
@@ -6944,7 +6940,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Etäpalvelimen kutsua kanavalle ei voitu perua"
+    "translation": "Etäpalvelimen kutsua kanavalle ei voitu perua."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -10473,11 +10469,11 @@
     "translation": "Pysyvän ilmoituksen viestiä ei voitu poistaa"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Viestin prioriteettia ei voitu hakea"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Viestin prioriteettia ei voitu hakea kontekstin kanssa"
   },
   {
@@ -10509,7 +10505,7 @@
     "translation": "Asetusten päivittämisessä tapahtui virhe."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Esipakatun lisäosan versiota ei voitu jäsentää."
   },
   {
@@ -12515,10 +12511,6 @@
     "translation": "LDAP-yhteystesti epäonnistui. Palvelin: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Virhe: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA-kenttien hakeminen epäonnistui"
-  },
-  {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "Virhe ladattaessa LDAP:n TLS-varmennetiedostoa."
   },
@@ -12553,10 +12545,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Kokoraja ylitetty. Kokeile suurentaa Maximum page size -asetusta. Lisätietoja: https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tyhjä LDAP-attribuutin arvo"
   },
   {
     "id": "ent.ldap.validate_group_filter.app_error",
@@ -12709,10 +12697,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML ei onnistunut lataamaan Identity Providerin julkista varmennetta. Ota yhteys järjestelmänvalvojaan."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA-kenttien hakeminen epäonnistui"
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
@@ -13732,7 +13716,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Virheellinen web-palvelimen tila {{.Value}}. On oltava 'gzip', 'nogzip' tai 'disabled'."
+    "translation": "Virheellinen web-palvelimen tila {{.Value}}. On oltava 'gzip', 'uncompressed' tai 'disabled'."
   },
   {
     "id": "model.cpa_field.name.invalid_charset.app_error",
@@ -14593,5 +14577,165 @@
   {
     "id": "web.incoming_webhook.parse_multipart.app_error",
     "translation": "Moniosaisen lomakkeen jäsennys epäonnistui webhookille {{.hook_id}}."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**EI LÖYTYNYT**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "poistettu"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` ei ole kelvollinen `{{.Arg}}`-arvo"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Sivuston kunto -näkymä ei ole käytössä."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Sivuston kunto -näkymä edellyttää Enterprise-lisenssiä."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Tiedoston alkuun siirtyminen epäonnistui."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Kuntohavaintoa ei voitu hakea."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Kuntohavaintoa ei löytynyt."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Kuntohavaintoja ei voitu hakea."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Attribuuttia ei enää synkronoida tästä lähteestä, joten synkronointi ei voi muuttaa sitä."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "AD/LDAP:sta tai SAML:sta synkronoidun attribuutin vaihtoehtoja hallinnoi synkronointi, eikä niitä voi lisätä, nimetä uudelleen tai poistaa."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Synkronoidulla attribuutilla on virheellisiä vaihtoehtoja."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Virheellinen attribuuttisynkronoinnin lähde."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Virheellinen käyttäjätunnus attribuuttisynkronointia varten."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Ei voitu määrittää, mitkä synkronoidun attribuutin vaihtoehdoista ovat käytössä."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Lokiasetuksissa on loki- tai auditointilokitiedoston polku, joka on lokien juurihakemiston ulkopuolella. Katso lisätiedot palvelimen lokeista."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Tietojen keräysaika on tuntematon."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Asetusosio ei ole käytettävissä."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Palvelimen diagnostiikkatiedot eivät ole käytettävissä."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Taustatöiden historia ei ole käytettävissä."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Lisenssin tiedot eivät ole käytettävissä."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lisäosaluettelo ei ole käytettävissä."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Sääntö epäonnistui odottamatta, eikä sitä voitu arvioida."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Käyttötilastot eivät ole käytettävissä."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} käyttää http://-protokollaa, joten push-ilmoitukset lähetetään salaamattomina."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} käyttää virheellistä URL-skeemaa. Mobiilikäyttäjät eivät saa ilmoituksia."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Lisää PushNotificationServer-arvon alkuun https:// ja varmista, että palvelin on tavoitettavissa sovelluspalvelimelta."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer ei käytä https://-protokollaa"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Jokainen push-yritys epäonnistuu virheellä 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Aseta PushNotificationServer-arvoksi https://push.mattermost.com tai itse ylläpidetty push-välityspalvelin."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-ilmoitukset ovat käytössä, mutta PushNotificationServer on tyhjä"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com on Mattermostin testikäyttöön tarkoitettu push-välityspalvelin. Sillä ei ole palvelutasosopimusta (SLA), sen kapasiteetti on rajallinen, eikä sitä ole tarkoitettu tuotantokäyttöön. Mobiilipush-ilmoitusten toimitus on epäluotettavaa kaikessa muussa kuin pienimuotoisessa testauksessa."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Vaihda osoitteeseen https://push.mattermost.com (Enterprise-tilaukseen sisältyvä, tuotantokäyttöön tarkoitettu Hosted Push Notification Service) tai itse ylläpidettyyn push-välityspalvelimeen."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer osoittaa palvelimeen push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL tarvitaan webhook-URL-osoitteisiin, OAuth-takaisinkutsuihin, mobiilipush-ilmoitusten sisältöön ja sähköpostien linkkeihin. Integraatiot eivät toimi, kun se on tyhjä."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Aseta SiteURL-arvoksi palvelimen julkinen HTTPS-URL-osoite."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL on tyhjä"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL on {{.url}}. Istuntoevästeet ja todennustunnukset kulkevat verkossa salaamattomina."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Tarjoa Mattermost HTTPS:n kautta ja päivitä SiteURL käyttämään https://-osoitetta."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL käyttää http://-protokollaa (ei https://)"
   }
 ]

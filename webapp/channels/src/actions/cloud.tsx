@@ -4,7 +4,7 @@
 import type {ServerError} from '@mattermost/types/errors';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
-import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
+import {getCloudCustomer, getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
 
@@ -151,10 +151,6 @@ export function retryFailedCloudFetches(): ActionFunc<boolean> {
 
         if (errors.customer) {
             dispatch(getCloudCustomer());
-        }
-
-        if (errors.invoices) {
-            dispatch(getInvoices());
         }
 
         if (errors.limits) {

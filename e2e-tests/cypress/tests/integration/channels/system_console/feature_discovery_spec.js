@@ -39,7 +39,7 @@ describe('Feature discovery', () => {
             {sidebarName: 'Guest Access', featureDiscoveryTitle: 'guest accounts'},
         ].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("div[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
             testCallsToAction();
         });
     });

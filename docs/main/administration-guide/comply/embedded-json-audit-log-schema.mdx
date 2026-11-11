@@ -569,6 +569,33 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 
 </Note>
 
+### Post Delivery Events
+
+Mattermost v12.0 introduces the `postDelivered` audit log event, which records each delivery of a message's content to a user or an integration. It's emitted only when [post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging) is enabled, which is disabled by default. Unlike the other audit log events on this page, `postDelivered` is emitted at the dedicated `audit-delivery` log level and so requires its own audit log target. See that page for the record format, the payload fields, and the full set of delivery mechanisms.
+
+<table style={{width: '85%'}}>
+<colgroup>
+<col style={{width: '28%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>postDelivered</code></td>
+<td>Delivering post content to a user or integration</td>
+</tr>
+<tr>
+<td><code>updateDeliveryTrackingConfig</code></td>
+<td>Updating the post delivery audit logging configuration</td>
+</tr>
+</tbody>
+</table>
+
 ### Authentication and Security Events
 
 <table style={{width: '86%'}}>
@@ -605,7 +632,7 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 </tr>
 <tr>
 <td><code>completeSaml</code></td>
-<td>Completing SAML authentication</td>
+<td>Completing SAML authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>extendSessionExpiry</code></td>
@@ -832,7 +859,7 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 </tr>
 <tr>
 <td><code>completeOAuth</code></td>
-<td>Completing OAuth flow</td>
+<td>Completing OAuth/OIDC authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>createOAuthApp</code></td>
@@ -1516,23 +1543,139 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 </tr>
 <tr>
 <td><code>assignAccessPolicy</code></td>
-<td>Assigning access policies to users/teams</td>
+<td>Assigning a system-wide access policy to channels or teams</td>
 </tr>
 <tr>
 <td><code>createAccessControlPolicy</code></td>
-<td>Creating new access control policies</td>
+<td>Creating or updating an access control policy</td>
 </tr>
 <tr>
 <td><code>deleteAccessControlPolicy</code></td>
-<td>Deleting access control policies</td>
+<td>Deleting an access control policy</td>
+</tr>
+<tr>
+<td><code>deletePluginAccessControlPolicy</code></td>
+<td>A plugin deleting an access control policy it owns</td>
+</tr>
+<tr>
+<td><code>deleteTeamAccessPolicy</code></td>
+<td>Removing a team's membership policy because the team was deleted or archived</td>
+</tr>
+<tr>
+<td><code>savePluginAccessControlPolicy</code></td>
+<td>A plugin creating or updating an access control policy it owns</td>
+</tr>
+<tr>
+<td><code>setActiveStatus</code></td>
+<td>Turning auto-add on or off for one or more policies. The event name dates from when policies had an active state.</td>
 </tr>
 <tr>
 <td><code>unassignAccessPolicy</code></td>
-<td>Unassigning access policies from users/teams</td>
+<td>Removing a system-wide access policy from channels or teams</td>
 </tr>
 <tr>
 <td><code>updateActiveStatus</code></td>
-<td>Updating active status of access control policies</td>
+<td>Turning auto-add on or off for a single policy. The event name dates from when policies had an active state.</td>
+</tr>
+</tbody>
+</table>
+
+### Access Control Membership Events
+
+<PlanAvailability slug="entry-adv" />
+
+When [Enable audit logging for membership policy decisions](/administration-guide/configure/system-attributes#enable-access-control-audit-logging) is enabled, Mattermost writes one record each time a membership sync job adds a user to a channel or team, or removes one, because of a membership policy. Individual permission decisions, such as whether a user may upload or download a file, aren't recorded.
+
+These records are written at the `audit-cli` level. If you use an advanced audit logging target, include that level in the target.
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Event Name</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>channelMembershipAdded</code></td>
+<td>A sync job added a user to a channel because they match its policy</td>
+</tr>
+<tr>
+<td><code>channelMembershipRemoved</code></td>
+<td>A sync job removed a user from a channel because they no longer match its policy</td>
+</tr>
+<tr>
+<td><code>teamMembershipAdded</code></td>
+<td>A sync job added a user to a team because they match its policy</td>
+</tr>
+<tr>
+<td><code>teamMembershipRemoved</code></td>
+<td>A sync job removed a user from a team because they no longer match its policy</td>
+</tr>
+<tr>
+<td><code>teamCascadedChannelRemoval</code></td>
+<td>A user removed from a team by its policy was also removed from one of the team's channels. One record is written for each channel.</td>
+</tr>
+</tbody>
+</table>
+
+Each record carries these values in `event.parameters`:
+
+<table style={{width: '83%'}}>
+<colgroup>
+<col style={{width: '26%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Parameter</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>job_id</code></td>
+<td>ID of the sync job that made the change</td>
+</tr>
+<tr>
+<td><code>policy_id</code></td>
+<td>ID of the policy that caused the change. A channel's or team's own policy has the same ID as the channel or team. For a <code>teamCascadedChannelRemoval</code> record, this is the team's policy.</td>
+</tr>
+<tr>
+<td><code>policy_revision</code></td>
+<td>Revision of the policy when the change was made</td>
+</tr>
+<tr>
+<td><code>resource_type</code></td>
+<td><code>channel</code> or <code>team</code></td>
+</tr>
+<tr>
+<td><code>resource_id</code></td>
+<td>ID of the channel or team the user was added to or removed from</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>ID of the user who was added or removed</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td><code>add</code> or <code>remove</code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td>Why the change was made: <code>matches-policy</code> (the user was added because they match the policy), <code>no-longer-matches</code> (the user was removed because they no longer match), or <code>team-removal-cascade</code> (the user was removed from a channel because they were removed from its team)</td>
+</tr>
+<tr>
+<td><code>event_id</code></td>
+<td>Present on <code>teamMembershipRemoved</code> records. Identifies the team removal.</td>
+</tr>
+<tr>
+<td><code>parent_event_id</code></td>
+<td>Present on <code>teamCascadedChannelRemoval</code> records. Matches the <code>event_id</code> of the team removal that caused the channel removal.</td>
 </tr>
 </tbody>
 </table>
@@ -1552,6 +1695,10 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 </thead>
 <tbody>
 <tr>
+<td><code>cpaValueChange</code></td>
+<td>Creating, changing, or deleting an attribute value, such as a user's or a channel's. Recorded for every change, however it was made, including changes from AD/LDAP or SAML sync. The details are in the record's <code>meta</code> field.</td>
+</tr>
+<tr>
 <td><code>createCPAField</code></td>
 <td>Creating custom profile attribute fields</td>
 </tr>
@@ -1565,7 +1712,7 @@ From Mattermost v11.11.0, audit log entries for requests authenticated via a Per
 </tr>
 <tr>
 <td><code>patchCPAValues</code></td>
-<td>Updating custom profile attribute values</td>
+<td>Updating custom profile attribute values for a user or bot</td>
 </tr>
 </tbody>
 </table>

@@ -12,9 +12,8 @@ test(
     async ({pw}) => {
         const {adminClient, user} = await pw.initSetup();
 
+        const {restore} = await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: true}});
         try {
-            await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
-            await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: true}});
             await adminClient.revokeAllSessionsForUser(user.id);
 
             const started = new Date();
@@ -41,7 +40,7 @@ test(
             // * Verify the user can proceed after verifying
             await pw.channelsPage.toBeVisible();
         } finally {
-            await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
+            await restore();
         }
     },
 );

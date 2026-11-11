@@ -1224,15 +1224,15 @@
     "translation": "Błąd podczas pobierania tokenu dostępu z bazy danych przed jego usunieciem."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Rejestracja użytkowników jest wyłączona."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Łącze rejestracji wygasło."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Łącze rejestracji wydaje się być niepoprawne."
   },
   {
@@ -1342,10 +1342,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Nie można zaktualizować wiadomości w usuniętym kanale."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Nie udało się odnaleźć istniejącej wiadomości lub komentarza do zaktualizowania."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3092,11 +3088,11 @@
     "translation": "Nie udało się ustawić statusu zadania na błąd"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Nie można przetworzyć adresu URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Nie można pobrać kanałów."
   },
   {
@@ -6001,7 +5997,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nie można pobrać kanałów dla podanego schematu."
+    "translation": "Nie można pobrać zespołów dla podanego schematu."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8012,7 +8008,7 @@
     "translation": "Rozmiar partii indeksowania zbiorczego wyszukiwania musi wynosić co najmniej {{.BatchSize}}."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Przygotowana wersja wtyczki nie może być przetworzona."
   },
   {
@@ -8264,7 +8260,7 @@
     "translation": "Nieprawidłowy identyfikator posta."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nie można uzyskać priorytetu dla posta"
   },
   {
@@ -9497,7 +9493,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nie można odblokować zdalnego do kanału"
+    "translation": "Nie można cofnąć zaproszenia zdalnego do kanału."
   },
   {
     "id": "app.post.save.thread_membership.app_error",
@@ -9996,14 +9992,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} powinien być prefiksem IndexPrefix {{.IndexPrefix}}."
   },
   {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Pusta wartość atrybutu LDAP"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nie udało się pobrać pól CPA"
-  },
-  {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
     "translation": "Deklaracja atrybutu asercji SAML jest nieprawidłowa"
   },
@@ -10038,10 +10026,6 @@
   {
     "id": "app.submit_interactive_dialog.read_body_error",
     "translation": "Napotkano błąd odczytu treści odpowiedzi z interaktywnego przesłania okna dialogowego."
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nie udało się pobrać pól CPA"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -11368,7 +11352,7 @@
     "translation": "Pobieranie plików publicznych odrzucone przez wtyczkę"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nie można uzyskać priorytetu postu z kontekstem"
   },
   {
@@ -14274,19 +14258,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Nie można wyciszyć wyniku kontroli stanu."
+    "translation": "Nie można wyciszyć problemu z kondycją."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Nie znaleziono wyniku kontroli stanu."
+    "translation": "Nie znaleziono problemu z kondycją."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nie można wyłączyć wyciszenia wyniku kontroli stanu."
+    "translation": "Nie można wyłączyć wyciszenia problemu z kondycją."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Nie znaleziono wyniku kontroli stanu."
+    "translation": "Nie znaleziono problemu z kondycją."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14578,7 +14562,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Nieprawidłowy tryb serwera WWW {{.Value}}. Dozwolone wartości to 'gzip', 'nogzip' lub 'disabled'."
+    "translation": "Nieprawidłowy tryb serwera WWW {{.Value}}. Dozwolone wartości to 'gzip', 'uncompressed' lub 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
@@ -14595,5 +14579,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Nieprawidłowe mention_keys: przekroczono limit {{.MaxCount}} kluczy lub {{.MaxLength}} bajtów."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NIE ZOSTAŁO ZNALEZIONE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "zostało usunięte"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` nie jest prawidłową wartością `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "To pole jest powiązane z szablonem atrybutu globalnego i nie można go modyfikować za pomocą API atrybutów użytkownika. Zamiast tego użyj API atrybutów globalnych."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nie można utworzyć emoji. Obraz jest zbyt duży, aby go przetworzyć. Spróbuj użyć obrazu o mniejszych wymiarach lub z mniejszą liczbą klatek."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Panel kondycji witryny nie jest włączony."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Panel kondycji witryny wymaga licencji Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Nie masz uprawnień do wysyłania wiadomości burn-on-read w tym kanale."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nie można przewinąć do początku pliku."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nie można pobrać problemu z kondycją."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Nie znaleziono problemu z kondycją."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nie można pobrać problemów z kondycją."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atrybut nie jest już synchronizowany z tego źródła, więc synchronizacja nie może go zmienić."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Opcjami atrybutu synchronizowanego z AD/LDAP lub SAML zarządza synchronizacja, więc nie można ich dodawać, zmieniać ich nazw ani usuwać."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Synchronizowany atrybut ma nieprawidłowe opcje."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Nieprawidłowe źródło synchronizacji właściwości."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika dla synchronizacji właściwości."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nie można ustalić, które opcje synchronizowanego atrybutu są używane."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Konfiguracja logowania zawiera ścieżkę pliku dziennika lub audytu spoza głównego katalogu logowania. Szczegóły znajdziesz w dziennikach serwera."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Nieznany czas zebrania danych."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Sekcja konfiguracji jest niedostępna."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnostyka serwera jest niedostępna."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Historia zadań jest niedostępna."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Szczegóły licencji są niedostępne."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista wtyczek jest niedostępna."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Reguła nieoczekiwanie zakończyła się błędem i nie mogła zostać oceniona."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statystyki użycia są niedostępne."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} używa http://, więc powiadomienia push są wysyłane bez szyfrowania."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} ma nieprawidłowy schemat. Użytkownicy mobilni nie będą otrzymywać powiadomień."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Dodaj prefiks https:// do PushNotificationServer i sprawdź, czy serwer jest osiągalny z węzła aplikacji."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer nie używa https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Każda próba wysłania powiadomienia push zakończy się błędem „unsupported protocol scheme”."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Ustaw PushNotificationServer na https://push.mattermost.com lub na własny serwer proxy push."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Powiadomienia push są włączone, ale ustawienie PushNotificationServer jest puste"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com to testowy serwer proxy push Mattermost. Nie ma umowy SLA, ma ograniczoną przepustowość i nie jest przeznaczony do użytku produkcyjnego. Dostarczanie powiadomień push na urządzenia mobilne będzie zawodne poza testami na małą skalę."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Przełącz na https://push.mattermost.com (produkcyjną usługę Hosted Push Notification Service dostępną w ramach Enterprise) lub na własny serwer proxy push."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer wskazuje na push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL jest wymagany dla adresów URL webhooków, wywołań zwrotnych OAuth, danych powiadomień push na urządzenia mobilne i linków w wiadomościach e-mail. Dopóki jest pusty, integracje nie działają."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Ustaw SiteURL na publiczny adres URL HTTPS serwera."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "Ustawienie ServiceSettings.SiteURL jest puste"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL ma wartość {{.url}}. Pliki cookie sesji i tokeny uwierzytelniania są przesyłane bez szyfrowania."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Udostępnij Mattermost przez HTTPS i zaktualizuj SiteURL na adres https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL używa http:// (nie https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Wiadomości burn-on-read nie mogą być wysyłane jako cykliczne zaplanowane posty."
   }
 ]

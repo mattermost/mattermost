@@ -14,6 +14,8 @@ func TestHealthFindingRender(t *testing.T) {
 	text := RuleText{
 		TitleID:       "health.rule.title",
 		RemediationID: "health.rule.remediation",
+		DocsURL:       "https://mattermost.com/pl/health-doc",
+		ConsolePath:   "/admin_console/environment/web_server",
 	}
 
 	t.Run("nil receiver returns nil", func(t *testing.T) {
@@ -39,6 +41,15 @@ func TestHealthFindingRender(t *testing.T) {
 		assert.Equal(t, "health.rule.title:node-1", rendered.Title)
 		assert.Equal(t, "health.rule.remediation:node-1", rendered.Remediation)
 		assert.Equal(t, "health.rule.message:node-1", rendered.Message)
+		assert.Equal(t, "https://mattermost.com/pl/health-doc", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
+	})
+
+	t.Run("links are copied untranslated even without a translate func", func(t *testing.T) {
+		rendered := (&HealthFinding{}).Render(nil, text)
+
+		assert.Equal(t, "https://mattermost.com/pl/health-doc", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
 	t.Run("no details passes no args to the translate func", func(t *testing.T) {
@@ -78,6 +89,8 @@ func TestHealthFindingRender(t *testing.T) {
 		assert.Empty(t, rendered.Title)
 		assert.Empty(t, rendered.Remediation)
 		assert.Empty(t, rendered.Message)
+		assert.Empty(t, rendered.DocsURL)
+		assert.Empty(t, rendered.ConsolePath)
 	})
 
 	t.Run("does not mutate the receiver", func(t *testing.T) {
@@ -90,6 +103,8 @@ func TestHealthFindingRender(t *testing.T) {
 		assert.Empty(t, f.Title)
 		assert.Empty(t, f.Remediation)
 		assert.Empty(t, f.Message)
+		assert.Empty(t, f.DocsURL)
+		assert.Empty(t, f.ConsolePath)
 	})
 }
 

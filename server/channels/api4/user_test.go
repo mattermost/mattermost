@@ -1316,6 +1316,26 @@ func TestGetUserByUsername(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("remote user with colon in username", func(t *testing.T) {
+		remoteUser, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "bob." + model.NewId()[:10] + ".xmpp-demo.internal:xmpp",
+			RemoteId: new(model.NewId()),
+		})
+		require.NoError(t, err)
+
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			ruser, _, err := client.GetUserByUsername(context.Background(), remoteUser.Username, "")
+			require.NoError(t, err)
+			require.Equal(t, remoteUser.Id, ruser.Id)
+			require.Equal(t, remoteUser.Username, ruser.Username)
+
+			_, resp, err := client.GetUserByUsername(context.Background(), "Bob:XMPP", "")
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	})
+
 	// Check against privacy config settings
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
@@ -4554,6 +4574,282 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestUpdateUserHashedPasswordForGuestSessionAndEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	const (
+		password     = "SuperSecurePass23!"
+		passwordHash = "$2a$10$CiS1iWVPUj7rQNdY6XW53.DmaPLsETIvmW2p0asp4Dqpofs10UL5W"
+	)
+
+	createMagicLinkGuest := func(t *testing.T) *model.User {
+		t.Helper()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         th.GenerateTestEmail(),
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      model.NewTestPassword(),
+			EmailVerified: true,
+			AuthService:   model.UserAuthServiceMagicLink,
+		}
+		created, appErr := th.App.CreateGuest(th.Context, guest)
+		require.Nil(t, appErr)
+
+		authData := model.NewId()
+		_, nErr := th.App.Srv().Store().User().UpdateAuthData(created.Id, model.UserAuthServiceMagicLink, &authData, "", false)
+		require.NoError(t, nErr)
+		th.App.InvalidateCacheForUser(created.Id)
+
+		loaded, appErr := th.App.GetUser(th.Context, created.Id)
+		require.Nil(t, appErr)
+		require.True(t, loaded.IsMagicLinkEnabled())
+		require.NotNil(t, loaded.AuthData)
+		require.Equal(t, authData, *loaded.AuthData)
+		return loaded
+	}
+
+	checkMagicLinkGuest := func(t *testing.T, client *model.Client4, guest *model.User, newPassword string) {
+		t.Helper()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = true
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: guest.Id,
+			Roles:  model.SystemGuestRoleId,
+		})
+		require.Nil(t, appErr)
+
+		// Hashed password update of a magic link guest returns the magic link error and leaves auth fields and the password unchanged.
+		resp, err := client.UpdateUserHashedPassword(context.Background(), guest.Id, newPassword)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.user.update_password.magic_link.app_error")
+
+		reloaded, appErr := th.App.GetUser(th.Context, guest.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceMagicLink, reloaded.AuthService)
+		require.True(t, reloaded.IsMagicLinkEnabled())
+		require.NotNil(t, guest.AuthData)
+		require.NotNil(t, reloaded.AuthData)
+		require.Equal(t, *guest.AuthData, *reloaded.AuthData)
+		require.Equal(t, guest.Password, reloaded.Password)
+		require.Equal(t, guest.DeleteAt, reloaded.DeleteAt)
+
+		// A session opened before the refused update is still valid.
+		loadedSession, appErr := th.App.GetSession(session.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, loadedSession)
+		require.False(t, loadedSession.IsExpired())
+
+		_, _, loginErr := th.CreateClient().Login(context.Background(), reloaded.Email, password)
+		require.Error(t, loginErr)
+	}
+
+	createNormalUser := func(t *testing.T) *model.User {
+		t.Helper()
+
+		id := model.NewId()
+		user := &model.User{
+			Email:         th.GenerateTestEmail(),
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      model.NewTestPassword(),
+			EmailVerified: true,
+		}
+		created, appErr := th.App.CreateUser(th.Context, user)
+		require.Nil(t, appErr)
+		created.Email = user.Email
+		return created
+	}
+
+	t.Run("magic link guest", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			checkMagicLinkGuest(t, client, createMagicLinkGuest(t), passwordHash)
+		})
+	})
+
+	t.Run("magic link guest by user manager", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+
+		checkMagicLinkGuest(t, th.Client, createMagicLinkGuest(t), passwordHash)
+	})
+
+	for _, tc := range []struct {
+		name        string
+		deactivate  bool
+		newPassword string
+	}{
+		{name: "deactivated magic link guest", deactivate: true, newPassword: passwordHash},
+		{name: "magic link guest empty new password", deactivate: false, newPassword: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			guest := createMagicLinkGuest(t)
+			if tc.deactivate {
+				_, err := th.SystemAdminClient.UpdateUserActive(context.Background(), guest.Id, false)
+				require.NoError(t, err)
+
+				var appErr *model.AppError
+				guest, appErr = th.App.GetUser(th.Context, guest.Id)
+				require.Nil(t, appErr)
+				require.NotZero(t, guest.DeleteAt)
+				require.True(t, guest.IsMagicLinkEnabled())
+				require.NotNil(t, guest.AuthData)
+			}
+
+			checkMagicLinkGuest(t, th.SystemAdminClient, guest, tc.newPassword)
+		})
+	}
+
+	t.Run("magic link guest password change email", func(t *testing.T) {
+		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
+		if inbucketHost == "" {
+			inbucketHost = "localhost"
+		}
+		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
+		if inbucketSMTPPort == "" {
+			inbucketSMTPPort = "10025"
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SMTPServer = inbucketHost
+			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort
+			*cfg.EmailSettings.SendEmailNotifications = true
+		})
+
+		guest := createMagicLinkGuest(t)
+		err := mail.DeleteMailBox(guest.Email)
+		if err != nil {
+			t.Fatalf("inbucket connection error: %v", err)
+		}
+
+		checkMagicLinkGuest(t, th.SystemAdminClient, guest, passwordHash)
+
+		// A refused hashed password update does not send a password change email.
+		deadline := time.Now().Add(8 * time.Second)
+		var box mail.JSONMessageHeaderInbucket
+		for {
+			loaded, getErr := mail.GetMailBox(guest.Email)
+			if getErr == nil && len(loaded) > 0 {
+				box = loaded
+				break
+			}
+			if time.Now().After(deadline) {
+				if getErr != nil && !strings.Contains(getErr.Error(), "no mailbox") {
+					t.Fatalf("inbucket connection error: %v", getErr)
+				}
+				break
+			}
+			time.Sleep(400 * time.Millisecond)
+		}
+		require.Empty(t, box)
+	})
+
+	t.Run("sessions", func(t *testing.T) {
+		for _, tc := range []struct {
+			name      string
+			terminate bool
+		}{
+			{name: "terminate sessions on password change", terminate: true},
+			{name: "keep sessions", terminate: false},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.TerminateSessionsOnPasswordChange = tc.terminate
+				})
+
+				user := createNormalUser(t)
+				sessions := make([]*model.Session, 0, 2)
+				for range 2 {
+					session, appErr := th.App.CreateSession(th.Context, &model.Session{
+						UserId: user.Id,
+						Roles:  model.SystemUserRoleId,
+					})
+					require.Nil(t, appErr)
+					sessions = append(sessions, session)
+				}
+
+				_, err := th.SystemAdminClient.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+				require.NoError(t, err)
+
+				for _, session := range sessions {
+					loaded, appErr := th.App.GetSession(session.Token)
+					// Sessions created before an admin hashed password update are revoked only when terminate sessions on password change is on.
+					require.Equal(t, tc.terminate, appErr != nil, "session created before the hashed password update")
+					if tc.terminate {
+						require.Nil(t, loaded)
+						continue
+					}
+					require.NotNil(t, loaded)
+					require.False(t, loaded.IsExpired())
+				}
+			})
+		}
+	})
+
+	t.Run("password change email", func(t *testing.T) {
+		inbucketHost := os.Getenv("CI_INBUCKET_HOST")
+		if inbucketHost == "" {
+			inbucketHost = "localhost"
+		}
+		inbucketSMTPPort := os.Getenv("CI_INBUCKET_SMTP_PORT")
+		if inbucketSMTPPort == "" {
+			inbucketSMTPPort = "10025"
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.SMTPServer = inbucketHost
+			*cfg.EmailSettings.SMTPPort = inbucketSMTPPort
+			*cfg.EmailSettings.SendEmailNotifications = true
+		})
+
+		user := createNormalUser(t)
+		err := mail.DeleteMailBox(user.Email)
+		if err != nil {
+			t.Fatalf("inbucket connection error: %v", err)
+		}
+
+		_, err = th.SystemAdminClient.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+		require.NoError(t, err)
+
+		var box mail.JSONMessageHeaderInbucket
+		mbErr := mail.RetryInbucket(10, func() error {
+			var getErr error
+			box, getErr = mail.GetMailBox(user.Email)
+			return getErr
+		})
+		if mbErr != nil && !strings.Contains(mbErr.Error(), "no mailbox") {
+			t.Fatalf("inbucket connection error: %v", mbErr)
+		}
+		if mbErr != nil {
+			box = nil
+		}
+		// A successful hashed password update sends exactly one password change email.
+		require.Len(t, box, 1)
+		require.Contains(t, box[0].Subject, "Your password has been updated")
+		message, mailErr := mail.GetMessageFromMailbox(user.Email, box[0].ID)
+		require.NoError(t, mailErr)
+		require.Contains(t, message.Body.Text, "using a reset password link")
+	})
+
+	t.Run("user manager updates a normal user", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.LoginBasic(t)
+
+		user := createNormalUser(t)
+		resp, err := th.Client.UpdateUserHashedPassword(context.Background(), user.Id, passwordHash)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, _, err = th.CreateClient().Login(context.Background(), user.Email, password)
+		require.NoError(t, err)
+	})
+}
+
 func TestResetPassword(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	_, err := th.Client.Logout(context.Background())
@@ -5556,6 +5852,95 @@ func TestLoginWithGuestMagicLinkTokenRejectsDeactivatedUser(t *testing.T) {
 	})
 }
 
+func TestGetLoginType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	// The webapp decodes every response body as JSON whatever the status code is, so a body
+	// it chokes on surfaces as "Received invalid response from the server." instead of the
+	// real error. Go through the raw client to assert on the body the webapp actually sees.
+	postLoginType := func(t *testing.T, loginID string) (int, map[string]any) {
+		t.Helper()
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer closeBody(resp)
+
+		var body map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body), "response body must be valid JSON")
+
+		return resp.StatusCode, body
+	}
+
+	// The webapp renders body["message"], so the translated string is part of the contract
+	// and not just the error id.
+	assertMagicLinkUnavailable := func(t *testing.T, loginID string) {
+		t.Helper()
+		status, body := postLoginType(t, loginID)
+		assert.Equal(t, http.StatusNotFound, status)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assert.Equal(t, "Login with magic link is disabled.", body["message"])
+	}
+
+	t.Run("returns an empty login type for a password account when guest magic link is available", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		status, body := postLoginType(t, th.BasicUser.Email)
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "", body["auth_service"])
+	})
+
+	t.Run("returns a JSON error when guest accounts are disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = false
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when guest magic link is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = false
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the license does not include guest accounts", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the server is unlicensed", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+}
+
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
@@ -5656,12 +6041,17 @@ func TestLoginCookies(t *testing.T) {
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
-		th.App.Srv().SetCWSTokenOverride(token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		user := th.CreateUser(t)
+		th.App.Srv().SetCWSTokenOverride(token)
+		th.App.Srv().SetCWSLoginIDOverride(user.Email)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 
 		form := url.Values{}
-		form.Add("login_id", th.SystemAdminUser.Email)
+		form.Add("login_id", user.Email)
 		form.Add("cws_token", token)
 
 		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -5687,6 +6077,183 @@ func TestLoginCookies(t *testing.T) {
 			}
 		}
 		assert.True(t, found, "should have found cookie")
+	})
+
+	t.Run("cws login with the CWS login ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name           string
+			cloud          bool
+			bindTo         func(user, otherUser *model.User) string
+			prepare        func(t *testing.T, user *model.User)
+			expectedStatus int
+			expectSession  bool
+		}{
+			{
+				name:           "self-hosted license with a matching login ID",
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "self-hosted license without the CWS login ID",
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "self-hosted license with a mismatched login ID",
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a deactivated user",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					_, appErr := th.App.UpdateActive(th.Context, user, false)
+					require.Nil(t, appErr)
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a user who has logged in before",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license without the CWS login ID",
+				cloud:          true,
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license with a matching login ID",
+				cloud:          true,
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "Cloud license with a mismatched login ID",
+				cloud:          true,
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				token := model.NewRandomString(64)
+				license := model.NewTestLicense()
+				license.Features.Cloud = new(tc.cloud)
+				th.App.Srv().SetLicense(license)
+				user := th.CreateUser(t)
+				otherUser := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+				if tc.prepare != nil {
+					tc.prepare(t, user)
+				}
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, tc.expectedStatus, r.StatusCode)
+				hasSession := false
+				for _, cookie := range r.Cookies() {
+					if cookie.Name == model.SessionCookieToken && cookie.Value != "" {
+						hasSession = true
+					}
+				}
+				assert.Equal(t, tc.expectSession, hasSession)
+			})
+		}
+	})
+
+	t.Run("cws login redirect for cloud previews", func(t *testing.T) {
+		siteURL := "https://testchips.cloud.mattermost.com"
+		th := SetupAndApplyConfigBeforeLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+		}).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name             string
+			preview          bool
+			useCase          string
+			landing          string
+			expectedLocation string
+		}{
+			{name: "use case wins over the landing path", preview: true, useCase: "mission-ops", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/mission-ops-hq"},
+			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
+			{name: "landing path is ignored outside a preview", landing: "/nato", expectedLocation: siteURL},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				license := model.NewTestLicense("cloud")
+				if tc.preview {
+					license.IsTrial = true
+					license.StartsAt = model.GetMillis()
+					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
+				}
+				th.App.Srv().SetLicense(license)
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.CloudSettings.PreviewLandingPath = tc.landing
+				})
+				token := model.NewRandomString(64)
+				user := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(user.Username)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				form.Add("use_case", tc.useCase)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, http.StatusFound, r.StatusCode)
+				assert.Equal(t, tc.expectedLocation, r.Header.Get("Location"))
+			})
+		}
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
@@ -8806,6 +9373,28 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Len(t, uss.Threads, 0)
 	})
 
+	t.Run("responses are not cacheable", func(t *testing.T) {
+		client := th.Client
+
+		rpost, _, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		require.NoError(t, err)
+		_, _, err = client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		require.NoError(t, err)
+
+		defer func() {
+			err = th.App.Srv().Store().Post().PermanentDeleteByUser(th.Context, th.BasicUser.Id)
+			require.NoError(t, err)
+		}()
+
+		_, resp, err := client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{Unread: true})
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+
+		_, resp, err = client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
+	})
+
 	t.Run("no params, 1 thread", func(t *testing.T) {
 		client := th.Client
 
@@ -10730,6 +11319,35 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 		assert.Len(t, sessions, 0)
 	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), authUser)
+				assert.Nil(t, appErr)
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				// Checks that desktop token login consults user DeleteAt before creating a session.
+				_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, resp)
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
 }
 
 func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
@@ -10822,6 +11440,95 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 		assert.Equal(t, samlUser.Id, user.Id)
 		assert.Equal(t, samlUser.Email, user.Email)
 		assert.Equal(t, samlUser.Username, user.Username)
+	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				codeVerifier := "test_code_verifier_delete_at_" + tc.name
+				state := "test_state_delete_at_" + tc.name
+
+				sum := sha256.Sum256([]byte(codeVerifier))
+				codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+				extra := map[string]string{
+					"user_id":               authUser.Id,
+					"code_challenge":        codeChallenge,
+					"code_challenge_method": "S256",
+					"state":                 state,
+				}
+
+				token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+				require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				props := map[string]string{
+					"login_code":    token.Token,
+					"code_verifier": codeVerifier,
+					"state":         state,
+				}
+
+				// Checks that SSO code exchange consults user DeleteAt before creating a session.
+				resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+				require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
+
+	t.Run("rejects user converted to bot", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
+
+		codeVerifier := "test_code_verifier_convert_to_bot"
+		state := "test_state_convert_to_bot"
+
+		sum := sha256.Sum256([]byte(codeVerifier))
+		codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+		extra := map[string]string{
+			"user_id":               samlUser.Id,
+			"code_challenge":        codeChallenge,
+			"code_challenge_method": "S256",
+			"state":                 state,
+		}
+
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, appErr := th.App.ConvertUserToBot(th.Context, samlUser)
+		require.Nil(t, appErr)
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": codeVerifier,
+			"state":         state,
+		}
+
+		// Checks that a code minted before ConvertUserToBot can't create a session for the bot.
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+		sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, sessErr)
+		assert.Len(t, sessions, 0)
 	})
 }
 

@@ -28,8 +28,7 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 		cfg.FeatureFlags.HealthDashboard = flagEnabled
 	})
 
-	registry := healthcheck.NewRegistry()
-	registry.Register(
+	svc := newTestHealthCheckService(th,
 		healthcheck.Rule{
 			Code:       "TEST_LATEST_VERSION",
 			Area:       model.AreaCluster,
@@ -55,14 +54,6 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 			},
 		},
 	)
-	svc := &HealthCheckService{
-		engine: healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Logger: th.TestLogger}),
-		reconciler: healthcheck.NewReconciler(healthcheck.ReconcilerOpts{
-			Store:    th.App.Srv().Store().HealthFinding(),
-			Logger:   th.TestLogger,
-			Registry: registry,
-		}),
-	}
 
 	require.NoError(t, th.App.clearLatestVersionCache())
 	t.Cleanup(func() {
@@ -72,6 +63,20 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 	require.Nil(t, appErr)
 
 	return th, svc
+}
+
+func newTestHealthCheckService(th *TestHelper, rules ...healthcheck.Rule) *HealthCheckService {
+	registry := healthcheck.NewRegistry()
+	registry.Register(rules...)
+
+	return &HealthCheckService{
+		engine: healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Logger: th.TestLogger}),
+		reconciler: healthcheck.NewReconciler(healthcheck.ReconcilerOpts{
+			Store:    th.App.Srv().Store().HealthFinding(),
+			Logger:   th.TestLogger,
+			Registry: registry,
+		}),
+	}
 }
 
 func listHealthFindings(t *testing.T, th *TestHelper) []*model.HealthFinding {
@@ -112,6 +117,52 @@ func TestRunHealthCheckGating(t *testing.T) {
 
 		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.NotEmpty(t, listHealthFindings(t, th))
+	})
+}
+
+func TestRunHealthCheckCloudScope(t *testing.T) {
+	th, _ := setupHealthCheck(t, true)
+	firing := func(*healthcheck.Snapshot) []healthcheck.Result {
+		return []healthcheck.Result{healthcheck.Firing("test.message.firing")}
+	}
+	svc := newTestHealthCheckService(th,
+		healthcheck.Rule{
+			Code:       "TEST_SELF_HOSTED_ONLY",
+			Area:       model.AreaCluster,
+			Severity:   healthcheck.SeverityWarning,
+			Surface:    healthcheck.SurfaceProduct,
+			Volatility: healthcheck.VolatilityStable,
+			Eval:       firing,
+		},
+		healthcheck.Rule{
+			Code:           "TEST_CLOUD",
+			Area:           model.AreaCluster,
+			Severity:       healthcheck.SeverityWarning,
+			Surface:        healthcheck.SurfaceProduct,
+			Volatility:     healthcheck.VolatilityStable,
+			AppliesToCloud: true,
+			Eval:           firing,
+		},
+	)
+
+	t.Run("a Cloud license skips rules that do not apply to Cloud", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "cloud"))
+
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
+		findings := listHealthFindings(t, th)
+		require.Len(t, findings, 1)
+		assert.Equal(t, "TEST_CLOUD", findings[0].Code)
+	})
+
+	t.Run("a self-hosted license runs every rule", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
+		codes := []string{}
+		for _, finding := range listHealthFindings(t, th) {
+			codes = append(codes, finding.Code)
+		}
+		assert.ElementsMatch(t, []string{"TEST_CLOUD", "TEST_SELF_HOSTED_ONLY"}, codes)
 	})
 }
 

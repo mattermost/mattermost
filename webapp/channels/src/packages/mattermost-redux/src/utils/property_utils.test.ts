@@ -5,12 +5,17 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {
     canMoveToOption,
+    formatPropertyFieldLabel,
     getOptionRank,
     getPropertyFieldChangePolicy,
     getPropertyFieldLabel,
+    getPropertyFieldOptions,
+    getPropertyFieldSyncSources,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
     isPropertyFieldSourceManaged,
+    isPropertyFieldSynced,
+    isPropertyFieldSyncedForAuthService,
     isPropertyValueSet,
     isPSAv1PropertyField,
 } from './property_utils';
@@ -116,6 +121,7 @@ describe('isPropertyFieldSourceManaged', () => {
     test('reads a synced field as source-managed', () => {
         expect(isPropertyFieldSourceManaged(makeField({attrs: {ldap: 'department'}}))).toBe(true);
         expect(isPropertyFieldSourceManaged(makeField({attrs: {saml: 'Department'}}))).toBe(true);
+        expect(isPropertyFieldSourceManaged(makeField({attrs: {openid: 'address.country'}}))).toBe(true);
     });
 
     test('leaves an ordinary admin-authored field alone', () => {
@@ -158,6 +164,29 @@ describe('isPropertyFieldSourceManaged', () => {
     });
 });
 
+describe('sync sources', () => {
+    test('lists the linked sources in the order the server resolves them', () => {
+        expect(getPropertyFieldSyncSources(makeField({attrs: {openid: 'groups', saml: 'Groups', ldap: 'memberOf'}}))).toEqual(['ldap', 'saml', 'openid']);
+        expect(getPropertyFieldSyncSources(makeField({attrs: {openid: 'groups'}}))).toEqual(['openid']);
+        expect(getPropertyFieldSyncSources(makeField({attrs: {ldap: '', openid: 7}}))).toEqual([]);
+        expect(getPropertyFieldSyncSources(makeField())).toEqual([]);
+    });
+
+    test('reads a field as synced when any source names an attribute', () => {
+        expect(isPropertyFieldSynced(makeField({attrs: {openid: 'department'}}))).toBe(true);
+        expect(isPropertyFieldSynced(makeField({attrs: {}}))).toBe(false);
+    });
+
+    test('matches the source to the auth service the user signs in with', () => {
+        const field = makeField({attrs: {openid: 'department'}});
+        expect(isPropertyFieldSyncedForAuthService(field, 'openid')).toBe(true);
+        expect(isPropertyFieldSyncedForAuthService(field, 'saml')).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(field, '')).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(field, undefined)).toBe(false);
+        expect(isPropertyFieldSyncedForAuthService(makeField({attrs: {ldap: 'department', saml: 'Department'}}), 'saml')).toBe(true);
+    });
+});
+
 describe('getPropertyFieldLabel', () => {
     test('prefers display_name', () => {
         expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: 'Caveat / Releasability'}}))).toBe('Caveat / Releasability');
@@ -173,6 +202,38 @@ describe('getPropertyFieldLabel', () => {
         expect(getPropertyFieldLabel(makeField({name: 'classification'}))).toBe('Classification');
         expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: ''}}))).toBe('Classification');
         expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: 'Classification'}}))).toBe('Classification');
+    });
+});
+
+// Also the Manage Attributes page heading, which renders a field's slug directly.
+describe('formatPropertyFieldLabel', () => {
+    test('title-cases the first letter so internal names read as headings', () => {
+        expect(formatPropertyFieldLabel('classification')).toBe('Classification');
+        expect(formatPropertyFieldLabel('  department')).toBe('Department');
+    });
+
+    test('leaves an already-capitalized display name unchanged', () => {
+        expect(formatPropertyFieldLabel('Test Attribute')).toBe('Test Attribute');
+    });
+
+    test('returns an empty string when the name is blank', () => {
+        expect(formatPropertyFieldLabel('   ')).toBe('');
+        expect(formatPropertyFieldLabel('')).toBe('');
+    });
+});
+
+describe('getPropertyFieldOptions', () => {
+    test('returns the field\'s options', () => {
+        const options = [{id: 'a', name: 'A'}];
+        expect(getPropertyFieldOptions(makeField({attrs: {options}}))).toBe(options);
+    });
+
+    // An absent list and an empty one are not distinguishable on the wire, so
+    // both read as empty rather than as undefined.
+    test('returns an empty array when the field declares no options', () => {
+        expect(getPropertyFieldOptions(makeField())).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {}}))).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {options: []}}))).toEqual([]);
     });
 });
 

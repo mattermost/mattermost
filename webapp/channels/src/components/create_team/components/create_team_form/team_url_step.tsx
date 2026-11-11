@@ -5,7 +5,7 @@ import type {ReactNode, JSX} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import logoImage from 'images/logo.png';

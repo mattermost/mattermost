@@ -14,6 +14,10 @@ test(
         const {user, team, adminClient} = await pw.initSetup();
         await adminClient.updateTeamMemberSchemeRoles(team.id, user.id, true, true);
 
+        // # Create an open team the user is not on, since other specs may already have left one on the server
+        const openTeam = await pw.random.team('open-team', 'Open Team');
+        await adminClient.createTeam({...openTeam, allow_open_invite: true});
+
         // # Log in a user in new browser context
         const {page, channelsPage} = await pw.testBrowser.login(user);
         const sidebarLeft = channelsPage.sidebarLeft;
@@ -29,8 +33,9 @@ test(
 
         await pw.logFocusedElement(page);
 
-        // * Team menu should be visible and focus should be on first menu item - "Invite people"
+        // * Team menu should be visible, list "Join another team", and focus the first menu item - "Invite people"
         await teamMenu.toBeVisible();
+        await expect(teamMenu.joinAnotherTeam).toBeVisible();
         await pw.toBeFocusedWithFocusVisible(teamMenu.invitePeople);
 
         // # Press ArrowDown to move focus to "Team settings" menu item
@@ -44,6 +49,10 @@ test(
         // # Press ArrowDown to move focus to "Leave team" menu item
         await page.keyboard.press('ArrowDown');
         await pw.toBeFocusedWithFocusVisible(teamMenu.leaveTeam);
+
+        // # Press ArrowDown to move focus to "Join another team" menu item
+        await page.keyboard.press('ArrowDown');
+        await pw.toBeFocusedWithFocusVisible(teamMenu.joinAnotherTeam);
 
         // # Press ArrowDown to move focus to "Create a team" menu item
         await page.keyboard.press('ArrowDown');

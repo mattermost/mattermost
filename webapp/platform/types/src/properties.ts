@@ -15,7 +15,15 @@ export type FieldType = (
     // A multi-valued select whose options form a hierarchy. Manage Attributes
     // create may write options (and parent edges) when PropertyFieldGraph is on.
     // Other editors (CPA, board attributes) still do not author them.
-    'graph'
+    'graph' |
+
+    // A JSON number; null or absent is empty. Not allowed in the access control
+    // group, so CPA and Attribute Management never offer it.
+    'number' |
+
+    // A JSON boolean; false or absent is unchecked. Not allowed in the access
+    // control group either.
+    'checkbox'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -25,9 +33,10 @@ export type FieldValueType =
     'phone' |
     '';
 
-// Mirrors model/property_field.go. Empty means the server fills in the default
-// for the field's object type.
-export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
+// Mirrors model/property_field.go, including the creator level that grants the
+// author of the entity the action concerns. Empty means the server fills in the
+// default for the field's object type.
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | 'creator' | '';
 
 export type PropertyField = {
     id: string;
@@ -60,6 +69,25 @@ export type PropertyGroup = {
     id: string;
     name: string;
 };
+
+type PropertyFieldsPagination = {
+    cursorId?: string;
+    cursorCreateAt?: number;
+    perPage?: number;
+};
+
+/**
+ * Scope for a property field query. The two modes are mutually exclusive on the
+ * server, so they are modelled as a union rather than as four independent
+ * optional keys.
+ */
+export type PropertyFieldsScope =
+    {channelId: string; teamId?: never; targetType?: never; targetId?: never} |
+    {teamId: string; channelId?: never; targetType?: never; targetId?: never} |
+    {targetType: 'system'; targetId?: string; channelId?: never; teamId?: never} |
+    {targetType: 'team' | 'channel'; targetId: string; channelId?: never; teamId?: never};
+
+export type PropertyFieldsQuery = PropertyFieldsScope & PropertyFieldsPagination;
 
 export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
 
@@ -156,6 +184,15 @@ export const supportsOptions = (field: {type: FieldType}): boolean => {
 };
 
 export const supportsHierarchy = (field: {type: FieldType}): boolean => field.type === 'graph';
+
+// Whether an identity source can populate the field, mirroring
+// PropertyFieldType.SupportsExternalSync in model/property_field.go. Text and
+// select store the first value the source delivers and multiselect stores all
+// of them; a select or multiselect field's options are then owned by the sync.
+// Any other type has to become text before it can be linked to a source.
+export const supportsExternalSync = (field: {type: FieldType}): boolean => {
+    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect';
+};
 
 // Whether a field's stored value is a list of option ids that has to be resolved
 // against attrs.options before it is shown. supportsOptions answers a narrower

@@ -34,9 +34,7 @@ import {makeUrlSafe} from 'utils/url';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux, WrappedComponentProps {
-    usageDeltaTeams: number;
-}
+export type Props = PropsFromRedux & WrappedComponentProps;
 
 export class MobileSidebarRightItems extends React.PureComponent<Props> {
     static defaultProps = {
@@ -76,7 +74,6 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
         const {formatMessage} = this.props.intl;
 
         const safeAppDownloadLink = makeUrlSafe(this.props.appDownloadLink || '');
-        const teamsLimitReached = this.props.isStarterFree && !this.props.isFreeTrial && this.props.usageDeltaTeams >= 0;
 
         const pluginItems = this.props.pluginMenuItems.map((item) => (
             <Menu.ItemAction
@@ -342,7 +339,6 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
                         <Menu.ItemLink
                             id='createTeam'
-                            show={!teamsLimitReached}
                             to='/create_team'
                             text={formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
                             icon={

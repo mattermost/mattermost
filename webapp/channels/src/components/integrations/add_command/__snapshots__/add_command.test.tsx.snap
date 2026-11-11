@@ -266,12 +266,21 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
             Autocomplete
           </label>
           <div
-            class="col-md-5 col-sm-8 checkbox"
+            class="col-md-5 col-sm-8"
           >
-            <input
-              id="autocomplete"
-              type="checkbox"
-            />
+            <label
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
+              for="autocomplete"
+            >
+              <input
+                class="_checkbox__input_18sf4_36"
+                id="autocomplete"
+                type="checkbox"
+              />
+              <span
+                class="_checkbox__box_18sf4_55"
+              />
+            </label>
             <div
               class="form__help"
             >
@@ -283,18 +292,26 @@ exports[`components/integrations/AddCommand should match snapshot 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/test/integrations/commands"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveCommand"
             type="submit"
           >
-            <span>
-              Save
+            <span
+              class="_button__label_1pij1_55"
+            >
+              <span>
+                Save
+              </span>
             </span>
           </button>
         </div>

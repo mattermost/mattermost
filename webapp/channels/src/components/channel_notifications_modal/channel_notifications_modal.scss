@@ -83,6 +83,13 @@
         &:active {
             background: rgba(var(--button-bg-rgb), 0.08);
         }
+
+        // Keep the button in layout flow when unused so showing/hiding it
+        // does not shift the section title/description below.
+        &--hidden {
+            pointer-events: none;
+            visibility: hidden;
+        }
     }
 
     &__server-error {

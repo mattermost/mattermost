@@ -168,15 +168,24 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
-	options = append(options, app.SetLogger(testLogger))
+	options = append(options, app.SetLogger(testLogger), app.DisableGlobalLogger())
 
 	s, err := app.NewServer(options...)
 	require.NoError(tb, err)
 
+	// th.Context is tagged as a local-mode admin, the caller an `mmctl --local`
+	// request carries. The access control hook gates every PSAv2/v3 property
+	// group and refuses a caller that names nobody, so a test reaching the app
+	// layer directly with an untagged context would be refused for want of an
+	// identity rather than for the reason the test is about. Requests driven
+	// through a Client4 carry their own session's user and are unaffected.
+	emptyCtx := request.EmptyContext(testLogger)
+	localAdminCtx := emptyCtx.WithContext(model.WithCallerID(emptyCtx.Context(), model.CallerIDLocalAdmin)).(*request.Context)
+
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
 		Server:            s,
-		Context:           request.EmptyContext(testLogger),
+		Context:           localAdminCtx,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,

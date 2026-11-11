@@ -45,7 +45,7 @@ var ConfigSetCmd = &cobra.Command{
 	Use:     "set",
 	Short:   "Set config setting",
 	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
-	Example: "config set SqlSettings.DriverName postgres\nconfig set SqlSettings.DataSourceReplicas \"replica1\" \"replica2\"",
+	Example: "config set SqlSettings.DriverName postgres\nconfig set SqlSettings.DataSourceReplicas \"replica1\"\nconfig set SqlSettings.DataSourceReplicas \"replica1\" \"replica2\"",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(configSetCmdF),
 }
@@ -208,11 +208,16 @@ func setValueWithConversion(val reflect.Value, newValue any) error {
 	case reflect.Slice:
 		v := reflect.ValueOf(newValue)
 		if v.Kind() != reflect.Slice {
+			elemType := val.Type().Elem()
+			switch {
 			// Special case when setting a string to a byte slice
-			if val.Type().Elem().Kind() == reflect.Uint8 && v.Kind() == reflect.String {
+			case elemType.Kind() == reflect.Uint8 && v.Kind() == reflect.String:
 				s := newValue.(string)
 				v = reflect.ValueOf([]byte(s))
-			} else {
+			// A single value for a list setting is a one-element list
+			case v.Type().AssignableTo(elemType):
+				v = reflect.Append(reflect.MakeSlice(val.Type(), 0, 1), v)
+			default:
 				return errors.Errorf("target value is of type %v and provided value is %v", val.Kind(), v.Kind())
 			}
 		}

@@ -15,41 +15,6 @@
     p {
         margin: 0 0 8px;
     }
-
-    .btn {
-        width: 191px;
-        height: 32px;
-        border-radius: 4px;
-        margin-right: 10px;
-        background: variables.$primary-color;
-        color: variables.$white;
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 9px;
-
-        &:focus,
-        &:active,
-        &:focus:active {
-            border-color: transparent;
-            outline: none;
-        }
-    }
-
-    .btn-secondary {
-        display: flex;
-        min-width: 100px;
-        height: 32px;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        margin: 0 10px 0 0;
-        text-decoration: none;
-
-        &:hover {
-            background-color: variables.$primary-color;
-            color: variables.$white;
-        }
-    }
 }
 
 .OpenIdConvert_actionWrapper {
@@ -62,6 +27,7 @@
     align-items: center;
     padding: 4 0 4px;
     border-top: 1px solid alpha-color(variables.$black, 0.1);
+    gap: 10px;
 }
 
 .OpenIdConvert_copyWrapper {

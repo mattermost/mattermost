@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderText from './channel_header_text';
@@ -175,5 +176,37 @@ describe('ChannelHeaderText', () => {
         );
 
         expect(screen.getByText('Add a channel header')).toBeInTheDocument();
+    });
+
+    test('should say Add a board header for a board', () => {
+        const channel = TestHelper.getChannelMock({id: 'board1', type: 'O', header: ''});
+
+        const state = {
+            ...boardChannelsState('board1'),
+            entities: {
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: {id: 'user_id', roles: 'system_role'},
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_role: {permissions: ['manage_public_channel_properties']},
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelHeaderText
+                teamId={defaultTeamId}
+                channel={channel}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Add a board header')).toBeInTheDocument();
+        expect(screen.queryByText('Add a channel header')).not.toBeInTheDocument();
     });
 });

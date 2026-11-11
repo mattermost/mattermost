@@ -61,6 +61,15 @@
     }
 }
 
+.channel-view-plugin-component {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
 .delete-message-text {
     margin-top: 10px;
 }

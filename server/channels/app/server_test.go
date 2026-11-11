@@ -45,7 +45,7 @@ func newServerWithConfig(t *testing.T, f func(cfg *model.Config)) (*Server, erro
 	_, _, err = store.Set(cfg)
 	require.NoError(t, err)
 
-	return NewServer(ConfigStore(store))
+	return NewServer(ConfigStore(store), DisableGlobalLogger())
 }
 
 func TestStartServerSuccess(t *testing.T) {
@@ -123,7 +123,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 	s, err := NewServer(func(server *Server) error {
 		var err2 error
-		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
+		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store), platform.DisableGlobalLogger())
 		require.NoError(t, err2)
 
 		return nil
@@ -185,7 +185,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	_, _, err := store.Set(cfg)
 	require.NoError(t, err)
 
-	s, err := NewServer(ConfigStore(store))
+	s, err := NewServer(ConfigStore(store), DisableGlobalLogger())
 	require.NoError(t, err)
 
 	serverErr := s.Start()
@@ -318,7 +318,7 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 
 	// Creating a server with logger
-	s, err := NewServer(ConfigStore(store), SetLogger(logger))
+	s, err := NewServer(ConfigStore(store), SetLogger(logger), DisableGlobalLogger())
 	require.NoError(t, err)
 
 	// Route for just panicking
@@ -554,6 +554,17 @@ func TestOriginChecker(t *testing.T) {
 		res := th.App.OriginChecker()(r)
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
 	}
+}
+
+func TestBuiltinAccessControlPropertyGroupVersion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	require.NotNil(t, group)
+	assert.True(t, group.IsPSAv3())
+	assert.Equal(t, model.PropertyGroupVersionV3, group.Version)
 }
 
 func TestEmailBatchingSettingChanged(t *testing.T) {

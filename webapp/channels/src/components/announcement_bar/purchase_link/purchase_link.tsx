@@ -3,7 +3,7 @@
 
 import React, {type JSX} from 'react';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
@@ -27,8 +27,8 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
         <Button
             id={props.eventID}
             emphasis='tertiary'
-            size='xs'
-            variant='inverted'
+            size='x-small'
+            appearance='inverted'
             className='annnouncementBar__purchaseNow'
             onClick={handlePurchaseLinkClick}
         >

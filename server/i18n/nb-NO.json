@@ -3065,15 +3065,15 @@
     "translation": "Feil under henting av tilgangstokenet fra databasen før sletting."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Brukerregistrering er deaktivert."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registreringslenken er utløpt."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registreringslenken ser ikke ut til å være gyldig."
   },
   {
@@ -3399,10 +3399,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
     "translation": "Kan ikke oppdatere innlegg i en begrenset direktemeldingskanal."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Finner ikke det eksisterende innlegget eller kommentaren som skal oppdateres."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3846,7 +3842,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kunne ikke trekke tilbake invitasjonen til den eksterne serveren fra kanalen"
+    "translation": "Kunne ikke fjerne den eksterne serveren fra kanalen."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8767,11 +8763,11 @@
     "translation": "Kunne ikke slette innlegget med vedvarende varsel"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kan ikke hente innleggsprioritet for innlegget"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kan ikke hente innleggsprioritet for innlegget med kontekst"
   },
   {
@@ -8803,7 +8799,7 @@
     "translation": "Det oppstod en feil under oppdatering av innstillinger."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versjonen til den forhåndspakkede pluginen kunne ikke tolkes."
   },
   {
@@ -11011,10 +11007,6 @@
     "translation": "LDAP-tilkoblingstesten mislyktes. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Feil: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Kunne ikke hente CPA-feltene"
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Kan ikke opprette LDAP-brukeren."
   },
@@ -11105,10 +11097,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Størrelsesgrensen er overskredet. Prøv å øke innstillingen for maksimal sidestørrelse. Se https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for mer informasjon."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tom verdi for LDAP-attributt"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -11335,10 +11323,6 @@
     "translation": "SAML-innloggingen mislyktes fordi svaret fra identitetsleverandøren ikke er kryptert. Kontakt systemadministratoren."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Kunne ikke hente CPA-felt"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Vi mottok et tomt svar fra identitetsleverandøren."
   },
@@ -11463,11 +11447,11 @@
     "translation": "Funksjonen {{.Feature}} er ikke tilgjengelig med gjeldende lisens"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan ikke tolke URL-en."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan ikke hente kanaler."
   },
   {
@@ -13000,7 +12984,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Ugyldig webservermodus {{.Value}}. Må være 'gzip', 'nogzip' eller 'disabled'."
+    "translation": "Ugyldig webservermodus {{.Value}}. Må være 'gzip', 'uncompressed' eller 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -14593,5 +14577,165 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Finner ikke brukeren {{.user}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**IKKE FUNNET**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "fjernet"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` er ikke en gyldig verdi for `{{.Arg}}`"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Systemhelse er ikke aktivert."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Systemhelse krever en Enterprise-lisens."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Kan ikke gå tilbake til starten av filen."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Kan ikke hente helsefunnet."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Fant ikke helsefunnet."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Kan ikke hente helsefunnene."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Attributtet synkroniseres ikke lenger fra denne kilden, så synkroniseringen kan ikke endre det."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Alternativene for et attributt som synkroniseres fra AD/LDAP eller SAML, administreres av synkroniseringen og kan ikke legges til, gis nytt navn eller fjernes."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Det synkroniserte attributtet har ugyldige alternativer."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Ugyldig kilde for egenskapssynkronisering."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Ugyldig bruker-ID for egenskapssynkronisering."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Kan ikke fastslå hvilke alternativer for det synkroniserte attributtet som er i bruk."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Loggkonfigurasjonen inneholder en filbane for logg eller revisjonslogg utenfor rotkatalogen for logging. Se serverloggene for detaljer."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Innsamlingstidspunktet er ukjent."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Konfigurasjonsseksjonen er utilgjengelig."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverdiagnostikken er utilgjengelig."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Jobbhistorikken er utilgjengelig."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Lisensdetaljene er utilgjengelige."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Plugin-listen er utilgjengelig."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Regelen feilet uventet og kunne ikke evalueres."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Bruksstatistikken er utilgjengelig."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} bruker http://, så push-varsler sendes i klartekst."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} har et ugyldig URL-skjema. Mobilbrukere vil ikke motta varsler."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Legg til https:// foran PushNotificationServer, og kontroller at den kan nås fra applikasjonsnoden."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer bruker ikke https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Alle push-forsøk vil mislykkes med «unsupported protocol scheme»."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Pek PushNotificationServer til https://push.mattermost.com eller til en selvhostet push-proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-varsler er aktivert, men PushNotificationServer er tom"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com er Mattermosts test-push-proxy. Den har ingen SLA, begrenset kapasitet og er ikke ment for produksjonsbruk. Levering av push-varsler til mobil vil være upålitelig for alt utover testing i liten skala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Bytt til https://push.mattermost.com (produksjonstjenesten Hosted Push Notification Service som følger med Enterprise) eller til en selvhostet push-proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer peker til push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL kreves for webhook-URL-er, OAuth-tilbakekall, push-nyttelaster til mobil og e-postlenker. Integrasjoner fungerer ikke så lenge den er tom."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Sett SiteURL til den offentlige HTTPS-URL-en til serveren."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL er tom"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL er {{.url}}. Sesjonsinformasjonskapsler og autentiseringstokener sendes ukryptert."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Kjør Mattermost over HTTPS, og oppdater SiteURL til https://-adressen."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL bruker http:// (ikke https://)"
   }
 ]

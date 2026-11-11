@@ -8,6 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
@@ -305,5 +306,37 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
 
         await openMenu();
         expect(screen.queryByRole('menuitem', {name: 'Open in new window'})).not.toBeInTheDocument();
+    });
+
+    test('says board for a board', async () => {
+        renderWithContext(
+            <SidebarChannelMenu {...baseProps}/>,
+            boardChannelsState(testChannel.id),
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /board options/i}));
+        await screen.findByRole('menu', {name: 'Edit board menu'});
+
+        expect(screen.getByRole('menuitem', {name: 'Mute Board'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Leave Board'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Mute Channel'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Leave Channel'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /channel options/i})).not.toBeInTheDocument();
+    });
+
+    test('says Unmute Board for a muted board', async () => {
+        renderWithContext(
+            <SidebarChannelMenu
+                {...baseProps}
+                isMuted={true}
+            />,
+            boardChannelsState(testChannel.id),
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /board options/i}));
+        await screen.findByRole('menu', {name: 'Edit board menu'});
+
+        expect(screen.getByRole('menuitem', {name: 'Unmute Board'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Unmute Channel'})).not.toBeInTheDocument();
     });
 });

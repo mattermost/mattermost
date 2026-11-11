@@ -1245,15 +1245,15 @@
     "translation": "Erro ao obter o token de acesso do DB antes da exclusão."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Inscrição de usuário desativada."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "O link de inscrição expirou."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "O link de inscrição não parece ser válido."
   },
   {
@@ -1377,10 +1377,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Não é possível atualizar uma publicação em um canal excluído."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Não foi possível encontrar a publicação ou comentário para atualizar."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3123,11 +3119,11 @@
     "translation": "Falha ao configurar o job status para erro"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Não é possível processar a URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Não é possível obter canais."
   },
   {
@@ -6172,7 +6168,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Não foi possível obter os canais para o esquema fornecido."
+    "translation": "Não foi possível obter as equipes para o esquema fornecido."
   },
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
@@ -8324,7 +8320,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Não foi possível desconvidar o remoto para o canal"
+    "translation": "Não foi possível desconvidar o remoto do canal."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -9051,7 +9047,7 @@
     "translation": "Este tópico foi movido de outro canal"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Não foi possível obter prioridade de publicação para a publicação"
   },
   {
@@ -9157,7 +9153,7 @@
     "translation": "Data de criação deve ser uma data válida."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "A versão do plug-in pré-empacotado não pôde ser analisada."
   },
   {
@@ -11883,7 +11879,7 @@
     "translation": "Falha ao excluir permanentemente os dados de prioridade da publicação do banco de dados."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Não foi possível obter a prioridade de publicação para a publicação com contexto"
   },
   {
@@ -12767,20 +12763,12 @@
     "translation": "O teste de conexão LDAP falhou. Servidor: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Erro: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Falha ao recuperar os campos de CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "ID AD/LDAP inválido"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Falha ao obter o usuário."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valor de atributo LDAP vazio"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12849,10 +12837,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "A interface do push proxy é nula."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Falha ao recuperar o(s) campo(s) de CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14560,7 +14544,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'nogzip' ou 'disabled'."
+    "translation": "Modo do servidor web {{.Value}} inválido. Deve ser 'gzip', 'uncompressed' ou 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
@@ -14577,5 +14561,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys inválido: excede o limite de {{.MaxCount}} chaves ou {{.MaxLength}} bytes."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NÃO ENCONTRADA**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "removida"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` não é um `{{.Arg}}` válido"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Este campo está vinculado a um modelo de Atributo Global e não pode ser modificado pela API de Atributos de Usuário. Use a API de Atributos Globais."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Não foi possível criar o emoji. A imagem é grande demais para ser processada. Tente usar uma com dimensões menores ou menos quadros."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "O painel de integridade do site não está habilitado."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "O painel de integridade do site requer uma licença Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Você não tem permissão para enviar mensagens com autodestruição após leitura neste canal."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Não foi possível voltar ao início do arquivo."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Não foi possível obter o achado de integridade."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Achado de integridade não encontrado."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Não foi possível obter os achados de integridade."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "O atributo não é mais sincronizado a partir desta fonte, portanto a sincronização dela não pode alterá-lo."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "As opções de um atributo sincronizado do AD/LDAP ou SAML são gerenciadas pela sincronização e não podem ser adicionadas, renomeadas ou removidas."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "O atributo sincronizado tem opções inválidas."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Fonte de sincronização de propriedades inválida."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID de usuário inválido para a sincronização de propriedades."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Não foi possível determinar quais opções do atributo sincronizado estão em uso."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "A configuração de logs contém um caminho de arquivo de log ou de auditoria fora do diretório raiz de logs. Verifique os logs do servidor para mais detalhes."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Horário da coleta desconhecido."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Seção de configuração indisponível."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnósticos do servidor indisponíveis."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Histórico de tarefas indisponível."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Detalhes da licença indisponíveis."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista de plugins indisponível."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "A regra falhou inesperadamente e não pôde ser avaliada."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Estatísticas de uso indisponíveis."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} usa http://, portanto as notificações push são enviadas em texto simples."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} tem um esquema de URL inválido. Os usuários de dispositivos móveis não receberão notificações."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Adicione o prefixo https:// ao PushNotificationServer e verifique se ele está acessível a partir do nó de aplicação."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer não usa https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Todas as tentativas de push falharão com o erro 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Aponte PushNotificationServer para https://push.mattermost.com ou para um proxy de push auto-hospedado."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notificações push habilitadas, mas PushNotificationServer está em branco"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com é o proxy de push de teste do Mattermost. Ele não tem SLA, tem capacidade limitada e não se destina a uso em produção. A entrega de notificações push para dispositivos móveis não será confiável em nada além de testes em pequena escala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Mude para https://push.mattermost.com (o Hosted Push Notification Service de produção incluído no Enterprise) ou para um proxy de push auto-hospedado."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer aponta para push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL é obrigatório para URLs de webhook, callbacks de OAuth, payloads de push para dispositivos móveis e links de e-mail. As integrações não funcionam enquanto ele estiver vazio."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Defina SiteURL como a URL HTTPS pública do servidor."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL está vazio"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL é {{.url}}. Cookies de sessão e tokens de autenticação trafegam em texto simples."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Disponibilize o Mattermost via HTTPS e atualize SiteURL para o endereço https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL usa http:// (não https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Mensagens com autodestruição após leitura não podem ser enviadas como publicações agendadas recorrentes."
   }
 ]

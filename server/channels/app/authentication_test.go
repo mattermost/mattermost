@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
@@ -239,8 +240,8 @@ func TestDoubleCheckPassword(t *testing.T) {
 		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts-1)
 		require.NoError(t, err)
 
-		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
-		require.Nil(t, appErr)
+		err = th.App.DoubleCheckPassword(th.Context, user, password)
+		require.NoError(t, err)
 
 		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
@@ -251,9 +252,11 @@ func TestDoubleCheckPassword(t *testing.T) {
 		err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, maxFailedLoginAttempts)
 		require.NoError(t, err)
 
-		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErr.Id)
+		err = th.App.DoubleCheckPassword(th.Context, user, password)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_login_attempts.too_many.app_error", appErr.Id)
 	})
 
 	t.Run("backend error refunds the slot", func(t *testing.T) {
@@ -267,9 +270,10 @@ func TestDoubleCheckPassword(t *testing.T) {
 		user, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
 
-		appErr = th.App.DoubleCheckPassword(th.Context, user, "any-password")
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
+		err = th.App.DoubleCheckPassword(th.Context, user, "any-password")
+		require.Error(t, err)
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
 
 		updatedUser, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
@@ -607,7 +611,15 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+				// Set up before the attempts start: an expectation registered while
+				// another goroutine is calling DoLogin can match that call before its
+				// return values are set, which panics.
 				mockLdap := &mocks.LdapInterface{}
+				if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
+					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID})
+				} else {
+					mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
+				}
 				th.App.Channels().Ldap = mockLdap
 				// Reset login attempts
 				err := th.App.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
@@ -623,12 +635,6 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 				for i := range concurrentAttempts {
 					go func(i int) {
 						defer completeWG.Done()
-
-						if tc.doLoginExpectedErrID == "ent.ldap.do_login.invalid_password.app_error" {
-							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil, &model.AppError{Id: tc.doLoginExpectedErrID})
-						} else {
-							mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), tc.password).Return(user, nil)
-						}
 						_, appErrs[i] = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, user, tc.password, tc.mfaToken)
 					}(i)
 				}
@@ -637,14 +643,12 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 
 				expectedErrsCount := 0
 				for i := range concurrentAttempts {
+					require.NotNil(t, appErrs[i], "Every attempt should fail.")
 					if appErrs[i].Id == tc.expectedErrID {
 						expectedErrsCount++
 						continue
 					}
-
-					if appErrs[i] != nil {
-						require.Equal(t, "api.user.check_user_login_attempts.too_many_ldap.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
-					}
+					require.Equal(t, "api.user.check_user_login_attempts.too_many_ldap.app_error", appErrs[i].Id, "All other errors should be of too many login attempts only.")
 				}
 
 				// Password/MFA failure attempts should not breach the maxFailedAttempts
@@ -685,7 +689,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("valid password with current hashing", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 		err := th.App.checkUserPassword(user, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	wrongPassword := model.NewTestPassword()
@@ -694,8 +698,10 @@ func TestCheckUserPassword(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 
 		err := th.App.checkUserPassword(user, wrongPassword)
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 	})
 
 	t.Run("password migration from outdated hash", func(t *testing.T) {
@@ -704,46 +710,50 @@ func TestCheckUserPassword(t *testing.T) {
 		require.NotContains(t, user.Password, "pbkdf2")
 
 		err := th.App.checkUserPassword(user, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
-		updatedUser, err := th.App.GetUser(th.Context, user.Id)
-		require.Nil(t, err)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
 
 		// Re-check with updated password
 		err = th.App.checkUserPassword(updatedUser, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("password migration fails with invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
 
 		err := th.App.checkUserPassword(user, wrongPassword)
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 	})
 
 	t.Run("empty password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 
-		user, err := th.App.GetUser(th.Context, user.Id)
-		require.Nil(t, err)
+		user, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
 
-		err = th.App.checkUserPassword(user, "")
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
+		err := th.App.checkUserPassword(user, "")
+		require.Error(t, err)
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 	})
 
 	t.Run("user with empty password hash", func(t *testing.T) {
 		user := createUserWithHash("")
 
-		user, err := th.App.GetUser(th.Context, user.Id)
-		require.Nil(t, err)
+		user, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
 
-		err = th.App.checkUserPassword(user, pwd)
-		require.NotNil(t, err)
-		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
+		err := th.App.checkUserPassword(user, pwd)
+		require.Error(t, err)
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.user.check_user_password.invalid.app_error", appErr.Id)
 	})
 
 	t.Run("successful migration from PBKDF2 with old parameter to new parameter", func(t *testing.T) {
@@ -759,8 +769,8 @@ func TestCheckUserPassword(t *testing.T) {
 		// The user hash contains the old parameter
 		require.Contains(t, user.Password, "w=10000")
 
-		appErr := th.App.checkUserPassword(user, pwd)
-		require.Nil(t, appErr)
+		err = th.App.checkUserPassword(user, pwd)
+		require.NoError(t, err)
 
 		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
@@ -770,8 +780,8 @@ func TestCheckUserPassword(t *testing.T) {
 		require.NotContains(t, updatedUser.Password, "w=10000")
 
 		// Re-check with updated password
-		appErr = th.App.checkUserPassword(updatedUser, pwd)
-		require.Nil(t, appErr)
+		err = th.App.checkUserPassword(updatedUser, pwd)
+		require.NoError(t, err)
 	})
 }
 
@@ -804,15 +814,15 @@ func TestMigratePassword(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
 
 		err := th.App.migratePassword(user, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
-		updatedUser, err := th.App.GetUser(th.Context, user.Id)
-		require.Nil(t, err)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
+		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
 
 		// Re-check with updated password
 		err = th.App.checkUserPassword(updatedUser, pwd)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }

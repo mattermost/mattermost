@@ -392,16 +392,17 @@ func (a *App) deleteReactionsForEmoji(rctx request.CTX, emojiName string) {
 	}
 }
 
-func (a *App) confirmEmojiExists(rctx request.CTX, emojiName string) *model.AppError {
+func (a *App) confirmEmojiExists(rctx request.CTX, emojiName string) error {
 	if model.IsSystemEmojiName(emojiName) {
 		return nil
 	}
 
-	err := model.IsValidEmojiName(emojiName)
-	if err != nil {
+	if err := model.IsValidEmojiName(emojiName); err != nil {
 		return err
 	}
 
-	_, err = a.GetEmojiByName(rctx, emojiName)
-	return err
+	if _, err := a.GetEmojiByName(rctx, emojiName); err != nil {
+		return err
+	}
+	return nil
 }

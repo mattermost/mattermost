@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AppCallResponseType, AppExpandLevel, AppFieldType} from '@mattermost/types/apps';
+import type {AppCallResponseType, AppExpandLevel, AppFieldType, CollapsibleConfig} from '@mattermost/types/apps';
 
 export const AppBindingLocations = {
     POST_MENU_ITEM: '/post_menu',
@@ -47,4 +47,11 @@ export const AppFieldTypes: {[name: string]: AppFieldType} = {
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
+};
+
+// How a collapsible lays its children out. Named here so the renderer and the
+// dialog converter agree on the string rather than each spelling it out.
+export const AppFieldLayouts: {[name: string]: NonNullable<CollapsibleConfig['layout']>} = {
+    STACKED: 'stacked',
+    GRID: 'grid',
 };

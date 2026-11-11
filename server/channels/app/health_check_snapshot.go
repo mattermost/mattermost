@@ -4,36 +4,33 @@
 package app
 
 import (
+	"context"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// BuildHealthSnapshot assembles a health snapshot from live server state. A failed workspace
-// collector is recorded in Snapshot.Sections rather than failing the call; the error return
-// is for a snapshot that cannot be built at all.
-//
-// It must only be called on the cluster leader: the local node is reported as the leader and
-// is the only node that carries diagnostics.
+// healthCollectTimeout bounds how long a run waits for the other nodes' diagnostics. It must
+// cover the probes' own timeouts: OAuth and push are 10 s each, the pg_stat queries 10 s each,
+// plus SMTP, LDAP, Elasticsearch and S3.
+const healthCollectTimeout = 3 * time.Minute
+
+// BuildHealthSnapshot assembles a health snapshot from live server state, with every connected
+// node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
+// failing the call; the error return is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
 	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
 }
 
 func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
-	nodes, err := clusterNodes(a.Cluster())
+	collectCtx, cancel := context.WithTimeout(rctx.Context(), healthCollectTimeout)
+	nodes, err := a.Srv().Platform().CollectHealthNodes(rctx.WithContext(collectCtx))
+	cancel()
 	if err != nil {
 		return nil, err
-	}
-
-	// Failures are already recorded per section in the envelope.
-	diagnostics, _ := a.Srv().Platform().GetSupportPacketDiagnostics(rctx)
-	for _, node := range nodes {
-		if node.IsLeader {
-			node.Diagnostics = diagnostics
-		}
 	}
 
 	sections := map[model.WorkspaceSection]error{}
@@ -43,11 +40,6 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 
 	snapshot.Config, err = a.Srv().Platform().GetSupportPacketConfig(rctx)
 	sections[model.SectionConfig] = err
-
-	snapshot.License = a.License()
-	if snapshot.License != nil {
-		snapshot.Deployment.IsCloud = snapshot.License.IsCloud()
-	}
 
 	snapshot.Stats, err = a.getSupportPacketStats(rctx)
 	sections[model.SectionStats] = err
@@ -67,39 +59,8 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 		sections[model.SectionVersion] = appErr
 	} else {
 		sections[model.SectionVersion] = nil
-		snapshot.Version.Latest = release.TagName
+		snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
 	}
 
 	return snapshot, nil
-}
-
-func clusterNodes(cluster einterfaces.ClusterInterface) ([]*healthcheck.NodeSnapshot, error) {
-	if cluster == nil {
-		return []*healthcheck.NodeSnapshot{{IsLeader: true}}, nil
-	}
-
-	clusterInfos, err := cluster.GetClusterInfos()
-	if err != nil {
-		return nil, err
-	}
-	if len(clusterInfos) == 0 {
-		return []*healthcheck.NodeSnapshot{{IsLeader: true}}, nil
-	}
-
-	localClusterID := cluster.GetClusterId()
-	nodes := make([]*healthcheck.NodeSnapshot, 0, len(clusterInfos))
-	for _, clusterInfo := range clusterInfos {
-		node := &healthcheck.NodeSnapshot{
-			ClusterInfo: clusterInfo,
-		}
-
-		if clusterInfo != nil {
-			node.Hostname = clusterInfo.Hostname
-			node.IsLeader = clusterInfo.Id == localClusterID
-		}
-
-		nodes = append(nodes, node)
-	}
-
-	return nodes, nil
 }

@@ -144,6 +144,7 @@ class AboutCategory extends SidebarCategory {
 }
 
 class ReportingCategory extends SidebarCategory {
+    readonly siteHealth: SidebarSection;
     readonly workspaceOptimization: SidebarSection;
     readonly siteStatistics: SidebarSection;
     readonly teamStatistics: SidebarSection;
@@ -151,6 +152,7 @@ class ReportingCategory extends SidebarCategory {
 
     constructor(container: Locator) {
         super(container);
+        this.siteHealth = this.section('Site health');
         this.workspaceOptimization = this.section('Workspace Optimization');
         this.siteStatistics = this.section('System Statistics');
         this.teamStatistics = this.section('Team Statistics');

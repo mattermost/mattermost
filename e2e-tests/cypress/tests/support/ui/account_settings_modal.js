@@ -32,7 +32,8 @@ Cypress.Commands.add('uiChangeGenericDisplaySetting', (setting, option) => {
     cy.get(setting).click();
     cy.get('.section-max').scrollIntoView();
 
-    cy.get(option).check().should('be.checked');
+    // Compass Radio hides the native input (opacity:0); force check.
+    cy.get(option).check({force: true}).should('be.checked');
 
     cy.uiSaveAndClose();
 });
