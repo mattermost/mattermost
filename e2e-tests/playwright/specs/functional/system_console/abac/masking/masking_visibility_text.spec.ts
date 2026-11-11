@@ -79,7 +79,6 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             const advancedBtn = page.getByRole('button', {name: /advanced/i});
             await expect(advancedBtn).toBeVisible();
             await advancedBtn.click();
-            await page.waitForTimeout(1000);
             const monacoEditor = page.locator('.monaco-editor').first();
             await expect(monacoEditor).toBeVisible();
             const ariaReadOnly = await monacoEditor.getAttribute('aria-readonly');
@@ -124,9 +123,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
             // Navigate to New Policy form
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
 
             // A fresh editor must show no masked chip and no warning banner
             await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();
@@ -137,7 +134,6 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
             await expect(addAttributeBtn).toBeVisible();
             await expect(addAttributeBtn).toBeEnabled();
             await addAttributeBtn.click();
-            await page.waitForTimeout(500);
 
             // Still no masked chip after adding a blank row
             await expect(page.locator('.select__multi-value--masked')).not.toBeVisible();

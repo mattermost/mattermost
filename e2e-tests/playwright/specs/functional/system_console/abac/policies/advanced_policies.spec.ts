@@ -93,8 +93,17 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
         await adminClient.addToTeam(team.id, user2.id);
         await adminClient.addToTeam(team.id, user3.id);
 
-        // Attribute indexing settle
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await expect
+            .poll(async () => {
+                const fields = await adminClient.getCustomProfileAttributeFields();
+                const department = fields.find((field) => field.name === 'Department');
+                if (!department) {
+                    return false;
+                }
+                const values = await adminClient.getUserCustomProfileAttributesValues(user1.id);
+                return values[department.id] === 'Engineering';
+            })
+            .toBe(true);
 
         privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(user2.id, privateChannel.id);
@@ -117,15 +126,22 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
                 channels: [privateChannel.display_name],
             });
 
-            await systemConsolePage.page.waitForTimeout(1000);
             const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
             await searchInput.waitFor({state: 'visible', timeout: 5000});
             const idMatch = policyName.match(/([a-z0-9]+)$/i);
             const uniqueId = idMatch ? idMatch[1] : policyName;
+            const policySearch8 = systemConsolePage.page.waitForResponse(
+                (resp) =>
+                    /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+                    resp.request().method() === 'POST' &&
+                    (resp.request().postData() ?? '').includes(uniqueId) &&
+                    resp.ok(),
+            );
             await searchInput.fill(uniqueId);
-            await systemConsolePage.page.waitForTimeout(1000);
+            await policySearch8;
 
             const policyRow = systemConsolePage.page.locator('.policy-name').first();
+            await expect(policyRow).toContainText(uniqueId);
             const policyElementId = await policyRow.getAttribute('id');
             const policyId = policyElementId?.replace('customDescription-', '');
             if (!policyId) {
@@ -150,7 +166,6 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             if (!added) {
                 const jobId2 = await runSyncJob(systemConsolePage.page);
                 await waitForLatestSyncJob(systemConsolePage.page, 10, jobId2);
-                await systemConsolePage.page.waitForTimeout(2000);
             }
         } finally {
             await tb.close().catch(() => {});
@@ -322,11 +337,9 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
             channels: [channel.display_name],
         });
 
-        await systemConsolePage.page.waitForTimeout(1000);
         const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
             await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [engineerUser.username],
                 expectedNonMatchingUsers: [salesUser.username],
@@ -474,7 +487,6 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await enableABAC(systemConsolePage.page);
 
         await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         const policyName = `Complex Policy ${pw.random.id()}`;
         const complexExpression = `user.attributes.${deptFieldName} == "Engineering" || (user.attributes.${deptFieldName} == "Sales" && user.attributes.${locationFieldName} == "Remote")`;
@@ -487,14 +499,12 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         });
 
         await navigateToABACPage(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(500);
 
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
         const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
 
         await searchInput.fill(searchTerm);
-        await systemConsolePage.page.waitForTimeout(500);
 
         const foundPolicy = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         await expect

@@ -121,7 +121,10 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
 
         // Wait for the automatic sync (triggered by createBasicPolicy's "Apply Policy") to complete
-        await page.waitForTimeout(3000); // Give time for sync job to run
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // Check membership AFTER automatic sync
         const engineerAfterSync = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
@@ -146,20 +149,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Navigate to ABAC page and find the policy
         await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
 
         // Search for and click the policy
         const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
         }
 
         const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
         await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
         await policyRowLocator.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
 
         // Verify Auto-add is OFF (check the header checkbox)
         const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
@@ -168,7 +167,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             if (isChecked) {
                 // Uncheck it
                 await autoAddCheckbox.click();
-                await page.waitForTimeout(500);
             }
         } else {
             // Checkbox not visible
@@ -185,13 +183,11 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await simpleValueInput.fill('Sales');
             // Press Tab or click elsewhere to confirm
             await page.keyboard.press('Tab');
-            await page.waitForTimeout(500);
         } else {
             // Strategy 2: Try value selector menu button
             const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
             if (await valueButton.isVisible({timeout: 3000})) {
                 await valueButton.click();
-                await page.waitForTimeout(500);
 
                 // Look for input in the dropdown
                 const menuInput = page
@@ -199,7 +195,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     .first();
                 if (await menuInput.isVisible({timeout: 2000})) {
                     await menuInput.fill('Sales');
-                    await page.waitForTimeout(500);
 
                     // Click on the option or press Enter
                     const salesOption = page.locator('#value-selector-menu').getByText('Sales', {exact: true}).first();
@@ -208,29 +203,24 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     } else {
                         await page.keyboard.press('Enter');
                     }
-                    await page.waitForTimeout(500);
                 }
             } else {
                 // Strategy 3: Use Advanced mode to edit CEL expression directly
                 const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
                 if (await advancedModeButton.isVisible({timeout: 3000})) {
                     await advancedModeButton.click();
-                    await page.waitForTimeout(1000);
 
                     // Find Monaco editor - use view-lines with force click to bypass overlay
                     const monacoContainer = page.locator('.monaco-editor').first();
                     if (await monacoContainer.isVisible({timeout: 3000})) {
                         const editorLines = page.locator('.monaco-editor .view-lines').first();
                         await editorLines.click({force: true});
-                        await page.waitForTimeout(300);
 
                         // Platform-specific select all
                         const isMac = process.platform === 'darwin';
                         await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-                        await page.waitForTimeout(100);
 
                         await page.keyboard.type('user.attributes.Department == "Sales"', {delay: 10});
-                        await page.waitForTimeout(500);
                     }
                 }
             }
@@ -247,13 +237,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const saveButton = page.getByRole('button', {name: 'Save'});
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
-        await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
         const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
-            await page.waitForTimeout(1000);
+            await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
         }
 
         // Wait for sync to complete (race-safe: polls exact policy, not UI table)
@@ -336,7 +325,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     // Ignore deletion errors
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await expect.poll(async () => (await adminClient.getCustomProfileAttributeFields()).length).toBe(0);
         } catch {
             // Ignore if no fields exist
         }
@@ -361,8 +350,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         } as any);
         attributeFieldsMap[officeField.id] = officeField;
 
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await expect
+            .poll(async () => {
+                const fields = await adminClient.getAccessControlFields('', 100);
+                const names = new Set(fields.map((field) => field.name));
+                return names.has('Department') && names.has('Office');
+            })
+            .toBe(true);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
@@ -415,7 +409,10 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
-        await page.waitForTimeout(3000);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // Verify initial state after original policy sync
         await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
@@ -427,8 +424,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(2000);
+        await page.goto('/admin_console/system_attributes/membership_policies');
 
         // Verify we're on the list page by checking for "Add policy" button
         const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
@@ -446,15 +442,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             if (await policySearchInput.isVisible({timeout: 3000})) {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
-                await page.waitForTimeout(1500);
             }
         }
 
         // Click policy to edit
         await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
         await policyRowLocator.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
 
         // Check if "Add attribute" button is disabled (means attributes not loaded)
         // If so, reload to fetch the Office attribute
@@ -463,8 +456,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             const isDisabled = await addAttributeButtonCheck.isDisabled();
             if (isDisabled) {
                 await page.reload();
-                await page.waitForLoadState('networkidle');
-                await page.waitForTimeout(1000);
             }
         }
 
@@ -472,7 +463,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
         await addAttributeButton.waitFor({state: 'visible', timeout: 5000});
         await addAttributeButton.click();
-        await page.waitForTimeout(1000);
 
         // The attribute dropdown opens automatically after clicking "Add attribute"
         // Wait for the menu to be visible and select "Office"
@@ -482,23 +472,19 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const officeOption = attributeMenu.locator('li:has-text("Office")').first();
         await officeOption.waitFor({state: 'visible', timeout: 5000});
         await officeOption.click({force: true});
-        await page.waitForTimeout(500);
 
         // Select operator "==" (is)
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
         await operatorButton.waitFor({state: 'visible', timeout: 5000});
         await operatorButton.click({force: true});
-        await page.waitForTimeout(500);
 
         const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
         await operatorOption.click({force: true});
-        await page.waitForTimeout(500);
 
         // Fill value "Remote"
         const valueInput = page.locator('.values-editor__simple-input').last();
         await valueInput.waitFor({state: 'visible', timeout: 5000});
         await valueInput.fill('Remote');
-        await page.waitForTimeout(500);
 
         // ===========================================
         // STEP 3: Test Access Rule
@@ -511,18 +497,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const saveButton = page.getByRole('button', {name: 'Save'});
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
-        await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
         const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
-            await page.waitForTimeout(1000);
+            await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
         }
 
         // Navigate to ABAC page and wait for auto-triggered sync job
         await navigateToABACPage(page);
-        await page.waitForTimeout(2000);
 
         // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
         if (!policyId) {
@@ -597,7 +581,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                     // Ignore deletion errors
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await expect.poll(async () => (await adminClient.getCustomProfileAttributeFields()).length).toBe(0);
         } catch {
             // Ignore if no fields exist
         }
@@ -622,8 +606,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         } as any);
         attributeFieldsMap[officeField.id] = officeField;
 
-        // Wait for attributes to be indexed
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await expect
+            .poll(async () => {
+                const fields = await adminClient.getAccessControlFields('', 100);
+                const names = new Set(fields.map((field) => field.name));
+                return names.has('Department') && names.has('Office');
+            })
+            .toBe(true);
 
         // Create users:
         // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)
@@ -685,7 +674,10 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
-        await page.waitForTimeout(3000);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // Verify initial state after original policy sync
         // Original policy: Department=Engineering AND Office=Remote
@@ -710,8 +702,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         } as any);
 
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(2000);
+        await page.goto('/admin_console/system_attributes/membership_policies');
 
         // Verify we're on the list page by checking for "Add policy" button
         const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
@@ -731,15 +722,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
                 await policySearchInput.click();
                 await policySearchInput.fill(policyName);
                 // DON'T press Enter - just wait for the search to filter
-                await page.waitForTimeout(1500);
             }
         }
 
         // Wait for policy row to be visible
         await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
         await policyRowLocator.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
 
         // Verify Auto-add is ON
         const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
@@ -747,7 +735,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             const isChecked = await autoAddCheckbox.isChecked();
             if (!isChecked) {
                 await autoAddCheckbox.click();
-                await page.waitForTimeout(500);
             }
         }
 
@@ -760,7 +747,6 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
             if (await advancedModeButton.isVisible({timeout: 5000})) {
                 await advancedModeButton.click();
-                await page.waitForTimeout(2000); // Wait for Monaco to fully initialize
             }
         }
 
@@ -770,21 +756,17 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         const editorLines = page.locator('.monaco-editor .view-lines').first();
         await editorLines.waitFor({state: 'visible', timeout: 5000});
-        await page.waitForTimeout(500);
 
         // Click to focus the editor
         await editorLines.click({force: true});
-        await page.waitForTimeout(300);
 
         // Use platform-specific select all (Meta+a on Mac, Control+a on others)
         const isMac = process.platform === 'darwin';
         await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-        await page.waitForTimeout(200);
 
         // Type the new CEL expression (REMOVING Office rule)
         const newExpression = 'user.attributes.Department == "Engineering"';
         await page.keyboard.type(newExpression, {delay: 10});
-        await page.waitForTimeout(1000);
 
         // Wait for the "Valid" indicator to confirm the expression is valid
         const validIndicator = page.locator('text=Valid').first();
@@ -805,13 +787,12 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         const saveButton = page.getByRole('button', {name: 'Save'});
         await saveButton.waitFor({state: 'visible', timeout: 5000});
         await saveButton.click();
-        await page.waitForTimeout(1000);
 
         // Handle "Apply policy" confirmation if it appears
         const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
         if (await applyPolicyButton.isVisible({timeout: 3000})) {
             await applyPolicyButton.click();
-            await page.waitForTimeout(1000);
+            await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
         }
 
         // Navigate to ABAC page and wait for sync job to complete (race-safe by policyId)
@@ -896,20 +877,16 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
 
         // Navigate back and edit policy2's name to match policy1
         await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
 
         // Search for the second policy
         const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName2);
-            await page.waitForTimeout(1000);
         }
 
         const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName2}).first();
         await policyRow.waitFor({state: 'visible', timeout: 10000});
         await policyRow.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
 
         // Change the name to match the first policy
         const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
@@ -920,13 +897,11 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // Save and expect failure
         const saveButton = page.getByRole('button', {name: 'Save'});
         await saveButton.click();
-        await page.waitForTimeout(2000);
 
         // Handle confirmation modal if it appears
         const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
         if (await applyPolicyButton.isVisible({timeout: 3000}).catch(() => false)) {
             await applyPolicyButton.click();
-            await page.waitForTimeout(2000);
         }
 
         // Verify error message is shown

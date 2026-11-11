@@ -259,7 +259,6 @@ test.describe('ABAC - Team directory recommended tag', {tag: ['@abac', '@team_me
 
         const {page} = await pw.testBrowser.login(qualUser);
         await page.goto('/select_team');
-        await page.waitForLoadState('networkidle');
 
         const chip = page
             .locator('.signup-team-dir')

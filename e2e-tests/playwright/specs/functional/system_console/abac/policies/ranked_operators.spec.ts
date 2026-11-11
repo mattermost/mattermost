@@ -106,11 +106,9 @@ test.describe('System Console - Membership Policy ranked operators', () => {
 
         // # ABAC is already enabled (see beforeEach) — go straight to Membership Policies
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         // # Open the new-policy editor and name it
         await page.getByRole('button', {name: 'Add policy'}).click();
-        await page.waitForLoadState('networkidle');
         const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
         await nameInput.waitFor({state: 'visible', timeout: 10000});
         await nameInput.fill(`Ranked Policy ${getRandomId()}`);
@@ -120,7 +118,6 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
         if (await addAttributeButton.isDisabled()) {
             await page.reload();
-            await page.waitForLoadState('networkidle');
             await nameInput.fill(`Ranked Policy ${getRandomId()}`);
             await expect(addAttributeButton).toBeEnabled({timeout: 15000});
         }
@@ -162,11 +159,9 @@ test.describe('System Console - Membership Policy ranked operators', () => {
 
         try {
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
 
             // # Create a policy and add a ranked attribute row
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
             const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInput.waitFor({state: 'visible', timeout: 10000});
             await nameInput.fill(policyName);
@@ -175,7 +170,6 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
             if (await addAttributeButton.isDisabled()) {
                 await page.reload();
-                await page.waitForLoadState('networkidle');
                 await nameInput.fill(policyName);
                 await expect(addAttributeButton).toBeEnabled({timeout: 15000});
             }
@@ -196,17 +190,15 @@ test.describe('System Console - Membership Policy ranked operators', () => {
 
             // # Save the policy
             await page.getByRole('button', {name: 'Save'}).last().click();
-            await page.waitForLoadState('networkidle');
+            await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
 
             // # Reopen the policy from the list
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
             const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
             await expect(policyRow).toBeVisible({timeout: 10000});
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();
-            await page.waitForLoadState('networkidle');
 
             // Existing policies open in Advanced mode. The "Switch to Simple Mode"
             // toggle is enabled only when isSimpleExpression accepts the stored

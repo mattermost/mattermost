@@ -91,7 +91,6 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const policyRow = teamSettings.container.getByText(policyName).first();
             await expect(policyRow).toBeVisible({timeout: 10000});
             await policyRow.click();
-            await page.waitForTimeout(500);
 
             const deleteBtn = teamSettings.container
                 .locator('.TeamPolicyEditor__section--delete button')
@@ -104,7 +103,6 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const removeLink = teamSettings.policyChannelRemoveLink;
             await expect(removeLink).toBeVisible({timeout: 5000});
             await removeLink.click();
-            await page.waitForTimeout(300);
             await expect(deleteBtn).toBeDisabled();
 
             await teamSettings.close();
@@ -224,12 +222,10 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await searchResponse.catch(() => {
                 // debounced search can occasionally settle from cached data
             });
-            await page.waitForLoadState('networkidle');
 
             const policyRow = teamSettings.container.getByText(policyName).first();
             await expect(policyRow).toBeVisible({timeout: 10000});
             await policyRow.click();
-            await page.waitForTimeout(500);
 
             // Masking surfaces in the team-policy editor exactly as in the system console
             await expect(teamSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
@@ -341,7 +337,6 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const membershipPolicyTab = channelSettings.container.getByRole('tab', {name: /membership policy/i});
             await membershipPolicyTab.waitFor({state: 'visible', timeout: 10000});
             await membershipPolicyTab.click();
-            await page.waitForTimeout(1500);
 
             await expect(channelSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
                 timeout: 10000,
@@ -438,7 +433,6 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             for (let attempt = 0; attempt < 6; attempt++) {
                 if (attempt > 0) {
                     await page.keyboard.press('Escape');
-                    await page.waitForTimeout(3000);
                     await page.reload();
                     await channelsPage.toBeVisible();
                 }

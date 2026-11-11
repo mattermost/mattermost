@@ -62,14 +62,12 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         expect(policyId, 'Policy should be created and have an ID').toBeTruthy();
 
         // Navigate to Membership Policies list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(1000);
+        await page.goto('/admin_console/system_attributes/membership_policies');
 
         // Search for the policy to ensure it's visible
         const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
         }
 
         // Find the policy row
@@ -82,7 +80,6 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
             .first();
         await actionMenuButton.waitFor({state: 'visible', timeout: 5000});
         await actionMenuButton.click();
-        await page.waitForTimeout(500);
 
         // Click the Edit menu item
         const editMenuItem = page.locator(`[id*="policy-menu-edit-${policyId}"]`).first();
@@ -152,14 +149,12 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
         expect(policyId, 'Policy should be created and have an ID').toBeTruthy();
 
         // Navigate to Membership Policies list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(1000);
+        await page.goto('/admin_console/system_attributes/membership_policies');
 
         // Search for the policy to ensure it's visible
         const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
         }
 
         // Find the policy row

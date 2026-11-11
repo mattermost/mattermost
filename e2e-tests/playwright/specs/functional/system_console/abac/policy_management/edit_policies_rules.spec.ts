@@ -16,6 +16,7 @@ import {
     createBasicPolicy,
     createAdvancedPolicy,
     waitForLatestSyncJob,
+    waitForPolicySyncJob,
     getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
@@ -72,8 +73,13 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         attributeFieldsMap[officeField.id] = officeField;
     }
 
-    // Wait for attributes to be indexed
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await expect
+        .poll(async () => {
+            const fields = await adminClient.getAccessControlFields('', 100);
+            const names = new Set(fields.map((field) => field.name));
+            return names.has('Department') && names.has('Office');
+        })
+        .toBe(true);
 
     // Create users:
     // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies BOTH (after edit)
@@ -122,10 +128,8 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
-    (await getPolicyIdByName(adminClient, policyName))!;
-
-    // Wait for automatic sync to complete
-    await page.waitForTimeout(500);
+    const createdPolicyId = (await getPolicyIdByName(adminClient, policyName))!;
+    await waitForPolicySyncJob(adminClient, createdPolicyId);
 
     // Verify initial state after original policy sync
     await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
@@ -137,8 +141,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // ===========================================
 
     // Navigate back to ABAC list page
-    await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-    await page.waitForTimeout(2000);
+    await page.goto('/admin_console/system_attributes/membership_policies');
 
     // Verify we're on the list page by checking for "Add policy" button
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
@@ -169,8 +172,6 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // Click policy to edit
     await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
     await policyRowLocator.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
 
     // Check if "Add attribute" button is disabled (means attributes not loaded)
     const addAttributeButtonCheck = page.getByRole('button', {name: /add attribute/i});
@@ -178,8 +179,6 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         const isDisabled = await addAttributeButtonCheck.isDisabled();
         if (isDisabled) {
             await page.reload();
-            await page.waitForLoadState('networkidle');
-            await page.waitForTimeout(1000);
         }
     }
 
@@ -187,7 +186,6 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
     await addAttributeButton.waitFor({state: 'visible', timeout: 5000});
     await addAttributeButton.click();
-    await page.waitForTimeout(1000);
 
     // The attribute dropdown opens automatically after clicking "Add attribute"
     const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
@@ -206,23 +204,19 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         })
         .toBe(true);
     await officeOption.click({force: true});
-    await page.waitForTimeout(500);
 
     // Select operator "==" (is)
     const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
     await operatorButton.waitFor({state: 'visible', timeout: 10_000});
     await operatorButton.click({force: true});
-    await page.waitForTimeout(500);
 
     const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
     await operatorOption.click({force: true});
-    await page.waitForTimeout(500);
 
     // Fill value "Remote"
     const valueInput = page.locator('.values-editor__simple-input').last();
     await valueInput.waitFor({state: 'visible', timeout: 10_000});
     await valueInput.fill('Remote');
-    await page.waitForTimeout(500);
 
     // ===========================================
     // STEP 3: Test Access Rule
@@ -243,21 +237,18 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.waitFor({state: 'visible', timeout: 5000});
     await saveButton.click();
-    await page.waitForTimeout(1000);
 
     // Handle "Apply policy" confirmation if it appears
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     if (await applyPolicyButton.isVisible({timeout: 3000})) {
         await applyPolicyButton.click();
-        await page.waitForTimeout(1000);
     }
 
-    // Navigate to ABAC page and wait for auto-triggered sync job
+    // The jobs POST is registered before Save; wait for it before leaving the editor.
+    const editSyncJobId = await editSyncJobIdPromise;
     await navigateToABACPage(page);
-    await page.waitForTimeout(500);
 
     // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-    const editSyncJobId = await editSyncJobIdPromise;
     await waitForLatestSyncJob(page, 10, editSyncJobId);
 
     // ===========================================
@@ -340,8 +331,13 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         attributeFieldsMap[officeField.id] = officeField;
     }
 
-    // Wait for attributes to be indexed
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await expect
+        .poll(async () => {
+            const fields = await adminClient.getAccessControlFields('', 100);
+            const names = new Set(fields.map((field) => field.name));
+            return names.has('Department') && names.has('Office');
+        })
+        .toBe(true);
     await enableUserManagedAttributes(adminClient);
 
     // Create users:
@@ -390,10 +386,8 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
-    (await getPolicyIdByName(adminClient, policyName))!;
-
-    // Wait for automatic sync to complete
-    await page.waitForTimeout(500);
+    const createdPolicyId = (await getPolicyIdByName(adminClient, policyName))!;
+    await waitForPolicySyncJob(adminClient, createdPolicyId);
 
     // Verify initial state after original policy sync
     await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
@@ -404,8 +398,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 1-2: Edit policy to REMOVE Location rule
     // New expression: Department=Engineering (only)
     // ===========================================
-    await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-    await page.waitForTimeout(500);
+    await page.goto('/admin_console/system_attributes/membership_policies');
 
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
@@ -432,8 +425,6 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
             .toBe(true);
     }
     await page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first().click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
 
     // Verify Auto-add is ON
     const autoAddCheckbox = page.locator('#auto-add-header-checkbox');
@@ -441,7 +432,6 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         const isChecked = await autoAddCheckbox.isChecked();
         if (!isChecked) {
             await autoAddCheckbox.click();
-            await page.waitForTimeout(500);
         }
     }
 
@@ -451,7 +441,6 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     if (await switchToSimpleButton.isVisible({timeout: 5000}).catch(() => false)) {
         await expect(switchToSimpleButton).toBeEnabled({timeout: 60_000});
         await switchToSimpleButton.click();
-        await page.waitForTimeout(500);
     }
 
     const officeRowRemove = page
@@ -460,7 +449,6 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         .getByRole('button', {name: 'Remove row'});
     await expect(officeRowRemove).toBeVisible({timeout: 15_000});
     await officeRowRemove.click();
-    await page.waitForTimeout(500);
 
     // ===========================================
     // STEP 3: Test Access Rule
@@ -481,16 +469,14 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.waitFor({state: 'visible', timeout: 5000});
     await saveButton.click();
-    await page.waitForTimeout(1000);
 
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     if (await applyPolicyButton.isVisible({timeout: 3000})) {
         await applyPolicyButton.click();
-        await page.waitForTimeout(1000);
     }
 
-    await navigateToABACPage(page);
     const editSyncJobIdT5792 = await editSyncJobIdPromiseT5792;
+    await navigateToABACPage(page);
     await waitForLatestSyncJob(page, 10, editSyncJobIdT5792);
 
     // ===========================================

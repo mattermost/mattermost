@@ -121,8 +121,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(applyBtn).toBeVisible({timeout: 5000});
         await applyBtn.click();
 
-        await page.waitForLoadState('networkidle');
-
         await expect
             .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
                 timeout: 15000,
@@ -157,7 +155,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // with no "Apply membership policy" modal and no manual toggle-off.
         await page.getByRole('button', {name: 'Save'}).click();
         await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
-        await page.waitForLoadState('networkidle');
 
         await expect
             .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
@@ -224,7 +221,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(applyModal).toBeVisible({timeout: 15000});
         await applyModal.getByRole('button', {name: 'Apply'}).click();
         await expect(applyModal).not.toBeVisible({timeout: 10000});
-        await page.waitForLoadState('networkidle');
+        await expect(page).toHaveURL(/\/admin_console\/user_management\/teams/);
 
         // # Re-open and remove the policy; the custom rule stays
         const policyFetchDoneRemove = page
@@ -249,7 +246,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // * Save goes straight through: removal is not new criteria, so no apply modal
         await page.getByRole('button', {name: 'Save'}).click();
         await expect(page.locator('.ConfirmModal').filter({hasText: 'Apply membership policy'})).toHaveCount(0);
-        await page.waitForLoadState('networkidle');
 
         // * Team stays policy-enforced: the custom rule survives the policy removal
         await expect
@@ -289,7 +285,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         // Turning group sync off unlocks the toggle.
         await adminClient.patchTeam({id: team.id, group_constrained: false} as any);
         await page.reload();
-        await page.waitForLoadState('networkidle');
 
         const toggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
         await toggleAfter.waitFor({state: 'visible', timeout: 10000});
@@ -358,7 +353,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {page} = systemConsolePage;
 
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         // Filter to our policy so the assertion is stable under parallel runs.
         const policyRow = await findPolicyRow(page, policyName);
@@ -899,7 +893,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const applyBtn = page.getByRole('button', {name: 'Apply'});
         await expect(applyBtn).toBeVisible({timeout: 5000});
         await applyBtn.click();
-        await page.waitForLoadState('networkidle');
 
         // * A team sync job was enqueued for this team even though auto-add is off.
         await expect
@@ -1093,7 +1086,6 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         const {page} = systemConsolePage;
 
         await page.goto('/admin_console/user_management/teams');
-        await page.waitForLoadState('networkidle');
 
         // Wait on the debounced server-side search rather than a fixed sleep.
         const searchDone = page

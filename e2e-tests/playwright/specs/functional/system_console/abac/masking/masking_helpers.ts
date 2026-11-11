@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
 import {deleteFieldFromDB} from './masking_db_setup';
@@ -106,12 +106,10 @@ export async function setUserAttribute(client: Client4, userId: string, fieldId:
  */
 export async function createPolicyWithCEL(page: Page, name: string, celExpression: string): Promise<string> {
     await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
 
     const addPolicyBtn = page.getByRole('button', {name: 'Add policy'});
     await addPolicyBtn.waitFor({state: 'visible', timeout: 15000});
     await addPolicyBtn.click();
-    await page.waitForLoadState('networkidle');
 
     const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
     await nameInput.waitFor({state: 'visible', timeout: 10000});
@@ -120,16 +118,15 @@ export async function createPolicyWithCEL(page: Page, name: string, celExpressio
     const advancedBtn = page.getByRole('button', {name: /advanced/i});
     await advancedBtn.waitFor({state: 'visible', timeout: 5000});
     await advancedBtn.click();
-    await page.waitForTimeout(1000);
 
     const editorLines = page.locator('.monaco-editor .view-lines').first();
     await editorLines.waitFor({state: 'visible', timeout: 5000});
     await editorLines.click({force: true});
-    await page.waitForTimeout(300);
+    await expect(page.locator('.monaco-editor textarea.inputarea').first()).toBeFocused();
     const isMac = process.platform === 'darwin';
     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
     await page.keyboard.type(celExpression, {delay: 10});
-    await page.waitForTimeout(1000);
+    await expect(editorLines).toContainText(celExpression.slice(0, Math.min(celExpression.length, 24)));
 
     const saveBtn = page.getByRole('button', {name: 'Save'});
     await saveBtn.waitFor({state: 'visible', timeout: 5000});
@@ -143,7 +140,6 @@ export async function createPolicyWithCEL(page: Page, name: string, celExpressio
     await saveBtn.click();
     const saveResp = await savePromise;
     const saved = await saveResp.json();
-    await page.waitForLoadState('networkidle');
 
     const id = (saved?.id ?? saved?.ID ?? '') as string;
     if (!/^[A-Za-z0-9]{26}$/.test(id)) {
@@ -159,7 +155,6 @@ export async function createPolicyWithCEL(page: Page, name: string, celExpressio
  */
 export async function openExistingPolicy(page: Page, policyName: string): Promise<void> {
     await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
 
     const searchInput = page.locator('input[placeholder*="Search" i]').first();
     await searchInput.waitFor({state: 'visible', timeout: 10000});
@@ -175,13 +170,12 @@ export async function openExistingPolicy(page: Page, policyName: string): Promis
     await searchResponse.catch(() => {
         // debounced search may settle from cache
     });
-    await page.waitForLoadState('networkidle');
 
     const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
     await policyRow.waitFor({state: 'visible', timeout: 20000});
     await policyRow.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await expect(page).toHaveURL(/\/edit_policy\/[A-Za-z0-9]{26}/);
+    await expect(page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName')).toBeVisible();
 }
 
 export async function getRawPolicyExpression(page: Page, policyId: string): Promise<string> {

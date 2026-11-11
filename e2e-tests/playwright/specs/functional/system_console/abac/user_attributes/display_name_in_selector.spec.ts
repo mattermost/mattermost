@@ -87,7 +87,6 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
 
                 // # Open the new-policy form
                 await page.getByRole('button', {name: 'Add policy'}).click();
-                await page.waitForLoadState('networkidle');
 
                 const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
                 await nameInput.waitFor({state: 'visible', timeout: 10000});

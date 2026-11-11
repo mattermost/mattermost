@@ -152,10 +152,15 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             // doesn't depend on how the form is dirtied.
             const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInput.fill(policyName + ' (edited)');
-            await page.waitForTimeout(300);
 
+            const saved = page.waitForResponse(
+                (resp) =>
+                    /\/api\/v4\/access_control_policies(\/[A-Za-z0-9]+)?$/.test(resp.url()) &&
+                    resp.request().method() === 'PUT' &&
+                    resp.ok(),
+            );
             await saveBtn.click();
-            await page.waitForLoadState('networkidle');
+            await saved;
 
             // Verify via DB: Bravo + Charlie preserved by merge-on-save
             const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
@@ -287,10 +292,8 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             // Remove Alpha — now the condition has no values (empty)
             const alphaChip = page.locator('.select__multi-value').filter({hasText: 'Alpha'});
             await alphaChip.locator('.select__multi-value__remove').click();
-            await page.waitForTimeout(300);
 
             await saveBtn.click();
-            await page.waitForTimeout(2000);
 
             // An error message about self-inclusion should appear
             const errorMsg = page.locator('text=/do not satisfy|self.inclusion|condition/i').first();
@@ -298,7 +301,6 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
             // Reload — Alpha should still be in the stored policy (save was blocked)
             await page.reload();
-            await page.waitForLoadState('networkidle');
             await openExistingPolicy(page, policyName);
             await expect(page.locator('.select__multi-value').filter({hasText: 'Alpha'})).toBeVisible();
         } finally {
@@ -434,7 +436,6 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             const advancedBtn = page.getByRole('button', {name: /advanced/i});
             await advancedBtn.waitFor({state: 'visible', timeout: 5000});
             await advancedBtn.click();
-            await page.waitForTimeout(1000);
 
             // Monaco editor must be read-only — verify functionally: capture the current text,
             // attempt to type, and assert the content is unchanged.
@@ -445,7 +446,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await monacoEditor.locator('textarea.inputarea').first().focus();
             await page.keyboard.press('End');
             await page.keyboard.type('xyz');
-            await page.waitForTimeout(300);
+            await expect(monacoEditor.locator('textarea.inputarea')).toHaveAttribute('aria-readonly', 'true');
             const after = (await viewLines.textContent()) ?? '';
             expect(after).toBe(before);
 
@@ -463,7 +464,6 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             const simpleBtn = page.getByRole('button', {name: /simple/i});
             if (await simpleBtn.isVisible({timeout: 3000})) {
                 await simpleBtn.click();
-                await page.waitForTimeout(500);
                 await expect(page.locator('.select__multi-value--masked')).toBeVisible();
             }
         } finally {

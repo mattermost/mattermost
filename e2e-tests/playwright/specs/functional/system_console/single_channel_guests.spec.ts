@@ -33,10 +33,10 @@ test.describe('Single-channel guests', () => {
 
     async function navigateWithGuestPatch(page: any, adminClient: any, url: string, guestEnabled: boolean) {
         await page.goto(url);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('admin-console-header')).toBeVisible();
         await patchGuestEnabled(adminClient, guestEnabled);
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('admin-console-header')).toBeVisible();
     }
 
     /**
@@ -96,7 +96,7 @@ test.describe('Single-channel guests', () => {
                         // hide the card and make the textContent call return null.
                         await patchGuestEnabled(adminClient, true);
                         await systemConsolePage.page.reload();
-                        await systemConsolePage.page.waitForLoadState('networkidle');
+                        await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible();
                         const text = await systemConsolePage.page
                             .getByTestId('singleChannelGuests')
                             .textContent()
@@ -290,7 +290,7 @@ test.describe('Single-channel guests', () => {
         await systemConsolePage.toBeVisible();
         await patchGuestEnabled(adminClient, true);
         await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toBeVisible();
 
         // * Verify the guest limit banner is not visible (count is within limit)
         await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
@@ -438,7 +438,7 @@ test.describe('Single-channel guests', () => {
             const readGuestCount = async () => {
                 await patchGuestEnabled(adminClient, true);
                 await systemConsolePage.page.reload();
-                await systemConsolePage.page.waitForLoadState('networkidle');
+                await expect(singleChannelGuestsCard).toBeVisible();
                 const text = await singleChannelGuestsCard.textContent().catch(() => '');
                 return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
             };

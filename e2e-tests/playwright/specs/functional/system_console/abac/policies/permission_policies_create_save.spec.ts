@@ -120,7 +120,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(
             systemConsolePage.page.getByText('Attribute-Based Permission Policy', {exact: true}),
@@ -128,7 +127,6 @@ test.describe('Permission Policies - Create Policy', () => {
 
         // # Cancel navigates back to list without saving
         await systemConsolePage.page.getByRole('link', {name: 'Cancel'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
     });

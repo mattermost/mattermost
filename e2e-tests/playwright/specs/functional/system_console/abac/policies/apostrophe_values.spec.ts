@@ -82,11 +82,9 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
 
         try {
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
 
             // # Create a policy and add a text attribute row
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
             const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInput.waitFor({state: 'visible', timeout: 10000});
             await nameInput.fill(policyName);
@@ -95,7 +93,6 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
             await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
             if (await addAttributeButton.isDisabled()) {
                 await page.reload();
-                await page.waitForLoadState('networkidle');
                 await nameInput.fill(policyName);
                 await expect(addAttributeButton).toBeEnabled({timeout: 15000});
             }
@@ -126,17 +123,15 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
 
             // # Save the policy
             await page.getByRole('button', {name: 'Save'}).last().click();
-            await page.waitForLoadState('networkidle');
+            await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
 
             // # Reopen the policy from the list
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
             const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
             await expect(policyRow).toBeVisible({timeout: 10000});
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();
-            await page.waitForLoadState('networkidle');
 
             // # Switch to Advanced mode so the "Switch to Simple Mode" toggle is present.
             const toAdvanced = page.getByRole('button', {name: 'Switch to Advanced Mode'});
