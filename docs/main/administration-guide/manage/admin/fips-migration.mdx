@@ -43,11 +43,14 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
       SHOW password_encryption;
       ```
 
-      If the result is `md5`, set `password_encryption = 'scram-sha-256'` in `postgresql.conf`, then reload the configuration:
+      If the result is `md5`, change the setting and reload the configuration:
 
       ```sql
+      ALTER SYSTEM SET password_encryption = 'scram-sha-256';
       SELECT pg_reload_conf();
       ```
+
+      `ALTER SYSTEM` writes to `postgresql.auto.conf`, which overrides `postgresql.conf`. Before step c, run `SHOW password_encryption;` again in the `psql` session you'll use for that step, and continue only once it returns `scram-sha-256`. The `\password` command hashes the password using the value in effect for that session.
 
    c. Set the password again so that PostgreSQL stores it as a SCRAM hash. Changing `password_encryption` doesn't convert existing passwords, which remain stored as MD5 hashes until they're set again. When you do this depends on whether the password itself changes:
 
