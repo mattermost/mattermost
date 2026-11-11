@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
@@ -1153,7 +1154,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
 
-		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false)
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
 		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1162,7 +1163,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})
 
 	t.Run("no limit configured", func(t *testing.T) {
@@ -1170,7 +1171,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})
 
 	t.Run("skip-preflight proceeds despite the limit", func(t *testing.T) {
@@ -1178,7 +1179,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, true))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, true))
 		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT (skipped): import takes a team past TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set")
 	})
@@ -1193,7 +1194,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 			userLine(model.NewUsername(), teamName),
 		}, "\n"))
 
-		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false)
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
 		requireLimitError(t, appErr, "This file adds 2 users to team "+teamName+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1206,7 +1207,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		th.LinkUserToTeam(t, member2, team)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(member1.Username, team.Name), userLine(member2.Username, team.Name)}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})
 
 	t.Run("a team already over the limit gaining nobody passes", func(t *testing.T) {
@@ -1219,7 +1220,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		setLimit(t, 2)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(members[0].Username, team.Name)}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})
 
 	t.Run("existing non-members count as gained", func(t *testing.T) {
@@ -1227,7 +1228,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(th.CreateUser(t).Username, team.Name), userLine(th.CreateUser(t).Username, team.Name)}, "\n"))
 
-		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false)
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
 		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1237,19 +1238,19 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		deactivated := `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","delete_at":1700000000000,"teams":[{"name":"` + team.Name + `"}]}}`
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), deactivated}, "\n"))
 
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 	})
 
 	t.Run("new accounts are not counted when they are created inactive", func(t *testing.T) {
 		setLimit(t, 2)
 		team := teamWithOneMember(t)
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, true, false))
 
 		setLimit(t, 1)
 		existingUser := th.CreateUser(t)
 		zr = makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(existingUser.Username, team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
-		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false)
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, true, false)
 		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1261,11 +1262,11 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 		require.Nil(t, appErr)
 
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(deactivated.Username, team.Name)}, "\n"))
-		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
 
 		reactivated := `{"type":"user","user":{"username":"` + deactivated.Username + `","email":"` + deactivated.Email + `","delete_at":0,"teams":[{"name":"` + team.Name + `"}]}}`
 		zr = makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), reactivated}, "\n"))
-		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false)
+		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
 		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1280,7 +1281,7 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 
 		reactivated := `{"type":"user","user":{"username":"` + deactivatedMember.Username + `","email":"` + deactivatedMember.Email + `","delete_at":0,"teams":[{"name":"` + team.Name + `"}]}}`
 		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, reactivated}, "\n"))
-		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false)
+		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
 		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
 	})
 
@@ -1295,8 +1296,76 @@ func TestCheckTeamMemberLimits(t *testing.T) {
 			userLine(model.NewUsername(), srcTeamName),
 		}, "\n"))
 
-		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", destTeam.Name, false, false)
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", destTeam.Name, false, false, false)
 		requireLimitError(t, appErr, "This file adds 2 users to team "+destTeam.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	ssoUser := func(t *testing.T, authData string) *model.User {
+		user := th.CreateUser(t)
+		_, err := th.App.Srv().Store().User().UpdateAuthData(user.Id, model.UserAuthServiceSaml, &authData, user.Email, false)
+		require.NoError(t, err)
+		return user
+	}
+	ssoUserLine := func(username, authData, teamName string) string {
+		return `{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","auth_service":"saml","auth_data":"` + authData + `","teams":[{"name":"` + teamName + `"}]}}`
+	}
+
+	t.Run("SSO users are matched by auth_data rather than username", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		authData := model.NewId()
+		th.LinkUserToTeam(t, ssoUser(t, authData), team)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(model.NewUsername(), authData, team.Name)}, "\n"))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false))
+	})
+
+	t.Run("an SSO user whose auth_data matches a non-member counts as gained even if the username is a member", func(t *testing.T) {
+		setLimit(t, 2)
+		team := th.CreateTeam(t)
+		member := th.CreateUser(t)
+		th.LinkUserToTeam(t, member, team)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+		authData := model.NewId()
+		ssoUser(t, authData)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(member.Username, authData, team.Name)}, "\n"))
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("an unmatched SSO user falls back to username only in a full import", func(t *testing.T) {
+		setLimit(t, 1)
+		team := th.CreateTeam(t)
+		nonMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(nonMember.Username, model.NewId(), team.Name)}, "\n"))
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
+
+		// A scoped import can't create the account, as the username is taken.
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false))
+	})
+
+	t.Run("an archive without a readable JSONL fails unless skip-preflight is set", func(t *testing.T) {
+		setLimit(t, 2)
+		var buf bytes.Buffer
+		zw := zip.NewWriter(&buf)
+		_, err := zw.Create("data/attachment.txt")
+		require.NoError(t, err)
+		require.NoError(t, zw.Close())
+		zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+		require.NoError(t, err)
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.preflight.team_member_limit_read.error", appErr.Id)
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, true))
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT (skipped): unable to read the import file to check TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set")
 	})
 }
 
@@ -1410,6 +1479,16 @@ func TestBulkImportMaxUsersPerTeam(t *testing.T) {
 		assert.EqualValues(t, 3, count)
 		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Imported team membership takes the team past TeamSettings.MaxUsersPerTeam")
+	})
+
+	t.Run("an import without a zip archive warns that the limit is not checked", func(t *testing.T) {
+		team := newTeam(t)
+		jsonl := `{"type":"version","version":1}` + "\n" + `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","teams":[{"name":"` + team.Name + `"}]}}`
+
+		_, appErr := th.App.BulkImport(th.Context, strings.NewReader(jsonl), nil, false, 1)
+		require.Nil(t, appErr)
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT: TeamSettings.MaxUsersPerTeam is not checked before importing a JSONL file without its zip archive, so teams can end up past the limit")
 	})
 }
 
