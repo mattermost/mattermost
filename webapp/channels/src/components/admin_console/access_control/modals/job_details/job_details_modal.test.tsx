@@ -201,6 +201,51 @@ describe('JobDetailsModal', () => {
         expect(screen.getByText('Engineering')).toBeInTheDocument();
     });
 
+    test('keeps each list\'s search when switching between the Channels and Teams tabs', async () => {
+        const channelJob = makeChannelSyncJob({
+            id: 'channel-job',
+            data: {
+                sync_results: JSON.stringify({
+                    channel1: {MembersAdded: ['user1'], MembersRemoved: []},
+                }),
+                parent_team_job_id: 'team-job',
+            },
+        });
+        const teamJob = makeTeamSyncJob({id: 'team-job'});
+
+        renderWithContext(
+            <JobDetailsModal
+                job={channelJob}
+                onExited={onExited}
+            />,
+            {
+                entities: {
+                    ...initialState.entities,
+                    jobs: {jobs: {'team-job': teamJob}},
+                },
+            },
+        );
+
+        // Search the Channels list for something that matches nothing.
+        await userEvent.type(await screen.findByPlaceholderText('Search channels'), 'zzz');
+        expect(screen.queryByText('Town Square')).not.toBeInTheDocument();
+
+        // Search the Teams list for the team that exists.
+        await userEvent.click(screen.getByRole('button', {name: 'Teams'}));
+        await userEvent.type(screen.getByPlaceholderText('Search teams'), 'eng');
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
+
+        // Back on Channels, the earlier search and its filtering are still applied.
+        await userEvent.click(screen.getByRole('button', {name: 'Channels'}));
+        expect(screen.getByPlaceholderText('Search channels')).toHaveValue('zzz');
+        expect(screen.queryByText('Town Square')).not.toBeInTheDocument();
+
+        // Back on Teams, likewise.
+        await userEvent.click(screen.getByRole('button', {name: 'Teams'}));
+        expect(screen.getByPlaceholderText('Search teams')).toHaveValue('eng');
+        expect(screen.getByText('Engineering')).toBeInTheDocument();
+    });
+
     test('shows canceled banner for channel sync job when canceled', () => {
         renderWithContext(
             <JobDetailsModal
