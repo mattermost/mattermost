@@ -3,7 +3,7 @@
 
 import type {UserMentionKey} from 'mattermost-redux/selectors/entities/users';
 
-import {ID_PATH_PATTERN} from 'utils/path';
+import {ID_PATH_REGEX} from 'utils/path';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {MentionDateRange, MentionFilters, MentionType} from 'types/store/rhs';
@@ -138,8 +138,6 @@ function splitParam(value: string | null): string[] {
     return (value ?? '').split(',').map((part) => part.trim()).filter(Boolean);
 }
 
-const CHANNEL_ID_REGEX = new RegExp(`^${ID_PATH_PATTERN}$`);
-
 // mentionFiltersFromSearchParams reads back what mentionFiltersToSearchParams wrote. Anything it
 // doesn't recognise is dropped rather than carried into a search: a popout URL can be edited by
 // hand, an unknown mention type or date range has no meaning to the query builder, and a channel
@@ -148,7 +146,7 @@ export function mentionFiltersFromSearchParams(params: URLSearchParams): Mention
     const date = params.get(DATE_PARAM) as MentionDateRange;
 
     return {
-        channelIds: splitParam(params.get(CHANNELS_PARAM)).filter((id) => CHANNEL_ID_REGEX.test(id)),
+        channelIds: splitParam(params.get(CHANNELS_PARAM)).filter((id) => ID_PATH_REGEX.test(id)),
         mentionTypes: splitParam(params.get(TYPES_PARAM)).filter((type): type is MentionType => (mentionTypeOrder as string[]).includes(type)),
         date: dateRangeOrder.includes(date) ? date : 'any',
     };

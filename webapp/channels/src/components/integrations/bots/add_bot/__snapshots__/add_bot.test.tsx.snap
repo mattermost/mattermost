@@ -112,11 +112,11 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
               type="file"
             />
             <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Upload Image
               </span>
@@ -213,19 +213,19 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="postAll"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="postAll"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
               <span
-                class="_checkbox__label_18swc_120"
+                class="_checkbox__label_18sf4_131"
               >
                 Enabled
               </span>
@@ -250,19 +250,19 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="postChannels"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="postChannels"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
               <span
-                class="_checkbox__label_18swc_120"
+                class="_checkbox__label_18sf4_131"
               >
                 Enabled
               </span>
@@ -338,22 +338,22 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
           class="backstage-form__footer"
         >
           <a
-            class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/DN/integrations/bots"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Cancel
             </span>
           </a>
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveBot"
             type="submit"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Create Bot Account
             </span>
