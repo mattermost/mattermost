@@ -1,9 +1,65 @@
 ---
 title: "Calls v2 networking and ports"
+sidebar_label: "Networking and ports"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft. Based on the Docker Compose and Kubernetes deployment artifacts under review.
 :::
 
-Ports, UDP direct media with TCP fallback, and an optional TURN server for restrictive firewalls.
+Calls v2 clients connect to LiveKit directly for media, so LiveKit's ports must be reachable from your users' networks. This page lists the ports, explains TCP and TURN fallbacks, and describes how the Mattermost server and LiveKit reach each other.
+
+## Ports
+
+Open these on the firewall or security group of the LiveKit host (or, on Kubernetes, the LiveKit nodes).
+
+| Port | Protocol | Purpose |
+|---|---|---|
+| 443 | TCP | LiveKit signaling over TLS (`wss://`) and certificate issuance. On Kubernetes this is the ingress load balancer. |
+| 80 | TCP | Optional. Fallback certificate challenge and HTTP redirect. On Kubernetes, needed for Let's Encrypt HTTP-01 certificates. |
+| 7882 | UDP | Media over UDP. Preferred path. |
+| 7881 | TCP | Media over TCP. Fallback when UDP is blocked. |
+| 10000-10100 | UDP | Only if [SIP outbound](sip-outbound.mdx) is enabled (RTP media). Limit to your SIP provider's addresses if they publish them. |
+| 5060 | UDP | Only for inbound SIP. Not needed for outbound dialing. |
+
+Do not expose the LiveKit signaling port (7880) to the internet. Reach it through the TLS proxy or ingress.
+
+The media ports must be reachable from the internet, or from your users' networks. Restrict the source range if you know where your users connect from.
+
+## Media path and fallbacks
+
+Clients try to connect in this order:
+
+1. **UDP on 7882.** Lowest latency.
+2. **TCP on 7881.** Used when UDP is blocked.
+3. **TURN over TLS on 443.** Used when a network blocks both. See below.
+
+Most deployments do not need TURN. If a call connects but media does not flow for some users, they are likely on a network that blocks UDP and plain TCP.
+
+## TURN for restrictive firewalls (optional)
+
+Clients on networks that allow only HTTPS traffic cannot reach ports 7881 and 7882. A TURN server on TCP port 443 with TLS lets them connect. LiveKit hands clients the TURN address and short-lived credentials automatically, so no Calls plugin setting is needed.
+
+The Docker Compose deployment supports two options:
+
+- **Built-in TURN on the same host.** LiveKit's built-in TURN shares port 443 with signaling, routed by TLS server name. This needs a second DNS name and a custom Caddy build that the deployment provides.
+- **External TURN on a separate host.** coturn on its own host with its own public IP.
+
+See [Deploy Calls v2 with LiveKit on Docker Compose](deploy-docker-compose.mdx#optional-turn-for-restrictive-firewalls).
+
+{/* TODO: TURN on Kubernetes is not covered by the Helm deployment. Confirm whether to document it or state it is unsupported. */}
+
+## Mattermost to LiveKit
+
+- LiveKit sends call events to `<site-url>/plugins/com.mattermost.calls/livekit-webhook`. LiveKit must be able to reach your Mattermost site URL over HTTPS. If call events are missing in Mattermost, check the LiveKit logs for webhook errors.
+- The Mattermost server also calls LiveKit's API. By default it uses the public LiveKit URL. If the server should use a different address, for example an internal service name in the same Kubernetes cluster, set **LiveKit Private URL** in the Calls plugin settings.
+
+## Redis
+
+Redis is required when you run more than one LiveKit node, and when you enable SIP. LiveKit reads Redis settings at startup, so restart LiveKit after changing them. With a single node and no SIP, you do not need Redis.
+
+## Verifying connectivity
+
+- Run `/call diag` from a client on the network you want to test. It checks signaling, WebRTC, TURN, reconnection and UDP and TCP connectivity. See [Run the built-in diagnostic](calls-v2-overview.mdx#run-the-built-in-diagnostic).
+- Join a call from a network outside the one where LiveKit runs.
+- To check the TCP fallback, temporarily remove the 7882/UDP rule, start a fresh call, and look for a selected candidate on `:7881` in the LiveKit logs. Restore the rule afterwards.

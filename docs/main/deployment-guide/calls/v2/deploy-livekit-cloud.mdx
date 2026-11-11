@@ -1,9 +1,65 @@
 ---
-title: "Use LiveKit Cloud with Calls v2"
+title: "Deploy Calls v2 with LiveKit Cloud"
+sidebar_label: "LiveKit Cloud"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft skeleton. This page is tracked separately (MM-71407) and has not been validated end to end. TODO markers mark every item that needs confirmation.
 :::
 
-Connect Calls v2 to a LiveKit Cloud project instead of self-hosting.
+[LiveKit Cloud](https://livekit.io/cloud) is LiveKit's managed service. Using it means you do not deploy or operate media servers, ports or TLS certificates yourself. Calls v2 connects to a LiveKit Cloud project the same way it connects to a self-hosted LiveKit server.
+
+If your organization requires that call media stays within your own infrastructure, deploy LiveKit yourself instead: [Docker Compose](deploy-docker-compose.mdx) or [Kubernetes with Helm](deploy-kubernetes-helm.mdx).
+
+## Prerequisites
+
+- A LiveKit Cloud account and project.
+- A Mattermost server running Calls v2, reachable over HTTPS from the internet, so LiveKit Cloud can deliver call events to it, and system admin access to it.
+
+{/* TODO: confirm whether any Mattermost network requirement applies (for example allowed source addresses for LiveKit Cloud webhooks). */}
+
+## 1. Get the project URL and an API key
+
+In the LiveKit Cloud dashboard, open your project and note:
+
+- The project's WebSocket URL, in the form `wss://<project-name>.livekit.cloud`.
+- An API key and its secret. Create a new key for Mattermost rather than reusing one.
+
+{/* TODO: confirm dashboard navigation and key creation steps. */}
+
+## 2. Configure the webhook
+
+The Calls plugin learns about call events (room started, participant joined and so on) from webhooks. In the project settings, add a webhook with:
+
+- URL: `https://<your Mattermost site URL>/plugins/com.mattermost.calls/livekit-webhook`
+- Signing key: the API key you created for Mattermost.
+
+{/* TODO: verify the Cloud webhook settings and which API key signs them; confirm with a live test. */}
+
+## 3. Configure the Calls plugin
+
+In **System Console > Plugins > Calls**, set:
+
+| Setting | Value |
+|---|---|
+| LiveKit URL | `wss://<project-name>.livekit.cloud` |
+| LiveKit API key | The API key you created |
+| LiveKit API secret | The API secret for that key |
+
+Enter the values without leading or trailing spaces. Leave **LiveKit Private URL** empty.
+
+## 4. Verify
+
+1. Start a call and join from a client outside your network.
+2. Share a screen and confirm the other participant sees it.
+3. Confirm the call appears in Mattermost as started and ended. If it does not, check that the webhook in step 2 is delivering. The LiveKit Cloud dashboard shows webhook delivery attempts.
+
+{/* TODO: confirm where webhook delivery is visible in the dashboard. */}
+
+## Limitations and open questions
+
+{/* TODO: confirm each item below before publishing. */}
+
+- SIP outbound dialing with LiveKit Cloud: not yet documented. See [SIP outbound dialing](sip-outbound.mdx) for the self-hosted setup.
+- Recording, transcription and live captions use [Calls Offloader](../calls-offloader-setup.mdx). Confirm how it connects to a LiveKit Cloud project.
+- Data residency, regions and pricing are set by LiveKit. See LiveKit's documentation.

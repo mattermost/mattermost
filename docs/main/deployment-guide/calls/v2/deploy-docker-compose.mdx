@@ -1,9 +1,171 @@
 ---
-title: "Deploy Calls v2 with Docker Compose"
+title: "Deploy Calls v2 with LiveKit on Docker Compose"
+sidebar_label: "LiveKit Docker"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft. The deployment files are under review in the Calls plugin repository (`deploy/compose`). TODO markers mark items to confirm before publishing.
 :::
 
-Single-host LiveKit with a TLS proxy, optional SIP bridge and external TURN. Source: the `deploy/compose` directory of the Calls plugin repository.
+This guide runs LiveKit and a TLS proxy ([Caddy](https://caddyserver.com)) on a single Linux host with Docker Compose, for use with Calls v2. Optionally it adds a SIP bridge (and the Redis it needs) for outbound phone dialing. Caddy obtains and renews a Let's Encrypt certificate for the LiveKit signaling endpoint automatically.
+
+A single host runs one LiveKit node. For high availability, see [Deploy Calls v2 with LiveKit on Kubernetes](deploy-kubernetes-helm.mdx).
+
+## Prerequisites
+
+- A Linux host with a public IP address. Tested on Ubuntu 24.04 with 4 vCPU and 8 GB of memory. Docker Engine with the Compose plugin.
+- A DNS name for LiveKit (for example `lk.example.com`) with an **A record pointing at the host's public IP**. Create it before you start the stack, because Caddy requests its certificate on first start.
+- A Mattermost server running Calls v2, reachable over HTTPS from the LiveKit host, and system admin access to it.
+- Firewall or security group rules for the host. See [Calls v2 networking and ports](networking.mdx) for details.
+
+  | Port | Protocol | Purpose |
+  |---|---|---|
+  | 443 | TCP | LiveKit signaling over TLS, certificate issuance |
+  | 80 | TCP | Optional. Fallback certificate challenge and HTTP redirect |
+  | 7881 | TCP | Media over TCP (fallback when UDP is blocked) |
+  | 7882 | UDP | Media over UDP (preferred) |
+  | 10000-10100 | UDP | Only if the SIP bridge is enabled |
+
+## 1. Install Docker
+
+On Ubuntu, install from Docker's apt repository:
+
+```bash
+sudo apt-get update && sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo usermod -aG docker "$USER"   # log out and back in to apply
+```
+
+## 2. Get the files
+
+Copy `docker-compose.yaml`, `Caddyfile` and `setup.sh` from the `deploy/compose` directory of the Calls plugin repository to the host, for example into `~/livekit`.
+
+{/* TODO: replace with the final artifact location and download instructions once the open question on the epic (this repo's deploy/, the docker repo, or a dedicated repo) is settled. */}
+
+## 3. Generate the configuration
+
+```bash
+cd ~/livekit
+./setup.sh lk.example.com https://mattermost.example.com
+```
+
+The script writes `.env`, `livekit.yaml` and `sip.yaml` (file mode 600) with a randomly generated API secret, and prints the plugin settings to use. Running it again keeps the existing secret. To rotate the secret, delete `livekit.yaml` first and update the plugin settings.
+
+Add `--sip` to also enable the SIP bridge and Redis (see [SIP outbound dialing](sip-outbound.mdx)). Without it, LiveKit runs standalone and Redis is not started.
+
+## 4. Start the stack
+
+```bash
+docker compose up -d
+docker compose ps          # livekit and caddy should be running
+docker compose logs caddy | grep "certificate obtained"
+curl https://lk.example.com/   # prints: OK
+```
+
+The first start pulls images and obtains a Let's Encrypt certificate, which takes a few seconds once DNS resolves. LiveKit finds its public IP using STUN, so you do not need to configure the node IP.
+
+## 5. Configure the Calls plugin
+
+In **System Console > Plugins > Calls**, set:
+
+| Setting | Value |
+|---|---|
+| LiveKit URL | `wss://lk.example.com` |
+| LiveKit API key | `calls-plugin` |
+| LiveKit API secret | The value under `keys:` in `livekit.yaml` |
+
+Leave **LiveKit Private URL** empty unless the Mattermost server must reach LiveKit at a different address than clients do. Enter values without leading or trailing spaces.
+
+## 6. Verify
+
+1. Run the built-in diagnostic. In any channel, type `/call diag`. It checks your setup and your client's connection to LiveKit, and shows the result in a message that only you can see. See [Run the built-in diagnostic](calls-v2-overview.mdx#run-the-built-in-diagnostic).
+2. Start a call in a channel and join from a client outside the host's network.
+3. Confirm LiveKit saw the room and delivered webhooks. There should be no webhook errors:
+
+   ```bash
+   docker compose logs livekit | grep -E "room_started|participant_joined|sent webhook"
+   ```
+
+4. Share a screen from one participant and confirm the other participant sees it.
+5. Join from a different network than the first participant, for example a laptop on a phone hotspot.
+6. To check the TCP fallback, remove the `7882/udp` rule, start a fresh call, and confirm both participants connect. The LiveKit log shows a selected candidate of `tcp4 ... :7881`. Restore the rule afterwards.
+
+## SIP outbound (optional)
+
+See [SIP outbound dialing](sip-outbound.mdx) for the plugin settings and verification. On Docker Compose:
+
+1. Open `10000-10100/udp` on the host firewall.
+2. Regenerate the configuration with SIP enabled and recreate the containers. Do this, and confirm Redis is running, **before** you enable SIP outbound in the plugin:
+
+   ```bash
+   ./setup.sh lk.example.com https://mattermost.example.com --sip
+   docker compose up -d --force-recreate
+   ```
+
+   `--sip` writes the Redis block into `livekit.yaml` and enables the `sip` Compose profile in `.env`, so Redis and the SIP bridge start with the normal command. LiveKit reads `livekit.yaml` only at startup, so `--force-recreate` (or `docker compose restart livekit`) is required. Running `setup.sh` again without `--sip` turns SIP back off.
+
+## Optional: TURN for restrictive firewalls
+
+Clients on networks that block UDP and plain TCP cannot reach LiveKit directly. TURN over TLS on port 443 lets them connect. LiveKit hands clients the TURN address and short-lived credentials automatically, so no Calls plugin setting is needed. Options are not remembered between runs of `setup.sh`, so include `--sip` as well if you use SIP.
+
+{/* TODO: both TURN options are in separate PRs under review (external TURN in the Compose PR, built-in TURN stacked on it). Confirm they ship with the first release before publishing this section. */}
+
+### Built-in TURN on the same host
+
+Use this when you want one host and one IP. LiveKit's built-in TURN shares port 443 with signaling: Caddy routes by TLS server name, so the LiveKit name goes to signaling and a second name goes to TURN. This needs a Caddy build with the layer4 module, which the stock image does not include. The deployment provides a Dockerfile that builds one with pinned versions.
+
+1. Add a second DNS A record for the TURN name (for example `turn.example.com`) pointing at the same public IP as the LiveKit name. No new firewall ports are needed.
+2. Copy `docker-compose.builtin-turn.yaml` and the whole `builtin-turn/` directory to the host, next to `docker-compose.yaml`.
+3. Generate the configuration and start the stack. The first start builds the image, which takes a few minutes. `--force-recreate` makes LiveKit reread `livekit.yaml`:
+
+   ```bash
+   ./setup.sh lk.example.com https://mattermost.example.com --turn-domain turn.example.com
+   docker compose up -d --build --force-recreate
+   docker compose logs --tail 20 livekit    # confirm LiveKit started
+   ```
+
+Notes:
+
+- Caddy issues and renews certificates for both names. LiveKit holds no certificate.
+- Only TURN over TLS on port 443 is enabled. Clients that can reach 7882/UDP or 7881/TCP connect directly and never use TURN.
+- Restarting Caddy, for example to upgrade the image, interrupts calls for about a second. Audio recovers on its own.
+- The relay forwards to LiveKit through the host's public IP, so the host must be able to reach its own public IP on 7881/TCP and 7882/UDP.
+- To upgrade, change the versions in `builtin-turn/Dockerfile` and run `docker compose up -d --build`. Bump Caddy and caddy-l4 together.
+
+### External TURN on a separate host
+
+Use this when you want TURN on its own IP, or want to keep the stock Caddy image. It runs coturn on a separate host with its own public IP. Regenerate the configuration with:
+
+```bash
+./setup.sh lk.example.com https://mattermost.example.com \
+    --turn-host turn.example.com --turn-secret-file ./turn-secret
+docker compose up -d --force-recreate
+docker compose logs --tail 20 livekit    # confirm LiveKit started
+```
+
+The `turn/README.md` in the deployment directory describes the full procedure for the TURN host, including certificate renewal.
+
+`--turn-domain` cannot be combined with `--turn-host`.
+
+## Operations
+
+- **Logs:** `docker compose logs -f livekit`
+- **Upgrade:** change the image tags in `docker-compose.yaml`, then run `docker compose pull && docker compose up -d`.
+- **Stop:** `docker compose down`. Add `-v` to also delete the certificate and Redis volumes. If SIP is enabled, Redis and the bridge stop too.
+
+{/* TODO: image upgrades are untested in the validation runs. Confirm before publishing the Upgrade bullet as written. */}
+
+## Troubleshooting
+
+- **Certificate not issued:** confirm the DNS A record resolves to this host and that 443/TCP is reachable from the internet. Check `docker compose logs caddy`.
+- **Calls start but there is no audio or video:** check that 7882/UDP and 7881/TCP are open in every firewall and security group between clients and the host.
+- **SIP trunk status shows an error:** see [SIP outbound dialing](sip-outbound.mdx).
+- **No call events in Mattermost:** LiveKit must be able to reach `<site-url>/plugins/com.mattermost.calls/livekit-webhook`. Look for webhook errors in the LiveKit logs.
+
+## Tested configuration
+
+This guide was run end to end on AWS (Ubuntu 24.04, real DNS, Let's Encrypt), covering audio, screen sharing and reactions with several users, participants on separate networks, the TCP fallback, SIP outbound with a managed trunk, and both TURN options. An independent run that followed only these instructions also passed. Image upgrades and recording and transcription were not covered.

@@ -3,7 +3,77 @@ title: "SIP outbound dialing"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft. Based on the Docker Compose and Kubernetes deployment artifacts under review. TODO markers mark items to confirm before publishing.
 :::
 
-Enable outbound phone dialing with the SIP bridge, trunk setup and troubleshooting.
+SIP outbound dialing lets users dial phone numbers from a Calls v2 call. It is available only in Calls v2. Calls v1 has no phone support.
+
+It needs two extra components next to LiveKit:
+
+- A **SIP bridge** (LiveKit SIP) that connects calls to your SIP provider.
+- **Redis**, which LiveKit uses to coordinate with the bridge. LiveKit runs in distributed mode when SIP is enabled.
+
+You also need a SIP trunk from a provider such as Twilio (an Elastic SIP trunk was used in testing), with the trunk address, a caller ID number and credentials.
+
+## Set up the bridge
+
+Enable the bridge as part of your deployment:
+
+- [Docker Compose](deploy-docker-compose.mdx#sip-outbound-optional): regenerate the configuration with `--sip` and recreate the containers.
+- [Kubernetes with Helm](deploy-kubernetes-helm.mdx#sip-outbound-optional): generate with `--sip` and apply `sip.yaml`.
+
+In both cases open `10000-10100/UDP` for RTP media in both directions. Outbound-only dialing does not need port 5060 open to the internet. See [Calls v2 networking and ports](networking.mdx).
+
+Confirm Redis is running **before** you enable SIP outbound in the plugin.
+
+## Configure the Calls plugin
+
+In **System Console > Plugins > Calls > SIP Outbound**:
+
+1. Enable outbound phone dialing.
+2. Set the trunk mode to **managed**.
+3. Enter your provider's trunk address, caller ID number and credentials.
+
+The plugin creates the trunk in LiveKit. The status should show `ready` with a trunk ID.
+
+Alternatively, use mode **existing**: create the trunk yourself with `lk sip outbound create` and enter the trunk ID.
+
+{/* TODO: confirm the exact System Console labels for the SIP settings against the v2 build. */}
+
+### If the trunk status shows an error
+
+The plugin tries to create the trunk when a SIP setting changes or when the plugin starts, not on every Save. If the status shows an error, for example `sip not connected (redis required)` because Redis was not running yet, fix the cause and then trigger a new attempt by turning **Enable outbound phone dialing** off and on again, saving each time. Saving again without toggling does not retry, and the System Console can keep showing the old error. Disabling and re-enabling the Calls plugin also triggers a new attempt.
+
+### Check the trunk state without the System Console
+
+With a system admin access token:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  https://mattermost.example.com/plugins/com.mattermost.calls/sip/trunk-status
+```
+
+It returns `"state":"ready"` and the trunk ID when it worked, or an `error` message.
+
+A `ready` status does not prove the bridge is healthy. It can show `ready` before the bridge pod or container exists. Check the bridge logs as described below.
+
+## Verify
+
+Place a call to a phone number in E.164 format (`+1...`). Then check the bridge logs:
+
+- Docker Compose: `docker compose logs livekit-sip`
+- Kubernetes: `kubectl -n livekit logs deploy/livekit-sip`
+
+A healthy call shows `Outbound SIP call established`, then `call statistics` with `audio_packets` counts in both directions, and ends with `BYE from remote` or `SIP call ended`.
+
+These messages also appear in healthy calls and are harmless:
+
+- `failed to get server reflexive address udp6 ... network is unreachable`, because the host has no IPv6 route.
+- `Failed to ping without candidate pairs` during call setup.
+- `error closing media port: opus: invalid argument` at hangup.
+
+## Troubleshooting
+
+- **`sip not connected (redis required)`:** LiveKit started without Redis. Enable SIP in your deployment, recreate or restart LiveKit so it rereads its configuration, then toggle outbound dialing off and on in the plugin.
+- **Bridge pod `Pending` on Kubernetes:** the node has too little memory or CPU left. Use larger nodes for LiveKit, or lower the bridge's resource requests for a test.
+- **No audio on the phone call:** confirm `10000-10100/UDP` is open on the host or nodes, and check your provider's allowed source addresses.

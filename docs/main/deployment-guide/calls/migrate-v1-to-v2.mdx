@@ -6,4 +6,18 @@ title: "Migrate from Calls v1 to v2"
 Placeholder page. Content is being written; do not rely on it yet.
 :::
 
-Switch an existing server from v1 to v2. Depends on the pre-packaged version setting (MM-71535); not written yet.
+Switch an existing server from Calls v1 to Calls v2. Both versions ship with Mattermost, so migrating is a configuration change plus a LiveKit deployment. It does not require uploading a plugin.
+
+Outline:
+
+1. Before you start: confirm the [v2 limits](calls-overview.mdx) (no video yet) are acceptable, and the Mattermost server and apps meet the minimum versions.
+2. Deploy LiveKit ([Docker Compose](v2/deploy-docker-compose.mdx), [Kubernetes with Helm](v2/deploy-kubernetes-helm.mdx) or [LiveKit Cloud](v2/deploy-livekit-cloud.mdx)) and open the [network ports](v2/networking.mdx).
+3. Configure the LiveKit URL, API key and API secret.
+4. Plan a quiet window. Switching disconnects users and ends active calls. Use `/call list-all` on v1 to see active calls and `/call end-all` to end them.
+5. Set `PluginSettings.CallsVersion` to `v2` (or `MM_PLUGINSETTINGS_CALLSVERSION=v2`).
+6. Verify: start a call, join from outside the network, share a screen.
+7. Move recording and transcription to the v2 [Calls Offloader](calls-offloader-setup.mdx) setup if used.
+8. Roll back: set the version back to `v1`. The database changes are additive, so v1 keeps working.
+9. High availability setups: confirm what happens to calls that were active on other nodes at the time of the switch.
+
+{/* TODO: confirm each step against the final MM-71535 behavior and the v1 companion release. MM-71658 (HA zombie calls after a switch) was closed as not needed, so confirm the HA behavior in step 9. */}

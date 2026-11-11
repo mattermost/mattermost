@@ -3,11 +3,80 @@ title: "Calls v2 overview"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft. Content is based on the deployment artifacts under review in the Calls plugin repository. TODO markers in the source mark items that still need confirmation.
 :::
 
-What Calls v2 is, its architecture (Mattermost plugin, LiveKit, Redis, ingress), supported deployment topologies and what each needs.
+Calls v2 uses [LiveKit](https://livekit.io), an open source WebRTC media server, to carry call audio and screen sharing. The Mattermost server and the Calls plugin handle call state, permissions and the user interface. LiveKit handles the media.
 
-- [Docker Compose](deploy-docker-compose.mdx)
-- [Kubernetes with Helm](deploy-kubernetes-helm.mdx)
-- [LiveKit Cloud](deploy-livekit-cloud.mdx)
+Unlike [Calls v1](../calls-deployment-guide.mdx), Calls v2 has no integrated media mode. **Calls v2 does not work until a LiveKit server is deployed and configured.** You can run LiveKit yourself or use LiveKit Cloud.
+
+## How it fits together
+
+- **Clients** (web, desktop and mobile) connect to LiveKit directly. Signaling uses a secure WebSocket (`wss://`) on port 443, and media uses UDP, with TCP as a fallback.
+- **The Mattermost server** gives clients a short-lived token to join a call. LiveKit sends call events (room started, participant joined and so on) to the Calls plugin through a webhook, so LiveKit must be able to reach your Mattermost site URL.
+- **Redis** is required only when you run more than one LiveKit node, or when you use SIP phone dialing.
+- **[Calls Offloader](../calls-offloader-setup.mdx)** provides recording, transcription and live captions.
+
+## Choose a deployment option
+
+| Option | Best for | Availability |
+|---|---|---|
+| [Docker Compose](deploy-docker-compose.mdx) | A single Linux host. Evaluation, small and medium deployments. | One LiveKit node. |
+| [Kubernetes with Helm](deploy-kubernetes-helm.mdx) | Production deployments that need high availability and scale. | Two or more LiveKit nodes sharing state through Redis. |
+| [LiveKit Cloud](deploy-livekit-cloud.mdx) | You do not want to operate media servers. | Managed by LiveKit. |
+
+All three produce the same three values that you enter in the Calls plugin settings: the LiveKit URL, an API key and an API secret.
+
+## Before you start
+
+- A Mattermost server with Calls v2 selected. See [Calls overview: choose a version](../calls-overview.mdx).
+- System admin access to Mattermost.
+- For self-hosted LiveKit: a DNS name for LiveKit (for example `lk.example.com`), a way to get a TLS certificate for it, and the network ports described in [Calls v2 networking and ports](networking.mdx).
+- Your Mattermost server must be reachable over HTTPS from LiveKit.
+
+## Common settings
+
+Each deployment guide ends by setting these in **System Console > Plugins > Calls**:
+
+| Setting | Value |
+|---|---|
+| LiveKit URL | `wss://<your LiveKit name>` |
+| LiveKit API key | The API key from your LiveKit deployment |
+| LiveKit API secret | The API secret from your LiveKit deployment |
+| LiveKit Private URL | Optional. Leave empty unless the Mattermost server must reach LiveKit at a different address than clients, for example an internal address. |
+
+Enter the values without leading or trailing spaces.
+
+{/* TODO: confirm exact System Console labels and setting names against the final v2 plugin build. */}
+
+## Run the built-in diagnostic
+
+Calls v2 includes a self-diagnostic command. In any channel, type:
+
+```
+/call diag
+```
+
+It runs two sets of checks and posts the result as a message that only you can see:
+
+- **Server checks:** Calls is enabled and licensed, the LiveKit settings are present, the Mattermost server can reach LiveKit, the public LiveKit URL is reachable (a warning only), LiveKit can deliver webhooks back to Mattermost, and, if SIP outbound is on, the SIP trunk status.
+- **Client checks:** your browser or desktop app connects to a temporary test room in LiveKit and tests signaling, WebRTC, TURN, reconnection, and UDP and TCP connectivity, and publishes audio.
+
+Use it after any deployment or configuration change, and from the network where a user reports problems. It complements, and does not replace, a manual test call with real users.
+
+- System admins see addresses, error text and latency. Other users see only pass or fail with a suggested action.
+- Results are cached for 60 seconds. Admins can run `/call diag force` to run the checks again immediately.
+- The client checks run in the web and desktop apps. Other clients, such as mobile, get the server checks only.
+- A failed UDP or TCP check is expected if you deliberately blocked that path, for example when you test the TCP fallback.
+
+{/* TODO: confirm the exact checks and output wording against the final v2 build; the description comes from the diag PRs (#1347, #1352). Add an example of the output. */}
+
+## Optional features
+
+- [SIP outbound dialing](sip-outbound.mdx) lets users dial phone numbers from a call.
+- [Calls Offloader](../calls-offloader-setup.mdx) enables recording, transcription and live captions.
+
+## Known limitations
+
+- Video is not yet available in Calls v2. 1:1 video is planned for the first v2 release.
+- Calls v2 does not run without external LiveKit infrastructure.

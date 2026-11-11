@@ -3,12 +3,66 @@ title: "Calls overview: choose a version"
 ---
 
 :::caution
-Placeholder page. Content is being written; do not rely on it yet.
+Draft. Cells marked **TBD** are unverified and must be confirmed before this page is published.
 :::
 
-Helps you choose between Calls v1 (built-in or RTCD) and Calls v2 (LiveKit).
+Mattermost Calls provides self-hosted audio calling and screen sharing. Two versions are available, built on different media servers. This page explains the difference and helps you choose.
 
-- Recommendation: new installations use v2; existing v1 servers stay on v1 until you migrate.
-- Comparison of v1 and v2.
-- Deprecation timeline for v1.
-- Next steps: [Calls v1 deployment guide](calls-deployment-guide.mdx), [Calls v2](v2/calls-v2-overview.mdx), [migrate from v1 to v2](migrate-v1-to-v2.mdx).
+- **Calls v1** uses Mattermost's own WebRTC stack. Media is handled either inside the Mattermost server (integrated) or by the separate RTCD service. Calls v1 will be deprecated when Calls v2 is released.
+- **Calls v2** uses [LiveKit](https://livekit.io) as the media server. It is the recommended version for new deployments.
+
+## Which version should I use?
+
+| Your situation | Recommendation |
+|---|---|
+| New installation | Use [Calls v2](v2/calls-v2-overview.mdx). |
+| Existing server already running Calls v1 | Stay on v1 when you update Mattermost. Plan a [migration to v2](migrate-v1-to-v2.mdx) when you are ready. |
+| You need 1:1 video calls in direct messages today | Use v1. Video is not yet available in v2. |
+| You cannot deploy or operate separate media infrastructure | Use v1 with integrated media. v2 does not work without external LiveKit infrastructure. |
+| You need to dial phone numbers from calls | Use v2. v1 has no phone (SIP) support. |
+
+## How versions are selected
+
+Mattermost ships with both Calls v1 and Calls v2. The `PluginSettings.CallsVersion` setting (`v1` or `v2`) selects which one runs, so switching versions is a configuration change and does not require uploading a plugin. You can also set it with the `MM_PLUGINSETTINGS_CALLSVERSION` environment variable.
+
+- New installations use Calls v2.
+- A server that is already running Calls v1 stays on v1 when you update Mattermost, until you change the setting. See [Migrate from v1 to v2](migrate-v1-to-v2.mdx).
+
+Switching versions replaces the running plugin and disconnects users who are on a call or connected to Calls, so do it in a quiet window.
+
+{/* TODO: confirm the System Console location of the version setting, and the exact definition of "already running Calls v1" (MM-71535). */}
+
+:::note
+Calls v2 requires a LiveKit deployment that you set up and operate, or LiveKit Cloud. Unlike v1, there is no option to run media inside the Mattermost server. Until LiveKit is deployed and configured, calls do not work.
+:::
+
+## Comparison
+
+| | Calls v1 | Calls v2 |
+|---|---|---|
+| Media server | Integrated in Mattermost, or RTCD | LiveKit (self-hosted or LiveKit Cloud) |
+| Integrated media (no extra infrastructure) | Yes | **No.** LiveKit is required. |
+| Audio calls and screen sharing | Yes | Yes |
+| Video | 1:1 calls in direct messages | Not yet available. 1:1 video is planned for the first v2 release, and multi-party video is planned after that. |
+| Phone dialing (SIP outbound) | No | Yes |
+| High availability | RTCD with an external load balancer | Multiple LiveKit nodes sharing state through Redis |
+| Recording, transcription and live captions | Yes, using [Calls Offloader](calls-offloader-setup.mdx) | Yes, using [Calls Offloader](calls-offloader-setup.mdx) |
+| Minimum mobile and desktop app versions | See the [v1 guide](calls-deployment-guide.mdx) | **TBD** |
+| Status | Deprecated when v2 is released. Supported for one year after that. | Recommended |
+
+## Calls v1 deprecation timeline
+
+- Calls v2 is scheduled for release in January 2027.
+- Calls v1 is deprecated when Calls v2 is released.
+- Calls v1 continues to be supported for one year after the Calls v2 release.
+
+{/* TODO: confirm the release date and support window are approved for publication, and give exact dates once fixed. */}
+
+Plan to [migrate to Calls v2](migrate-v1-to-v2.mdx) within the support window.
+
+## Where to go next
+
+- [Calls v1](calls-deployment-guide.mdx): deploy and operate the existing integrated or RTCD-based Calls.
+- [Calls v2](v2/calls-v2-overview.mdx): deploy LiveKit with Docker Compose, Kubernetes with Helm, or LiveKit Cloud.
+- [Calls Offloader](calls-offloader-setup.mdx): the service used for recording and transcription.
+- [Migrate from v1 to v2](migrate-v1-to-v2.mdx): switch an existing deployment.
