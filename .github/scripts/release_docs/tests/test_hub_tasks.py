@@ -511,6 +511,24 @@ class MobileEsrPrTest(unittest.TestCase):
         cli.run_esr_comms("v10.11", env, gh, hub, FakeJira(), holidays(), date(2026, 5, 15), True, None)
         self.assertEqual(len(hub.posts_in("review")), 1)  # posted once
 
+    def test_without_a_mobile_token_or_review_channel_the_changes_go_to_the_release_channel(self):
+        gh = esr_github()
+        hub = FakeHub([{"id": "v11-7", "display_name": "Release: v11.7 (ESR)", "team_id": "team"}])
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
+        result = cli.run_esr_comms("v10.11", env, gh, hub, FakeJira(), holidays(), date(2026, 5, 15), True, None)
+        self.assertIn("could not be opened in mattermost/mattermost-mobile", hub.posts_in("v11-7")[0]["message"])
+        self.assertIn("its changes are posted in Hub", " ".join(result.todos))
+
+    def test_without_a_mobile_token_or_any_channel_the_todo_says_nothing_was_posted(self):
+        gh, hub = esr_github(), FakeHub([])
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
+        result = cli.run_esr_comms("v10.11", env, gh, hub, FakeJira(), holidays(), date(2026, 5, 15), True, None)
+        self.assertEqual(hub.writes, [])
+        todos = " ".join(result.todos)
+        self.assertIn("its changes were not posted either: no review channel", todos)
+        self.assertNotIn("its changes are posted in Hub", todos)
+        self.assertTrue(result.failed)
+
 
 # ── The monthly email ───────────────────────────────────────────────────────────────
 

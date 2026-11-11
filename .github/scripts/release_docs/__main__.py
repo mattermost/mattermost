@@ -655,11 +655,14 @@ def mobile_esr_pr(item, env: dict, gh, mobile_gh, hub, live: bool, result: Resul
     result.todos += [t for t in built.todos if t not in result.todos]
     result.notes += built.notes
     if live and mobile_gh is None and built.files and not target.blocked:
-        result.todo(f"no changelog write app token for {esr.MOBILE_REPO}, so the mobile ESR PR was not opened; "
-                    "its changes are posted in Hub")
+        release_channel = hub and (hublib.release_channel(hub, item.new) or hublib.release_channel(hub, item.old))
+        channel_id = hublib.review_channel_id(env, live, release_channel or None)
         marker = f"release-docs:mobile-esr:{built.version}"
-        posted = report_in_hub(hub, hublib.review_channel_id(env, live), marker,
-                               mobile_hub_message(built, target, base_files), live)
+        posted = report_in_hub(hub, channel_id, marker, mobile_hub_message(built, target, base_files), live)
+        where = ("its changes are posted in Hub" if hub and channel_id
+                 else "its changes were not posted either: "
+                      + (hublib.NO_REVIEW_CHANNEL if hub else "no Hub token (RELEASE_AGENT_MM_TOKEN)"))
+        result.todo(f"no changelog write app token for {esr.MOBILE_REPO}, so the mobile ESR PR was not opened; {where}")
         return f"not opened (no write token for {esr.MOBILE_REPO}); the changes were {posted}"
     return publish.apply(mobile_gh or gh, built, target, live)
 
