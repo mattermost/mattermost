@@ -236,8 +236,8 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 			return budget.bytes - read, nil
 		}
 
-		// oldest is the last line the reader returned. The reader leaves it intact when it stops
-		// at the budget, so its timestamp tells how far back the scan got.
+		// oldest is a copy of the last line the reader returned, whose timestamp tells how far back
+		// the scan got. It's copied because reading a line that spans blocks reuses the reader's buffer.
 		var oldest []byte
 		var scanLimited bool
 		toSkip := page * perPage
@@ -254,7 +254,7 @@ func (ps *PlatformService) getLogsSkipSend(rctx request.CTX, page, perPage int, 
 			} else if err != nil {
 				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			oldest = line
+			oldest = append(oldest[:0], line...)
 
 			if toSkip > 0 {
 				toSkip--

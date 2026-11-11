@@ -26,8 +26,8 @@ type reverseLineReader struct {
 
 	// limit, when set, is called before each block is read with the number of bytes read so far.
 	// It returns how many more bytes may be read, at least one, and the block is cut to that. An
-	// error it returns is returned by Next. Nothing is read in that case, so the line Next last
-	// returned stays valid.
+	// error it returns is returned by Next. That block isn't read, but blocks Next read before it
+	// may have reused the buffer holding the line Next last returned.
 	limit func(read int64) (allowed int64, err error)
 }
 

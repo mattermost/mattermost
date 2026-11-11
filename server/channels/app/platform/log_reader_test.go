@@ -756,6 +756,22 @@ func TestGetLogsSkipSendScanBudget(t *testing.T) {
 		require.Len(t, got, 1)
 		require.NotNil(t, scanLimitMarker(t, got))
 	})
+
+	t.Run("a long line at the budget keeps the oldest timestamp", func(t *testing.T) {
+		// The last line fills the first block's tail. The line before it spans more blocks than the
+		// budget allows, so reading it reuses the buffer that held the last line before stopping.
+		newest := logLine(timestamp(1), "info", "routine work")
+		long := logLine(timestamp(0), "info", strings.Repeat("x", 3*logReadBlockSize))
+		ps := newGetLogsTestService(t, []byte(long+"\n"+newest))
+
+		budget := logScanBudget{duration: time.Minute, bytes: 2 * logReadBlockSize}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 10, rare, budget)
+		require.Nil(t, appErr)
+
+		marker := scanLimitMarker(t, got)
+		require.NotNil(t, marker)
+		assert.Equal(t, timestamp(1), marker["scanned_back_to"])
+	})
 }
 
 func TestOpenLogFile(t *testing.T) {
