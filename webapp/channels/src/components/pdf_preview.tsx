@@ -91,13 +91,9 @@ const PDFPreview = memo(({
     const [status, setStatus] = useState<Status>('loading');
 
     useEffect(() => {
-        // Set by the cleanup (file change or unmount) so a stale load is dropped. Its document is
-        // closed then, or on arrival if still loading, to free pdf.js memory.
+        // Set by the cleanup (file change or unmount), which also destroys the loading task: that
+        // stops a download still in progress, or closes the loaded document to free its memory.
         let cancelled = false;
-        let loadedPdf: PDFDocumentProxy | null = null;
-        const closePdf = (pdf: PDFDocumentProxy) => {
-            pdf.destroy().catch(() => {});
-        };
         currentPdf.current = null;
 
         setPdfFromState({
@@ -134,22 +130,22 @@ const PDFPreview = memo(({
             onLoadErrorRef.current?.();
         };
 
+        const loadingTask = pdfjsLib.getDocument({
+            url: fileUrl,
+            cMapUrl: getSiteURL() + '/static/cmaps/',
+            cMapPacked: true,
+
+            // Don't compile PDF content (fonts, functions) to JavaScript with eval.
+            // Previews can render PDFs an integration chose, without a click.
+            isEvalSupported: false,
+        });
+
         const getPdfDocument = async () => {
             try {
-                const pdf = await pdfjsLib.getDocument({
-                    url: fileUrl,
-                    cMapUrl: getSiteURL() + '/static/cmaps/',
-                    cMapPacked: true,
-
-                    // Don't compile PDF content (fonts, functions) to JavaScript with eval.
-                    // Previews can render PDFs an integration chose, without a click.
-                    isEvalSupported: false,
-                }).promise;
+                const pdf = await loadingTask.promise;
                 if (cancelled) {
-                    closePdf(pdf);
                     return;
                 }
-                loadedPdf = pdf;
                 onDocumentLoad(pdf);
             } catch (err) {
                 if (!cancelled) {
@@ -172,9 +168,7 @@ const PDFPreview = memo(({
 
         return () => {
             cancelled = true;
-            if (loadedPdf) {
-                closePdf(loadedPdf);
-            }
+            loadingTask.destroy().catch(() => {});
         };
     }, [fileUrl, maxPages]);
 

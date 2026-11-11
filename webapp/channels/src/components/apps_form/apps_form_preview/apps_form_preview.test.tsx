@@ -38,7 +38,8 @@ describe('AppsFormPreview', () => {
         }));
         mockGetDocument.mockReset();
         mockGetDocument.mockReturnValue({
-            promise: Promise.resolve({getPage, numPages: 1, destroy: jest.fn(() => Promise.resolve())}),
+            promise: Promise.resolve({getPage, numPages: 1}),
+            destroy: jest.fn(() => Promise.resolve()),
         });
     });
 
@@ -147,7 +148,8 @@ describe('AppsFormPreview', () => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
         mockGetDocument.mockReturnValue({
-            promise: Promise.resolve({getPage, numPages: 3, destroy: jest.fn(() => Promise.resolve())}),
+            promise: Promise.resolve({getPage, numPages: 3}),
+            destroy: jest.fn(() => Promise.resolve()),
         });
 
         // jsdom has no layout, so give the viewer a width; the mocked page is 100x100.
@@ -218,37 +220,26 @@ describe('AppsFormPreview', () => {
         }));
     });
 
-    it('leaves Space to scroll the inline PDF viewer rather than opening the file', async () => {
-        const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
-        jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
-
-        renderWithContext(<AppsFormPreview fileId={fileId}/>);
-
-        const viewer = await screen.findByRole('button', {name: 'Open doc.pdf'});
-        viewer.focus();
-        const space = new KeyboardEvent('keydown', {key: ' ', bubbles: true, cancelable: true});
-        viewer.dispatchEvent(space);
-
-        expect(mockOpenModal).not.toHaveBeenCalled();
-        expect(space.defaultPrevented).toBe(false);
-    });
-
-    it('opens a first_page preview with Space, since it does not scroll', async () => {
+    it.each(['inline', 'first_page'] as const)('opens a %s PDF viewer with Space, like any button', async (mode) => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
 
         renderWithContext(
             <AppsFormPreview
                 fileId={fileId}
-                mode='first_page'
+                mode={mode}
             />,
         );
 
         const viewer = await screen.findByRole('button', {name: 'Open doc.pdf'});
         viewer.focus();
-        await userEvent.keyboard(' ');
+        const space = new KeyboardEvent('keydown', {key: ' ', bubbles: true, cancelable: true});
+        act(() => {
+            viewer.dispatchEvent(space);
+        });
 
         expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(space.defaultPrevented).toBe(true);
     });
 
     it('describes the preview with its label and help text', async () => {
@@ -293,7 +284,7 @@ describe('AppsFormPreview', () => {
     it('shows the file name, with no viewer or nested link, when a PDF cannot be loaded', async () => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
-        mockGetDocument.mockReturnValue({promise: Promise.reject(new Error('Invalid PDF'))});
+        mockGetDocument.mockReturnValue({promise: Promise.reject(new Error('Invalid PDF')), destroy: jest.fn(() => Promise.resolve())});
 
         renderWithContext(<AppsFormPreview fileId={fileId}/>);
 
@@ -306,7 +297,8 @@ describe('AppsFormPreview', () => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
         mockGetDocument.mockReturnValue({
-            promise: Promise.resolve({getPage, numPages: 3, destroy: jest.fn(() => Promise.resolve())}),
+            promise: Promise.resolve({getPage, numPages: 3}),
+            destroy: jest.fn(() => Promise.resolve()),
         });
 
         const {container} = renderWithContext(

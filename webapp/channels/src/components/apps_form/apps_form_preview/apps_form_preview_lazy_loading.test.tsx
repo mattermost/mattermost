@@ -58,8 +58,8 @@ describe('AppsFormPreview lazy loading of the PDF viewer', () => {
                     getViewport: () => ({width: 100, height: 100}),
                     render: () => ({promise: Promise.resolve()}),
                 }),
-                destroy: jest.fn(() => Promise.resolve()),
             }),
+            destroy: jest.fn(() => Promise.resolve()),
         });
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(
             TestHelper.getFileInfoMock({id: fileId, name: 'load-plan.pdf', extension: 'pdf'}),

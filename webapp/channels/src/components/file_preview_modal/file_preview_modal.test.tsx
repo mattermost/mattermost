@@ -75,6 +75,19 @@ describe('components/FilePreviewModal', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should offer a public link only for a file the server can make one for', () => {
+        const lastShowPublicLink = () => mockHeader.mock.calls[mockHeader.mock.calls.length - 1][0].showPublicLink;
+
+        // # A posted file
+        const {unmount} = renderModal({...baseProps, fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', post_id: 'post_id'})]});
+        expect(lastShowPublicLink()).toBe(true);
+        unmount();
+
+        // # A file with no post, such as one shown in a dialog preview
+        renderModal({...baseProps, fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', post_id: ''})]});
+        expect(lastShowPublicLink()).toBe(false);
+    });
+
     test('should match snapshot, loaded with image', () => {
         const {container, ref} = renderModal();
         act(() => {

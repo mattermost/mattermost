@@ -120,6 +120,18 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         expect(spy).toHaveBeenCalledTimes(1);
     });
 
+    test('should not request a public link the button is not shown for', () => {
+        const spy = jest.spyOn(fileActions, 'getFilePublicLink');
+        renderWithContext(
+            <FilePreviewModalMainActions
+                {...defaultProps}
+                enablePublicLink={true}
+                showPublicLink={false}
+            />,
+        );
+        expect(spy).not.toHaveBeenCalled();
+    });
+
     test('should copy the content to clipboard', async () => {
         const spy = jest.spyOn(Utils, 'copyToClipboard');
         const props = {

@@ -228,10 +228,10 @@ const AppsFormPreview: React.FC<Props> = ({fileId, maxHeight, mode = 'inline', l
             viewerStyle = {height: firstPageHeight || PDF_VIEWER_DEFAULT_HEIGHT};
         }
 
-        // A div with button semantics, since a <button> can't scroll. Space opens only a
-        // first_page preview; in the scrolling viewer it pages down.
+        // A div with button semantics, since a <button> can't scroll. Enter and Space open the
+        // file, as for any button; the arrow and Page keys still scroll the viewer.
         const handleViewerKeyDown = (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter' || (e.key === ' ' && firstPageOnly)) {
+            if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 openFullPreview();
             }

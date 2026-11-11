@@ -3,8 +3,7 @@
 
 /* eslint-disable no-console */
 
-const fs = require('fs');
-const path = require('path');
+const zlib = require('zlib');
 
 const express = require('express');
 const axios = require('axios');
@@ -1339,15 +1338,45 @@ function assemblePdf(pageStreams) {
     return Buffer.from(pdf, 'latin1');
 }
 
+// Builds a small solid-color RGB test PNG. Generated rather than read from tests/fixtures,
+// which isn't mounted into the CI webhook container.
+function buildPreviewTestPng(width, height) {
+    const chunk = (type, data) => {
+        const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+        const length = Buffer.alloc(4);
+        length.writeUInt32BE(data.length);
+        const crc = Buffer.alloc(4);
+        crc.writeUInt32BE(zlib.crc32(body));
+        return Buffer.concat([length, body, crc]);
+    };
+
+    const header = Buffer.alloc(13);
+    header.writeUInt32BE(width, 0);
+    header.writeUInt32BE(height, 4);
+    header[8] = 8; // bit depth
+    header[9] = 2; // color type: RGB
+
+    // Each row is a filter byte (0, none) followed by its pixels.
+    const pixel = [74, 125, 209];
+    const row = Buffer.from([0, ...Array(width).fill(pixel).flat()]);
+    const pixels = Buffer.concat(Array(height).fill(row));
+
+    return Buffer.concat([
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        chunk('IHDR', header),
+        chunk('IDAT', zlib.deflateSync(pixels)),
+        chunk('IEND', Buffer.alloc(0)),
+    ]);
+}
+
 // Uploaded preview file IDs, keyed by channel, so each channel uploads them once.
 const previewDemoFileIds = {};
 
 async function uploadPreviewDemoFiles(channelId) {
     if (!previewDemoFileIds[channelId]) {
-        const image = fs.readFileSync(path.join(__dirname, 'tests/fixtures/mattermost-icon.png'));
         const [pdfId, imageId] = await Promise.all([
             uploadFileAsAdmin(channelId, buildPreviewTestPdf(PREVIEW_TEST_PDF_PAGES), 'application/pdf', 'preview-demo.pdf'),
-            uploadFileAsAdmin(channelId, image, 'image/png', 'preview-demo.png'),
+            uploadFileAsAdmin(channelId, buildPreviewTestPng(240, 160), 'image/png', 'preview-demo.png'),
         ]);
         previewDemoFileIds[channelId] = {pdfId, imageId};
     }

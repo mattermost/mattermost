@@ -172,6 +172,32 @@ describe('FileAttachment', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should offer a public link for a posted file', async () => {
+        renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                fileInfo={{...baseFileInfo, post_id: 'post_id'}}
+                enablePublicLink={true}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'more actions'}));
+        expect(screen.getByText('Get a public link')).toBeInTheDocument();
+    });
+
+    test('should not offer a public link for a file with no post, which the server refuses', () => {
+        renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                fileInfo={{...baseFileInfo, post_id: ''}}
+                enablePublicLink={true}
+            />,
+        );
+
+        // * With no other items, the menu isn't shown at all
+        expect(screen.queryByRole('button', {name: 'more actions'})).not.toBeInTheDocument();
+    });
+
     test('should not render menu items when disable actions is set', () => {
         const {container} = renderWithContext(
             <FileAttachment

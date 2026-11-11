@@ -25,6 +25,11 @@ function deferred<T>() {
     return {promise, resolve};
 }
 
+// What getDocument returns: the load, and destroy() to stop it or close the loaded document.
+function loadingTask<T>(promise: Promise<T>) {
+    return {promise, destroy: jest.fn(() => Promise.resolve())};
+}
+
 function mockPage(width: number, height: number) {
     return {
         getViewport: () => ({width, height}),
@@ -46,17 +51,14 @@ describe('component/PDFPreview', () => {
 
     beforeEach(() => {
         mockGetDocument.mockReset();
-        mockGetDocument.mockReturnValue({
-            promise: Promise.resolve({
-                numPages: 3,
-                getPage: (i: number) => Promise.resolve({
-                    pageIndex: i,
-                    getViewport: () => ({height: 100, width: 100}),
-                    render: () => ({promise: Promise.resolve()}),
-                }),
-                destroy: jest.fn(() => Promise.resolve()),
+        mockGetDocument.mockReturnValue(loadingTask(Promise.resolve({
+            numPages: 3,
+            getPage: (i: number) => Promise.resolve({
+                pageIndex: i,
+                getViewport: () => ({height: 100, width: 100}),
+                render: () => ({promise: Promise.resolve()}),
             }),
-        });
+        })));
     });
 
     test('should match snapshot, loading', () => {
@@ -68,9 +70,7 @@ describe('component/PDFPreview', () => {
 
     test('should match snapshot, not successful', async () => {
         // Mock PDF loading to fail
-        mockGetDocument.mockReturnValue({
-            promise: Promise.reject(new Error('Failed to load PDF')),
-        });
+        mockGetDocument.mockReturnValue(loadingTask(Promise.reject(new Error('Failed to load PDF'))));
 
         // Use renderWithContext because FileInfoPreview requires Redux store
         const {container} = renderWithContext(
@@ -121,13 +121,10 @@ describe('component/PDFPreview', () => {
 
     test('should return correct state when onDocumentLoad is called', async () => {
         // Test with 0 pages
-        mockGetDocument.mockReturnValueOnce({
-            promise: Promise.resolve({
-                numPages: 0,
-                getPage: jest.fn(),
-                destroy: jest.fn(() => Promise.resolve()),
-            }),
-        });
+        mockGetDocument.mockReturnValueOnce(loadingTask(Promise.resolve({
+            numPages: 0,
+            getPage: jest.fn(),
+        })));
 
         const {container, rerender} = render(
             <PDFPreview {...requiredProps}/>,
@@ -142,17 +139,14 @@ describe('component/PDFPreview', () => {
         expect(container.querySelectorAll('canvas')).toHaveLength(0);
 
         // Test with 100 pages
-        mockGetDocument.mockReturnValueOnce({
-            promise: Promise.resolve({
-                numPages: 100,
-                getPage: (i: number) => Promise.resolve({
-                    pageIndex: i,
-                    getViewport: () => ({height: 100, width: 100}),
-                    render: () => ({promise: Promise.resolve()}),
-                }),
-                destroy: jest.fn(() => Promise.resolve()),
+        mockGetDocument.mockReturnValueOnce(loadingTask(Promise.resolve({
+            numPages: 100,
+            getPage: (i: number) => Promise.resolve({
+                pageIndex: i,
+                getViewport: () => ({height: 100, width: 100}),
+                render: () => ({promise: Promise.resolve()}),
             }),
-        });
+        })));
 
         const newFileUrl = 'https://another-url';
         rerender(
@@ -175,8 +169,8 @@ describe('component/PDFPreview', () => {
         const first = deferred<ReturnType<typeof mockDocument>>();
         const second = deferred<ReturnType<typeof mockDocument>>();
         mockGetDocument.
-            mockReturnValueOnce({promise: first.promise}).
-            mockReturnValueOnce({promise: second.promise});
+            mockReturnValueOnce(loadingTask(first.promise)).
+            mockReturnValueOnce(loadingTask(second.promise));
 
         const {container, rerender} = render(<PDFPreview {...requiredProps}/>);
         rerender(
@@ -198,8 +192,8 @@ describe('component/PDFPreview', () => {
         const first = deferred<ReturnType<typeof mockDocument>>();
         const second = deferred<ReturnType<typeof mockDocument>>();
         mockGetDocument.
-            mockReturnValueOnce({promise: first.promise}).
-            mockReturnValueOnce({promise: second.promise});
+            mockReturnValueOnce(loadingTask(first.promise)).
+            mockReturnValueOnce(loadingTask(second.promise));
 
         const {container, rerender} = render(
             <PDFPreview
@@ -223,8 +217,8 @@ describe('component/PDFPreview', () => {
         const newDocument = mockDocument(1, jest.fn(() => Promise.resolve(mockPage(100, 200))));
         const newLoad = deferred<ReturnType<typeof mockDocument>>();
         mockGetDocument.
-            mockReturnValueOnce({promise: Promise.resolve(oldDocument)}).
-            mockReturnValueOnce({promise: newLoad.promise});
+            mockReturnValueOnce(loadingTask(Promise.resolve(oldDocument))).
+            mockReturnValueOnce(loadingTask(newLoad.promise));
         const onFirstPageRendered = jest.fn();
 
         const {rerender} = render(
@@ -261,11 +255,12 @@ describe('component/PDFPreview', () => {
     });
 
     test('should close the previous document when the file changes', async () => {
-        const first = mockDocument(1);
         const second = mockDocument(1);
+        const firstTask = loadingTask(Promise.resolve(mockDocument(1)));
+        const secondTask = loadingTask(Promise.resolve(second));
         mockGetDocument.
-            mockReturnValueOnce({promise: Promise.resolve(first)}).
-            mockReturnValueOnce({promise: Promise.resolve(second)});
+            mockReturnValueOnce(firstTask).
+            mockReturnValueOnce(secondTask);
 
         const {container, rerender} = render(<PDFPreview {...requiredProps}/>);
         await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument());
@@ -278,27 +273,41 @@ describe('component/PDFPreview', () => {
         );
         await waitFor(() => expect(second.getPage).toHaveBeenCalled());
 
-        expect(first.destroy).toHaveBeenCalledTimes(1);
-        expect(second.destroy).not.toHaveBeenCalled();
+        expect(firstTask.destroy).toHaveBeenCalledTimes(1);
+        expect(secondTask.destroy).not.toHaveBeenCalled();
     });
 
-    test('should close a document that finishes loading after the file changed', async () => {
+    test('should stop loading the previous file when the file changes before it loads', async () => {
         const firstLoad = deferred<ReturnType<typeof mockDocument>>();
-        const first = mockDocument(1);
+        const firstTask = loadingTask(firstLoad.promise);
         mockGetDocument.
-            mockReturnValueOnce({promise: firstLoad.promise}).
-            mockReturnValueOnce({promise: Promise.resolve(mockDocument(1))});
+            mockReturnValueOnce(firstTask).
+            mockReturnValueOnce(loadingTask(Promise.resolve(mockDocument(1))));
 
-        const {rerender} = render(<PDFPreview {...requiredProps}/>);
+        const {container, rerender} = render(<PDFPreview {...requiredProps}/>);
         rerender(
             <PDFPreview
                 {...requiredProps}
                 fileUrl='https://second-file'
             />,
         );
-        await act(async () => firstLoad.resolve(first));
 
-        expect(first.destroy).toHaveBeenCalledTimes(1);
+        // * The first load is stopped straight away, not left to finish
+        expect(firstTask.destroy).toHaveBeenCalledTimes(1);
+
+        // # The stopped load finishes anyway; the new file is still shown
+        await act(async () => firstLoad.resolve(mockDocument(5)));
+        expect(container.querySelectorAll('canvas')).toHaveLength(1);
+    });
+
+    test('should stop loading the file when unmounted before it loads', () => {
+        const task = loadingTask(deferred<ReturnType<typeof mockDocument>>().promise);
+        mockGetDocument.mockReturnValueOnce(task);
+
+        const {unmount} = render(<PDFPreview {...requiredProps}/>);
+        unmount();
+
+        expect(task.destroy).toHaveBeenCalledTimes(1);
     });
 
     test('should not start drawing a page again while it is still being drawn', async () => {
@@ -306,7 +315,7 @@ describe('component/PDFPreview', () => {
         const draws = deferred<void>();
         const render = jest.fn(() => ({promise: draws.promise, cancel: jest.fn()}));
         const document = mockDocument(3, jest.fn(() => Promise.resolve({getViewport: () => ({width: 100, height: 100}), render})));
-        mockGetDocument.mockReturnValueOnce({promise: Promise.resolve(document)});
+        mockGetDocument.mockReturnValueOnce(loadingTask(Promise.resolve(document)));
 
         renderWithContext(<PDFPreview {...requiredProps}/>);
         await waitFor(() => expect(render).toHaveBeenCalledTimes(3));
@@ -320,13 +329,19 @@ describe('component/PDFPreview', () => {
     });
 
     test('should cancel a page still being drawn and draw it again at a new scale', async () => {
-        const firstDraw = deferred<void>();
-        const cancel = jest.fn();
+        const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        // Like pdf.js, cancelling a draw rejects its promise.
+        let rejectFirstDraw!: (err: Error) => void;
+        const firstDraw = new Promise<void>((_, reject) => {
+            rejectFirstDraw = reject;
+        });
+        const cancel = jest.fn(() => rejectFirstDraw(new Error('Rendering cancelled, page 1')));
         const render = jest.fn().
-            mockReturnValueOnce({promise: firstDraw.promise, cancel}).
+            mockReturnValueOnce({promise: firstDraw, cancel}).
             mockReturnValue({promise: Promise.resolve(), cancel: jest.fn()});
         const document = mockDocument(1, jest.fn(() => Promise.resolve({getViewport: () => ({width: 100, height: 100}), render})));
-        mockGetDocument.mockReturnValueOnce({promise: Promise.resolve(document)});
+        mockGetDocument.mockReturnValueOnce(loadingTask(Promise.resolve(document)));
 
         const {rerender} = renderWithContext(<PDFPreview {...requiredProps}/>);
         await waitFor(() => expect(render).toHaveBeenCalledTimes(1));
@@ -339,10 +354,15 @@ describe('component/PDFPreview', () => {
             />,
         );
 
-        // * The first draw is cancelled and the page is drawn again at the new scale
+        // * The first draw is cancelled and the page is drawn again at the new scale, without
+        // the cancelled draw being reported as a failure
         await waitFor(() => expect(render).toHaveBeenCalledTimes(2));
         expect(cancel).toHaveBeenCalledTimes(1);
-        await act(async () => firstDraw.resolve());
+        await act(async () => {
+            await Promise.resolve();
+        });
+        expect(log).not.toHaveBeenCalled();
+        log.mockRestore();
     });
 
     test('should log a page that fails to draw and still draw the other pages', async () => {
@@ -352,7 +372,7 @@ describe('component/PDFPreview', () => {
             getViewport: () => ({width: 100, height: 100}),
             render: pageNumber === 1 ? () => ({promise: Promise.reject(new Error('corrupt page')), cancel: jest.fn()}) : good,
         }));
-        mockGetDocument.mockReturnValueOnce({promise: Promise.resolve({numPages: 3, getPage, destroy: jest.fn(() => Promise.resolve())})});
+        mockGetDocument.mockReturnValueOnce(loadingTask(Promise.resolve({numPages: 3, getPage})));
 
         renderWithContext(<PDFPreview {...requiredProps}/>);
 
@@ -363,13 +383,13 @@ describe('component/PDFPreview', () => {
     });
 
     test('should close the document when unmounted', async () => {
-        const document = mockDocument(1);
-        mockGetDocument.mockReturnValueOnce({promise: Promise.resolve(document)});
+        const task = loadingTask(Promise.resolve(mockDocument(1)));
+        mockGetDocument.mockReturnValueOnce(task);
 
         const {container, unmount} = render(<PDFPreview {...requiredProps}/>);
         await waitFor(() => expect(container.querySelector('canvas')).toBeInTheDocument());
         unmount();
 
-        expect(document.destroy).toHaveBeenCalledTimes(1);
+        expect(task.destroy).toHaveBeenCalledTimes(1);
     });
 });
