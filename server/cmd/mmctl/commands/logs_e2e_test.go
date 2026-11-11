@@ -59,6 +59,35 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		return marker
 	}
 
+	// startFollower runs a follower until stop is called, and returns once its first query has
+	// returned. stop returns the warnings it printed
+	startFollower := func(c client.Client, opts *logsOptions) (stdout *syncBuffer, stop func() ([]string, error)) {
+		queried := &queriedClient{Client: c, queried: make(chan struct{})}
+		stdout = &syncBuffer{}
+		var warnings []string
+		follower := newLogFollower(queried, opts, stdout)
+		follower.warn = func(msg string) { warnings = append(warnings, msg) }
+
+		ctx, cancel := context.WithCancel(s.T().Context())
+		done := make(chan error, 1)
+		go func() {
+			done <- follower.run(ctx)
+		}()
+
+		select {
+		case <-queried.queried:
+		case <-time.After(10 * time.Second):
+			cancel()
+			s.FailNow("the initial log query didn't return")
+		}
+		return stdout, func() ([]string, error) {
+			cancel()
+			err := <-done
+			// Only read after the follower stopped
+			return warnings, err
+		}
+	}
+
 	s.RunForSystemAdminAndLocal("Display single log line", func(c client.Client) {
 		marker := logMarker()
 		cmd := newTestCmd(s.T(), LogsCmd)
@@ -117,23 +146,7 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 	s.RunForSystemAdminAndLocal("Follow new log entries", func(c client.Client) {
 		marker := "mmctl_logs_follow_" + model.NewId()
 		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, search: marker}
-		queried := &queriedClient{Client: c, queried: make(chan struct{})}
-		var stdout syncBuffer
-		var warnings []string
-		follower := newLogFollower(queried, opts, &stdout)
-		follower.warn = func(msg string) { warnings = append(warnings, msg) }
-
-		ctx, cancel := context.WithCancel(s.T().Context())
-		done := make(chan error, 1)
-		go func() {
-			done <- follower.run(ctx)
-		}()
-
-		select {
-		case <-queried.queried:
-		case <-time.After(10 * time.Second):
-			s.FailNow("the initial log query didn't return")
-		}
+		stdout, stop := startFollower(c, opts)
 		s.Empty(stdout.String(), "the marker isn't logged yet")
 
 		s.th.TestLogger.Info(marker)
@@ -144,9 +157,8 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 			return strings.Contains(stdout.String(), marker)
 		}, 3*opts.interval+time.Second, 50*time.Millisecond, "the followed logs should print the marker")
 
-		cancel()
-		s.Require().NoError(<-done)
-		// Only read after the follower stopped
+		warnings, err := stop()
+		s.Require().NoError(err)
 		s.Empty(warnings)
 	})
 
@@ -170,20 +182,9 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 
 		// --follow prints the same entries first
 		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, plugins: []string{pluginID}, search: marker}
-		queried := &queriedClient{Client: c, queried: make(chan struct{})}
-		var stdout syncBuffer
-		ctx, cancel := context.WithCancel(s.T().Context())
-		done := make(chan error, 1)
-		go func() {
-			done <- newLogFollower(queried, opts, &stdout).run(ctx)
-		}()
-		select {
-		case <-queried.queried:
-		case <-time.After(10 * time.Second):
-			s.FailNow("the initial log query didn't return")
-		}
-		cancel()
-		s.Require().NoError(<-done)
+		stdout, stop := startFollower(c, opts)
+		_, err = stop()
+		s.Require().NoError(err)
 		lines := testLogMessages(stdout.String())
 		s.Require().Len(lines, 1)
 		s.Contains(lines[0], marker+"_kept")

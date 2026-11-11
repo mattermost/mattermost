@@ -358,39 +358,27 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Fail when the server can't query the logs and the flags need it", func() {
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("follow", "true"))
+		// GET /api/v4/logs can't filter, so --plugin alone needs the query too
+		for _, flag := range []string{"follow", "plugin"} {
+			s.Run(flag, func() {
+				cmd := newTestCmd(s.T(), LogsCmd)
+				value := map[string]string{"follow": "true", "plugin": "github"}[flag]
+				s.Require().NoError(cmd.Flags().Set(flag, value))
 
-		// Local mode doesn't report a version
-		expectServerVersion("")
-		expectLogFormat(nil)
-		s.client.
-			EXPECT().
-			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
-			Times(1)
+				// Local mode doesn't report a version
+				expectServerVersion("")
+				expectLogFormat(nil)
+				s.client.
+					EXPECT().
+					QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+					Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+					Times(1)
 
-		_, _, err := testLogsCmdF(s.client, cmd, []string{})
-		s.Require().ErrorIs(err, errQueryLogsNotFound)
-	})
-
-	s.Run("Query the logs for --plugin without --follow", func() {
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("plugin", "github"))
-
-		// GET /api/v4/logs can't filter, so a server that can't query the logs fails rather than
-		// printing them unfiltered
-		expectServerVersion("")
-		expectLogFormat(nil)
-		s.client.
-			EXPECT().
-			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
-			Times(1)
-
-		_, _, err := testLogsCmdF(s.client, cmd, []string{})
-		s.Require().ErrorIs(err, errQueryLogsNotFound)
-		s.Contains(err.Error(), "--plugin")
+				_, _, err := testLogsCmdF(s.client, cmd, []string{})
+				s.Require().ErrorIs(err, errQueryLogsNotFound)
+				s.Contains(err.Error(), "--"+flag)
+			})
+		}
 	})
 
 	s.Run("Cap the number of entries at the server's limit", func() {

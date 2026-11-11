@@ -81,16 +81,13 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 
 // pluginIDCompletionF completes plugin ID arguments, skipping the IDs already given.
 func pluginIDCompletionF(ctx context.Context, c client.Client, _ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	return completePluginIDs(ctx, c, slices.Clone(args), "", toComplete)
+	return completePluginIDs(ctx, c, args, "", toComplete)
 }
 
 // pluginIDFlagCompletionF completes the comma-separated plugin IDs of a --plugin flag: the value
 // after the last comma, skipping the IDs given before in the value or in earlier uses of the flag.
 func pluginIDFlagCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var given []string
-	if cmd != nil {
-		given, _ = cmd.Flags().GetStringSlice("plugin")
-	}
+	given, _ := cmd.Flags().GetStringSlice("plugin")
 	prefix := ""
 	if i := strings.LastIndex(toComplete, ","); i >= 0 {
 		prefix = toComplete[:i+1]
@@ -105,7 +102,6 @@ func pluginIDFlagCompletionF(ctx context.Context, c client.Client, cmd *cobra.Co
 // completePluginIDs completes plugin IDs, active and inactive, with the plugin's name as the
 // description, skipping the IDs given. Each completion starts with prefix.
 func completePluginIDs(ctx context.Context, c client.Client, given []string, prefix, toComplete string) ([]string, cobra.ShellCompDirective) {
-
 	plugins, _, err := c.GetPlugins(ctx)
 	if err != nil || plugins == nil {
 		return nil, cobra.ShellCompDirectiveNoFileComp
@@ -122,8 +118,6 @@ func completePluginIDs(ctx context.Context, c client.Client, given []string, pre
 			completion += "\t" + name
 		}
 		res = append(res, completion)
-		// A plugin listed twice is completed once
-		given = append(given, info.Id)
 		if len(res) == shellCompletionMaxItems {
 			break
 		}

@@ -216,6 +216,14 @@ func (o *logsOptions) needsQuery() bool {
 	return o.follow || len(o.levels) > 0 || len(o.nodes) > 0 || len(o.plugins) > 0 || o.search != "" || o.since > 0
 }
 
+// fields returns the top-level fields the entries must match, as LogFilter.Fields takes them.
+func (o *logsOptions) fields() map[string][]string {
+	if len(o.plugins) == 0 {
+		return nil
+	}
+	return map[string][]string{logsPluginField: o.plugins}
+}
+
 // serverFilterFlags returns the flags set that need a v12.2 or later server.
 func (o *logsOptions) serverFilterFlags() []string {
 	var flags []string
@@ -339,9 +347,10 @@ type logFollower struct {
 	// format caches what logFormat returned, as it's only asked once
 	format *logFileFormat
 
-	levels  map[string]bool
-	plugins map[string]bool
-	search  string
+	levels map[string]bool
+	// fields holds, per top-level field, the values it may have
+	fields map[string]map[string]bool
+	search string
 
 	// nodes holds every node a response listed. Once there are several, lines are prefixed with their node
 	nodes          map[string]bool
@@ -369,7 +378,7 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 		newWriter:      opts.newWriter,
 		logFormat:      configLogFormat(c),
 		levels:         make(map[string]bool, len(opts.levels)),
-		plugins:        make(map[string]bool, len(opts.plugins)),
+		fields:         make(map[string]map[string]bool),
 		search:         strings.ToLower(opts.search),
 		nodes:          make(map[string]bool),
 		prefixedWriter: make(map[string]human.LogWriter),
@@ -381,8 +390,11 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 	for _, level := range opts.levels {
 		f.levels[level] = true
 	}
-	for _, id := range opts.plugins {
-		f.plugins[id] = true
+	for key, values := range opts.fields() {
+		f.fields[key] = make(map[string]bool, len(values))
+		for _, value := range values {
+			f.fields[key][value] = true
+		}
 	}
 	return f
 }
@@ -473,9 +485,7 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 		LogLevels:   f.opts.levels,
 		Search:      f.opts.search,
 	}
-	if len(f.opts.plugins) > 0 {
-		filter.Fields = map[string][]string{logsPluginField: f.opts.plugins}
-	}
+	filter.Fields = f.opts.fields()
 	if !from.IsZero() {
 		filter.DateFrom = from.UTC().Format(model.LogFilterDateLayout)
 	}
@@ -679,8 +689,10 @@ func (f *logFollower) keep(entry logQueryEntry, from time.Time) bool {
 	if len(f.levels) > 0 && !f.levels[entry.Level] {
 		return false
 	}
-	if len(f.plugins) > 0 && !f.plugins[entry.pluginID] {
-		return false
+	for key, values := range f.fields {
+		if value, ok := entry.field(key); !ok || !values[value] {
+			return false
+		}
 	}
 	if f.search != "" && !entry.matches(f.search) {
 		return false
@@ -712,8 +724,6 @@ type logQueryEntry struct {
 	key        string
 	failedNode bool
 	error      string
-	// pluginID is the plugin_id field, as the server compares it
-	pluginID string
 }
 
 func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
@@ -726,11 +736,20 @@ func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
 			entry.failedNode, _ = field.Interface.(bool)
 		case "error":
 			entry.error, _ = field.Interface.(string)
-		case logsPluginField:
-			entry.pluginID, _ = logFieldString(field.Interface)
 		}
 	}
 	return entry
+}
+
+// field returns the value of a top-level field as the server compares it, and whether the entry
+// has the field.
+func (e logQueryEntry) field(key string) (string, bool) {
+	for _, field := range e.Fields {
+		if field.Key == key {
+			return logFieldString(field.Interface)
+		}
+	}
+	return "", false
 }
 
 // matches reports whether a value other than the level and timestamp contains the lower-cased

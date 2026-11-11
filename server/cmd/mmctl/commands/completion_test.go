@@ -235,7 +235,9 @@ func TestPluginIDCompletion(t *testing.T) {
 		c := mocks.NewMockClient(gomock.NewController(t))
 		c.EXPECT().GetPlugins(gomock.Any()).Return(nil, &model.Response{StatusCode: 403}, errors.New("forbidden")).Times(1)
 
-		comp, directive := pluginIDFlagCompletionF(context.Background(), c, nil, nil, "")
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice("plugin", nil, "")
+		comp, directive := pluginIDFlagCompletionF(context.Background(), c, cmd, nil, "")
 		assert.Empty(t, comp)
 		assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
 	})
