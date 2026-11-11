@@ -306,8 +306,13 @@ func clientWithToken(url, token string) *model.Client4 {
 // waitForCluster waits until every node in nodes sees exactly those nodes as cluster
 // members, then returns the leader's node name.
 func (tr *TestRunner) waitForCluster(ctx context.Context, nodes []nodeClient) (string, error) {
+	const timeout = 90 * time.Second
+	// The client sets no HTTP timeout, so a stalled node would block past waitFor's deadline.
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	var leader string
-	err := tr.waitFor(ctx, 90*time.Second, func() bool {
+	err := tr.waitFor(ctx, timeout, func() bool {
 		leader = ""
 		for _, n := range nodes {
 			infos, _, err := n.client.GetClusterStatus(ctx)

@@ -183,9 +183,11 @@ func (tr *TestRunner) runLeaderCrashTest(ctx context.Context, leader, channelA, 
 
 	// Bring the node back so later suites see the full cluster.
 	if err := tr.mgr.RestartNode(ctx, leader); err != nil {
+		tr.fail("ha/leader-restart", err.Error())
 		return fmt.Errorf("restart %s: %w", leader, err)
 	}
 	if _, err := tr.waitForCluster(ctx, tr.nodesA); err != nil {
+		tr.fail("ha/leader-rejoin", err.Error())
 		return fmt.Errorf("rejoin %s: %w", leader, err)
 	}
 	return nil

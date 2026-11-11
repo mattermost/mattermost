@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -115,8 +116,21 @@ func (tr *TestRunner) runCursorRewindTests(ctx context.Context) error {
 		return err
 	}
 
+	cursorURL := tr.cfg.ServerAURL
+	if tr.ha() {
+		// A follower hands the sync to the leader, which is the HA path worth covering.
+		leader, err := tr.waitForCluster(ctx, tr.nodesA)
+		if err != nil {
+			tr.fail("rewind/set-cursor", err.Error())
+			return err
+		}
+		follower := otherNodes(tr.nodesA, leader)[0]
+		cursorURL = follower.client.URL
+		tr.logger.Info("Moving the sync cursor through a follower", mlog.String("node", follower.name))
+	}
+
 	tr.logger.Info("Rewinding the sync cursor to before the channel's content...")
-	if err := tr.setSyncCursor(ctx, channelA, rewindTo); err != nil {
+	if err := tr.setSyncCursor(ctx, cursorURL, channelA, rewindTo); err != nil {
 		tr.fail("rewind/set-cursor", err.Error())
 		return err
 	}
@@ -139,7 +153,29 @@ func (tr *TestRunner) installCursorPlugin(ctx context.Context) (bool, error) {
 	if _, err := tr.clientA.EnablePlugin(ctx, cursorPluginID); err != nil {
 		return true, fmt.Errorf("enable plugin: %w", err)
 	}
+	if tr.ha() {
+		if err := tr.waitFor(ctx, 60*time.Second, func() bool {
+			return tr.cursorPluginRunningNodes(ctx) == len(tr.nodesA)
+		}); err != nil {
+			return true, fmt.Errorf("plugin running on %d of %d Server A nodes: %w",
+				tr.cursorPluginRunningNodes(ctx), len(tr.nodesA), err)
+		}
+	}
 	return true, nil
+}
+
+func (tr *TestRunner) cursorPluginRunningNodes(ctx context.Context) int {
+	statuses, _, err := tr.clientA.GetPluginStatuses(ctx)
+	if err != nil {
+		return 0
+	}
+	running := 0
+	for _, s := range statuses {
+		if s.PluginId == cursorPluginID && s.State == model.PluginStateRunning {
+			running++
+		}
+	}
+	return running
 }
 
 // removeCursorPlugin disables and removes the cursor plugin, even when the run
@@ -158,13 +194,13 @@ func (tr *TestRunner) removeCursorPlugin() {
 }
 
 // setSyncCursor moves the cursor of the test remote for channelA to updateAt and
-// starts a sync, through the cursor plugin.
-func (tr *TestRunner) setSyncCursor(ctx context.Context, channelA string, updateAt int64) error {
+// starts a sync, through the cursor plugin on the server at serverURL.
+func (tr *TestRunner) setSyncCursor(ctx context.Context, serverURL, channelA string, updateAt int64) error {
 	body, err := json.Marshal(map[string]any{"channel_id": channelA, "remote_id": tr.remoteID, "update_at": updateAt})
 	if err != nil {
 		return err
 	}
-	url := strings.TrimRight(tr.cfg.ServerAURL, "/") + "/plugins/" + cursorPluginID + "/cursor"
+	url := strings.TrimRight(serverURL, "/") + "/plugins/" + cursorPluginID + "/cursor"
 
 	// The plugin can take a moment to start after it is enabled, so retry while its
 	// route is missing. Errors from the plugin itself don't clear on retry.

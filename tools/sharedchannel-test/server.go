@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -47,7 +48,7 @@ type ServerManager struct {
 	sideA     *serverSide
 	sideB     *serverSide
 	// pluginDir holds a separate plugin and client plugin directory for each
-	// server, so test plugins stay out of ServerDir and the servers don't share one.
+	// node, so test plugins stay out of ServerDir and the nodes don't share one.
 	pluginDir string
 }
 
@@ -120,6 +121,9 @@ func (sm *ServerManager) Setup(ctx context.Context) error {
 	if err := sm.build(ctx); err != nil {
 		return fmt.Errorf("build: %w", err)
 	}
+	// A container left by an interrupted run still holds a connection that blocks
+	// DROP DATABASE.
+	sm.removeContainers()
 	if err := sm.resetDatabases(ctx); err != nil {
 		return fmt.Errorf("reset databases: %w", err)
 	}
@@ -135,17 +139,29 @@ func (sm *ServerManager) Setup(ctx context.Context) error {
 // Teardown stops every server process and proxy.
 func (sm *ServerManager) Teardown() {
 	sm.logger.Info("Stopping servers...")
+	sm.stopNodes(sm.sides()...)
 	for _, side := range sm.sides() {
-		for _, n := range side.nodes {
-			sm.stopNode(side, n, false)
-		}
 		if side.proxy != nil {
 			side.proxy.Close()
 			side.proxy = nil
 		}
 	}
+	sm.removeContainers()
 	if sm.pluginDir != "" {
 		_ = os.RemoveAll(sm.pluginDir)
+	}
+}
+
+// removeContainers force-removes every HA node container, which --rm misses when
+// the docker CLI is killed before the container exits.
+func (sm *ServerManager) removeContainers() {
+	if !sm.ha() {
+		return
+	}
+	for _, side := range sm.sides() {
+		for _, n := range side.nodes {
+			_ = exec.Command("docker", "rm", "-f", n.label).Run()
+		}
 	}
 }
 
@@ -155,21 +171,22 @@ func (sm *ServerManager) makePluginDirs() error {
 		return err
 	}
 	sm.pluginDir = dir
-	for _, server := range []string{"a", "b"} {
-		for _, sub := range []string{"plugins", "client"} {
-			if err := os.MkdirAll(filepath.Join(dir, server, sub), 0o755); err != nil {
-				return err
+	for _, side := range sm.sides() {
+		for _, n := range side.nodes {
+			for _, sub := range []string{"plugins", "client"} {
+				if err := os.MkdirAll(filepath.Join(dir, n.logBase, sub), 0o755); err != nil {
+					return err
+				}
 			}
 		}
 	}
 	return nil
 }
 
-// pluginEnv points one server ("a" or "b") at its own plugin directories.
-func (sm *ServerManager) pluginEnv(server string) []string {
+func (sm *ServerManager) pluginEnv(n *serverNode) []string {
 	return []string{
-		"MM_PLUGINSETTINGS_DIRECTORY=" + filepath.Join(sm.pluginDir, server, "plugins"),
-		"MM_PLUGINSETTINGS_CLIENTDIRECTORY=" + filepath.Join(sm.pluginDir, server, "client"),
+		"MM_PLUGINSETTINGS_DIRECTORY=" + filepath.Join(sm.pluginDir, n.logBase, "plugins"),
+		"MM_PLUGINSETTINGS_CLIENTDIRECTORY=" + filepath.Join(sm.pluginDir, n.logBase, "client"),
 	}
 }
 
@@ -277,8 +294,9 @@ func (sm *ServerManager) nodeEnv(side *serverSide, n *serverNode) []string {
 		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/" + side.dbName + "?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION=" + filepath.Join(sm.logsDir(), n.logBase+".log"),
 	}
+	env = append(env, sm.pluginEnv(n)...)
 	if !sm.ha() {
-		return append(env, sm.pluginEnv(strings.ToLower(side.name))...)
+		return env
 	}
 
 	return append(env,
@@ -292,8 +310,10 @@ func (sm *ServerManager) nodeEnv(side *serverSide, n *serverNode) []string {
 		"MM_CLUSTERSETTINGS_BINDADDRESS="+n.clusterIP,
 		"MM_CLUSTERSETTINGS_ADVERTISEADDRESS="+n.clusterIP,
 		fmt.Sprintf("MM_CLUSTERSETTINGS_GOSSIPPORT=%d", n.gossipPort),
-		// Every node runs from the same server directory, so their plugin extraction would collide.
-		"MM_PLUGINSETTINGS_ENABLE=false",
+		// Nodes install a plugin uploaded to a peer from the file store, so it must be
+		// shared, and only the repo root is mounted into the containers.
+		"MM_FILESETTINGS_DRIVERNAME=local",
+		"MM_FILESETTINGS_DIRECTORY="+filepath.Join(sm.serverDir, "data"),
 	)
 }
 
@@ -350,6 +370,7 @@ func (sm *ServerManager) containerCmd(n *serverNode, env []string) *exec.Cmd {
 		"--network", "host",
 		"--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
 		"-v", repoRoot + ":" + repoRoot,
+		"-v", sm.pluginDir + ":" + sm.pluginDir,
 		"-w", sm.serverDir,
 		"-e", "HOME=/tmp",
 	}
@@ -468,9 +489,17 @@ func (sm *ServerManager) startNodes(ctx context.Context, match func(i int) bool)
 // timeout). Used by the offline-recovery test to simulate a brief remote outage.
 func (sm *ServerManager) StopServerB() {
 	sm.logger.Info("Stopping Server B...")
-	for _, n := range sm.sideB.nodes {
-		sm.stopNode(sm.sideB, n, false)
+	sm.stopNodes(sm.sideB)
+}
+
+func (sm *ServerManager) stopNodes(sides ...*serverSide) {
+	var wg sync.WaitGroup
+	for _, side := range sides {
+		for _, n := range side.nodes {
+			wg.Go(func() { sm.stopNode(side, n, false) })
+		}
 	}
+	wg.Wait()
 }
 
 // StartServerB relaunches every Server B node and waits for them to become ready.
