@@ -11,6 +11,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
+import {getChannelInfoMenuPluginComponents} from 'selectors/plugins';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
@@ -76,22 +77,23 @@ const Badge = styled.div`
 `;
 
 interface MenuItemProps {
-    icon: JSX.Element;
-    text: string;
+    icon: JSX.Element | React.ReactNode;
+    text: React.ReactNode;
     opensSubpanel?: boolean;
-    badge?: string | number | JSX.Element;
+    badge?: React.ReactNode;
     onClick: () => void;
     id?: string;
 }
 
 function MenuItem(props: MenuItemProps) {
     const {icon, text, opensSubpanel, badge, onClick, id} = props;
-    const hasRightSide = (badge !== undefined) || opensSubpanel;
+    const hasBadge = badge != null;
+    const hasRightSide = hasBadge || opensSubpanel;
 
     return (
         <MenuItemButton
             onClick={onClick}
-            aria-label={text}
+            aria-label={typeof text === 'string' ? text : undefined}
             type='button'
             id={id || ''}
         >
@@ -99,7 +101,7 @@ function MenuItem(props: MenuItemProps) {
             <MenuItemText>{text}</MenuItemText>
             {hasRightSide && (
                 <RightSide>
-                    {badge !== undefined && (
+                    {hasBadge && (
                         <Badge>{badge}</Badge>
                     )}
                     {opensSubpanel && (
@@ -160,6 +162,7 @@ export default function Menu(props: MenuProps) {
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
     const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
+    const pluginItems = useSelector((state: GlobalState) => getChannelInfoMenuPluginComponents(state, channel));
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -243,6 +246,17 @@ export default function Menu(props: MenuProps) {
                     onClick={() => actions.showChannelFiles(channel.id)}
                 />
             )}
+            {pluginItems.map((item) => (
+                <MenuItem
+                    key={item.id}
+                    id={`channelInfoRHSPlugin_${item.id}`}
+                    icon={item.icon}
+                    text={item.text}
+                    opensSubpanel={item.opensSubpanel}
+                    badge={item.badge}
+                    onClick={() => item.action(channel.id)}
+                />
+            ))}
         </MenuContainer>
     );
 }

@@ -12,7 +12,7 @@ import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/
 import {TestHelper} from 'utils/test_helper';
 
 import LogList, {loadPrefs} from './log_list';
-import type {LogObjectWithAdditionalInfo} from './types';
+import type {LogObjectWithAdditionalInfo, PluginOption} from './types';
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
 
@@ -73,6 +73,9 @@ const baseProps = {
     nodes: [] as string[],
     selectedNode: '',
     onSelectedNodeChange: jest.fn(),
+    plugins: [] as PluginOption[],
+    selectedPlugins: [] as string[],
+    onSelectedPluginsChange: jest.fn(),
 };
 
 // Holds the levels the way Logs does, since LogList only renders them
@@ -1282,5 +1285,43 @@ describe('components/admin_console/server_logs/LogList', () => {
             // This page only holds entries from today, yet keeps the date
             expect(rowTimes()[0]).toBe('2026-03-12 10:00:49.000');
         });
+    });
+});
+
+describe('components/admin_console/server_logs/LogList plugin filter', () => {
+    const plugins = [{id: 'github', name: 'GitHub'}, {id: 'jira', name: 'Jira'}];
+
+    function renderPlugins(selectedPlugins: string[], onSelectedPluginsChange = jest.fn()) {
+        renderListWith({plugins, selectedPlugins, onSelectedPluginsChange});
+        return onSelectedPluginsChange;
+    }
+
+    function pluginMenuItem(name: string) {
+        fireEvent.click(screen.getByLabelText('Open menu to select which plugins to show logs from'));
+        return screen.getByRole('menuitemcheckbox', {name: new RegExp(`^${name}`)});
+    }
+
+    test('should count a plugin with no entries as a filter, and clear it with the others', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+        expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+
+    test('should narrow to one plugin on Ctrl/Cmd-click', () => {
+        const onSelectedPluginsChange = renderPlugins(['github', 'jira']);
+
+        fireEvent.click(pluginMenuItem('Jira'), {metaKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith(['jira']);
+    });
+
+    test('should restore all logs on Ctrl/Cmd-click of the only picked plugin, like the levels menu', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        fireEvent.click(pluginMenuItem('GitHub'), {ctrlKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
     });
 });

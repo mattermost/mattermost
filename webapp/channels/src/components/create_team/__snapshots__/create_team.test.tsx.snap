@@ -97,25 +97,25 @@ exports[`component/create_team should match snapshot default 1`] = `
                 Name your team in any language. Your team name shows in menus and headings.
               </div>
               <button
-                class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 mt-8"
+                class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 mt-8"
                 disabled=""
                 id="teamNameNextButton"
                 type="submit"
               >
                 <span
-                  class="_button__label_we8pe_31"
+                  class="_button__label_1pij1_55"
                 >
                   Next
                 </span>
                 <span
-                  class="_button__icon-slot_we8pe_35"
+                  class="_button__icon-slot_1pij1_59"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon_1xcik_13 _icon--size-16_1xcik_49"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"

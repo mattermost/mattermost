@@ -74,7 +74,7 @@ async function deleteLinkedFieldQuietly(adminClient: Client4, linked: LinkedFiel
 }
 
 async function getUserField(adminClient: Client4, fieldId: string) {
-    const fields = await adminClient.getPropertyFields(GROUP, USER_OBJECT_TYPE, 'system');
+    const fields = await adminClient.getPropertyFields(GROUP, USER_OBJECT_TYPE, {targetType: 'system'});
     return fields.find((field) => field.id === fieldId);
 }
 

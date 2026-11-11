@@ -328,6 +328,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/posts/{post_id}/set_unread":
     post:
       tags:
@@ -432,6 +434,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/thread":
     get:
       tags:
@@ -997,6 +1001,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/unpin":
     post:
       tags:
@@ -1030,6 +1036,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/actions/{action_id}":
     post:
       tags:
