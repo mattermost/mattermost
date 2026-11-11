@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
@@ -139,18 +140,16 @@ function DesktopAndMobileNotificationSettings({
             const desktopThreadNotificationSection = (
                 <Fragment key='desktopThreadNotificationSection'>
                     <br/>
-                    <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={desktopThreads === NotificationLevels.ALL}
-                                onChange={handleChangeForDesktopThreadsCheckbox}
-                            />
+                    <div className='checkbox single-checkbox no-padding'>
+                        <Checkbox
+                            checked={desktopThreads === NotificationLevels.ALL}
+                            onChange={handleChangeForDesktopThreadsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.notifyForDesktopthreads'
                                 defaultMessage={'Notify me about replies to threads I\'m following'}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );
@@ -161,18 +160,16 @@ function DesktopAndMobileNotificationSettings({
             const differentMobileNotificationsSection = (
                 <Fragment key='differentMobileNotificationsSection'>
                     <hr/>
-                    <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={desktopAndMobileSettingsDifferent}
-                                onChange={handleChangeForDifferentMobileNotificationsCheckbox}
-                            />
+                    <div className='checkbox single-checkbox no-padding'>
+                        <Checkbox
+                            checked={desktopAndMobileSettingsDifferent}
+                            onChange={handleChangeForDifferentMobileNotificationsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.differentMobileNotificationsTitle'
                                 defaultMessage='Use different settings for my mobile devices'
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );
@@ -216,18 +213,16 @@ function DesktopAndMobileNotificationSettings({
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
                     <br/>
-                    <div className='checkbox single-checkbox'>
-                        <label>
-                            <input
-                                type='checkbox'
-                                checked={pushThreads === NotificationLevels.ALL}
-                                onChange={handleChangeForMobileThreadsCheckbox}
-                            />
+                    <div className='checkbox single-checkbox no-padding'>
+                        <Checkbox
+                            checked={pushThreads === NotificationLevels.ALL}
+                            onChange={handleChangeForMobileThreadsCheckbox}
+                        >
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.notifyForMobilethreads'
                                 defaultMessage={'Notify me on mobile about replies to threads I\'m following'}
                             />
-                        </label>
+                        </Checkbox>
                     </div>
                 </Fragment>
             );

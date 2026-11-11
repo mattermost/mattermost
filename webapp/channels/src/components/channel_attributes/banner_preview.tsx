@@ -4,11 +4,12 @@
 import React, {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
-import SectionNotice from 'components/section_notice';
 
 import {hasAttributeTokens, renderBannerTemplate} from './banner_template';
 
@@ -71,7 +72,7 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
                             id: 'channel_attributes.banner.empty_notice.title',
                             defaultMessage: 'The banner will not be displayed',
                         })}
-                        text={hasAttributeTokens(template) ? formatMessage({
+                        description={hasAttributeTokens(template) ? formatMessage({
                             id: 'channel_attributes.banner.empty_notice',
                             defaultMessage: 'There\'s nothing to display until the attributes in the banner text have values.',
                         }) : formatMessage({

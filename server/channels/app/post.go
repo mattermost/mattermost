@@ -1232,9 +1232,16 @@ func (a *App) sessionMayUpdateMmBlocksActions(rctx request.CTX, oldPost *model.P
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	// The author copy is built from this post after the broadcast payload is serialized.
+	var burnOnReadHashtags string
 	if post.Type == model.PostTypeBurnOnRead {
+		burnOnReadHashtags = post.Hashtags
 		post.Message = ""
 		post.FileIds = []string{}
+		post.Hashtags = ""
+		defer func() {
+			post.Hashtags = burnOnReadHashtags
+		}()
 	}
 
 	// Extract metadata that needs per-recipient filtering before serialization
@@ -1277,6 +1284,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
+		post.Hashtags = burnOnReadHashtags
 		appErr = a.processBroadcastHookForBurnOnRead(rctx, postJSON, post, message)
 		if appErr != nil {
 			return appErr
@@ -1398,12 +1406,25 @@ func (a *App) setupBroadcastHookForChannelMentions(rctx request.CTX, post *model
 func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON string, post *model.Post, message *model.WebSocketEvent) *model.AppError {
 	tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
 	if appErr != nil {
+		var nfErr *store.ErrNotFound
+		if message.EventType() == model.WebsocketEventPostDeleted && errors.As(appErr, &nfErr) {
+			return nil
+		}
 		return appErr
 	}
 
 	// Use master context to avoid replica lag when fetching priority for newly created posts
 	masterCtx := sqlstore.RequestContextWithMaster(rctx)
 	tmpPost = a.PreparePostForClient(masterCtx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+
+	// Deleted-event author copies keep hashtags and channel mentions, and leave message and file ids empty.
+	if message.EventType() == model.WebsocketEventPostDeleted {
+		tmpPost.Message = ""
+		tmpPost.FileIds = []string{}
+		if tmpPost.Metadata != nil {
+			tmpPost.Metadata.Files = nil
+		}
+	}
 
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
@@ -1425,8 +1446,8 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, err
 	}
 
-	// only allow to update the pinned status of burn-on-read posts if the status is different
-	if post.Type == model.PostTypeBurnOnRead {
+	// Removing the link preview is the only change allowed on burn-on-read posts.
+	if post.Type == model.PostTypeBurnOnRead && !isRemoveLinkPreviewPatch(patch) {
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_burn_on_read_post.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1449,6 +1470,10 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		return nil, false, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		return a.removeBurnOnReadLinkPreview(rctx, post.Id)
+	}
+
 	if ok, _ := a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions); !ok {
 		patch.DisableMentionHighlights()
 	}
@@ -1462,6 +1487,48 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	}
 
 	return updatedPost, isMemberForPreviews, nil
+}
+
+func isRemoveLinkPreviewPatch(patch *model.PostPatch) bool {
+	if patch.Props == nil || patch.Message != nil || patch.FileIds != nil || patch.IsPinned != nil || patch.HasReactions != nil {
+		return false
+	}
+	return (*patch.Props)[model.PostPropsRemoveLinkPreview] == "true"
+}
+
+// removeBurnOnReadLinkPreview sets remove_link_preview on the stored burn-on-read post. It
+// bypasses UpdatePost because the revealed content lives in TemporaryPosts and must never be
+// written to the Posts row.
+func (a *App) removeBurnOnReadLinkPreview(rctx request.CTX, postID string) (*model.Post, bool, *model.AppError) {
+	masterCtx := sqlstore.RequestContextWithMaster(rctx)
+	storedPost, err := a.Srv().Store().Post().GetSingle(masterCtx, postID, false)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	storedPost.AddProp(model.PostPropsRemoveLinkPreview, "true")
+	updatedPost, err := a.Srv().Store().Post().Overwrite(rctx, storedPost)
+	if err != nil {
+		return nil, false, model.NewAppError("PatchPost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.invalidateCacheForChannelPosts(updatedPost.ChannelId)
+
+	// Only the author's clients get the edit: recipients would receive the unrevealed post
+	// and their already revealed copy would be concealed again.
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", updatedPost.ChannelId, updatedPost.UserId, nil, "")
+	broadcastPost := a.PreparePostForClient(rctx, updatedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+	if appErr := a.publishWebsocketEventForPost(rctx, broadcastPost, message); appErr != nil {
+		return nil, false, appErr
+	}
+
+	revealedPost, appErr := a.GetSinglePost(masterCtx, postID, false)
+	if appErr != nil {
+		return nil, false, appErr
+	}
+	revealedPost = a.PreparePostForClientWithEmbedsAndImages(rctx, revealedPost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
+
+	return a.SanitizePostMetadataForUser(rctx, revealedPost, rctx.Session().UserId)
 }
 
 func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
@@ -2410,7 +2477,12 @@ func (a *App) convertChannelNamesToChannelIds(rctx request.CTX, channels []strin
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(rctx, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
-			rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			// A client can send a channel id in place of a name, which is the only way to name a
+			// channel unambiguously when the search isn't scoped to one team. Such a value is passed
+			// through as it is, and only matches channels the user is a member of.
+			if !model.IsValidId(channelName) {
+				rctx.Logger().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			}
 			continue
 		}
 		channels[idx] = channel.Id
@@ -2489,8 +2561,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return model.NewAppError("ComputeLastAccessiblePostTime", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -2532,10 +2603,9 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		params.IncludeDeletedChannels = includeDeletedChannels
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
-			// TODO: we have to send channel ids
-			// from the front-end. Otherwise it's not possible to distinguish
-			// from just the channel name at a cross-team level.
-			// Convert channel names to channel IDs
+			// Convert channel names to channel IDs. A name only identifies a channel within one
+			// team, so a client filtering across teams sends ids instead, which pass through here
+			// untouched.
 			params.InChannels = a.convertChannelNamesToChannelIds(rctx, params.InChannels, userID, teamID, includeDeletedChannels)
 			params.ExcludedChannels = a.convertChannelNamesToChannelIds(rctx, params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 
@@ -2654,12 +2724,12 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 		}
 	}
 
-	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	infos, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+	if len(infos) == 0 && len(post.Filenames) > 0 {
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
 		// The post has Filenames that need to be replaced with FileInfos
@@ -2669,20 +2739,19 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 	return infos, nil
 }
 
-// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileIDs := post.FileIds
 	if fromMaster {
 		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
 		if err != nil {
-			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		fileIDs = masterPost.FileIds
 	}
 
 	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
@@ -2690,14 +2759,9 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	// reorder to match the post's stored attachment order.
 	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
-	if appErr != nil {
-		return nil, 0, appErr
-	}
-
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
@@ -3072,6 +3136,63 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	}
 
 	return posts, firstInaccessiblePostTime, nil
+}
+
+// GetPostsByIdsForUser returns posts for the given IDs for userID.
+// Burn-on-read posts are handled the same way as other post reads.
+func (a *App) GetPostsByIdsForUser(rctx request.CTX, userID string, postIDs []string) ([]*model.Post, int64, *model.AppError) {
+	posts, firstInaccessiblePostTime, appErr := a.GetPostsByIds(postIDs)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	posts, appErr = a.prepareBurnOnReadPostsForUser(rctx, posts, userID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
+	return posts, firstInaccessiblePostTime, nil
+}
+
+// prepareBurnOnReadPostsForUser applies the same per-reader burn-on-read handling
+// used by other post reads. Posts removed by that handling are omitted.
+func (a *App) prepareBurnOnReadPostsForUser(rctx request.CTX, posts []*model.Post, userID string) ([]*model.Post, *model.AppError) {
+	if len(posts) == 0 || !a.isBurnOnReadEnabled() {
+		return posts, nil
+	}
+
+	list := model.NewPostList()
+	for _, post := range posts {
+		if post != nil && post.Type == model.PostTypeBurnOnRead {
+			list.AddPost(post)
+		}
+	}
+	if len(list.BurnOnReadPosts) == 0 {
+		return posts, nil
+	}
+
+	list, appErr := a.revealBurnOnReadPostsForUser(rctx, list, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	prepared := make([]*model.Post, 0, len(posts))
+	for _, post := range posts {
+		if post == nil {
+			continue
+		}
+		if post.Type != model.PostTypeBurnOnRead {
+			prepared = append(prepared, post)
+			continue
+		}
+		updated, ok := list.Posts[post.Id]
+		if !ok {
+			continue
+		}
+		prepared = append(prepared, updated)
+	}
+
+	return prepared, nil
 }
 
 // GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
@@ -3563,6 +3684,12 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// Moving copies the thread's files into the target channel, so it needs the
+	// same upload_file_attachment permission as attaching them there directly.
+	if wpl.ContainsFileAttachments() && !a.HasPermissionToChannelAction(rctx, user.Id, user.Roles, targetChannel.Id, model.AccessControlPolicyActionUploadFileAttachment) {
+		return model.NewAppError("MoveThread", "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+	}
+
 	var targetTeam *model.Team
 	if targetChannel.IsGroupOrDirect() {
 		if !originalChannel.IsGroupOrDirect() {
@@ -3717,7 +3844,18 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	sanitizedPostJSON, jsonErr := post.ToJSON()
+	// The author copy is built from this post after the broadcast payload is serialized.
+	broadcastPost := post
+	if post.Type == model.PostTypeBurnOnRead {
+		broadcastPost = post.Clone()
+		a.ensurePostMetadata(broadcastPost)
+		broadcastPost.Message = ""
+		broadcastPost.FileIds = []string{}
+		broadcastPost.Hashtags = ""
+		broadcastPost.DelProp(model.PostPropsChannelMentions)
+	}
+
+	sanitizedPostJSON, jsonErr := broadcastPost.ToJSON()
 	if jsonErr != nil {
 		return model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
@@ -3725,12 +3863,28 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, userMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(userMessage)
 
+	// Burn-on-read uses the same cleared payload. The hook above restores the author copy.
+	adminPostJSON := string(postJSON)
+	if post.Type == model.PostTypeBurnOnRead {
+		adminPostJSON = sanitizedPostJSON
+	}
+
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
-	adminMessage.Add("post", string(postJSON))
+	adminMessage.Add("post", adminPostJSON)
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	if post.Type == model.PostTypeBurnOnRead {
+		if appErr = a.processBroadcastHookForBurnOnRead(rctx, sanitizedPostJSON, post, adminMessage); appErr != nil {
+			return appErr
+		}
+	}
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
@@ -4436,6 +4590,8 @@ func (a *App) setUnrevealedPost(postList *model.PostList, postID string) {
 	unrevealedPost.Metadata.Images = map[string]*model.PostImage{}
 	unrevealedPost.Metadata.Acknowledgements = []*model.PostAcknowledgement{}
 	unrevealedPost.Message = ""
+	unrevealedPost.Hashtags = ""
+	unrevealedPost.DelProp(model.PostPropsChannelMentions)
 	postList.Posts[postID] = unrevealedPost
 }
 

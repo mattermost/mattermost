@@ -43,6 +43,12 @@ const (
 	// options one at a time. A write may state it, though -- see
 	// PropertyField.OptionParentLinks.
 	PropertyFieldTypeGraph PropertyFieldType = "graph"
+	// PropertyFieldTypeNumber holds a JSON number. A null or absent value is
+	// empty. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeNumber PropertyFieldType = "number"
+	// PropertyFieldTypeCheckbox holds a JSON boolean. False, null, or an absent
+	// value is unchecked. See ValidatePropertyValueForFieldType.
+	PropertyFieldTypeCheckbox PropertyFieldType = "checkbox"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -74,6 +80,10 @@ const (
 	// hasPropertyFieldPermissionLevel and hasPropertyFieldValuePermissionLevel
 	// in the app package.
 	PermissionLevelCreator PermissionLevel = "creator"
+	// PermissionLevelEveryone is the most permissive tier: any caller satisfies
+	// it. It still sits behind hasTargetAccess's object-level check, so it is
+	// not the same as open access. The legacy permission columns accept it too.
+	PermissionLevelEveryone PermissionLevel = "everyone"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
@@ -91,6 +101,7 @@ var validPermissionLevels = []PermissionLevel{
 	PermissionLevelMember,
 	PermissionLevelAdmin,
 	PermissionLevelCreator,
+	PermissionLevelEveryone,
 }
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
@@ -108,6 +119,43 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSession,
 	PropertyFieldObjectTypeSystem,
+}
+
+// validPropertyFieldTypes contains every PropertyFieldType a field may have.
+var validPropertyFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeText,
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+	PropertyFieldTypeDate,
+	PropertyFieldTypeUser,
+	PropertyFieldTypeMultiuser,
+	PropertyFieldTypeRank,
+	PropertyFieldTypeGraph,
+	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
+}
+
+// IsValid reports whether t is a known field type.
+func (t PropertyFieldType) IsValid() bool {
+	return slices.Contains(validPropertyFieldTypes, t)
+}
+
+// accessControlUnsupportedFieldTypes are the field types the access control
+// group does not accept. Access policies (CEL) and the attribute views they read
+// compare option names, user IDs, and strings; nothing in that pipeline knows
+// how to compare a number or a boolean, so these types are refused there rather
+// than half supported.
+var accessControlUnsupportedFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeNumber,
+	PropertyFieldTypeCheckbox,
+}
+
+// SupportsAccessControl reports whether a field of this type may live in the
+// access control group, where custom profile attributes, channel attributes,
+// and global post attributes are defined and read by access policies. An
+// unknown type is not refused here; IsValid reports it.
+func (t PropertyFieldType) SupportsAccessControl() bool {
+	return !slices.Contains(accessControlUnsupportedFieldTypes, t)
 }
 
 // optionFieldTypes are the property field types whose `options` attribute is
@@ -174,6 +222,7 @@ type PropertyField struct {
 	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
 	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
 	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	Permissions       *Permissions      `json:"permissions,omitempty"`
 	LinkedFieldID     *string           `json:"linked_field_id,omitempty"`
 	CreateAt          int64             `json:"create_at"`
 	UpdateAt          int64             `json:"update_at"`
@@ -196,6 +245,7 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"permission_field":   pf.PermissionField,
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
+		"permissions":        pf.Permissions,
 		"linked_field_id":    pf.LinkedFieldID,
 		"create_at":          pf.CreateAt,
 		"update_at":          pf.UpdateAt,
@@ -477,16 +527,13 @@ func (pf *PropertyField) IsValid() error {
 		if pf.PermissionOptions != nil {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
 		}
+
+		if pf.Permissions != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
-	if pf.Type != PropertyFieldTypeText &&
-		pf.Type != PropertyFieldTypeSelect &&
-		pf.Type != PropertyFieldTypeMultiselect &&
-		pf.Type != PropertyFieldTypeDate &&
-		pf.Type != PropertyFieldTypeUser &&
-		pf.Type != PropertyFieldTypeMultiuser &&
-		pf.Type != PropertyFieldTypeRank &&
-		pf.Type != PropertyFieldTypeGraph {
+	if !pf.Type.IsValid() {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
@@ -579,6 +626,39 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
+	if pf.Permissions != nil {
+		if err := pf.Permissions.IsValid(pf.ObjectType); err != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		// Both rules below apply only to a linked field, so share the one test for it.
+		if linked := pf.LinkedFieldID != nil && *pf.LinkedFieldID != ""; linked {
+			// A linked field inherits its template's masking object whole, so letting it
+			// declare one of its own would let anyone who can create a linked field point
+			// it at a sensitive template and name themselves in that template's except
+			// list. Nothing legitimate is lost: withholding value.read already keeps the
+			// linked field's own readers out, and masking one field of an otherwise open
+			// scheme is done by masking the template instead.
+			if pf.Permissions.Masking != nil {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.masking", "Reason": "a linked field cannot declare its own masking"}, "id="+pf.ID, http.StatusBadRequest)
+			}
+
+			// option.read on a linked field is read access to the template's own scheme,
+			// not the linked field's own, so a grant is just a second way to say it: capping
+			// the ladder alone would leave this door open, and creating a linked field is
+			// cheap enough (it only has to match the template's target type, not its target
+			// ID) that anyone able to reach a sensitive template could grant themselves its
+			// option list. This costs the ability to grant option.read on one linked field
+			// without granting it on the template too; loosen it to "only identities the
+			// template already grants it to" if that's ever needed.
+			for i, grant := range pf.Permissions.Grants {
+				if slices.Contains(grant.Allow, PropertyActionOptionRead) {
+					return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.grants", "Reason": fmt.Sprintf("grant %d: a linked field cannot grant option.read", i)}, "id="+pf.ID, http.StatusBadRequest)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -590,7 +670,8 @@ type PropertyFieldPatch struct {
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
 
-	PermissionValues *PermissionLevel `json:"permission_values,omitempty"`
+	PermissionValues *PermissionLevel  `json:"permission_values,omitempty"`
+	Permissions      *PermissionsPatch `json:"permissions,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
@@ -602,6 +683,7 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 		"target_type":       pfp.TargetType,
 		"linked_field_id":   pfp.LinkedFieldID,
 		"permission_values": pfp.PermissionValues,
+		"permissions":       pfp.Permissions,
 	}
 }
 
@@ -622,15 +704,7 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
 	}
 
-	if pfp.Type != nil &&
-		*pfp.Type != PropertyFieldTypeText &&
-		*pfp.Type != PropertyFieldTypeSelect &&
-		*pfp.Type != PropertyFieldTypeMultiselect &&
-		*pfp.Type != PropertyFieldTypeDate &&
-		*pfp.Type != PropertyFieldTypeUser &&
-		*pfp.Type != PropertyFieldTypeMultiuser &&
-		*pfp.Type != PropertyFieldTypeRank &&
-		*pfp.Type != PropertyFieldTypeGraph {
+	if pfp.Type != nil && !pfp.Type.IsValid() {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 
@@ -908,6 +982,85 @@ func (pf *PropertyField) HideOptions() {
 // list it read was withheld.
 func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
 	return propertyFieldOptionCount(attrs) > 0
+}
+
+// PropertyFieldChangeIsOptionsOnly reports whether updated differs from existing
+// in nothing but its option list. An option change is gated on option.write and
+// every other change on field.write, so the enforcement hook needs the same
+// distinction the api4 patch handler draws from the patch body (see
+// isOptionsOnlyPatch) -- the hook only ever sees the merged field, so it has to
+// derive the answer by comparing.
+//
+// Ambiguity resolves to false, which is the stricter answer: a caller that lands
+// here is then held to field.write.
+func PropertyFieldChangeIsOptionsOnly(existing, updated *PropertyField) bool {
+	if existing == nil || updated == nil {
+		return false
+	}
+	if existing.Name != updated.Name ||
+		existing.Type != updated.Type ||
+		existing.TargetID != updated.TargetID ||
+		existing.TargetType != updated.TargetType ||
+		existing.ObjectType != updated.ObjectType ||
+		existing.Protected != updated.Protected ||
+		existing.DeleteAt != updated.DeleteAt {
+		return false
+	}
+	if !equalStringPointers(existing.LinkedFieldID, updated.LinkedFieldID) {
+		return false
+	}
+	// A permissions-bearing change decides who may read or write the definition
+	// itself, so it is never an option-only change however the rest compares.
+	// Compared as the patch handler compares them, so the two agree on an echo.
+	if !PermissionsEqual(existing.Permissions, updated.Permissions) {
+		return false
+	}
+	if !equalPermissionLevelPointers(existing.PermissionField, updated.PermissionField) ||
+		!equalPermissionLevelPointers(existing.PermissionValues, updated.PermissionValues) ||
+		!equalPermissionLevelPointers(existing.PermissionOptions, updated.PermissionOptions) {
+		return false
+	}
+
+	// Every attr except the option list has to match. Compared key by key rather
+	// than whole-map so that a differing option list does not mask a differing
+	// sibling key.
+	optionsDiffer := false
+	for key := range attrKeyUnion(existing.Attrs, updated.Attrs) {
+		if reflect.DeepEqual(existing.Attrs[key], updated.Attrs[key]) {
+			continue
+		}
+		if key != PropertyFieldAttributeOptions {
+			return false
+		}
+		optionsDiffer = true
+	}
+
+	return optionsDiffer
+}
+
+func attrKeyUnion(a, b StringInterface) map[string]struct{} {
+	keys := make(map[string]struct{}, len(a)+len(b))
+	for key := range a {
+		keys[key] = struct{}{}
+	}
+	for key := range b {
+		keys[key] = struct{}{}
+	}
+	return keys
+}
+
+func equalStringPointers(a, b *string) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
+}
+
+func equalPermissionLevelPointers(a, b *PermissionLevel) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }
 
 // propertyFieldOptionCount reports how many options an option list carries.

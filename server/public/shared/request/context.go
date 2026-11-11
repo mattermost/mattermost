@@ -48,11 +48,15 @@ func EmptyContext(logger mlog.LoggerIFace) *Context {
 	}
 }
 
-// TestContext creates an empty context with a new logger to use in testing where a test helper is
-// not required.
+// TestContext creates a request context for tests that do not already have a
+// TestHelper. It is tagged as a local-mode admin, matching TestHelper.Context,
+// so property reads in tests that forget to set a caller still see what a
+// local admin would. Callers that need an explicit anonymous identity should
+// use RequestContextWithCallerID(..., "").
 func TestContext(tb testing.TB) *Context {
 	logger := mlog.CreateConsoleTestLogger(tb)
-	return EmptyContext(logger)
+	rctx := EmptyContext(logger)
+	return rctx.WithContext(model.WithCallerID(rctx.Context(), model.CallerIDLocalAdmin)).(*Context)
 }
 
 // clone creates a shallow copy of Context, allowing clones to apply per-request changes.

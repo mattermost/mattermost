@@ -30,6 +30,7 @@ const iconMap: {[key in NoResultsVariant]: React.ReactNode} = {
     [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
     [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
     [NoResultsVariant.Mentions]: <MentionsSVG className='no-results__icon'/>,
+    [NoResultsVariant.MentionsFiltered]: <MentionsSVG className='no-results__icon'/>,
     [NoResultsVariant.FlaggedPosts]: <SavedMessagesSVG className='no-results__icon'/>,
     [NoResultsVariant.PinnedPosts]: <PinSVG className='no-results__icon'/>,
     [NoResultsVariant.ChannelFiles]: <ChannelFilesSVG className='no-results__icon'/>,
@@ -55,6 +56,10 @@ const titleMap = defineMessages({
     [NoResultsVariant.Mentions]: {
         id: 'no_results.mentions.title',
         defaultMessage: 'No mentions yet',
+    },
+    [NoResultsVariant.MentionsFiltered]: {
+        id: 'no_results.mentions_filtered.title',
+        defaultMessage: 'No mentions match your filters',
     },
     [NoResultsVariant.FlaggedPosts]: {
         id: 'no_results.flagged_posts.title',
@@ -102,6 +107,10 @@ const subtitleMap = defineMessages({
     [NoResultsVariant.Mentions]: {
         id: 'no_results.mentions.subtitle',
         defaultMessage: 'Messages where someone mentions you or includes your trigger words are saved here.',
+    },
+    [NoResultsVariant.MentionsFiltered]: {
+        id: 'no_results.mentions_filtered.subtitle',
+        defaultMessage: 'Try removing or changing a filter to see more of your mentions.',
     },
     [NoResultsVariant.FlaggedPosts]: {
         id: 'no_results.flagged_posts.subtitle',

@@ -55,15 +55,30 @@ type SupportPacketDiagnostics struct {
 		InstallationType string  `yaml:"installation_type"`
 
 		// Capacity
-		CPUCores               int     `yaml:"cpu_cores"`
-		TotalMemoryMB          *uint64 `yaml:"total_memory_mb,omitempty"`
-		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
-		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+		CPUCores                     int      `yaml:"cpu_cores"`
+		TotalMemoryMB                *uint64  `yaml:"total_memory_mb,omitempty"`
+		AvailableMemoryMB            *uint64  `yaml:"available_memory_mb,omitempty"`
+		SwapTotalMB                  *uint64  `yaml:"swap_total_mb,omitempty"`
+		SwapUsedMB                   *uint64  `yaml:"swap_used_mb,omitempty"`
+		ContainerCPULimit            float64  `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB       uint64   `yaml:"container_memory_limit_mb,omitempty"`
+		ContainerMemoryUsageMB       *uint64  `yaml:"container_memory_usage_mb,omitempty"`
+		ContainerMemoryWorkingSetMB  *uint64  `yaml:"container_memory_working_set_mb,omitempty"`
+		ContainerOOMKills            *uint64  `yaml:"container_oom_kills,omitempty"`
+		LoadAverage1m                *float64 `yaml:"load_average_1m,omitempty"`
+		LoadAverage5m                *float64 `yaml:"load_average_5m,omitempty"`
+		LoadAverage15m               *float64 `yaml:"load_average_15m,omitempty"`
+		ContainerCPUPeriods          *uint64  `yaml:"container_cpu_periods,omitempty"`
+		ContainerCPUThrottledPeriods *uint64  `yaml:"container_cpu_throttled_periods,omitempty"`
+		ContainerCPUThrottledSeconds *float64 `yaml:"container_cpu_throttled_seconds,omitempty"`
+		GoMaxProcs                   *int     `yaml:"go_max_procs,omitempty"`
 
 		// Process lifecycle
 		ProcessID           int       `yaml:"process_id"`
 		StartedAt           time.Time `yaml:"started_at"`
 		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		ProcessRSSMB        *uint64   `yaml:"process_rss_mb,omitempty"`
+		GoMemoryLimitMB     *uint64   `yaml:"go_memory_limit_mb,omitempty"`
 		OpenFileDescriptors *int64    `yaml:"open_file_descriptors,omitempty"`
 		MaxFileDescriptors  *int64    `yaml:"max_file_descriptors,omitempty"`
 
@@ -75,6 +90,10 @@ type SupportPacketDiagnostics struct {
 
 	Config struct {
 		Source string `yaml:"store_type"`
+		// AuditLoggingConfigured is the server's own audit check of its config, license, environment and
+		// platform at packet time. The audit logger applies its targets only at startup, so after a runtime
+		// config or license change this can differ from what the server is writing.
+		AuditLoggingConfigured *bool `yaml:"audit_logging_configured,omitempty"`
 	} `yaml:"config"`
 
 	Database struct {

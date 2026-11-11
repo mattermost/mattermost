@@ -467,3 +467,34 @@ func TestRemoveEmptyTranslations(t *testing.T) {
 	}
 	assert.Equal(t, []string{"text", "plural"}, ids)
 }
+
+// The translation pipeline checks server plural maps in Node, against its own
+// copy of go-i18n's table, i18n/scripts/lib/server_plurals.json. The copy has
+// to say what go-i18n says for every server locale.
+func TestServerPluralTableMatchesGoI18n(t *testing.T) {
+	root := filepath.Join("..", "..", "..")
+	raw, err := os.ReadFile(filepath.Join(root, "i18n", "scripts", "lib", "server_plurals.json"))
+	require.NoError(t, err)
+	var table map[string][]string
+	require.NoError(t, json.Unmarshal(raw, &table))
+
+	files, err := filepath.Glob(filepath.Join(root, "server", "i18n", "*.json"))
+	require.NoError(t, err)
+	locales := map[string]bool{}
+	for _, f := range files {
+		locale := strings.TrimSuffix(filepath.Base(f), ".json")
+		if locale == "en" {
+			continue
+		}
+		locales[locale] = true
+
+		var want []string
+		for c := range pluralCategories(locale) {
+			want = append(want, string(c))
+		}
+		assert.ElementsMatch(t, want, table[locale], "server_plurals.json: %s", locale)
+	}
+	for locale := range table {
+		assert.True(t, locales[locale], "server_plurals.json: %s has no server catalog", locale)
+	}
+}

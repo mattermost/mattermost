@@ -45,11 +45,11 @@ describe('TestButton', () => {
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-sm', 'btn-tertiary');
+        expect(button.className).toEqual(expect.stringContaining('_button--emphasis-tertiary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-small'));
 
-        // Check for icon
-        const icon = button.querySelector('i.icon.icon-lock-outline');
-        expect(icon).toBeInTheDocument();
+        // Leading icon is provided via compass-ui Icon glyph slot
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should render the supplied label override instead of the default copy', () => {
@@ -67,7 +67,7 @@ describe('TestButton', () => {
         expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
         const button = screen.getByRole('button', {name: /simulate rules/i});
         expect(button).toBeInTheDocument();
-        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {
@@ -632,6 +632,24 @@ describe('mergeSessionAttributes', () => {
         const duplicateByName = makeField('bbb', 'session', 'ip_address');
 
         expect(mergeSessionAttributes(autocomplete, [duplicateByName])).toBe(autocomplete);
+    });
+});
+
+describe('isSimpleExpression with multiselect "has any of" groups', () => {
+    test('a parenthesized group is simple', () => {
+        expect(isSimpleExpression('("A" in user.attributes.program || "B" in user.attributes.program)')).toBe(true);
+    });
+
+    test('a lone group without parentheses, as the server re-emits it, is simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program')).toBe(true);
+    });
+
+    test('a group without parentheses next to && is not simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program && user.attributes.dept == "Eng"')).toBe(false);
+    });
+
+    test('a bare OR of other conditions is not simple', () => {
+        expect(isSimpleExpression('user.attributes.dept == "Eng" || user.attributes.dept == "Sales"')).toBe(false);
     });
 });
 

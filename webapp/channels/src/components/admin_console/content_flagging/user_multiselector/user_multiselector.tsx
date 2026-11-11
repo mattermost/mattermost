@@ -443,7 +443,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 {...baseProps}
                 isMulti={false}
                 onChange={singleSelectHandleOnChange}
-                value={selectInitialValue ? selectInitialValue[0] : null}
+                value={selectInitialValue[0] ?? null}
                 components={singleSelectComponents}
                 isDisabled={disabled}
             />

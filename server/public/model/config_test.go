@@ -223,6 +223,91 @@ func TestClusterSettingsIsValid(t *testing.T) {
 	})
 }
 
+func TestCacheSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &CacheSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("redis cache prefix", func(t *testing.T) {
+		for _, prefix := range []string{"", "hub", "c4ja3w3h8tgwiy5c5dbmhmkpje", "my-prefix_1"} {
+			t.Run("valid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				assert.Nil(t, settings.isValid())
+			})
+		}
+
+		for _, prefix := range []string{"hub:", "a:b", "hub*", "hub?", "hub[0]", `hub\`} {
+			t.Run("invalid "+prefix, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:        NewPointer(CacheTypeRedis),
+					RedisAddress:     NewPointer("localhost:6379"),
+					RedisDB:          NewPointer(0),
+					RedisCachePrefix: NewPointer(prefix),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.invalid_redis_cache_prefix.app_error", appErr.Id)
+			})
+		}
+	})
+
+	t.Run("redis cache prefix is ignored for lru", func(t *testing.T) {
+		settings := &CacheSettings{
+			CacheType:        NewPointer(CacheTypeLRU),
+			RedisCachePrefix: NewPointer("a:b"),
+		}
+		settings.SetDefaults()
+
+		assert.Nil(t, settings.isValid())
+	})
+	t.Run("redis tls client cert and key", func(t *testing.T) {
+		for name, tc := range map[string]struct {
+			enableTLS bool
+			cert      string
+			key       string
+			valid     bool
+		}{
+			"neither":            {enableTLS: true, valid: true},
+			"both":               {enableTLS: true, cert: "client.crt", key: "client.key", valid: true},
+			"cert only":          {enableTLS: true, cert: "client.crt", valid: false},
+			"key only":           {enableTLS: true, key: "client.key", valid: false},
+			"cert only, tls off": {enableTLS: false, cert: "client.crt", valid: true},
+		} {
+			t.Run(name, func(t *testing.T) {
+				settings := &CacheSettings{
+					CacheType:          NewPointer(CacheTypeRedis),
+					RedisAddress:       NewPointer("localhost:6379"),
+					RedisDB:            NewPointer(0),
+					RedisEnableTLS:     NewPointer(tc.enableTLS),
+					RedisTLSClientCert: NewPointer(tc.cert),
+					RedisTLSClientKey:  NewPointer(tc.key),
+				}
+				settings.SetDefaults()
+
+				appErr := settings.isValid()
+				if tc.valid {
+					assert.Nil(t, appErr)
+					return
+				}
+				require.NotNil(t, appErr)
+				assert.Equal(t, "model.config.is_valid.redis_tls_client_cert_key.app_error", appErr.Id)
+			})
+		}
+	})
+}
+
 func TestAnnouncementSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		settings := &AnnouncementSettings{}
@@ -1484,6 +1569,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
+}
+
+func TestTeamSettingsMaxUsersAndChannelsPerTeam(t *testing.T) {
+	t.Run("defaults to no limit", func(t *testing.T) {
+		config := Config{}
+		config.SetDefaults()
+
+		require.Equal(t, 0, *config.TeamSettings.MaxUsersPerTeam)
+		require.Equal(t, int64(0), *config.TeamSettings.MaxChannelsPerTeam)
+		require.Nil(t, config.TeamSettings.isValid())
+	})
+
+	for name, testCase := range map[string]struct {
+		value        int
+		expectsError bool
+	}{
+		"zero means no limit": {value: 0},
+		"positive":            {value: 50},
+		"negative":            {value: -1, expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Run("MaxUsersPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxUsersPerTeam = new(testCase.value)
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_users.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+
+			t.Run("MaxChannelsPerTeam", func(t *testing.T) {
+				config := Config{}
+				config.SetDefaults()
+				config.TeamSettings.MaxChannelsPerTeam = new(int64(testCase.value))
+
+				appErr := config.TeamSettings.isValid()
+				if testCase.expectsError {
+					require.NotNil(t, appErr)
+					require.Equal(t, "model.config.is_valid.max_channels.app_error", appErr.Id)
+				} else {
+					require.Nil(t, appErr)
+				}
+			})
+		})
+	}
 }
 
 func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {

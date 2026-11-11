@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -408,12 +410,13 @@ export function isSimpleCondition(s: string): boolean {
     return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
-export function isMultiselectOrGroup(s: string): boolean {
-    const trimmed = s.trim();
-    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+export function isMultiselectOrGroup(s: string, {requireParens = true} = {}): boolean {
+    let inner = s.trim();
+    if (inner.startsWith('(') && inner.endsWith(')')) {
+        inner = inner.slice(1, -1);
+    } else if (requireParens) {
         return false;
     }
-    const inner = trimmed.slice(1, -1);
     return inner.split('||').every((part) => {
         return MULTISELECT_GROUP_PART.test(part.trim());
     });
@@ -423,9 +426,33 @@ export function isSimpleExpression(expr: string): boolean {
     if (!expr) {
         return true;
     }
+
+    // The server re-emits saved rules without redundant parentheses, so a lone
+    // "has any of" group comes back as a bare `"a" in x || "b" in x`.
+    if (!expr.includes('&&') && isMultiselectOrGroup(expr, {requireParens: false})) {
+        return true;
+    }
     return expr.split('&&').every((condition) => {
         return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
     });
+}
+
+// The server parser behind the table editor decides what the table can show;
+// isSimpleExpression is only a text heuristic. Any failure, including a 403,
+// counts as not renderable so a rule nobody can see is never overwritten.
+export async function canTableEditorRender(
+    getVisualAST: (expression: string) => Promise<{error?: unknown}>,
+    expression: string,
+): Promise<boolean> {
+    if (!expression.trim()) {
+        return true;
+    }
+    try {
+        const result = await getVisualAST(expression);
+        return !result.error;
+    } catch {
+        return false;
+    }
 }
 
 // Checks if there are any usable attributes for ABAC policies.
@@ -505,11 +532,11 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -594,11 +621,11 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'

@@ -66,11 +66,12 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
                 class="LoadingSpinner"
                 data-testid="loadingSpinner"
                 id="loadingSpinner"
-                style="font-size: 24px;"
               >
                 <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
+                  aria-label="Loading Icon"
+                  class="_spinner_mvrwe_21 spinner"
+                  role="status"
+                  style="width: 24px; height: 24px; --spinner-stroke-width: 2px;"
                 />
               </span>
             </div>
@@ -228,21 +229,35 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
           <div
             class="modal-footer"
           >
-            <div>
-              <button
-                class="btn btn-tertiary"
-                id="appsModalCancel"
-                type="button"
+            <div
+              class="apps-form-footer"
+            >
+              <div
+                class="apps-form-footer__buttons"
               >
-                Cancel
-              </button>
-              <button
-                class="btn btn-primary"
-                id="appsModalSubmit"
-                type="submit"
-              >
-                Submit
-              </button>
+                <button
+                  class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
+                  id="appsModalCancel"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Cancel
+                  </span>
+                </button>
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  id="appsModalSubmit"
+                  type="submit"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Submit
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </form>

@@ -10,10 +10,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="btn btn-tertiary"
+          class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
           type="button"
         >
-          Button Text
+          <span
+            class="_button__label_1pij1_55"
+          >
+            Button Text
+          </span>
         </button>
       </div>
       <div
@@ -36,10 +40,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="btn btn-tertiary"
+          class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
           type="button"
         >
-          Button Text
+          <span
+            class="_button__label_1pij1_55"
+          >
+            Button Text
+          </span>
         </button>
         <div>
           <div
@@ -73,10 +81,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="btn btn-tertiary"
+          class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
           type="button"
         >
-          Button Text
+          <span
+            class="_button__label_1pij1_55"
+          >
+            Button Text
+          </span>
         </button>
         <div>
           <div
@@ -110,10 +122,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="btn btn-tertiary"
+          class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
           type="button"
         >
-          Button Text
+          <span
+            class="_button__label_1pij1_55"
+          >
+            Button Text
+          </span>
         </button>
         <div>
           <div
@@ -147,10 +163,14 @@ exports[`components/admin_console/request_button/request_button.jsx should match
     >
       <div>
         <button
-          class="btn btn-tertiary"
+          class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
           type="button"
         >
-          Button Text
+          <span
+            class="_button__label_1pij1_55"
+          >
+            Button Text
+          </span>
         </button>
       </div>
       <div

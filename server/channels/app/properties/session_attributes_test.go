@@ -15,10 +15,10 @@ func TestSessionAttributesHook(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 	th.service.AddHook(NewSessionAttributesHook(th.service, group.ID))
-	systemContext := SystemCallerContext(th.Context)
+	systemCallerContext := RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem)
 
 	createField := func() *model.PropertyField {
-		f, err := th.service.CreatePropertyField(systemContext, &model.PropertyField{
+		f, err := th.service.CreatePropertyField(systemCallerContext, &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
@@ -85,7 +85,7 @@ func TestSessionAttributesHook(t *testing.T) {
 
 	t.Run("allows delete from the system caller", func(t *testing.T) {
 		f := createField()
-		err := th.service.DeletePropertyField(systemContext, group.ID, f.ID)
+		err := th.service.DeletePropertyField(systemCallerContext, group.ID, f.ID)
 		require.NoError(t, err)
 	})
 }

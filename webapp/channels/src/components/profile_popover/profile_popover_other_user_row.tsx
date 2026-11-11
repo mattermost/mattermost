@@ -5,7 +5,9 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {SendIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -97,14 +99,11 @@ const ProfilePopoverOtherUserRow = ({
                         <Button
                             type='button'
                             emphasis='primary'
-                            size='sm'
+                            size='small'
                             className='disabled'
                             disabled={true}
+                            loading={true}
                         >
-                            <i
-                                className='icon icon-loading'
-                                aria-hidden='true'
-                            />
                             <FormattedMessage
                                 id='user_profile.send.dm.checking'
                                 defaultMessage='Checking...'
@@ -116,17 +115,14 @@ const ProfilePopoverOtherUserRow = ({
                                 <Button
                                     type='button'
                                     emphasis='primary'
-                                    size='sm'
+                                    size='small'
                                     onClick={handleShowDirectChannel}
                                     aria-label={intl.formatMessage({
                                         id: 'user_profile.send.dm.aria_label',
                                         defaultMessage: 'Send message to {user}',
                                     }, {user: user.username})}
+                                    leadingIcon={<Icon glyph={<SendIcon/>}/>}
                                 >
-                                    <i
-                                        className='icon icon-send'
-                                        aria-hidden='true'
-                                    />
                                     <FormattedMessage
                                         id='user_profile.send.dm'
                                         defaultMessage='Message'
@@ -136,7 +132,7 @@ const ProfilePopoverOtherUserRow = ({
                                 <Button
                                     type='button'
                                     emphasis='primary'
-                                    size='sm'
+                                    size='small'
                                     className='disabled'
                                     disabled={true}
                                     title={intl.formatMessage({

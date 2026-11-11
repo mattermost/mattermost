@@ -10,7 +10,7 @@
  * grammar the other languages cannot follow, and both are worth fixing rather
  * than recording.
  *
- *   - the file is valid JSON and every value is a string
+ *   - the file can be read, is a JSON object, and every value is a string
  *   - the file is in canonical form: keys in code-point order, a 2-space
  *     indent and a trailing newline, so a hand edit changes only what it means to
  *   - no value is empty or whitespace-only. react-intl replaces '' with the
@@ -34,9 +34,10 @@
  *     or variable and everything after it. The message still parses, so this
  *     check is the only thing that catches it.
  *
- * The per-message checks live in icu_rules.mjs. Two of its rules are warnings
- * rather than errors, because the catalogs already ship strings that break
- * them:
+ * The per-message checks live in icu_rules.mjs, which the translation rules in
+ * i18n/scripts/lib/rules.mjs run too, holding new translations to them as
+ * errors. Two of them are warnings here, because the catalogs already ship
+ * strings that break them:
  *
  *   - a horizontal arrow in a right-to-left locale, which points backwards
  *   - a plural that shows its count but lacks a form the locale needs for
@@ -95,12 +96,15 @@ if (localeNames.length === 0) {
 // en.json pairs each key with a {defaultMessage, description}; the locale
 // catalogs are flat key -> string. Flatten the source to the same shape so
 // everything below compares one string against another.
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
 let en;
 try {
-    en = Object.fromEntries(
-        Object.entries(JSON.parse(readCatalog(SOURCE))).
-            map(([key, entry]) => [key, entry.defaultMessage]),
-    );
+    const source = JSON.parse(readCatalog(SOURCE));
+    if (!isObject(source)) {
+        throw new Error('not a JSON object of key -> {defaultMessage, description}');
+    }
+    en = Object.fromEntries(Object.entries(source).map(([key, entry]) => [key, entry.defaultMessage]));
 } catch (e) {
     console.error(`cannot read ${path.join(i18nDir, SOURCE)}: ${e.message}`);
     process.exit(2);
@@ -118,6 +122,10 @@ for (const [key, message] of Object.entries(en)) {
     }
 }
 
+// plural-unused-category is left to the translation pipeline: an arm the
+// locale never selects is dead text, not something a user sees.
+const REPORTED_WARNINGS = new Set(['rtl-arrow', 'plural-category']);
+
 for (const name of localeNames) {
     // The plural and direction rules come from Intl, which throws on a name
     // that is not a locale tag, such as en_US.
@@ -129,12 +137,23 @@ for (const name of localeNames) {
         continue;
     }
 
+    let text;
+    try {
+        text = readCatalog(name);
+    } catch (e) {
+        errors.push(`${name}: cannot read: ${e.message}`);
+        continue;
+    }
+
     let data;
-    const text = readCatalog(name);
     try {
         data = JSON.parse(text);
     } catch (e) {
         errors.push(`${name}: invalid JSON: ${e.message}`);
+        continue;
+    }
+    if (!isObject(data)) {
+        errors.push(`${name}: not a JSON object of key -> message`);
         continue;
     }
 
@@ -189,8 +208,12 @@ for (const name of localeNames) {
             continue;
         }
 
-        for (const {severity, message: detail} of checkMessage(source, message, locale)) {
-            (severity === 'error' ? errors : warnings).push(`${name}:${key}: ${detail}`);
+        for (const {rule, severity, message: detail} of checkMessage(source, message, locale)) {
+            if (severity === 'error') {
+                errors.push(`${name}:${key}: ${detail}`);
+            } else if (REPORTED_WARNINGS.has(rule)) {
+                warnings.push(`${name}:${key}: ${detail}`);
+            }
         }
     }
 }

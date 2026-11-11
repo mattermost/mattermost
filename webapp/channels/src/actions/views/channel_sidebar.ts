@@ -8,7 +8,8 @@ import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/select
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
-import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
+import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
+import {getProductRailFilter, toFullListIndex} from 'selectors/views/product_rail';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -92,7 +93,21 @@ export function moveChannelsInSidebar(categoryId: string, targetIndex: number, d
             channelIds = [draggableChannelId];
         }
 
-        const newIndex = adjustTargetIndexForMove(state, categoryId, channelIds, targetIndex, draggableChannelId);
+        // In the product rail's Channels or Boards section the category shows only some of its
+        // channels, so a drop index counts those; translate it to the full list first. Only drops
+        // set manual sorting: addChannelsInSidebar's 0 already means the top of the full category.
+        let fullTargetIndex = targetIndex;
+        if (setManualSorting && getProductRailFilter(state)) {
+            const category = getCategory(state, categoryId);
+            fullTargetIndex = toFullListIndex(
+                makeGetFilteredChannelIdsForCategory()(state, category),
+                makeGetChannelIdsForCategory()(state, category),
+                draggableChannelId,
+                targetIndex,
+            );
+        }
+
+        const newIndex = adjustTargetIndexForMove(state, categoryId, channelIds, fullTargetIndex, draggableChannelId);
         return dispatch(moveChannelsToCategory(categoryId, channelIds, newIndex, setManualSorting));
     };
 }

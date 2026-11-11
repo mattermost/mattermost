@@ -6,6 +6,8 @@ package commands
 import (
 	"context"
 	"fmt"
+	"slices"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +25,99 @@ import (
 )
 
 var EnableEnterpriseTests string
+
+// newTestCmd returns a cobra.Command whose context is bound to the test's
+// lifetime, mirroring the context cobra assigns to a command during real
+// execution (see Command.ExecuteContext). base is one of the package's real
+// command vars (e.g. SystemSupportPacketCmd, SystemGetBusyCmd), reusing its
+// already-registered flags instead of re-declaring them on a bare command.
+//
+// base's context and flag values are restored once the test completes, so
+// mutating the shared command in one test (e.g. via cmd.Flags().Set(...))
+// can't leak into a later test or into a real dispatch through cobra's
+// Execute/ExecuteContext, which only assigns a fresh context when one isn't
+// already set.
+func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
+	// A slice flag's first Set replaces its default and later ones append, and pflag can't
+	// reset that. So the test gets fresh slice values, and base gets its own back afterwards.
+	originals := make(map[*pflag.Flag]pflag.Value)
+	base.Flags().VisitAll(func(f *pflag.Flag) {
+		if fresh := newSliceValue(t, f); fresh != nil {
+			originals[f] = f.Value
+			f.Value = fresh
+		}
+	})
+
+	t.Cleanup(func() {
+		// A nil context is intentional here: it restores cobra's own "no
+		// context assigned yet" sentinel (see Command.ExecuteC), so the next
+		// real dispatch gets a fresh context instead of this test's.
+		base.SetContext(nil) //nolint:staticcheck
+		base.Flags().VisitAll(func(f *pflag.Flag) {
+			if original, ok := originals[f]; ok {
+				f.Value = original
+			} else {
+				_ = f.Value.Set(f.DefValue)
+			}
+			f.Changed = false
+		})
+	})
+	base.SetContext(t.Context())
+	return base
+}
+
+// newSliceValue returns a new value holding the default of a slice flag, or nil for any other flag.
+func newSliceValue(t *testing.T, f *pflag.Flag) pflag.Value {
+	slice, ok := f.Value.(pflag.SliceValue)
+	if !ok {
+		return nil
+	}
+
+	defaults := slices.Clone(slice.GetSlice())
+	fs := pflag.NewFlagSet(f.Name, pflag.ContinueOnError)
+	switch f.Value.Type() {
+	case "stringSlice":
+		fs.StringSlice(f.Name, defaults, f.Usage)
+	case "stringArray":
+		fs.StringArray(f.Name, defaults, f.Usage)
+	default:
+		t.Fatalf("newTestCmd doesn't support %s flags yet, such as --%s", f.Value.Type(), f.Name)
+	}
+	return fs.Lookup(f.Name).Value
+}
+
+func (s *MmctlUnitTestSuite) TestNewTestCmd() {
+	base := &cobra.Command{}
+	base.Flags().StringSlice("slice", []string{"a"}, "")
+	base.Flags().StringArray("array", []string{"a"}, "")
+
+	for _, name := range []string{"slice", "array"} {
+		get := func(cmd *cobra.Command) []string {
+			if name == "slice" {
+				values, err := cmd.Flags().GetStringSlice(name)
+				s.Require().NoError(err)
+				return values
+			}
+			values, err := cmd.Flags().GetStringArray(name)
+			s.Require().NoError(err)
+			return values
+		}
+
+		// Each test's first Set replaces the default, as on the command line
+		for range 2 {
+			s.Run(name+" set", func() {
+				cmd := newTestCmd(s.T(), base)
+				s.Require().NoError(cmd.Flags().Set(name, "b"))
+				s.Require().NoError(cmd.Flags().Set(name, "c"))
+				s.Equal([]string{"b", "c"}, get(cmd))
+			})
+		}
+
+		s.Run(name+" default", func() {
+			s.Equal([]string{"a"}, get(newTestCmd(s.T(), base)))
+		})
+	}
+}
 
 type MmctlUnitTestSuite struct {
 	suite.Suite
@@ -50,6 +147,10 @@ type MmctlE2ETestSuite struct {
 func (s *MmctlE2ETestSuite) SetupTest() {
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
+}
+
+func (s *MmctlE2ETestSuite) SetupSubTest() {
+	printer.Clean()
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {

@@ -4,15 +4,16 @@
 package search
 
 import (
-	"net"
 	"net/url"
-	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/versions"
 )
 
 func init() {
@@ -51,8 +52,6 @@ var supportedMajors = map[string]struct{ min, max int }{
 
 var icuPlugins = []string{"analysis-icu", "opensearch-analysis-icu"}
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
-
 var esLocalhostURL = healthcheck.Rule{
 	Code:     "ES_LOCALHOST_URL",
 	Area:     model.AreaSearch,
@@ -82,7 +81,7 @@ var esServerError = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    connectionURLSubject,
-	Eval:       healthcheck.Licensed(esFeature, healthcheck.Single(evalESServerError)),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalESServerError)),
 }
 
 var searchUnavailable = healthcheck.Rule{
@@ -114,7 +113,7 @@ var scaleESRequired = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    enableSearchingSubject,
-	Eval:       healthcheck.Single(evalScaleESRequired),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRequired)),
 }
 
 var scaleESRecommended = healthcheck.Rule{
@@ -130,7 +129,7 @@ var scaleESRecommended = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityThreshold,
 	Subject:    enableSearchingSubject,
-	Eval:       healthcheck.Single(evalScaleESRecommended),
+	Eval:       healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Single(evalScaleESRecommended)),
 }
 
 var esLiveBatchSync = healthcheck.Rule{
@@ -221,13 +220,9 @@ func unknownDiag() healthcheck.Result {
 	return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 }
 
-func esFeature(f *model.Features) *bool { return f.Elasticsearch }
-
-func clusterFeature(f *model.Features) *bool { return f.Cluster }
-
 // whenIndexing resolves the rule while Elasticsearch is unlicensed or indexing is off.
 func whenIndexing(check func(*healthcheck.Snapshot) healthcheck.Result) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return healthcheck.Licensed(esFeature, healthcheck.Gate(indexingEnabled, healthcheck.ReasonConfigUnavailable, check))
+	return healthcheck.Licensed(healthcheck.FeatureElasticsearch, healthcheck.Gate(indexingEnabled, healthcheck.ReasonConfigUnavailable, check))
 }
 
 func indexingEnabled(s *healthcheck.Snapshot) (bool, bool) {
@@ -246,26 +241,6 @@ func connectionURL(s *healthcheck.Snapshot) (string, bool) {
 	return s.ConfigString(func(cfg *model.Config) *string { return cfg.ElasticsearchSettings.ConnectionURL })
 }
 
-func isLoopbackHost(host string) bool {
-	host = strings.ToLower(strings.TrimSuffix(host, "."))
-	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
-		return true
-	}
-
-	ip := net.ParseIP(host)
-	return ip != nil && (ip.IsLoopback() || ip.IsUnspecified())
-}
-
-func maskURLCredentials(s string) string {
-	return urlCredentials.ReplaceAllString(s, "${1}****@")
-}
-
-func majorVersion(version string) (int, bool) {
-	major, _, _ := strings.Cut(version, ".")
-	n, err := strconv.Atoi(major)
-	return n, err == nil
-}
-
 func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 	clustered, ok := s.ClusterEnabled()
 	if !ok {
@@ -275,7 +250,7 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 		return healthcheck.Resolved()
 	}
 	// Without the license the cluster never starts, so a local Elasticsearch serves the only node.
-	clusterLicensed, ok := s.LicenseAllows(clusterFeature)
+	clusterLicensed, ok := s.LicenseAllows(healthcheck.FeatureCluster)
 	if !ok {
 		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)
 	}
@@ -289,7 +264,7 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	u, err := url.Parse(connURL)
-	if err != nil || !isLoopbackHost(u.Hostname()) {
+	if err != nil || !hosts.IsLocal(u.Hostname()) {
 		return healthcheck.Resolved()
 	}
 
@@ -297,19 +272,20 @@ func evalESLocalhostURL(s *healthcheck.Snapshot) healthcheck.Result {
 }
 
 func evalESServerError(s *healthcheck.Snapshot) healthcheck.Result {
-	diag, ok := s.LeaderDiag(model.SectionSearchProbe)
+	return probes.Eval(s, esProbe, esServerErrorMessage(s), healthcheck.TranslationId("health.rule.es_server_error.message.partial"))
+}
+
+// A disabled status means the node does not use the search engine, so it counts as passing.
+func esProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSearchProbe)
 	if !ok {
-		return unknownDiag()
+		return "", ""
 	}
 
-	switch diag.ElasticSearch.Status {
-	case model.StatusFail:
-		return healthcheck.Firing(esServerErrorMessage(s)).WithDetail("error", maskURLCredentials(diag.ElasticSearch.Error))
-	case model.StatusOk, model.StatusDisabled:
-		return healthcheck.Resolved()
-	default:
-		return unknownDiag()
+	if diag.ElasticSearch.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return diag.ElasticSearch.Status, probes.MaskURLCredentials(diag.ElasticSearch.Error)
 }
 
 // esServerErrorMessage says search is fully down when Elasticsearch serves search and there is no database fallback.
@@ -335,18 +311,18 @@ func evalSearchUnavailable(s *healthcheck.Snapshot) healthcheck.Result {
 	if !ok {
 		return unknownConfig()
 	}
-	if searching {
-		// The server does not activate Elasticsearch without the license, so EnableSearching alone serves nothing.
-		licensed, ok := s.LicenseAllows(esFeature)
-		if !ok {
-			return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)
-		}
-		if licensed {
-			return healthcheck.Resolved()
-		}
+	// The server does not activate Elasticsearch without the license, so EnableSearching alone serves nothing.
+	licensed, licenseKnown := s.LicenseAllows(healthcheck.FeatureElasticsearch)
+	switch {
+	case searching && !licenseKnown:
+		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)
+	case searching && licensed:
+		return healthcheck.Resolved()
+	case licenseKnown && !licensed:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.search_unavailable.message.unlicensed"))
+	default:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.search_unavailable.message"))
 	}
-
-	return healthcheck.Firing(healthcheck.TranslationId("health.rule.search_unavailable.message"))
 }
 
 // evalScale fires when fires(posts) holds while search runs against the database.
@@ -432,7 +408,7 @@ func evalESVersionUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
 	}
 
 	supported, known := supportedMajors[backend]
-	major, parsed := majorVersion(version)
+	major, parsed := versions.Major(version)
 	if !known || !parsed {
 		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.es_version_unsupported.message.unrecognized"))
 	}

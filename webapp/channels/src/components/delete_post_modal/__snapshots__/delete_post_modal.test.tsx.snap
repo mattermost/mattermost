@@ -64,17 +64,25 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>
@@ -150,17 +158,25 @@ exports[`components/delete_post_modal should match snapshot for delete_post_moda
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>
@@ -233,17 +249,25 @@ exports[`components/delete_post_modal should match snapshot for post with 1 comm
           class="modal-footer"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             type="button"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </button>
           <button
-            class="btn btn-danger"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
             id="deletePostModalButton"
             type="button"
           >
-            Delete
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Delete
+            </span>
           </button>
         </div>
       </div>

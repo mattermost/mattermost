@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {shallowEqual, useDispatch, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {ChannelJoinRequest} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
@@ -217,7 +217,7 @@ function PendingJoinRequestRow({
                     <Button
                         type='button'
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         onClick={handleDenyClick}
                         disabled={approving || denying}
                         aria-label={formatMessage({
@@ -233,7 +233,7 @@ function PendingJoinRequestRow({
                     <Button
                         type='button'
                         emphasis='primary'
-                        size='sm'
+                        size='small'
                         onClick={handleApprove}
                         disabled={approving || denying}
                         aria-label={formatMessage({
@@ -272,7 +272,7 @@ function PendingJoinRequestRow({
                         defaultMessage='Deny request'
                     />
                 }
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleDenyConfirm}
                 onCancel={() => setShowDenyConfirm(false)}
             />
