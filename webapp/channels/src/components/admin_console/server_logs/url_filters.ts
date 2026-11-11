@@ -23,8 +23,9 @@ export type UrlFilters = {
 
 const PARAMS = ['search', 'levels', 'node', 'range', 'from', 'to'] as const;
 
-// A filter left out of the URL falls back to the saved prefs, so a link that must show every level or node says so.
-// A node is named by the server, so every node is an empty value rather than a name a node could have
+// A level or node left out of the URL falls back to the saved prefs, so every URL the viewer writes says which it
+// shows, and a copied URL opens the same view for another admin. A node is named by the server, so every node is an
+// empty value rather than a name a node could have
 const ALL_LEVELS = 'all';
 const ALL_NODES = '';
 
@@ -98,8 +99,9 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
     return filters;
 }
 
-// Keeps any other parameters, and leaves out filters at their defaults unless told to keep them. Null removes every filter
-export function withUrlFilters(query: string, filters: UrlFilters | null, keepDefaults = false): string {
+// Keeps any other parameters. The levels and node are always set, and the other filters are left out at their
+// defaults. Null removes every filter
+export function withUrlFilters(query: string, filters: UrlFilters | null): string {
     const params = new URLSearchParams(query);
     PARAMS.forEach((param) => params.delete(param));
     Array.from(params.keys()).filter((param) => param.startsWith(FIELD_PARAM_PREFIX)).forEach((param) => params.delete(param));
@@ -109,14 +111,9 @@ export function withUrlFilters(query: string, filters: UrlFilters | null, keepDe
         if (search) {
             params.set('search', search);
         }
-        if (!LEVEL_GROUPS.every((level) => enabledLevels.has(level))) {
-            params.set('levels', LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).join(','));
-        } else if (keepDefaults) {
-            params.set('levels', ALL_LEVELS);
-        }
-        if (node || keepDefaults) {
-            params.set('node', node || ALL_NODES);
-        }
+        const allLevels = LEVEL_GROUPS.every((level) => enabledLevels.has(level));
+        params.set('levels', allLevels ? ALL_LEVELS : LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).join(','));
+        params.set('node', node || ALL_NODES);
         if (typeof timeRange === 'number') {
             params.set('range', String(timeRange));
         } else if (timeRange) {
@@ -133,8 +130,8 @@ export function withUrlFilters(query: string, filters: UrlFilters | null, keepDe
 
 const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
 
-// Opens the viewer on everything one plugin logged. Every level and node is set, so the saved prefs can't hide the
-// info lines before a failure, or a node other than the one that failed
+// Opens the viewer on everything one plugin logged. The saved prefs can't hide the info lines before a failure, or a
+// node other than the one that failed
 export function pluginLogsPath(pluginId: string): string {
     return SERVER_LOGS_PATH + withUrlFilters('', {
         search: '',
@@ -142,7 +139,7 @@ export function pluginLogsPath(pluginId: string): string {
         node: '',
         timeRange: null,
         plugins: [pluginId],
-    }, true);
+    });
 }
 
 // Whether the admin can open the Server Logs page. The admin definition hides the page with it too, so links to it

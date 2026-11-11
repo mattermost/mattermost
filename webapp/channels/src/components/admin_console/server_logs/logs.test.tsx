@@ -986,8 +986,8 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(screen.getByLabelText('Levels')).toHaveValue('All levels');
         expect(screen.getByLabelText('Node')).toHaveValue('All nodes');
 
-        // What the viewer shows is remembered, so the defaults can be left out of the URL again
-        await waitFor(() => expect(history.location.search).toBe('?field.plugin_id=github'));
+        // The viewer keeps them in the URL, so a copy of it opens the same view for an admin with other saved prefs
+        await waitFor(() => expect(history.location.search).toBe('?levels=all&node=&field.plugin_id=github'));
     });
 
     test('should remember the levels and node of an opened link as the last used ones', async () => {
@@ -1014,7 +1014,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         expect(screen.getByLabelText('Duration')).toHaveValue('All time');
 
         // Parameters that aren't filters are left alone
-        await waitFor(() => expect(urlParams(history)).toEqual({levels: 'warn', tab: '1'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({levels: 'warn', node: '', tab: '1'}));
     });
 
     test.each([
@@ -1043,10 +1043,20 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search})));
     });
 
+    test('should keep a copied URL on every level and node for an admin with other saved prefs', async () => {
+        const {history} = renderLogs(`${PAGE}?search=timeout`);
+        await waitFor(() => expect(history.location.search).toBe('?search=timeout&levels=all&node='));
+
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({node: 'node-a', enabledLevels: ['error']}));
+        const {getLogs} = renderLogs(PAGE + history.location.search);
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({search: 'timeout', logLevels: [], serverNames: []})));
+    });
+
     test('should mirror the filters in the URL as they change, without adding history entries', async () => {
         const {history} = renderLogs(PAGE);
         await screen.findByText('a');
-        expect(history.location.search).toBe('');
+        expect(history.location.search).toBe('?levels=all&node=');
 
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
         await pickMenuItem('Open menu to select which log levels to show', 'Info', 'menuitemcheckbox');
@@ -1070,7 +1080,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         await userEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
         await userEvent.click(screen.getByRole('menuitem', {name: 'Select all levels'}));
 
-        await waitFor(() => expect(history.location.search).toBe(''));
+        await waitFor(() => expect(history.location.search).toBe('?levels=all&node='));
         expect(history.length).toBe(1);
     });
 
@@ -1081,20 +1091,20 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await userEvent.type(screen.getByLabelText('Search logs'), 'WebSocket');
 
-        await waitFor(() => expect(urlParams(history)).toEqual({search: 'WebSocket'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'WebSocket', levels: 'all', node: ''}));
         expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({search: 'WebSocket'}));
         expect(searches).toEqual(['WebSocket']);
     });
 
     test('should take the filters out of the URL in the plain viewer and restore them in the structured one', async () => {
         const {history} = renderLogs(`${PAGE}?search=timeout`);
-        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout', levels: 'all', node: ''}));
 
         await pickMenuItem('Open menu to select the log format', 'Plain text');
         await waitFor(() => expect(history.location.search).toBe(''));
 
         await pickMenuItem('Open menu to select the log format', 'Structured');
-        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({search: 'timeout', levels: 'all', node: ''}));
     });
 
     test('should apply the filters of a link followed while the viewer is open', async () => {
@@ -1139,7 +1149,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: '', fields: undefined}));
         expect(screen.getByLabelText('Search logs')).toHaveValue('');
-        expect(history.location.search).toBe('');
+        await waitFor(() => expect(history.location.search).toBe('?levels=all&node='));
     });
 
     test('should not query again when the viewer is left', async () => {
@@ -1172,7 +1182,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /^GitHub/}));
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {plugin_id: ['github']}})));
-        await waitFor(() => expect(urlParams(history)).toEqual({'field.plugin_id': 'github'}));
+        await waitFor(() => expect(urlParams(history)).toEqual({levels: 'all', node: '', 'field.plugin_id': 'github'}));
 
         await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /^mattermost-ai/}));
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {plugin_id: ['github', 'mattermost-ai']}})));
@@ -1181,7 +1191,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
         await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: undefined})));
-        await waitFor(() => expect(history.location.search).toBe(''));
+        await waitFor(() => expect(history.location.search).toBe('?levels=all&node='));
     });
 
     test('should show the name of a plugin picked by a link', async () => {
