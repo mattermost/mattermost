@@ -126,10 +126,10 @@ func (sm *ServerManager) build(ctx context.Context) error {
 
 func (sm *ServerManager) resetDatabases(ctx context.Context) error {
 	sm.logger.Info("Resetting databases...")
-	for _, db := range []string{"mattermost_test", "mattermost_node_test"} {
+	for _, db := range []string{sm.cfg.DBNameA, sm.cfg.DBNameB} {
 		for _, sql := range []string{
-			fmt.Sprintf("DROP DATABASE IF EXISTS %s", db),
-			fmt.Sprintf("CREATE DATABASE %s", db),
+			fmt.Sprintf(`DROP DATABASE IF EXISTS "%s"`, db),
+			fmt.Sprintf(`CREATE DATABASE "%s"`, db),
 		} {
 			cmd := exec.CommandContext(ctx, "docker", "exec",
 				"-e", "PGPASSWORD=mostest_password",
@@ -185,7 +185,7 @@ func (sm *ServerManager) launchServerB(logsDir string, truncate bool) error {
 	sm.procB.Env = append(sm.procB.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerBURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9066",
-		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/"+sm.cfg.DBNameB+"?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_b.log"),
 	)
 	sm.procB.Env = append(sm.procB.Env, sm.pluginEnv("b")...)
@@ -219,7 +219,7 @@ func (sm *ServerManager) startServers(ctx context.Context) error {
 	sm.procA.Env = append(sm.procA.Env,
 		"MM_SERVICESETTINGS_SITEURL="+sm.cfg.ServerAURL,
 		"MM_SERVICESETTINGS_LISTENADDRESS=:9065",
-		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes",
+		"MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/"+sm.cfg.DBNameA+"?sslmode=disable&connect_timeout=10&binary_parameters=yes",
 		"MM_LOGSETTINGS_FILELOCATION="+filepath.Join(logsDir, "server_a.log"),
 	)
 	sm.procA.Env = append(sm.procA.Env, sm.pluginEnv("a")...)
