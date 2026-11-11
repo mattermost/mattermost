@@ -372,7 +372,7 @@ func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]an
 		maps.Copy(attrs, serverDerived)
 	}
 
-	if deviceID := ProxyDeviceID(rctx); deviceID != "" && a.sessionAttributesEnabled() {
+	if deviceID := ProxyDeviceID(rctx); deviceID != "" && a.sessionAttributesEnabled() && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
 		if attrs == nil {
 			attrs = make(map[string]any, 1)
 		}

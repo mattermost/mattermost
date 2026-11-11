@@ -2768,6 +2768,26 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldIPAddress)
 		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldUserAgentBrowserName)
 	})
+
+	t.Run("ignores the context device ID when TrustProxyDeviceIdentityHeader is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := WithProxyDeviceID(th.Context.WithSession(session), "device-a")
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "device-a", subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID])
+
+		setSessionAttributesAccessControlSettings(t, th, false, false)
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	})
 }
 
 // TestFilterResponseToEditingRuleScope locks down the post-processing
