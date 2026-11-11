@@ -165,7 +165,13 @@ func newSessionAttributesRecord(deadlines map[string]model.SessionAttributeDeadl
 	for name, deadline := range deadlines {
 		if deadline.ExpiresAt <= now {
 			record.Lapsed = append(record.Lapsed, name)
-		} else if record.ExpireAt == 0 || deadline.ExpiresAt < record.ExpireAt {
+			continue
+		}
+		if record.Live == nil {
+			record.Live = make(map[string]model.SessionAttributeDeadline)
+		}
+		record.Live[name] = deadline
+		if record.ExpireAt == 0 || deadline.ExpiresAt < record.ExpireAt {
 			record.ExpireAt = deadline.ExpiresAt
 		}
 	}
@@ -175,32 +181,58 @@ func newSessionAttributesRecord(deadlines map[string]model.SessionAttributeDeadl
 
 // sessionAttributesChangedSince reports whether the session's attributes are no longer the
 // ones recorded when a connection went inactive: a value changed or appeared, as when a
-// laptop moves to another network, a live attribute expired, or a lapsed one was refreshed.
-// The connection's queued events were evaluated against the old attributes and must not
-// be replayed.
+// laptop moves to another network, a live attribute expired before it was refreshed, or a
+// lapsed one was refreshed. The connection's queued events were evaluated against the old
+// attributes and must not be replayed.
 func (ps *PlatformService) sessionAttributesChangedSince(sessionID string, record *model.SessionAttributesRecord) bool {
 	if record == nil {
 		return false
-	}
-	if record.ExpireAt != 0 && model.GetMillis() >= record.ExpireAt {
-		return true
 	}
 	epoch, err := ps.Store.SessionAttribute().GetEpoch(sessionID)
 	if err != nil || epoch != record.Epoch {
 		return true
 	}
-	if len(record.Lapsed) == 0 {
+	now := model.GetMillis()
+	expiring := record.ExpireAt != 0 && now >= record.ExpireAt
+	if !expiring && len(record.Lapsed) == 0 {
 		return false
 	}
 
 	_, timestamps, err := ps.Store.SessionAttribute().Get(sessionID)
 	if err != nil {
-		return !errors.Is(err, cache.ErrKeyNotFound)
+		return expiring || !errors.Is(err, cache.ErrKeyNotFound)
 	}
+	if expiring && !liveSessionAttributesHeld(record.Live, timestamps, now) {
+		return true
+	}
+	// A refresh stamped in the millisecond of the record may have come after it.
 	for _, name := range record.Lapsed {
-		if timestamps[name] > record.RecordedAt {
+		if timestamps[name] >= record.RecordedAt {
 			return true
 		}
 	}
 	return false
+}
+
+// liveSessionAttributesHeld reports whether each attribute live when the record was taken
+// has counted ever since. One past its recorded expiry held only if it was refreshed before
+// then and has not expired again. Only the latest refresh is known, so one refreshed before
+// and again after its recorded expiry is taken to have lapsed in between.
+func liveSessionAttributesHeld(live map[string]model.SessionAttributeDeadline, timestamps map[string]int64, now int64) bool {
+	if len(live) == 0 {
+		return false
+	}
+	for name, recorded := range live {
+		if now < recorded.ExpiresAt {
+			continue
+		}
+		refreshedAt, ok := timestamps[name]
+		if !ok || refreshedAt >= recorded.ExpiresAt {
+			return false
+		}
+		if now >= refreshedAt+recorded.ExpiresAt-recorded.RefreshedAt {
+			return false
+		}
+	}
+	return true
 }

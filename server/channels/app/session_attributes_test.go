@@ -574,8 +574,9 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, map[string]model.SessionAttributeDeadline{
 			model.SessionAttributesPropertyFieldIPAddress: {
-				StaleAt:   refreshedAt + 30*1000,
-				ExpiresAt: refreshedAt + (30+90)*1000,
+				RefreshedAt: refreshedAt,
+				StaleAt:     refreshedAt + 30*1000,
+				ExpiresAt:   refreshedAt + (30+90)*1000,
 			},
 		}, deadlines)
 	})

@@ -321,8 +321,9 @@ func (a *App) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (
 		}
 		staleAt := timestamp + int64(saField.Attrs.TTLSeconds)*1000
 		deadlines[name] = model.SessionAttributeDeadline{
-			StaleAt:   staleAt,
-			ExpiresAt: staleAt + int64(saField.Attrs.GracePeriodSeconds)*1000,
+			RefreshedAt: timestamp,
+			StaleAt:     staleAt,
+			ExpiresAt:   staleAt + int64(saField.Attrs.GracePeriodSeconds)*1000,
 		}
 	}
 	return deadlines, nil
