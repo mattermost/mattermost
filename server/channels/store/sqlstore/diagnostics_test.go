@@ -145,7 +145,9 @@ func makeVacuumProbeDB(t *testing.T) *sqlx.DB {
 //
 // The vacuum only has to freeze the row if the row's xmin precedes every snapshot in the database.
 // Otherwise it leaves the row alone, skips the pinned page and finishes at once, so wait for any
-// older snapshot, such as an autovacuum worker's ANALYZE, to end before starting the vacuum.
+// older snapshot, such as an autovacuum worker's ANALYZE, to end before starting the vacuum. A
+// transaction that is still running in any database counts too, even on a server shared with
+// other test packages: its xid holds back the xmin of the cursor's own snapshot.
 func holdVacuumInProgress(t *testing.T, db *sql.DB, table string) func() {
 	t.Helper()
 
@@ -160,9 +162,11 @@ func holdVacuumInProgress(t *testing.T, db *sql.DB, table string) func() {
 		queryErr := db.QueryRow(`
 SELECT coalesce(string_agg(format('pid=%s type=%s state=%s query=%s', pid, backend_type, state, query), '; '), '')
 FROM pg_stat_activity
-WHERE datname = current_database()
-  AND pid <> pg_backend_pid()
-  AND (age(backend_xmin) >= age($1::xid) OR age(backend_xid) >= age($1::xid))`,
+WHERE pid <> pg_backend_pid()
+  AND (
+    (datname = current_database() AND age(backend_xmin) >= age($1::xid))
+    OR age(backend_xid) >= age($1::xid)
+  )`,
 			rowXmin,
 		).Scan(&olderSnapshots)
 		return queryErr == nil && olderSnapshots == ""
