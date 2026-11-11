@@ -1496,11 +1496,11 @@
     "translation": "بولتن امنیتی Mattermost"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "دریافت کانال امکان پذیر نیست."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "تجزیه URL امکان پذیر نیست."
   },
   {
@@ -4789,7 +4789,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "گرفتن کانالها برای طرح ارائه شده امکان پذیر نیست."
+    "translation": "گرفتن تیم‌ها برای طرح ارائه‌شده امکان‌پذیر نیست."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -5440,10 +5440,6 @@
     "translation": "شناسه قبلاً حذف شده است = {{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "یافتن پست یا نظر موجود برای به روزرسانی امکان پذیر نیست."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "نمی توان پستی را در کانال حذف شده به روز کرد."
   },
@@ -5610,15 +5606,15 @@
     "translation": "وب بوک های خروجی توسط مدیر سیستم غیرفعال شده اند."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "به نظر نمی رسد پیوند ثبت نام معتبر باشد."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "پیوند ثبت نام منقضی شده است."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "ثبت نام کاربر غیرفعال است."
   },
   {
@@ -9096,7 +9092,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "لغو دعوت سرور راه دور از کانال ممکن نشد"
+    "translation": "لغو دعوت سرور راه دور از کانال ممکن نشد."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -11301,11 +11297,11 @@
     "translation": "حذف پست اعلان مداوم ناموفق بود"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "دریافت اولویت پست برای پست امکان‌پذیر نیست"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "دریافت اولویت پست برای پست همراه با زمینه امکان‌پذیر نیست"
   },
   {
@@ -11313,7 +11309,7 @@
     "translation": "سلام، این یادآور شما درباره این پیام از @{{.Username}} است: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "نسخه افزونه ازپیش‌بسته‌بندی‌شده قابل تجزیه نیست."
   },
   {
@@ -12551,20 +12547,12 @@
     "translation": "آزمایش اتصال LDAP ناموفق بود. سرور: {{.Server}}:{{.Port}}، ConnectionSecurity: {{.ConnectionType}}، PrivateKeyFilename: {{.PrivateKeyFilename}}، PublicCertificateFilename: {{.PublicCertFilename}}، BindUsername: {{.BindUsername}}. خطا: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلدهای CPA ناموفق بود"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "شناسه AD/LDAP نامعتبر است"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "دریافت کاربر ناموفق بود."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "مقدار ویژگی LDAP خالی است"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12705,10 +12693,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML نتوانست گواهی عمومی ارائه‌دهنده هویت را بارگیری کند؛ لطفاً با مدیر سیستم خود تماس بگیرید."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "بازیابی فیلد(های) CPA ناموفق بود"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14577,5 +14561,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys نامعتبر است: از حد {{.MaxCount}} کلید یا {{.MaxLength}} بایت فراتر رفته است."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**یافت نشد**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "حذف شد"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` یک `{{.Arg}}` معتبر نیست"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "این فیلد به یک الگوی ویژگی سراسری (Global Attribute) پیوند دارد و نمی‌توان آن را از طریق API ویژگی‌های کاربر تغییر داد. به‌جای آن از API ویژگی‌های سراسری استفاده کنید."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "ایجاد ایموجی امکان‌پذیر نیست. تصویر برای پردازش بیش از حد بزرگ است. از تصویری با ابعاد کوچک‌تر یا فریم‌های کمتر استفاده کنید."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "صفحهٔ سلامت سایت فعال نیست."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "صفحهٔ سلامت سایت به مجوز Enterprise نیاز دارد."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "شما اجازهٔ ارسال پیام‌های حذف پس از خواندن را در این کانال ندارید."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "بازگشت به ابتدای فایل امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "دریافت یافتهٔ سلامت امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "یافتهٔ سلامت پیدا نشد."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "دریافت یافته‌های سلامت امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "این ویژگی دیگر از این منبع همگام‌سازی نمی‌شود، بنابراین همگام‌سازی آن منبع نمی‌تواند آن را تغییر دهد."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "گزینه‌های ویژگی‌ای که از AD/LDAP یا SAML همگام‌سازی می‌شود، توسط همگام‌سازی مدیریت می‌شوند و نمی‌توان آن‌ها را افزود، تغییر نام داد یا حذف کرد."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "ویژگی همگام‌سازی‌شده گزینه‌های نامعتبری دارد."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "منبع همگام‌سازی ویژگی نامعتبر است."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "شناسهٔ کاربر برای همگام‌سازی ویژگی نامعتبر است."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "تعیین اینکه کدام گزینه‌های ویژگی همگام‌سازی‌شده در حال استفاده هستند، امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "پیکربندی ثبت گزارش شامل مسیر فایل گزارش یا ممیزی‌ای است که خارج از پوشهٔ ریشهٔ گزارش‌ها قرار دارد. برای جزئیات، گزارش‌های سرور را بررسی کنید."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "زمان جمع‌آوری داده‌ها نامشخص است."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "بخش پیکربندی در دسترس نیست."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "اطلاعات عیب‌یابی سرور در دسترس نیست."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "تاریخچهٔ کارها در دسترس نیست."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "جزئیات مجوز در دسترس نیست."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "فهرست افزونه‌ها در دسترس نیست."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "این قاعده به‌طور غیرمنتظره با خطا مواجه شد و قابل ارزیابی نبود."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "آمار استفاده در دسترس نیست."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} از http:// استفاده می‌کند، بنابراین اعلان‌های پوش به‌صورت رمزنگاری‌نشده ارسال می‌شوند."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} پیشوند پروتکل نامعتبری دارد. کاربران موبایل اعلان دریافت نخواهند کرد."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "پیشوند https:// را به ابتدای PushNotificationServer اضافه کنید و دسترس‌پذیری آن را از گره برنامه بررسی کنید."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer از https:// استفاده نمی‌کند"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "هر تلاش برای ارسال اعلان پوش با خطای 'unsupported protocol scheme' ناموفق خواهد بود."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "PushNotificationServer را روی https://push.mattermost.com یا یک پروکسی اعلان پوش خودمیزبان تنظیم کنید."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "اعلان‌های پوش فعال است، اما PushNotificationServer خالی است"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com پروکسی آزمایشی اعلان پوش Mattermost است. این سرویس هیچ SLA (توافق‌نامهٔ سطح خدمات) ندارد، توان عملیاتی آن محدود است و برای استفاده در محیط عملیاتی در نظر گرفته نشده است. تحویل اعلان‌های پوش موبایل برای هر کاربردی فراتر از آزمایش در مقیاس کوچک غیرقابل اعتماد خواهد بود."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "به https://push.mattermost.com (سرویس عملیاتی Hosted Push Notification Service که همراه با Enterprise ارائه می‌شود) یا به یک پروکسی اعلان پوش خودمیزبان تغییر دهید."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer به push-test.mattermost.com اشاره می‌کند"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL برای URLهای وب‌هوک، callbackهای OAuth، محتوای اعلان‌های پوش موبایل و پیوندهای ایمیل لازم است. تا زمانی که خالی باشد، ادغام‌ها کار نمی‌کنند."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "SiteURL را روی URL عمومی HTTPS سرور تنظیم کنید."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL خالی است"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL برابر با {{.url}} است. کوکی‌های جلسه و توکن‌های احراز هویت به‌صورت رمزنگاری‌نشده در شبکه منتقل می‌شوند."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Mattermost را از طریق HTTPS ارائه دهید و SiteURL را به نشانی https:// به‌روزرسانی کنید."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL از http:// استفاده می‌کند (نه https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "پیام‌های حذف پس از خواندن را نمی‌توان به‌صورت پیام‌های زمان‌بندی‌شدهٔ تکرارشونده ارسال کرد."
   }
 ]

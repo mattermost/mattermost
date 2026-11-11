@@ -24,6 +24,7 @@ type Props = {
     children?: string | React.ReactNode;
     className?: string;
     onClick?: (e: React.MouseEvent) => void;
+    'data-testid'?: string;
 };
 
 const BlockableLink = ({blocked, actions, onClick, to, ...restProps}: Props) => {

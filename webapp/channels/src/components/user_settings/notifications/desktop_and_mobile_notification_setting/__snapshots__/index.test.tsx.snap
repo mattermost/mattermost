@@ -31,60 +31,129 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               Send notifications for:
             </legend>
             <div
-              class="radio"
+              class="settings-radio-group"
             >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_0_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_0_"
+                  name="desktopActivity"
                   type="radio"
                   value="all"
                 />
-                All new messages
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  All new messages
+                </span>
               </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_1_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_1_"
+                  name="desktopActivity"
                   type="radio"
                   value="mention"
                 />
-                Mentions, direct messages, and group messages
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  Mentions, direct messages, and group messages
+                </span>
               </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_2_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_2_"
+                  name="desktopActivity"
                   type="radio"
                   value="none"
                 />
-                Nothing
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  Nothing
+                </span>
               </label>
             </div>
           </fieldset>
           <br />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
-            <label>
+            <label
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
+              for="_r_3_"
+            >
               <input
-                class="a11y--active a11y--focused"
+                class="_checkbox__input_18sf4_36 a11y--active a11y--focused"
+                id="_r_3_"
                 type="checkbox"
               />
-              Notify me about replies to threads I'm following
+              <span
+                class="_checkbox__box_18sf4_55"
+              />
+              <span
+                class="_checkbox__label_18sf4_131"
+              >
+                Notify me about replies to threads I'm following
+              </span>
             </label>
           </div>
           <hr />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
-            <label>
+            <label
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
+              for="_r_4_"
+            >
               <input
+                class="_checkbox__input_18sf4_36"
+                id="_r_4_"
                 type="checkbox"
               />
-              Use different settings for my mobile devices
+              <span
+                class="_checkbox__box_18sf4_55"
+              />
+              <span
+                class="_checkbox__label_18sf4_131"
+              >
+                Use different settings for my mobile devices
+              </span>
             </label>
           </div>
           <br />
@@ -166,23 +235,34 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           <div
             role="alert"
           />
-          <button
-            class="btn btn-primary"
-            data-testid="saveSetting"
-            id="saveSetting"
-            type="submit"
+          <div
+            class="setting-list-item__buttons"
           >
-            <span>
-              Save
-            </span>
-          </button>
-          <button
-            class="btn btn-tertiary"
-            data-testid="cancelButton"
-            id="cancelSetting"
-          >
-            Cancel
-          </button>
+            <button
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+              data-testid="saveSetting"
+              id="saveSetting"
+              type="submit"
+            >
+              <span
+                class="_button__label_1pij1_55"
+              >
+                Save
+              </span>
+            </button>
+            <button
+              class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
+              data-testid="cancelButton"
+              id="cancelSetting"
+              type="button"
+            >
+              <span
+                class="_button__label_1pij1_55"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -261,49 +341,106 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
               Send notifications for:
             </legend>
             <div
-              class="radio"
+              class="settings-radio-group"
             >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_5_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_5_"
+                  name="desktopActivity"
                   type="radio"
                   value="all"
                 />
-                All new messages
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  All new messages
+                </span>
               </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_6_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_6_"
+                  name="desktopActivity"
                   type="radio"
                   value="mention"
                 />
-                Mentions, direct messages, and group messages
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  Mentions, direct messages, and group messages
+                </span>
               </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
+              <label
+                class="_radio_1v3hu_13 _radio--size-medium_1v3hu_154"
+                for="_r_7_"
+              >
                 <input
+                  class="_radio__input_1v3hu_28"
+                  id="_r_7_"
+                  name="desktopActivity"
                   type="radio"
                   value="none"
                 />
-                Nothing
+                <span
+                  class="_radio__circle_1v3hu_47"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="_radio__dot_1v3hu_73"
+                  />
+                </span>
+                <span
+                  class="_radio__label_1v3hu_130"
+                >
+                  Nothing
+                </span>
               </label>
             </div>
           </fieldset>
           <hr />
           <div
-            class="checkbox single-checkbox"
+            class="checkbox single-checkbox no-padding"
           >
-            <label>
+            <label
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
+              for="_r_8_"
+            >
               <input
-                class="a11y--active a11y--focused"
+                class="_checkbox__input_18sf4_36 a11y--active a11y--focused"
+                id="_r_8_"
                 type="checkbox"
               />
-              Use different settings for my mobile devices
+              <span
+                class="_checkbox__box_18sf4_55"
+              />
+              <span
+                class="_checkbox__label_18sf4_131"
+              >
+                Use different settings for my mobile devices
+              </span>
             </label>
           </div>
           <br />
@@ -385,23 +522,34 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           <div
             role="alert"
           />
-          <button
-            class="btn btn-primary"
-            data-testid="saveSetting"
-            id="saveSetting"
-            type="submit"
+          <div
+            class="setting-list-item__buttons"
           >
-            <span>
-              Save
-            </span>
-          </button>
-          <button
-            class="btn btn-tertiary"
-            data-testid="cancelButton"
-            id="cancelSetting"
-          >
-            Cancel
-          </button>
+            <button
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+              data-testid="saveSetting"
+              id="saveSetting"
+              type="submit"
+            >
+              <span
+                class="_button__label_1pij1_55"
+              >
+                Save
+              </span>
+            </button>
+            <button
+              class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
+              data-testid="cancelButton"
+              id="cancelSetting"
+              type="button"
+            >
+              <span
+                class="_button__label_1pij1_55"
+              >
+                Cancel
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

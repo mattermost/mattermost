@@ -235,30 +235,30 @@ func TestGetHealthFindingsRendering(t *testing.T) {
 
 		rendered := list.Findings[0]
 		assert.Equal(t, finding.Fingerprint, rendered.Fingerprint)
-		assert.Equal(t, "SiteURL uses http:// (not https)", rendered.Title)
-		assert.Equal(t, "Serve via HTTPS and update SiteURL accordingly.", rendered.Remediation)
-		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens traverse cleartext.", rendered.Message)
+		assert.Equal(t, "SiteURL uses http:// (not https://)", rendered.Title)
+		assert.Equal(t, "Serve Mattermost over HTTPS and update SiteURL to the https:// address.", rendered.Remediation)
+		assert.Equal(t, "SiteURL is http://example.com. Session cookies and auth tokens travel over the network unencrypted.", rendered.Message)
 		assert.Equal(t, finding.MessageID, rendered.MessageID)
 		assert.Equal(t, "https://mattermost.com/pl/configure-site-url", rendered.DocsURL)
 		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
-	t.Run("untranslated locale falls back to English", func(t *testing.T) {
+	t.Run("unsupported locale falls back to English", func(t *testing.T) {
 		english, _, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 
 		client := th.CreateClient()
 		client.SetToken(th.SystemAdminClient.AuthToken)
-		client.HTTPHeader = map[string]string{"Accept-Language": "fr"}
-		french, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		client.HTTPHeader = map[string]string{"Accept-Language": "sw"}
+		swahili, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		require.Len(t, french.Findings, 1)
+		require.Len(t, swahili.Findings, 1)
 		require.Len(t, english.Findings, 1)
-		assert.Equal(t, english.Findings[0].Title, french.Findings[0].Title)
-		assert.Equal(t, english.Findings[0].Message, french.Findings[0].Message)
-		assert.Equal(t, english.Findings[0].Remediation, french.Findings[0].Remediation)
+		assert.Equal(t, english.Findings[0].Title, swahili.Findings[0].Title)
+		assert.Equal(t, english.Findings[0].Message, swahili.Findings[0].Message)
+		assert.Equal(t, english.Findings[0].Remediation, swahili.Findings[0].Remediation)
 	})
 }
 
@@ -451,6 +451,11 @@ func TestMuteHealthFindingAudit(t *testing.T) {
 func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
+	const (
+		unreachableHTTPS = "https://127.0.0.1:0"
+		badSchemeHTTP    = "http://127.0.0.1:0"
+	)
+
 	setPushServer := func(url string) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -468,31 +473,47 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 
 		byCode := map[string]*model.HealthFinding{}
 		for _, f := range list.Findings {
-			if strings.HasPrefix(f.Code, "PUSH_") {
+			if f.Subject == "EmailSettings.PushNotificationServer" {
 				byCode[f.Code] = f
 			}
 		}
 		return byCode
 	}
 
-	setPushServer("https://push.example.com")
-	assert.Empty(t, checkPushFindings())
+	setPushServer(unreachableHTTPS)
+	initial := checkPushFindings()
+	require.Len(t, initial, 1)
+	unreachable := initial["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachable)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachable.State)
+	assert.Equal(t, "health.rule.push_proxy_unreachable.message", unreachable.MessageID)
+	assert.NotEmpty(t, unreachable.Message)
 
-	setPushServer("http://push.example.com")
+	setPushServer(badSchemeHTTP)
 	firing := checkPushFindings()
-	require.Len(t, firing, 1)
+	require.Len(t, firing, 2)
 	badScheme := firing["PUSH_BAD_SCHEME"]
 	require.NotNil(t, badScheme)
 	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
 	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
 	assert.NotEmpty(t, badScheme.Message)
+	unreachableCleared := firing["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableCleared)
+	assert.Equal(t, string(healthcheck.StateResolved), unreachableCleared.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableCleared.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableCleared.FirstSeenAt)
 
-	setPushServer("https://push.example.com")
+	setPushServer(unreachableHTTPS)
 	after := checkPushFindings()
-	require.Len(t, after, 1)
+	require.Len(t, after, 2)
 	cleared := after["PUSH_BAD_SCHEME"]
 	require.NotNil(t, cleared)
 	assert.Equal(t, string(healthcheck.StateResolved), cleared.State)
 	assert.Equal(t, badScheme.Fingerprint, cleared.Fingerprint)
 	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
+	unreachableAgain := after["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableAgain)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachableAgain.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableAgain.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableAgain.FirstSeenAt)
 }

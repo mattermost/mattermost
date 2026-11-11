@@ -39,7 +39,7 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         await ba.saveAndWaitForSettled();
 
         // * Server reflects the create and rename
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const created = (fields ?? []).find((f) => f.name === attrName);
         expect(created).toBeDefined();
         const optionNames = ((created!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
@@ -79,7 +79,7 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
         await ba.saveAndWaitForSettled();
 
         // * Server reflects the deletion
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const updated = (fields ?? []).find((f) => f.name === attrName);
         const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
         expect(optionNames).toContain('KeepMe');

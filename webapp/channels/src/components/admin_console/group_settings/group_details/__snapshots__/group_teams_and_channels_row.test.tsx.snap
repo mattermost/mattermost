@@ -71,11 +71,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test private-channel_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>
@@ -111,11 +115,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test private-team_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>
@@ -170,11 +178,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test public-channel_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>
@@ -210,11 +222,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test public-team_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>
@@ -254,11 +270,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test team with children_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>
@@ -298,11 +318,15 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
           class="text-right"
         >
           <button
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             data-testid="Test team with children_groupsyncable_remove"
             type="button"
           >
-            Remove
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Remove
+            </span>
           </button>
         </td>
       </tr>

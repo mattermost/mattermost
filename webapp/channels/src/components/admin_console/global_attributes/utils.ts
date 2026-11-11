@@ -1,15 +1,72 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {Dispatch} from 'redux';
 
+import {supportsHierarchy, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
+
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import {ALL_EXTERNAL_SOURCES} from './attribute_details/external_source';
+import type {ExternalSourceLinks} from './attribute_details/external_source';
 import type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 import {toServerFieldType, toValueType} from './attribute_type';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+
+const USER_RESOURCE_OBJECT_TYPE: ResourceObjectType = 'user';
+
+// Attribute Management writes user attributes through the generic property-fields
+// API, which never touches the custom profile attribute slice that User
+// Management, the profile popover and Account Settings → Profile all read. The
+// server also omits the saving connection from property_field_* broadcasts, so
+// the admin who made the change gets no websocket event of their own. Without
+// mirroring the write here, every one of those surfaces in that admin's tab
+// stays stale until a reload. A field returned from the create/patch call
+// carries its authoritative option list (unlike the stripped broadcast), so it
+// can be stored as-is.
+//
+// Graph option names live in a module-level cache that useGraphOptionNames
+// prefers over the field's inline list. Remote property_field_* events already
+// clear and recommit that cache; the originating tab has to do the same here
+// or a renamed option keeps showing its old name until reload.
+export function syncUserAttributeFieldUpsert(dispatch: Dispatch, field: PropertyField, created: boolean): void {
+    if (field.object_type !== USER_RESOURCE_OBJECT_TYPE) {
+        return;
+    }
+    if (supportsHierarchy(field)) {
+        clearGraphOptionNamesForField(field.id);
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+            const names: Record<string, string> = {};
+            for (const option of field.attrs.options as PropertyFieldOption[]) {
+                if (option.id) {
+                    names[option.id] = option.name;
+                }
+            }
+            commitGraphOptionNames(field.id, names);
+        }
+
+        // Withheld lists leave the cache empty. User Detail and the profile
+        // popover pass {walk: true}; Account Settings shows a count until an
+        // editable picker mounts and must not walk from this helper.
+    }
+    dispatch({
+        type: created ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+        data: field,
+    });
+}
+
+export function syncUserAttributeFieldDelete(dispatch: Dispatch, objectType: string, fieldId: string): void {
+    if (objectType !== USER_RESOURCE_OBJECT_TYPE) {
+        return;
+    }
+    dispatch({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED, data: fieldId});
+}
 
 export type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 
@@ -80,9 +137,12 @@ export async function listPropertyFields(objectType: string): Promise<PropertyFi
         const page = await Client4.getPropertyFields(
             GLOBAL_ATTRIBUTES_GROUP_NAME,
             objectType,
-            GLOBAL_ATTRIBUTES_TARGET_TYPE,
-            undefined,
-            {perPage: MAX_PROPERTY_FIELDS_PER_PAGE, cursorId, cursorCreateAt},
+            {
+                targetType: GLOBAL_ATTRIBUTES_TARGET_TYPE,
+                perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+                cursorId,
+                cursorCreateAt,
+            },
         );
         fields.push(...page);
         if (page.length === 0) {
@@ -145,27 +205,6 @@ export async function fetchLinkedFieldsForTemplate(templateFieldId: string, allo
     ));
 }
 
-export function appliedResourceTypesByTemplateId(linkedFields: PropertyField[]): Record<string, ResourceObjectType[]> {
-    const present = new Map<string, Set<ResourceObjectType>>();
-    for (const field of linkedFields) {
-        if (!field.linked_field_id || field.delete_at !== 0 || !isResourceObjectType(field.object_type)) {
-            continue;
-        }
-        let types = present.get(field.linked_field_id);
-        if (!types) {
-            types = new Set();
-            present.set(field.linked_field_id, types);
-        }
-        types.add(field.object_type);
-    }
-
-    const byTemplate: Record<string, ResourceObjectType[]> = {};
-    for (const [templateId, types] of present) {
-        byTemplate[templateId] = ALL_RESOURCE_TYPES.filter((type) => types.has(type));
-    }
-    return byTemplate;
-}
-
 export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Record<ResourceObjectType, PropertyField>> {
     const byType: Partial<Record<ResourceObjectType, PropertyField>> = {};
     for (const field of fields) {
@@ -200,15 +239,15 @@ export function findNameConflicts(name: string, fields: PropertyField[], templat
 // ObjectType=system fields, not ObjectType=template ones.
 //
 // `links` is a trailing optional parameter (not folded into the existing 4
-// positional args) so the two new same-typed strings can't be swapped with
-// each other or with displayName/name, and every existing call site keeps
+// positional args), keyed by source so its same-typed strings can't be swapped
+// with each other or with displayName/name, and every existing call site keeps
 // compiling unchanged.
 export function createAttributeField(
     displayName: string,
     name: string,
     typeId: AttributeTypeId,
     options: PropertyFieldOption[],
-    links?: {ldapAttr?: string; samlAttr?: string},
+    links?: Partial<ExternalSourceLinks>,
 ): Promise<PropertyField> {
     const fieldType = toServerFieldType(typeId);
     const valueType = toValueType(typeId);
@@ -222,8 +261,7 @@ export function createAttributeField(
             display_name: displayName.trim() || undefined,
             ...(optionsAttr ? {options: optionsAttr} : {}),
             ...(valueType ? {value_type: valueType} : {}),
-            ...(links?.ldapAttr ? {ldap: links.ldapAttr} : {}),
-            ...(links?.samlAttr ? {saml: links.samlAttr} : {}),
+            ...Object.fromEntries(ALL_EXTERNAL_SOURCES.filter((source) => links?.[source]).map((source) => [source, links?.[source]])),
         },
     });
 }
@@ -232,18 +270,22 @@ export type UpdateAttributeFieldPatch = {
     name?: string;
     type: AttributeTypeId;
     displayName: string;
-    options: PropertyFieldOption[];
-    ldapAttr: string;
-    samlAttr: string;
+
+    // Omitted to leave the options as the server has them: those of an
+    // attribute synced from an identity source belong to its sync, which may
+    // have added some since this editor loaded them.
+    options?: PropertyFieldOption[];
+    externalLinks: ExternalSourceLinks;
     resourceAttrs?: Record<string, unknown>;
     permissionValues?: PropertyPermissionLevel;
 };
 
-// Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
-// null to unlink, Text sends options: null so a leftover options array is
+// Attrs are merge-patched (mergeAttrs=true on the server): each sync source
+// (ldap, saml, openid) sends null to unlink, Text sends options: null so a leftover options array is
 // dropped, and value_type sends null so a leftover phone/url/email subtype
 // is dropped when switching away. name is omitted when unchanged so the
-// server skips uniqueness re-validation.
+// server skips uniqueness re-validation, and options when the patch carries
+// none.
 export function updateAttributeField(
     objectType: string,
     fieldId: string,
@@ -256,9 +298,8 @@ export function updateAttributeField(
         type: fieldType as PropertyField['type'],
         attrs: {
             display_name: patch.displayName.trim() || undefined,
-            options: buildPatchOptionsAttr(fieldType, patch.options),
-            ldap: patch.ldapAttr || null,
-            saml: patch.samlAttr || null,
+            ...(patch.options === undefined ? {} : {options: buildPatchOptionsAttr(fieldType, patch.options)}),
+            ...Object.fromEntries(ALL_EXTERNAL_SOURCES.map((source) => [source, patch.externalLinks[source] || null])),
             value_type: valueType || null,
             ...patch.resourceAttrs,
         },
@@ -347,12 +388,4 @@ export function patchLinkedAttributeField(
         ...(attrs ? {attrs} : {}),
         ...(permissionValues ? {permission_values: permissionValues} : {}),
     });
-}
-
-export function formatAttributeHeadingName(name: string): string {
-    const trimmed = name.trim();
-    if (!trimmed) {
-        return trimmed;
-    }
-    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }

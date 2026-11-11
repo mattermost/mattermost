@@ -90,8 +90,8 @@ func updateDeliveryTrackingConfig(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if appErr := c.App.SaveDeliveryTrackingConfig(c.AppContext, &config); appErr != nil {
-		c.Err = appErr
+	if err := c.App.SaveDeliveryTrackingConfig(c.AppContext, &config); err != nil {
+		c.SetError(err)
 		return
 	}
 

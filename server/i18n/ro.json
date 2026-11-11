@@ -1236,15 +1236,15 @@
     "translation": "Eroare la obţinerea accesului token din DB înainte de ştergere."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Înregistrare utilizator este dezactivat."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Link-ul de înscriere a expirat."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Linkul de înscriere nu pare să fie valabil."
   },
   {
@@ -1370,10 +1370,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Nu se poate actualiza o postare într-un canal șters."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Imposibil de găsit postul sau comentariul existent pentru actualizare."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -2713,7 +2709,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Plugin-ul de configurare din fişierul config.json trebuie să fie actualizate manual atunci când se utilizează ReadOnlyConfig cu gruparea activat."
+    "translation": "Pluginul de configurare din fişierul config.json trebuie să fie actualizate manual atunci când se utilizează ReadOnlyConfig cu gruparea activat."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2725,7 +2721,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "S-a dezactivat plugin-uri. Verificați jurnalele pentru detalii."
+    "translation": "S-a dezactivat pluginuri. Verificați jurnalele pentru detalii."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -2741,7 +2737,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Imposibilitatea de a obţine plugin-uri active."
+    "translation": "Imposibilitatea de a obţine pluginuri active."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -2749,19 +2745,19 @@
   },
   {
     "id": "app.plugin.install.app_error",
-    "translation": "Imposibilitatea de a instala plugin-ul."
+    "translation": "Imposibilitatea de a instala pluginul."
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Imposibilitatea de a instala plugin-ul. Un plug-in cu același ID este deja instalat."
+    "translation": "Imposibilitatea de a instala pluginul. Un plug-in cu același ID este deja instalat."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Nu se poate instala plugin-ul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
+    "translation": "Nu se poate instala pluginul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin-ul ID-ul trebuie să fie cel puţin {{.Min}} caractere, cel {{.Max}} caractere şi meci {{.Regex}}."
+    "translation": "Pluginul ID-ul trebuie să fie cel puţin {{.Min}} caractere, cel {{.Max}} caractere şi meci {{.Regex}}."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -2769,7 +2765,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Incapabil să se mişte plugin-ul de la director temporar la destinaţia finală. Un alt plug-in pot fi utilizând acelaşi nume de director."
+    "translation": "Incapabil să se mişte pluginul de la director temporar la destinaţia finală. Un alt plug-in pot fi utilizând acelaşi nume de director."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -2781,7 +2777,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "S-a dezactivat plugin-uri şi/sau plugin-ul încărcat."
+    "translation": "S-a dezactivat pluginuri şi/sau pluginul încărcat."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3060,11 +3056,11 @@
     "translation": "Nu s-a putut seta starea lucrării la eroare"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Imposibil de analizat URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Imposibil de obținut canale."
   },
   {
@@ -3945,7 +3941,7 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid ID plugin-ul, trebuie să fie mai mult {{.Min}} şi un maxim {{.Max}} caractere."
+    "translation": "Invalid ID pluginul, trebuie să fie mai mult {{.Min}} şi un maxim {{.Max}} caractere."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -4661,7 +4657,7 @@
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Imposibil de stocat plugin-ul în depozitul de fișiere configurat."
+    "translation": "Imposibil de stocat pluginul în depozitul de fișiere configurat."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -4681,7 +4677,7 @@
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+    "translation": "Nu a reușit pluginurile de pe piața Marshal."
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
@@ -6013,7 +6009,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Nu se pot obține canalele pentru schema furnizată."
+    "translation": "Nu se pot obține echipele pentru schema furnizată."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -8909,7 +8905,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal"
+    "translation": "Nu s-a putut revoca invitația serverului la distanță din canal."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -9501,7 +9497,7 @@
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
-    "translation": "Tipul de resursă nu este un tip de resursă valid pentru controlul accesului din plugin-uri."
+    "translation": "Tipul de resursă nu este un tip de resursă valid pentru controlul accesului din pluginuri."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
@@ -9509,7 +9505,7 @@
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
-    "translation": "Plugin-ul apelant nu deține acest tip de resursă."
+    "translation": "Pluginul apelant nu deține acest tip de resursă."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
@@ -11224,11 +11220,11 @@
     "translation": "Nu s-a putut șterge postarea cu notificare persistentă"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Nu s-a putut obține prioritatea pentru postare"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Nu s-a putut obține prioritatea pentru postare cu context"
   },
   {
@@ -11236,7 +11232,7 @@
     "translation": "Bună, iată mementoul dvs. despre acest mesaj de la @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versiunea pluginului preambalat nu a putut fi analizată."
   },
   {
@@ -12528,20 +12524,12 @@
     "translation": "Testul de conexiune LDAP a eșuat. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Eroare: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Nu s-au putut prelua câmpurile CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP nevalid"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Nu s-a putut obține utilizatorul."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Valoare goală pentru atributul LDAP"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12684,10 +12672,6 @@
     "translation": "SAML nu a putut încărca certificatul public al furnizorului de identitate; contactați administratorul de sistem."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Nu s-au putut prelua câmpurile CPA"
-  },
-  {
     "id": "ent.saml.login.ldap_user_missing",
     "translation": "Niciun utilizator înregistrat pe serverul AD/LDAP nu corespunde utilizatorului SAML."
   },
@@ -12753,7 +12737,7 @@
   },
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
-    "translation": "Politică de control al accesului nevalidă: tipul nu este un tip de resursă valid pentru plugin-uri."
+    "translation": "Politică de control al accesului nevalidă: tipul nu este un tip de resursă valid pentru pluginuri."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",
@@ -14265,7 +14249,7 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Constatarea de sănătate nu a putut fi pusă pe silențios."
+    "translation": "Nu se poate ignora constatarea de sănătate."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
@@ -14273,7 +14257,7 @@
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Nu s-a putut anula punerea pe silențios a constatării de sănătate."
+    "translation": "Nu se poate anula ignorarea constatării de sănătate."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
@@ -14586,5 +14570,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys nevalid: depășește limita de {{.MaxCount}} chei sau {{.MaxLength}} octeți."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**NEGĂSIT**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "eliminat"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` nu este o valoare validă pentru `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Acest câmp este legat de un șablon de atribut global și nu poate fi modificat prin API-ul pentru atribute de utilizator. Folosiți în schimb API-ul pentru atribute globale."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Nu se poate crea emoji-ul. Imaginea este prea mare pentru a fi procesată. Încercați una cu dimensiuni mai mici sau cu mai puține cadre."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Pagina „Sănătatea site-ului” nu este activată."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Pagina „Sănătatea site-ului” necesită o licență Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Nu aveți permisiunea de a trimite mesaje cu autodistrugere la citire în acest canal."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Nu se poate reveni la începutul fișierului."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Nu se poate obține constatarea de sănătate."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Constatarea de sănătate nu a fost găsită."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Nu se pot obține constatările de sănătate."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Atributul nu mai este sincronizat din această sursă, așa că sincronizarea nu îl poate modifica."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Opțiunile unui atribut sincronizat din AD/LDAP sau SAML sunt gestionate de sincronizare și nu pot fi adăugate, redenumite sau eliminate."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Atributul sincronizat are opțiuni nevalide."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Sursă nevalidă pentru sincronizarea proprietăților."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID de utilizator nevalid pentru sincronizarea proprietăților."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Nu se poate determina care opțiuni ale atributului sincronizat sunt în uz."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Configurația de jurnalizare conține o cale de fișier jurnal sau de audit din afara directorului rădăcină pentru jurnale. Verificați jurnalele serverului pentru detalii."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Momentul colectării datelor este necunoscut."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Secțiunea de configurare nu este disponibilă."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Diagnosticele serverului nu sunt disponibile."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Istoricul sarcinilor nu este disponibil."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Detaliile licenței nu sunt disponibile."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Lista de pluginuri nu este disponibilă."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Regula a eșuat în mod neașteptat și nu a putut fi evaluată."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Statisticile de utilizare nu sunt disponibile."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} folosește http://, așa că notificările push sunt trimise necriptat."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} are o schemă nevalidă. Utilizatorii de pe mobil nu vor primi notificări."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Adăugați prefixul https:// la PushNotificationServer și verificați dacă serverul este accesibil de pe nodul aplicației."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer nu folosește https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Fiecare încercare de trimitere push va eșua cu eroarea „unsupported protocol scheme”."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Setați PushNotificationServer la https://push.mattermost.com sau la un proxy push auto-găzduit."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Notificările push sunt activate, dar PushNotificationServer este gol"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com este proxy-ul push de test al Mattermost. Nu are SLA, are un debit limitat și nu este destinat utilizării în producție. Livrarea notificărilor push pe mobil nu va fi fiabilă pentru nimic dincolo de testarea la scară mică."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Treceți la https://push.mattermost.com (serviciul Hosted Push Notification Service de producție, inclus în Enterprise) sau la un proxy push auto-găzduit."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer indică spre push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL este necesar pentru URL-urile webhook-urilor, callback-urile OAuth, conținutul notificărilor push pentru mobil și linkurile din e-mailuri. Integrările nu funcționează cât timp este gol."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Setați SiteURL la URL-ul HTTPS public al serverului."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL este gol"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL este {{.url}}. Cookie-urile de sesiune și tokenurile de autentificare circulă necriptat."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Serviți Mattermost prin HTTPS și actualizați SiteURL la adresa https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL folosește http:// (nu https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Mesajele cu autodistrugere la citire nu pot fi trimise ca postări programate recurente."
   }
 ]

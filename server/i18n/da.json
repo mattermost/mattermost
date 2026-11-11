@@ -2953,15 +2953,15 @@
     "translation": "Fejl ved hentning af adgangstoken fra DB inden sletning."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Bruger-tilmelding er deaktiveret."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Tilmeldingslinket er udløbet."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Tilmeldingslinket ser ikke ud til at være gyldigt."
   },
   {
@@ -3257,10 +3257,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
     "translation": "Kan ikke opdatere indlæg i en begrænset direktbesked-kanal."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Det eksisterende indlæg eller kommentar til opdatering kunne ikke findes."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3636,7 +3632,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Kunne ikke fjerne invitation af remote til kanalen"
+    "translation": "Kunne ikke fjerne remote fra kanalen."
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -8029,11 +8025,11 @@
     "translation": "Kunne ikke slette indlæg med vedvarende notifikation"
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Kunne ikke hente indlægsprioritet for indlæg"
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Kunne ikke hente indlægsprioritet for indlæg med kontekst"
   },
   {
@@ -8065,7 +8061,7 @@
     "translation": "Der opstod en fejl ved opdatering af præferencer."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Versionen af den forudpakkede plugin kunne ikke behandles."
   },
   {
@@ -8864,7 +8860,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Kunne ikke hente kanalerne for det angivne skema."
+    "translation": "Kunne ikke hente teamene for det angivne skema."
   },
   {
     "id": "app.team.get_common_team_ids_for_users.app_error",
@@ -10051,10 +10047,6 @@
     "translation": "LDAP-forbindelsestest mislykkedes. Server: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Fejl: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Kunne ikke hente CPA-felter"
-  },
-  {
     "id": "ent.ldap.create_fail",
     "translation": "Kan ikke oprette LDAP-bruger."
   },
@@ -10145,10 +10137,6 @@
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
     "translation": "Størrelsesgrænse overskredet. Prøv at øge indstillingen for maksimal sidestørrelse. Se https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for flere detaljer."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tom LDAP-attributværdi"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -10371,10 +10359,6 @@
     "translation": "SAML-login mislykkedes, da identitetsudbyderens svar ikke er krypteret. Kontakt venligst din systemadministrator."
   },
   {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Kunne ikke hente CPA-felt(er)"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Vi modtog et tomt svar fra identitetsudbyderen."
   },
@@ -10463,11 +10447,11 @@
     "translation": "Funktionen {{.Feature}} er ikke tilgængelig for den aktuelle licens"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan ikke analysere URL."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kunne ikke hente kanaler."
   },
   {
@@ -13748,19 +13732,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Kunne ikke slå lyden fra for helbredsfundet."
+    "translation": "Kunne ikke dæmpe tilstandsfundet."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
+    "translation": "Tilstandsfundet findes ikke."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Kunne ikke slå lyden til for helbredsfundet."
+    "translation": "Kunne ikke ophæve dæmpningen af tilstandsfundet."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "Helbredsfundet blev ikke fundet."
+    "translation": "Tilstandsfundet findes ikke."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14593,5 +14577,165 @@
   {
     "id": "plugin_api.channel.space_notify_props.app_error",
     "translation": "Notifikationsegenskaber (notify props) kan ikke angives på space-kanaler."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**IKKE FUNDET**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "fjernet"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` er ikke en gyldig værdi for `{{.Arg}}`"
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Webstedstilstand er ikke aktiveret."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Webstedstilstand kræver en Enterprise-licens."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Kan ikke gå til starten af filen."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Kunne ikke hente tilstandsfundet."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Tilstandsfundet findes ikke."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Kunne ikke hente tilstandsfundene."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Attributten synkroniseres ikke længere fra denne kilde, så synkroniseringen kan ikke ændre den."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Valgmulighederne for en attribut, der synkroniseres fra AD/LDAP eller SAML, administreres af synkroniseringen og kan ikke tilføjes, omdøbes eller fjernes."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Den synkroniserede attribut har ugyldige valgmuligheder."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Ugyldig kilde til attributsynkronisering."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Ugyldigt bruger-ID til attributsynkronisering."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Kunne ikke afgøre, hvilke valgmuligheder for den synkroniserede attribut der er i brug."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Logningskonfigurationen indeholder en sti til en log- eller revisionsfil uden for logningens rodmappe. Se serverloggene for detaljer."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Indsamlingstidspunktet er ukendt."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Konfigurationsafsnittet er ikke tilgængeligt."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverdiagnostik er ikke tilgængelig."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Jobhistorikken er ikke tilgængelig."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Licensoplysningerne er ikke tilgængelige."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Pluginlisten er ikke tilgængelig."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Reglen fejlede uventet og kunne ikke evalueres."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Brugsstatistik er ikke tilgængelig."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} bruger http://, så push-notifikationer sendes ukrypteret."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} har et ugyldigt skema. Mobilbrugere vil ikke modtage notifikationer."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Sæt https:// foran PushNotificationServer, og kontrollér, at den kan nås fra applikationsnoden."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer bruger ikke https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Alle push-forsøg vil mislykkes med 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Sæt PushNotificationServer til https://push.mattermost.com eller en selvhostet push-proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-notifikationer er aktiveret, men PushNotificationServer er tom"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com er Mattermosts test-push-proxy. Den har ingen SLA, begrænset kapacitet og er ikke beregnet til produktionsbrug. Mobil push-levering vil være upålidelig til alt ud over test i lille skala."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Skift til https://push.mattermost.com (den produktionsklare Hosted Push Notification Service, der følger med Enterprise) eller til en selvhostet push-proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer peger på push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL er påkrævet til webhook-URL'er, OAuth-callbacks, mobile push-payloads og e-maillinks. Integrationer virker ikke, så længe den er tom."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Sæt SiteURL til serverens offentlige HTTPS-URL."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL er tom"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL er {{.url}}. Sessionscookies og godkendelsestokens sendes ukrypteret."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Servér Mattermost via HTTPS, og opdater SiteURL til https://-adressen."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL bruger http:// (ikke https://)"
   }
 ]

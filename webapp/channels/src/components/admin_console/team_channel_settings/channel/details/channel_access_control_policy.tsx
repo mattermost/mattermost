@@ -5,7 +5,6 @@ import React, {useState, type JSX} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -87,7 +86,8 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                     >
                                         <i className='fa fa-external-link'/>
                                     </Link>
-                                    <Button
+                                    <button
+                                        type='button'
                                         className='policy-remove-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.remove_policy.aria_label',
@@ -98,7 +98,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                         }}
                                     >
                                         <i className='fa fa-trash'/>
-                                    </Button>
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -138,6 +138,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following membership policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
+            destructive={true}
             onButtonClick={() => {
                 actions.onPolicyRemoveAll();
             }}

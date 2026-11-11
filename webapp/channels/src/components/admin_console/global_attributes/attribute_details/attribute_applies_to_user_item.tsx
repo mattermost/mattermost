@@ -7,7 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, SyncIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
@@ -30,6 +30,7 @@ const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden
 const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalSource>> = {
     ldap: {id: 'ldap', icon: SyncIcon, label: externalSourceMessages.ldap.title},
     saml: {id: 'saml', icon: SyncIcon, label: externalSourceMessages.saml.title},
+    openid: {id: 'openid', icon: SyncIcon, label: externalSourceMessages.openid.title},
 };
 
 // The Users row of the Applies-to list -- owns its own expand/collapse state
@@ -82,8 +83,8 @@ function AttributeAppliesToUserItem({
         <Button
             type='button'
             emphasis='tertiary'
-            variant='destructive'
-            size='sm'
+            destructive={true}
+            size='small'
             className='AttributeAppliesToItem__remove'
             onClick={onRemove}
             disabled={disabled || Boolean(removeLockedTooltip)}

@@ -6,7 +6,10 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -154,7 +157,9 @@ func (p PropertyValueSearchCursor) IsValid() error {
 // UpdateAt, tombstones are included automatically, and pagination must use
 // Cursor.UpdateAt (Cursor.CreateAt is used in the default directory mode).
 type PropertyValueSearchOpts struct {
-	GroupID        string
+	GroupID string
+	// IDs, when set, limits the search to the values with these IDs.
+	IDs            []string
 	TargetType     string
 	TargetIDs      []string
 	FieldID        string
@@ -280,16 +285,79 @@ func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
 	return raw
 }
 
+// ValidatePropertyValueForFieldType checks the JSON shape of a value written to
+// a field of fieldType, for the types whose shape core enforces on every write
+// whatever the group or caller:
+//
+//   - number: a JSON number that fits a float64. Strings, booleans, and numbers
+//     too large to be finite are refused. JSON cannot spell NaN or Infinity, so
+//     a value that would decode to either is refused as not being JSON at all.
+//   - checkbox: a JSON boolean. false means unchecked.
+//
+// For both, an empty raw value or null is the empty value and is accepted.
+// Other types are not checked here and always pass: their shape is left to the
+// hooks of the groups that constrain it, as it always has been.
+func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.RawMessage) error {
+	if fieldType != PropertyFieldTypeNumber && fieldType != PropertyFieldTypeCheckbox {
+		return nil
+	}
+
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 || string(trimmed) == "null" {
+		return nil
+	}
+
+	switch fieldType {
+	case PropertyFieldTypeNumber:
+		dec := json.NewDecoder(bytes.NewReader(trimmed))
+		dec.UseNumber()
+		var v any
+		if err := dec.Decode(&v); err != nil {
+			return errors.Wrap(err, "a number field's value must be a JSON number")
+		}
+		if _, err := dec.Token(); err != io.EOF {
+			return errors.New("a number field's value must be a single JSON number")
+		}
+		n, ok := v.(json.Number)
+		if !ok {
+			return errors.New("a number field's value must be a JSON number")
+		}
+		f, err := strconv.ParseFloat(n.String(), 64)
+		if err != nil || math.IsInf(f, 0) || math.IsNaN(f) {
+			return errors.New("a number field's value must be a finite number")
+		}
+	case PropertyFieldTypeCheckbox:
+		switch string(trimmed) {
+		case "true", "false":
+		default:
+			return errors.New("a checkbox field's value must be true or false")
+		}
+	}
+
+	return nil
+}
+
 // BroadcastValue returns what a websocket broadcast may carry in place of
-// value: the value itself for a public field, the withheld marker
-// otherwise.
+// value: the value itself when everyone may read it
+// (PropertyFieldReadableByEveryone), the withheld marker otherwise. It has no
+// template to read a linked field's masking from, so a linked field's value is
+// always withheld; a caller that can read the template uses
+// BroadcastValueWithTemplate.
 //
 // Accepted ceiling: a caller who writes the literal JSON
 // `{"withheld":true}` into a text field makes clients refetch that field
 // once and get the real value back. That is the worst outcome, so no
 // escaping scheme is built for it.
 func BroadcastValue(field *PropertyField, value json.RawMessage) json.RawMessage {
-	if field != nil && field.GetAccessMode() == PropertyAccessModePublic {
+	return BroadcastValueWithTemplate(field, nil, value)
+}
+
+// BroadcastValueWithTemplate is BroadcastValue for a caller that has read the
+// template a linked field links to. template is nil when field isn't linked,
+// or when its template couldn't be read, which withholds a linked field's
+// value.
+func BroadcastValueWithTemplate(field, template *PropertyField, value json.RawMessage) json.RawMessage {
+	if PropertyFieldReadableByEveryone(field, template, PropertyActionValueRead) {
 		return value
 	}
 	return json.RawMessage(PropertyValueWithheldJSON)

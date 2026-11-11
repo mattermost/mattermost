@@ -40,18 +40,26 @@ exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = 
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="acceptTerms"
             type="submit"
           >
-            I Agree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             id="rejectTerms"
             type="reset"
           >
-            I Disagree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>
@@ -70,18 +78,19 @@ exports[`components/terms_of_service/TermsOfService should match snapshot on loa
     <div
       class="loading__content"
     >
-      <p>
+      <span
+        class="LoadingSpinner with-text"
+        data-testid="loadingSpinner"
+        id="loadingSpinner"
+      >
+        <span
+          aria-label="Loading Icon"
+          class="_spinner_mvrwe_21 spinner"
+          role="status"
+          style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+        />
         Loading
-      </p>
-      <div
-        class="round round-1"
-      />
-      <div
-        class="round round-2"
-      />
-      <div
-        class="round round-3"
-      />
+      </span>
     </div>
   </div>
 </div>
@@ -127,30 +136,39 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="LoadingSpinner"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
+              aria-hidden="true"
+              class="_button__icon-slot_1pij1_59"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading"
+                class="_spinner_mvrwe_21"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
-            I Agree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
-            I Disagree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>
@@ -199,30 +217,39 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
           class="terms-of-service__button-group"
         >
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
-            I Agree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Agree
+            </span>
           </button>
           <button
-            class="btn btn-quaternary"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="LoadingSpinner"
-              data-testid="loadingSpinner"
-              id="loadingSpinner"
+              aria-hidden="true"
+              class="_button__icon-slot_1pij1_59"
             >
               <span
-                class="fa fa-spinner fa-fw fa-pulse spinner"
-                title="Loading Icon"
+                aria-label="Loading"
+                class="_spinner_mvrwe_21"
+                role="status"
+                style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
-            I Disagree
+            <span
+              class="_button__label_1pij1_55"
+            >
+              I Disagree
+            </span>
           </button>
         </div>
       </div>

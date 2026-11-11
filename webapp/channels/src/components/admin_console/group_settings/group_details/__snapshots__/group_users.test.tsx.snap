@@ -855,7 +855,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -865,7 +866,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -1734,7 +1736,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 55
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -1744,7 +1747,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
         <i
@@ -2612,7 +2616,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         21 - 40 of 55
       </div>
       <button
-        class="btn btn-tertiary prev"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
         <i
@@ -2621,7 +2626,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next"
+        class="btn btn-quaternary btn-sm btn-icon next"
+        data-testid="page-link-next"
         type="button"
       >
         <i
@@ -3284,7 +3290,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         41 - 55 of 55
       </div>
       <button
-        class="btn btn-tertiary prev"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev"
+        data-testid="page-link-prev"
         type="button"
       >
         <i
@@ -3293,7 +3300,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -4162,7 +4170,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -4172,7 +4181,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -5079,7 +5089,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -5089,7 +5100,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >
@@ -5991,7 +6003,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         1 - 20 of 20
       </div>
       <button
-        class="btn btn-tertiary prev disabled"
+        class="btn btn-quaternary btn-sm btn-icon ml-2 prev disabled"
+        data-testid="page-link-prev"
         disabled=""
         type="button"
       >
@@ -6001,7 +6014,8 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next disabled"
+        class="btn btn-quaternary btn-sm btn-icon next disabled"
+        data-testid="page-link-next"
         disabled=""
         type="button"
       >

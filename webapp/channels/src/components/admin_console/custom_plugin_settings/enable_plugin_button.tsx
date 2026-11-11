@@ -7,14 +7,17 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {DotsHorizontalIcon, OpenInNewIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, OpenInNewIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
@@ -28,9 +31,14 @@ type Props = {
     disabled: boolean;
     homepageUrl?: string;
     id: string;
+
+    // The plugin's entries in the server logs, for admins who can open them
+    logsPath?: string;
     saveNeeded?: false | string;
     value: boolean;
 };
+
+const PluginActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 const pluginStatePrefix = 'PluginSettings.PluginStates.';
 const pluginStateSuffix = '.Enable';
@@ -43,7 +51,7 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
     return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
 }
 
-export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeeded = false, value}: Props) {
+export function PluginEnableButton({actions, disabled, homepageUrl, id, logsPath, saveNeeded = false, value}: Props) {
     const {formatMessage} = useIntl();
     const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
     const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -171,7 +179,7 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                     defaultMessage='Are you sure you would like to remove the plugin?'
                 />
             }
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={
                 <FormattedMessage
                     id='admin.plugin.remove_modal.overwrite'
@@ -195,23 +203,41 @@ export function PluginEnableButton({actions, disabled, homepageUrl, id, saveNeed
                             defaultMessage={pluginEnabled ? 'Enabled' : 'Disabled'}
                         />
                     )}
-                    <Toggle
-                        size='btn-sm'
-                        disabled={actionsDisabled}
-                        toggled={pluginEnabled}
+                    <Switch
                         id={id}
-                        ariaLabel={toggleAriaLabel}
-                        toggleClassName='btn-toggle-primary'
-                        onToggle={handleTogglePlugin}
+                        size='medium'
+                        disabled={actionsDisabled}
+                        checked={pluginEnabled}
+                        onChange={handleTogglePlugin}
+                        data-testid={`${id}-button`}
+                        tabIndex={0}
+                        aria-label={toggleAriaLabel}
                     />
                 </div>
+
+                {/* Viewing the logs changes nothing, so it stays available to admins who can't change the plugin */}
+                {logsPath && (
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        size='small'
+                        leadingIcon={<Icon glyph={<TextBoxOutlineIcon/>}/>}
+                    >
+                        <BlockableLink to={logsPath}>
+                            <FormattedMessage
+                                id='admin.plugin.viewLogs'
+                                defaultMessage='View logs'
+                            />
+                        </BlockableLink>
+                    </Button>
+                )}
                 <Menu.Container
                     menuButton={{
                         id: `plugin-actions-menu-button-${pluginId}`,
-                        class: `btn btn-icon btn-sm PluginMetadataPanel__menuButton${actionsDisabled ? ' disabled' : ''}`,
+                        as: PluginActionsMenuTrigger,
                         disabled: actionsDisabled,
                         'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
-                        children: <DotsHorizontalIcon size={16}/>,
+                        children: <Icon glyph={<DotsHorizontalIcon/>}/>,
                     }}
                     menuButtonTooltip={{
                         text: formatMessage({id: 'admin.plugin.actions.menu.tooltip', defaultMessage: 'More plugin actions'}),

@@ -3,9 +3,8 @@
 
 import classNames from 'classnames';
 import React, {memo, useEffect, useRef} from 'react';
+import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
-
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 
 import MobileRightDrawerItems from './mobile_sidebar_right_items';
 
@@ -20,7 +19,7 @@ const MobileRightDrawer = ({
     isOpen,
     currentUser,
 }: Props) => {
-    const usageDeltas = useGetUsageDeltas();
+    const {formatMessage} = useIntl();
     const sidebarRef = useRef<HTMLDivElement>(null);
     const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +41,7 @@ const MobileRightDrawer = ({
             tabIndex={-1}
             role='dialog'
             aria-modal='true'
-            aria-label='Mobile menu'
+            aria-label={formatMessage({id: 'accessibility.mobile_menu', defaultMessage: 'Mobile menu'})}
         >
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition
@@ -55,9 +54,7 @@ const MobileRightDrawer = ({
                     timeout={TRANSITION_TIMEOUT}
                 >
                     <div ref={drawerRef}>
-                        <MobileRightDrawerItems
-                            usageDeltaTeams={usageDeltas.teams.active}
-                        />
+                        <MobileRightDrawerItems/>
                     </div>
                 </CSSTransition>
             </div>

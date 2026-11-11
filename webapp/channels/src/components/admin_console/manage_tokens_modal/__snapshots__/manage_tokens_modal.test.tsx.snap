@@ -112,18 +112,19 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx in
                 <div
                   class="loading__content"
                 >
-                  <p>
+                  <span
+                    class="LoadingSpinner with-text"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      aria-label="Loading Icon"
+                      class="_spinner_mvrwe_21 spinner"
+                      role="status"
+                      style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                    />
                     Loading
-                  </p>
-                  <div
-                    class="round round-1"
-                  />
-                  <div
-                    class="round round-2"
-                  />
-                  <div
-                    class="round round-3"
-                  />
+                  </span>
                 </div>
               </div>
             </div>
@@ -274,10 +275,14 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="btn btn-danger"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
                     type="button"
                   >
-                    Delete
+                    <span
+                      class="_button__label_1pij1_55"
+                    >
+                      Delete
+                    </span>
                   </button>
                 </div>
               </div>
@@ -316,10 +321,14 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="btn btn-danger"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
                     type="button"
                   >
-                    Delete
+                    <span
+                      class="_button__label_1pij1_55"
+                    >
+                      Delete
+                    </span>
                   </button>
                 </div>
               </div>

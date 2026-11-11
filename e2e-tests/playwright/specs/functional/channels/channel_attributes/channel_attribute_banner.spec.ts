@@ -164,10 +164,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
 
-            await expect(configuration.container.getByTestId('channelBannerToggle-button')).toHaveAttribute(
-                'aria-pressed',
-                'true',
-            );
+            await expect(configuration.container.getByTestId('channelBannerToggle-button')).toBeChecked();
             await expect(configuration.bannerTextEditor).toBeVisible();
 
             // * Opening the tab changes nothing, so it must not offer to save

@@ -7,7 +7,9 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton, celPrefixForField, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+import {TestButton, celPrefixForField, excludeHiddenNativeFields, excludeSessionAttributes, hasUsableAttributes, isSimpleCondition, isSimpleExpression, mergeSessionAttributes, referencesResourceAttributes, toCELEditorAttributes, allowedOperatorLabelsForField, defaultOperatorForField, isNativeBooleanField, isFieldAdvertisedOperator, isNativeMethodOperator, isValidYoungerThanDaysValue, OperatorLabel} from './shared';
+
+import {fixture} from '../cel_expression_test_fixtures';
 
 const makeField = (name: string, attrs: Partial<UserPropertyField['attrs']>, type: UserPropertyField['type'] = 'text'): UserPropertyField => ({
     id: `id-${name}`,
@@ -45,11 +47,11 @@ describe('TestButton', () => {
 
         const button = screen.getByRole('button', {name: /test access rule/i});
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('btn', 'btn-sm', 'btn-tertiary');
+        expect(button.className).toEqual(expect.stringContaining('_button--emphasis-tertiary'));
+        expect(button.className).toEqual(expect.stringContaining('_button--size-small'));
 
-        // Check for icon
-        const icon = button.querySelector('i.icon.icon-lock-outline');
-        expect(icon).toBeInTheDocument();
+        // Leading icon is provided via compass-ui Icon glyph slot
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should render the supplied label override instead of the default copy', () => {
@@ -67,7 +69,7 @@ describe('TestButton', () => {
         expect(screen.queryByRole('button', {name: /test access rule/i})).not.toBeInTheDocument();
         const button = screen.getByRole('button', {name: /simulate rules/i});
         expect(button).toBeInTheDocument();
-        expect(button.querySelector('i.icon.icon-lock-outline')).toBeInTheDocument();
+        expect(button.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should be enabled and clickable when disabled is false', () => {
@@ -250,6 +252,33 @@ describe('hasUsableAttributes', () => {
                     visibility: 'always',
                     value_type: '',
                     ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are OpenID Connect synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    openid: 'org.department',
                 },
                 create_at: 0,
                 update_at: 0,
@@ -542,6 +571,21 @@ describe('excludeSessionAttributes', () => {
     });
 });
 
+describe('excludeHiddenNativeFields', () => {
+    const nativeEmail = makeField('email', {native: true});
+    const nativeCreateAt = makeField('createat', {native: true});
+    const customEmail = makeField('email', {managed: 'admin'});
+    const fields = [nativeEmail, nativeCreateAt, customEmail];
+
+    test('drops only native fields with a hidden name', () => {
+        expect(excludeHiddenNativeFields(fields, ['email', 'isbot'])).toEqual([nativeCreateAt, customEmail]);
+    });
+
+    test.each([undefined, []])('returns the same array when the hidden list is %p', (hidden) => {
+        expect(excludeHiddenNativeFields(fields, hidden)).toBe(fields);
+    });
+});
+
 describe('celPrefixForField', () => {
     test('session field resolves to the user.session namespace', () => {
         expect(celPrefixForField({object_type: 'session'})).toBe('user.session.');
@@ -605,6 +649,24 @@ describe('mergeSessionAttributes', () => {
         const duplicateByName = makeField('bbb', 'session', 'ip_address');
 
         expect(mergeSessionAttributes(autocomplete, [duplicateByName])).toBe(autocomplete);
+    });
+});
+
+describe('isSimpleExpression with multiselect "has any of" groups', () => {
+    test('a parenthesized group is simple', () => {
+        expect(isSimpleExpression('("A" in user.attributes.program || "B" in user.attributes.program)')).toBe(true);
+    });
+
+    test('a lone group without parentheses, as the server re-emits it, is simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program')).toBe(true);
+    });
+
+    test('a group without parentheses next to && is not simple', () => {
+        expect(isSimpleExpression('"A" in user.attributes.program || "B" in user.attributes.program && user.attributes.dept == "Eng"')).toBe(false);
+    });
+
+    test('a bare OR of other conditions is not simple', () => {
+        expect(isSimpleExpression('user.attributes.dept == "Eng" || user.attributes.dept == "Sales"')).toBe(false);
     });
 });
 
@@ -673,6 +735,40 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
 
     test('a hierarchy predicate on the resource side is not simple', () => {
         expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+});
+
+describe('isSimpleExpression on server-serialized bodies', () => {
+    it.each([
+        'a masking on GET',
+        'a masking off GET',
+        'd1 masking on GET',
+        'd1 masking off GET',
+        'd2 masking on GET',
+        'd3 masking on GET',
+        'e masking on GET',
+        'e masking off GET',
+    ])('%s is simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(true);
+    });
+
+    it.each([
+        'b masking on GET',
+        'b masking off GET',
+        'c masking on GET',
+        'c masking off GET',
+    ])('%s is not simple', (name) => {
+        expect(isSimpleExpression(fixture(name).expression)).toBe(false);
+    });
+});
+
+describe('isSimpleExpression with comments', () => {
+    test('a separator inside a comment does not split the expression', () => {
+        expect(isSimpleExpression('user.attributes.A.startsWith("x") // c) && user.attributes.B == "y"')).toBe(false);
+    });
+
+    test('a quote inside a comment does not hide a later separator', () => {
+        expect(isSimpleExpression('user.attributes.A == "x" // it\'s\n&& user.attributes.B == "y"')).toBe(false);
     });
 });
 

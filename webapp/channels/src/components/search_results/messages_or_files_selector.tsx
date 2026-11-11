@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useRef, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -40,6 +40,7 @@ type Props = {
 type DataSearchLiteral = typeof DataSearchTypes[keyof typeof DataSearchTypes];
 
 export default function MessagesOrFilesSelector(props: Props): JSX.Element {
+    const {formatMessage} = useIntl();
     const searchTeam = useSelector((state: GlobalState) => getSearchTeam(state));
     const myTeams = useSelector(getMyTeams);
     const hasMoreThanOneTeam = myTeams.length > 1;
@@ -95,7 +96,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             <div
                 className='buttons-container'
                 role='tablist'
-                aria-label='Messages or Files'
+                aria-label={formatMessage({id: 'search_results.messages_or_files', defaultMessage: 'Messages or Files'})}
             >
                 <button
                     ref={messagesTabRef}

@@ -123,12 +123,14 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                   </div>
                 </div>
                 <button
-                  class="btn btn-primary"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 multi-select__go"
                   data-testid="saveSetting"
                   id="saveItems"
                   type="submit"
                 >
-                  <span>
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
                     Add
                   </span>
                 </button>
@@ -159,18 +161,19 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                   <div
                     class="loading__content"
                   >
-                    <p>
+                    <span
+                      class="LoadingSpinner with-text"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        aria-label="Loading Icon"
+                        class="_spinner_mvrwe_21 spinner"
+                        role="status"
+                        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+                      />
                       Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
+                    </span>
                   </div>
                 </div>
               </div>

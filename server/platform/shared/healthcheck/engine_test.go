@@ -71,9 +71,7 @@ func TestEngineEvaluateSkipsCloudByDefault(t *testing.T) {
 	registry.Register(validRule("CLOUD_GATED_DEFAULT"))
 
 	engine := NewEngine(EngineOpts{Registry: registry, Now: fixedNow})
-	evaluations := engine.Evaluate(&Snapshot{
-		Deployment: Deployment{IsCloud: true},
-	})
+	evaluations := engine.Evaluate(licensedSnapshot(model.SupportPacketLicense{IsCloud: true}))
 
 	require.Len(t, evaluations, 0)
 }

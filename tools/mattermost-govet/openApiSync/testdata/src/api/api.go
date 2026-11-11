@@ -35,6 +35,9 @@ func Init(root *mux.Router) *API {
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()   // want "PathPrefix doesn't match field comment for field 'Users': 'api/v4/users' vs 'api/v4/userzs'"
 	api.BaseRoutes.Groups = api.BaseRoutes.APIRoot.PathPrefix("/gruops").Subrouter() // want "PathPrefix doesn't match field comment for field 'Groups': 'api/v4/gruops' vs 'api/v4/groups'"
 	api.InitUsers()
+	if true {
+		api.InitGroups()
+	}
 	return api
 }
 

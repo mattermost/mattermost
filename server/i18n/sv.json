@@ -329,7 +329,7 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Ogiltig emoij-id."
+    "translation": "Ogiltig emoji-id."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -980,11 +980,11 @@
     "translation": "Mattermost Tavlan för säkerheten"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Kan inte hämta kanaler."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Kan inte tolka URL:en."
   },
   {
@@ -1457,7 +1457,7 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Ogiltigt emoijnamn."
+    "translation": "Ogiltigt emojinamn."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
@@ -2089,7 +2089,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Kunde inte hitta kanaler med bifogat schema."
+    "translation": "Kunde inte hämta teamen för det angivna schemat."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -2293,7 +2293,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Kunde inte hitta efterfrågad plugin på marknadsplatsen."
+    "translation": "Kunde inte hitta efterfrågat plugin på marknadsplatsen."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -3205,15 +3205,15 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Namnfält är blankt eller saknas vid import av emoij."
+    "translation": "Namnfält är blankt eller saknas vid import av emoji."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Bildfält är blankt eller saknas vid import av emoij."
+    "translation": "Bildfält är blankt eller saknas vid import av emoji."
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Inget data vid import av emoij."
+    "translation": "Inget data vid import av emoji."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3445,7 +3445,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmojiName}}\""
+    "translation": "Fel vid inläsning av emoji-bildfilen. Emoji med namnet: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -4641,39 +4641,39 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Kunde inte kopiera Custom Emoij-bilder"
+    "translation": "Kunde inte kopiera Custom Emoji-bilder"
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "Kunde inte hämta emoijen."
+    "translation": "Kunde inte hämta emojin."
   },
   {
     "id": "app.emoji.get_by_name.no_result",
-    "translation": "Vi kunde inte hitta emoijen."
+    "translation": "Vi kunde inte hitta emojin."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "Kunde inte hämta emoijen."
+    "translation": "Kunde inte hämta emojin."
   },
   {
     "id": "app.emoji.get.no_result",
-    "translation": "Vi kunde inte hitta emoijen."
+    "translation": "Vi kunde inte hitta emojin."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "Kunde inte hämta emoij."
+    "translation": "Kunde inte hämta emoji."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "Kunde inte hitta emoij att radera."
+    "translation": "Kunde inte hitta emoji att radera."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "Kunde inte radera emoij."
+    "translation": "Kunde inte radera emoji."
   },
   {
     "id": "app.emoji.create.internal_error",
-    "translation": "Kunde inte spara emoij."
+    "translation": "Kunde inte spara emoji."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4944,15 +4944,15 @@
     "translation": "Utgående webhooks har inaktiverats av systemadministratören."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Registreringslänken är ogiltig."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Registreringslänken är inte längre giltig."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Funktionen för användarregistrering är avaktiverad."
   },
   {
@@ -6331,10 +6331,6 @@
   {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Redan raderat id={{.PostId}}."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Vi kunde inte hitta det ursprungliga inlägget eller kommentaren att uppdatera."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
@@ -7939,7 +7935,7 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoij och/eller egen statustext."
+    "translation": "Misslyckades att uppdatera anpassad status. Lägg till emoji och/eller egen statustext."
   },
   {
     "id": "app.user.get_thread_count_for_user.app_error",
@@ -8026,7 +8022,7 @@
     "translation": "Misslyckades att få status för slutförandet av onboarding."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Den förpaketerade plugin-versionen kunde inte tolkas."
   },
   {
@@ -8318,7 +8314,7 @@
     "translation": "Ogiltigt meddelande-id."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Det går inte att få fram inläggets prioritet"
   },
   {
@@ -9527,7 +9523,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Det gick inte att koppla bort den andra servern från kanalen"
+    "translation": "Det gick inte att koppla bort den andra servern från kanalen."
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -10026,18 +10022,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} ska vara ett prefix från IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Misslyckades att hämta CPA-fält"
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Tomt LDAP-attributvärde"
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Misslyckades med att hämta CPA-fält"
   },
   {
     "id": "ent.saml.update_cpa.empty_attribute_statement",
@@ -11101,19 +11085,19 @@
   },
   {
     "id": "api.file.get_file.rejected_by_plugin",
-    "translation": "Filnedladdningen avvisades av en plugin"
+    "translation": "Filnedladdningen avvisades av ett plugin"
   },
   {
     "id": "api.file.get_file_preview.rejected_by_plugin",
-    "translation": "Nedladdning av filens förhandsvisning avvisades av en plugin"
+    "translation": "Nedladdning av filens förhandsvisning avvisades av ett plugin"
   },
   {
     "id": "api.file.get_file_thumbnail.rejected_by_plugin",
-    "translation": "Nedladdning av filens miniatyrbild avvisades av en plugin"
+    "translation": "Nedladdning av filens miniatyrbild avvisades av ett plugin"
   },
   {
     "id": "api.file.get_public_file.rejected_by_plugin",
-    "translation": "Nedladdning av publik fil avvisades av en plugin"
+    "translation": "Nedladdning av publik fil avvisades av ett plugin"
   },
   {
     "id": "api.file.test_connection_auth.app_error",
@@ -12610,7 +12594,7 @@
     "translation": "Misslyckades med att tolka omskrivningssvaret från AI."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Det går inte att få fram meddelandets prioritet med kontext"
   },
   {
@@ -14580,5 +14564,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "Ogiltiga mention_keys: överskrider gränsen på {{.MaxCount}} nyckelord eller {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**HITTADES INTE**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "har tagits bort"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` är inte ett giltigt värde för `{{.Arg}}`"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Det här fältet är kopplat till en mall för globala attribut och kan inte ändras via API:et för användarattribut. Använd API:et för globala attribut i stället."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Det gick inte att skapa emojin. Bilden är för stor för att kunna bearbetas. Försök med en bild med mindre dimensioner eller färre bildrutor."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Systemhälsa är inte aktiverad."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Systemhälsa kräver en Enterprise-licens."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Du har inte behörighet att skicka meddelanden med bränn vid läsning i den här kanalen."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Det gick inte att gå till början av filen."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Det gick inte att hämta hälsoavvikelsen."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Hälsoavvikelsen hittades inte."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Det gick inte att hämta hälsoavvikelserna."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Attributet synkroniseras inte längre från den här källan, så synkroniseringen kan inte ändra det."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Alternativen för ett attribut som synkroniseras från AD/LDAP eller SAML hanteras av synkroniseringen och kan inte läggas till, döpas om eller tas bort."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Det synkroniserade attributet har ogiltiga alternativ."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Ogiltig källa för attributsynkronisering."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Ogiltigt användar-ID för attributsynkronisering."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Det gick inte att avgöra vilka alternativ för det synkroniserade attributet som används."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Loggkonfigurationen innehåller en sökväg till en logg- eller granskningsfil som ligger utanför loggningens rotkatalog. Mer information finns i serverloggarna."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Okänd insamlingstid."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Konfigurationsavsnittet är inte tillgängligt."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Serverdiagnostik är inte tillgänglig."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Jobbhistoriken är inte tillgänglig."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Licensinformationen är inte tillgänglig."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Listan över plugins är inte tillgänglig."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Regeln misslyckades oväntat och kunde inte utvärderas."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Användningsstatistiken är inte tillgänglig."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} använder http://, så push-notifieringar skickas okrypterat."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} har ett ogiltigt schema. Mobilanvändare kommer inte att få notifieringar."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Inled PushNotificationServer med https:// och kontrollera att den går att nå från applikationsnoden."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer använder inte https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Varje push-försök kommer att misslyckas med 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Låt PushNotificationServer peka på https://push.mattermost.com eller på en egen push-proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push-notifieringar är aktiverade men PushNotificationServer är tom"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com är Mattermosts push-proxy för test. Den har inget SLA, begränsad kapacitet och är inte avsedd för produktionsbruk. Push-leveranser till mobiler blir opålitliga för allt utöver småskaliga tester."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Byt till https://push.mattermost.com (produktionstjänsten Hosted Push Notification Service, som ingår i Enterprise) eller till en egen push-proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer pekar på push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL krävs för webhook-URL:er, OAuth-callbacks, push-innehåll till mobiler och länkar i e-post. Integrationer fungerar inte så länge den är tom."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Ange serverns publika HTTPS-URL i SiteURL."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL är tom"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL är {{.url}}. Sessionscookies och autentiseringstoken skickas okrypterade."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Leverera Mattermost via HTTPS och uppdatera SiteURL till https://-adressen."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL använder http:// (inte https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Meddelanden med bränn vid läsning kan inte skickas som återkommande schemalagda meddelanden."
   }
 ]

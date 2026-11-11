@@ -5,7 +5,7 @@ sidebar_label: "Set up the database"
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-PostgreSQL v14+ is required for Mattermost server installations. Create the database, user, and grants before you install Mattermost Server, so the installer has something to connect to.
+PostgreSQL v15+ is required for Mattermost server installations. Create the database, user, and grants before you install Mattermost Server, so the installer has something to connect to.
 
 You can run PostgreSQL on the same host as Mattermost, on a separate server, or as a managed service such as Amazon RDS or Azure Database for PostgreSQL. See the [database software](/deployment-guide/software-hardware-requirements#database-software) documentation for the supported versions and the minimum version policy.
 
@@ -38,8 +38,11 @@ You can run PostgreSQL on the same host as Mattermost, on a separate server, or 
     3.  Create the Mattermost user with a secure password:
 
         ``` sql
+        SET password_encryption = 'scram-sha-256';
         CREATE USER mmuser WITH PASSWORD 'mmuser-password';
         ```
+
+        The `SET` command makes sure that the password is stored as a SCRAM hash, which the `scram-sha-256` entry in [Allow remote connections](#allow-remote-connections) requires. SCRAM is the default from PostgreSQL v14, but the default can be changed in the server configuration or for a specific database or user. `SET` overrides all of these for the current session only, so run it again before you change this password in the future.
 
     4.  Grant database access to the user:
 
@@ -89,10 +92,29 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
     Add the following line, replacing `&#123;mattermost-server-IP&#125;`:
 
     ``` text
-    host all all {mattermost-server-IP}/32 md5
+    host mattermost mmuser {mattermost-server-IP}/32 scram-sha-256
     ```
 
-    Restrict the source to the Mattermost server's address rather than a wider range, so the database only accepts connections from the application layer.
+    This entry lets the `mmuser` user connect to the `mattermost` database, matching the names created above, from the Mattermost server's address. Use that address rather than a wider range. This entry doesn't block connections on its own: PostgreSQL uses the first entry that matches a connection, and other entries can still allow connections from other addresses. Review the other entries in `pg_hba.conf`, and remove or narrow any that allow more access than you need.
+
+    Use `scram-sha-256` rather than `md5`. It requires the password to be stored as a SCRAM hash, as described in [Create the database and user](#create-the-database-and-user). MD5 isn't a FIPS-approved algorithm, so Mattermost's [FIPS-compliant images](/administration-guide/manage/admin/fips-migration) can't authenticate with it.
+
+    If you're changing an existing `md5` entry to `scram-sha-256`, first confirm that the Mattermost user's password is stored as a SCRAM hash. A `scram-sha-256` entry rejects passwords that are still stored as MD5 hashes, so Mattermost would no longer be able to connect. As a PostgreSQL superuser, run:
+
+    ``` sql
+    SELECT rolpassword LIKE 'SCRAM-SHA-256$%' AS uses_scram FROM pg_authid WHERE rolname = 'mmuser';
+    ```
+
+    If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, review its authentication configuration before you convert the password, even if the password itself doesn't change. Re-hashing the password can also affect how the pooler authenticates. See PgBouncer's [authentication settings](https://www.pgbouncer.org/config.html#authentication-settings).
+
+    If `uses_scram` is `f`, set the password again in `psql`, entering the current password when prompted. This converts the stored hash without changing the credential Mattermost uses:
+
+    ``` text
+    SET password_encryption = 'scram-sha-256';
+    \password mmuser
+    ```
+
+    Change the `pg_hba.conf` entry only after the query returns `t`.
 
 3.  Restart the PostgreSQL service to apply the configuration changes:
 
