@@ -197,6 +197,9 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 
 		reader := newReverseLineReader(file, end, logReadBlockSize)
 		toSkip := page * perPage
+		// Lines that aren't JSON are logged once with a count, not one by one: each message is a
+		// line in this file, which a client polling the logs would read back on its next query
+		var unparsed int
 		for len(lines) < perPage {
 			line, err := reader.Next()
 			if err == io.EOF {
@@ -219,7 +222,7 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 			var entry *model.LogEntry
 			err = json.Unmarshal(line, &entry)
 			if err != nil || entry == nil {
-				rctx.Logger().Debug("Failed to parse line, skipping")
+				unparsed++
 			} else {
 				if hasDateFrom {
 					if timestamp, ok := logEntryTimestamp(entry); ok {
@@ -242,6 +245,9 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 			if !filtered {
 				lines = append(lines, string(line))
 			}
+		}
+		if unparsed > 0 {
+			rctx.Logger().Debug("Read log lines that aren't JSON", mlog.Int("lines", unparsed))
 		}
 
 		for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {

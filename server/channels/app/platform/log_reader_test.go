@@ -257,6 +257,32 @@ func TestGetLogsSkipSendNullLine(t *testing.T) {
 	assert.Equal(t, []string{"null"}, lines)
 }
 
+func TestGetLogsSkipSendLogsUnparsedLinesOnce(t *testing.T) {
+	// Plain-text lines, as the file holds after LogSettings.FileJson is turned off
+	content := logLine("2026-10-21 10:00:00.000 Z", "info", "one") + "\n" +
+		"2026-10-21T10:00:01.000Z info two\n" +
+		"2026-10-21T10:00:02.000Z info three\n" +
+		"2026-10-21T10:00:03.000Z info four\n"
+	ps := newGetLogsTestService(t, []byte(content))
+
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	var buffer mlog.Buffer
+	require.NoError(t, mlog.AddWriterTarget(logger, &buffer, true, mlog.StdAll...))
+	t.Cleanup(func() { require.NoError(t, logger.Shutdown()) })
+
+	lines, appErr := ps.GetLogsSkipSend(request.EmptyContext(logger), 0, 100, &model.LogFilter{})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 4)
+	require.NoError(t, logger.Flush())
+
+	// One message for the scan, so a client polling the logs at debug level can't make the
+	// file grow with every query
+	logged := buffer.String()
+	assert.Equal(t, 1, strings.Count(logged, "Read log lines that aren't JSON"), logged)
+	assert.Contains(t, logged, `"lines":3`)
+}
+
 // TestGetLogsSkipSendLargeFile covers lines that straddle read blocks or are longer than one.
 func TestGetLogsSkipSendLargeFile(t *testing.T) {
 	var sb strings.Builder

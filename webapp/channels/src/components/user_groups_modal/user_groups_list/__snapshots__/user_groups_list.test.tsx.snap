@@ -42,20 +42,20 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-label="Group 0 actions"
-                class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
+                class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101"
                 id="customWrapper-group0"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon_1xcik_13 _icon--size-16_1xcik_49"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -104,20 +104,20 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-label="Group 1 actions"
-                class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
+                class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101"
                 id="customWrapper-group1"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon_1xcik_13 _icon--size-16_1xcik_49"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -166,20 +166,20 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-label="Group 2 actions"
-                class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77"
+                class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101"
                 id="customWrapper-group2"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-16_1i355_38"
+                    class="_icon_1xcik_13 _icon--size-16_1xcik_49"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
