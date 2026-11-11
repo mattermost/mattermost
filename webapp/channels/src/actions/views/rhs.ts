@@ -352,6 +352,32 @@ export function showFlaggedPosts(): ActionFuncAsync {
     };
 }
 
+export function getMoreFlaggedPosts(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const {flaggedPaging, isSearchGettingMore} = getState().entities.search;
+        if (flaggedPaging.isEnd || isSearchGettingMore) {
+            return {data: true};
+        }
+
+        const result = await dispatch(getFlaggedPosts(flaggedPaging.page + 1));
+        if (!result.data || getRhsState(getState()) !== RHSStates.FLAG) {
+            return {data: false};
+        }
+
+        dispatch({
+            type: SearchTypes.RECEIVED_SEARCH_POSTS,
+            data: result.data,
+            isGettingMore: true,
+        });
+
+        if (result.data.order.length === 0) {
+            return dispatch(getMoreFlaggedPosts());
+        }
+
+        return {data: true};
+    };
+}
+
 export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();

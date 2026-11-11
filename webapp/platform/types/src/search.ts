@@ -11,6 +11,10 @@ export type SearchState = {
     results: string[];
     fileResults: string[];
     flagged: string[];
+    flaggedPaging: {
+        page: number;
+        isEnd: boolean;
+    };
     pinned: Record<string, string[]>;
     isSearchingTerm: boolean;
     isSearchGettingMore: boolean;

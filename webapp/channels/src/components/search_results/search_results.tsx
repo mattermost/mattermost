@@ -108,7 +108,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         // after the first page of search results, there is no way to
         // know if the search has more results to return, so we search
         // for the second page and stop if it yields no results
-        if (props.searchPage === 0 && !props.isChannelFiles && !props.isSearchingTerm) {
+        if (props.searchPage === 0 && !props.isChannelFiles && !props.isFlaggedPosts && !props.isSearchingTerm) {
             setTimeout(() => {
                 props.getMorePostsForSearch();
                 props.getMoreFilesForSearch();
@@ -117,12 +117,16 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [props.searchPage, props.searchTerms, props.isSearchingTerm]);
 
     const handleScroll = (): void => {
-        if (!props.isFlaggedPosts && !props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchGettingMore && !props.isChannelFiles) {
+        if (props.isFlaggedPosts && props.isFlaggedPostsAtEnd) {
+            return;
+        }
+
+        if (!props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchingFlaggedPost && !props.isSearchGettingMore && !props.isChannelFiles) {
             const scrollHeight = scrollbars.current?.scrollHeight || 0;
             const scrollTop = scrollbars.current?.scrollTop || 0;
             const clientHeight = scrollbars.current?.clientHeight || 0;
             if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
-                if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
+                if (searchType === DataSearchTypes.FILES_SEARCH_TYPE && !props.isFlaggedPosts) {
                     loadMoreFiles();
                 } else {
                     loadMorePosts();
@@ -130,6 +134,13 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             }
         }
     };
+
+    useEffect(() => {
+        // Saved posts are filtered after each page is selected, so a page may not fill the panel enough to scroll.
+        if (props.isFlaggedPosts) {
+            handleScroll();
+        }
+    }, [props.isFlaggedPosts, props.results, props.isFlaggedPostsAtEnd, props.isSearchingFlaggedPost]);
 
     const setSearchTeam = (teamId: string): void => {
         props.updateSearchTeam(teamId);
@@ -185,8 +196,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     // per date group (see MM-67904).
     const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string').length : 0;
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
-    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
-    const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
+    const isAtEnd = isFlaggedPosts ? props.isFlaggedPostsAtEnd : (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
+    const showLoadMore = !isAtEnd && !isChannelFiles && !isPinnedPosts;
     const isMessagesSearch = (!isFlaggedPosts && !isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
 
     let contentItems;

@@ -338,6 +338,63 @@ describe('reducers.entities.search', () => {
         });
     });
 
+    describe('flagged', () => {
+        it('replaces the list with the first page', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['efgh'], posts: {}, has_next: true},
+                page: 0,
+                isGettingMore: false,
+            };
+
+            const actualState = reducer({flagged: ['abcd']} as SearchState, action);
+            expect(actualState.flagged).toEqual(['efgh']);
+            expect(actualState.flaggedPaging).toEqual({page: 0, isEnd: false});
+        });
+
+        it('appends later pages without duplicates', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['efgh', 'ijkl'], posts: {}, has_next: false},
+                page: 1,
+                isGettingMore: true,
+            };
+
+            const actualState = reducer({flagged: ['abcd', 'efgh']} as SearchState, action);
+            expect(actualState.flagged).toEqual(['abcd', 'efgh', 'ijkl']);
+            expect(actualState.flaggedPaging).toEqual({page: 1, isEnd: true});
+        });
+
+        it('treats a missing has_next as the end of the list', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['abcd'], posts: {}},
+                page: 0,
+                isGettingMore: false,
+            };
+
+            const actualState = reducer({} as SearchState, action);
+            expect(actualState.flaggedPaging).toEqual({page: 0, isEnd: true});
+        });
+    });
+
+    describe('isSearchGettingMore', () => {
+        it('is set while loading more flagged posts', () => {
+            const actualState = reducer({} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore: true});
+            expect(actualState.isSearchGettingMore).toBe(true);
+        });
+
+        it('is not set while loading the first page of flagged posts', () => {
+            const actualState = reducer({} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore: false});
+            expect(actualState.isSearchGettingMore).toBe(false);
+        });
+
+        it('is cleared when loading flagged posts fails', () => {
+            const actualState = reducer({isSearchGettingMore: true} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE});
+            expect(actualState.isSearchGettingMore).toBe(false);
+        });
+    });
+
     describe('pinned', () => {
         it('do not show multiples of the same post', () => {
             const inputState = {

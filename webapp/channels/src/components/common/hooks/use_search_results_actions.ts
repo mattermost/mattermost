@@ -8,7 +8,7 @@ import {getMoreFilesForSearch, getMorePostsForSearch} from 'mattermost-redux/act
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {filterFilesSearchByExt, showChannelFiles, showSearchResults, updateSearchTeam as updateSearchTeamAction, updateSearchTerms as updateSearchTermsAction, updateSearchType as updateSearchTypeAction} from 'actions/views/rhs';
+import {filterFilesSearchByExt, getMoreFlaggedPosts, showChannelFiles, showSearchResults, updateSearchTeam as updateSearchTeamAction, updateSearchTerms as updateSearchTermsAction, updateSearchType as updateSearchTypeAction} from 'actions/views/rhs';
 import {getExplicitSearchTeam, getRhsState, getSearchTeam, getSearchTerms} from 'selectors/rhs';
 
 import type {SearchFilterType} from 'components/search/types';
@@ -29,6 +29,7 @@ export default function useSearchResultsActions() {
     const isFileSearchAvailable = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
     const isMentionSearch = rhsState === RHSStates.MENTION;
     const isChannelFiles = rhsState === RHSStates.CHANNEL_FILES;
+    const isFlaggedPosts = rhsState === RHSStates.FLAG;
 
     const [searchFilterType, setSearchFilterType] = useState<SearchFilterType>('all');
 
@@ -37,8 +38,12 @@ export default function useSearchResultsActions() {
     const isAllTeamsSearch = isMentionSearch && !explicitSearchTeam;
 
     const getMorePostsForSearchCallback = useCallback(() => {
+        if (isFlaggedPosts) {
+            dispatch(getMoreFlaggedPosts());
+            return;
+        }
         dispatch(getMorePostsForSearch(isAllTeamsSearch ? '' : searchTeam));
-    }, [dispatch, isAllTeamsSearch, searchTeam]);
+    }, [dispatch, isFlaggedPosts, isAllTeamsSearch, searchTeam]);
 
     const getMoreFilesForSearchCallback = useCallback(() => {
         if (!isFileSearchAvailable) {

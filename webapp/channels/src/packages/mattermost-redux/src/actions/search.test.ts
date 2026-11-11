@@ -25,6 +25,28 @@ describe('Actions.Search', () => {
         TestHelper.tearDown();
     });
 
+    it('getFlaggedPosts requests the given page and records whether more follow', async () => {
+        store = configureStore({entities: {users: {currentUserId: TestHelper.basicUser!.id}}});
+        const {dispatch, getState} = store;
+        const userId = TestHelper.basicUser!.id;
+
+        nock(Client4.getUsersRoute()).
+            get(`/${userId}/posts/flagged`).
+            query((query) => query.page === '0').
+            reply(200, {order: [], posts: {}, has_next: true});
+
+        await dispatch(Actions.getFlaggedPosts());
+        expect(getState().entities.search.flaggedPaging).toEqual({page: 0, isEnd: false});
+
+        nock(Client4.getUsersRoute()).
+            get(`/${userId}/posts/flagged`).
+            query((query) => query.page === '1').
+            reply(200, {order: [], posts: {}, has_next: false});
+
+        await dispatch(Actions.getFlaggedPosts(1));
+        expect(getState().entities.search.flaggedPaging).toEqual({page: 1, isEnd: true});
+    });
+
     it('Perform Search', async () => {
         const {dispatch, getState} = store;
 

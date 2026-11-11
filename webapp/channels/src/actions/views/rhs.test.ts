@@ -23,6 +23,7 @@ import {
     performSearch,
     showSearchResults,
     showFlaggedPosts,
+    getMoreFlaggedPosts,
     showPinnedPosts,
     showMentions,
     closeRightHandSide,
@@ -336,6 +337,70 @@ describe('rhs view actions', () => {
             compareStore.dispatch(performSearch(terms, currentTeamId));
 
             expect(store.getActions()).toEqual(compareStore.getActions());
+        });
+    });
+
+    describe('getMoreFlaggedPosts', () => {
+        function savedPostsStore(paging: {page: number; isEnd: boolean}, rhsState: RhsState = RHSStates.FLAG, isSearchGettingMore = false) {
+            let state = cloneDeep(initialState);
+            state = set(state, 'entities.search', {flaggedPaging: paging, isSearchGettingMore});
+            state = set(state, 'views.rhs.rhsState', rhsState);
+            return mockStore(state);
+        }
+
+        const page = {order: ['post1'], posts: {post1: {id: 'post1'}}, has_next: true};
+
+        test('does nothing at the end of the list', async () => {
+            const savedStore = savedPostsStore({page: 2, isEnd: true});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+            expect(savedStore.getActions()).toEqual([]);
+        });
+
+        test('does nothing while another page is loading', async () => {
+            const savedStore = savedPostsStore({page: 0, isEnd: false}, RHSStates.FLAG, true);
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+        });
+
+        test('appends the next page to the results', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
+            const savedStore = savedPostsStore({page: 0, isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledWith(1);
+            expect(savedStore.getActions()).toEqual([
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
+                    data: page,
+                    isGettingMore: true,
+                },
+            ]);
+        });
+
+        test('drops the page if the saved messages panel was closed', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
+            const savedStore = savedPostsStore({page: 0, isEnd: false}, RHSStates.MENTION);
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(savedStore.getActions()).toEqual([]);
+        });
+
+        test('keeps loading past an empty page', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).
+                mockReturnValueOnce(() => ({data: {order: [], posts: {}, has_next: true}})).
+                mockReturnValueOnce(() => ({data: page}));
+            const savedStore = savedPostsStore({page: 0, isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(2);
         });
     });
 
