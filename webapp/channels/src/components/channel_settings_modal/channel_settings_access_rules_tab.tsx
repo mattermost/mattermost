@@ -153,6 +153,7 @@ function ChannelSettingsAccessRulesTab({
     useEffect(() => {
         let cancelled = false;
         setPolicyLoaded(false);
+        setLoadError('');
         setSavedRuleStatus('checking');
 
         const loadChannelPolicy = async () => {
@@ -178,7 +179,6 @@ function ChannelSettingsAccessRulesTab({
                 setExistingImports(result.data.imports || []);
                 setAutoSyncMembers(existingAutoSync);
                 setOriginalAutoSyncMembers(existingAutoSync);
-                setLoadError('');
                 setPolicyLoaded(true);
                 return;
             }
@@ -191,7 +191,6 @@ function ChannelSettingsAccessRulesTab({
                 setExistingRules([]);
                 setExistingImports([]);
                 setSavedRuleStatus('editable');
-                setLoadError('');
                 setPolicyLoaded(true);
                 return;
             }

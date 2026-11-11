@@ -2590,6 +2590,33 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             expect(screen.queryByText('Save')).not.toBeInTheDocument();
         });
 
+        test('clears a previous channel\'s load error when the channel changes', async () => {
+            mockActions.getChannelPolicy.mockResolvedValueOnce({error: {status_code: 500, message: 'Something went wrong'}});
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(await screen.findByTestId('access-rules-load-error')).toBeInTheDocument();
+
+            mockActions.getChannelPolicy.mockReturnValueOnce(new Promise(() => {}));
+
+            rerender(
+                <ChannelSettingsAccessRulesTab
+                    {...baseProps}
+                    channel={TestHelper.getChannelMock({...baseProps.channel, id: 'other_channel_id'})}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getChannelPolicy).toHaveBeenCalledWith('other_channel_id');
+            });
+
+            expect(screen.queryByTestId('access-rules-load-error')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        });
+
         test('seeds empty defaults on a 404 so a first policy can be created', async () => {
             mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 404, message: 'Policy not found'}});
 
