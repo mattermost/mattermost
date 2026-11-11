@@ -41,7 +41,7 @@ You can run PostgreSQL on the same host as Mattermost, on a separate server, or 
         CREATE USER mmuser WITH PASSWORD 'mmuser-password';
         ```
 
-        PostgreSQL v14 and later store the password as a SCRAM hash by default, which the `scram-sha-256` entry in [Allow remote connections](#allow-remote-connections) requires. If `SHOW password_encryption;` returns `md5` on your server, set `password_encryption = 'scram-sha-256'` in `postgresql.conf`, reload the configuration with `SELECT pg_reload_conf();`, and then set the password again with `ALTER USER mmuser WITH PASSWORD 'mmuser-password';`.
+        PostgreSQL v14 and later store the password as a SCRAM hash by default, which the `scram-sha-256` entry in [Allow remote connections](#allow-remote-connections) requires. If `SHOW password_encryption;` returns `md5` on your server, run `ALTER SYSTEM SET password_encryption = 'scram-sha-256';` and reload the configuration with `SELECT pg_reload_conf();`. `ALTER SYSTEM` writes to `postgresql.auto.conf`, which overrides `postgresql.conf`. Run `SHOW password_encryption;` again in the same session, and continue only once it returns `scram-sha-256`. Then set the password again with `ALTER USER mmuser WITH PASSWORD 'mmuser-password';`.
 
     4.  Grant database access to the user:
 
@@ -104,7 +104,7 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
     SELECT rolpassword LIKE 'SCRAM-SHA-256$%' AS uses_scram FROM pg_authid WHERE rolname = 'mmuser';
     ```
 
-    If `uses_scram` is `f`, confirm that `password_encryption` is set to `scram-sha-256`, then set the password again with the `psql` command `\password mmuser`. Entering the current password converts the stored hash without changing the credential Mattermost uses. Change the `pg_hba.conf` entry only after the query returns `t`.
+    If `uses_scram` is `f`, confirm that `SHOW password_encryption;` returns `scram-sha-256` in your `psql` session, as described in [Create the database and user](#create-the-database-and-user), then set the password again with the `psql` command `\password mmuser`. Entering the current password converts the stored hash without changing the credential Mattermost uses. Change the `pg_hba.conf` entry only after the query returns `t`.
 
 3.  Restart the PostgreSQL service to apply the configuration changes:
 
