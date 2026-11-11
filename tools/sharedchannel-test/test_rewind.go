@@ -171,21 +171,27 @@ func (tr *TestRunner) installCursorPlugin(ctx context.Context) (bool, error) {
 // waitForCursorPlugin waits until every Server A node has the cursor plugin
 // installed, or running when running is true.
 func (tr *TestRunner) waitForCursorPlugin(ctx context.Context, running bool) error {
-	count := func() int {
+	const timeout = 60 * time.Second
+	// The client sets no HTTP timeout, so a stalled node would block past waitFor's deadline.
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	var nodes int
+	err := tr.waitFor(ctx, timeout, func() bool {
 		statuses, _, err := tr.clientA.GetPluginStatuses(ctx)
 		if err != nil {
-			return 0
+			return false
 		}
-		n := 0
+		nodes = 0
 		for _, s := range statuses {
 			if s.PluginId == cursorPluginID && (!running || s.State == model.PluginStateRunning) {
-				n++
+				nodes++
 			}
 		}
-		return n
-	}
-	if err := tr.waitFor(ctx, 60*time.Second, func() bool { return count() == len(tr.nodesA) }); err != nil {
-		return fmt.Errorf("plugin on %d of %d Server A nodes: %w", count(), len(tr.nodesA), err)
+		return nodes == len(tr.nodesA)
+	})
+	if err != nil {
+		return fmt.Errorf("plugin on %d of %d Server A nodes: %w", nodes, len(tr.nodesA), err)
 	}
 	return nil
 }
