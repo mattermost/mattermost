@@ -205,6 +205,21 @@
     "description": "Admin console error when the SAML Identity Provider certificate obtained from metadata cannot be written to disk."
   },
   {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "The uploaded Identity Provider certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Identity Provider certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "The uploaded Service Provider private key is not a valid PEM-encoded private key.",
+    "description": "Admin console error when an uploaded SAML Service Provider private key file cannot be parsed; 'PEM' is a key format name."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "The uploaded Service Provider public certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Service Provider public certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Missing Identity Provider SSO Descriptors node in the XML.",
     "description": "Admin console error when SAML Identity Provider metadata XML lacks the IDPSSODescriptor element; technical XML node name."
@@ -9166,11 +9181,6 @@
     "description": "Bulk import error shown to admins when saving imported team membership records fails."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Unable to import team membership because no more members are allowed in that team",
-    "description": "Bulk import error shown to admins when a team has reached its maximum user limit so the membership cannot be added."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences",
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
@@ -9189,6 +9199,16 @@
     "id": "app.import.preflight.auth_provider_not_configured.error",
     "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}",
     "description": "Bulk import pre-check error when the export contains users of a sign-in method that is not set up on this server. {{.Service}} is the internal auth service ID (e.g. ldap, saml, gitlab, google, office365, openid); {{.Detail}} is an untranslated English explanation."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "This file adds {{.Adding}} users to team {{.Team}}, giving it {{.Total}} members, but TeamSettings.MaxUsersPerTeam is {{.Limit}}. Raise the limit or set it to 0 (no limit) before importing.",
+    "description": "Bulk import pre-check error shown before anything is imported when the import would take a team past its member limit. {{.Adding}} is the number of users the file adds to the team, {{.Team}} the team name, {{.Total}} the resulting member count and {{.Limit}} the configured limit. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Unable to read the import file to check TeamSettings.MaxUsersPerTeam.",
+    "description": "Bulk import pre-check error shown when the data file inside the import archive cannot be found or opened, so the team member limit cannot be checked before importing. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -14432,6 +14452,11 @@
     "description": "SAML login error when the Service Provider private key file is missing; 'Service Provider' is a SAML term for the Mattermost side."
   },
   {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML is not configured correctly. Please contact your System Administrator.",
+    "description": "SAML error when the Service Provider could not be configured, e.g. because a stored certificate or key failed to load; 'Service Provider' is a SAML term for the Mattermost side."
+  },
+  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator.",
     "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
@@ -14812,6 +14837,36 @@
     "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
   },
   {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL is currently vacuuming the Posts table. Let that vacuum finish before evaluating whether another vacuum is needed.",
+    "description": "Health dashboard status when the PostgreSQL Posts table has many dead tuples but a vacuum is already running. 'PostgreSQL', 'Posts' and 'vacuum' are technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), even though it was last vacuumed at {{.last_vacuum}}. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples although it was vacuumed recently; {{.dead_tuples}}, {{.dead_percent}} and {{.estimated_rows}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'idle-in-transaction', 'replication slot' and 'prepared transaction' are PostgreSQL technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), and PostgreSQL has no record of it being vacuumed since its statistics were last reset. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has no recorded vacuum; {{.dead_tuples}}, {{.dead_percent}} and {{.estimated_rows}} are numbers. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'Autovacuum' is a PostgreSQL technical term and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), and its most recent vacuum was {{.age_days}} days ago at {{.last_vacuum}}. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently; {{.dead_tuples}}, {{.dead_percent}}, {{.estimated_rows}} and {{.age_days}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'Autovacuum' is a PostgreSQL technical term and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "If pg_stat_progress_vacuum shows a vacuum running on Posts, let it finish, since starting a manual VACUUM cancels it. If Posts was vacuumed recently, find what is holding back cleanup and end or remove it: long-running or idle-in-transaction sessions in pg_stat_activity, inactive replication slots in pg_replication_slots, and old prepared transactions in pg_prepared_xacts. The next vacuum can then remove the dead tuples. If Posts has not been vacuumed recently, verify autovacuum is enabled globally and for Posts, and check PostgreSQL logs for canceled autovacuum jobs. If autovacuum cannot keep up, lower autovacuum_vacuum_scale_factor for Posts and raise autovacuum_vacuum_cost_limit and autovacuum_work_mem as capacity allows, then schedule a targeted VACUUM (ANALYZE) on Posts during low traffic. Avoid VACUUM FULL unless you plan for its exclusive lock and extra disk space; if available, pg_repack is a lower-lock alternative.",
+    "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples, covering both a vacuum that cannot remove them and a vacuum that has not run recently. 'pg_stat_progress_vacuum', 'pg_stat_activity', 'pg_replication_slots', 'pg_prepared_xacts', 'Posts', 'PostgreSQL', 'VACUUM', 'idle-in-transaction', 'autovacuum', 'autovacuum_vacuum_scale_factor', 'autovacuum_vacuum_cost_limit', 'autovacuum_work_mem', 'VACUUM (ANALYZE)', 'VACUUM FULL' and 'pg_repack' are technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts table has many dead tuples",
+    "description": "Health dashboard finding title when the PostgreSQL Posts table has many dead tuples that vacuum has not removed. 'Posts' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
+  },
+  {
     "id": "health.rule.db_query_timeout_high.message",
     "translation": "QueryTimeout is set to {{.timeout}} seconds. Long timeouts let runaway queries hold locks for the full duration, blocking autovacuum, schema migrations, and writers behind the same row. This compounds risk on busy databases without read replicas.",
     "description": "Health dashboard finding detail when the database query timeout is high; {{.timeout}} is a number of seconds. 'QueryTimeout' is a setting name and 'autovacuum' is a PostgreSQL process; do not translate them."
@@ -15020,6 +15075,36 @@
     "id": "health.rule.export_gr_timeout_low.title",
     "translation": "Global Relay SMTPServerTimeout is under 30 seconds",
     "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB. File uploads and other file operations can fail when the volume fills.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 5% and less than 5 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a critically low local file storage volume. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "File storage disk is nearly full",
+    "description": "Health dashboard finding title when a server node's local file storage volume has critically little space available."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 1 GiB available, or less than 10% and less than 10 GiB available, unless the critical disk-space rule applies; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a local file storage volume with low available space. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "File storage disk space is low",
+    "description": "Health dashboard finding title when a server node's local file storage volume has low available space."
   },
   {
     "id": "health.rule.filestore_local_in_cluster.message",
@@ -15382,6 +15467,51 @@
     "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
   },
   {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "The container's memory working set is {{.working_set}} MB of its {{.limit}} MB limit. If it keeps growing, the kernel may kill the server or a plugin process.",
+    "description": "Health dashboard finding detail when a node's container uses at least 90% of its memory limit; {{.working_set}} is the non-reclaimable memory in MB and {{.limit}} is the container limit in MB."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Reduce memory use by Mattermost and its plugins, or raise the container memory limit. Keep enough headroom for plugin processes, the Go runtime and traffic spikes.",
+    "description": "Health dashboard fix-it step when a node's container is close to its memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Container memory nearly exhausted",
+    "description": "Health dashboard finding title when a server node's container memory working set is at least 90% of its limit."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "The container has recorded {{.kills}} out-of-memory kills since it started. The killed process may have been a plugin or another child process; review the plugin list and the container memory limit.",
+    "description": "Health dashboard finding detail when a node's cgroup recorded an OOM kill; {{.kills}} is the number of processes killed, and 'plugin' means a Mattermost server plugin."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Review the plugin processes and container logs to identify what was killed, then reduce its memory use or raise the container memory limit.",
+    "description": "Health dashboard fix-it step when a process in a Mattermost server container was killed for running out of memory."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "A container process was killed for running out of memory",
+    "description": "Health dashboard finding title when a server node's cgroup reports one or more OOM kills."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "The container was throttled during {{.throttled}} of {{.periods}} CPU scheduling periods. Sustained CPU throttling can make Mattermost slow even when host CPU usage looks low.",
+    "description": "Health dashboard finding detail when a node's container has been CPU-throttled in at least 10% of its scheduling periods; {{.throttled}} is the number of throttled periods and {{.periods}} is the total number of periods."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Raise the container CPU limit, or remove the limit while keeping a CPU request.",
+    "description": "Health dashboard fix-it step for sustained container CPU throttling. 'CPU limit' and 'CPU request' are Kubernetes resource terms."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Container CPU throttling is high",
+    "description": "Health dashboard finding title when a server node's container is throttled during at least 10% of CPU scheduling periods."
+  },
+  {
     "id": "health.rule.node_fd_exhaustion.message",
     "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
     "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
@@ -15395,6 +15525,66 @@
     "id": "health.rule.node_fd_exhaustion.title",
     "translation": "File descriptors nearly exhausted",
     "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "The Go memory limit is {{.go_limit}} MB, but the container limit is {{.container_limit}} MB. The garbage collector may not work harder before the kernel kills the process.",
+    "description": "Health dashboard finding detail when GOMEMLIMIT is at least the container memory limit; {{.go_limit}} and {{.container_limit}} are values in MB, and 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Set GOMEMLIMIT to about 80–90% of the container memory limit, leaving headroom for memory outside the Go heap and for plugin processes.",
+    "description": "Health dashboard fix-it step when GOMEMLIMIT is too high for the container; 'GOMEMLIMIT' is a Go runtime environment variable and should not be translated."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go memory limit is at or above the container limit",
+    "description": "Health dashboard finding title when GOMEMLIMIT is equal to or greater than the container memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS is {{.go_max_procs}}, above the container CPU limit of {{.cpu_limit}} CPUs. The extra runnable threads can increase CPU throttling.",
+    "description": "Health dashboard finding detail when Go can run more threads simultaneously than a node's container CPU quota; {{.go_max_procs}} is GOMAXPROCS and {{.cpu_limit}} is the CPU limit in CPUs. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Unset GOMAXPROCS so the Go runtime sizes it to the container CPU limit, then restart the server.",
+    "description": "Health dashboard fix-it step when GOMAXPROCS exceeds a node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS exceeds the container CPU limit",
+    "description": "Health dashboard finding title when Go can run more threads simultaneously than a server node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "The 15-minute host load average is {{.load}} across {{.cores}} CPU cores. A sustained load of two or more tasks per core can indicate CPU or I/O pressure.",
+    "description": "Health dashboard finding detail when a non-containerized node's 15-minute host load average is at least twice its CPU core count; {{.load}} is the load average and {{.cores}} is the number of logical CPU cores."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Check CPU utilization, disk I/O, and running processes on the node, then add capacity or reduce the workload.",
+    "description": "Health dashboard fix-it step when a server node has sustained high host load."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Host load is high",
+    "description": "Health dashboard finding title when a non-containerized server node's 15-minute load average is at least twice its CPU core count."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "The host has {{.available}} MB available out of {{.total}} MB. Mattermost and other processes may be killed or become slow if memory continues to fall.",
+    "description": "Health dashboard finding detail when a non-containerized node has less than 10% of host memory available; {{.available}} and {{.total}} are values in MB."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Find and reduce the processes using the most memory, or add memory to the host. Review Mattermost and plugin memory use before restarting services.",
+    "description": "Health dashboard fix-it step when a non-containerized server host has little memory available."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Host memory is running low",
+    "description": "Health dashboard finding title when a non-containerized server node has less than 10% of host memory available."
   },
   {
     "id": "health.rule.node_not_responding.message",
@@ -15525,6 +15715,26 @@
     "id": "health.rule.push_id_only.title",
     "translation": "Push notifications include the full message text",
     "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "The connection test to the push notification server failed: {{.error}}. Mobile users may not receive push notifications.",
+    "description": "Health dashboard finding detail when no app node could connect to the configured push notification server; {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "The connection test to the push notification server failed on {{.nodes}}, while the other nodes reach it. Push notifications sent by those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the push notification server connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Check PushNotificationServer, TLS certificates and push proxy health. Confirm every Mattermost app node can reach the configured host over HTTPS, then verify its /version endpoint.",
+    "description": "Health dashboard fix-it step for a failed push notification server connection test; 'PushNotificationServer' is a config setting path, '/version' is a literal endpoint, and neither should be translated."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Push notification server connection test failed",
+    "description": "Health dashboard finding title when one or more app nodes could not connect to the configured push notification server."
   },
   {
     "id": "health.rule.push_test_proxy.message",
@@ -18365,6 +18575,26 @@
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Invalid field filter. A field name must be at most {{.MaxLength}} characters, and can't be empty, \"level\" or \"timestamp\".",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when the field name is not allowed. {{.MaxLength}} is the maximum number of characters. \"level\" and \"timestamp\" are log field names and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Invalid field filter. A field value must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a value is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Invalid field filter. Each field must have between 1 and {{.MaxValues}} values.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a field has no values or too many. {{.MaxValues}} is the maximum number of values."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Invalid field filter. At most {{.MaxKeys}} fields can be filtered on.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by log fields, such as a plugin ID, when too many fields are given. {{.MaxKeys}} is the maximum number of fields."
   },
   {
     "id": "model.log_filter.is_valid.search.app_error",

@@ -132,6 +132,8 @@ func TestRegistered(t *testing.T) {
 		{filestoreLocalInCluster, "FILESTORE_LOCAL_IN_CLUSTER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.Directory", false, false},
 		{filestoreS3NoBucket, "FILESTORE_S3_NO_BUCKET", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3Bucket", false, false},
 		{filestoreS3SSLOff, "FILESTORE_S3_SSL_OFF", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "FileSettings.AmazonS3SSL", false, false},
+		{filestoreDiskLow, "FILESTORE_DISK_LOW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, filestoreDiskSpaceSubject, false, true},
+		{filestoreDiskFull, "FILESTORE_DISK_FULL", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, filestoreDiskSpaceSubject, false, true},
 		{filestoreUnreachable, "FILESTORE_UNREACHABLE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityProbe, "FileSettings.DriverName", false, false},
 		{logDebugProd, "LOG_DEBUG_PROD", healthcheck.SeverityInfo, healthcheck.SurfaceInternal, healthcheck.VolatilityStable, "LogSettings.FileLevel", false, false},
 		{logFileOff, "LOG_FILE_OFF", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "LogSettings.EnableFile", false, false},
@@ -142,6 +144,13 @@ func TestRegistered(t *testing.T) {
 		{envUnsupportedOS, "ENV_UNSUPPORTED_OS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.OS", false, false},
 		{bindPrivilegedPort, "BIND_PRIVILEGED_PORT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "ServiceSettings.ListenAddress", false, false},
 		{nodeFDExhaustion, "NODE_FD_EXHAUSTION", healthcheck.SeverityCritical, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.FileDescriptors", false, true},
+		{nodeContainerMemoryPressure, "NODE_CONTAINER_MEMORY_PRESSURE", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerMemory", false, true},
+		{nodeContainerOOMKills, "NODE_CONTAINER_OOM_KILLS", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerOOMKills", false, true},
+		{nodeHostMemoryLow, "NODE_HOST_MEMORY_LOW", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.HostMemory", false, true},
+		{nodeGoMemoryLimitAboveContainer, "NODE_GO_MEMORY_LIMIT_ABOVE_CONTAINER", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.GoMemoryLimit", false, true},
+		{nodeCPUThrottled, "NODE_CPU_THROTTLED", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.ContainerCPUThrottling", false, true},
+		{nodeGOMAXPROCSAboveCPULimit, "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", healthcheck.SeverityWarning, healthcheck.SurfaceProduct, healthcheck.VolatilityStable, "Server.GoMaxProcs", false, true},
+		{nodeHostLoadHigh, "NODE_HOST_LOAD_HIGH", healthcheck.SeverityInfo, healthcheck.SurfaceProduct, healthcheck.VolatilityThreshold, "Server.LoadAverage15m", false, true},
 	}
 
 	registry := healthcheck.Builtin()

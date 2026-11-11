@@ -271,7 +271,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         pendingChangeRef.current = null;
         pendingChange?.();
     }, []);
-    const debouncedFlushPendingChange = useDebounce(flushPendingChange, SERIALIZE_DEBOUNCE_MS);
+
+    // Reported from a timer, the change would otherwise render later, and an Enter pressed before that submits the old draft.
+    const debouncedFlushPendingChange = useDebounce(() => flushSync(flushPendingChange), SERIALIZE_DEBOUNCE_MS);
 
     // The consumer submits the value it was last given, so typing not yet reported has to reach it first.
     const submit = useCallback(() => {

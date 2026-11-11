@@ -122,6 +122,7 @@ import SecureConnections, {searchableStrings as secureConnectionsSearchableStrin
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import {canViewServerLogs} from './server_logs/url_filters';
 import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemRoles from './system_roles';
@@ -424,10 +425,7 @@ const AdminDefinition: AdminDefinitionType = {
             server_logs: {
                 url: 'reporting/server_logs',
                 title: defineMessage({id: 'admin.sidebar.logs', defaultMessage: 'Server Logs'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
-                ),
+                isHidden: (config, state, license, enterpriseReady, consoleAccess) => !canViewServerLogs(config, consoleAccess),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
                 searchableStrings: serverLogsSearchableStrings,
                 schema: {
@@ -6864,13 +6862,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.DelayChannelAutocomplete',
                             label: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.title', defaultMessage: 'Delay Channel Autocomplete:'}),
                             help_text: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.desc', defaultMessage: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.YoutubeReferrerPolicy',
-                            label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
-                            help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
