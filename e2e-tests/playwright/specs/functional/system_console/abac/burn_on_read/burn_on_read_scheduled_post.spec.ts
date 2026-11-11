@@ -24,7 +24,6 @@ import {
     deletePolicyById,
     grantToEmailCEL,
     ensureABACEnabled,
-    requireFeatureFlag,
     scheduleBurnOnReadPostInPage,
     ensureBurnOnReadEnabled,
     upsertSystemPolicy,
@@ -40,7 +39,7 @@ test.beforeEach(async ({pw}) => {
     const {adminClient} = await pw.getAdminClient();
     const license = await adminClient.getClientLicenseOld();
     test.skip(licenseTier(license.SkuShortName) < 30, 'Burn-on-read requires an Enterprise Advanced licence.');
-    await requireFeatureFlag(pw, 'PermissionPolicies');
+    await pw.ensureFeatureFlag('PermissionPolicies', true);
 
     // This test has to watch the send job actually run, and without EnableTesting that is
     // not a slow test — it is an impossible one. doRunScheduledPostJob (channels/app/server.go)

@@ -25,7 +25,6 @@ import {
     grantToEmailCEL,
     deletePolicyById,
     ensureABACEnabled,
-    requireFeatureFlag,
     ensureBurnOnReadEnabled,
     upsertChannelPolicy,
     upsertSystemPolicy,
@@ -46,7 +45,7 @@ test.beforeEach(async ({pw}) => {
     // Without this the allow-side assertions pass for the wrong reason: with the flag off
     // the client suppresses the decision request and defaults to allowed, so the control
     // is present regardless of policy.
-    await requireFeatureFlag(pw, 'PermissionPolicies');
+    await pw.ensureFeatureFlag('PermissionPolicies', true);
 });
 
 test.afterEach(async () => {
@@ -214,7 +213,7 @@ test(
     {tag: '@abac_burn_on_read'},
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
-        await requireFeatureFlag(pw, 'ChannelPermissionPolicies');
+        await pw.ensureFeatureFlag('ChannelPermissionPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         savedAdminClient = adminClient;

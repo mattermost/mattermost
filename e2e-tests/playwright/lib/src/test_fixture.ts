@@ -14,7 +14,6 @@ import {
     ensurePluginsLoaded,
     ensureServerDeployment,
     shouldHaveCallsEnabled,
-    shouldHaveFeatureFlag,
     shouldRunInLinux,
     skipIfNoLicense,
 } from './flag';
@@ -194,7 +193,6 @@ export class PlaywrightExtended {
 
     // ./flag
     readonly shouldHaveCallsEnabled;
-    readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
     readonly ensureLicense;
     readonly ensureServerDeployment;
@@ -329,7 +327,6 @@ export class PlaywrightExtended {
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
-        this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
