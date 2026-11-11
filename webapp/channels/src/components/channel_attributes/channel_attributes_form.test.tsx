@@ -337,7 +337,7 @@ describe('ChannelAttributesForm', () => {
         expect(within(screen.getByTestId('channelAttribute-color-option-opt_b')).getByTestId('attribute-option-visual-placeholder')).toBeInTheDocument();
     });
 
-    test('shows no swatch for a coloured multiselect', async () => {
+    test('shows a swatch for a coloured multiselect in its row and chip', async () => {
         const tags = field({
             id: 'f_tags',
             name: 'tags',
@@ -347,19 +347,21 @@ describe('ChannelAttributesForm', () => {
         renderWithContext(
             <ChannelAttributesForm
                 fields={[tags]}
-                values={{f_tags: ['opt_a']}}
+                values={{f_tags: ['opt_a', 'opt_b']}}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(screen.queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attribute-option-visual-placeholder')).not.toBeInTheDocument();
+        const chips = within(screen.getByRole('toolbar', {name: 'Tags selections'})).getAllByRole('button');
+        expect(chips.map((c) => c.textContent)).toEqual(['NOFORN', 'ORCON']);
+        expect(within(chips[0]).getByTestId('attribute-option-swatch')).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
+        expect(within(chips[1]).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('combobox', {name: 'Tags'}));
 
-        expect(screen.queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_a')).getByTestId('attribute-option-swatch')).toBeInTheDocument();
+        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_b')).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attribute-option-visual-placeholder')).not.toBeInTheDocument();
-        expect(within(screen.getByRole('toolbar', {name: 'Tags selections'})).getAllByRole('button').map((c) => c.textContent)).toEqual(['NOFORN']);
     });
 
     test('marks required comboboxes aria-required and leaves optional ones unmarked', () => {

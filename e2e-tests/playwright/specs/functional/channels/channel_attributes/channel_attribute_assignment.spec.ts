@@ -538,4 +538,68 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await deleteAttributes(adminClient, created);
         }
     });
+
+    /**
+     * @objective Verify a coloured multiselect option shows its swatch on its chip and its menu row.
+     */
+    test('shows a coloured multiselect option swatch on its chip and menu row', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+        await pw.skipIfNoLicense();
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            const caveats = await createAttribute(adminClient, attributeName('swatch_caveats', suffix), {
+                type: 'multiselect',
+                options: ['NOFORN', 'ORCON'],
+                optionColors: {NOFORN: '#1e325c'},
+                required: true,
+            });
+            created.push(caveats);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const modal = await channelsPage.openNewChannelModal();
+
+            // # Pick both values
+            await modal.selectAttributeOption(caveats.name, 'NOFORN');
+            await modal.selectAttributeOption(caveats.name, 'ORCON');
+            const chips = modal.getAttributeChips(caveats.name);
+            await expect(chips).toHaveCount(2);
+
+            // * Only the coloured chip carries a swatch, and the field shows no other
+            const nofornChip = chips.filter({has: page.getByText('NOFORN', {exact: true})});
+            const orconChip = chips.filter({has: page.getByText('ORCON', {exact: true})});
+            await expect(nofornChip.getByTestId('attribute-option-swatch')).toHaveCSS(
+                'background-color',
+                'rgb(30, 50, 92)',
+            );
+            await expect(orconChip.getByTestId('attribute-option-swatch')).toHaveCount(0);
+            await expect(modal.getAttributeRow(caveats.name).getByTestId('attribute-option-swatch')).toHaveCount(1);
+
+            // # Open the menu
+            await modal.openAttributeCombobox(caveats.name);
+
+            // * Only the coloured row carries a swatch
+            await expect(
+                modal
+                    .getAttributeOption(caveats.name, optionId(caveats, 'NOFORN'))
+                    .getByTestId('attribute-option-swatch'),
+            ).toBeVisible();
+            await expect(
+                modal
+                    .getAttributeOption(caveats.name, optionId(caveats, 'ORCON'))
+                    .getByTestId('attribute-option-swatch'),
+            ).toHaveCount(0);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
 });

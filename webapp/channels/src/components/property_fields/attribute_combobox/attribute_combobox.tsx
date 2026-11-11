@@ -52,9 +52,9 @@ export type AttributeComboboxProps = {
 
     /**
      * select: one id, with a colour swatch on coloured options. multiselect: an
-     * id list shown as chips, with no option visuals (Compass copies a row's
-     * visual into its chip). rank: one id, highest rank first, with a swatch or
-     * a rank badge. Default: select.
+     * id list shown as chips, with the swatch on coloured rows and their chips.
+     * rank: one id, highest rank first, with a swatch or a rank badge.
+     * Default: select.
      */
     type?: AttributeComboboxType;
 
@@ -104,9 +104,6 @@ export function getAttributeComboboxType(field: {type: FieldType}): AttributeCom
 }
 
 function optionVisual(option: PropertyFieldOption, type: AttributeComboboxType): ReactElement | undefined {
-    if (type === 'multiselect') {
-        return undefined;
-    }
     if (option.color) {
         return <AttributeOptionSwatch color={option.color}/>;
     }
@@ -124,7 +121,8 @@ function toComboboxOptions(
     const visuals = options.map((option) => optionVisual(option, type));
 
     // Compass reserves the leading slot per row, so rows without a visual need a placeholder to stay aligned.
-    const reserveSlot = visuals.some(Boolean);
+    // Not in a multiselect: Compass copies a row's visual into its chip, where a placeholder is an empty gap.
+    const reserveSlot = type !== 'multiselect' && visuals.some(Boolean);
 
     return options.map((option, index) => {
         const comboboxOption: ComboboxOption = {value: option.id, label: option.name};
@@ -177,10 +175,14 @@ export function AttributeCombobox({
         return value ? [value] : [];
     }, [value]);
 
+    // A multiselect's chips carry their own visuals.
     const leadingIcon = useMemo(() => {
+        if (multiple) {
+            return undefined;
+        }
         const selected = options.find((option) => option.id === values[0]);
         return selected ? optionVisual(selected, type) : undefined;
-    }, [options, type, values]);
+    }, [multiple, options, type, values]);
 
     // Values found in options resolve from there first; the rest (e.g. deleted
     // options) still render, labelled with their raw id.
