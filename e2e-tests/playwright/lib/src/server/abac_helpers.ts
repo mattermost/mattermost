@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -64,9 +64,9 @@ export async function createUserWithAttributes(
  */
 export async function enableABAC(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await page.waitForLoadState('networkidle');
 
     const enableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue');
+    await expect(enableRadio).toBeVisible();
     const saveButton = page.getByRole('button', {name: 'Save'});
 
     await enableRadio.click();
@@ -74,12 +74,12 @@ export async function enableABAC(page: Page): Promise<void> {
 
     if (!(await saveButton.isDisabled())) {
         await saveButton.click();
-        await page.waitForLoadState('networkidle');
+        await expect(saveButton).toBeDisabled();
     }
 
     // Always land on Membership Policies so callers can immediately create/manage policies
     await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
 }
 
 /**
@@ -88,9 +88,9 @@ export async function enableABAC(page: Page): Promise<void> {
  */
 export async function disableABAC(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await page.waitForLoadState('networkidle');
 
     const disableRadio = page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControlfalse');
+    await expect(disableRadio).toBeVisible();
     const saveButton = page.getByRole('button', {name: 'Save'});
 
     await disableRadio.click();
@@ -98,7 +98,7 @@ export async function disableABAC(page: Page): Promise<void> {
 
     if (!(await saveButton.isDisabled())) {
         await saveButton.click();
-        await page.waitForLoadState('networkidle');
+        await expect(saveButton).toBeDisabled();
     }
 }
 
@@ -107,7 +107,7 @@ export async function disableABAC(page: Page): Promise<void> {
  */
 export async function navigateToABACPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
 }
 
 /**
@@ -115,7 +115,7 @@ export async function navigateToABACPage(page: Page): Promise<void> {
  */
 export async function navigateToPermissionPoliciesPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/permission_policies');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
 }
 
 /**
@@ -123,7 +123,7 @@ export async function navigateToPermissionPoliciesPage(page: Page): Promise<void
  */
 export async function navigateToAttributeBasedAccessPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('#AccessControlSettings\\.EnableAttributeBasedAccessControltrue')).toBeVisible();
 }
 
 /**
@@ -142,10 +142,10 @@ export async function createBasicPolicy(
 ): Promise<void> {
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
-    await page.waitForLoadState('networkidle');
 
     // Fill policy name
     const nameInput = page.locator('input[name="name"]').first();
+    await expect(nameInput).toBeVisible();
     await nameInput.fill(options.name);
 
     // Set auto-sync if specified
@@ -187,7 +187,7 @@ export async function createBasicPolicy(
     // Save policy
     const saveButton = page.getByRole('button', {name: 'Save'}).last();
     await saveButton.click();
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
 }
 
 /**
@@ -204,10 +204,10 @@ export async function createAdvancedPolicy(
 ): Promise<void> {
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
-    await page.waitForLoadState('networkidle');
 
     // Fill policy name
     const nameInput = page.locator('input[name="name"]').first();
+    await expect(nameInput).toBeVisible();
     await nameInput.fill(options.name);
 
     // Set auto-sync if specified
@@ -225,7 +225,7 @@ export async function createAdvancedPolicy(
     const modeToggle = page.getByRole('button', {name: /advanced|basic/i});
     if (await modeToggle.isVisible({timeout: 1000})) {
         await modeToggle.click();
-        await page.waitForTimeout(500);
+        await expect(page.locator('textarea').first()).toBeVisible();
     }
 
     // Fill CEL expression
@@ -251,7 +251,7 @@ export async function createAdvancedPolicy(
     // Save policy
     const saveButton = page.getByRole('button', {name: 'Save'}).last();
     await saveButton.click();
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
 }
 
 /**
@@ -264,7 +264,7 @@ export async function editPolicy(page: Page, policyName: string): Promise<void> 
 
     const editButton = page.getByRole('menuitem', {name: 'Edit'});
     await editButton.click();
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('input[name="name"]').first()).toBeVisible();
 }
 
 /**
@@ -284,7 +284,7 @@ export async function deletePolicy(page: Page, policyName: string): Promise<void
         await confirmButton.click();
     }
 
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.policy-name').filter({hasText: policyName})).toHaveCount(0);
 }
 
 /**

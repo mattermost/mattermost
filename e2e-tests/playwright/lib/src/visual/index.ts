@@ -9,7 +9,7 @@ import {expect} from '@playwright/test';
 
 import snapshotWithPercy from './percy';
 
-import {duration, illegalRe, wait} from '@/util';
+import {illegalRe} from '@/util';
 import {testConfig} from '@/test_config';
 import type {ScreenshotOptions, TestArgs} from '@/types';
 
@@ -25,9 +25,7 @@ export async function matchSnapshot(testInfo: TestInfo, testArgs: TestArgs, opti
     }
 
     if (testConfig.snapshotEnabled || testConfig.percyEnabled) {
-        await testArgs.page.waitForLoadState('networkidle');
         await testArgs.page.waitForLoadState('domcontentloaded');
-        await wait(duration.one_sec);
     }
 
     if (testConfig.snapshotEnabled) {

@@ -35,7 +35,7 @@ export default class SessionAttributes {
 
     async goto() {
         await this.page.goto(SESSION_ATTRIBUTES_URL);
-        await this.page.waitForLoadState('networkidle');
+        await this.toBeVisible();
     }
 
     async toBeVisible() {

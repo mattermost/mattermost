@@ -136,7 +136,6 @@ export default class SystemConsolePage {
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
         await this.navbar.toBeVisible();
         await this.sidebar.toBeVisible();
     }
@@ -165,7 +164,7 @@ export default class SystemConsolePage {
      */
     async gotoServerLogs(query = '') {
         await this.page.goto(`/admin_console/reporting/server_logs${query}`);
-        await this.page.waitForLoadState('networkidle');
+        await this.serverLogs.toBeVisible();
     }
 
     async gotoOpenIdConnect() {
