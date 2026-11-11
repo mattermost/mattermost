@@ -101,6 +101,42 @@ describe('components/SearchableChannelList', () => {
         expect(baseProps.search).toBeDefined();
     });
 
+    test('renders the no-results description and action in the empty state', async () => {
+        const onClick = jest.fn();
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                loading={false}
+                noResultsDescription='Try different keywords'
+                noResultsAction={{
+                    type: 'button',
+                    emphasis: 'primary',
+                    onClick,
+                    children: 'Create something',
+                }}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Try different keywords')).toBeInTheDocument();
+        await userEvent.click(screen.getByRole('button', {name: 'Create something'}));
+        expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    test('renders no action in the empty state when noResultsAction is omitted', () => {
+        renderWithContext(
+            <SearchableChannelList
+                {...baseProps}
+                loading={false}
+                noResultsDescription='Try different keywords'
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('Try different keywords')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Create something'})).not.toBeInTheDocument();
+    });
+
     test('renders the Hide Archived checkbox reflecting the persisted preference', () => {
         renderWithContext(
             <SearchableChannelList {...baseProps}/>,

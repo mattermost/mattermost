@@ -392,6 +392,31 @@ describe('components/BrowseChannels', () => {
         });
     });
 
+    test.each([
+        [true, 1],
+        [false, 0],
+    ])('canCreatePublicChannel=%s: renders %i Create New Channel action(s) in the no-results state', async (canCreatePublicChannel, expectedButtons) => {
+        const props = {...baseProps, canCreatePublicChannel};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.type(screen.getByPlaceholderText('Search channels'), 'fail');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText(/Try searching different keywords/)).toBeInTheDocument();
+        });
+
+        expect(screen.queryAllByRole('button', {name: 'Create New Channel'})).toHaveLength(expectedButtons);
+    });
+
     test('should perform search and set the correct state', async () => {
         const searchAllChannels = jest.fn(channelActions.searchAllChannels);
         const props = {...baseProps, actions: {...baseProps.actions, searchAllChannels}};

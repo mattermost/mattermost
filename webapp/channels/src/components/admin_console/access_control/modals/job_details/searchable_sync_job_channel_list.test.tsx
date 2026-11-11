@@ -125,6 +125,30 @@ describe('SearchableSyncJobChannelList', () => {
         });
     });
 
+    describe('channel rows', () => {
+        it('renders a channel whose team is not loaded without a team label', () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList
+                    {...baseProps}
+                    teams={{}}
+                />,
+                baseState,
+            );
+
+            expect(screen.getByText('Open Channel')).toBeInTheDocument();
+            expect(screen.queryByText('Team One')).not.toBeInTheDocument();
+        });
+
+        it('shows the team label when the team is loaded', () => {
+            renderWithContext(
+                <SearchableSyncJobChannelList {...baseProps}/>,
+                baseState,
+            );
+
+            expect(screen.getByText('Team One')).toBeInTheDocument();
+        });
+    });
+
     describe('plugin channel icon override', () => {
         const mockedCompassIconForName = jest.mocked(compassIconForName);
 
