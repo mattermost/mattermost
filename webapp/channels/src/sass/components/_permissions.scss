@@ -188,13 +188,17 @@
         }
 
         .permission-group-permissions {
-            overflow: hidden;
-            max-height: 0;
-            transition: max-height 300ms;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 300ms;
 
             &.open {
-                max-height: 2000px;
-                transition: max-height 300ms;
+                grid-template-rows: 1fr;
+            }
+
+            .permission-group-permissions-content {
+                min-height: 0;
+                overflow: hidden;
             }
 
             .permission-row {
