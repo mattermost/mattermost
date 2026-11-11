@@ -162,26 +162,14 @@
         font-weight: 600;
     }
 
+    // The Compass EmptyState supplies the layout; this keeps the card treatment around it.
     &__empty {
-        padding: 48px 24px;
+        padding-top: calc(var(--spacing-xxl) + var(--spacing-xs));
+        padding-bottom: var(--spacing-xxl);
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
         border-radius: var(--radius-m);
-        background: var(--sys-center-channel-bg);
+        background: var(--center-channel-bg);
         box-shadow: var(--elevation-1);
-        color: rgba(var(--sys-center-channel-color-rgb), 0.64);
-        text-align: center;
-    }
-
-    &__emptyIcon {
-        color: var(--health-resolved);
-    }
-
-    &__emptyTitle {
-        margin: 12px 0 4px;
-        color: var(--sys-center-channel-color);
-        font-family: Metropolis, sans-serif;
-        font-size: 18px;
-        font-weight: 600;
     }
 
     &__section {

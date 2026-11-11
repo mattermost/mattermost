@@ -5,9 +5,10 @@ import React, {useState, useRef, useEffect, type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import SearchIllustration from '@mattermost/compass-ui/illustrations/search';
 import type {Team} from '@mattermost/types/teams';
 
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
@@ -25,6 +26,10 @@ interface Props extends WrappedComponentProps {
     teamsPerPage: number;
     nextPage: (page: number) => void;
     isSearch: boolean;
+
+    // The search term the parent is filtering by. The list remounts when its tab is switched, so
+    // without this its local copy would reset to '' while the parent's filter still applies.
+    searchTerm?: string;
     search: (term: string) => void;
     onViewDetails?: (teamId: string, teamName: string, results: TeamMembersSyncResults) => void;
     noResultsText: JSX.Element;
@@ -35,7 +40,7 @@ interface Props extends WrappedComponentProps {
 const SearchableSyncJobTeamList = (props: Props) => {
     const [page, setPage] = useState(0);
     const [nextDisabled, setNextDisabled] = useState(false);
-    const [teamSearchValue, setTeamSearchValue] = useState('');
+    const [teamSearchValue, setTeamSearchValue] = useState(props.searchTerm ?? '');
     const [isSearch, setIsSearch] = useState(props.isSearch);
 
     const teamListScroll = useRef<HTMLDivElement>(null);
@@ -150,12 +155,20 @@ const SearchableSyncJobTeamList = (props: Props) => {
     };
 
     const getEmptyStateMessage = () => {
+        if (teamSearchValue) {
+            return (
+                <FormattedMessage
+                    id='more_channels.noMore'
+                    defaultMessage='No results for "{text}"'
+                    values={{text: teamSearchValue}}
+                />
+            );
+        }
+
         return (
             <FormattedMessage
-                id='more_channels.noMore'
-                tagName='strong'
-                defaultMessage='No results for "{text}"'
-                values={{text: teamSearchValue}}
+                id='admin.jobTable.syncResults.noTeamChanges'
+                defaultMessage='No teams were affected by this job.'
             />
         );
     };
@@ -170,14 +183,17 @@ const SearchableSyncJobTeamList = (props: Props) => {
     } else if (teams.length === 0) {
         listContent = (
             <div
-                className='no-channel-message channel-switcher__suggestion-box'
-                aria-label={teamSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: teamSearchValue}) : props.intl.formatMessage({id: 'widgets.teams_input.empty', defaultMessage: 'No teams found'})}
+                className='sync-job-empty-state'
+                aria-label={teamSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: teamSearchValue}) : props.intl.formatMessage(messages.noTeamChanges)}
             >
-                <MagnifyingGlassSVG/>
-                <h3 className='primary-message'>
-                    {getEmptyStateMessage()}
-                </h3>
-                {props.noResultsText}
+                <EmptyState
+                    illustration={{
+                        'aria-label': '',
+                        children: <SearchIllustration/>,
+                    }}
+                    title={getEmptyStateMessage()}
+                    description={teamSearchValue.length > 0 ? props.noResultsText : undefined}
+                />
             </div>
         );
     } else {
@@ -289,6 +305,10 @@ const messages = defineMessages({
     noMore: {
         id: 'more_channels.noMore',
         defaultMessage: 'No results for "{text}"',
+    },
+    noTeamChanges: {
+        id: 'admin.jobTable.syncResults.noTeamChanges',
+        defaultMessage: 'No teams were affected by this job.',
     },
 });
 
