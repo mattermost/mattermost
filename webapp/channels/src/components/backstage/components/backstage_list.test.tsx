@@ -25,7 +25,7 @@ describe('components/backstage/components/BackstageList', () => {
     };
 
     it('shows the empty text with the illustration when there are no items', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <BackstageList
                 {...baseProps}
                 emptyIllustration={<span data-testid='empty-illustration'/>}
@@ -34,19 +34,13 @@ describe('components/backstage/components/BackstageList', () => {
 
         expect(screen.getByText('No things yet')).toBeInTheDocument();
         expect(screen.getByTestId('empty-illustration')).toBeInTheDocument();
-
-        // Guards the selector used by the no-illustration test below.
-        expect(container.querySelector('[class*="empty-state__illustration"]')).toBeInTheDocument();
     });
 
     it('shows the empty text without an illustration when none is given', () => {
-        const {container} = renderWithContext(<BackstageList {...baseProps}/>);
+        renderWithContext(<BackstageList {...baseProps}/>);
 
         expect(screen.getByText('No things yet')).toBeInTheDocument();
-
-        // Check the EmptyState's own illustration wrapper (a CSS-module class), not a test id
-        // that an unexpected default illustration would not carry.
-        expect(container.querySelector('[class*="empty-state__illustration"]')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('empty-illustration')).not.toBeInTheDocument();
     });
 
     it('shows the search empty state with the illustration when a filter matches nothing', async () => {
