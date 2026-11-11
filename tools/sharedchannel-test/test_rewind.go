@@ -150,32 +150,44 @@ func (tr *TestRunner) installCursorPlugin(ctx context.Context) (bool, error) {
 	if _, _, err := tr.clientA.UploadPluginForced(ctx, bytes.NewReader(bundle)); err != nil {
 		return false, fmt.Errorf("upload plugin (PluginSettings.EnableUploads must be true on Server A): %w", err)
 	}
+	if tr.ha() {
+		// Peers install the upload from the file store after a cluster message, and a
+		// node rejects enabling a plugin it has not installed yet.
+		if err := tr.waitForCursorPlugin(ctx, false); err != nil {
+			return true, fmt.Errorf("install plugin: %w", err)
+		}
+	}
 	if _, err := tr.clientA.EnablePlugin(ctx, cursorPluginID); err != nil {
 		return true, fmt.Errorf("enable plugin: %w", err)
 	}
 	if tr.ha() {
-		if err := tr.waitFor(ctx, 60*time.Second, func() bool {
-			return tr.cursorPluginRunningNodes(ctx) == len(tr.nodesA)
-		}); err != nil {
-			return true, fmt.Errorf("plugin running on %d of %d Server A nodes: %w",
-				tr.cursorPluginRunningNodes(ctx), len(tr.nodesA), err)
+		if err := tr.waitForCursorPlugin(ctx, true); err != nil {
+			return true, fmt.Errorf("start plugin: %w", err)
 		}
 	}
 	return true, nil
 }
 
-func (tr *TestRunner) cursorPluginRunningNodes(ctx context.Context) int {
-	statuses, _, err := tr.clientA.GetPluginStatuses(ctx)
-	if err != nil {
-		return 0
-	}
-	running := 0
-	for _, s := range statuses {
-		if s.PluginId == cursorPluginID && s.State == model.PluginStateRunning {
-			running++
+// waitForCursorPlugin waits until every Server A node has the cursor plugin
+// installed, or running when running is true.
+func (tr *TestRunner) waitForCursorPlugin(ctx context.Context, running bool) error {
+	count := func() int {
+		statuses, _, err := tr.clientA.GetPluginStatuses(ctx)
+		if err != nil {
+			return 0
 		}
+		n := 0
+		for _, s := range statuses {
+			if s.PluginId == cursorPluginID && (!running || s.State == model.PluginStateRunning) {
+				n++
+			}
+		}
+		return n
 	}
-	return running
+	if err := tr.waitFor(ctx, 60*time.Second, func() bool { return count() == len(tr.nodesA) }); err != nil {
+		return fmt.Errorf("plugin on %d of %d Server A nodes: %w", count(), len(tr.nodesA), err)
+	}
+	return nil
 }
 
 // removeCursorPlugin disables and removes the cursor plugin, even when the run
