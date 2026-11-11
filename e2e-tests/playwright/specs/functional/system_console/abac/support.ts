@@ -543,7 +543,7 @@ export async function createBasicPolicy(
             .first();
         await expect(attributeOption).toBeVisible();
         await attributeOption.click({force: true});
-        await expect(page.locator('[id^="attribute-selector-menu"]:visible')).toHaveCount(0);
+        await expect(page.getByTestId('attributeSelectorMenuButton').first()).toContainText(options.attribute);
 
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').first();
@@ -711,7 +711,7 @@ export async function createMultiAttributePolicy(
             .first();
         await expect(attributeOption).toBeVisible();
         await attributeOption.click({force: true});
-        await expect(page.locator('[id^="attribute-selector-menu"]:visible')).toHaveCount(0);
+        await expect(attributeButton).toContainText(rule.attribute);
 
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').nth(i);
@@ -1443,15 +1443,15 @@ export async function createPermissionPolicy(
  */
 export async function navigateToPermissionPoliciesPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/permission_policies');
-    const permissionPolicies = page.getByRole('heading', {name: 'Permission Policies'});
-    const licensePage = page.getByText('Edition and License');
-    await expect(permissionPolicies.or(licensePage)).toBeVisible();
+    await expect(page).toHaveURL(/permission_policies|about\/license/);
 
     if (page.url().includes('/admin_console/about/license')) {
         throw new Error(
             'Permission Policies page is unavailable and redirected to License. Rebuild and run webapp from a branch that includes the permission policies route before running ABAC tests.',
         );
     }
+
+    await expect(page.getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
 }
 
 /**

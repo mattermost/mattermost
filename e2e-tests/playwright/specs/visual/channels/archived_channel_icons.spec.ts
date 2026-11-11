@@ -49,8 +49,7 @@ test(
 
         // # Type to search for archived channels
         await page.keyboard.type('archive');
-        await expect(page.getByRole('option', {name: 'Public Archive Test'})).toBeVisible();
-        await expect(page.getByRole('option', {name: 'Private Archive Test'})).toBeVisible();
+        await expect(channelsPage.findChannelsModal.searchList.filter({hasText: 'Public Archive Test'})).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);

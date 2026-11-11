@@ -354,12 +354,16 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         const count = await concealedPlaceholders.count();
         expect(count).toBeGreaterThanOrEqual(1);
 
-        // # Reveal all concealed messages
-        for (let i = 0; i < count; i++) {
-            const placeholder = concealedPlaceholders.nth(i);
+        // # Reveal all concealed messages. Capture ids first: `.first()` retargets
+        // the next still-concealed message after one is revealed.
+        const concealedIds = await concealedPlaceholders.evaluateAll((elements) =>
+            elements.map((element) => element.getAttribute('data-testid')).filter((id): id is string => Boolean(id)),
+        );
+        for (const id of concealedIds) {
+            const placeholder = receiverPage.centerView.container.getByTestId(id);
             if (await placeholder.isVisible()) {
                 await placeholder.click();
-                await expect(placeholder).not.toBeVisible();
+                await expect(placeholder).toBeHidden();
             }
         }
 

@@ -3,6 +3,17 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+async function scrollTopAfterMove(read: () => Promise<number>, previous: number, direction: 'up' | 'down') {
+    let observed = previous;
+    await expect
+        .poll(async () => {
+            observed = await read();
+            return direction === 'up' ? observed < previous : observed > previous;
+        })
+        .toBe(true);
+    return observed;
+}
+
 test('should be able to scroll the post list with page up and down', async ({pw}) => {
     const {user} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
@@ -15,34 +26,32 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     }
 
     const postList = page.locator('#postListScrollContainer');
-    let lastScrollTop = await postList.evaluate((el) => el.scrollTop);
+    const readScrollTop = () => postList.evaluate((el) => el.scrollTop);
+    let lastScrollTop = await readScrollTop();
 
     // # Press the page up key with the post textbox focused
     await channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageUp');
 
     // * Verify that the post list scrolled up by a page
-    await expect.poll(() => postList.evaluate((el) => el.scrollTop)).toBeLessThan(lastScrollTop);
-    lastScrollTop = await postList.evaluate((el) => el.scrollTop);
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
 
     // # Press the page up key with the post list focused
     await page.keyboard.press('PageUp');
 
     // * Verify that the post list scrolled up another page
-    await expect.poll(() => postList.evaluate((el) => el.scrollTop)).toBeLessThan(lastScrollTop);
-    lastScrollTop = await postList.evaluate((el) => el.scrollTop);
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
 
     // # Press the page down key with the post list focused
     await page.keyboard.press('PageDown');
 
     // * Verify that the post list scrolled back down a page
-    await expect.poll(() => postList.evaluate((el) => el.scrollTop)).toBeGreaterThan(lastScrollTop);
-    lastScrollTop = await postList.evaluate((el) => el.scrollTop);
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
 
     // # Press the page down key with the post textbox focused
     await channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageDown');
 
-    // * Verify that the post list scrolled back to the bottom
-    await expect.poll(() => postList.evaluate((el) => el.scrollTop)).toBeGreaterThan(lastScrollTop);
+    // * Verify that the post list scrolled back toward the bottom
+    await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
 });
