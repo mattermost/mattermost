@@ -7,15 +7,13 @@ import type {ChannelType} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
-
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {EventTypes, Locations} from 'utils/constants';
+import {Locations, PostTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-import DotMenu, {quoteMessage} from './dot_menu';
+import DotMenu from './dot_menu';
 
 import DotMenuRoot from './index';
 
@@ -196,6 +194,7 @@ describe('components/dot_menu/DotMenu', () => {
             setGlobalItem: jest.fn(),
             burnPostNow: jest.fn(),
             savePreferences: jest.fn(),
+            quoteTextFromPost: jest.fn(),
         },
         canEdit: false,
         canDelete: false,
@@ -639,29 +638,183 @@ describe('components/dot_menu/DotMenu', () => {
         expect(replyOption).toBeNull();
     });
 
+    describe('the Attributes menu item', () => {
+        const POST_ATTRIBUTES_GROUP_ID = 'post_attributes_group_id';
+
+        const field = {
+            id: 'field_1',
+            group_id: POST_ATTRIBUTES_GROUP_ID,
+            name: 'classification',
+            type: 'select',
+            object_type: 'post',
+            target_type: 'channel',
+            target_id: 'channel_id_1',
+            attrs: {options: [{id: 'opt_secret', name: 'SECRET'}]},
+            permission_values: 'member',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: 'user_1',
+            updated_by: 'user_1',
+        };
+
+        function stateWith({flag, fields, permission, hasValue, channelAdmin, post = post1}: {
+            flag: boolean;
+            fields: boolean;
+            permission?: string;
+            hasValue?: boolean;
+            channelAdmin?: boolean;
+            post?: Post;
+        }): DeepPartial<GlobalState> {
+            const fieldWithPermission = {...field, permission_values: permission ?? field.permission_values};
+            const byId = fields ? {[field.id]: fieldWithPermission} : {};
+            const value = {
+                id: 'value_1',
+                target_id: post1.id,
+                target_type: 'post',
+                group_id: POST_ATTRIBUTES_GROUP_ID,
+                field_id: field.id,
+                value: 'opt_secret',
+            };
+
+            return {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities!.general,
+                        config: {
+                            ...initialState.entities!.general!.config,
+                            FeatureFlagPostAttributes: flag ? 'true' : 'false',
+                        },
+                    },
+                    channels: {
+                        ...initialState.entities!.channels,
+                        roles: {
+                            channel_id_1: new Set(channelAdmin ? ['channel_admin'] : []),
+                        },
+                    },
+                    posts: {
+                        ...initialState.entities!.posts,
+                        posts: {
+                            ...initialState.entities!.posts!.posts,
+                            [post.id]: post,
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            channel_admin: {id: 'channel_admin', name: 'channel_admin', permissions: ['manage_channel_roles']},
+                        },
+                    },
+                    properties: {
+                        fields: {byId, byObjectType: {post: {[POST_ATTRIBUTES_GROUP_ID]: byId}}},
+
+                        // Empty unless asked for: a post with no values renders no
+                        // chip row, so a field the user can set is the way in.
+                        values: {byTargetId: hasValue ? {[post1.id]: {[field.id]: value}} : {}, byFieldId: {}},
+                        groups: {
+                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                            byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                        },
+                    },
+                },
+            } as DeepPartial<GlobalState>;
+        }
+
+        async function openDotMenu(state: DeepPartial<GlobalState>, post: Post = post1) {
+            const props = {
+                ...baseProps,
+                post,
+                location: Locations.CENTER,
+            };
+
+            renderWithContext(<DotMenuRoot {...props}/>, state);
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+        }
+
+        test('is shown when the flag is on and the user can set a field, on a post with no values', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        test('is hidden when the feature flag is off', async () => {
+            await openDotMenu(stateWith({flag: false, fields: true}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is hidden when the channel declares no fields', async () => {
+            await openDotMenu(stateWith({flag: true, fields: false}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is hidden for a member when the fields are admin-only and unset', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin'}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is shown for a member when an admin-only field has a value', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', hasValue: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        test('is shown for a channel admin when the fields are admin-only and unset', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', channelAdmin: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        describe('on a burn-on-read post', () => {
+            // Same id as `post1`, so the value `stateWith` writes lands on it.
+            const borPost = {
+                ...post1,
+                type: PostTypes.BURN_ON_READ,
+                user_id: 'other_user_id',
+            } as Post;
+
+            test('is hidden from a recipient who has not revealed it', async () => {
+                const post = {...borPost, metadata: {}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByRole('menu')).toBeInTheDocument();
+                expect(screen.queryByTestId(`post_attributes_${post.id}`)).not.toBeInTheDocument();
+            });
+
+            test('is shown to a recipient once revealed', async () => {
+                const post = {...borPost, metadata: {expire_at: Date.now() + 60000}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+            });
+
+            test('is shown to the sender', async () => {
+                const post = {...borPost, user_id: 'current_user_id', metadata: {}} as Post;
+                await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
+
+                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+            });
+        });
+    });
+
     describe('quote reply', () => {
         const quotedPost = TestHelper.getPostMock({id: 'post_id_1', channel_id: 'channel_id_1', root_id: 'root_id_1', message: 'line one\n\nline two', type: '' as PostType});
-        let listener: jest.Mock;
 
-        beforeEach(() => {
-            listener = jest.fn();
-            EventEmitter.addListener(EventTypes.INSERT_INTO_POST_TEXTBOX, listener);
-        });
-
-        afterEach(() => {
-            EventEmitter.removeListener(EventTypes.INSERT_INTO_POST_TEXTBOX, listener);
-        });
-
-        test('quoteMessage should prefix every line with a quote marker', () => {
-            expect(quoteMessage('line one\n\nline two')).toBe('> line one\n>\n> line two\n\n');
-        });
-
-        test('should insert the quoted post into the center channel message box', async () => {
+        test.each([
+            [Locations.CENTER, false],
+            [Locations.RHS_COMMENT, true],
+        ])('should quote the post into the message box shown with it in %s', async (location, isRHS) => {
+            const quoteTextFromPost = jest.fn();
             renderWithContext(
                 <DotMenu
                     {...baseProps}
+                    actions={{...baseProps.actions, quoteTextFromPost}}
                     post={quotedPost}
-                    location={Locations.CENTER}
+                    location={location}
                 />,
                 initialState,
             );
@@ -669,23 +822,7 @@ describe('components/dot_menu/DotMenu', () => {
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
             await userEvent.click(screen.getByTestId(`quote_reply_${quotedPost.id}`));
 
-            await waitFor(() => expect(listener).toHaveBeenCalledWith('channel_id_1', '', '> line one\n>\n> line two\n\n'));
-        });
-
-        test('should insert the quoted post into the thread reply box in the RHS', async () => {
-            renderWithContext(
-                <DotMenu
-                    {...baseProps}
-                    post={quotedPost}
-                    location={Locations.RHS_COMMENT}
-                />,
-                initialState,
-            );
-
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
-            await userEvent.click(screen.getByTestId(`quote_reply_${quotedPost.id}`));
-
-            await waitFor(() => expect(listener).toHaveBeenCalledWith('channel_id_1', 'root_id_1', '> line one\n>\n> line two\n\n'));
+            await waitFor(() => expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, isRHS, 'line one\n\nline two'));
         });
 
         test.each([

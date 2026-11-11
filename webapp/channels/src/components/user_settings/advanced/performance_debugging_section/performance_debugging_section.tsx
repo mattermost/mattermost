@@ -54,8 +54,8 @@ export default function PerformanceDebuggingSection(props: Props) {
 
     return (
         <>
-            {settings}
             <div className='divider-light'/>
+            {settings}
         </>
     );
 }

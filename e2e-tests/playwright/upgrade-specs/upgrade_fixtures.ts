@@ -470,6 +470,22 @@ export async function ensureUpgradeServerConfig(client: Client4): Promise<void> 
     } as Parameters<typeof client.patchConfig>[0]);
 }
 
+/** Reads PluginSettings.RestrictUnauthenticatedWebappPlugins, or null when the server predates it. */
+export async function readRestrictUnauthenticatedWebappPlugins(client: Client4): Promise<boolean | null> {
+    const config = await client.getConfig();
+    return config.PluginSettings.RestrictUnauthenticatedWebappPlugins ?? null;
+}
+
+/** Ids of the webapp plugins listed by GET /api/v4/plugins/webapp without a session. */
+export async function readUnauthenticatedWebappPluginIds(request: APIRequestContext): Promise<string[]> {
+    const response = await request.get('/api/v4/plugins/webapp', {
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+    });
+    expect(response.ok()).toBe(true);
+    const plugins: Array<{id: string}> = await response.json();
+    return plugins.map((p) => p.id).sort();
+}
+
 /** Installs (if needed) and enables the upgrade demo plugin; asserts it is active. */
 export async function ensureUpgradePluginActive(request: APIRequestContext, client: Client4): Promise<void> {
     // Only the plugin's own settings — PluginStates is left alone so this does not undo the
@@ -702,6 +718,11 @@ export type UpgradeBaseline = {
     avatarPostId: string;
     /** Prepackaged playbooks state from upgrade-from; upgrade-to asserts it without re-enabling. */
     playbooks?: UpgradePrepackagedPluginBaseline;
+    /**
+     * PluginSettings.RestrictUnauthenticatedWebappPlugins on the from-image, or null when the
+     * from-image predates the setting (upgrade-to then expects the migration to turn it off).
+     */
+    restrictUnauthenticatedWebappPlugins?: boolean | null;
 };
 
 export type UpgradeToContext = UpgradeFromContext & {

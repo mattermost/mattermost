@@ -14,6 +14,7 @@ import {
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
+    FormatListBulletedIcon,
     FormatQuoteOpenIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
@@ -27,11 +28,11 @@ import {
     TranslateIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 import {closeModal} from 'actions/views/modals';
 
@@ -42,9 +43,10 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import PostAttributesModal from 'components/post_attributes/post_attributes_modal';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
-import {Locations, ModalIdentifiers, Constants, EventTypes} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
@@ -55,6 +57,8 @@ import type {ModalData} from 'types/actions';
 import PostReminderSubMenu from './post_reminder_submenu';
 
 import './dot_menu.scss';
+
+const PostDotMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact', className: 'dot-menu__button'});
 
 type ChangeEvent = React.KeyboardEvent | React.MouseEvent;
 
@@ -78,11 +82,6 @@ function getMessageToCopy(post: Post, isChannelAutotranslated: boolean, locale: 
         return originalMessage;
     }
     return PostUtils.getPostTranslatedMessage(originalMessage, translation);
-}
-
-export function quoteMessage(message: string): string {
-    const quoted = message.split('\n').map((line) => (line ? `> ${line}` : '>')).join('\n');
-    return `${quoted}\n\n`;
 }
 
 type Props = {
@@ -113,6 +112,15 @@ type Props = {
     canCopyLink: boolean;
     canQuoteReply: boolean;
     canFlagContent?: boolean;
+
+    /**
+     * Whether the post's channel declares any post attributes. Gated on the
+     * feature flag and on the channel's fields, never on the post having
+     * values: a post with no values renders no chip row, so this menu item is
+     * the only way in, and unset `always` fields are exactly what it has to
+     * show.
+     */
+    hasPostAttributes?: boolean;
 
     actions: {
 
@@ -170,6 +178,11 @@ type Props = {
          * Function to save user preferences
          */
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+
+        /**
+         * Function to quote text from the post into the message box it's shown with
+         */
+        quoteTextFromPost: (postId: string, isRHS: boolean, text: string) => void;
 
     }; // TechDebt: Made non-mandatory while converting to typescript
 
@@ -275,12 +288,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             return;
         }
 
-        // Quote into the composer the post is shown with: the thread's reply box in the RHS,
-        // otherwise the center channel's message box
-        const isInRHS = this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT;
-        const rootId = isInRHS ? (this.props.post.root_id || this.props.post.id) : '';
-
-        EventEmitter.emit(EventTypes.INSERT_INTO_POST_TEXTBOX, this.props.post.channel_id, rootId, quoteMessage(message));
+        const isRHS = this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT;
+        this.props.actions.quoteTextFromPost(this.props.post.id, isRHS, message);
     };
 
     handlePinMenuItemActivated = (): void => {
@@ -345,6 +354,14 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(flagPostModalData);
+    };
+
+    handlePostAttributesMenuItemClicked = () => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.POST_ATTRIBUTES,
+            dialogType: PostAttributesModal,
+            dialogProps: {post: this.props.post},
+        });
     };
 
     handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
@@ -641,7 +658,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
         const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
-        const secondSectionHasItems = showShowTranslation || showCopyText || showQuoteReply || showCopyLink;
+        const showPostAttributes = Boolean(!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && this.props.hasPostAttributes);
+        const secondSectionHasItems = showPostAttributes || showShowTranslation || showCopyText || showQuoteReply || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 
         return (
@@ -649,11 +667,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 menuButton={{
                     id: `${this.props.location}_button_${this.props.post.id}`,
                     dataTestId: `PostDotMenu-Button-${this.props.post.id}`,
+                    as: PostDotMenuTrigger,
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
                     'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}).toLowerCase(),
-                    children: <DotsHorizontalIcon size={16}/>,
+                    children: <Icon glyph={<DotsHorizontalIcon/>}/>,
                 }}
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
@@ -786,6 +805,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {firstSectionHasItems && secondSectionHasItems && <Menu.Separator/>}
+                {showPostAttributes && (
+                    <Menu.Item
+                        id={`post_attributes_${this.props.post.id}`}
+                        data-testid={`post_attributes_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_attributes.dot_menu.attributes'
+                                defaultMessage='Attributes'
+                                description='Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun.'
+                            />
+                        }
+                        leadingElement={<FormatListBulletedIcon size={18}/>}
+                        onClick={this.handlePostAttributesMenuItemClicked}
+                    />
+                )}
                 {showShowTranslation && (
                     <Menu.Item
                         id={`show_translation_${this.props.post.id}`}

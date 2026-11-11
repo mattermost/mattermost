@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Package auth holds the health rules for AD/LDAP, SAML and sessions.
+// Package auth holds the health rules for AD/LDAP, SAML, OAuth and sessions.
 package auth
 
 import (

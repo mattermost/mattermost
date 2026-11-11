@@ -10,12 +10,11 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
-import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getConfig, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {makeGetPostAttributeFields} from 'mattermost-redux/selectors/entities/properties';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -24,7 +23,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUserMentionKeys, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
 import {burnPostNow} from 'actions/burn_on_read_deletion';
@@ -36,10 +35,15 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
+import {quoteTextFromPost} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
+import {canQuoteFromPost} from 'selectors/drafts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {canEditPostAttributeValue, isChannelPropertyAdmin} from 'components/post_attributes/permissions';
+import {hasPostAttributeContent} from 'components/post_attributes/utils';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
@@ -60,6 +64,7 @@ type Props = {
 function makeMapStateToProps() {
     const getThreadOrSynthetic = makeGetThreadOrSynthetic();
     const canWrangler = makeCanWrangler();
+    const getPostAttributeFields = makeGetPostAttributeFields();
 
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const {post} = ownProps;
@@ -112,8 +117,29 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
-        // Channel moderation can remove posting without making the channel read-only
-        const canPost = Boolean(channel && haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST));
+        // Quote Reply goes into the message box shown with the post
+        const isCenter = !ownProps.location || ownProps.location === Locations.CENTER;
+        const isRHS = ownProps.location === Locations.RHS_ROOT || ownProps.location === Locations.RHS_COMMENT;
+
+        // Reduced to a boolean here on purpose. `dot_menu` renders once per post,
+        // and handing it the field array would subscribe every one of them to a
+        // reference that changes whenever any channel's fields are refetched.
+        //
+        // The item shows only when the modal would have something in it: a value
+        // this user can see, or a field they are allowed to set. The permission
+        // work is skipped for channels without fields.
+        const postAttributeFields = isPostAttributesEnabled(state) ? getPostAttributeFields(state, post.channel_id) : [];
+        let hasPostAttributes = false;
+        if (postAttributeFields.length > 0) {
+            const postValues = state.entities.properties.values.byTargetId[post.id];
+            const isSysAdmin = isCurrentUserSystemAdmin(state);
+            const isChanAdmin = channel ? isChannelPropertyAdmin(state, channel) : false;
+            hasPostAttributes = hasPostAttributeContent(
+                postAttributeFields,
+                (fieldId) => postValues?.[fieldId],
+                (field) => canEditPostAttributeValue(field, post, userId, isSysAdmin, isChanAdmin),
+            );
+        }
 
         return {
             channelIsArchived: isArchivedChannel(channel),
@@ -143,14 +169,10 @@ function makeMapStateToProps() {
             ),
             canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
             canCopyText: !systemMessage && !isBoRPost,
-            canQuoteReply: !systemMessage && !isBoRPost && !isArchivedChannel(channel) && canPost && (
-                !ownProps.location ||
-                ownProps.location === Locations.CENTER ||
-                ownProps.location === Locations.RHS_ROOT ||
-                ownProps.location === Locations.RHS_COMMENT
-            ),
+            canQuoteReply: !systemMessage && (isCenter || isRHS) && canQuoteFromPost(state, post.id, isRHS),
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
+            hasPostAttributes,
             isBurnOnReadPost: isBoRPost,
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
         };
@@ -171,6 +193,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setThreadFollow,
             burnPostNow,
             savePreferences,
+            quoteTextFromPost,
         }, dispatch),
     };
 }

@@ -102,6 +102,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
                 setGlobalItem: jest.fn(),
                 burnPostNow: jest.fn(),
                 savePreferences: jest.fn(),
+                quoteTextFromPost: jest.fn(),
             },
             canEdit: false,
             canDelete: false,

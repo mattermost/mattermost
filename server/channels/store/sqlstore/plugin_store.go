@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -281,6 +282,10 @@ func (ps SqlPluginStore) DeleteAllExpired() error {
 }
 
 func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, error) {
+	return ps.ListWithOptions(pluginId, model.PluginKVListOptions{}, offset, limit)
+}
+
+func (ps SqlPluginStore) ListWithOptions(pluginId string, options model.PluginKVListOptions, offset int, limit int) ([]string, error) {
 	if limit <= 0 {
 		limit = defaultPluginKeyFetchLimit
 	}
@@ -296,7 +301,17 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 		Where(sq.Or{
 			sq.Eq{"ExpireAt": int(0)},
 			sq.Gt{"ExpireAt": model.GetMillis()},
-		}).
+		})
+
+	if options.Prefix != "" {
+		prefix := strings.ReplaceAll(options.Prefix, "*", "**")
+		for _, c := range escapeLikeSearchChar {
+			prefix = strings.ReplaceAll(prefix, c, "*"+c)
+		}
+		query = query.Where(sq.Expr("PKey LIKE ? ESCAPE '*'", prefix+"%"))
+	}
+
+	query = query.
 		OrderBy("PKey").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))

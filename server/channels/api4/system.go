@@ -364,7 +364,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil || logFilter == nil {
-		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -434,19 +434,26 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
+	file, err := c.App.Srv().Platform().OpenLogFile(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
 	if err != nil {
 		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	reader := bytes.NewReader(fileData.Body)
+	// The server keeps writing to the file, so only send the bytes its size was taken from.
 	web.WriteFileResponse(config.LogFilename,
 		"text/plain",
-		int64(len(fileData.Body)),
+		stat.Size(),
 		time.Now(),
 		*c.App.Config().ServiceSettings.WebserverMode,
-		reader,
+		io.NewSectionReader(file, 0, stat.Size()),
 		true,
 		w,
 		r)
@@ -586,7 +593,7 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	// after the only supported test endpoint at the time it was introduced.
 	// The new /file/test endpoint is backend-agnostic but reuses the same
 	// permission to avoid a role migration.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}

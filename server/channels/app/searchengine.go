@@ -29,6 +29,8 @@ func (a *App) TestElasticsearch(rctx request.CTX, cfg *model.Config) *model.AppE
 		return err
 	}
 
+	a.Srv().Platform().SearchEngineConnectionTested(cfg.ElasticsearchSettings)
+
 	return nil
 }
 

@@ -17,31 +17,44 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_19_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Global retention policy
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Keep messages and files for a set amount of time.
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_19_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="global_policy_table"
@@ -66,42 +79,60 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_1d_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Custom retention policies
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_1d_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Customize how long specific teams and channels will keep messages.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Add policy
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Add policy
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="custom_policy_table"
@@ -128,7 +159,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     >
                       <span
                         aria-label="Loading Icon"
-                        class="_spinner_3elm7_10 spinner"
+                        class="_spinner_mvrwe_21 spinner"
                         role="status"
                         style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
@@ -139,43 +170,61 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_1e_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Policy log
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_1e_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Daily log of messages and files removed based on the policies defined above.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="run-deletion-job-now"
+                  disabled=""
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              disabled=""
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Run Deletion Job Now
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="JobTable job-table__panel job-table__data-retention"
@@ -236,7 +285,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -260,31 +309,44 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_9_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Global retention policy
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Keep messages and files for a set amount of time.
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_9_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="global_policy_table"
@@ -309,42 +371,60 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_d_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Custom retention policies
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_d_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Customize how long specific teams and channels will keep messages.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Add policy
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Add policy
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="custom_policy_table"
@@ -371,7 +451,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     >
                       <span
                         aria-label="Loading Icon"
-                        class="_spinner_3elm7_10 spinner"
+                        class="_spinner_mvrwe_21 spinner"
                         role="status"
                         style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
@@ -393,67 +473,129 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     </span>
                     <button
                       aria-label="Previous page"
-                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-left"
-                        title="Previous Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_1d2d4_65"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                        >
+                          <div
+                            class="_icon__glyph-area_1xcik_20"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
                       aria-label="Next page"
-                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-right"
-                        title="Next Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_1d2d4_65"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                        >
+                          <div
+                            class="_icon__glyph-area_1xcik_20"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_i_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Policy log
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_i_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Daily log of messages and files removed based on the policies defined above.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Run Deletion Job Now
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="JobTable job-table__panel job-table__data-retention"
@@ -514,7 +656,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -538,31 +680,44 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_p_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Global retention policy
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Keep messages and files for a set amount of time.
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_p_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="global_policy_table"
@@ -587,42 +742,60 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_t_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Custom retention policies
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_t_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Customize how long specific teams and channels will keep messages.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Add policy
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Add policy
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="custom_policy_table"
@@ -649,7 +822,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     >
                       <span
                         aria-label="Loading Icon"
-                        class="_spinner_3elm7_10 spinner"
+                        class="_spinner_mvrwe_21 spinner"
                         role="status"
                         style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
@@ -671,67 +844,129 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     </span>
                     <button
                       aria-label="Previous page"
-                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-left"
-                        title="Previous Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_1d2d4_65"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                        >
+                          <div
+                            class="_icon__glyph-area_1xcik_20"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                     <button
                       aria-label="Next page"
-                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
                       disabled=""
                       type="button"
                     >
-                      <i
-                        class="icon icon-chevron-right"
-                        title="Next Icon"
-                      />
+                      <span
+                        aria-hidden="true"
+                        class="_icon-button__icon-slot_1d2d4_65"
+                      >
+                        <div
+                          aria-hidden="true"
+                          class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                        >
+                          <div
+                            class="_icon__glyph-area_1xcik_20"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="18"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="18"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_12_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Policy log
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_12_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Daily log of messages and files removed based on the policies defined above.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Run Deletion Job Now
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="JobTable job-table__panel job-table__data-retention"
@@ -792,7 +1027,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -816,31 +1051,44 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
       <div
         class="admin-console__content"
       >
-        <div
-          class="Card console expanded"
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix"
+          id="global_policy"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Global retention policy
-              </div>
-              <div
-                class="text-bottom"
-              >
-                Keep messages and files for a set amount of time.
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_0_"
+                    >
+                      Global retention policy
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Keep messages and files for a set amount of time.
+                  </p>
+                </div>
               </div>
             </div>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="global_policy_table"
@@ -865,42 +1113,60 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_4_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="custom_policies"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Custom retention policies
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_4_"
+                    >
+                      Custom retention policies
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Customize how long specific teams and channels will keep messages.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Customize how long specific teams and channels will keep messages.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="add-policy"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Add policy
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Add policy
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               id="custom_policy_table"
@@ -927,7 +1193,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
                     >
                       <span
                         aria-label="Loading Icon"
-                        class="_spinner_3elm7_10 spinner"
+                        class="_spinner_mvrwe_21 spinner"
                         role="status"
                         style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
@@ -938,42 +1204,60 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="Card console expanded"
+        </section>
+        <section
+          aria-labelledby="_r_5_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithButton"
+          id="policy_log"
         >
-          <div
-            class="Card__header expanded"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
-            <div>
+            <div
+              class="_admin-panel-header__main_vb1i0_31"
+            >
               <div
-                class="text-top"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                Policy log
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_5_"
+                    >
+                      Policy log
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Daily log of messages and files removed based on the policies defined above.
+                  </p>
+                </div>
               </div>
               <div
-                class="text-bottom"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
-                Daily log of messages and files removed based on the policies defined above.
+                <button
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
+                  data-testid="run-deletion-job-now"
+                  type="button"
+                >
+                  <span
+                    class="_button__label_1pij1_55"
+                  >
+                    Run Deletion Job Now
+                  </span>
+                </button>
               </div>
             </div>
-            <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
-              type="button"
-            >
-              <span
-                class="_button__label_we8pe_31"
-              >
-                Run Deletion Job Now
-              </span>
-            </button>
-            <hr
-              class="Card__hr"
-            />
-          </div>
+          </header>
           <div
-            class="Card__body expanded expanding"
-            style="height: 0px;"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="JobTable job-table__panel job-table__data-retention"
@@ -1034,7 +1318,7 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>

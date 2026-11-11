@@ -1,0 +1,33 @@
+# Re-runs an E2E run's failed jobs when a lane's triage asked for it: the lane was red only on
+# infrastructure (a dead worker, missing reports), never on a test. Triage decides and leaves a marker
+# artifact in the run (see rerun-attempts in e2e-tests-lane-result.yml); the toolkit's e2e-test-rerun
+# action reads it and re-runs the failed jobs once, so the new attempt is triaged on its own results.
+# It checks out and runs no code from the run it re-runs.
+name: E2E Tests (re-run on infrastructure failure)
+on:
+  workflow_run:
+    workflows:
+      - "E2E Tests (pull request)"
+      - "E2E Tests (master/release - merge)"
+      - "E2E Tests (release cut)"
+      - "E2E Tests - Playwright Rolling Upgrades"
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  rerun:
+    # A job past its timeout ends the run "cancelled", not "failure". The action re-runs only on triage's marker, so a
+    # run cancelled for a newer push (triage never ran) is left alone.
+    if: contains(fromJSON('["failure", "cancelled"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - name: ci/e2e-rerun
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-test-rerun@main # actions/e2e-test-rerun
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}

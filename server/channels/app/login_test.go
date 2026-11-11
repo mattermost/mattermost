@@ -6,7 +6,9 @@ package app
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +32,11 @@ func TestCWSLogin(t *testing.T) {
 		}()
 
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		user, appErr := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.Nil(t, appErr)
 		require.NotNil(t, user)
@@ -44,7 +50,11 @@ func TestCWSLogin(t *testing.T) {
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
 		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		th.App.Srv().SetCWSTokenOverride(token.Token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
+		th.App.Srv().SetCWSLoginIDOverride(th.BasicUser.Username)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
@@ -54,6 +64,195 @@ func TestCWSLogin(t *testing.T) {
 		user, err := th.App.AuthenticateUserForLogin(th.Context, "", th.BasicUser.Username, "", "", token.Token, false)
 		require.NotNil(t, err)
 		require.Nil(t, user)
+	})
+
+	setCWSLicense := func(t *testing.T, cloud bool) {
+		license := model.NewTestLicense()
+		license.Features.Cloud = new(cloud)
+		th.App.Srv().SetLicense(license)
+		t.Cleanup(func() {
+			cloudLicense := model.NewTestLicense()
+			cloudLicense.Features.Cloud = new(true)
+			th.App.Srv().SetLicense(cloudLicense)
+		})
+	}
+
+	t.Run("Should bind the CWS token to the CWS login ID", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			cloud    bool
+			email    func(user *model.User) string
+			bindTo   func(user, otherUser *model.User) string
+			loginID  func(user, otherUser *model.User) string
+			expectOK bool
+		}{
+			{
+				name:     "self-hosted license with a matching login ID",
+				bindTo:   func(user, _ *model.User) string { return user.Username },
+				loginID:  func(user, _ *model.User) string { return user.Username },
+				expectOK: true,
+			},
+			{
+				name:     "self-hosted license with a login ID differing only in case",
+				bindTo:   func(user, _ *model.User) string { return user.Username },
+				loginID:  func(user, _ *model.User) string { return strings.ToUpper(user.Username) },
+				expectOK: true,
+			},
+			{
+				name:    "self-hosted license without the CWS login ID",
+				bindTo:  func(_, _ *model.User) string { return "" },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+			{
+				name:    "self-hosted license with a mismatched login ID",
+				bindTo:  func(_, otherUser *model.User) string { return otherUser.Username },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+			{
+				name:    "self-hosted license with the email of the bound username",
+				bindTo:  func(user, _ *model.User) string { return user.Username },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:    "self-hosted license with a login ID matching only under Unicode case folding",
+				email:   func(user *model.User) string { return "σοσ" + user.Id + "@example.com" },
+				bindTo:  func(user, _ *model.User) string { return strings.Replace(user.Email, "σοσ", "σος", 1) },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:    "Cloud license without the CWS login ID",
+				cloud:   true,
+				bindTo:  func(_, _ *model.User) string { return "" },
+				loginID: func(user, _ *model.User) string { return user.Email },
+			},
+			{
+				name:     "Cloud license with a matching login ID",
+				cloud:    true,
+				bindTo:   func(user, _ *model.User) string { return user.Email },
+				loginID:  func(user, _ *model.User) string { return user.Email },
+				expectOK: true,
+			},
+			{
+				name:    "Cloud license with a mismatched login ID",
+				cloud:   true,
+				bindTo:  func(_, otherUser *model.User) string { return otherUser.Username },
+				loginID: func(user, _ *model.User) string { return user.Username },
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				setCWSLicense(t, tc.cloud)
+				token := model.NewToken(model.TokenTypeCWSAccess, "")
+				th.App.Srv().SetCWSTokenOverride(token.Token)
+				user := th.CreateUser(t)
+				otherUser := th.CreateUser(t)
+				if tc.email != nil {
+					user.Email = tc.email(user)
+					_, err := th.App.Srv().Store().User().Update(th.Context, user, false)
+					require.NoError(t, err)
+				}
+				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+					_ = th.App.Srv().Store().Token().Delete(token.Token)
+				})
+
+				authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", tc.loginID(user, otherUser), "", "", token.Token, false)
+				_, tokenErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+				if !tc.expectOK {
+					require.NotNil(t, appErr, "expected the CWS login to be rejected")
+					require.Nil(t, authenticatedUser)
+					require.Error(t, tokenErr, "a rejected login must not consume the token")
+					return
+				}
+				require.Nil(t, appErr)
+				require.Equal(t, user.Id, authenticatedUser.Id)
+				require.NoError(t, tokenErr)
+			})
+		}
+	})
+
+	t.Run("Should not authenticate the user with the CWS token", func(t *testing.T) {
+		testCases := []struct {
+			name  string
+			setup func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User
+		}{
+			{
+				name: "when the token was used before the token cleanup window",
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
+					token.CreateAt = model.GetMillis() - model.MaxTokenExipryTime - time.Hour.Milliseconds()
+					require.NoError(t, th.App.Srv().Store().Token().Save(token))
+					doTokenCleanup(th.App.Srv())
+					return th.CreateUser(t)
+				},
+			},
+			{
+				name: "when the user is deactivated",
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
+					user, appErr := th.App.UpdateActive(th.Context, th.CreateUser(t), false)
+					require.Nil(t, appErr)
+					return user
+				},
+			},
+			{
+				name: "when the user has logged in before",
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
+					user := th.CreateUser(t)
+					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
+					return user
+				},
+			},
+			{
+				name: "when the user has logged in with the CWS token before",
+				setup: func(t *testing.T, token *model.Token, bind func(user *model.User)) *model.User {
+					user := th.CreateUser(t)
+					bind(user)
+					authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
+					require.Nil(t, appErr)
+					_, appErr = th.App.DoLogin(th.Context, httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/", nil), authenticatedUser, model.LoginOptions{})
+					require.Nil(t, appErr)
+
+					// Without the stored token, the user's login state alone decides the result.
+					require.NoError(t, th.App.Srv().Store().Token().Delete(token.Token))
+					return user
+				},
+			},
+		}
+
+		variants := []struct {
+			name  string
+			cloud bool
+		}{
+			{name: "on a Cloud license", cloud: true},
+			{name: "on a self-hosted license"},
+		}
+
+		for _, variant := range variants {
+			for _, tc := range testCases {
+				t.Run(variant.name+" "+tc.name, func(t *testing.T) {
+					setCWSLicense(t, variant.cloud)
+					token := model.NewToken(model.TokenTypeCWSAccess, "")
+					th.App.Srv().SetCWSTokenOverride(token.Token)
+					t.Cleanup(func() {
+						th.App.Srv().SetCWSTokenOverride("")
+						th.App.Srv().SetCWSLoginIDOverride("")
+						_ = th.App.Srv().Store().Token().Delete(token.Token)
+					})
+					bind := func(user *model.User) {
+						th.App.Srv().SetCWSLoginIDOverride(user.Username)
+					}
+
+					user := tc.setup(t, token, bind)
+					bind(user)
+
+					authenticatedUser, appErr := th.App.AuthenticateUserForLogin(th.Context, "", user.Username, "", "", token.Token, false)
+					require.NotNil(t, appErr, "expected the CWS login to be rejected")
+					require.Nil(t, authenticatedUser)
+				})
+			}
+		}
 	})
 }
 
