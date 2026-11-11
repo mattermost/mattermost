@@ -6,8 +6,10 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,12 +20,30 @@ import (
 )
 
 // allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
-// succeeds for userID. Maybe() so tests whose expressions skip the check
-// ("true"/empty) still pass AssertExpectations.
+// succeeds for userID, and ExpressionToVisualAST so the advanced-rule check
+// sees every rule as table-editable. Maybe() so tests whose expressions skip
+// the checks ("true"/empty) still pass AssertExpectations.
 func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID string) {
+	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+		Return(&model.VisualExpression{}, nil).
+		Maybe()
 	mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*model.User{{Id: userID}}, int64(1), nil).
 		Maybe()
+}
+
+// requireAdvancedEditor swaps allowSelfInclusion's ExpressionToVisualAST stub for one
+// that reports every rule as needing the Advanced editor.
+func requireAdvancedEditor(mockACS *mocks.AccessControlServiceInterface) {
+	kept := mockACS.ExpectedCalls[:0]
+	for _, call := range mockACS.ExpectedCalls {
+		if call.Method != "ExpressionToVisualAST" {
+			kept = append(kept, call)
+		}
+	}
+	mockACS.ExpectedCalls = kept
+	mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+		Return(nil, model.NewAppError("ExpressionToVisualAST", "app.pap.expression_to_visual_ast.app_error", nil, "", http.StatusBadRequest))
 }
 
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
@@ -406,6 +426,74 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		}
 	})
 
+	t.Run("team policy with a complex CEL expression", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.FeatureFlags.TeamMembershipAccessControl = true
+		})
+
+		complexExpr := `(user.attributes.location == "US" || user.attributes.location == "EU") && user.attributes.department == "Eng"`
+		newTeamPolicy := func() *model.AccessControlPolicy {
+			return &model.AccessControlPolicy{
+				ID:       th.BasicTeam.Id,
+				Type:     model.AccessControlPolicyTypeTeam,
+				Name:     "team-complex",
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Revision: 1,
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Expression: complexExpr,
+						Actions:    []string{model.AccessControlPolicyActionMembership},
+					},
+				},
+			}
+		}
+
+		t.Run("system admin saves it", func(t *testing.T) {
+			policy := newTeamPolicy()
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockACS
+			mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+				return p.Type == model.AccessControlPolicyTypeTeam &&
+					p.Version == model.AccessControlPolicyVersionV0_3 &&
+					len(p.Rules) == 1 &&
+					p.Rules[0].Expression == complexExpr
+			})).Return(policy, nil).Once()
+
+			created, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, complexExpr, created.Rules[0].Expression)
+			mockACS.AssertExpectations(t)
+		})
+
+		t.Run("PAP rejection is returned unchanged", func(t *testing.T) {
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockACS
+			mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+				Return(nil, model.NewAppError("SavePolicy", "app.pap.save_policy.team_resource_attributes", nil, "", http.StatusBadRequest)).Once()
+
+			_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), newTeamPolicy())
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+			CheckErrorID(t, err, "app.pap.save_policy.team_resource_attributes")
+		})
+
+		t.Run("regular user cannot save it", func(t *testing.T) {
+			th.LoginBasic(t)
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().Channels().AccessControl = mockACS
+
+			_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), newTeamPolicy())
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+		})
+	})
+
 	t.Run("CreateChannelPolicy with permission rules rejected when ChannelPermissionPolicies sub-flag is off", func(t *testing.T) {
 		// Channel-scope policies that ONLY have membership rules
 		// stay available even when the permission-rule sub-flag is
@@ -629,6 +717,8 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		mockACS := enableABAC()
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("model.SubjectSearchOptions")).
 			Return([]*model.User{{Id: teamAdmin.Id}}, int64(1), nil)
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).
+			Return(&model.VisualExpression{}, nil).Maybe()
 		return mockACS
 	}
 
@@ -831,6 +921,46 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		mockACS.AssertExpectations(t)
+	})
+
+	// Replaces the permissive default so the rule under test needs the Advanced editor.
+	complexRule := "user.attributes.department == 'a' || user.attributes.team == 'b'"
+
+	t.Run("channel admin cannot write a rule that needs the Advanced editor", func(t *testing.T) {
+		ch, client, mockACS := setupChannelAdmin(t)
+		requireAdvancedEditor(mockACS)
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).Return(nil, notFound)
+
+		req := &model.AccessControlPolicy{
+			ID:      ch.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules:   membershipRule(complexRule),
+		}
+		_, resp, err := client.CreateAccessControlPolicy(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Contains(t, err.Error(), "advanced logic")
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("team admin cannot write a rule that needs the Advanced editor", func(t *testing.T) {
+		mockACS := setupTeamAdmin(t)
+		defer th.LoginBasic(t)
+		requireAdvancedEditor(mockACS)
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(nil, notFound)
+
+		req := &model.AccessControlPolicy{
+			ID:      th.BasicTeam.Id,
+			Type:    model.AccessControlPolicyTypeTeam,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules:   membershipRule(complexRule),
+		}
+		_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), req)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Contains(t, err.Error(), "advanced logic")
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 	})
 }
 
@@ -1138,6 +1268,28 @@ func TestCheckExpression(t *testing.T) {
 		require.NotEmpty(t, errors, "expected errors")
 	}, "CheckExpression with system admin errors returned")
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		expression := `user.attributes.Department == "Engineering" ? true : false`
+		mockAccessControlService.On("CheckMembershipExpression", mock.AnythingOfType("*request.Context"), expression).Return([]model.CELExpressionError{
+			{Message: "membership sync cannot evaluate this rule: ternary operator is not supported"},
+		}, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		errors, resp, err := client.CheckMembershipExpression(context.Background(), expression)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, errors, 1)
+		mockAccessControlService.AssertNotCalled(t, "CheckExpression", mock.Anything, mock.Anything)
+	}, "CheckExpression with the membership flag runs the membership check")
+
 	t.Run("CheckExpression with channel admin for their channel", func(t *testing.T) {
 		// Reload config to pick up the feature flag
 		err := th.App.ReloadConfig()
@@ -1204,6 +1356,39 @@ func TestCheckExpression(t *testing.T) {
 		require.NotNil(t, resp)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
+
+	t.Run("team admin with own teamId is allowed", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+		mockACS.On("CheckExpression", mock.Anything, "true").Return([]model.CELExpressionError{}, nil).Once()
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body, mErr := json.Marshal(map[string]string{"expression": "true", "teamId": th.BasicTeam.Id})
+		require.NoError(t, mErr)
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/check", string(body))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("team admin with another team's teamId is forbidden", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+		otherTeam := th.CreateTeam(t)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		body, mErr := json.Marshal(map[string]string{"expression": "true", "teamId": otherTeam.Id})
+		require.NoError(t, mErr)
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/check", string(body))
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		mockACS.AssertNotCalled(t, "CheckExpression", mock.Anything, mock.Anything)
+	})
 }
 
 func TestTestExpression(t *testing.T) {
@@ -1251,6 +1436,104 @@ func TestTestExpression(t *testing.T) {
 		require.Empty(t, usersResp.Users, "expected no users")
 		require.Equal(t, int64(0), usersResp.Total, "expected count 0 users")
 	}, "TestExpression with system admin")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.MatchedBy(func(o model.SubjectSearchOptions) bool {
+			return o.TeamID == th.BasicTeam.Id
+		})).Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		usersResp, resp, err := client.TestExpression(context.Background(), model.QueryExpressionParams{
+			Expression: "true",
+			TeamId:     th.BasicTeam.Id,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int64(1), usersResp.Total)
+		mockACS.AssertExpectations(t)
+	}, "system admin with teamId scopes results to team members")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		complexExpr := `(user.attributes.Location == "US" || user.attributes.Location == "EU") && user.attributes.Department == "Eng"`
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), complexExpr, mock.AnythingOfType("model.SubjectSearchOptions")).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		usersResp, resp, err := client.TestExpression(context.Background(), model.QueryExpressionParams{
+			Expression: complexExpr,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int64(1), usersResp.Total)
+		mockACS.AssertExpectations(t)
+	}, "system admin complex expression is passed through unchanged")
+
+	t.Run("team admin with teamId uses the team-context path", func(t *testing.T) {
+		setupTeamAdminABAC(t, th)
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		// setupTeamAdminABAC registers a catch-all QueryUsersForExpression that
+		// would shadow the expectations below; start from a clean mock.
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.Anything, "true", mock.MatchedBy(func(o model.SubjectSearchOptions) bool {
+			return o.SubjectID == th.TeamAdminUser.Id && o.Limit == 1 && o.ExcludeNativeAttributes
+		})).Return([]*model.User{{Id: th.TeamAdminUser.Id}}, int64(1), nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, "true", mock.MatchedBy(func(o model.SubjectSearchOptions) bool {
+			return o.TeamID == th.BasicTeam.Id && o.SubjectID == ""
+		})).Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Once()
+
+		body, mErr := json.Marshal(map[string]string{"expression": "true", "teamId": th.BasicTeam.Id})
+		require.NoError(t, mErr)
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/test", string(body))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		defer resp.Body.Close()
+
+		var testResp model.AccessControlPolicyTestResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&testResp))
+		require.Len(t, testResp.Users, 1)
+		require.Equal(t, th.BasicUser.Id, testResp.Users[0].Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("regular user with teamId is forbidden", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		body, mErr := json.Marshal(map[string]string{"expression": "true", "teamId": th.BasicTeam.Id})
+		require.NoError(t, mErr)
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/test", string(body))
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+	})
 }
 
 func TestSearchAccessControlPolicies(t *testing.T) {
@@ -2679,6 +2962,32 @@ func TestDeleteAccessControlPolicyTeamAdmin(t *testing.T) {
 		require.Equal(t, 403, r.StatusCode)
 	})
 
+	t.Run("team admin cannot delete their team policy when its rule needs the Advanced editor", func(t *testing.T) {
+		mockACS := setupTeamAdminABAC(t, th)
+
+		complexRule := `user.attributes.dept == "eng" || user.attributes.role == "lead"`
+		teamPolicy := &model.AccessControlPolicy{
+			ID:    th.BasicTeam.Id,
+			Type:  model.AccessControlPolicyTypeTeam,
+			Rules: []model.AccessControlPolicyRule{{Actions: []string{"membership"}, Expression: complexRule}},
+		}
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(teamPolicy, nil).Maybe()
+		requireAdvancedEditor(mockACS)
+
+		makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		r, err := th.Client.DoAPIDelete(
+			context.Background(),
+			"/access_control_policies/"+th.BasicTeam.Id+"?team_id="+th.BasicTeam.Id,
+		)
+		require.Error(t, err)
+		defer r.Body.Close()
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+		CheckErrorID(t, err, "app.pap.save_policy.advanced_rule_requires_system_admin")
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+	})
+
 	t.Run("regular user is denied", func(t *testing.T) {
 		mockACS := setupTeamAdminABAC(t, th)
 
@@ -3457,6 +3766,113 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 	})
 }
 
+// TestConvertToVisualASTLocalModeTagsCaller checks that local mode's masked
+// visual AST reads the referenced field as the local admin: an empty caller
+// has the access control hook hide the field's options from the masking.
+func TestConvertToVisualASTLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("ExpressionToVisualAST", mock.Anything, expression).Return(&model.VisualExpression{
+		Conditions: []model.Condition{{
+			Attribute: "user.attributes." + field.Name,
+			Operator:  "==",
+			Value:     "Secret",
+			ValueType: model.LiteralValue,
+		}},
+	}, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	resp, err := th.LocalClient.DoAPIPost(context.Background(), "/access_control_policies/cel/visual_ast", string(mustMarshal(t, map[string]string{"expression": expression})))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	require.Empty(t, untaggedCalls())
+}
+
+// TestGetAccessControlPolicyLocalModeTagsCaller checks that local mode's GET
+// of a policy masks its expressions reading the referenced field as the local
+// admin. Local admin and an empty caller are masked alike, so the response
+// cannot tell them apart; only the access control hook's no-caller observer
+// can.
+func TestGetAccessControlPolicyLocalModeTagsCaller(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "clearance" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "Secret"}},
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	expression := `user.attributes.` + field.Name + ` == "Secret"`
+	policy := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Revision: 1,
+		Rules:    []model.AccessControlPolicyRule{{Expression: expression, Actions: []string{model.AccessControlPolicyActionMembership}}},
+	}
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+	mockACS.On("GetPolicy", mock.Anything, policy.ID).Return(policy, nil)
+	// The masking looks up each field the expression references through the
+	// resolver it is handed.
+	mockACS.On("MaskExpressionForCaller", mock.Anything, expression, mock.Anything).Run(func(args mock.Arguments) {
+		if _, err := args.Get(2).(model.MaskingFieldResolver).Resolve(model.PropertyFieldObjectTypeUser, field.Name); err != nil {
+			t.Errorf("resolving %s: %v", field.Name, err)
+		}
+	}).Return(expression, false, nil)
+
+	untaggedCalls := observeUntaggedPropertyCalls(t, th)
+
+	_, resp, err := th.LocalClient.GetAccessControlPolicy(context.Background(), policy.ID)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	mockACS.AssertCalled(t, "MaskExpressionForCaller", mock.Anything, expression, mock.Anything)
+
+	require.Empty(t, untaggedCalls())
+}
+
 // TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
 // GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
 // fields: a channel scope or the include_resource_fields flag surfaces them
@@ -3546,6 +3962,33 @@ func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
 	})
 
+	// A local-mode session names no user, so the handler has to tag it as the
+	// local admin: an empty caller has the access control hook hide every
+	// field's options.
+	t.Run("local mode sees a field's options", func(t *testing.T) {
+		selectField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "clearance" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Secret"},
+					map[string]any{"name": "Top secret"},
+				},
+			},
+		}, false, "")
+		require.Nil(t, appErr)
+
+		fields := get(t, th.LocalClient, "?limit=100")
+		found := find(fields, selectField.ID)
+		require.NotNil(t, found, "select field must be present for local mode")
+		cpaField, err := model.NewCPAFieldFromPropertyField(found)
+		require.NoError(t, err)
+		require.Len(t, cpaField.Attrs.Options, 2, "local mode must see the field's options")
+	})
+
 	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
 		require.Error(t, err)
@@ -3559,6 +4002,26 @@ func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
+}
+
+// observeUntaggedPropertyCalls records, until the test ends, every call the
+// property access control hook refuses, or hides options or values from, for
+// want of a caller ID, and returns a func reading what it has recorded.
+func observeUntaggedPropertyCalls(t *testing.T, th *TestHelper) func() []string {
+	t.Helper()
+	var mut sync.Mutex
+	var calls []string
+	th.App.Srv().SetPropertyNoCallerObserverForTests(func(operation, groupID string, fieldIDs []string) {
+		mut.Lock()
+		defer mut.Unlock()
+		calls = append(calls, fmt.Sprintf("%s group_id=%s field_ids=%v", operation, groupID, fieldIDs))
+	})
+	t.Cleanup(func() { th.App.Srv().SetPropertyNoCallerObserverForTests(nil) })
+	return func() []string {
+		mut.Lock()
+		defer mut.Unlock()
+		return slices.Clone(calls)
+	}
 }
 
 func mustMarshal(t *testing.T, v any) []byte {

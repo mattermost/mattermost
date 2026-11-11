@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"slices"
 	"unicode/utf8"
 )
@@ -88,6 +89,51 @@ func (p Permissions) Value() (driver.Value, error) {
 	return string(b), nil
 }
 
+// PermissionsEqual reports whether a and b are the same policy. It is
+// reflect.DeepEqual with one allowance: a nil list and an empty one are the
+// same list, in grants, in a grant's scopes and allow, and in masking's
+// except. They mean the same thing wherever a policy is read, and the wire
+// cannot keep them apart: a field stored with null grants is served [], and
+// empty scopes and except are left out, so a caller sending back what it was
+// served would otherwise read as having changed the policy. Every other
+// difference still counts, masking absent against masking {} included.
+//
+// The patch handler and the enforcement hook both decide by this whether a
+// permissions object changed, and must keep agreeing.
+func PermissionsEqual(a, b *Permissions) bool {
+	return reflect.DeepEqual(a.withEmptyListsNil(), b.withEmptyListsNil())
+}
+
+// withEmptyListsNil returns a copy of p with every empty list PermissionsEqual
+// disregards set to nil. p is not modified.
+func (p *Permissions) withEmptyListsNil() *Permissions {
+	if p == nil {
+		return nil
+	}
+	c := *p
+	c.Grants = nil
+	if len(p.Grants) > 0 {
+		c.Grants = make([]Grant, len(p.Grants))
+		for i, g := range p.Grants {
+			if len(g.Scopes) == 0 {
+				g.Scopes = nil
+			}
+			if len(g.Allow) == 0 {
+				g.Allow = nil
+			}
+			c.Grants[i] = g
+		}
+	}
+	if p.Masking != nil {
+		m := *p.Masking
+		if len(m.Except) == 0 {
+			m.Except = nil
+		}
+		c.Masking = &m
+	}
+	return &c
+}
+
 // PermissionsPatch carries a partial update to a field's Permissions. Each of
 // its first three keys is raw JSON rather than the typed field it becomes,
 // because a whole-object write needs to tell "key absent" (leave the existing
@@ -109,6 +155,21 @@ type PermissionsPatch struct {
 // literal null, as opposed to an absent key (raw == nil).
 func isJSONNull(raw json.RawMessage) bool {
 	return string(raw) == "null"
+}
+
+// MaskingIsPresenceOnly reports whether the patch carries masking as an empty
+// object: masking marked present with no mask_by_field_id and no except. That
+// is the form the API serves when it withholds a field's masking details, and
+// the only form it serves on a linked field, whose masking is its template's.
+func (pp *PermissionsPatch) MaskingIsPresenceOnly() bool {
+	if pp.Masking == nil || isJSONNull(pp.Masking) {
+		return false
+	}
+	var m Masking
+	if err := json.Unmarshal(pp.Masking, &m); err != nil {
+		return false
+	}
+	return m.MaskByFieldID == "" && len(m.Except) == 0
 }
 
 // ApplyTo resolves the patch against existing — which may be nil, for a field

@@ -457,6 +457,36 @@ func (_m *PropertyFieldStore) GetFieldsByGrant(rctx request.CTX, ownerType strin
 	return r0, r1
 }
 
+// GetFieldsMissingPermissions provides a mock function with given fields: rctx, cursor, perPage
+func (_m *PropertyFieldStore) GetFieldsMissingPermissions(rctx request.CTX, cursor model.PropertyFieldSearchCursor, perPage int) ([]*model.PropertyField, error) {
+	ret := _m.Called(rctx, cursor, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFieldsMissingPermissions")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyFieldSearchCursor, int) ([]*model.PropertyField, error)); ok {
+		return rf(rctx, cursor, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyFieldSearchCursor, int) []*model.PropertyField); ok {
+		r0 = rf(rctx, cursor, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.PropertyFieldSearchCursor, int) error); ok {
+		r1 = rf(rctx, cursor, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForGroup provides a mock function with given fields: rctx, groupID
 func (_m *PropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	ret := _m.Called(rctx, groupID)
@@ -570,6 +600,66 @@ func (_m *PropertyFieldStore) GetLinkedFields(fieldIDs []string, excludeIDs []st
 
 	if rf, ok := ret.Get(1).(func([]string, []string) error); ok {
 		r1 = rf(fieldIDs, excludeIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLiveLinkedFieldsByObjectTypes provides a mock function with given fields: groupID, fieldIDs, objectTypes
+func (_m *PropertyFieldStore) GetLiveLinkedFieldsByObjectTypes(groupID string, fieldIDs []string, objectTypes []string) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, fieldIDs, objectTypes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLiveLinkedFieldsByObjectTypes")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string, []string) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, fieldIDs, objectTypes)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string, []string) []*model.PropertyField); ok {
+		r0 = rf(groupID, fieldIDs, objectTypes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string, []string) error); ok {
+		r1 = rf(groupID, fieldIDs, objectTypes)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLiveUserFieldsByNames provides a mock function with given fields: groupID, names
+func (_m *PropertyFieldStore) GetLiveUserFieldsByNames(groupID string, names []string) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, names)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLiveUserFieldsByNames")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, names)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string) []*model.PropertyField); ok {
+		r0 = rf(groupID, names)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
+		r1 = rf(groupID, names)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -909,6 +999,36 @@ func (_m *PropertyFieldStore) PermanentDeleteOwnedOptions(groupID string, fieldI
 	}
 
 	return r0
+}
+
+// SearchGlobalAttributeListing provides a mock function with given fields: rctx, opts
+func (_m *PropertyFieldStore) SearchGlobalAttributeListing(rctx request.CTX, opts model.GlobalAttributeListingOpts) ([]*model.PropertyField, error) {
+	ret := _m.Called(rctx, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchGlobalAttributeListing")
+	}
+
+	var r0 []*model.PropertyField
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GlobalAttributeListingOpts) ([]*model.PropertyField, error)); ok {
+		return rf(rctx, opts)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GlobalAttributeListingOpts) []*model.PropertyField); ok {
+		r0 = rf(rctx, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PropertyField)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.GlobalAttributeListingOpts) error); ok {
+		r1 = rf(rctx, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SearchPropertyFields provides a mock function with given fields: rctx, opts

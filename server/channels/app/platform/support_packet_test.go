@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -19,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -251,6 +253,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71672")
+
 	th := Setup(t).InitBasic(t)
 
 	th.Service.installTypeOverride = "docker"
@@ -294,6 +298,18 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
+		require.NotNil(t, d.Server.GoMaxProcs)
+		assert.Positive(t, *d.Server.GoMaxProcs)
+		assert.Equal(t, d.Server.ContainerCPUPeriods == nil, d.Server.ContainerCPUThrottledPeriods == nil)
+		if runtime.GOOS == "linux" {
+			require.NotNil(t, d.Server.LoadAverage1m)
+			require.NotNil(t, d.Server.LoadAverage5m)
+			require.NotNil(t, d.Server.LoadAverage15m)
+		} else {
+			assert.Nil(t, d.Server.LoadAverage1m)
+			assert.Nil(t, d.Server.LoadAverage5m)
+			assert.Nil(t, d.Server.LoadAverage15m)
+		}
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			require.NotNil(t, d.Server.TotalMemoryMB)
 			assert.Positive(t, *d.Server.TotalMemoryMB)
@@ -1288,10 +1304,10 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 	}
 
-	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+	requireSectionErrorsWithContext := func(t *testing.T, rctx request.CTX, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(rctx)
 		require.NotNil(t, nodeDiagnostics)
 		require.NotNil(t, nodeDiagnostics.Diagnostics)
 		if len(failed) == 0 {
@@ -1317,6 +1333,24 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 			}
 		}
 		return nodeDiagnostics.Diagnostics
+	}
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) *model.SupportPacketDiagnostics {
+		t.Helper()
+		return requireSectionErrorsWithContext(t, th.Context, failed)
+	}
+
+	setLDAP := func(t *testing.T, ldapMock *emocks.LdapDiagnosticInterface) {
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
 	}
 
 	t.Run("all sections present and clean", func(t *testing.T) {
@@ -1459,6 +1493,185 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		})
 
 		requireSectionErrors(t, nil)
+	})
+
+	t.Run("probe still running at the deadline", func(t *testing.T) {
+		release := make(chan struct{})
+		t.Cleanup(func() { close(release) })
+		// The push probe reaches the real push proxy by default, which could outlast the short deadline.
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			})
+		})
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).
+			Run(func(mock.Arguments) { <-release }).
+			Return(model.NewAppError("", "released", nil, "", 0))
+		setLDAP(t, ldapMock)
+
+		// Long enough for the local collection, which also uses the context for its database queries.
+		ctx, cancel := context.WithTimeout(th.Context.Context(), 2*time.Second)
+		t.Cleanup(cancel)
+
+		start := time.Now()
+		d := requireSectionErrorsWithContext(t, th.Context.WithContext(ctx), map[model.NodeSection][]string{
+			model.SectionLDAPProbe: {"probe did not complete", context.DeadlineExceeded.Error()},
+		})
+		assert.Less(t, time.Since(start), 10*time.Second)
+		assert.Empty(t, d.LDAP.Status, "a probe that did not finish has no status")
+		assert.Contains(t, d.LDAP.Error, "probe did not complete")
+	})
+
+	t.Run("probes run concurrently", func(t *testing.T) {
+		originalFileStore := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+		})
+
+		// Each probe waits for the other to start, so they only both succeed when they run at the same time.
+		ldapStarted := make(chan struct{})
+		fileStoreStarted := make(chan struct{})
+		waitFor := func(started chan struct{}) error {
+			select {
+			case <-started:
+				return nil
+			case <-time.After(10 * time.Second):
+				return errors.New("other probe did not start")
+			}
+		}
+
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return("amazons3")
+		fb.On("TestConnection").Return(func() error {
+			close(fileStoreStarted)
+			return waitFor(ldapStarted)
+		})
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(func(request.CTX) *model.AppError {
+			close(ldapStarted)
+			if err := waitFor(fileStoreStarted); err != nil {
+				return model.NewAppError("", "timeout", nil, "", 0).Wrap(err)
+			}
+			return nil
+		})
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("OpenLDAP", "2.6", nil)
+		setLDAP(t, ldapMock)
+
+		d := requireSectionErrors(t, nil)
+		assert.Equal(t, model.StatusOk, d.FileStore.Status, d.FileStore.Error)
+		assert.Equal(t, model.StatusOk, d.LDAP.Status, d.LDAP.Error)
+		assert.Equal(t, "OpenLDAP", d.LDAP.ServerName)
+	})
+}
+
+func TestStartNetworkProbes(t *testing.T) {
+	type outcome struct {
+		status, errMsg string
+		sectionErrs    []error
+	}
+	// collect runs a single probe in section SectionPushProbe and returns what it recorded.
+	collect := func(ctx context.Context, probe networkProbe) outcome {
+		var o outcome
+		probe.name, probe.section, probe.status, probe.errMsg = "push", model.SectionPushProbe, &o.status, &o.errMsg
+		startNetworkProbes(ctx, []networkProbe{probe}, func(section model.NodeSection, err error) {
+			assert.Equal(t, model.SectionPushProbe, section)
+			o.sectionErrs = append(o.sectionErrs, err)
+		})()
+		return o
+	}
+
+	t.Run("records a reachable service", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return nil }})
+		assert.Equal(t, outcome{status: model.StatusOk}, o)
+	})
+
+	t.Run("records an unreachable service without failing the section", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { return errors.New("refused") }})
+		assert.Equal(t, outcome{status: model.StatusFail, errMsg: "refused"}, o)
+	})
+
+	t.Run("runs record after run and fails the section with its error", func(t *testing.T) {
+		var name string
+		o := collect(context.Background(), networkProbe{
+			run: func(context.Context) error { name = "OpenLDAP"; return nil },
+			record: func() error {
+				assert.Equal(t, "OpenLDAP", name)
+				return errors.New("vendor down")
+			},
+		})
+		assert.Equal(t, model.StatusOk, o.status)
+		require.Len(t, o.sectionErrs, 1)
+		assert.EqualError(t, o.sectionErrs[0], "vendor down")
+	})
+
+	t.Run("passes the context to the probe", func(t *testing.T) {
+		type key struct{}
+		ctx := context.WithValue(context.Background(), key{}, "value")
+		o := collect(ctx, networkProbe{run: func(ctx context.Context) error {
+			if ctx.Value(key{}) != "value" {
+				return errors.New("wrong context")
+			}
+			return nil
+		}})
+		assert.Equal(t, model.StatusOk, o.status, o.errMsg)
+	})
+
+	t.Run("gives up when the context ends", func(t *testing.T) {
+		release := make(chan struct{})
+		defer close(release)
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		recorded := false
+		o := collect(ctx, networkProbe{
+			run:    func(context.Context) error { <-release; return nil },
+			record: func() error { recorded = true; return nil },
+		})
+		assert.Empty(t, o.status, "a probe that did not finish has no status")
+		assert.Equal(t, "push: probe did not complete: context deadline exceeded", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
+		assert.ErrorIs(t, o.sectionErrs[0], context.DeadlineExceeded)
+		assert.False(t, recorded)
+	})
+
+	t.Run("records probes that finished before the context ended", func(t *testing.T) {
+		// With the deadline passed and results waiting, select picks either case, so repeat to catch a wrong pick.
+		for range 20 {
+			synctest.Test(t, func(t *testing.T) {
+				ctx, cancel := context.WithCancel(context.Background())
+				var o outcome
+				collectProbes := startNetworkProbes(ctx, []networkProbe{{
+					name: "push", section: model.SectionPushProbe, status: &o.status, errMsg: &o.errMsg,
+					run: func(context.Context) error { return nil },
+				}}, func(_ model.NodeSection, err error) { o.sectionErrs = append(o.sectionErrs, err) })
+
+				synctest.Wait() // the probe has sent its result
+				cancel()
+				collectProbes()
+				assert.Equal(t, outcome{status: model.StatusOk}, o)
+			})
+		}
+	})
+
+	t.Run("returns a panic as an error", func(t *testing.T) {
+		o := collect(context.Background(), networkProbe{run: func(context.Context) error { panic("boom") }})
+		assert.Empty(t, o.status)
+		assert.Equal(t, "push: probe panicked: boom", o.errMsg)
+		require.Len(t, o.sectionErrs, 1)
+	})
+
+	t.Run("records nothing without probes", func(t *testing.T) {
+		failed := false
+		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { failed = true })()
+		assert.False(t, failed)
 	})
 }
 
@@ -1663,11 +1876,26 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Server.InstallationType = "docker"
 	diagnostics.Server.CPUCores = 8
 	diagnostics.Server.TotalMemoryMB = new(uint64(32768))
+	diagnostics.Server.AvailableMemoryMB = new(uint64(24576))
+	diagnostics.Server.SwapTotalMB = new(uint64(4096))
+	diagnostics.Server.SwapUsedMB = new(uint64(1024))
 	diagnostics.Server.ContainerCPULimit = 6.5
 	diagnostics.Server.ContainerMemoryLimitMB = 16384
+	diagnostics.Server.ContainerMemoryUsageMB = new(uint64(12288))
+	diagnostics.Server.ContainerMemoryWorkingSetMB = new(uint64(10240))
+	diagnostics.Server.ContainerOOMKills = new(uint64(2))
+	diagnostics.Server.LoadAverage1m = new(1.25)
+	diagnostics.Server.LoadAverage5m = new(1.5)
+	diagnostics.Server.LoadAverage15m = new(2.75)
+	diagnostics.Server.ContainerCPUPeriods = new(uint64(10000))
+	diagnostics.Server.ContainerCPUThrottledPeriods = new(uint64(1250))
+	diagnostics.Server.ContainerCPUThrottledSeconds = new(42.5)
+	diagnostics.Server.GoMaxProcs = new(6)
 	diagnostics.Server.ProcessID = 90210
 	diagnostics.Server.StartedAt = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 	diagnostics.Server.HostStartedAt = time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC)
+	diagnostics.Server.ProcessRSSMB = new(uint64(2048))
+	diagnostics.Server.GoMemoryLimitMB = new(uint64(13107))
 	diagnostics.Server.OpenFileDescriptors = new(int64(512))
 	diagnostics.Server.MaxFileDescriptors = new(int64(8192))
 	diagnostics.Server.Version = "11.0.0"

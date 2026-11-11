@@ -16,6 +16,26 @@ type ClusterInterface struct {
 	mock.Mock
 }
 
+// CollectHealthDiagnostics provides a mock function with given fields: rctx
+func (_m *ClusterInterface) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CollectHealthDiagnostics")
+	}
+
+	var r0 map[string]*model.NodeDiagnostics
+	if rf, ok := ret.Get(0).(func(request.CTX) map[string]*model.NodeDiagnostics); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.NodeDiagnostics)
+		}
+	}
+
+	return r0
+}
+
 // ConfigChanged provides a mock function with given fields: previousConfig, newConfig, sendToOtherServer
 func (_m *ClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	ret := _m.Called(previousConfig, newConfig, sendToOtherServer)
@@ -137,38 +157,6 @@ func (_m *ClusterInterface) GetClusterStats(rctx request.CTX) ([]*model.ClusterS
 
 	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
 		r1 = rf(rctx)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetLogs provides a mock function with given fields: rctx, page, perPage
-func (_m *ClusterInterface) GetLogs(rctx request.CTX, page int, perPage int) ([]string, *model.AppError) {
-	ret := _m.Called(rctx, page, perPage)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetLogs")
-	}
-
-	var r0 []string
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) ([]string, *model.AppError)); ok {
-		return rf(rctx, page, perPage)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, int, int) []string); ok {
-		r0 = rf(rctx, page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, int, int) *model.AppError); ok {
-		r1 = rf(rctx, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
