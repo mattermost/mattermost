@@ -90,7 +90,7 @@ export type {
     UpgradeLogPhase,
 } from './server';
 
-export {startStack, stopStack, withStackLock} from './containers';
+export {startStack, stopStack, verifySplitMockSyncAfterBoot, withStackLock} from './containers';
 
 export {
     ChannelsPage,
