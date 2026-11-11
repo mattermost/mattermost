@@ -158,9 +158,10 @@ function ChannelSettingsAccessRulesTab({
     useEffect(() => {
         let cancelled = false;
         setPolicyLoaded(false);
+        setLoadError('');
+        setSavedRuleStatus('checking');
 
         const loadChannelPolicy = async () => {
-            setSavedRuleStatus('checking');
             const result = await actions.getChannelPolicy(channel.id);
             if (cancelled) {
                 return;
@@ -183,7 +184,6 @@ function ChannelSettingsAccessRulesTab({
                 setExistingImports(result.data.imports || []);
                 setAutoSyncMembers(existingAutoSync);
                 setOriginalAutoSyncMembers(existingAutoSync);
-                setLoadError('');
                 setPolicyLoaded(true);
                 return;
             }
@@ -191,12 +191,11 @@ function ChannelSettingsAccessRulesTab({
             const error = result.error as {status_code?: number; message?: string} | undefined;
             if (!error || error.status_code === 404) {
                 // No policy yet: seed the empty defaults the component starts with.
-                setSavedRuleStatus('editable');
                 setExpression('');
                 setOriginalExpression('');
                 setExistingRules([]);
                 setExistingImports([]);
-                setLoadError('');
+                setSavedRuleStatus('editable');
                 setPolicyLoaded(true);
                 return;
             }
