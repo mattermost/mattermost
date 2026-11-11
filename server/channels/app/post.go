@@ -2414,7 +2414,17 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		if !a.HasPermissionTo(rctx, userID, model.PermissionCreateDirectChannel) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}

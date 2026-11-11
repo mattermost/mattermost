@@ -6066,6 +6066,67 @@ func TestSearchPostsInChannel(t *testing.T) {
 	require.Lenf(t, posts.Order, 3, "wrong number of posts for 'channel: %v channel: %v'", th.BasicChannel2.Name, channel.Name)
 }
 
+func TestSearchPostsInDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.LoginBasic(t)
+	client := th.Client
+
+	existingDM := th.CreateDmChannel(t, th.BasicUser2)
+	dmPost := th.CreateMessagePostWithClient(t, client, existingDM, "dmsearchterm")
+
+	userWithoutDM := th.CreateUser(t)
+	th.LinkUserToTeam(t, userWithoutDM, th.BasicTeam)
+	dmName := model.GetDMNameFromIds(th.BasicUser.Id, userWithoutDM.Id)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+	th.RemovePermissionFromRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+
+	t.Run("finds posts in an existing DM without create_direct_channel permission", func(t *testing.T) {
+		posts, _, err := client.SearchPosts(context.Background(), th.BasicTeam.Id, "dmsearchterm in:@"+th.BasicUser2.Username, false)
+		require.NoError(t, err)
+		require.Equal(t, []string{dmPost.Id}, posts.Order)
+	})
+
+	t.Run("does not create a DM without create_direct_channel permission", func(t *testing.T) {
+		_, resp, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, userWithoutDM.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		posts, _, err := client.SearchPosts(context.Background(), th.BasicTeam.Id, "dmsearchterm in:@"+userWithoutDM.Username, false)
+		require.NoError(t, err)
+		require.Empty(t, posts.Order)
+
+		posts, _, err = client.SearchPostsWithParams(context.Background(), "", &model.SearchParameter{Terms: model.NewPointer("dmsearchterm in:@" + userWithoutDM.Username)})
+		require.NoError(t, err)
+		require.Empty(t, posts.Order)
+
+		_, _, err = client.SearchFiles(context.Background(), th.BasicTeam.Id, "dmsearchterm in:@"+userWithoutDM.Username, false)
+		require.NoError(t, err)
+
+		_, err = th.App.Srv().Store().Channel().GetByName("", dmName, true)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+	})
+
+	t.Run("creates the DM with create_direct_channel permission", func(t *testing.T) {
+		_, err := th.App.Srv().Store().Channel().GetByName("", dmName, true)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr)
+
+		th.AddPermissionToRole(t, model.PermissionCreateDirectChannel.Id, model.SystemUserRoleId)
+
+		_, _, err = client.SearchPosts(context.Background(), th.BasicTeam.Id, "dmsearchterm in:@"+userWithoutDM.Username, false)
+		require.NoError(t, err)
+
+		dm, err := th.App.Srv().Store().Channel().GetByName("", dmName, true)
+		require.NoError(t, err)
+		require.Equal(t, model.ChannelTypeDirect, dm.Type)
+	})
+}
+
 func TestSearchPostsFromUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
