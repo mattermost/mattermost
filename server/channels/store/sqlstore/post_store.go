@@ -633,7 +633,7 @@ func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryPara
 		return "", queryParams
 	}
 
-	return "AND B.TeamId = ? OR B.TeamId = ''", append(queryParams, teamId)
+	return "AND (B.TeamId = ? OR B.TeamId = '')", append(queryParams, teamId)
 }
 
 func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {
