@@ -6041,10 +6041,14 @@ func TestLoginCookies(t *testing.T) {
 		}
 		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
-		th.App.Srv().SetCWSTokenOverride(token)
-		t.Cleanup(func() { th.App.Srv().SetCWSTokenOverride("") })
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		user := th.CreateUser(t)
+		th.App.Srv().SetCWSTokenOverride(token)
+		th.App.Srv().SetCWSLoginIDOverride(user.Email)
+		t.Cleanup(func() {
+			th.App.Srv().SetCWSTokenOverride("")
+			th.App.Srv().SetCWSLoginIDOverride("")
+		})
 
 		form := url.Values{}
 		form.Add("login_id", user.Email)
@@ -6073,6 +6077,183 @@ func TestLoginCookies(t *testing.T) {
 			}
 		}
 		assert.True(t, found, "should have found cookie")
+	})
+
+	t.Run("cws login with the CWS login ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name           string
+			cloud          bool
+			bindTo         func(user, otherUser *model.User) string
+			prepare        func(t *testing.T, user *model.User)
+			expectedStatus int
+			expectSession  bool
+		}{
+			{
+				name:           "self-hosted license with a matching login ID",
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "self-hosted license without the CWS login ID",
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "self-hosted license with a mismatched login ID",
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a deactivated user",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					_, appErr := th.App.UpdateActive(th.Context, user, false)
+					require.Nil(t, appErr)
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:   "self-hosted license with a user who has logged in before",
+				bindTo: func(user, _ *model.User) string { return user.Username },
+				prepare: func(t *testing.T, user *model.User) {
+					require.NoError(t, th.App.Srv().Store().User().UpdateLastLogin(user.Id, model.GetMillis()))
+				},
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license without the CWS login ID",
+				cloud:          true,
+				bindTo:         func(_, _ *model.User) string { return "" },
+				expectedStatus: http.StatusFound,
+			},
+			{
+				name:           "Cloud license with a matching login ID",
+				cloud:          true,
+				bindTo:         func(user, _ *model.User) string { return user.Username },
+				expectedStatus: http.StatusFound,
+				expectSession:  true,
+			},
+			{
+				name:           "Cloud license with a mismatched login ID",
+				cloud:          true,
+				bindTo:         func(_, otherUser *model.User) string { return otherUser.Username },
+				expectedStatus: http.StatusFound,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				token := model.NewRandomString(64)
+				license := model.NewTestLicense()
+				license.Features.Cloud = new(tc.cloud)
+				th.App.Srv().SetLicense(license)
+				user := th.CreateUser(t)
+				otherUser := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(tc.bindTo(user, otherUser))
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+				if tc.prepare != nil {
+					tc.prepare(t, user)
+				}
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, tc.expectedStatus, r.StatusCode)
+				hasSession := false
+				for _, cookie := range r.Cookies() {
+					if cookie.Name == model.SessionCookieToken && cookie.Value != "" {
+						hasSession = true
+					}
+				}
+				assert.Equal(t, tc.expectSession, hasSession)
+			})
+		}
+	})
+
+	t.Run("cws login redirect for cloud previews", func(t *testing.T) {
+		siteURL := "https://testchips.cloud.mattermost.com"
+		th := SetupAndApplyConfigBeforeLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+		}).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name             string
+			preview          bool
+			useCase          string
+			landing          string
+			expectedLocation string
+		}{
+			{name: "use case wins over the landing path", preview: true, useCase: "mission-ops", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/mission-ops-hq"},
+			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
+			{name: "landing path is ignored outside a preview", landing: "/nato", expectedLocation: siteURL},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				license := model.NewTestLicense("cloud")
+				if tc.preview {
+					license.IsTrial = true
+					license.StartsAt = model.GetMillis()
+					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
+				}
+				th.App.Srv().SetLicense(license)
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.CloudSettings.PreviewLandingPath = tc.landing
+				})
+				token := model.NewRandomString(64)
+				user := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(user.Username)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				form.Add("use_case", tc.useCase)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, http.StatusFound, r.StatusCode)
+				assert.Equal(t, tc.expectedLocation, r.Header.Get("Location"))
+			})
+		}
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
@@ -11138,6 +11319,35 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 		assert.Len(t, sessions, 0)
 	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), authUser)
+				assert.Nil(t, appErr)
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				// Checks that desktop token login consults user DeleteAt before creating a session.
+				_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, resp)
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
 }
 
 func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
@@ -11230,6 +11440,95 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 		assert.Equal(t, samlUser.Id, user.Id)
 		assert.Equal(t, samlUser.Email, user.Email)
 		assert.Equal(t, samlUser.Username, user.Username)
+	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				codeVerifier := "test_code_verifier_delete_at_" + tc.name
+				state := "test_state_delete_at_" + tc.name
+
+				sum := sha256.Sum256([]byte(codeVerifier))
+				codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+				extra := map[string]string{
+					"user_id":               authUser.Id,
+					"code_challenge":        codeChallenge,
+					"code_challenge_method": "S256",
+					"state":                 state,
+				}
+
+				token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+				require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				props := map[string]string{
+					"login_code":    token.Token,
+					"code_verifier": codeVerifier,
+					"state":         state,
+				}
+
+				// Checks that SSO code exchange consults user DeleteAt before creating a session.
+				resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+				require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
+
+	t.Run("rejects user converted to bot", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
+
+		codeVerifier := "test_code_verifier_convert_to_bot"
+		state := "test_state_convert_to_bot"
+
+		sum := sha256.Sum256([]byte(codeVerifier))
+		codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+		extra := map[string]string{
+			"user_id":               samlUser.Id,
+			"code_challenge":        codeChallenge,
+			"code_challenge_method": "S256",
+			"state":                 state,
+		}
+
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, appErr := th.App.ConvertUserToBot(th.Context, samlUser)
+		require.Nil(t, appErr)
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": codeVerifier,
+			"state":         state,
+		}
+
+		// Checks that a code minted before ConvertUserToBot can't create a session for the bot.
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+		sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, sessErr)
+		assert.Len(t, sessions, 0)
 	})
 }
 

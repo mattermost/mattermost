@@ -32,7 +32,7 @@ exports[`/components/common/InfiniteScroll should not show loading screen if the
         >
           <span
             aria-label="Loading Icon"
-            class="_spinner_3elm7_10 spinner"
+            class="_spinner_mvrwe_21 spinner"
             role="status"
             style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
           />

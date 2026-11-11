@@ -203,6 +203,8 @@ const initialComponents: PluginsState['components'] = {
     BottomTeamSidebar: [],
     ChannelHeader: [],
     ChannelHeaderIcon: [],
+    ChannelInfoMenu: [],
+    ChannelBookmarksMenu: [],
     ChannelIntroButton: [],
     CustomRouteComponent: [],
     FilesDropdown: [],
