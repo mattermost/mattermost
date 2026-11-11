@@ -1407,6 +1407,62 @@ func TestUploadFileMultipartLegacyForm(t *testing.T) {
 	})
 }
 
+// TestUploadFileMultipartBodyTooLarge checks that a multipart upload whose body
+// is longer than MaxFileSize is answered with 413 on both the buffered and the
+// streaming path.
+func TestUploadFileMultipartBodyTooLarge(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	const maxFileSize = 4 * 1024
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+
+	channelID := []byte(th.BasicChannel.Id)
+	overMaxFileSize := patternedBytes(1, 2*maxFileSize)
+	require.Less(t, len(overMaxFileSize), maxMultipartFormDataBytes)
+
+	testCases := []struct {
+		title string
+		parts []uploadMultipartPart
+		query string
+	}{
+		{
+			title: "file part before channel_id",
+			parts: []uploadMultipartPart{
+				{formName: "files", fileName: "test.bin", value: overMaxFileSize},
+				{formName: "channel_id", value: channelID},
+			},
+		},
+		{
+			title: "client_ids value with channel_id in the query",
+			parts: []uploadMultipartPart{
+				{formName: "client_ids", value: overMaxFileSize},
+			},
+			query: "?channel_id=" + th.BasicChannel.Id,
+		},
+		{
+			title: "part without a form name with channel_id in the query",
+			parts: []uploadMultipartPart{
+				{value: overMaxFileSize},
+			},
+			query: "?channel_id=" + th.BasicChannel.Id,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.title, func(t *testing.T) {
+			body, contentType := buildUploadMultipartBody(t, tc.parts...)
+
+			_, resp, err := testDoUploadFileRequest(t, th.Client, tc.query, body, contentType, -1)
+			require.Error(t, err)
+			checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge)
+		})
+	}
+}
+
 // TestUploadFileMultipartBufferBounds checks that the memory the file upload
 // endpoint allocates while handling a multipart request stays flat as the parts
 // of that request grow: a run with a large part is compared against a reference

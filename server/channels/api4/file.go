@@ -328,7 +328,7 @@ NextPart:
 		if err != nil {
 			c.Err = model.NewAppError("uploadFileMultipart",
 				"api.file.upload_file.read_request.app_error",
-				nil, err.Error(), http.StatusBadRequest)
+				nil, "", http.StatusBadRequest).Wrap(err)
 			return nil
 		}
 
@@ -341,7 +341,7 @@ NextPart:
 			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_request.app_error",
-					nil, err.Error(), http.StatusBadRequest)
+					nil, "", http.StatusBadRequest).Wrap(err)
 				return nil
 			}
 
@@ -355,7 +355,7 @@ NextPart:
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
 					map[string]any{"Formname": formname},
-					err.Error(), http.StatusBadRequest)
+					"", http.StatusBadRequest).Wrap(err)
 				return nil
 			}
 
@@ -676,7 +676,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		}
 		c.Err = model.NewAppError("uploadFileMultipartLegacy",
 			"api.file.upload_file.read_request.app_error",
-			nil, err.Error(), status)
+			nil, "", status).Wrap(err)
 		return nil
 	}
 	defer func() {
