@@ -45,11 +45,12 @@ test(
 
         // # Open browse channels modal to show archived channels
         await page.keyboard.press('Control+K');
-        await page.waitForTimeout(500);
+        await channelsPage.findChannelsModal.toBeVisible();
 
         // # Type to search for archived channels
         await page.keyboard.type('archive');
-        await page.waitForTimeout(500);
+        await expect(page.getByRole('option', {name: 'Public Archive Test'})).toBeVisible();
+        await expect(page.getByRole('option', {name: 'Private Archive Test'})).toBeVisible();
 
         // # Hide dynamic content
         await pw.hideDynamicChannelsContent(page);
@@ -98,14 +99,15 @@ test(
 
         // # Navigate to admin console channels list
         await page.goto('/admin_console/user_management/channels');
-        await page.waitForTimeout(1000);
 
         // # Wait for channel list to load
-        await expect(page.locator('.DataGrid')).toBeVisible({timeout: 10000});
+        const channelGrid = page.locator('.DataGrid');
+        await expect(channelGrid).toBeVisible({timeout: 10000});
 
         // # Search for our test channels to bring them into view
-        await page.fill('[data-testid="searchInput"]', 'Admin');
-        await page.waitForTimeout(500);
+        await page.getByTestId('searchInput').fill('Admin');
+        await expect(channelGrid.getByText('Admin Public Archive')).toBeVisible();
+        await expect(channelGrid.getByText('Admin Private Archive')).toBeVisible();
 
         // * Verify both archived channels are visible with correct icons
         const testArgs = {page, browserName, viewport};
