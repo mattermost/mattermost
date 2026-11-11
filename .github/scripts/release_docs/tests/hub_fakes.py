@@ -103,13 +103,9 @@ class FakeCalendar:
         self.writes = []
         self.series_instances = {}  # series id -> instances
 
-    def events(self, start, end, query="", single=True):
+    def events(self, start, end, query=""):
         found = []
         for event in self.items:
-            if not single and "recurrence" in event:
-                if query.casefold() in event.get("summary", "").casefold():
-                    found.append(event)
-                continue
             if "recurrence" in event:
                 continue
             day = date.fromisoformat(event["start"].get("date") or event["start"]["dateTime"][:10])
@@ -117,9 +113,12 @@ class FakeCalendar:
                 found.append(event)
         return found
 
-    def instances(self, event_id, start):
+    def recurring(self, query):
+        return [e for e in self.items if query.casefold() in e.get("summary", "").casefold()]
+
+    def instances(self, event_id, start, end):
         return [i for i in self.series_instances.get(event_id, [])
-                if (i["start"].get("dateTime") or i["start"].get("date"))[:10] >= start.isoformat()]
+                if start.isoformat() <= (i["start"].get("dateTime") or i["start"].get("date"))[:10] <= end.isoformat()]
 
     def create_all_day(self, title, day):
         event = {"id": f"e{len(self.items)}", "summary": title, "start": {"date": day.isoformat()},

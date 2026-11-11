@@ -81,17 +81,24 @@ class GoogleCalendar:
             if not token:
                 return items
 
-    def events(self, start: date, end: date, query: str = "", single: bool = True) -> list[dict]:
-        """Events between ``start`` and ``end`` (inclusive days); recurring ones expanded when ``single``."""
+    def events(self, start: date, end: date, query: str = "") -> list[dict]:
+        """Events between ``start`` and ``end`` (inclusive days), recurring ones expanded."""
         params = {"timeMin": f"{start.isoformat()}T00:00:00Z", "timeMax": f"{(end + timedelta(days=1)).isoformat()}T00:00:00Z",
-                  "singleEvents": "true" if single else "false", "maxResults": 250}
+                  "singleEvents": "true", "maxResults": 250}
         if query:
             params["q"] = query
         return self._pages("/events", params)
 
-    def instances(self, event_id: str, start: date) -> list[dict]:
+    def recurring(self, query: str) -> list[dict]:
+        """Events matching ``query``, recurring ones as their series. No time window: with ``singleEvents=false``
+        it would apply to a series' first occurrence, leaving out a series that began before it."""
+        return self._pages("/events", {"q": query, "singleEvents": "false", "showDeleted": "false", "maxResults": 250})
+
+    def instances(self, event_id: str, start: date, end: date) -> list[dict]:
+        """A series' occurrences between ``start`` and ``end`` (inclusive days)."""
         return self._pages(f"/events/{urllib.parse.quote(event_id)}/instances",
-                           {"timeMin": f"{start.isoformat()}T00:00:00Z", "maxResults": 10})
+                           {"timeMin": f"{start.isoformat()}T00:00:00Z",
+                            "timeMax": f"{(end + timedelta(days=1)).isoformat()}T00:00:00Z", "maxResults": 50})
 
     def create_all_day(self, title: str, day: date) -> dict:
         """An all-day event shown as free, with no attendees and no notifications."""

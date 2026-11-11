@@ -42,13 +42,13 @@ def release_occurrence(calendar, feature_complete: date, release_day: date) -> t
 
     Found in the recurring event titled Feature Ready Review. Never the next one regardless:
     an occurrence after Release Day belongs to the next release."""
-    series = [e for e in calendar.events(feature_complete, release_day, TITLE, single=False)
-              if " ".join((e.get("summary") or "").split()).casefold() == TITLE.casefold() and e.get("recurrence")]
+    series = [e for e in calendar.recurring(TITLE) if e.get("status") != "cancelled" and e.get("recurrence")
+              and " ".join((e.get("summary") or "").split()).casefold() == TITLE.casefold()]
     if len(series) != 1:
         return None, (f"no recurring \"{TITLE}\" event on the Release Dates calendar" if not series
                       else f"{len(series)} recurring \"{TITLE}\" events on the Release Dates calendar")
-    window = [e for e in calendar.instances(series[0]["id"], feature_complete) if e.get("status") != "cancelled"
-              and feature_complete < starts_at(e).date() < release_day]
+    window = [e for e in calendar.instances(series[0]["id"], feature_complete, release_day)
+              if e.get("status") != "cancelled" and feature_complete < starts_at(e).date() < release_day]
     if not window:
         return None, (f"the recurring \"{TITLE}\" event has no occurrence between Feature Complete "
                       f"({feature_complete}) and Release Day ({release_day})")

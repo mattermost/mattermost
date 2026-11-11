@@ -6,6 +6,7 @@ import io
 import json
 import os
 import unittest
+import urllib.parse
 from datetime import date, datetime
 from unittest import mock
 
@@ -567,7 +568,7 @@ class EmailTest(unittest.TestCase):
 
 def series_calendar():
     calendar = FakeCalendar([{"id": "frr", "summary": "Feature Ready Review", "recurrence": ["RRULE:FREQ=MONTHLY"],
-                              "start": {"dateTime": "2026-10-30T17:00:00Z"}}])
+                              "start": {"dateTime": "2025-01-31T17:00:00Z"}}])  # began long before this release
     calendar.series_instances["frr"] = [
         {"id": "frr_20261030", "start": {"dateTime": "2026-10-30T17:00:00Z"}, "description": "old"},
         {"id": "frr_20261127", "start": {"dateTime": "2026-11-27T17:00:00Z"}, "description": "old"},
@@ -667,6 +668,22 @@ class GoogleCalendarClientTest(unittest.TestCase):
         self.assertEqual(created["end"], {"date": "2027-02-17"})
         self.assertNotIn("attendees", created)
         self.assertEqual(created["reminders"], {"useDefault": False, "overrides": []})
+
+    def test_a_series_is_found_whenever_it_began(self):
+        requests = []
+
+        def opener(request, timeout):
+            requests.append(urllib.parse.parse_qs(urllib.parse.urlsplit(request.full_url).query))
+            return io.BytesIO(b"{}")
+
+        client = gcal.GoogleCalendar("cal@group.calendar.google.com", "token", opener)
+        client.recurring("Feature Ready Review")
+        client.instances("frr", date(2026, 11, 23), date(2026, 12, 16))
+        series, instances = requests
+        self.assertEqual(series["singleEvents"], ["false"])
+        self.assertNotIn("timeMin", series)  # would apply to the series' first occurrence
+        self.assertNotIn("timeMax", series)
+        self.assertEqual((instances["timeMin"], instances["timeMax"]), (["2026-11-23T00:00:00Z"], ["2026-12-17T00:00:00Z"]))
 
 
 CHANGELOG_V12 = """## Release v12.2 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types)
