@@ -5,9 +5,7 @@ package platform
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"crypto/tls"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -68,10 +66,6 @@ const (
 	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
 	// old connection.
 	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
-
-	// reconnectFailurePermissionAttributesChanged means the old connection was evaluated with
-	// different request-scoped attributes than the reconnecting request carries.
-	reconnectFailurePermissionAttributesChanged = "permission_attributes_changed"
 )
 
 const websocketMessagePluginPrefix = "custom_"
@@ -189,27 +183,6 @@ type CheckConnResult struct {
 	DeadQueue        []*model.WebSocketEvent
 	DeadQueuePointer int
 	ReuseCount       int
-
-	// PermissionAttributes identifies the request-scoped attributes the old connection was
-	// evaluated with.
-	PermissionAttributes string
-}
-
-// permissionAttributesKey identifies the request-scoped attributes a connection is
-// evaluated with. Connections without any share the empty key.
-func permissionAttributesKey(proxyDeviceID string, serverDerived map[string]any) string {
-	if proxyDeviceID == "" && len(serverDerived) == 0 {
-		return ""
-	}
-	buf, err := json.Marshal(struct {
-		ProxyDeviceID string         `json:"proxy_device_id"`
-		ServerDerived map[string]any `json:"server_derived"`
-	}{proxyDeviceID, serverDerived})
-	if err != nil {
-		return model.NewId()
-	}
-	sum := sha256.Sum256(buf)
-	return hex.EncodeToString(sum[:])
 }
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -231,9 +204,6 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 	}
 
 	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
-	if res != nil && res.PermissionAttributes != permissionAttributesKey(cfg.ProxyDeviceID, cfg.ServerDerivedAttributes) {
-		res, reason = nil, reconnectFailurePermissionAttributesChanged
-	}
 	if res == nil {
 		ps.Log().Debug("Websocket resume failed, issuing new connection id",
 			mlog.String("user_id", s.UserId),
