@@ -9161,11 +9161,6 @@
     "description": "Bulk import error shown to admins when saving imported team membership records fails."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Unable to import team membership because no more members are allowed in that team",
-    "description": "Bulk import error shown to admins when a team has reached its maximum user limit so the membership cannot be added."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences",
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
@@ -9184,6 +9179,16 @@
     "id": "app.import.preflight.auth_provider_not_configured.error",
     "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}",
     "description": "Bulk import pre-check error when the export contains users of a sign-in method that is not set up on this server. {{.Service}} is the internal auth service ID (e.g. ldap, saml, gitlab, google, office365, openid); {{.Detail}} is an untranslated English explanation."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "This file adds {{.Adding}} users to team {{.Team}}, giving it {{.Total}} members, but TeamSettings.MaxUsersPerTeam is {{.Limit}}. Raise the limit or set it to 0 (no limit) before importing.",
+    "description": "Bulk import pre-check error shown before anything is imported when the import would take a team past its member limit. {{.Adding}} is the number of users the file adds to the team, {{.Team}} the team name, {{.Total}} the resulting member count and {{.Limit}} the configured limit. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Unable to read the import file to check TeamSettings.MaxUsersPerTeam.",
+    "description": "Bulk import pre-check error shown when the data file inside the import archive cannot be found or opened, so the team member limit cannot be checked before importing. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
