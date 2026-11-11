@@ -360,6 +360,9 @@ func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]an
 		return nil, appErr
 	}
 
+	// tls_device_id is cached for EnforceDeviceIDConsistency, but ABAC evaluation
+	// must use only the request-scoped value. Other server-derived attributes
+	// (IP, user agent) are no longer cached and will expire from legacy entries.
 	delete(attrs, model.SessionAttributesPropertyFieldTLSDDeviceID)
 
 	if serverDerived := ServerDerivedAttributes(rctx); len(serverDerived) > 0 {
