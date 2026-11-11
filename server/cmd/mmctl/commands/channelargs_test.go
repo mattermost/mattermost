@@ -326,11 +326,12 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 		})
 	}
 
-	s.Run("getChannelFromArg returns an error when the id lookup is forbidden", func() {
+	s.Run("getChannelFromArg returns an error when the id lookup is forbidden and name lookup fails", func() {
 		teamID := model.NewId()
 		channelID := model.NewId()
 		team := &model.Team{Id: teamID}
 		forbiddenErr := errors.New("channel forbidden")
+		notFoundErr := errors.New("channel not found")
 
 		s.client.
 			EXPECT().
@@ -341,6 +342,11 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			EXPECT().
 			GetChannel(context.TODO(), channelID).
 			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelID, teamID, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
 		channel, err := getChannelFromArg(s.client, fmt.Sprintf("%s:%s", teamID, channelID))
@@ -460,5 +466,117 @@ func (s *MmctlUnitTestSuite) TestGetChannelFromArg_PrefersIdWhenChannelPartLooks
 			s.Require().Equal(teamAID, result.TeamId)
 			s.Require().Equal(channelIDValue, result.Name)
 		})
+
+		s.Run(resolver.name+" tries exact-case channel ID before lowercase", func() {
+			teamID := model.NewId()
+			channelID := "A" + model.NewId()[1:]
+			team := &model.Team{Id: teamID}
+			exactChannel := &model.Channel{Id: channelID, TeamId: teamID, Name: "exact-case-channel"}
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(exactChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			result, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
+			s.Require().Equal(channelID, result.Id)
+		})
+
+		s.Run(resolver.name+" falls back to lowercase channel ID when exact case not found", func() {
+			teamID := model.NewId()
+			channelID := "A" + model.NewId()[1:]
+			lowercaseID := strings.ToLower(channelID)
+			team := &model.Team{Id: teamID}
+			lowercaseChannel := &model.Channel{Id: lowercaseID, TeamId: teamID, Name: "lowercase-channel"}
+			notFoundErr := errors.New("channel not found")
+
+			s.client.
+				EXPECT().
+				GetTeam(context.TODO(), teamID, "").
+				Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), channelID).
+				Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetChannel(context.TODO(), lowercaseID).
+				Return(lowercaseChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+				Times(1)
+
+			result, err := resolver.call(fmt.Sprintf("%s:%s", teamID, channelID))
+			s.Require().NoError(err)
+			s.Require().NotNil(result)
+			s.Require().Equal(lowercaseID, result.Id)
+		})
 	}
+
+	s.Run("getChannelFromArg falls back to name lookup on forbidden ID", func() {
+		teamID := model.NewId()
+		channelArg := model.NewId()
+		team := &model.Team{Id: teamID}
+		namedChannel := &model.Channel{Id: model.NewId(), TeamId: teamID, Name: channelArg}
+		forbiddenErr := errors.New("channel forbidden")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelArg).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamID, "").
+			Return(namedChannel, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		channel, err := getChannelFromArg(s.client, fmt.Sprintf("%s:%s", teamID, channelArg))
+		s.Require().NoError(err)
+		s.Require().NotNil(channel)
+		s.Require().Equal(namedChannel.Id, channel.Id)
+		s.Require().Equal(channelArg, channel.Name)
+	})
+
+	s.Run("getChannelFromArg returns forbidden error when name lookup also fails", func() {
+		teamID := model.NewId()
+		channelArg := model.NewId()
+		team := &model.Team{Id: teamID}
+		forbiddenErr := errors.New("channel forbidden")
+		notFoundErr := errors.New("channel not found")
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(team, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelArg).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelArg, teamID, "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
+			Times(1)
+
+		channel, err := getChannelFromArg(s.client, fmt.Sprintf("%s:%s", teamID, channelArg))
+		s.Require().Nil(channel)
+		s.Require().Error(err)
+		s.Require().EqualError(err, "channel forbidden")
+	})
 }

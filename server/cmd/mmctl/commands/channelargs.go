@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -58,7 +59,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 		}
 
 		if model.IsValidId(channelPart) {
-			channel, _, _ = c.GetChannel(context.TODO(), strings.ToLower(channelPart))
+			channel, _, _ = getChannelByIDArg(c, channelPart)
 			if channel != nil && channelInOtherTeam(channel, team.Id) {
 				channel = nil
 			}
@@ -74,11 +75,11 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 	}
 
 	if channel == nil {
-		lookup := channelPart
 		if model.IsValidId(channelPart) {
-			lookup = strings.ToLower(channelPart)
+			channel, _, _ = getChannelByIDArg(c, channelPart)
+		} else {
+			channel, _, _ = c.GetChannel(context.TODO(), channelPart)
 		}
-		channel, _, _ = c.GetChannel(context.TODO(), lookup)
 	}
 
 	return channel
@@ -115,6 +116,7 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	var response *model.Response
 	var team *model.Team
 	var crossTeamID bool
+	var forbiddenErr error
 	if teamArg != "" {
 		var err error
 		team, err = getTeamFromArg(c, teamArg)
@@ -122,15 +124,13 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 			return nil, err
 		}
 		if model.IsValidId(channelArg) {
-			channel, response, err = c.GetChannel(context.TODO(), strings.ToLower(channelArg))
+			channel, response, err = getChannelByIDArg(c, channelArg)
 			if err != nil {
-				// Same as getTeamFromArg: only not-found and bad-request continue to the next lookup.
-				nErr := ExtractErrorFromResponse(response, err)
-				var nfErr *NotFoundError
-				var badRequestErr *BadRequestError
-				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
-					return nil, nErr
+				// A forbidden ID may still be a visible channel name in the team, so keep the error for the fallback below.
+				if response == nil || response.StatusCode != http.StatusForbidden {
+					return nil, err
 				}
+				forbiddenErr = err
 			}
 			if channel != nil && channelInOtherTeam(channel, team.Id) {
 				crossTeamID = true
@@ -150,6 +150,9 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 			if channel == nil && crossTeamID {
 				return nil, fmt.Errorf("channel does not belong to team %q", teamArg)
 			}
+			if channel == nil && forbiddenErr != nil {
+				return nil, forbiddenErr
+			}
 		}
 	}
 	if channel != nil {
@@ -159,11 +162,11 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
 	}
 	var err error
-	lookup := channelArg
 	if model.IsValidId(channelArg) {
-		lookup = strings.ToLower(channelArg)
+		channel, response, err = getChannelByIDArg(c, channelArg)
+	} else {
+		channel, response, err = c.GetChannel(context.TODO(), channelArg)
 	}
-	channel, response, err = c.GetChannel(context.TODO(), lookup)
 	if err != nil {
 		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
@@ -176,4 +179,32 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
 	}
 	return channel, nil
+}
+
+// getChannelByIDArg tries to fetch a channel by ID, first with the exact case,
+// then with the lowercase form if different. This mirrors getUserByIDArg's behavior.
+func getChannelByIDArg(c client.Client, channelArg string) (*model.Channel, *model.Response, error) {
+	candidates := []string{channelArg}
+	if lower := strings.ToLower(channelArg); lower != channelArg {
+		candidates = append(candidates, lower)
+	}
+
+	var response *model.Response
+	for _, id := range candidates {
+		var channel *model.Channel
+		var err error
+		channel, response, err = c.GetChannel(context.TODO(), id)
+		if err == nil && channel != nil {
+			return channel, response, nil
+		}
+		if err != nil {
+			nErr := ExtractErrorFromResponse(response, err)
+			var nfErr *NotFoundError
+			var badRequestErr *BadRequestError
+			if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+				return nil, response, nErr
+			}
+		}
+	}
+	return nil, response, nil
 }
