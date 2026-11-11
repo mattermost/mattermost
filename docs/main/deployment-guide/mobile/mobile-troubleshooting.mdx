@@ -13,7 +13,7 @@ If the server URL is correct, there could be an issue with the SSL certificate c
 
 To check your SSL certificate set up, test it by visiting a site such as [SSL Labs](https://www.ssllabs.com/ssltest/index.html). If there’s an error about the missing chain or certificate path, there is likely an intermediate certificate missing that needs to be included.
 
-Please note that the apps cannot connect to servers with self-signed certificates, consider using [Let's Encrypt](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2) instead.
+Please note that the apps cannot connect to servers with self-signed certificates, consider using [Let's Encrypt](/deployment-guide/server/setup-nginx-proxy#use-certbot-to-obtain-and-renew-certificates) instead.
 
 ## Login with ADFS/Office365 is not working
 
@@ -44,7 +44,7 @@ Non-admin users can only manage their own preference. Attempts to target another
 
 If your app is working properly, you should see a grey “Connecting…” bar that clears or says “Connected” after the app reconnects.
 
-If you are seeing this message all the time, and your internet connection seems fine, ask your server administrator if the server uses NGINX or another webserver as a reverse proxy. If so, they should check that it is configured correctly for [supporting the websocket connection for APIv4 endpoints](/deployment-guide/server/setup-nginx-proxy#configure-nginx-as-a-proxy-for-mattermost-server).
+If you are seeing this message all the time, and your internet connection seems fine, ask your server administrator if the server uses NGINX or another webserver as a reverse proxy. If so, they should check that it is configured correctly for [supporting the websocket connection for APIv4 endpoints](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2).
 
 ## All my outbound connections need to go through a proxy. How can I connect to the Mattermost Hosted Push Notification Service?
 

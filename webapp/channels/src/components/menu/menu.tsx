@@ -3,7 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import type {PopoverOrigin} from '@mui/material/Popover';
+import type {PopoverOrigin, PopoverProps} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
     useState,
@@ -130,6 +130,13 @@ type MenuProps = {
      * Defaults to true (standard MUI behavior).
      */
     autoFocusItem?: boolean;
+
+    /**
+     * Where the popover is portaled; defaults to document.body. A menu inside a
+     * focus-enforcing modal must render within the modal's dialog element, or
+     * the modal and the popover fight over focus.
+     */
+    container?: PopoverProps['container'];
 };
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -387,6 +394,7 @@ export function Menu(props: Props) {
                 {menuButton && (
                     <MuiPopover
                         anchorEl={menuButton}
+                        container={props.menu.container}
                         open={isMenuOpen}
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}

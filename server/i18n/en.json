@@ -4610,6 +4610,11 @@
     "description": "API error shown to an admin when updating a secure connection to a URL already used by another connection."
   },
   {
+    "id": "api.remote_cluster.upload_resume_not_allowed.app_error",
+    "translation": "Upload from a secure connection cannot resume a partially received file.",
+    "description": "API error returned to a connected Mattermost server when it sends file data for an upload that has already received some data, which would otherwise corrupt the file."
+  },
+  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin.",
     "description": "API error when a restricted system admin (an admin role with limited settings access) attempts an action outside their allowed scope."
@@ -6343,11 +6348,6 @@
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object.",
     "description": "Login error; {{.Service}} is the OAuth provider name whose returned user object could not be parsed."
-  },
-  {
-    "id": "api.user.login_cws.license.error",
-    "translation": "CWS login is forbidden.",
-    "description": "Login error when a Customer Web Server (CWS) portal login is attempted where it is not permitted; 'CWS' is the Mattermost customer portal."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -10326,6 +10326,11 @@
     "description": "API error for admins when restoring rank-comparison operators in an access control policy expression fails; technical failure, not user mistake."
   },
   {
+    "id": "app.pap.save_policy.advanced_rule_requires_system_admin",
+    "translation": "Only a System Admin can change membership rules that use advanced logic. Edit them in the System Console.",
+    "description": "API error when a team or channel admin tries to save, or replace, a membership rule that can only be edited in the System Console's Advanced (CEL) editor."
+  },
+  {
     "id": "app.pap.save_policy.app_error",
     "translation": "Unable to save access control policy.",
     "description": "Generic API error shown to system admins when saving an attribute-based access control policy fails."
@@ -10349,6 +10354,16 @@
     "id": "app.pap.save_policy.masked_token_in_expression",
     "translation": "The policy expression contains a placeholder value that could not be resolved. Please reload the policy and try again.",
     "description": "API error when a saved access control policy expression still contains an unresolved masked-value placeholder; asks the admin to reload the policy and retry."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_not_sqlizable",
+    "translation": "This membership rule uses an expression that membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses allowed functions in a shape that cannot be converted to the database query used by membership sync (for example has()). Without this error the rule would be stored but never add or remove members."
+  },
+  {
+    "id": "app.pap.save_policy.membership_rule_unsupported_function",
+    "translation": "This membership rule uses {{.Function}}, which membership sync cannot evaluate. Rewrite the rule using only comparisons, &&, ||, in, and the supported attribute functions.",
+    "description": "API error (400) shown to an admin saving a team, channel, or parent access policy whose membership rule uses an operator or function that only works outside membership sync. {{.Function}} is the operator or function name, for example \"the conditional operator (?:)\" or \"inCIDR\"."
   },
   {
     "id": "app.pap.save_policy.name_exists.app_error",
@@ -11304,6 +11319,11 @@
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields.",
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."
+  },
+  {
+    "id": "app.property_field.search_global_attribute_listing.app_error",
+    "translation": "Unable to search the global attributes.",
+    "description": "API error returned when the Global Attributes listing in the System Console cannot be loaded."
   },
   {
     "id": "app.property_field.self_writable_holdings.app_error",
@@ -14837,6 +14857,11 @@
     "description": "Health dashboard finding detail when the search engine connection test failed and SqlSettings.DisableDatabaseSearch is on; {{.error}} is the error the server reported, with URL credentials masked."
   },
   {
+    "id": "health.rule.es_server_error.message.partial",
+    "translation": "The connection test to the search engine failed on {{.nodes}}, while the other nodes reach it, so search and indexing on those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the Elasticsearch or OpenSearch connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
+  },
+  {
     "id": "health.rule.es_server_error.remediation",
     "translation": "Verify ElasticsearchSettings.ConnectionURL reachability, TLS, and credentials. Check the search cluster health (GET /_cluster/health).",
     "description": "Health dashboard fix-it step for a failed search engine connection test; 'ElasticsearchSettings.ConnectionURL' is a config setting name and 'GET /_cluster/health' is a literal API call, neither should be translated."
@@ -14907,6 +14932,36 @@
     "description": "Health dashboard finding title when the Global Relay message export SMTP timeout is under 30 seconds; 'Global Relay' is a product name and 'SMTPServerTimeout' is a config setting name, neither should be translated."
   },
   {
+    "id": "health.rule.filestore_disk_full.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB. File uploads and other file operations can fail when the volume fills.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 5% and less than 5 GiB available; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.remediation",
+    "translation": "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a critically low local file storage volume. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_full.title",
+    "translation": "File storage disk is nearly full",
+    "description": "Health dashboard finding title when a server node's local file storage volume has critically little space available."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.message",
+    "translation": "The volume containing FileSettings.Directory has {{.available_gib}} GiB ({{.percent}}%) available of {{.total_gib}} GiB.",
+    "description": "Health dashboard finding detail when the local file storage volume has less than 1 GiB available, or less than 10% and less than 10 GiB available, unless the critical disk-space rule applies; {{.available_gib}} and {{.total_gib}} are disk sizes in GiB, and {{.percent}} is the available percentage. 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; neither should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.remediation",
+    "translation": "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.",
+    "description": "Health dashboard fix-it step for a local file storage volume with low available space. It warns against deleting Mattermost-managed files and gives the free-space target. 'Mattermost' is a product name, 'FileSettings.Directory' is a config setting path and 'GiB' is a unit; none should be translated."
+  },
+  {
+    "id": "health.rule.filestore_disk_low.title",
+    "translation": "File storage disk space is low",
+    "description": "Health dashboard finding title when a server node's local file storage volume has low available space."
+  },
+  {
     "id": "health.rule.filestore_local_in_cluster.message",
     "translation": "FileSettings.DriverName is local with ClusterSettings.Enable on, and FileSettings.Directory is {{.directory}}. In a cluster this directory must be a shared mount (NFS, EFS, GlusterFS, CephFS) mounted identically on every node, or files uploaded to one node are not visible on the others. The configuration cannot show whether the directory is shared, and a node can pass the file storage connection test while writing to its own local disk.",
     "description": "Health dashboard finding detail when a high availability cluster stores files in a local directory that may or may not be a shared mount; {{.directory}} is the configured directory. 'FileSettings.DriverName', 'ClusterSettings.Enable' and 'FileSettings.Directory' are config setting paths, 'local' is a setting value, and NFS, EFS, GlusterFS and CephFS are shared file system names; do not translate them."
@@ -14955,6 +15010,11 @@
     "id": "health.rule.filestore_unreachable.message",
     "translation": "The server could not connect to its file storage: {{.error}}. File uploads and downloads may fail.",
     "description": "Health dashboard finding detail when the file storage connection test failed; {{.error}} is the error returned by the test, in English."
+  },
+  {
+    "id": "health.rule.filestore_unreachable.message.partial",
+    "translation": "The connection test to file storage failed on {{.nodes}}, while the other nodes reach it, so file uploads and downloads through those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. For local storage, also check that the shared directory is mounted on them. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the file storage connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
   },
   {
     "id": "health.rule.filestore_unreachable.remediation",
@@ -15063,8 +15123,13 @@
   },
   {
     "id": "health.rule.ldap_probe_failed.message",
-    "translation": "The leader node's LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
+    "translation": "The LDAP test (connect, bind and a user search) failed, so LDAP sign-in and sync may be failing.",
     "description": "Health dashboard finding detail when the AD/LDAP connection test run by the server failed. 'LdapServer', 'LdapPort', 'ConnectionSecurity' and the button label 'Test Connection' are config or product names and should not be translated."
+  },
+  {
+    "id": "health.rule.ldap_probe_failed.message.partial",
+    "translation": "The LDAP test (connect, bind and a user search) failed on {{.nodes}}, while the other nodes reach the LDAP server, so LDAP sign-in may fail on those nodes. Check the network, firewall, proxy and DNS settings on those nodes.",
+    "description": "Health dashboard finding detail when the LDAP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames."
   },
   {
     "id": "health.rule.ldap_probe_failed.remediation",
@@ -15257,6 +15322,51 @@
     "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
   },
   {
+    "id": "health.rule.node_container_memory_pressure.message",
+    "translation": "The container's memory working set is {{.working_set}} MB of its {{.limit}} MB limit. If it keeps growing, the kernel may kill the server or a plugin process.",
+    "description": "Health dashboard finding detail when a node's container uses at least 90% of its memory limit; {{.working_set}} is the non-reclaimable memory in MB and {{.limit}} is the container limit in MB."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.remediation",
+    "translation": "Reduce memory use by Mattermost and its plugins, or raise the container memory limit. Keep enough headroom for plugin processes, the Go runtime and traffic spikes.",
+    "description": "Health dashboard fix-it step when a node's container is close to its memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_container_memory_pressure.title",
+    "translation": "Container memory nearly exhausted",
+    "description": "Health dashboard finding title when a server node's container memory working set is at least 90% of its limit."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.message",
+    "translation": "The container has recorded {{.kills}} out-of-memory kills since it started. The killed process may have been a plugin or another child process; review the plugin list and the container memory limit.",
+    "description": "Health dashboard finding detail when a node's cgroup recorded an OOM kill; {{.kills}} is the number of processes killed, and 'plugin' means a Mattermost server plugin."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.remediation",
+    "translation": "Review the plugin processes and container logs to identify what was killed, then reduce its memory use or raise the container memory limit.",
+    "description": "Health dashboard fix-it step when a process in a Mattermost server container was killed for running out of memory."
+  },
+  {
+    "id": "health.rule.node_container_oom_kills.title",
+    "translation": "A container process was killed for running out of memory",
+    "description": "Health dashboard finding title when a server node's cgroup reports one or more OOM kills."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.message",
+    "translation": "The container was throttled during {{.throttled}} of {{.periods}} CPU scheduling periods. Sustained CPU throttling can make Mattermost slow even when host CPU usage looks low.",
+    "description": "Health dashboard finding detail when a node's container has been CPU-throttled in at least 10% of its scheduling periods; {{.throttled}} is the number of throttled periods and {{.periods}} is the total number of periods."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.remediation",
+    "translation": "Raise the container CPU limit, or remove the limit while keeping a CPU request.",
+    "description": "Health dashboard fix-it step for sustained container CPU throttling. 'CPU limit' and 'CPU request' are Kubernetes resource terms."
+  },
+  {
+    "id": "health.rule.node_cpu_throttled.title",
+    "translation": "Container CPU throttling is high",
+    "description": "Health dashboard finding title when a server node's container is throttled during at least 10% of CPU scheduling periods."
+  },
+  {
     "id": "health.rule.node_fd_exhaustion.message",
     "translation": "The server process has {{.open}} of {{.max}} file descriptors open. Once it reaches the limit, new connections and file operations fail.",
     "description": "Health dashboard finding detail when a node is close to its open file limit; {{.open}} is the number of open file descriptors and {{.max}} is the limit."
@@ -15270,6 +15380,101 @@
     "id": "health.rule.node_fd_exhaustion.title",
     "translation": "File descriptors nearly exhausted",
     "description": "Health dashboard finding title when a server node uses 90% or more of its open file descriptor limit."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.message",
+    "translation": "The Go memory limit is {{.go_limit}} MB, but the container limit is {{.container_limit}} MB. The garbage collector may not work harder before the kernel kills the process.",
+    "description": "Health dashboard finding detail when GOMEMLIMIT is at least the container memory limit; {{.go_limit}} and {{.container_limit}} are values in MB, and 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.remediation",
+    "translation": "Set GOMEMLIMIT to about 80–90% of the container memory limit, leaving headroom for memory outside the Go heap and for plugin processes.",
+    "description": "Health dashboard fix-it step when GOMEMLIMIT is too high for the container; 'GOMEMLIMIT' is a Go runtime environment variable and should not be translated."
+  },
+  {
+    "id": "health.rule.node_go_memory_limit_above_container.title",
+    "translation": "Go memory limit is at or above the container limit",
+    "description": "Health dashboard finding title when GOMEMLIMIT is equal to or greater than the container memory limit; 'Go' is the programming language name."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.message",
+    "translation": "GOMAXPROCS is {{.go_max_procs}}, above the container CPU limit of {{.cpu_limit}} CPUs. The extra runnable threads can increase CPU throttling.",
+    "description": "Health dashboard finding detail when Go can run more threads simultaneously than a node's container CPU quota; {{.go_max_procs}} is GOMAXPROCS and {{.cpu_limit}} is the CPU limit in CPUs. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.remediation",
+    "translation": "Unset GOMAXPROCS so the Go runtime sizes it to the container CPU limit, then restart the server.",
+    "description": "Health dashboard fix-it step when GOMAXPROCS exceeds a node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_gomaxprocs_above_cpu_limit.title",
+    "translation": "GOMAXPROCS exceeds the container CPU limit",
+    "description": "Health dashboard finding title when Go can run more threads simultaneously than a server node's container CPU quota. 'GOMAXPROCS' is a Go runtime setting and should not be translated."
+  },
+  {
+    "id": "health.rule.node_host_load_high.message",
+    "translation": "The 15-minute host load average is {{.load}} across {{.cores}} CPU cores. A sustained load of two or more tasks per core can indicate CPU or I/O pressure.",
+    "description": "Health dashboard finding detail when a non-containerized node's 15-minute host load average is at least twice its CPU core count; {{.load}} is the load average and {{.cores}} is the number of logical CPU cores."
+  },
+  {
+    "id": "health.rule.node_host_load_high.remediation",
+    "translation": "Check CPU utilization, disk I/O, and running processes on the node, then add capacity or reduce the workload.",
+    "description": "Health dashboard fix-it step when a server node has sustained high host load."
+  },
+  {
+    "id": "health.rule.node_host_load_high.title",
+    "translation": "Host load is high",
+    "description": "Health dashboard finding title when a non-containerized server node's 15-minute load average is at least twice its CPU core count."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.message",
+    "translation": "The host has {{.available}} MB available out of {{.total}} MB. Mattermost and other processes may be killed or become slow if memory continues to fall.",
+    "description": "Health dashboard finding detail when a non-containerized node has less than 10% of host memory available; {{.available}} and {{.total}} are values in MB."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.remediation",
+    "translation": "Find and reduce the processes using the most memory, or add memory to the host. Review Mattermost and plugin memory use before restarting services.",
+    "description": "Health dashboard fix-it step when a non-containerized server host has little memory available."
+  },
+  {
+    "id": "health.rule.node_host_memory_low.title",
+    "translation": "Host memory is running low",
+    "description": "Health dashboard finding title when a non-containerized server node has less than 10% of host memory available."
+  },
+  {
+    "id": "health.rule.node_not_responding.message",
+    "translation": "This node did not return its diagnostics for the health check. It may be down, overloaded, or cut off from the other nodes. Until it responds, its other findings keep their last known state.",
+    "description": "Health dashboard finding detail when a cluster node did not return its diagnostics; 'findings' are the health dashboard's reported problems."
+  },
+  {
+    "id": "health.rule.node_not_responding.remediation",
+    "translation": "Check that Mattermost is running on this node, review its logs and its CPU and memory use, and confirm it can reach the other nodes on the gossip port (ClusterSettings.GossipPort).",
+    "description": "Health dashboard fix-it step for a cluster node that is not responding; 'ClusterSettings.GossipPort' is a config setting name and should not be translated, and 'gossip' is the protocol cluster nodes use to talk to each other."
+  },
+  {
+    "id": "health.rule.node_not_responding.title",
+    "translation": "A cluster node is not responding",
+    "description": "Health dashboard finding title when a node of a high availability cluster did not return its diagnostics for the health check."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message",
+    "translation": "The OAuth/OIDC provider connectivity probe failed from every reporting Mattermost node, so sign-in through this provider is likely unavailable.",
+    "description": "Health dashboard finding detail when every reporting Mattermost node fails to reach an enabled OAuth or OpenID Connect provider."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.message.partial",
+    "translation": "The OAuth/OIDC provider connectivity probe failed on {{.nodes}}, while the other reporting nodes can reach the provider. Sign-in through this provider may fail on those nodes.",
+    "description": "Health dashboard finding detail when some cluster nodes cannot reach an enabled OAuth or OpenID Connect provider; {{.nodes}} is a comma-separated list of node hostnames."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.remediation",
+    "translation": "Check the error details, the provider's discovery or token endpoint, and outbound network, firewall, proxy and DNS settings. Then confirm sign-in through the provider.",
+    "description": "Health dashboard fix-it step when an enabled OAuth or OpenID Connect provider connectivity probe fails."
+  },
+  {
+    "id": "health.rule.oauth_probe_failed.title",
+    "translation": "OAuth/OIDC provider connectivity probe failed",
+    "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
   },
   {
     "id": "health.rule.plugin_health_off.message",
@@ -15365,6 +15570,26 @@
     "id": "health.rule.push_id_only.title",
     "translation": "Push notifications include the full message text",
     "description": "Health dashboard finding title when push notification payloads contain the message text and sender."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message",
+    "translation": "The connection test to the push notification server failed: {{.error}}. Mobile users may not receive push notifications.",
+    "description": "Health dashboard finding detail when no app node could connect to the configured push notification server; {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.message.partial",
+    "translation": "The connection test to the push notification server failed on {{.nodes}}, while the other nodes reach it. Push notifications sent by those nodes may fail. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the push notification server connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported, with URL credentials masked."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.remediation",
+    "translation": "Check PushNotificationServer, TLS certificates and push proxy health. Confirm every Mattermost app node can reach the configured host over HTTPS, then verify its /version endpoint.",
+    "description": "Health dashboard fix-it step for a failed push notification server connection test; 'PushNotificationServer' is a config setting path, '/version' is a literal endpoint, and neither should be translated."
+  },
+  {
+    "id": "health.rule.push_proxy_unreachable.title",
+    "translation": "Push notification server connection test failed",
+    "description": "Health dashboard finding title when one or more app nodes could not connect to the configured push notification server."
   },
   {
     "id": "health.rule.push_test_proxy.message",
@@ -15478,8 +15703,13 @@
   },
   {
     "id": "health.rule.saml_probe_failed.message",
-    "translation": "The leader node's SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed, so SAML sign-in is likely broken.",
     "description": "Health dashboard finding detail when the SAML configuration check run by the server failed: the IdP certificate is missing, invalid or expired, or the IdP URL is missing or invalid. 'IdpCertificateFile' and 'IdpURL' are config names and should not be translated."
+  },
+  {
+    "id": "health.rule.saml_probe_failed.message.partial",
+    "translation": "The SAML check of the IdP certificate and IdP URL failed on {{.nodes}}, while it passes on the other nodes, so SAML sign-in may fail on those nodes. Make sure those nodes have the same valid IdP certificate as the other nodes.",
+    "description": "Health dashboard finding detail when the SAML check fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames, and 'IdP' means identity provider."
   },
   {
     "id": "health.rule.saml_probe_failed.remediation",
@@ -15665,6 +15895,11 @@
     "id": "health.rule.smtp_unreachable.message",
     "translation": "The connection test to the SMTP server failed: {{.error}}",
     "description": "Health dashboard finding detail when the server could not connect to its SMTP server; {{.error}} is the error returned by the connection test and should not be translated."
+  },
+  {
+    "id": "health.rule.smtp_unreachable.message.partial",
+    "translation": "The connection test to the SMTP server failed on {{.nodes}}, while the other nodes reach it. Check the network, firewall, proxy and DNS settings on those nodes. Error: {{.error}}",
+    "description": "Health dashboard finding detail when the SMTP connection test fails on some cluster nodes but not others; {{.nodes}} is a comma-separated list of node hostnames and {{.error}} is the error the failing nodes reported."
   },
   {
     "id": "health.rule.smtp_unreachable.remediation",
@@ -17328,8 +17563,8 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Invalid maximum channels per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be a positive number."
+    "translation": "Invalid maximum channels per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum channels per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -17358,8 +17593,8 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Invalid maximum users per team for team settings. Must be a positive number.",
-    "description": "Config validation error shown to system admins for the maximum users per team setting; must be a positive number."
+    "translation": "Invalid maximum users per team for team settings. Must be 0 (unlimited) or a positive number.",
+    "description": "Config validation error shown to system admins for the maximum users per team setting; must be 0, meaning no limit, or a positive number."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -19658,12 +19893,12 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Chrome card of the 'unsupported browser' page; the number is the minimum Chrome version."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 150+",
+    "translation": "Version 156+",
     "description": "Compact version requirement label on the Edge card of the 'unsupported browser' page; the number is the minimum Edge version."
   },
   {

@@ -21,7 +21,15 @@ export default function testConfigureStore<State extends GlobalState>(initialSta
     ])(initialState as State);
 }
 
-export function mockStore<State extends GlobalState>(initialState?: DeepPartial<State>, intl = defaultIntl) {
+type MockStoreMountOptions = {
+    wrappingComponent: React.ComponentType<any>;
+    wrappingComponentProps: Record<string, any>;
+};
+
+export function mockStore<State extends GlobalState>(
+    initialState?: DeepPartial<State>,
+    intl = defaultIntl,
+): {store: ReturnType<typeof testConfigureStore<State>>; mountOptions: MockStoreMountOptions} {
     const store = testConfigureStore(initialState);
     return {
         store,

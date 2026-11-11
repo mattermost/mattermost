@@ -174,6 +174,17 @@ func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 	return count > 0, nil
 }
 
+func (s sqlRemoteClusterStore) PermanentDelete(remoteId string, name string) error {
+	query := s.getQueryBuilder().
+		Delete("RemoteClusters").
+		Where(sq.Eq{"RemoteId": remoteId, "Name": name})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to permanently delete RemoteCluster with remoteId=%s", remoteId)
+	}
+	return nil
+}
+
 func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
