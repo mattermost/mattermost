@@ -6,14 +6,14 @@ import {useSelector} from 'react-redux';
 
 import {getConfig, isFreeEdition as isFreeEditionSelector} from 'mattermost-redux/selectors/entities/general';
 
-import {isProductRailShown} from 'selectors/views/product_rail';
+import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import ProductBrandingFreeEdition from './product_branding_free_edition';
 import ProductBrandingLicensedEdition from './product_branding_licensed_edition';
 
 export function ProductBranding() {
     const isFreeEdition = useSelector(isFreeEditionSelector);
-    const productRailShown = useSelector(isProductRailShown);
+    const productRailShown = useProductRailShown();
     const siteName = useSelector(getConfig).SiteName || 'Mattermost';
 
     if (isFreeEdition) {

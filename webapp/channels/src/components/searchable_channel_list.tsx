@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
+import {connect, shallowEqual} from 'react-redux';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -19,8 +20,12 @@ import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
+import {getChannelKind, type KindMessages} from 'utils/channel_kind';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+
+import type {GlobalState} from 'types/store';
+import type {ChannelKind} from 'types/store/plugins';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -55,6 +60,9 @@ interface Props extends WrappedComponentProps {
     myPendingJoinRequests?: Record<string, ChannelJoinRequest>;
     handleRequestToJoin?: (channel: Channel, done: () => void) => void;
     handleWithdrawRequest?: (channel: Channel, done: () => void) => void;
+
+    // The kinds of the listed channels that aren't plain channels, by id, which pick the words their rows use.
+    channelKinds?: Record<string, ChannelKind>;
 }
 
 type State = {
@@ -176,6 +184,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
     }
 
     createChannelRow = (channel: Channel) => {
+        const kind = this.props.channelKinds?.[channel.id] ?? 'channel';
         const channelTypeIcon = (
             <ChannelIcon
                 channel={channel}
@@ -222,7 +231,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             <div
                 className='discoverableIndicatorContainer'
                 data-testid='discoverable-indicator'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.discoverable.aria', defaultMessage: 'Discoverable private channel'})}
+                aria-label={this.props.intl.formatMessage(kindMessages.discoverableAria[kind])}
             >
                 <AccountPlusOutlineIcon size={14}/>
                 <FormattedMessage
@@ -233,7 +242,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         ) : null;
 
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
-            messages.channelPurpose,
+            kindMessages.channelPurpose[kind],
             {memberCount, channelPurpose: channel.purpose || ''},
         );
 
@@ -398,8 +407,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                             role='alert'
                         >
                             <FormattedMessage
-                                id='more_channels.joinedChannel'
-                                defaultMessage='Joined channel {channelName}'
+                                {...kindMessages.joinedChannel[kind]}
                                 values={{
                                     channelName: channel.display_name,
                                 }}
@@ -944,10 +952,6 @@ const messages = defineMessages({
         id: 'more_channels.count',
         defaultMessage: '{count} Results',
     },
-    channelPurpose: {
-        id: 'more_channels.channel_purpose',
-        defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
-    },
     joiningButton: {
         id: 'joinChannel.joiningButton',
         defaultMessage: 'Joining...',
@@ -966,4 +970,72 @@ const messages = defineMessages({
     },
 });
 
-export default injectIntl(SearchableChannelList);
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const kindMessages = {
+    discoverableAria: {
+        channel: defineMessage({
+            id: 'more_channels.discoverable.aria',
+            defaultMessage: 'Discoverable private channel',
+        }),
+        board: defineMessage({
+            id: 'more_channels.discoverable.aria.board',
+            defaultMessage: 'Discoverable private board',
+        }),
+    },
+    channelPurpose: {
+        channel: defineMessage({
+            id: 'more_channels.channel_purpose',
+            defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        }),
+        board: defineMessage({
+            id: 'more_channels.channel_purpose.board',
+            defaultMessage: 'Board Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        }),
+    },
+    joinedChannel: {
+        channel: defineMessage({
+            id: 'more_channels.joinedChannel',
+            defaultMessage: 'Joined channel {channelName}',
+        }),
+        board: defineMessage({
+            id: 'more_channels.joinedChannel.board',
+            defaultMessage: 'Joined board {channelName}',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
+
+type OwnProps = {
+    channels: Channel[];
+};
+
+// Each list keeps its last result, and works the kinds out again only when the listed channels,
+// the stored channels or the registrations change, not on every store update while it's open.
+function makeMapStateToProps() {
+    let inputs: unknown[] = [];
+    let channelKinds: Record<string, ChannelKind> = {};
+
+    return (state: GlobalState, ownProps: OwnProps) => {
+        const nextInputs = [ownProps.channels, state.entities.channels.channels, state.plugins.components.ChannelKind];
+        if (nextInputs.every((input, i) => input === inputs[i])) {
+            return {channelKinds};
+        }
+        inputs = nextInputs;
+
+        const kinds: Record<string, ChannelKind> = {};
+        for (const channel of ownProps.channels) {
+            const kind = getChannelKind(state, channel);
+            if (kind !== 'channel') {
+                kinds[channel.id] = kind;
+            }
+        }
+        if (!shallowEqual(kinds, channelKinds)) {
+            channelKinds = kinds;
+        }
+
+        return {channelKinds};
+    };
+}
+
+// An empty object leaves out the dispatch prop connect would otherwise add.
+export default connect(makeMapStateToProps, {})(injectIntl(SearchableChannelList));

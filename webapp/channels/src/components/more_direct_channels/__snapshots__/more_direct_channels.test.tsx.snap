@@ -49,18 +49,34 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -138,13 +154,13 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                         </div>
                       </div>
                       <button
-                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 multi-select__go"
+                        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 multi-select__go"
                         data-testid="saveSetting"
                         id="saveItems"
                         type="submit"
                       >
                         <span
-                          class="_button__label_we8pe_31"
+                          class="_button__label_1pij1_55"
                         >
                           Go
                         </span>
@@ -180,7 +196,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                           >
                             <span
                               aria-label="Loading Icon"
-                              class="_spinner_3elm7_10 spinner"
+                              class="_spinner_mvrwe_21 spinner"
                               role="status"
                               style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                             />
@@ -254,18 +270,34 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -390,13 +422,13 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                         </div>
                       </div>
                       <button
-                        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 multi-select__go"
+                        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 multi-select__go"
                         data-testid="saveSetting"
                         id="saveItems"
                         type="submit"
                       >
                         <span
-                          class="_button__label_we8pe_31"
+                          class="_button__label_1pij1_55"
                         >
                           Go
                         </span>
@@ -432,7 +464,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                           >
                             <span
                               aria-label="Loading Icon"
-                              class="_spinner_3elm7_10 spinner"
+                              class="_spinner_mvrwe_21 spinner"
                               role="status"
                               style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                             />
