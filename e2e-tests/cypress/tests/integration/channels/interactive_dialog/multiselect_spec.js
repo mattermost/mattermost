@@ -75,6 +75,30 @@ describe('Interactive Dialog - Multiselect', () => {
         });
     });
 
+    beforeEach(() => {
+        // # Stub the global user-autocomplete endpoint used by the "multiselect_users"
+        // field's user picker (data_source: 'users') so this test never depends on how
+        // many real, non-bot users happen to exist on a shared CI server at the time it
+        // runs. That field's picker hides an option once it is selected (react-select's
+        // default hideSelectedOptions behavior for isMulti fields), so selecting a 2nd
+        // user requires at least 2 users to remain in the dropdown. Without this stub,
+        // the test intermittently failed in CI when the shared server's user search
+        // (unscoped to any team, capped at 25 results) temporarily had fewer than 3
+        // eligible users visible, leaving fewer options than the test expects to
+        // choose from.
+        cy.intercept('GET', '**/api/v4/users/autocomplete*', {
+            statusCode: 200,
+            body: {
+                users: [
+                    {id: 'multiselectfakeuser1', username: 'multiselectfakeuser1', roles: 'system_user', is_bot: false},
+                    {id: 'multiselectfakeuser2', username: 'multiselectfakeuser2', roles: 'system_user', is_bot: false},
+                    {id: 'multiselectfakeuser3', username: 'multiselectfakeuser3', roles: 'system_user', is_bot: false},
+                ],
+                out_of_channel: [],
+            },
+        }).as('usersAutocomplete');
+    });
+
     afterEach(() => {
         // # Reload current page after each test to close any dialogs left open
         cy.reload();
