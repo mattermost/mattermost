@@ -22,10 +22,12 @@ import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
 import type {DraggingState} from 'types/store';
+import type {ChannelKind} from 'types/store/plugins';
 
 import SidebarCategoryMenu from './sidebar_category_menu';
 import SidebarCategorySortingMenu from './sidebar_category_sorting_menu';
@@ -42,6 +44,9 @@ type Props = {
 
     // Hidden because the product rail's section left it with nothing to show.
     hiddenByProductRail?: boolean;
+
+    // 'board' while the product rail's Boards item narrows the sidebar, so the Channels category is named for boards.
+    channelKind?: ChannelKind;
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     isNewCategory: boolean;
@@ -337,7 +342,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM && category.type !== CategoryTypes.MANAGED) {
-            const message = categoryNames[category.type as keyof typeof categoryNames];
+            const message = category.type === CategoryTypes.CHANNELS ? channelKindMessages.sidebarCategoryName[this.props.channelKind ?? 'channel'] : categoryNames[category.type as keyof typeof categoryNames];
             displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
         }
 

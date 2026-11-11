@@ -31243,6 +31243,10 @@
     "defaultMessage": "Add Channels",
     "description": "Call-to-action button at the bottom of the channel sidebar that opens a menu to browse or create channels."
   },
+  "sidebar_left.addChannelsCta.board": {
+    "defaultMessage": "Add Boards",
+    "description": "Call-to-action button at the bottom of the channel sidebar when the Boards item of the product navigation rail is selected; opens a menu to browse or create."
+  },
   "sidebar_left.channel_filter.filterByUnread": {
     "defaultMessage": "Filter by unread",
     "description": "Tooltip on the sidebar filter toggle when it would enable showing only unread channels."
@@ -31275,6 +31279,10 @@
     "defaultMessage": "Find Channels",
     "description": "Accessible label for the channel switcher (jump to) button at the top of the channel sidebar."
   },
+  "sidebar_left.channel_navigator.channelSwitcherLabel.board": {
+    "defaultMessage": "Find Boards",
+    "description": "Accessible label of the quick switcher button at the top of the sidebar when the Boards item of the product navigation rail is selected."
+  },
   "sidebar_left.channel_navigator.goBackLabel": {
     "defaultMessage": "Back",
     "description": "Tooltip/accessibility label for the back arrow history button in the global header; navigation direction, not a physical position."
@@ -31286,6 +31294,10 @@
   "sidebar_left.channel_navigator.jumpTo": {
     "defaultMessage": "Find channel",
     "description": "Visible text on the channel switcher button at the top of the channel sidebar; opens the quick channel switcher dialog."
+  },
+  "sidebar_left.channel_navigator.jumpTo.board": {
+    "defaultMessage": "Find board",
+    "description": "Text of the quick switcher button at the top of the sidebar when the Boards item of the product navigation rail is selected."
   },
   "sidebar_left.inviteMembers": {
     "defaultMessage": "Invite Members",
@@ -31558,6 +31570,10 @@
   "sidebar.types.channels": {
     "defaultMessage": "CHANNELS",
     "description": "All-caps default header of the Channels category in the channel sidebar; compact space."
+  },
+  "sidebar.types.channels.board": {
+    "defaultMessage": "BOARDS",
+    "description": "All-caps header of the Channels category in the channel sidebar when the Boards item of the product navigation rail is selected; compact space."
   },
   "sidebar.types.direct_messages": {
     "defaultMessage": "DIRECT MESSAGES",

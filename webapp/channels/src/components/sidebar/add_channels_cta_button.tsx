@@ -21,6 +21,8 @@ import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
+import {useProductRailKind} from 'hooks/useProductRailKind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -33,6 +35,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
+    const railKind = useProductRailKind();
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
@@ -130,10 +133,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 className='icon-plus-box'
                 aria-hidden={true}
             />
-            <FormattedMessage
-                id='sidebar_left.addChannelsCta'
-                defaultMessage='Add Channels'
-            />
+            <FormattedMessage {...channelKindMessages.addChannelsCta[railKind]}/>
         </>
     );
 
@@ -166,7 +166,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             menu={{
                 id: 'AddChannelCtaDropdown',
                 className: 'AddChannelsCtaDropdown',
-                'aria-label': intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'}),
+                'aria-label': intl.formatMessage(channelKindMessages.addChannelsCta[railKind]),
                 onToggle: handleMenuToggle,
             }}
         >
