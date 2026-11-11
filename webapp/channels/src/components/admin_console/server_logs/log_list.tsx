@@ -31,8 +31,8 @@ import {useLatest} from 'hooks/useLatest';
 import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
-import type {CustomTimeRange, LogObjectWithAdditionalInfo, TimeRange} from './types';
-import {LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, newestLogTimes} from './utils';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, TimeRange} from './types';
+import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, newestLogTimes} from './utils';
 
 import './log_list.scss';
 
@@ -56,6 +56,11 @@ type Props = {
     nodes: string[];
     selectedNode: string;
     onSelectedNodeChange: (node: string) => void;
+
+    // The plugins to offer, and the IDs of those shown. None shown means every entry, from plugins or not
+    plugins: PluginOption[];
+    selectedPlugins: string[];
+    onSelectedPluginsChange: (pluginIds: string[]) => void;
 
     onReload: () => void;
     downloadUrl: string;
@@ -104,6 +109,8 @@ const messages = defineMessages({
     liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
     allNodes: {id: 'admin.logs.allNodes', defaultMessage: 'All nodes'},
     node: {id: 'admin.logs.node', defaultMessage: 'Node'},
+    allLogs: {id: 'admin.logs.plugin.allLogs', defaultMessage: 'All logs'},
+    plugin: {id: 'admin.logs.plugin', defaultMessage: 'Plugin'},
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
@@ -224,6 +231,7 @@ export default function LogList({
     loading, logs, truncatedNodes, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
+    plugins, selectedPlugins, onSelectedPluginsChange,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
@@ -251,6 +259,7 @@ export default function LogList({
 
     const showNodes = nodes.length >= 2;
     const showNodeMenu = showNodes || selectedNode !== '';
+    const showPluginMenu = plugins.length > 0;
 
     const listRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -393,7 +402,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc, selectedNode, timeRange]);
+    }, [search, enabledLevels, sortAsc, selectedNode, selectedPlugins, timeRange]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -541,6 +550,13 @@ export default function LogList({
         }
     };
 
+    let pluginMenuValue = intl.formatMessage(messages.allLogs);
+    if (selectedPlugins.length === 1) {
+        pluginMenuValue = plugins.find((plugin) => plugin.id === selectedPlugins[0])?.name ?? selectedPlugins[0];
+    } else if (selectedPlugins.length > 1) {
+        pluginMenuValue = intl.formatMessage({id: 'admin.logs.plugin.selected', defaultMessage: '{count} plugins'}, {count: selectedPlugins.length});
+    }
+
     const filters = (
         <div className='LogViewer__filters admin-console__filters-rows'>
             <Input
@@ -608,6 +624,75 @@ export default function LogList({
                             onClick={() => onSelectedNodeChange(node)}
                         />
                     ))}
+                </Menu.Container>
+            )}
+
+            {showPluginMenu && (
+                <Menu.Container
+                    menuButton={{
+                        id: 'serverLogsPluginMenuButton',
+                        class: 'inputWithMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.plugin.menuButtonAriaLabel', defaultMessage: 'Open menu to select which plugins to show logs from'}),
+                        as: 'div',
+                        children: (
+                            <Input
+                                label={intl.formatMessage(messages.plugin)}
+                                name='serverLogsPlugin'
+                                value={pluginMenuValue}
+                                readOnly={true}
+                                inputSuffix={<i className='icon icon-chevron-down'/>}
+                            />
+                        ),
+                    }}
+                    menu={{
+                        id: 'serverLogsPluginMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.plugin.dropdownAriaLabel', defaultMessage: 'Plugin menu'}),
+                        width: '300px',
+                    }}
+                >
+                    <Menu.Item
+                        id='serverLogsPlugin-all'
+                        role='menuitemradio'
+                        aria-checked={selectedPlugins.length === 0}
+                        forceCloseOnSelect={true}
+                        labels={<FormattedMessage {...messages.allLogs}/>}
+                        trailingElements={selectedPlugins.length === 0 && <i className='icon icon-check'/>}
+                        onClick={() => onSelectedPluginsChange([])}
+                    />
+                    <Menu.Separator/>
+                    {plugins.map((plugin) => {
+                        const selected = selectedPlugins.includes(plugin.id);
+                        return (
+                            <Menu.Item
+                                key={plugin.id}
+                                id={`serverLogsPlugin-plugin-${plugin.id}`}
+                                role='menuitemcheckbox'
+                                aria-checked={selected}
+
+                                // The server accepts a limited number of values per field
+                                disabled={!selected && selectedPlugins.length >= FIELD_MAX_VALUES}
+                                leadingElement={
+                                    <i className={selected ? 'icon icon-checkbox-marked' : 'icon icon-checkbox-blank-outline'}/>
+                                }
+                                labels={plugin.name === plugin.id ? <span>{plugin.id}</span> : (
+                                    <>
+                                        <span>{plugin.name}</span>
+                                        <span>{plugin.id}</span>
+                                    </>
+                                )}
+
+                                // Ctrl/Cmd-click narrows to a single plugin; doing it again on that plugin restores all logs
+                                onClick={(event) => {
+                                    if (event.ctrlKey || event.metaKey) {
+                                        const onlyThis = selectedPlugins.length === 1 && selected;
+                                        onSelectedPluginsChange(onlyThis ? [] : [plugin.id]);
+                                    } else {
+                                        onSelectedPluginsChange(selected ? selectedPlugins.filter((id) => id !== plugin.id) : [...selectedPlugins, plugin.id]);
+                                    }
+                                }}
+                            />
+                        );
+                    })}
                 </Menu.Container>
             )}
 
@@ -940,7 +1025,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode || timeRange !== null ? (
+                    {search || !allLevelsEnabled || selectedNode || selectedPlugins.length > 0 || timeRange !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -952,6 +1037,7 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
+                                            onSelectedPluginsChange([]);
                                             onClearTimeRange();
                                         }}
                                         type='button'

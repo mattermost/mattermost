@@ -123,20 +123,20 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
               class="col-sm-8"
             >
               <label
-                class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                 for="_r_0_"
               >
                 <input
                   checked=""
-                  class="_checkbox__input_18swc_25"
+                  class="_checkbox__input_18sf4_36"
                   id="_r_0_"
                   type="checkbox"
                 />
                 <span
-                  class="_checkbox__box_18swc_44"
+                  class="_checkbox__box_18sf4_55"
                 />
                 <span
-                  class="_checkbox__label_18swc_120"
+                  class="_checkbox__label_18sf4_131"
                 >
                    I understand and accept the Mattermost Hosted Push Notification Service 
                   <a
@@ -257,14 +257,14 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         class="admin-console-save"
       >
         <button
-          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+          class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
           <span
-            class="_button__label_we8pe_31"
+            class="_button__label_1pij1_55"
           >
             Save
           </span>
@@ -416,14 +416,14 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         class="admin-console-save"
       >
         <button
-          class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+          class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
           data-testid="saveSetting"
           disabled=""
           id="saveSetting"
           type="submit"
         >
           <span
-            class="_button__label_we8pe_31"
+            class="_button__label_1pij1_55"
           >
             Save
           </span>
