@@ -356,7 +356,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Reveal all concealed messages. Capture ids first: `.first()` retargets
         // the next still-concealed message after one is revealed.
-        const concealedIds = await concealedPlaceholders.evaluateAll((elements) =>
+        const concealedIds = await concealedPlaceholders.evaluateAll((elements: Element[]) =>
             elements.map((element) => element.getAttribute('data-testid')).filter((id): id is string => Boolean(id)),
         );
         for (const id of concealedIds) {
