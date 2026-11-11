@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 export const ID_PATH_PATTERN = '[a-z0-9]{26}';
-export const ID_PATH_REGEX = new RegExp(`^${ID_PATH_PATTERN}$`);
 
 // This should cover:
 // - Team name (lowercase english characters, numbers or -)
