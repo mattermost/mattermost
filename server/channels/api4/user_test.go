@@ -6191,6 +6191,71 @@ func TestLoginCookies(t *testing.T) {
 		}
 	})
 
+	t.Run("cws login redirect for cloud previews", func(t *testing.T) {
+		siteURL := "https://testchips.cloud.mattermost.com"
+		th := SetupAndApplyConfigBeforeLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+		}).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name             string
+			preview          bool
+			useCase          string
+			landing          string
+			expectedLocation string
+		}{
+			{name: "use case wins over the landing path", preview: true, useCase: "mission-ops", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/mission-ops-hq"},
+			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
+			{name: "landing path is ignored outside a preview", landing: "/nato", expectedLocation: siteURL},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				license := model.NewTestLicense("cloud")
+				if tc.preview {
+					license.IsTrial = true
+					license.StartsAt = model.GetMillis()
+					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
+				}
+				th.App.Srv().SetLicense(license)
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.CloudSettings.PreviewLandingPath = tc.landing
+				})
+				token := model.NewRandomString(64)
+				user := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(user.Username)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				form.Add("use_case", tc.useCase)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, http.StatusFound, r.StatusCode)
+				assert.Equal(t, tc.expectedLocation, r.Header.Get("Location"))
+			})
+		}
+	})
+
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com" // correct cloud URL would be https://testchips.cloud.mattermost.com
