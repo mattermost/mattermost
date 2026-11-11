@@ -4624,6 +4624,22 @@ func (c *Client4) GetHistoricalConfig(ctx context.Context, configID string) (*Co
 	return DecodeJSONFromResponse[*Config](r)
 }
 
+// RestoreHistoricalConfig replaces the server configuration with one saved by a database-backed
+// config store, and returns the settings it changed. With dryRun, it returns the settings it
+// would change without saving anything.
+func (c *Client4) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*ConfigChange, *Response, error) {
+	values := url.Values{}
+	if dryRun {
+		values.Set("dry_run", "true")
+	}
+	r, err := c.doAPIPostWithQuery(ctx, c.configRoute().Join("history", configID, "restore"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigChange](r)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.configRoute().Join("reload"), "")

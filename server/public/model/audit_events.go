@@ -156,6 +156,7 @@ const (
 	AuditEventLocalUpdateConfig                = "localUpdateConfig"                // update server configuration locally
 	AuditEventMigrateConfig                    = "migrateConfig"                    // migrate configs with file values from one store to another
 	AuditEventPatchConfig                      = "patchConfig"                      // update server configuration
+	AuditEventRestoreHistoricalConfig          = "restoreHistoricalConfig"          // replace the server configuration with a saved one
 	AuditEventUpdateConfig                     = "updateConfig"                     // update server configuration
 )
 

@@ -1364,6 +1364,124 @@ func TestGetHistoricalConfig(t *testing.T) {
 	}, "unknown or invalid id")
 }
 
+func TestRestoreHistoricalConfig(t *testing.T) {
+	th := setupConfigHistory(t)
+
+	history, appErr := th.App.GetConfigHistory(0, 2)
+	require.Nil(t, appErr)
+	require.Len(t, history, 2)
+	oldConfigID := history[1].Id
+
+	saveNewConfig := func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.SiteName = "New Site"
+			*cfg.EmailSettings.SMTPPassword = "new-password"
+			cfg.RateLimitSettings.VaryByHeader = "X-New"
+			*cfg.ServiceSettings.TLSStrictTransport = true
+		})
+	}
+
+	t.Run("requires a system console write permission", func(t *testing.T) {
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+
+		_, resp, err := th.Client.RestoreHistoricalConfig(context.Background(), oldConfigID, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		assert.Equal(t, "X-New", th.App.Config().RateLimitSettings.VaryByHeader)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		saveNewConfig()
+
+		changes, _, err := client.RestoreHistoricalConfig(context.Background(), oldConfigID, false)
+		require.NoError(t, err)
+		assert.Equal(t, "Old Site", *th.App.Config().TeamSettings.SiteName)
+		assert.Equal(t, "old-password", *th.App.Config().EmailSettings.SMTPPassword)
+
+		siteName := findConfigChange(changes, "TeamSettings.SiteName")
+		require.NotNil(t, siteName)
+		assert.Equal(t, "New Site", siteName.OldValue)
+		assert.Equal(t, "Old Site", siteName.NewValue)
+		smtpPassword := findConfigChange(changes, "EmailSettings.SMTPPassword")
+		require.NotNil(t, smtpPassword, "a changed sensitive setting should be listed")
+		assert.Equal(t, model.FakeSetting, smtpPassword.OldValue)
+		assert.Equal(t, model.FakeSetting, smtpPassword.NewValue)
+
+		latest, _, err := client.GetConfigHistory(context.Background(), 0, 1)
+		require.NoError(t, err)
+		require.Len(t, latest, 1)
+		assert.Equal(t, changes, latest[0].Changes, "the changes should be those the history lists for the restore")
+
+		changes, _, err = client.RestoreHistoricalConfig(context.Background(), oldConfigID, false)
+		require.NoError(t, err)
+		assert.NotNil(t, changes)
+		assert.Empty(t, changes)
+	}, "restores the saved configuration, including sensitive values")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		saveNewConfig()
+		latest, appErr := th.App.GetConfigHistory(0, 1)
+		require.Nil(t, appErr)
+		require.Len(t, latest, 1)
+
+		changes, _, err := client.RestoreHistoricalConfig(context.Background(), oldConfigID, true)
+		require.NoError(t, err)
+		assert.NotNil(t, findConfigChange(changes, "TeamSettings.SiteName"))
+		assert.NotNil(t, findConfigChange(changes, "EmailSettings.SMTPPassword"))
+		assert.Equal(t, "New Site", *th.App.Config().TeamSettings.SiteName)
+		assert.Equal(t, "new-password", *th.App.Config().EmailSettings.SMTPPassword)
+
+		dryRunLatest, appErr := th.App.GetConfigHistory(0, 1)
+		require.Nil(t, appErr)
+		require.Len(t, dryRunLatest, 1)
+		assert.Equal(t, latest[0].Id, dryRunLatest[0].Id, "a dry run should save nothing")
+	}, "lists the changes without saving them in a dry run")
+
+	t.Run("restores only the settings the user may change", func(t *testing.T) {
+		saveNewConfig()
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
+
+		changes, _, err := th.Client.RestoreHistoricalConfig(context.Background(), oldConfigID, false)
+		require.NoError(t, err)
+		assert.Equal(t, "X-Old", th.App.Config().RateLimitSettings.VaryByHeader)
+		assert.Equal(t, "New Site", *th.App.Config().TeamSettings.SiteName)
+		assert.Equal(t, "new-password", *th.App.Config().EmailSettings.SMTPPassword)
+		assert.Equal(t, []*model.ConfigChange{{Path: "RateLimitSettings.VaryByHeader", OldValue: "X-New", NewValue: "X-Old"}}, changes)
+	})
+
+	t.Run("keeps the settings that can't be changed through the API, except in local mode", func(t *testing.T) {
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = model.ImportSettingsDefaultDirectory })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "./old-import" })
+		latest, appErr := th.App.GetConfigHistory(0, 1)
+		require.Nil(t, appErr)
+		require.Len(t, latest, 1)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "./new-import" })
+
+		_, _, err := th.SystemAdminClient.RestoreHistoricalConfig(context.Background(), latest[0].Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "./new-import", *th.App.Config().ImportSettings.Directory)
+
+		_, _, err = th.LocalClient.RestoreHistoricalConfig(context.Background(), latest[0].Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "./old-import", *th.App.Config().ImportSettings.Directory)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp, err := client.RestoreHistoricalConfig(context.Background(), model.NewId(), false)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.config.history.not_found.app_error")
+
+		_, resp, err = client.RestoreHistoricalConfig(context.Background(), "notanid", false)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	}, "unknown or invalid id")
+}
+
 func TestConfigHistoryNotSupported(t *testing.T) {
 	th := Setup(t)
 
@@ -1374,6 +1492,11 @@ func TestConfigHistoryNotSupported(t *testing.T) {
 		CheckErrorID(t, err, "app.config.history.not_supported.app_error")
 
 		_, resp, err = client.GetHistoricalConfig(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "app.config.history.not_supported.app_error")
+
+		_, resp, err = client.RestoreHistoricalConfig(context.Background(), model.NewId(), false)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorID(t, err, "app.config.history.not_supported.app_error")

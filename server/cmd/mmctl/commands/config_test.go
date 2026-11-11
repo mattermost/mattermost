@@ -960,99 +960,59 @@ func TestCloudRestricted(t *testing.T) {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestChangesSavedAfter() {
-	previousID := model.NewId()
+func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
+	configID := model.NewId()
 	changes := []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}}
-	expectHistory := func(history ...*model.ConfigHistoryEntry) {
+	expectRestore := func(dryRun bool, changes []*model.ConfigChange) {
 		s.client.
 			EXPECT().
-			GetConfigHistory(context.TODO(), 0, configRollbackHistorySize).
-			Return(history, &model.Response{}, nil).
+			RestoreHistoricalConfig(context.TODO(), configID, dryRun).
+			Return(changes, &model.Response{}, nil).
 			Times(1)
 	}
 
-	s.Run("Should return no changes when no configuration was saved", func() {
-		expectHistory(&model.ConfigHistoryEntry{Id: previousID, Active: true})
+	s.Run("Should only list the changes with --dry-run", func() {
+		printer.Clean()
+		expectRestore(true, changes)
 
-		got, err := changesSavedAfter(s.client, previousID)
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, true), []string{configID})
 		s.Require().NoError(err)
-		s.Require().Equal([]*model.ConfigChange{}, got)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes}}, printer.GetLines())
 	})
 
-	s.Run("Should return the changes of the configuration saved next, even if others followed it", func() {
-		expectHistory(
-			&model.ConfigHistoryEntry{Id: model.NewId(), Active: true, Changes: []*model.ConfigChange{{Path: "PluginSettings.Plugins.com.example.plugin.key"}}},
-			&model.ConfigHistoryEntry{Id: model.NewId(), Changes: changes},
-			&model.ConfigHistoryEntry{Id: previousID},
-		)
+	s.Run("Should roll back without listing the changes first with --confirm", func() {
+		printer.Clean()
+		expectRestore(false, changes)
 
-		got, err := changesSavedAfter(s.client, previousID)
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(true, false), []string{configID})
 		s.Require().NoError(err)
-		s.Require().Equal(changes, got)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, Changes: changes}}, printer.GetLines())
 	})
 
-	s.Run("Should fail if the configuration isn't among the newest", func() {
-		expectHistory(&model.ConfigHistoryEntry{Id: model.NewId(), Active: true, Changes: changes})
+	s.Run("Should list the changes and ask for confirmation without --confirm", func() {
+		printer.Clean()
+		expectRestore(true, changes)
 
-		_, err := changesSavedAfter(s.client, previousID)
-		s.Require().EqualError(err, "configuration "+previousID+" isn't among the 1 saved last")
-	})
-}
-
-func TestKeepMaskedSettings(t *testing.T) {
-	newConfig := func() *model.Config {
-		cfg := &model.Config{}
-		cfg.SetDefaults()
-		return cfg
-	}
-
-	t.Run("Should keep the saved values of settings that aren't masked", func(t *testing.T) {
-		saved := newConfig()
-		*saved.TeamSettings.SiteName = "Old Site"
-		*saved.ServiceSettings.MaximumLoginAttempts = 5
-		current := newConfig()
-		*current.TeamSettings.SiteName = "New Site"
-
-		kept, err := keepMaskedSettings(saved, current)
-		require.NoError(t, err)
-		require.Equal(t, saved, kept)
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, false), []string{configID})
+		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
+		s.Require().Empty(printer.GetLines(), "the changes should be printed before asking")
 	})
 
-	t.Run("Should keep the current values of settings masked on either side", func(t *testing.T) {
-		saved := newConfig()
-		*saved.TeamSettings.SiteName = "Old Site"
-		*saved.EmailSettings.SMTPPassword = ""
-		*saved.LdapSettings.BindPassword = model.FakeSetting
-		saved.SqlSettings.DataSourceReplicas = []string{model.FakeSetting, model.FakeSetting}
-		saved.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{{DataSource: new(model.FakeSetting), QueryAbsoluteLag: new("select 1")}}
-		saved.PluginSettings.Plugins = map[string]map[string]any{
-			"com.example.plugin":  {"apikey": model.FakeSetting, "greeting": "hello"},
-			"com.example.cleared": {"apikey": model.FakeSetting, "greeting": "hello"},
-		}
-		current := newConfig()
-		*current.TeamSettings.SiteName = "New Site"
-		*current.EmailSettings.SMTPPassword = model.FakeSetting
-		*current.LdapSettings.BindPassword = ""
-		current.SqlSettings.DataSourceReplicas = []string{model.FakeSetting}
-		current.PluginSettings.Plugins = map[string]map[string]any{
-			"com.example.plugin": {"apikey": model.FakeSetting, "greeting": "hi"},
-			"com.example.added":  {"apikey": model.FakeSetting, "greeting": "hey"},
-		}
+	s.Run("Should not ask for confirmation when no settings would change", func() {
+		printer.Clean()
+		expectRestore(true, []*model.ConfigChange{})
 
-		kept, err := keepMaskedSettings(saved, current)
-		require.NoError(t, err)
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, false), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: []*model.ConfigChange{}}}, printer.GetLines())
+	})
 
-		expected := saved.Clone()
-		*expected.EmailSettings.SMTPPassword = model.FakeSetting
-		*expected.LdapSettings.BindPassword = ""
-		expected.SqlSettings.DataSourceReplicas = []string{model.FakeSetting}
-		expected.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{}
-		expected.PluginSettings.Plugins = map[string]map[string]any{
-			"com.example.plugin":  {"apikey": model.FakeSetting, "greeting": "hello"},
-			"com.example.cleared": {"greeting": "hello"},
-			"com.example.added":   {"apikey": model.FakeSetting},
-		}
-		require.Equal(t, expected, kept)
+	s.Run("Should fail for an invalid configuration ID", func() {
+		printer.Clean()
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(true, false), []string{"not-an-id"})
+		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
+		s.Require().Empty(printer.GetLines())
 	})
 }
 

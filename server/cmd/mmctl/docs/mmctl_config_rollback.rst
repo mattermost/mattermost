@@ -11,7 +11,9 @@ Synopsis
 
 Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, settings you don't have permission to change, and the settings of plugins that aren't installed, or of all plugins while plugins are disabled, also keep their current values.
+It first lists the settings that rolling back would change and asks for confirmation, unless --confirm is given. With --dry-run, it only lists them.
+
+Settings set through environment variables keep the values set there. Without --local, settings that can't be changed through the API and settings you don't have permission to change also keep their current values.
 
 ::
 
@@ -23,13 +25,17 @@ Examples
 ::
 
     config rollback hpgt7dw7si8odbc9gg938iqjhr
+    config rollback hpgt7dw7si8odbc9gg938iqjhr --dry-run
+    config rollback hpgt7dw7si8odbc9gg938iqjhr --confirm
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for rollback
+      --confirm   roll back without listing the settings that would change and asking for confirmation
+      --dry-run   list the settings that would change without rolling back
+  -h, --help      help for rollback
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

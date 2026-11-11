@@ -2349,7 +2349,7 @@ components:
             $ref: "#/components/schemas/ConfigChange"
     ConfigChange:
       type: object
-      description: A setting whose value changed between two saved configurations
+      description: A setting whose value differs between two configurations
       properties:
         path:
           description: The setting, such as `ServiceSettings.SiteURL`

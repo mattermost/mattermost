@@ -1008,22 +1008,6 @@ func (mr *MockClientMockRecorder) GetHealthFindings(ctx, filter any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthFindings", reflect.TypeOf((*MockClient)(nil).GetHealthFindings), ctx, filter)
 }
 
-// GetHistoricalConfig mocks base method.
-func (m *MockClient) GetHistoricalConfig(ctx context.Context, configID string) (*model.Config, *model.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHistoricalConfig", ctx, configID)
-	ret0, _ := ret[0].(*model.Config)
-	ret1, _ := ret[1].(*model.Response)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// GetHistoricalConfig indicates an expected call of GetHistoricalConfig.
-func (mr *MockClientMockRecorder) GetHistoricalConfig(ctx, configID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHistoricalConfig", reflect.TypeOf((*MockClient)(nil).GetHistoricalConfig), ctx, configID)
-}
-
 // GetIncomingWebhook mocks base method.
 func (m *MockClient) GetIncomingWebhook(ctx context.Context, hookID, etag string) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2381,6 +2365,22 @@ func (m *MockClient) RestoreGroup(ctx context.Context, groupID, etag string) (*m
 func (mr *MockClientMockRecorder) RestoreGroup(ctx, groupID, etag any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreGroup", reflect.TypeOf((*MockClient)(nil).RestoreGroup), ctx, groupID, etag)
+}
+
+// RestoreHistoricalConfig mocks base method.
+func (m *MockClient) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*model.ConfigChange, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreHistoricalConfig", ctx, configID, dryRun)
+	ret0, _ := ret[0].([]*model.ConfigChange)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RestoreHistoricalConfig indicates an expected call of RestoreHistoricalConfig.
+func (mr *MockClientMockRecorder) RestoreHistoricalConfig(ctx, configID, dryRun any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreHistoricalConfig", reflect.TypeOf((*MockClient)(nil).RestoreHistoricalConfig), ctx, configID, dryRun)
 }
 
 // RestoreTeam mocks base method.

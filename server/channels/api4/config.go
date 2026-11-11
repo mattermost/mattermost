@@ -42,6 +42,7 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/history", api.APISessionRequired(getConfigHistory)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}", api.APISessionRequired(getHistoricalConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}/restore", api.APISessionRequired(restoreHistoricalConfig)).Methods(http.MethodPost)
 }
 
 func init() {
@@ -152,61 +153,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
-		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
-			return writeFilter(c, structField)
-		},
-	})
-	if err != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	// Checked after the merge, which keeps the current Site URL for a user who may not change it,
-	// such as one who can't read it either and so sent none.
-	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Do not allow plugin uploads to be toggled through the API
-	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	// This shallow-copies the slice header. So be careful if there are concurrent
-	// modifications to the slice.
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
-
-	// Do not allow import directory to be changed through the API
-	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
-
-	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
-	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
-		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
-	}
-
-	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License().IsCloud() {
-		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
-		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
-		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
-			return
-		}
-	}
-
-	// if ES autocomplete was enabled, we need to make sure that index has been checked.
-	// we need to stop enabling ES autocomplete otherwise.
-	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
-		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
-			c.Err = model.NewAppError("updateConfig", "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
-			return
-		}
-	}
-
-	c.App.HandleMessageExportConfig(cfg, appCfg)
-
-	if appErr := cfg.IsValid(); appErr != nil {
+	cfg, appErr := mergeConfigUpdate(c, "updateConfig", appCfg, cfg)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -217,13 +165,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If the config for default server locale has changed, reinitialize the server's translations.
-	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
-		s := newCfg.LocalizationSettings
-		if err = i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
+	if appErr = reinitTranslations("updateConfig", oldCfg, newCfg); appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	diffs, err := config.Diff(oldCfg, newCfg)
@@ -266,6 +210,78 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// mergeConfigUpdate returns appCfg updated with the settings from cfg that the session may change
+// through the API. It rejects a configuration that clears the Site URL, enables Elasticsearch
+// autocomplete before its index is ready, or isn't valid.
+func mergeConfigUpdate(c *Context, where string, appCfg, cfg *model.Config) (*model.Config, *model.AppError) {
+	cfg, err := config.Merge(appCfg, cfg, &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return writeFilter(c, structField)
+		},
+	})
+	if err != nil {
+		return nil, model.NewAppError(where, "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Checked after the merge, which keeps the current Site URL for a user who may not change it,
+	// such as one who can't read it either and so sent none.
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
+		return nil, model.NewAppError(where, "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Do not allow plugin uploads to be toggled through the API
+	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
+
+	// Do not allow certificates to be changed through the API
+	// This shallow-copies the slice header. So be careful if there are concurrent
+	// modifications to the slice.
+	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
+	// Do not allow import directory to be changed through the API
+	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
+
+	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
+	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
+		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License().IsCloud() {
+		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
+		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
+		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
+			return nil, model.NewAppError(where, "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+		}
+	}
+
+	// if ES autocomplete was enabled, we need to make sure that index has been checked.
+	// we need to stop enabling ES autocomplete otherwise.
+	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
+		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
+			return nil, model.NewAppError(where, "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	c.App.HandleMessageExportConfig(cfg, appCfg)
+
+	if appErr := cfg.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	return cfg, nil
+}
+
+// reinitTranslations reinitializes the server's translations if the default server locale changed.
+func reinitTranslations(where string, oldCfg, newCfg *model.Config) *model.AppError {
+	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
+		s := newCfg.LocalizationSettings
+		if err := i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
+			return model.NewAppError(where, "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return nil
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -525,6 +541,92 @@ func getHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// restoreHistoricalConfig replaces the active configuration with a saved one and returns the
+// settings it changed, listed as getConfigHistory lists them. Like updateConfig, it changes only
+// the settings the session may change through the API, while local mode, like localUpdateConfig,
+// restores all of them. With dry_run, it returns the settings it would change without saving.
+func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
+		c.SetPermissionError(model.SysconsoleWritePermissions...)
+		return
+	}
+
+	configID := mux.Vars(r)["config_id"]
+	if !model.IsValidId(configID) {
+		c.SetInvalidURLParam("config_id")
+		return
+	}
+	dryRun, _ := strconv.ParseBool(r.URL.Query().Get("dry_run"))
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRestoreHistoricalConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
+	model.AddEventParameterToAuditRec(auditRec, "dry_run", dryRun)
+
+	cfg, appErr := c.App.GetHistoricalConfig(configID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	appCfg := c.App.Config()
+	if c.AppContext.Session().IsUnrestricted() {
+		c.App.HandleMessageExportConfig(cfg, appCfg)
+		appErr = cfg.IsValid()
+	} else {
+		cfg, appErr = mergeConfigUpdate(c, "restoreHistoricalConfig", appCfg, cfg)
+	}
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	oldCfg, newCfg := appCfg, cfg
+	if !dryRun {
+		oldCfg, newCfg, appErr = c.App.SaveConfig(cfg, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if appErr = reinitTranslations("restoreHistoricalConfig", oldCfg, newCfg); appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		diffs, err := config.Diff(oldCfg, newCfg)
+		if err != nil {
+			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		auditRec.AddEventPriorState(&diffs)
+	}
+
+	readableConfig := newReadableConfigFilter(c)
+	oldCfg, appErr = readableConfig(oldCfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	newCfg, appErr = readableConfig(newCfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	diffs, err := config.SanitizedDiff(oldCfg, newCfg, c.App.ConfigSanitizer())
+	if err != nil {
+		c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.restore_historical_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(diffs.ToConfigChanges()); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

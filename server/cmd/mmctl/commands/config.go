@@ -4,14 +4,12 @@
 package commands
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
-	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -151,10 +149,14 @@ var ConfigRollbackCmd = &cobra.Command{
 	Short: "Roll back to a saved configuration",
 	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
 
-Settings set through environment variables keep the values set there. Without --local, settings with sensitive values, such as passwords and database connection strings, settings that can't be changed through the API, settings you don't have permission to change, and the settings of plugins that aren't installed, or of all plugins while plugins are disabled, also keep their current values.`,
-	Example: "  config rollback hpgt7dw7si8odbc9gg938iqjhr",
-	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(configRollbackCmdF),
+It first lists the settings that rolling back would change and asks for confirmation, unless --confirm is given. With --dry-run, it only lists them.
+
+Settings set through environment variables keep the values set there. Without --local, settings that can't be changed through the API and settings you don't have permission to change also keep their current values.`,
+	Example: `  config rollback hpgt7dw7si8odbc9gg938iqjhr
+  config rollback hpgt7dw7si8odbc9gg938iqjhr --dry-run
+  config rollback hpgt7dw7si8odbc9gg938iqjhr --confirm`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(configRollbackCmdF),
 }
 
 func init() {
@@ -171,6 +173,9 @@ func init() {
 	ConfigHistoryCmd.Flags().Int("page", 0, "Page number to fetch for the list of saved configurations")
 	ConfigHistoryCmd.Flags().Int("per-page", 10, "Number of saved configurations to be fetched")
 	ConfigHistoryCmd.Flags().Bool("detailed", false, "Show the old and new value of each changed setting")
+
+	ConfigRollbackCmd.Flags().Bool("confirm", false, "roll back without listing the settings that would change and asking for confirmation")
+	ConfigRollbackCmd.Flags().Bool("dry-run", false, "list the settings that would change without rolling back")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -681,186 +686,48 @@ func configHistoryCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 
 type configRollbackResult struct {
 	ConfigId string                `json:"config_id"`
+	DryRun   bool                  `json:"dry_run"`
 	Changes  []*model.ConfigChange `json:"changes"`
 }
 
-func configRollbackCmdF(c client.Client, _ *cobra.Command, args []string) error {
+var configRollbackTemplate = template.Must(template.New("").Funcs(template.FuncMap{
+	"change": formatConfigChange,
+}).Parse(`{{if .DryRun}}Rolling back to saved configuration {{.ConfigId}} would {{if .Changes}}change these settings:{{range .Changes}}
+  {{change .}}{{end}}{{else}}change no settings.{{end}}{{else}}Rolled back to saved configuration {{.ConfigId}}. {{if .Changes}}Changed settings:{{range .Changes}}
+  {{change .}}{{end}}{{else}}No settings changed.{{end}}{{end}}`))
+
+func configRollbackCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	configID := args[0]
 	if !model.IsValidId(configID) {
 		return fmt.Errorf("invalid configuration ID: %s", configID)
 	}
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
-	savedConfig, _, err := c.GetHistoricalConfig(context.TODO(), configID)
+	if dryRun || !confirmFlag {
+		changes, _, err := c.RestoreHistoricalConfig(context.TODO(), configID, true)
+		if err != nil {
+			return fmt.Errorf("failed to get the settings that rolling back to saved configuration %s would change: %w", configID, err)
+		}
+		printer.PrintPreparedT(configRollbackTemplate, &configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes})
+		if dryRun || len(changes) == 0 {
+			return nil
+		}
+
+		// The printer writes its lines only when the command ends, so print them before asking.
+		_ = printer.Flush()
+		if err := getConfirmation(fmt.Sprintf("Are you sure you want to roll back to saved configuration %s?", configID), false); err != nil {
+			return err
+		}
+	}
+
+	changes, _, err := c.RestoreHistoricalConfig(context.TODO(), configID, false)
 	if err != nil {
-		return fmt.Errorf("failed to get saved configuration %s: %w", configID, err)
-	}
-
-	currentConfig, _, err := c.GetConfig(context.TODO())
-	if err != nil {
-		return fmt.Errorf("failed to get the current configuration: %w", err)
-	}
-
-	savedConfig, err = keepMaskedSettings(savedConfig, currentConfig)
-	if err != nil {
-		return fmt.Errorf("failed to keep the current values of sensitive settings: %w", err)
-	}
-
-	// The changed settings are listed as the history lists them, since only the server can
-	// tell which plugin settings are sensitive.
-	active, _, err := c.GetConfigHistory(context.TODO(), 0, 1)
-	if err != nil {
-		return fmt.Errorf("failed to get the active configuration: %w", err)
-	}
-	if len(active) == 0 {
-		return errors.New("failed to get the active configuration: the configuration history is empty")
-	}
-
-	if _, _, err = c.UpdateConfig(context.TODO(), savedConfig); err != nil {
 		return fmt.Errorf("failed to roll back to saved configuration %s: %w", configID, err)
 	}
-
-	changes, err := changesSavedAfter(c, active[0].Id)
-	if err != nil {
-		return fmt.Errorf("rolled back to saved configuration %s, but failed to get the changed settings: %w", configID, err)
-	}
-
-	tpl := template.Must(template.New("").Funcs(template.FuncMap{
-		"change": formatConfigChange,
-	}).Parse(`{{if .Changes}}Rolled back to saved configuration {{.ConfigId}}. Changed settings:{{range .Changes}}
-  {{change .}}{{end}}{{else}}Rolled back to saved configuration {{.ConfigId}}. No settings changed, but settings that keep their current values, such as sensitive values without --local, may still differ from it.{{end}}`))
-
-	printer.PrintPreparedT(tpl, &configRollbackResult{ConfigId: configID, Changes: changes})
+	printer.PrintPreparedT(configRollbackTemplate, &configRollbackResult{ConfigId: configID, Changes: changes})
 
 	return nil
-}
-
-// configRollbackHistorySize is how many of the newest saved configurations are searched for the
-// one saved by a rollback, which others may follow, such as one saved by a plugin it enabled.
-const configRollbackHistorySize = 10
-
-// changesSavedAfter returns the changes of the configuration saved right after the one with
-// previousID, or none if no configuration was saved after it.
-func changesSavedAfter(c client.Client, previousID string) ([]*model.ConfigChange, error) {
-	history, _, err := c.GetConfigHistory(context.TODO(), 0, configRollbackHistorySize)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, entry := range history {
-		if entry.Id != previousID {
-			continue
-		}
-		if i == 0 {
-			// The server saves nothing when the configuration doesn't change.
-			return []*model.ConfigChange{}, nil
-		}
-		return history[i-1].Changes, nil
-	}
-
-	return nil, fmt.Errorf("configuration %s isn't among the %d saved last", previousID, len(history))
-}
-
-// keepMaskedSettings returns a copy of saved in which each setting that is masked in saved or
-// in current has its value in current. On save, the server puts the current value back in place
-// of a mask only when it can match the mask to a current value, and saves any other mask as the
-// value itself, such as one for a database replica removed since. A sensitive value that was
-// empty, and so not masked, would clear the current one.
-func keepMaskedSettings(saved, current *model.Config) (*model.Config, error) {
-	savedMap, err := configAsMap(saved)
-	if err != nil {
-		return nil, err
-	}
-	currentMap, err := configAsMap(current)
-	if err != nil {
-		return nil, err
-	}
-
-	keepMaskedValues(savedMap, currentMap)
-
-	b, err := json.Marshal(savedMap)
-	if err != nil {
-		return nil, err
-	}
-	var kept *model.Config
-	if err := json.Unmarshal(b, &kept); err != nil {
-		return nil, err
-	}
-	return kept, nil
-}
-
-// configAsMap returns cfg as JSON objects, keeping numbers as written.
-func configAsMap(cfg *model.Config) (map[string]any, error) {
-	b, err := json.Marshal(cfg)
-	if err != nil {
-		return nil, err
-	}
-	decoder := json.NewDecoder(bytes.NewReader(b))
-	decoder.UseNumber()
-	var m map[string]any
-	if err := decoder.Decode(&m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// keepMaskedValues sets each value in saved that is or holds a mask, in saved or in current,
-// to its value in current. Objects, such as each plugin's settings, are compared key by key, an
-// object missing on one side counting as empty.
-func keepMaskedValues(saved, current map[string]any) {
-	keys := make(map[string]bool, len(saved)+len(current))
-	for key := range saved {
-		keys[key] = true
-	}
-	for key := range current {
-		keys[key] = true
-	}
-
-	for key := range keys {
-		savedValue := saved[key]
-		currentValue, inCurrent := current[key]
-
-		savedMap, savedIsMap := savedValue.(map[string]any)
-		currentMap, currentIsMap := currentValue.(map[string]any)
-		if savedIsMap && currentValue == nil {
-			currentMap, currentIsMap = map[string]any{}, true
-		}
-		if currentIsMap && savedValue == nil {
-			savedMap, savedIsMap = map[string]any{}, true
-		}
-		if savedIsMap && currentIsMap {
-			keepMaskedValues(savedMap, currentMap)
-			if savedValue != nil || len(savedMap) > 0 {
-				saved[key] = savedMap
-			}
-			continue
-		}
-
-		if !holdsMask(savedValue) && !holdsMask(currentValue) {
-			continue
-		}
-		if inCurrent {
-			saved[key] = currentValue
-		} else {
-			delete(saved, key)
-		}
-	}
-}
-
-// holdsMask reports whether v is a masked value or holds one.
-func holdsMask(v any) bool {
-	switch v := v.(type) {
-	case string:
-		return v == model.FakeSetting
-	case []any:
-		return slices.ContainsFunc(v, holdsMask)
-	case map[string]any:
-		for _, value := range v {
-			if holdsMask(value) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func formatSavedAt(millis int64) string {

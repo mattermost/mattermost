@@ -827,7 +827,7 @@
         asterisks.
 
 
-        __Minimum server version__: 12.1
+        __Minimum server version__: 12.3
 
 
         ##### Permissions
@@ -872,10 +872,11 @@
         Get a configuration saved by the server, as the server would load it now:
         with defaults and environment variable overrides applied, and with the
         same settings left out and sanitized as when getting the current
-        configuration. To roll back to it, submit it to `PUT /api/v4/config`.
+        configuration. To roll back to it, use
+        `POST /api/v4/config/history/{config_id}/restore`.
 
 
-        __Minimum server version__: 12.1
+        __Minimum server version__: 12.3
 
 
         ##### Permissions
@@ -896,6 +897,62 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/Config"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  "/api/v4/config/history/{config_id}/restore":
+    post:
+      tags:
+        - system
+      summary: Restore a saved configuration
+      description: >
+        Replace the server configuration with a configuration saved by the
+        server, and get the settings that changed, listed as in the
+        configuration history. The configuration it replaces stays in the
+        history.
+
+        As when updating the configuration, settings that can't be changed
+        through the API and settings the user may not change keep their current
+        values, as do settings set through environment variables. Sensitive
+        values are restored, but listed with asterisks.
+
+
+        __Minimum server version__: 12.3
+
+
+        ##### Permissions
+
+        Must have any of the `sysconsole_write_*` permissions.
+      operationId: RestoreHistoricalConfig
+      parameters:
+        - name: config_id
+          in: path
+          description: ID of the saved configuration, from the configuration history
+          required: true
+          schema:
+            type: string
+        - name: dry_run
+          in: query
+          description: List the settings that would change without changing them.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Configuration restore successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConfigChange"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
