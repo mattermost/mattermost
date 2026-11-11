@@ -15,6 +15,7 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221041%22%20height%3D%2290%22%20viewBox%3D%220%200%201041%2090%22%2F%3E"
+          style="contain-intrinsic-size: 1041px 90px; aspect-ratio: auto 1041 / 90;"
         />
       </div>
     </figure>
@@ -168,6 +169,7 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           role="presentation"
           src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%20viewBox%3D%220%200%2010%2010%22%2F%3E"
+          style="contain-intrinsic-size: 10px 10px; aspect-ratio: auto 10 / 10;"
         />
       </div>
     </figure>

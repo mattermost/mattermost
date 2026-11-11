@@ -419,17 +419,25 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
             const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
-            // The placeholder is sized only by its src's intrinsic dimensions, like the real image, so that
-            // each surface's max-width and max-height scale both identically. The mini preview has a fixed
-            // square size, so it's drawn as a background instead of being used as the src.
+            const width = dimensions?.width ?? 0;
+            const height = dimensions?.height ?? 0;
+
+            // Rather than setting a fixed width and height, give the placeholder the natural size of the image
+            // so that each surface's max-width and max-height scale it exactly like the real image. Size
+            // containment makes that size apply before the src is decoded. The mini preview has a fixed size,
+            // so it's drawn as a background to keep it from affecting the placeholder's size.
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
                         className={classNames('image-loading__placeholder', this.props.className)}
-                        src={emptyImageForDimensions(dimensions?.width ?? 0, dimensions?.height ?? 0)}
-                        style={miniPreview ? {backgroundImage: `url("${miniPreview}")`} : undefined}
+                        src={emptyImageForDimensions(width, height)}
+                        style={{
+                            containIntrinsicSize: `${width}px ${height}px`,
+                            aspectRatio: `auto ${width} / ${height}`,
+                            backgroundImage: miniPreview ? `url("${miniPreview}")` : undefined,
+                        }}
                     />
                 </div>,
             );

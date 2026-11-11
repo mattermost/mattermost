@@ -76,6 +76,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
                   class="image-loading__placeholder"
                   role="presentation"
                   src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
+                  style="contain-intrinsic-size: 392px 205.14666666666668px; aspect-ratio: auto 392 / 205.14666666666668;"
                 />
               </div>
             </figure>
@@ -209,6 +210,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                 class="image-loading__placeholder"
                 role="presentation"
                 src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
+                style="contain-intrinsic-size: 392px 205.14666666666668px; aspect-ratio: auto 392 / 205.14666666666668;"
               />
             </div>
           </figure>

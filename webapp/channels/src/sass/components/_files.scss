@@ -698,6 +698,11 @@
 
     .image-loading__placeholder {
         background-size: 100% 100%;
+
+        // Without contain-intrinsic-size, the placeholder is sized by its src instead once that's decoded
+        @supports (contain-intrinsic-size: 1px) {
+            contain: size;
+        }
     }
 }
 

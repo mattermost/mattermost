@@ -110,12 +110,16 @@ describe('components/SizeAwareImage', () => {
         expect((placeholder as HTMLElement).style.backgroundImage).toEqual('');
     });
 
-    test('should leave scaling down a large placeholder to CSS so it matches the real image', () => {
+    test('should give the placeholder the natural size of the image so CSS scales it like the real image', () => {
         const dimensions = {width: 3664, height: 2443};
         const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions}}/>, state);
 
-        const placeholder = container.querySelector('img.image-loading__placeholder');
-        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('width="3664" height="2443" viewBox="0 0 3664 2443"'));
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder.style.containIntrinsicSize).toEqual('3664px 2443px');
+        expect(placeholder.style.aspectRatio).toEqual('auto 3664 / 2443');
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('width="3664" height="2443" viewBox="0 0 3664 2443"'));
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
     });
 
     test('should render a mini preview when showLoader is true and preview is set', () => {
@@ -135,6 +139,26 @@ describe('components/SizeAwareImage', () => {
         const placeholder = container.querySelector('.image-loading__container img') as HTMLElement;
         expect(placeholder.style.backgroundImage).toEqual('url("data:mime_type;base64,mini_preview")');
         expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
+    });
+
+    test('should not render the mini preview of a rejected file', () => {
+        const props = {
+            ...baseProps,
+            isFileRejected: true,
+            fileInfo: TestHelper.getFileInfoMock({
+                ...baseProps.fileInfo,
+                mime_type: 'mime_type',
+                mini_preview: 'mini_preview',
+            }),
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+        expect(placeholder.style.backgroundImage).toEqual('');
     });
 
     test('should leave display to CSS in loaded state', async () => {
