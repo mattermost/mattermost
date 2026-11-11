@@ -65,6 +65,130 @@ naming:
 # under Needs attention at the time as a false alarm. run.json counts them.
 false_alarm_emoji: no_entry_sign
 
+# ── Asks to other teams (rules of type: ask, at the end of rules) ──────────────────────
+#
+# Who is asked is not here: the repository variable RELEASE_AGENT_PEOPLE maps each role in
+# an ask's send.to to Hub usernames (see release-agent.yml), so names stay out of this file
+# and a change of owner needs no PR.
+#
+# Hub channels an ask can go to: a channel ID, or "{release_channel}" for the release's own.
+channels:
+  release: "{release_channel}"
+  platform_engineering: i8rxygnihpbfjnin7s3m4py6te  # Platform Engineering
+  monthly_mugs: k8cagrzpitdmjpg5k4bnber45e  # Monthly Mugs
+
+ask_settings:
+  # Formatted with the release's values, as the rules' queries are.
+  changelog_url: "https://docs.mattermost.com/product-overview/mattermost-v{major}-changelog.html#release-v{major}-{minor}-feature-release"
+  # The loadtest ask links the RC build's announcement on Community: the "Release 12.2.0
+  # Download Links" post in Release: Self-Hosted & Cloud (RELEASE_AGENT_RC_ANNOUNCE_CHANNEL_ID)
+  # that names the exact RC. With none a working day after the ask could first go out, or no
+  # channel set, this build.
+  rc_build_url: "https://releases.mattermost.com/{rc1_plain}/mattermost-{rc1_plain}-linux-amd64.tar.gz"
+  healthcheck_repo: mattermost/mattermost-healthcheck  # private: read with the read app, never written
+  # The mobile and desktop releases shipping with a server release are the ones whose GitHub
+  # milestone (vA.B.0) is due in Release Day's month. Desktop ships quarterly.
+  mobile_repo: mattermost/mattermost-mobile
+  desktop_repo: mattermost/desktop
+  # "📈 Loadtest 12.1, November (vs 12.0, October)": the summary is then matched exactly, so
+  # 12.1 isn't 12.10.
+  loadtest_epic_jql: 'project = MM AND issuetype = Epic AND summary ~ "Loadtest {major}.{minor}"'
+  contributors_org: mattermost
+
+# The CES ask is needed when either file changed between the previous release (its vX.Y.0 tag,
+# or its branch until tagged) and this release's branch.
+support_packet_files:
+  - server/channels/app/support_packet.go
+  - server/public/model/support_packet.go
+
+# "Release Manual Tests — Desktop & Mobile" (Confluence 4928831489). The tables below are its
+# version 40; every run flags a newer version, so these can be brought up to date.
+manual_test_guidelines:
+  page_id: "4928831489"
+  version: 40
+  title: Release Manual Tests guidelines
+  url: https://mattermost.atlassian.net/wiki/pages/viewpage.action?pageId=4928831489
+# Paths are files, directories (ending in /) or globs. A change between the mobile or desktop
+# release's previous branch and its new one, in any of them, makes the manual test ask needed.
+# The page's "Skip" notes are left to QA.
+manual_test_areas:
+  - name: Real push notifications
+    repo: mobile
+    paths: [app/init/push_notifications.ts, app/utils/push_proxy.ts, app/actions/remote/notifications.ts,
+            ios/NotificationService/, ios/Gekidou/Sources/Gekidou/PushNotification/,
+            android/app/src/main/java/com/mattermost/rnbeta/CustomPushNotification.kt,
+            android/app/src/main/java/com/mattermost/helpers/CustomPushNotificationHelper.java,
+            android/app/src/main/java/com/mattermost/helpers/PushNotificationDataHelper.kt]
+    what: Use a real iPhone or Android phone with working push. Get a real alert, open it into the right channel, and reply from the notification.
+    tests: MM-T3270, the real-alert half of MM-T3271, MM-T3272 and MM-T510, MM-T532, MM-T533, MM-T534
+  - name: Intune and MDM PIN and blur
+    repo: mobile
+    paths: [app/managers/intune_manager/, app/managers/security_manager/, app/init/managed_app.ts,
+            app/screens/sso/sso_intune.tsx, "scripts/intune-*.sh"]
+    what: Enroll a real phone, then confirm the PIN and the blur.
+    tests: MM-T3004, MM-T3358, MM-T2934 (Android), MM-T2940 (real Intune)
+  - name: Taking a photo or video to attach
+    repo: mobile
+    paths: [app/utils/file/file_picker, app/screens/attachment_options/]
+    what: Take or attach a photo from the app.
+    tests: MM-T311
+  - name: Sharing into Mattermost from another app
+    repo: mobile
+    paths: [share_extension/, ios/MattermostShare/, libraries/@mattermost/rnshare/]
+    what: Share a file into Mattermost from Photos, Files or the system share sheet.
+    tests: MM-T320, MM-T3265, MM-T3266
+  - name: Pending posts while offline
+    repo: mobile
+    paths: [app/actions/remote/post.ts, app/managers/websocket_manager.ts, app/actions/local/session/,
+            app/actions/remote/restore_server.ts]
+    what: Turn on airplane mode on a real iPhone, write posts, and check they send when you're back online.
+    tests: MM-T416 (iOS)
+  - name: Mobile SSO login
+    repo: mobile
+    paths: [app/screens/sso/, app/screens/login/sso_options.tsx, app/utils/saml_challenge.ts]
+    what: Install the build on a phone and log in with the SSO type that changed.
+    tests: MM-T1199, MM-T3180, MM-T3182, MM-T3183
+  - name: Mobile server URL with a subpath
+    repo: mobile
+    paths: [app/utils/url/, app/utils/deep_link/]
+    what: Log in against a server with a subpath, such as example.com/mm.
+    tests: MM-T978
+  - name: Packaged mattermost:// deep links
+    repo: desktop
+    paths: [src/app/navigationManager.ts, src/main/security/allowProtocolDialog.ts, src/main/app/initialize.ts]
+    what: On a packaged build, click a mattermost:// link and a mention notification, start and end a call, and switch servers from notifications.
+    tests: MM-T2925, MM-T1304, MM-T1306, MM-T6127, MM-T6128, MM-T6129, MM-T4841, MM-T5411, MM-T5587
+  - name: Certificates
+    repo: desktop
+    paths: [src/main/app/app.ts, src/main/security/certificateStore.ts, src/renderer/modals/certificate/,
+            src/main/security/preAuthManager.ts]
+    what: Install, connect, and accept or reject a certificate.
+    tests: MM-T2631
+  - name: Plugin and OAuth popups
+    repo: desktop
+    paths: [src/app/views/pluginsPopUps.ts, src/app/views/webContentEvents.ts]
+    what: Open a plugin popup, and complete an OAuth popup if that changed.
+    tests: MM-T2827, MM-T1659
+  - name: Auto-start
+    repo: desktop
+    paths: [src/main/AutoLauncher.ts, src/common/config/]
+    what: Cold-start a packaged build, log out of the OS or reboot, and check the app starts or doesn't as set.
+    tests: MM-T1290, MM-T1574
+  - name: Desktop SSO login
+    repo: desktop
+    paths: [src/renderer/modals/login/]
+    what: Log in with the SSO type that changed, on the desktop build.
+    tests: MM-T3006
+  - name: Desktop server URL with a subpath
+    repo: desktop
+    paths: [src/common/servers/serverManager.ts, src/app/serverHub.ts]
+    what: Log in against a server with a subpath, such as example.com/mm.
+    tests: MM-T978
+
+# Commit authors left out of the monthly contributors list, besides every login ending in [bot].
+contributor_bot_logins: [mattermost-build, mattermost-bot, dependabot, renovate, github-actions, unified-ci-app,
+                         mattermost-docs-ai, cursor, copilot]
+
 rules:
   # The status post is that list, so the item is ticked when the post first carries it in
   # the run's channel at Feature Complete; the post keeps it up to date every run after.
@@ -358,3 +482,124 @@ rules:
       min_dates: 8
     pass_when: next_year_listed
     on_fail: needs_attention
+
+  # The T-6 item: the release's loadtest epic (found as in ask_settings.loadtest_epic_jql) is
+  # Closed or Resolved, and a post since RC-1 in Developers: Performance Comparisons names the
+  # release. That channel is on Community (RELEASE_AGENT_PERF_CHANNEL_ID), read with its own
+  # read-only bot; without that access the check says it can't check. The benchmarking bullet
+  # the item also asks for is the changelog workflow's. The epic and the post are Hub only.
+  - task: loadtest-results
+    title: Loadtest results posted
+    playbook_item: "Check that the loadtests results were posted…"
+    due: T-6
+    type: loadtest_results
+    source: [jira, hub]
+    query:
+      done_statuses: [Closed, Resolved]
+    pass_when: epic_closed_and_results_posted
+    on_fail: needs_attention
+
+  # ── Asks to other teams ─────────────────────────────────────────────────────────────
+  #   needed_when  always, rc1_tagged, rc1_announced, final_build_tagged, support_packet_changed,
+  #                manual_test_areas_changed, or monthly (the contributors list)
+  #   send         channel (a key of channels above), to (roles in RELEASE_AGENT_PEOPLE),
+  #                template (in templates/), optional reminder template and reply_to (the
+  #                task whose ask's thread this one replies in)
+  #   done_when    sent, ces_issue, docs_labels, qa_reply or sre_reply
+  #   remind_after working days with no answer before one reminder (0: none); remind_every
+  #                repeats it every that many working days
+  #   escalate_at  from then on it's listed under Needs attention for the release manager
+  #   escalate_after  or: overdue this many working days after the ask was actually sent
+  #   done_before_ask  false to send even when the done check already passes; otherwise an ask
+  #                whose work is already done is ticked unsent ("Already done, ask not sent")
+  # Titles that name people leave them out ("…"), so a new owner in the title still matches.
+
+  # Notify CES of Support Packet changes: the agent prepares the mattermost-healthcheck issue
+  # (the repo is private and the agent never writes to it) and the release manager opens it.
+  - task: ces-support-packet
+    title: Support Packet changes for CES
+    playbook_item: "Notify CES…"
+    due: T-16
+    type: ask
+    needed_when: support_packet_changed
+    send: {channel: release, to: [ces], template: ces-support-packet.md}
+    done_when: ces_issue
+    remind_after: 2
+    escalate_at: T-6
+
+  - task: docs-ask
+    title: Release documentation
+    playbook_item: "Ask the Docs team…"
+    due: T-16
+    type: ask
+    needed_when: always
+    send: {channel: release, to: [docs], template: docs.md, reminder: docs-reminder.md}
+    done_when: docs_labels
+    done_before_ask: false
+    remind_after: 2
+    remind_every: 2
+    escalate_at: T-2
+
+  # Ticked when the ask is sent; the results are the loadtest-results check above. It waits up
+  # to a working day for the RC1 build announcement on Community, to link it.
+  - task: loadtest-ask
+    title: Loadtests of RC1
+    playbook_item: "Ping … to start running loadtests…"
+    due: T-15
+    type: ask
+    needed_when: rc1_announced
+    send: {channel: release, to: [loadtest], template: loadtest.md}
+    done_when: sent
+    remind_after: 0
+
+  - task: manual-tests
+    title: Manual tests of mobile and desktop
+    playbook_item: "Check with … that manual tests get done…"
+    due: T-15
+    type: ask
+    needed_when: manual_test_areas_changed
+    send: {channel: release, to: [qa], template: manual-tests.md}
+    done_when: qa_reply
+    remind_after: 2
+    escalate_at: final_build-1
+
+  # On the first working day of each month, for the month before, whichever release is
+  # active: its item is ticked in the first active release's run.
+  - task: contributors
+    title: Contributors of the month
+    playbook_item: "On the first day of the month, generate a list of contributors…"
+    due: first_working_day_of_month
+    type: ask
+    needed_when: monthly
+    send: {channel: monthly_mugs, to: [mugs], template: contributors}
+    done_when: sent
+    remind_after: 0
+
+  - task: sre-freemium-pro
+    title: Cloud Freemium and Professional rollout
+    playbook_item: Ask SRE team to roll out the release to the Freemium and Professional rings.
+    due: T-4
+    type: ask
+    needed_when: final_build_tagged
+    send: {channel: platform_engineering, to: [sre], template: sre-freemium-pro.md}
+    done_when: sre_reply
+    rings: [freemium, professional]
+    remind_after: 1
+    escalate_after: 1
+
+  # A reply in the Freemium and Professional thread, or its own post when a person handled
+  # that playbook item without one. Not asked when SRE already said Enterprise is done; a
+  # Friday T-3 moves to the next working day.
+  - task: sre-enterprise
+    title: Cloud Enterprise rollout
+    playbook_item: SRE team rolls out the release to the Enterprise ring.
+    due: T-3
+    avoid_friday: true
+    type: ask
+    needed_when: final_build_tagged
+    send: {channel: platform_engineering, to: [sre], template: sre-enterprise.md, reply_to: sre-freemium-pro}
+    done_when: sre_reply
+    rings: [enterprise]
+    remind_after: 1
+    escalate_after: 1
+

@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import changelog_release  # noqa: E402  (.github/scripts, shared with the changelog workflow)
+from .clients import ServiceError  # noqa: E402
 
 PUBLIC_REPOS = frozenset({"mattermost/mattermost"})
 
@@ -53,6 +54,7 @@ class Result:
     hidden: bool = False  # left out of the status post, as when a yearly task is out of season
     unrouted_tickets: int = 0  # unassigned or bot tickets whose Jira Team has no dev lead
     unrouted_teams: list = field(default_factory=list)  # those teams' names: Hub only, never public output
+    proof_label: str = ""  # the proof link's text on Hub, when "proof" says too little
 
 
 @dataclass
@@ -72,6 +74,8 @@ class Context:
     tags: set = field(default_factory=set)  # (major, minor) of each vX.Y.0 tag
     fetch_page: object = None  # (url) -> page text of a public page
     dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS: [{teams, username, name}]
+    community: object = None  # clients.Community (read only), or None
+    perf_channel: str = ""  # Developers: Performance Comparisons, on Community
 
     def query(self, rule: dict) -> dict:
         return format_values(rule.get("query") or {}, self.vars)
@@ -919,6 +923,51 @@ def changelog_labels(ctx: Context, rule: dict) -> Result:
     return Result(PASS, "Every merged milestone PR has a changelog label")
 
 
+LOADTEST_EPIC = 'project = MM AND issuetype = Epic AND summary ~ "Loadtest {major}.{minor}"'
+
+
+COMMUNITY_NOT_SET_UP = "Community access not set up"
+
+
+def loadtest_results(ctx: Context, rule: dict) -> Result:
+    """The release's loadtest epic ("📈 Loadtest 12.1, November (vs 12.0, October)") is in one
+    of ``done_statuses``, and a post since RC-1 in Developers: Performance Comparisons names
+    the release (v12.2, 12.2 or v12.2.0-rc1). That channel is on Community, read with its own
+    read-only bot (RELEASE_AGENT_PERF_CHANNEL_ID). Without Community access the check can't
+    run, and says so instead of passing or failing. The epic and the post are Hub only."""
+    if ctx.community is None or not ctx.perf_channel:
+        raise CheckError(COMMUNITY_NOT_SET_UP)
+    query = ctx.query(rule)
+    release = ctx.release
+    rc1 = f"{release.version}-rc1"
+    if 1 not in ctx.rc_numbers:
+        return Result(FAIL, f"{rc1} isn't tagged yet, so no loadtest results can be posted")
+    since_ms = int(_parse_time(ctx.github.commit_date("mattermost/mattermost", rc1)).timestamp() * 1000)
+    try:
+        posts = ctx.community.posts_since(ctx.perf_channel, since_ms)
+    except ServiceError:
+        raise CheckError(COMMUNITY_NOT_SET_UP) from None
+    version = re.compile(rf"(?<![\w.])v?{release.major}\.{release.minor}(?![\d])(?!\.[1-9])", re.IGNORECASE)
+    named = sorted((p for p in posts if p.get("create_at", 0) >= since_ms and not p.get("delete_at")
+                    and not p.get("root_id") and version.search(_post_text(p))), key=lambda p: p.get("create_at", 0))
+    jql = (query.get("jql") or LOADTEST_EPIC).format_map(ctx.vars)
+    wanted = re.compile(rf"\bLoadtest {release.major}\.{release.minor}(?![\d.])", re.IGNORECASE)
+    epics = [i for i in ctx.jira.search(jql) if wanted.search((i.get("fields") or {}).get("summary") or "")]
+    if not epics:
+        return Result(FAIL, f"No {release.short_version} loadtest epic in Jira yet")
+    epic = epics[0]
+    status = ((epic.get("fields") or {}).get("status") or {}).get("name") or ""
+    done = status.casefold() in {s.casefold() for s in query["done_statuses"]}
+    link = Item(epic["key"], url=ctx.jira.browse_url(epic["key"]), note=status)
+    if done and named:
+        return Result(PASS, "The loadtest epic is done and its results are posted", [link],
+                      ctx.community.post_link(named[-1]["id"]),
+                      proof_label=f"{release.short_version} performance comparison on Community")
+    missing = ([] if done else [f"the loadtest epic is {status or 'not done'}"]) + \
+        ([] if named else ["no post since RC-1 names the release in Developers: Performance Comparisons"])
+    return Result(FAIL, "Loadtests aren't finished: " + " and ".join(missing), [link])
+
+
 CHECKS = {
     "open_release_items": (open_release_items, "report_only"),
     "cherry_picks_to_label": (cherry_picks_to_label, "none_missing"),
@@ -934,5 +983,6 @@ CHECKS = {
     "changelog_migrations": (changelog_migrations, "described_or_none"),
     "changelog_labels": (changelog_labels, "none_missing"),
     "holidays_page": (holidays_page, "next_year_listed"),
+    "loadtest_results": (loadtest_results, "epic_closed_and_results_posted"),
 }
 

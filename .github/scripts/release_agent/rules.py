@@ -9,7 +9,7 @@ import jsonschema
 import yaml
 
 from .checks import CHECKS
-from .playbook import normalize, title_matches
+from .playbook import title_matches
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "release-agent"
 RULES_PATH = CONFIG_DIR / "rules.yml"
@@ -58,6 +58,7 @@ REQUIRED_QUERY = {
     "changelog_labels": ("repos", "labels"),
     "holidays_page": ("month", "heading", "min_dates"),
     "e2e_results": ("match_any",),
+    "loadtest_results": ("done_statuses",),
     "release_tags": ("repos",),
     "changelog_pr": ("state", "repo", "branch", "base_branch", "live_url"),
     "changelog_migrations": ("repo", "branch", "base_branch", "migrations_path"),
@@ -80,6 +81,9 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
         if task in seen:
             errors.append(f"{task}: task is listed twice")
         seen.add(task)
+        if rule["type"] == "ask":
+            errors += ask_problems(rules, rule, known_items)
+            continue
         _, pass_when = CHECKS[rule["type"]]
         if rule["pass_when"] != pass_when:
             errors.append(f"{task}: a {rule['type']} check passes when {pass_when!r}, not {rule['pass_when']!r}")
@@ -102,6 +106,39 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
             date.fromisoformat(day)
         except ValueError:
             errors.append(f"holidays: {day!r} is not a calendar date")
+    return errors
+
+
+TEMPLATES_DIR = CONFIG_DIR / "templates"
+
+
+def ask_problems(rules: dict, rule: dict, known_items: list | None) -> list[str]:
+    """What's wrong with one ask beyond the schema: its channel, template, thread and due day."""
+    task, send, errors = rule["task"], rule["send"], []
+    if send["channel"] not in (rules.get("channels") or {}):
+        errors.append(f"{task}: send.channel {send['channel']!r} is not in channels")
+    for key in ("template", "reminder"):
+        name = send.get(key)
+        if name and name != "contributors" and not (TEMPLATES_DIR / name).is_file():
+            errors.append(f"{task}: send.{key} {name!r} is not in .github/release-agent/templates")
+    if (send["template"] == "contributors") != (rule["needed_when"] == "monthly"):
+        errors.append(f"{task}: only the monthly ask (needed_when: monthly) uses the contributors template")
+    if rule["needed_when"] == "monthly" and rule["due"] != "first_working_day_of_month":
+        errors.append(f"{task}: the monthly ask is due first_working_day_of_month")
+    reply_to = send.get("reply_to")
+    if reply_to and not any(r["task"] == reply_to and r["type"] == "ask" and r["send"]["channel"] == send["channel"]
+                            for r in rules["rules"]):
+        errors.append(f"{task}: send.reply_to {reply_to!r} is not an ask in the same channel")
+    for key in ("due", "escalate_at"):
+        anchor = re.fullmatch(r"([a-z][a-z0-9_]*)([-+]\d+)?", rule.get(key) or "")
+        if anchor and anchor.group(1) not in rules["calendar"]["milestones"] and rule.get(key) != "first_working_day_of_month":
+            errors.append(f"{task}: {key} {rule[key]!r} names no calendar milestone")
+    if rule["needed_when"] == "manual_test_areas_changed" and not rules.get("manual_test_areas"):
+        errors.append(f"{task}: needs manual_test_areas")
+    if rule["needed_when"] == "support_packet_changed" and not rules.get("support_packet_files"):
+        errors.append(f"{task}: needs support_packet_files")
+    if known_items is not None and not any(title_matches(known, rule["playbook_item"]) for known in known_items):
+        errors.append(f"{task}: playbook_item {rule['playbook_item']!r} is not in the playbook template")
     return errors
 
 

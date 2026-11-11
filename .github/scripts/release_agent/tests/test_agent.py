@@ -6,7 +6,7 @@ from release_agent import agent, rules
 from release_agent.__main__ import log_line, step_summary
 from release_agent.clients import ServiceError
 from release_agent.tests.test_checks import holidays_page, holidays_page_text
-from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
+from release_agent.tests.fakes import DEV_LEADS_ROUTES, FakeCommunity, FakeConfluence, FakeGitHub, FakeHub, FakeJira, checklist_run, fixture
 
 MM, ENT = "mattermost/mattermost", "mattermost/enterprise"
 TODAY = date(2026, 11, 4)
@@ -15,6 +15,12 @@ LS_REMOTE = "\n".join(f"0\t{ref}" for ref in [
     "refs/tags/v12.1.0", "refs/tags/v12.2.0-rc1", "refs/tags/v12.2.0-rc2",
 ])
 SECRET = "Top secret enterprise fix"
+
+
+def phase1_rules():
+    """rules.yml without the asks to other teams, which test_asks.py covers."""
+    loaded = rules.load_rules()
+    return {**loaded, "rules": [rule for rule in loaded["rules"] if rule["type"] != "ask"]}
 
 
 def template_items():
@@ -40,6 +46,7 @@ def services(jira=None, confluence=None):
         "requested_teams": [], "head": {"sha": "clsha"}, "base": {"ref": "master"}}]
     github.tags = {MM: ["v12.2.0-rc1", "v12.2.0-rc2"], ENT: ["v12.2.0-rc1", "v12.2.0-rc2"]}
     github.dates[(MM, "v12.2.0-rc2")] = "2026-11-02T12:00:00Z"
+    github.dates[(MM, "v12.2.0-rc1")] = "2026-10-27T12:00:00Z"
     hub = FakeHub(("12.2.0", "abc"))
     hub.users = [{"username": route["username"], "first_name": "", "last_name": ""} for route in DEV_LEADS_ROUTES]
     hub.channels = [{"id": "c122", "display_name": "Release: v12.2"}, {"id": "c123", "display_name": "Release: v12.3"}]
@@ -47,16 +54,16 @@ def services(jira=None, confluence=None):
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
     return agent.Services(github=github, jira=jira or FakeJira(), hub=hub, playbooks=hub,
                           fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE,
-                          confluence=confluence or FakeConfluence())
+                          confluence=confluence or FakeConfluence(), community=FakeCommunity())
 
 
 def settings(mode="live", release=""):
     return agent.Settings(mode=mode, release_override=release, testing_alerts_channel="alerts", test_channel="test-chan",
-                          holidays_page_id="page9", dev_leads=DEV_LEADS_ROUTES)
+                          holidays_page_id="page9", dev_leads=DEV_LEADS_ROUTES, perf_channel="perf")
 
 
 def run(svc, mode="live", release="", today=TODAY):
-    return agent.run(rules.load_rules(), settings(mode, release), svc, today)
+    return agent.run(phase1_rules(), settings(mode, release), svc, today)
 
 
 def by_task(release_body):
@@ -94,6 +101,7 @@ class LiveRunTest(unittest.TestCase):
             "version-go-prs": "skipped",
             "changelog-labels": "ok",
             "holidays-page": "skipped",
+            "loadtest-results": "not_due",
         })
         self.assertEqual(by_task(self.releases["v12.3"])["e2e-results"]["state"], "skipped")
 
@@ -188,13 +196,13 @@ class LiveRunTest(unittest.TestCase):
         svc = services(jira=FakeJira({"fixVersion": [issue("MM-1", team="Calls")]}))
         broken = agent.Settings(mode="live", testing_alerts_channel="alerts", test_channel="test-chan", holidays_page_id="page9",
                                 dev_leads=[], dev_leads_problem="RELEASE_AGENT_DEV_LEADS isn't valid JSON, so unassigned tickets aren't routed to dev leads.")
-        body, _ = agent.run(rules.load_rules(), broken, svc, TODAY)
+        body, _ = agent.run(phase1_rules(), broken, svc, TODAY)
         self.assertIn("RELEASE_AGENT_DEV_LEADS isn't valid JSON, so unassigned tickets aren't routed to dev leads.",
                       body["releases"][0]["flags"])
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 34)
+        self.assertEqual(self.body["totals"]["checks_run"], 36)
         self.assertEqual(self.body["totals"]["ticked"], 6)
         self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)
@@ -260,7 +268,7 @@ class PageHolidaysRunTest(unittest.TestCase):
         svc.fetch_calendar = lambda: V121_NO_HOLIDAYS
         config = settings(release="v12.1")
         config.holidays_page_id = page_id
-        return agent.run(rules.load_rules(), config, svc, self.OCT_30)
+        return agent.run(phase1_rules(), config, svc, self.OCT_30)
 
     def test_nov_11_from_the_page_is_not_a_working_day(self):
         confluence = FakeConfluence(holidays_page_text())
@@ -328,7 +336,7 @@ class ReleaseChannelTest(unittest.TestCase):
         svc = services()
         cfg = settings()
         cfg.release_channels = {"v12.2": "elsewhere"}
-        body, _ = agent.run(rules.load_rules(), cfg, svc, TODAY)
+        body, _ = agent.run(phase1_rules(), cfg, svc, TODAY)
         ticked = [t["task"] for t in body["releases"][0]["ticked"]]
         self.assertNotIn("open-release-items", ticked)
         self.assertIn("notice-txt", ticked)

@@ -54,13 +54,109 @@
       }
     },
     "false_alarm_emoji": {"type": "string", "pattern": "^[a-z0-9_+-]+$"},
+    "channels": {
+      "description": "Hub channels asks go to: a key to a channel ID, or \"{release_channel}\" for the release's own.",
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
+      "additionalProperties": {"type": "string", "pattern": "^([a-z0-9]{26}|\\{release_channel\\})$"}
+    },
+    "ask_settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changelog_url", "rc_build_url", "healthcheck_repo", "mobile_repo", "desktop_repo", "loadtest_epic_jql", "contributors_org"],
+      "properties": {
+        "changelog_url": {"type": "string", "pattern": "^https://"},
+        "rc_build_url": {"type": "string", "pattern": "^https://"},
+        "healthcheck_repo": {"type": "string", "pattern": "^[\\w.-]+/[\\w.-]+$"},
+        "mobile_repo": {"type": "string", "pattern": "^[\\w.-]+/[\\w.-]+$"},
+        "desktop_repo": {"type": "string", "pattern": "^[\\w.-]+/[\\w.-]+$"},
+        "loadtest_epic_jql": {"type": "string", "minLength": 1},
+        "contributors_org": {"type": "string", "pattern": "^[\\w.-]+$"}
+      }
+    },
+    "support_packet_files": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "manual_test_guidelines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_id", "version", "title", "url"],
+      "properties": {
+        "page_id": {"type": "string", "pattern": "^\\d+$"},
+        "version": {"type": "integer", "minimum": 1},
+        "title": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "pattern": "^https://"}
+      }
+    },
+    "manual_test_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "repo", "paths", "what", "tests"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "repo": {"enum": ["mobile", "desktop"]},
+          "paths": {"description": "Files, directories ending in /, or globs.", "type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "what": {"description": "What the tester does, from the guidelines.", "type": "string", "minLength": 1},
+          "tests": {"description": "The test IDs, from the guidelines.", "type": "string", "minLength": 1}
+        }
+      }
+    },
+    "contributor_bot_logins": {"type": "array", "items": {"type": "string", "pattern": "^[A-Za-z0-9-]+$"}},
     "rules": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "#/$defs/rule"}
+      "items": {
+        "if": {"properties": {"type": {"const": "ask"}}, "required": ["type"]},
+        "then": {"$ref": "#/$defs/ask"},
+        "else": {"$ref": "#/$defs/rule"}
+      }
     }
   },
   "$defs": {
+    "ask": {
+      "description": "An ask to another team: sent on its due day, followed up, and its playbook item ticked when done (release_agent/asks.py).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "title", "playbook_item", "due", "type", "needed_when", "send", "done_when", "remind_after"],
+      "properties": {
+        "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "title": {"description": "What the status post's Handoffs section calls the ask.", "type": "string", "minLength": 1},
+        "playbook_item": {
+          "description": "The checklist item ticked when the ask is done or not needed. A title ending in … matches items that start with it; a … inside the title matches any text, so a person named in the title can be left out.",
+          "type": "string",
+          "minLength": 1
+        },
+        "former_playbook_items": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "due": {
+          "description": "As a check's due, or first_working_day_of_month for the monthly contributors ask.",
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "avoid_friday": {"description": "When due falls on a Friday, send on the next working day.", "type": "boolean"},
+        "type": {"const": "ask"},
+        "needed_when": {"enum": ["always", "rc1_tagged", "rc1_announced", "final_build_tagged", "support_packet_changed", "manual_test_areas_changed", "monthly"]},
+        "send": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["channel", "to", "template"],
+          "properties": {
+            "channel": {"description": "A key of channels.", "type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "to": {"description": "Roles in RELEASE_AGENT_PEOPLE.", "type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+            "template": {"description": "A file in templates/, or contributors.", "type": "string", "pattern": "^([a-z0-9-]+\\.md|contributors)$"},
+            "reminder": {"description": "A file in templates/; reminder.md when not set.", "type": "string", "pattern": "^[a-z0-9-]+\\.md$"},
+            "reply_to": {"description": "The ask (task) whose thread this one replies in.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}
+          }
+        },
+        "done_when": {"enum": ["sent", "ces_issue", "docs_labels", "qa_reply", "sre_reply"]},
+        "done_before_ask": {"description": "False to send the ask even when its done check already passes.", "type": "boolean"},
+        "rings": {"description": "For sre_reply: the Cloud rings that must be done.", "type": "array", "minItems": 1, "items": {"enum": ["beta", "freemium", "professional", "enterprise"]}},
+        "remind_after": {"description": "Working days with no answer before one reminder; 0 for none.", "type": "integer", "minimum": 0},
+        "remind_every": {"description": "After the first reminder, another every this many working days.", "type": "integer", "minimum": 1},
+        "escalate_at": {"type": "string", "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"},
+        "escalate_after": {"description": "Overdue this many working days after the ask was sent.", "type": "integer", "minimum": 1}
+      },
+      "allOf": [{"if": {"properties": {"done_when": {"const": "sre_reply"}}}, "then": {"required": ["rings"]}}]
+    },
     "rule": {
       "type": "object",
       "additionalProperties": false,
@@ -98,7 +194,8 @@
             "release_tags",
             "version_go_prs",
             "changelog_labels",
-            "holidays_page"
+            "holidays_page",
+            "loadtest_results"
           ]
         },
         "source": {
@@ -137,7 +234,8 @@
             "none_missing",
             "state_reached",
             "described_or_none",
-            "next_year_listed"
+            "next_year_listed",
+            "epic_closed_and_results_posted"
           ]
         },
         "on_fail": {"enum": ["needs_attention", "log_only", "report"]}

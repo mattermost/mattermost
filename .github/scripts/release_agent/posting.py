@@ -68,7 +68,9 @@ class ReleaseReport:
     run: dict | None = None
     release_channel: str = ""
     false_alarms: set = field(default_factory=set)
+    manager: dict | None = None  # the playbook run's owner, mentioned for overdue asks
     private_flags: set = field(default_factory=set)  # flags for Hub only: run.json and the summary get a count
+    handoffs: list = field(default_factory=list)  # asks.Handoff, one per ask to another team
 
     @property
     def needs_attention(self) -> bool:
@@ -83,6 +85,7 @@ def alarm_ids(report: ReleaseReport) -> dict:
     """What the post raises under Needs attention: {alarm id: what it is (public-safe)}."""
     alarms = {f"check:{o.rule['task']}": o.rule["task"] for o in report.outcomes if o.state in (NEEDS_ATTENTION, ERROR)}
     alarms.update({flag_id(flag): flag for flag in report.flags})
+    alarms.update({f"ask:{h.task}": h.task for h in report.handoffs if h.escalated})
     return alarms
 
 
@@ -131,7 +134,9 @@ def _items(items: list) -> list[str]:
 
 
 def _proof(result, label: str = "proof") -> str:
-    return f" · [{label}]({result.proof_url})" if result and result.proof_url else ""
+    if not (result and result.proof_url):
+        return ""
+    return f" · [{getattr(result, 'proof_label', '') or label}]({result.proof_url})"
 
 
 def _tick_note(ticks_by_task: dict, task: str) -> str:
@@ -193,7 +198,8 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
     raised = by_state.get(NEEDS_ATTENTION, []) + by_state.get(ERROR, [])
     attention = [o for o in raised if f"check:{o.rule['task']}" not in dismissed]
     flags = [flag for flag in report.flags if flag_id(flag) not in dismissed]
-    if attention or flags:
+    escalated = [h for h in report.handoffs if h.escalated and f"ask:{h.task}" not in dismissed]
+    if attention or flags or escalated:
         lines += ["", "**Needs attention**"]
         for outcome in attention:
             if outcome.state == ERROR:
@@ -202,6 +208,9 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
                 continue
             lines.append(f"- :x: **{outcome.title}** — {outcome.result.summary}{_proof(outcome.result)}")
             lines += _items(outcome.result.items)
+        for handoff in escalated:
+            manager = f"@{report.manager['username']} " if report.manager else ""
+            lines.append(f"- Overdue: {manager}**{handoff.rule['title']}** is still open — {handoff.summary}")
         lines += [f"- :triangular_flag_on_post: {flag}" for flag in flags]
 
     if by_state.get(OK):
@@ -231,17 +240,50 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
             lines.append(f"- **{owner}** ({len(groups[owner])})")
             lines += _items(groups[owner])
 
+    lines += handoff_lines(report.handoffs)
+
     marked = [o.title for o in raised if f"check:{o.rule['task']}" in dismissed]
     marked += [flag for flag in report.flags if flag_id(flag) in dismissed]
+    marked += [h.rule["title"] for h in report.handoffs if h.escalated and f"ask:{h.task}" in dismissed]
     if marked:
         lines += ["", "**Marked as false alarms**"] + [f"- ~~{what}~~" for what in marked]
-    if attention or flags:
+    if attention or flags or escalated:
         lines += ["", f"_Not a real problem? React with :{emoji}: to mark everything under Needs attention "
                       "as a false alarm. For anything raised after your reaction, remove it and react again._"]
     text = "\n".join(lines)
     if len(text) > MAX_POST_CHARS:
         text = text[:MAX_POST_CHARS].rsplit("\n", 1)[0] + "\n\n_…the rest of this post was cut to fit Hub's size limit._"
     return text if report.mode == "live" else quiet_mentions(text)
+
+
+HANDOFF_ORDER = ("done", "waiting", "would_send", "not_ready", "by_person", "error", "not_needed", "not_due")
+HANDOFF_WORDS = {"done": "Done", "waiting": "Waiting", "would_send": "Would send (test mode)", "not_needed": "Not needed",
+                 "not_due": "Not due yet", "not_ready": "Not sent yet", "by_person": "Handled by a person",
+                 "error": "Couldn't check"}
+
+
+def handoff_lines(handoffs: list) -> list[str]:
+    """The Handoffs section: each ask to another team, its state in words first."""
+    if not handoffs:
+        return []
+    lines = ["", "**Handoffs**"]
+    for handoff in sorted(handoffs, key=lambda h: HANDOFF_ORDER.index(h.state)):
+        when = []
+        if handoff.state == "not_due" and handoff.due:
+            when.append(f"due {_day(handoff.due)}")
+        if handoff.asked_on and handoff.state != "not_due":
+            when.append(f"asked {_day(handoff.asked_on)}")
+        if handoff.reminded_on:
+            when.append(f"last reminded {_day(handoff.reminded_on)}")
+        evidence = f" · [evidence]({handoff.proof_url})" if handoff.proof_url else ""
+        summary = handoff.summary if handoff.state != "not_due" else ""
+        parts = [p for p in (", ".join(when), summary) if p]
+        lines.append(f"- {HANDOFF_WORDS[handoff.state]}: **{handoff.rule['title']}**"
+                     + (f" — {'; '.join(parts)}" if parts else "") + evidence)
+        for where, text in handoff.previews:
+            lines.append(f"  - Would send in {where}:")
+            lines += [f"    > {line}" if line else "    >" for line in text.split("\n")]
+    return lines
 
 
 def ordinal(day: int) -> str:

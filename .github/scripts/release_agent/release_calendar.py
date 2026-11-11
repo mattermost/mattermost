@@ -135,6 +135,27 @@ def releases_from_events(events: list[Event], milestones: dict) -> tuple[dict, l
     return releases, notes
 
 
+COMPANION = re.compile(r"\b(mobile|desktop)\s+v?(\d+)\.(\d+)(?![\d.])", re.IGNORECASE)
+
+
+def companion_versions(events: list[Event], release: Release, release_marker: str) -> dict:
+    """{"mobile": "v2.47", "desktop": "v6.4"}: the mobile and desktop releases that ship with
+    ``release``, from the calendar's "Mobile vA.B" and "Desktop vC.D" events. An event that also
+    names the server release ("v12.2 & Mobile v2.47 Release Day") wins; otherwise the version
+    of a Release Day event (``release_marker``) in Release Day's month. Kinds the calendar
+    doesn't name are left out."""
+    day, found, named_with_release = release.release_day, {}, {}
+    for event in events:
+        for match in COMPANION.finditer(event.summary):
+            kind, version = match.group(1).lower(), f"v{match.group(2)}.{match.group(3)}"
+            if any((major, minor) == release.key and not patch for major, minor, patch in server_versions(event.summary)):
+                named_with_release.setdefault(kind, version)
+            elif (day and release_marker.lower() in event.summary.lower()
+                  and (event.start.year, event.start.month) == (day.year, day.month)):
+                found.setdefault(kind, version)
+    return {**found, **named_with_release}
+
+
 def holidays_from(events: list[Event], markers: list[str], extra: list[str]) -> frozenset:
     days = {date.fromisoformat(day) for day in extra}
     lowered = [marker.lower() for marker in markers]

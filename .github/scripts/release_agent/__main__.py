@@ -2,6 +2,11 @@
 
   run       Check the active releases, tick and post, and write run.json (public, uploaded
             as an artifact) and details.txt (private, only ever posted to Hub).
+            For a dry run against real data, in test mode only:
+              --as-of YYYY-MM-DD  run as if today were that date
+              --no-post           read everything, but write the status post, would-be asks,
+                                  reminders, proof replies and ticks to OUT_DIR/preview.md
+                                  instead of Hub. Not in Actions: the artifact is public.
   log       Post the run's one line to release-agent-log. Runs even when `run` failed.
   validate  Validate rules.yml against its schema and the playbook template.
 """
@@ -10,11 +15,12 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import agent
-from .clients import Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
+from . import agent, preview
+from .clients import Community, Confluence, GitHub, Jira, Mattermost, Playbooks, fetch_text
 
 
 def load_rules_module():
@@ -36,6 +42,9 @@ def services_from_env() -> agent.Services:
     atlassian = (os.environ.get("JIRA_URL") or "https://mattermost.atlassian.net", require("JIRA_EMAIL"), require("JIRA_TOKEN"))
     return agent.Services(
         github=GitHub(require("GH_TOKEN")),
+        healthcheck_github=GitHub(os.environ["HEALTHCHECK_TOKEN"]) if os.environ.get("HEALTHCHECK_TOKEN") else None,
+        community=(Community(os.environ["COMMUNITY_URL"].strip(), os.environ["COMMUNITY_TOKEN"].strip())
+                   if os.environ.get("COMMUNITY_URL", "").strip() and os.environ.get("COMMUNITY_TOKEN", "").strip() else None),
         jira=Jira(*atlassian),
         confluence=Confluence(*atlassian),
         hub=hub,
@@ -62,6 +71,11 @@ def step_summary(body: dict) -> str:
         if release["ticked"] or release["would_tick"]:
             ticked = ", ".join(t["task"] for t in release["ticked"]) or "none"
             lines += ["", f"Ticked: {ticked}" + (f" · would tick: {', '.join(release['would_tick'])}" if release["would_tick"] else "")]
+        if release.get("handoffs"):
+            lines += ["", "| Handoff | State | Asked | Last reminded | Summary |", "| --- | --- | --- | --- | --- |"]
+            lines += [f"| {h['task']} | {h['state']}{' (overdue)' if h['escalated'] else ''} | {h['asked_on'] or '—'} | "
+                      f"{h['reminded_on'] or '—'} | {(h['summary'] or '').replace('|', '/')} |" for h in release["handoffs"]]
+            lines.append("")
         lines += [f"- :triangular_flag_on_post: {flag}" for flag in release["flags"]]
         if release.get("hub_only_flags"):
             lines.append(f"- :triangular_flag_on_post: {release['hub_only_flags']} more flag(s), shown in Hub only")
@@ -80,14 +94,33 @@ def write_outputs(out_dir: Path, body: dict, details: list) -> None:
             handle.write(step_summary(body))
 
 
+def dry_run_options(args, mode: str):
+    """(today, the preview to write to or None). Raises ValueError when an option isn't allowed."""
+    as_of, no_post = getattr(args, "as_of", None), getattr(args, "no_post", False)
+    if (as_of or no_post) and mode == "live":
+        raise ValueError("--as-of and --no-post are for test mode only, not live mode")
+    if no_post and os.environ.get("GITHUB_ACTIONS") == "true":
+        raise ValueError("--no-post writes Hub text to OUT_DIR, which Actions uploads as a public artifact; run it locally")
+    today = datetime.strptime(as_of, "%Y-%m-%d").date() if as_of else datetime.now(timezone.utc).date()
+    return today, (preview.Preview() if no_post else None)
+
+
 def command_run(args) -> int:
     today = datetime.now(timezone.utc).date()
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     body, details = {"date": today.isoformat(), "started_at": started, "releases": [], "flags": []}, []
+    previewed = None
     try:
         settings = agent.env_settings()
         body["mode"] = settings.mode
-        result, details = agent.run(load_rules_module().load_rules(), settings, services_from_env(), today)
+        today, previewed = dry_run_options(args, settings.mode)
+        body["date"] = today.isoformat()
+        services = services_from_env()
+        if previewed is not None:
+            services = replace(services, hub=preview.PreviewHub(services.hub, previewed),
+                                     playbooks=preview.PreviewPlaybooks(services.playbooks, previewed))
+            body["preview"] = True
+        result, details = agent.run(load_rules_module().load_rules(), settings, services, today)
         body.update(result)
         return 0
     except Exception as err:  # noqa: BLE001 - recorded, then the step fails
@@ -102,6 +135,8 @@ def command_run(args) -> int:
         body["run_url"] = os.environ.get("RUN_URL", "")
         body.setdefault("totals", agent.totals(body))
         write_outputs(Path(args.out_dir), body, details)
+        if previewed is not None:
+            (Path(args.out_dir) / "preview.md").write_text(previewed.markdown())
 
 
 def log_line(body: dict | None, details: list, job_status: str, run_url: str, mode: str) -> str:
@@ -152,6 +187,10 @@ def main(argv=None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("run", "log"):
         sub.add_parser(name).add_argument("--out-dir", required=True)
+    run = sub.choices["run"]
+    run.add_argument("--as-of", metavar="YYYY-MM-DD", help="test mode only: run as if today were this date")
+    run.add_argument("--no-post", action="store_true",
+                     help="test mode only: write every post, reply, edit and tick to OUT_DIR/preview.md instead")
     sub.add_parser("validate")
     args = parser.parse_args(argv)
     return {"run": command_run, "log": command_log, "validate": command_validate}[args.command](args)

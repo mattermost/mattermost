@@ -206,6 +206,45 @@ class GitHub:
         refs = self.http.get(f"/repos/{repo}/git/matching-refs/tags/{urllib.parse.quote(prefix, safe='')}") or []
         return [ref["ref"].removeprefix("refs/tags/") for ref in refs]
 
+    # ── For the asks (asks.py) ──
+
+    def _pages(self, path: str, **params) -> list:
+        items, page = [], 1
+        while True:
+            batch = self.http.get(path, per_page=100, page=page, **params) or []
+            items.extend(batch)
+            if len(batch) < 100:
+                return items
+            page += 1
+
+    def milestones(self, repo: str) -> list[dict]:
+        return self._pages(f"/repos/{repo}/milestones", state="all")
+
+    def release_branches(self, repo: str) -> set[tuple[int, int]]:
+        """(major, minor) of each release-X.Y branch."""
+        refs = self.http.get(f"/repos/{repo}/git/matching-refs/heads/release-") or []
+        found = (re.fullmatch(r"refs/heads/release-(\d+)\.(\d+)", ref.get("ref") or "") for ref in refs)
+        return {(int(m.group(1)), int(m.group(2))) for m in found if m}
+
+    def commit_files(self, repo: str, sha: str) -> list[str]:
+        """The paths a commit changed (GitHub lists up to 3,000)."""
+        found = self.http.get(f"/repos/{repo}/commits/{sha}") or {}
+        return [f["filename"] for f in found.get("files") or []]
+
+    def org_repos(self, org: str) -> list[dict]:
+        """The organization's repositories that aren't forks ("sources"): every public one, and the
+        private ones this token can read."""
+        return self._pages(f"/orgs/{org}/repos", type="sources")
+
+    def commits_in_range(self, repo: str, since: str, until: str) -> list[dict]:
+        """Every commit on the default branch dated from ``since`` to ``until`` (ISO 8601)."""
+        try:
+            return self._pages(f"/repos/{repo}/commits", since=since, until=until)
+        except ServiceError as err:
+            if err.status == 409:  # an empty repository
+                return []
+            raise
+
 
 class Jira:
     FIELDS = ["summary", "status", "assignee", "labels", "fixVersions", "resolution", "components"]
@@ -259,6 +298,10 @@ class Confluence:
         url = (links.get("base") or f"{self.base_url}/wiki") + (links.get("webui") or "")
         return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", storage)).split()), url
 
+    def page_version(self, page_id: str) -> int:
+        page = self.http.get(f"/wiki/api/v2/pages/{urllib.parse.quote(page_id)}") or {}
+        return int((page.get("version") or {}).get("number") or 0)
+
 
 class Mattermost:
     def __init__(self, base_url: str, token: str, http: Http | None = None):
@@ -280,6 +323,18 @@ class Mattermost:
     def search_users(self, term: str) -> list[dict]:
         return self.http.request("POST", "/api/v4/users/search",
                                  body={"term": term, "allow_inactive": False, "limit": 100})[1] or []
+
+    def user(self, user_id: str) -> dict | None:
+        return self._user_or_none(f"/api/v4/users/{urllib.parse.quote(user_id)}")
+
+    def thread(self, post_id: str) -> list[dict]:
+        """The post and its replies, oldest first."""
+        result = self.http.get(f"/api/v4/posts/{urllib.parse.quote(post_id)}/thread") or {}
+        posts = result.get("posts") or {}
+        return sorted(posts.values(), key=lambda p: p.get("create_at", 0))
+
+    def post_link(self, post_id: str) -> str:
+        return f"{self.base_url}/_redirect/pl/{post_id}"
 
     def _user_or_none(self, path: str) -> dict | None:
         try:
@@ -327,6 +382,47 @@ class Mattermost:
 
     def permalink(self, team_name: str, post_id: str) -> str:
         return f"{self.base_url}/{team_name}/pl/{post_id}"
+
+
+class Community:
+    """community.mattermost.com, read only, with its own bot (RELEASE_AGENT_COMMUNITY_TOKEN).
+
+    It has no method that posts, replies, reacts or edits: everything the agent writes goes
+    to Hub. A failed read is tried once more, as Hub lookups are.
+    """
+
+    def __init__(self, base_url: str, token: str, http: Http | None = None):
+        self.base_url = base_url.rstrip("/")
+        self.http = http or Http("Community", self.base_url, {"Authorization": f"Bearer {token}"})
+
+    def _get(self, path: str, **params):
+        try:
+            return self.http.get(path, **params)
+        except ServiceError:
+            return self.http.get(path, **params)
+
+    def posts_since(self, channel_id: str, since_ms: int) -> list[dict]:
+        result = self._get(f"/api/v4/channels/{urllib.parse.quote(channel_id)}/posts", since=since_ms) or {}
+        return list((result.get("posts") or {}).values())
+
+    def user_by_username(self, username: str) -> dict | None:
+        try:
+            return self._get(f"/api/v4/users/username/{urllib.parse.quote(username)}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+
+    def user(self, user_id: str) -> dict | None:
+        try:
+            return self._get(f"/api/v4/users/{urllib.parse.quote(user_id)}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+
+    def post_link(self, post_id: str) -> str:
+        return f"{self.base_url}/_redirect/pl/{post_id}"
 
 
 class Playbooks:
