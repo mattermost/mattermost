@@ -43,6 +43,8 @@ import {
     DropOverlayIdCreatePost,
     DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
+import PostAttributesComposer from 'components/post_attributes/post_attributes_composer';
+import {useStagedPostAttributes} from 'components/post_attributes/use_staged_post_attributes';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import Textbox from 'components/textbox';
@@ -266,6 +268,8 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const stagedAttributes = useStagedPostAttributes();
+    const clearStagedAttributes = stagedAttributes.clear;
 
     const readOnlyChannel = !canPost || !writeAllowedByPolicy;
     const hasDraftMessage = Boolean(draft.message);
@@ -479,11 +483,12 @@ const AdvancedTextEditor = ({
         setShowPreview,
         handleDraftChange,
         prioritySubmitCheck,
-        undefined,
+        clearStagedAttributes,
         afterSubmit,
         undefined,
         isInEditMode,
         postId,
+        stagedAttributes.values,
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
@@ -710,6 +715,12 @@ const AdvancedTextEditor = ({
         setShowPreview(false);
         setServerError(null);
     }, [channelId, rootId]);
+
+    // Attribute values are composer state, not part of the draft, so
+    // switching channel or thread has to discard them explicitly.
+    useEffect(() => {
+        clearStagedAttributes();
+    }, [channelId, rootId, clearStagedAttributes]);
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
@@ -952,6 +963,17 @@ const AdvancedTextEditor = ({
                                     canRemove={!showPreview}
                                 />
                             </div>
+                        )}
+                        {postAttributesEnabled && !isInEditMode && (
+                            <PostAttributesComposer
+                                channelId={channelId}
+                                values={stagedAttributes.values}
+                                added={stagedAttributes.added}
+                                justAdded={stagedAttributes.justAdded}
+                                onAdd={stagedAttributes.add}
+                                onChange={stagedAttributes.change}
+                                onRemove={stagedAttributes.remove}
+                            />
                         )}
                         {wysiwygEnabled ? (
                             <WysiwygEditor

@@ -6,17 +6,19 @@ import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
+import type {OnSubmitOptions} from 'actions/views/create_comment';
 import {quoteTextInDraft, removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -1468,4 +1470,219 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue(valueBefore);
         });
     });
+
+    describe('staged post attributes', () => {
+        const groupId = 'post_attributes_group';
+        const options = [
+            {id: 'opt_secret', name: 'SECRET', color: 'red'},
+            {id: 'opt_unclassified', name: 'UNCLASSIFIED', color: 'green'},
+        ];
+
+        // System-scoped, so both channels in the state offer the same fields
+        // and a channel switch shows what was cleared rather than a field
+        // that simply does not apply.
+        function makeField(overrides: Partial<PropertyField>): PropertyField {
+            return {
+                id: 'field_id',
+                group_id: groupId,
+                name: 'field',
+                type: 'select',
+                object_type: 'post',
+                target_type: 'system',
+                target_id: '',
+                attrs: {options},
+                permission_values: 'member',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: currentUserId,
+                updated_by: currentUserId,
+                ...overrides,
+            };
+        }
+
+        const alwaysField = makeField({id: 'f_always', name: 'classification', attrs: {options, display_name: 'Classification', visibility: 'always'}});
+        const pickedField = makeField({id: 'f_picked', name: 'priority', attrs: {options, display_name: 'Priority', visibility: 'when_set'}});
+
+        const withAttributes = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPostAttributes: 'true',
+                    },
+                },
+                properties: {
+                    fields: {
+                        byId: {[alwaysField.id]: alwaysField, [pickedField.id]: pickedField},
+                        byObjectType: {post: {[groupId]: {[alwaysField.id]: alwaysField, [pickedField.id]: pickedField}}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {
+                        byId: {[groupId]: {id: groupId, name: 'post_attributes'}},
+                        byName: {post_attributes: {id: groupId, name: 'post_attributes'}},
+                    },
+                },
+            },
+        });
+
+        // Earlier tests in this file leave `onSubmit` returning a promise
+        // they resolve by hand; these need it to settle on its own. By default
+        // it behaves like a created post, which runs `afterOptimisticSubmit`
+        // once the pending post is in the store.
+        beforeEach(() => {
+            mockedOnSubmit.mockImplementation(((_channelId: string, _rootId: string, _draft: unknown, submitOptions: OnSubmitOptions) => () => {
+                submitOptions.afterOptimisticSubmit?.();
+                return Promise.resolve({data: true});
+            }) as unknown as typeof onSubmit);
+        });
+
+        // Stages a value on the `always` chip and picks the `when_set` field
+        // from the composer's own picker, giving it a value too.
+        async function stageAttributes() {
+            await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: /^SECRET/}));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET'));
+
+            await userEvent.click(screen.getByTestId('post-attributes-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+            await userEvent.click(await screen.findByRole('menuitemradio', {name: /^UNCLASSIFIED/}));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED'));
+        }
+
+        function expectNothingStaged() {
+            expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+            expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+        }
+
+        it('sends the staged values and clears them with the message box', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: 'a message with attributes'}});
+
+            await act(async () => {
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            });
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.anything(),
+                expect.objectContaining({
+                    propertyValues: expect.arrayContaining([
+                        {field_id: 'f_always', value: 'opt_secret'},
+                        {field_id: 'f_picked', value: 'opt_unclassified'},
+                    ]),
+                }),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expectNothingStaged();
+        });
+
+        it('keeps the staged values when the submit fails', async () => {
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({error: {message: 'failed', server_error_id: 'api.error'}})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            await act(async () => {
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            });
+
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('keeps the staged values when a slash command is submitted', async () => {
+            // A command or a `+:emoji:` reaction resolves without creating a
+            // post, so `afterOptimisticSubmit` never runs.
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({data: true})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: '/echo hello'}});
+
+            await act(async () => {
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            });
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.objectContaining({message: '/echo hello'}),
+                expect.anything(),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('clears the staged values when the channel changes', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expectNothingStaged();
+        });
+
+        it('clears the staged values when the thread changes', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='thread_1'
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='thread_2'
+                />,
+            );
+
+            expectNothingStaged();
+        });
+    });
+
 });

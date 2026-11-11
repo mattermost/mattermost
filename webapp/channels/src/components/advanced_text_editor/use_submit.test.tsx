@@ -356,4 +356,42 @@ describe('useSubmit', () => {
             undefined,
         );
     });
+
+    it('should forward afterOptimisticSubmit onto the submit options without calling it', async () => {
+        const afterOptimisticSubmit = jest.fn();
+        const {result} = renderHookWithContext(() => useSubmit(
+            mockDraft,
+            mockPostError,
+            'channel_id',
+            '',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            afterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+        ), getBaseState());
+
+        const [handleSubmit] = result.current;
+
+        await handleSubmit();
+
+        expect(onSubmit).toHaveBeenCalledWith(
+            'channel_id',
+            '',
+            expect.anything(),
+            expect.objectContaining({afterOptimisticSubmit}),
+            undefined,
+        );
+
+        // Only the post action decides whether a post was created, so the
+        // hook itself must not run the callback on a successful submit.
+        expect(afterOptimisticSubmit).not.toHaveBeenCalled();
+    });
 });

@@ -28603,6 +28603,18 @@
     "defaultMessage": "Add attributes",
     "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
   },
+  "post_attributes.composer.chip": {
+    "defaultMessage": "{field}: {value}",
+    "description": "Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute's name; {value} is the selected option or options."
+  },
+  "post_attributes.composer.group": {
+    "defaultMessage": "Attached post attributes",
+    "description": "Accessible label of the row of attribute chips above the message box in the composer."
+  },
+  "post_attributes.composer.remove": {
+    "defaultMessage": "Remove {attribute}",
+    "description": "Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute's name. Verb."
+  },
   "post_attributes.dot_menu.attributes": {
     "defaultMessage": "Attributes",
     "description": "Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun."

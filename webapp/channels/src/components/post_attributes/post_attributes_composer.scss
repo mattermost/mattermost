@@ -1,0 +1,95 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// The chip row carries `.PostAttributesChips` too, so the values inside it are
+// styled by post_attributes_chips.scss exactly as a sent post's chips are.
+// Only the row's own layout differs: it spans the composer and sits above the
+// message box rather than under a post. Both classes in the selector so these
+// win regardless of which sheet loads first.
+.PostAttributesChips.PostAttributesComposer {
+    width: auto;
+    gap: 6px;
+    margin-block: 0 8px;
+}
+
+.PostAttributesComposerChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &__label {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+        white-space: nowrap;
+    }
+
+    &__remove {
+        display: inline-flex;
+        width: 16px;
+        height: 16px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-s);
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+            outline: none;
+        }
+    }
+
+    // The option trigger's content is already the coloured chip, so the button
+    // itself stays invisible until hover or focus rather than drawing a chip
+    // around a chip.
+    .PostAttributesModalRow__trigger {
+        width: auto;
+        height: auto;
+        padding: 0;
+        border-radius: 4px;
+
+        &:hover:not(:disabled),
+        &:focus-visible {
+            box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    // The text control has no chip of its own to wrap, so this draws one —
+    // matching .TextProperty's look while idle, and falling back to a plain
+    // input while focused so the mode the user is in stays legible.
+    .PostAttributesModalRow__input {
+        width: auto;
+        min-width: 48px;
+        height: 20px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+            outline: none;
+        }
+    }
+
+    .PostAttributesModalRow__users {
+        width: auto;
+        min-width: 120px;
+
+        .UserMultiSelector__control {
+            min-height: 20px;
+        }
+    }
+}

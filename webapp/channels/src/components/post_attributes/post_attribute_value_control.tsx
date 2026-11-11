@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
@@ -30,6 +30,20 @@ type Props = {
     value?: PropertyValue<unknown>;
     disabled: boolean;
     onChange: (fieldId: string, next: unknown) => void;
+
+    // Replaces the field label as `OptionMenu`'s accessible name. The composer's
+    // chip shows only the value, so it passes "Field: value" for screen readers.
+    // `TextInput` and `UserPicker` ignore it: their content already reads out
+    // the value.
+    ariaLabel?: string;
+
+    // Replaces `OptionMenu`'s plain-text `PostAttributeText` display of the
+    // current value, so the composer can render it as the sent post's chip.
+    renderValue?: (field: PropertyField, value: PropertyValue<unknown>) => React.ReactNode;
+
+    // Opens the menu, or focuses the input, on mount, so a field just picked in
+    // the composer can be given a value without hunting for its control.
+    autoOpen?: boolean;
 };
 
 /**
@@ -41,7 +55,7 @@ type Props = {
  * websocket — the row reads the store, always. The text control keeps a draft of
  * what is being typed, which is not the same thing — see `TextInput`.
  */
-export default function PostAttributeValueControl({field, value, disabled, onChange}: Props) {
+export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
@@ -52,6 +66,9 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
                 value={value}
                 disabled={disabled}
                 onChange={onChange}
+                ariaLabel={ariaLabel}
+                renderValue={renderValue}
+                autoOpen={autoOpen}
             />
         );
 
@@ -63,6 +80,7 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
                 value={value}
                 disabled={disabled}
                 onChange={onChange}
+                autoOpen={autoOpen}
             />
         );
 
@@ -74,6 +92,7 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
                 value={value}
                 disabled={disabled}
                 onChange={onChange}
+                autoOpen={autoOpen}
             />
         );
 
@@ -95,11 +114,26 @@ function sameEntries(left: string[], right: string[]): boolean {
 /**
  * A menu of the field's options with a check on each chosen one.
  */
-function OptionMenu({field, value, disabled, onChange}: Props) {
-    const label = getPropertyFieldLabel(field);
+function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen}: Props) {
+    const label = ariaLabel ?? getPropertyFieldLabel(field);
     const isMulti = field.type === 'multiselect';
     const options = getPropertyFieldOptions(field);
     const entries = storedEntries(value);
+
+    // Controlled only so `autoOpen` can open the menu on mount; like a native
+    // `autoFocus`, it is read once. `onToggle` follows every other open and
+    // close, so without `autoOpen` this behaves as the uncontrolled menu did.
+    const [isOpen, setIsOpen] = useState(Boolean(autoOpen));
+
+    let displayValue: React.ReactNode = null;
+    if (value) {
+        displayValue = renderValue ? renderValue(field, value) : (
+            <PostAttributeText
+                field={field}
+                value={value}
+            />
+        );
+    }
 
     // A stored entry names an option by id or, for older data, by name — the same
     // two forms `resolveOption` accepts. Both are matched here so the check mark
@@ -131,10 +165,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
     if (options.length === 0) {
         return value ? (
             <span className='PostAttributesModalRow__readOnly'>
-                <PostAttributeText
-                    field={field}
-                    value={value}
-                />
+                {displayValue}
             </span>
         ) : null;
     }
@@ -147,16 +178,13 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
                 class: 'PostAttributesModalRow__trigger',
                 disabled,
                 'aria-label': label,
-                children: value ? (
-                    <PostAttributeText
-                        field={field}
-                        value={value}
-                    />
-                ) : null,
+                children: displayValue,
             }}
             menu={{
                 id: `postAttributeValueMenu-${field.id}`,
                 'aria-label': label,
+                isMenuOpen: isOpen,
+                onToggle: setIsOpen,
             }}
         >
             {options.map((option) => {
@@ -200,9 +228,19 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
  * a text value and a select value sit at the same place and shade the same way
  * under the pointer.
  */
-function TextInput({field, value, disabled, onChange}: Props) {
+function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
     const stored = storedText(value);
     const [draft, setDraft] = useState(stored);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    // Focused from an effect rather than through `autoFocus`, which also
+    // steals focus on any page load that happens to mount the input; this
+    // only fires for the field the composer's picker just added.
+    useEffect(() => {
+        if (autoOpen) {
+            inputRef.current?.focus();
+        }
+    }, [autoOpen]);
 
     const handleBlur = useCallback(() => {
         if (draft !== stored) {
@@ -227,6 +265,7 @@ function TextInput({field, value, disabled, onChange}: Props) {
             value={draft}
             disabled={disabled}
             aria-label={getPropertyFieldLabel(field)}
+            ref={inputRef}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
@@ -256,9 +295,20 @@ function TextInput({field, value, disabled, onChange}: Props) {
  * members. Naming someone in a post attribute is not a claim that they can read
  * the channel, so membership is the wrong constraint.
  */
-function UserPicker({field, value, disabled, onChange}: Props) {
+function UserPicker({field, value, disabled, onChange, autoOpen}: Props) {
     const {formatMessage} = useIntl();
     const isMulti = field.type === 'multiuser';
+
+    // `UserSelector` exposes neither a ref nor a way to open its menu, so the
+    // search input it renders is focused directly. That is also the useful
+    // gesture here: the menu is an async search with nothing to list until a
+    // name is typed, so an opened menu would only say there are no results.
+    const containerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (autoOpen) {
+            containerRef.current?.querySelector('input')?.focus();
+        }
+    }, [autoOpen]);
 
     // Memoised on the stored value rather than recomputed per render:
     // `UserSelector` keys an effect that fetches missing profiles off this
@@ -352,6 +402,7 @@ function UserPicker({field, value, disabled, onChange}: Props) {
 
     return (
         <div
+            ref={containerRef}
             className='PostAttributesModalRow__users'
             data-testid={`post-attribute-user-${field.name}`}
             onKeyDownCapture={handleKeyDownCapture}
