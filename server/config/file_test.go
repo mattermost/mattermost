@@ -1018,6 +1018,35 @@ func TestFileStorePersistSkipsUnchangedConfig(t *testing.T) {
 	assert.False(t, info.ModTime().Equal(past), "changed config should be rewritten")
 }
 
+func TestWriteFileReservingSpace(t *testing.T) {
+	for name, tc := range map[string]struct{ old, new string }{
+		"grows":       {"old", "much longer new content"},
+		"shrinks":     {"much longer old content", "new"},
+		"same length": {"abc", "xyz"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.json")
+			require.NoError(t, os.WriteFile(path, []byte(tc.old), 0600))
+
+			require.NoError(t, writeFileReservingSpace(path, []byte(tc.new)))
+
+			data, err := os.ReadFile(path)
+			require.NoError(t, err)
+			assert.Equal(t, tc.new, string(data))
+		})
+	}
+
+	t.Run("creates the file if it does not exist", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "config.json")
+
+		require.NoError(t, writeFileReservingSpace(path, []byte("new")))
+
+		data, err := os.ReadFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+	})
+}
+
 // addUnknownConfigKeys takes valid, marshaled config data and adds keys that don't
 // correspond to any field in model.Config, simulating settings removed from a past
 // release that a deployment might still be carrying in its on disk config.

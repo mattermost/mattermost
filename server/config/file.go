@@ -124,12 +124,41 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return nil
 	}
 
-	err = os.WriteFile(fs.path, b, 0600)
-	if err != nil {
+	if err = writeFileReservingSpace(fs.path, b); err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
 
 	return nil
+}
+
+// writeFileReservingSpace is os.WriteFile, except that it reserves disk space for all of data
+// before changing the file, and only truncates once data is written. Running out of space or
+// quota then fails before the existing contents are touched, instead of leaving an empty file.
+func writeFileReservingSpace(path string, data []byte) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+
+	if err = overwriteReservingSpace(f, data); err != nil {
+		// The write error is the one worth reporting.
+		_ = f.Close()
+		return err
+	}
+	return f.Close()
+}
+
+func overwriteReservingSpace(f *os.File, data []byte) error {
+	if err := reserveSpace(f, int64(len(data))); err != nil {
+		return errors.Wrap(err, "failed to reserve disk space")
+	}
+	if _, err := f.WriteAt(data, 0); err != nil {
+		return err
+	}
+	if err := f.Truncate(int64(len(data))); err != nil {
+		return err
+	}
+	return f.Sync()
 }
 
 // Load updates the current configuration from the backing store.
