@@ -351,22 +351,17 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 }
 
 // getSessionAttributesForEvaluation returns the attributes of rctx's session
-// for ABAC evaluation. Server-derived attributes (IP, user agent fields, and
-// tls_device_id) are taken from rctx only; the cached values prove only that
-// some earlier request had them.
+// for ABAC evaluation. Server-derived attributes are taken from rctx only, and
+// the cached tls_device_id is ignored: it proves only that some earlier request
+// had it.
 func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]any, *model.AppError) {
 	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	// Remove all server-derived attributes from the cached values
 	delete(attrs, model.SessionAttributesPropertyFieldTLSDDeviceID)
-	for name := range model.SessionAttributesRequestDerivedFieldNames {
-		delete(attrs, name)
-	}
 
-	// Add the server-derived attributes from the current request context
 	if serverDerived := ServerDerivedAttributes(rctx); len(serverDerived) > 0 {
 		if attrs == nil {
 			attrs = make(map[string]any, len(serverDerived)+1)

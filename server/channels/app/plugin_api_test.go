@@ -797,10 +797,6 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(activeSession.Id, map[string]any{
-		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
-	}, model.GetMillis()))
-
 	fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
 	t.Cleanup(func() {
 		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
