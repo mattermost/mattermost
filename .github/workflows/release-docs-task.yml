@@ -28,7 +28,8 @@ name: Release Docs Task
 #   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
 #   ANTHROPIC_API_KEY               (secret)   highlights, the breaking-change review and notices, blog and
 #                                              email drafts, dot release bullets for PRs with no release note
-#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
+#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics,
+#                                   and the release docs PR's accessibility tickets (listed on Hub only)
 #                                              for drafts and release-highlights, and the ticket labels
 #                                              that mark security fixes and breaking changes
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): the changelog

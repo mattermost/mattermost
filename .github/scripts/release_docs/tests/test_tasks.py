@@ -8,7 +8,7 @@ from datetime import date
 for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "MILESTONE": "v12.2.0", "VERSION": "v12.2.0"}.items():
     os.environ.setdefault(name, value)
 
-from release_docs import docker_env, drafts, github_release, notice, posts, release_docs_pr, version_archive
+from release_docs import calendar, docker_env, drafts, github_release, notice, posts, release_docs_pr, version_archive
 from release_docs.changelog import Highlight
 from release_docs.result import TODO_MARKER
 from release_docs.versions import Version
@@ -259,12 +259,17 @@ class ReleaseDocsTest(unittest.TestCase):
 
     def test_full_pr_on_this_checkouts_docs_is_idempotent(self):
         files = real_docs()
-        first = release_docs_pr.build(Version.parse("v12.2.0"), files, ESR, date(2026, 12, 16), 15)
-        self.assertEqual(sorted(first.files), sorted(set(release_docs_pr.FILES) - {release_docs_pr.REQUIREMENTS, release_docs_pr.DESKTOP_RELEASES}))
+        events = calendar.parse_ics("\n".join(
+            f"BEGIN:VEVENT\nSUMMARY:{title}\nDTSTART;VALUE=DATE:{day}\nEND:VEVENT" for title, day in (
+                ("v12.3 Release Day", "20270115"), ("v12.4 Release Day", "20270216"),
+                ("v12.1 & Mobile v2.46 Release Day", "20261116"), ("Desktop v6.4 Release Day", "20261116"))))
+        first = release_docs_pr.build(Version.parse("v12.2.0"), files, ESR, date(2026, 12, 16), 15, events)
+        self.assertEqual(sorted(first.files), sorted(set(release_docs_pr.FILES) - {
+            release_docs_pr.REQUIREMENTS, release_docs_pr.DESKTOP_RELEASES, release_docs_pr.MOBILE_RELEASES}))
         self.assertIn("the newest Desktop App release (v6.3) is no longer supported", first.todos[0])
         for path in (release_docs_pr.UI_ADA_CHANGELOG, release_docs_pr.UPGRADE_NOTES, release_docs_pr.DEPRECATED_FEATURES):
             self.assertIn(f"{{/* {release_docs_pr.PLACEHOLDER_MARKER}: v12.2", first.files[path])
-        again = release_docs_pr.build(Version.parse("v12.2.0"), {**files, **first.files}, ESR, date(2026, 12, 16), 15)
+        again = release_docs_pr.build(Version.parse("v12.2.0"), {**files, **first.files}, ESR, date(2026, 12, 16), 15, events)
         self.assertEqual(again.files, {})
 
 

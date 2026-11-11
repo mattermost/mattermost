@@ -11,7 +11,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from changelog_release import changelog_path, parse_ls_remote, unreleased_branches
 
@@ -370,7 +370,9 @@ def _run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch
             code_minimum = release_docs_pr.postgres_minimum(
                 gh.file(SERVER_REPO, release_docs_pr.POSTGRES_REQUIREMENT, branch)
                 if gh.branch_sha(SERVER_REPO, branch) else gh.file(SERVER_REPO, release_docs_pr.POSTGRES_REQUIREMENT, target.base))
-            built = release_docs_pr.build(version, {p: read(p) for p in release_docs_pr.FILES}, esr, day, code_minimum)
+            accessibility = accessibility_tickets(env, version, events or [], live, result)
+            built = release_docs_pr.build(version, {p: read(p) for p in release_docs_pr.FILES}, esr, day, code_minimum,
+                                          events or [], accessibility)
             built.todos = result.todos + built.todos
             built.notes = result.notes + built.notes
             result = built
@@ -578,6 +580,43 @@ def due_release(task: str, events: list, today: date, holidays) -> tuple[Version
                 schedule.add_working_days(found["feature_complete"].start, 1, holidays) <= today < day:
             return version, day
     return None, None
+
+
+def accessibility_tickets(env: dict, version: Version, events: list, live: bool, result: Result):
+    """(count, listed on Hub) for the playbook item's accessibility filter, or None without Jira.
+
+    The window runs from the previous release's Feature Complete (31 days back when the
+    calendar doesn't have it) to today. Jira is private, so the tickets are listed only on
+    Hub, in the review channel (in a dry run, the test channel), once per release; the PR
+    body and the run output get the count only.
+    """
+    client = jira.from_env(env)
+    if client is None:
+        return None
+    today = now_utc(env).date()
+    earlier = sorted(line for line, found in calendar.milestones(events).items()
+                     if line < version.line and "feature_complete" in found)
+    since = (calendar.milestones(events)[earlier[-1]]["feature_complete"].start if earlier
+             else today - timedelta(days=31))
+    jql = release_docs_pr.ACCESSIBILITY_JQL.format(since=since.isoformat(), until=today.isoformat())
+    try:
+        tickets = client.search(jql, ["summary"])
+    except Exception as err:  # noqa: BLE001 - only the error type is public
+        result.notes.append(f"The accessibility tickets couldn't be read from Jira ({type(err).__name__}).")
+        return None
+    hub = hublib.from_env(env)
+    review = hublib.review_channel_id(env, live, hublib.release_channel(hub, version) if hub else None) if hub else ""
+    if not hub or not review:
+        return len(tickets), False
+    marker = f"release-docs:accessibility:{version.short}"
+    if not hublib.find_post(hub, review, marker):
+        lines = [f"- [{t['key']}]({client.browse_url(t['key'])}) {' '.join(((t.get('fields') or {}).get('summary') or '').split())}"
+                 for t in tickets] or ["- None found."]
+        hub.create_post(review, f"Accessibility tickets for the {version.short} UI & Accessibility changelog "
+                                f"(resolved or closed, updated {since.isoformat()} to {today.isoformat()}), "
+                                f"[from this filter]({client.filter_url(jql)}):\n\n" + "\n".join(lines),
+                        {hublib.MARKER_PROP: marker})
+    return len(tickets), True
 
 
 def report_in_hub(hub, channel_id: str, marker: str, message: str, live: bool) -> str:

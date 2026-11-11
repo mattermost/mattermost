@@ -1,12 +1,15 @@
 """The calculated parts of the release docs PR (playbook T-16).
 
-Release lifecycle table, ESR chart (with the next ESR), ESR/PostgreSQL rows, Desktop
-compatibility and the deploy pages' version strings. Sections that need a person get a
-marked placeholder, filled in a later PR.
+Server releases table, the Release Lifecycle chart on the release policy page (this release,
+the next two from the calendar, versions past their support end marked unsupported, and the
+next ESR), the latest server, desktop and mobile releases' end dates when the next release is
+late, ESR/PostgreSQL rows, Desktop compatibility and the deploy pages' version strings.
+Sections that need a person get a marked placeholder, filled in a later PR. The accessibility
+tickets for the UI & Accessibility changelog are counted here and listed on Hub only.
 """
 
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from .result import TODO_MARKER, Result
 from .versions import (
@@ -23,6 +26,16 @@ from .versions import (
 )
 
 TASK = "release-docs"
+# The last release docs PR a person made, whose format the generated lines copy.
+EXAMPLE_PR = "https://github.com/mattermost/mattermost/pull/38573"
+MOBILE_RELEASES = "docs/main/product-overview/mattermost-mobile-releases.mdx"
+# The playbook item's accessibility filter (Jira filter 15011), with this release's dates.
+ACCESSIBILITY_JQL = ('project = MM AND status IN (Resolved, Closed) AND parent = MM-59517 '
+                     'AND updated >= "{since}" AND updated <= "{until}"')
+PLAYBOOK_QUOTE = ("Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source "
+                  "Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle (add two "
+                  "upcoming versions and mark one version as unsupported), Desktop compatibility, and ESR/PostgreSQL "
+                  "compatibility table pages, and add the next ESR version to the chart in the ESR docs page.")
 SERVER_RELEASES = "docs/main/product-overview/mattermost-server-releases.mdx"
 RELEASE_POLICY = "docs/main/product-overview/release-policy.mdx"
 DESKTOP_RELEASES = "docs/main/product-overview/mattermost-desktop-releases.mdx"
@@ -34,7 +47,7 @@ DEPLOY_PAGES = (
 UI_ADA_CHANGELOG = "docs/main/product-overview/ui-ada-changelog.mdx"
 UPGRADE_NOTES = "docs/main/administration-guide/upgrade/important-upgrade-notes.mdx"
 DEPRECATED_FEATURES = "docs/main/product-overview/deprecated-features.mdx"
-FILES = (SERVER_RELEASES, RELEASE_POLICY, DESKTOP_RELEASES, REQUIREMENTS, *DEPLOY_PAGES,
+FILES = (SERVER_RELEASES, RELEASE_POLICY, DESKTOP_RELEASES, MOBILE_RELEASES, REQUIREMENTS, *DEPLOY_PAGES,
          UI_ADA_CHANGELOG, UPGRADE_NOTES, DEPRECATED_FEATURES)
 # Where the server's minimum PostgreSQL version is set; read on the release branch.
 POSTGRES_REQUIREMENT = "server/public/model/config.go"
@@ -165,6 +178,59 @@ def update_esr_chart(content: str, version: Version, esr_versions: str, release_
     if esr:
         content = _add_planned_esr(content, version, esr_versions, release_day, result)
         content = _update_esr_legend(content, version, release_day, result)
+    return content
+
+
+def upcoming_releases(version: Version, events: list | None) -> list[tuple[Version, date | None]]:
+    """The two server releases after ``version``, with their Release Day from the calendar.
+    One the calendar doesn't have yet is the next minor with no date: a TODO, never a guess."""
+    from . import calendar
+    found = [(v, ms["release_day"].start) for v, ms in calendar.next_releases(events or [], version, 2)]
+    expected = [Version(version.major, version.minor + 1), Version(version.major, version.minor + 2)]
+    for wanted in expected:
+        if len(found) >= 2:
+            break
+        if all(v.line != wanted.line for v, _ in found):
+            found.append((wanted, None))
+    return sorted(found, key=lambda pair: pair[0].line)[:2]
+
+
+def add_upcoming_lines(content: str, upcoming: list, esr_versions: str, result: Result) -> str:
+    """The Release Lifecycle chart gets a line for each of the next two releases, dated from the
+    calendar, as the last release docs PR made by hand did (``EXAMPLE_PR``). A line already
+    there is filled in (its dates follow the calendar), never added twice; a planned ESR line
+    is left as it is. A release with no Release Day gets a TODO in the PR body, no line."""
+    for version, day in upcoming:
+        if day is None:
+            result.todo(f"no Release Day for {version.short} on the Release Dates calendar, so the Release Lifecycle "
+                        "chart has no line for it")
+            continue
+        lines = content.splitlines(keepends=True)
+        start = next((i for i, line in enumerate(lines) if line.strip() == "section Releases"), None)
+        if start is None:
+            return content
+        end = next((i for i in range(start, len(lines)) if lines[i].strip() == "```"), len(lines))
+        entries = _parse_gantt(lines, start + 1, end)
+        esr = is_esr(version, esr_versions)
+        begin, finish = day.isoformat(), support_end(day, esr).isoformat()
+        existing = next((e for e in entries if e["version"] == version.line), None)
+        if existing and existing["planned"]:
+            continue
+        if existing:
+            if (existing["start"], existing["end"]) != (begin, finish):
+                lines[existing["index"]] = _gantt_line(version.short, existing["label"], existing["tags"], begin, finish)
+                result.notes.append(f"The Release Lifecycle chart's {version.short} line now has the calendar's dates.")
+            content = "".join(lines)
+            continue
+        if esr:
+            desktop = result.todo(f"the Desktop App ESR paired with {version.short}", bare=True)
+            line = _gantt_line(version.short, f" & Desktop App {desktop} Extended Support", ["crit", "active"], begin, finish)
+        else:
+            line = _gantt_line(version.short, "", ["active"], begin, finish)
+        later = [e["index"] for e in entries if e["version"] > version.line]
+        lines.insert(later[0] if later else (entries[-1]["index"] + 1 if entries else start + 1), line)
+        content = "".join(lines)
+        result.upcoming.append(version.short)
     return content
 
 
@@ -301,6 +367,58 @@ def add_postgres_row(content: str, version: Version, esr_versions: str, release_
     return content[:at] + row + content[at:]
 
 
+# ── Delayed releases: the latest release's end date ──────────────────────────────────
+
+SUPPORT_ENDS = re.compile(r"Support Ends: (\d{4}-\d{2}-\d{2})")
+SERVER_ENDS = re.compile(r"\| (\d{4}-\d{2}-\d{2}) \| (\d{4}-\d{2}-\d{2})")
+APP_ROW = re.compile(r"^\| v(\d+)\.(\d+) ")
+
+
+def companion_release_day(events: list | None, kind: str, short: str) -> date | None:
+    """The calendar's Release Day for "Mobile v2.46" or "Desktop v6.4" (any title naming it)."""
+    named = re.compile(rf"\b{kind}\s+{re.escape(short)}(?![\d.])", re.IGNORECASE)
+    days = [e.start for e in events or [] if named.search(e.summary) and "release day" in e.summary.lower()]
+    return max(days) if days else None
+
+
+def extend_for_delay(content: str, path: str, kind: str, events: list | None, release_day: date | None,
+                     result: Result) -> str:
+    """When the next release is late, the latest release on a releases page is supported until
+    the day before it ships, as the pages already show (v2.45: Support Ends 2026-11-15, the day
+    before v2.46). Only checked for a latest release whose end falls by this release's Release
+    Day; a next release the calendar has no date for is a TODO."""
+    lines = content.splitlines(keepends=True)
+    index = next((i for i, line in enumerate(lines) if APP_ROW.match(line)), None)
+    if index is None or release_day is None:
+        return content
+    match = APP_ROW.match(lines[index])
+    found = (SERVER_ENDS if kind == "Server" else SUPPORT_ENDS).search(lines[index])
+    if not found:
+        return content
+    end = date.fromisoformat(found.group(found.lastindex))
+    if end > release_day:
+        return content
+    latest, following = f"v{match.group(1)}.{match.group(2)}", f"v{match.group(1)}.{int(match.group(2)) + 1}"
+    if kind == "Server":
+        from . import calendar
+        day = calendar.release_day(events or [], Version(int(match.group(1)), int(match.group(2)) + 1))
+    else:
+        day = companion_release_day(events, kind, following)
+    name = latest if kind == "Server" else f"{kind} {latest}"
+    if day is None:
+        result.todo(f"no Release Day on the Release Dates calendar for the release after {name}, so its end date on "
+                    f"{path.rsplit('/', 1)[-1]} isn't checked")
+        return content
+    new_end = day - timedelta(days=1)
+    if new_end <= end:
+        return content
+    start, stop = found.span(found.lastindex)
+    lines[index] = lines[index][:start] + new_end.isoformat() + lines[index][stop:]
+    result.delayed.append(f"{name} on {path.rsplit('/', 1)[-1]}: support now ends {new_end.isoformat()} instead of "
+                          f"{end.isoformat()}, the day before the next release's Release Day ({day.isoformat()})")
+    return "".join(lines)
+
+
 # ── Deploy pages ────────────────────────────────────────────────────────────────────
 
 WGET = re.compile(r"https://releases\.mattermost\.com/(\d+\.\d+\.\d+)/mattermost-(\d+\.\d+\.\d+)-linux-amd64\.tar\.gz")
@@ -351,9 +469,14 @@ PLACEHOLDERS = (
 
 # ── The PR ──────────────────────────────────────────────────────────────────────────
 
-def build(version: Version, files: dict, esr_versions: str, release_day: date | None, code_minimum: int | None) -> Result:
-    """``files`` maps each path in ``FILES`` to its text on the base branch (None if absent)."""
+def build(version: Version, files: dict, esr_versions: str, release_day: date | None, code_minimum: int | None,
+          events: list | None = None, accessibility: tuple[int, bool] | None = None) -> Result:
+    """``files`` maps each path in ``FILES`` to its text on the base branch (None if absent).
+    ``events`` are the Release Dates calendar's. ``accessibility`` is (how many tickets the
+    accessibility filter found, whether they were listed on Hub), or None when Jira wasn't
+    read: Jira is private, so the tickets themselves are never in the PR or the run output."""
     result = Result(TASK, version.tag, repo="mattermost/mattermost")
+    result.upcoming, result.delayed = [], []
     updated = dict(files)
 
     def apply(path, fn):
@@ -362,8 +485,14 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
             return
         updated[path] = fn(updated[path])
 
+    # The latest release on each page is checked for a late next release before this one is added.
+    apply(SERVER_RELEASES, lambda c: extend_for_delay(c, SERVER_RELEASES, "Server", events, release_day, result))
+    apply(DESKTOP_RELEASES, lambda c: extend_for_delay(c, DESKTOP_RELEASES, "Desktop", events, release_day, result))
+    if updated.get(MOBILE_RELEASES) is not None:
+        apply(MOBILE_RELEASES, lambda c: extend_for_delay(c, MOBILE_RELEASES, "Mobile", events, release_day, result))
     apply(SERVER_RELEASES, lambda c: add_server_release(c, version, esr_versions, release_day, result))
     apply(RELEASE_POLICY, lambda c: update_esr_chart(c, version, esr_versions, release_day, result))
+    apply(RELEASE_POLICY, lambda c: add_upcoming_lines(c, upcoming_releases(version, events), esr_versions, result))
     apply(DESKTOP_RELEASES, lambda c: add_desktop_compatibility(c, version, esr_versions, release_day, result))
     apply(REQUIREMENTS, lambda c: add_postgres_row(c, version, esr_versions, release_day, code_minimum, result))
     for path in DEPLOY_PAGES:
@@ -374,26 +503,39 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
     result.files = {path: text for path, text in updated.items() if text is not None and text != files.get(path)}
     esr_note = " (ESR)" if is_esr(version, esr_versions) else ""
     result.title = f"{version.short}{esr_note} release docs: lifecycle, ESR chart, compatibility and deploy pages"
+    upcoming = (f"Release Lifecycle chart on the release policy page: lines for the next two releases "
+                f"({', '.join(result.upcoming)} added; the others were already there or have a TODO), versions past "
+                "their support end marked as unsupported (`:done`)" if result.upcoming else
+                "Release Lifecycle chart on the release policy page: the next two releases were already there (or "
+                "have a TODO), versions past their support end marked as unsupported (`:done`)")
+    if accessibility is None:
+        ada = "Accessibility tickets not checked: Jira isn't configured for this run."
+    elif accessibility[1]:
+        ada = f"{accessibility[0]} accessibility tickets to review, listed on Hub."
+    else:
+        ada = f"{accessibility[0]} accessibility tickets to review; they couldn't be listed on Hub (no Hub token or review channel)."
     result.body = "\n".join([
         f"Release docs for {version.short}{esr_note} that are calculated from the release calendar, "
         "`CHANGELOG_ESR_VERSIONS` and the release branch:",
         "",
         "- Server releases table: the new row, with its support end date",
+        f"- {upcoming}",
         "- ESR chart on the release policy page" + (", including the next planned ESR" if esr_note else ""),
         "- Desktop compatibility: the newest supported Desktop App release",
         "- ESR/PostgreSQL table: carried forward unless `MinimumPostgresMajorVersion` changed on the release branch",
         "- Version strings in `deploy-rhel.mdx` and `deploy-tar.mdx`",
         "",
+        f"The chart lines follow the format of the last release docs PR made by hand: {EXAMPLE_PR}.",
+        "",
+        *(["Delayed releases (the next release's Release Day on the calendar is later than the end date shown):", "",
+           *[f"- {line}" for line in result.delayed], ""] if result.delayed else []),
         "Sections that need a person are marked with an MDX comment and are filled in a later PR:",
         "",
-        "- [ ] UI & Accessibility changelog",
+        f"- [ ] UI & Accessibility changelog. {ada}",
         "- [ ] Important Upgrade Notes",
         "- [ ] Deprecated Features",
         "",
-        "Playbook (T-16): Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, "
-        "Open Source Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle, "
-        "Desktop compatibility, and ESR/PostgreSQL compatibility table pages, and add the next ESR version to "
-        "the chart in the ESR docs page.",
+        f"Playbook (T-16): {PLAYBOOK_QUOTE}",
         "",
     ])
     return result

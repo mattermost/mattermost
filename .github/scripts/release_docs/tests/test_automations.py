@@ -33,6 +33,19 @@ HIGHLIGHT_ANSWER = {"highlights": [{"name": "Attribute Management", "source": 0,
                                     "url": "https://docs.mattermost.com/administration-guide/manage/admin/attribute-management"}]}
 
 
+def ics(events: list) -> str:
+    lines = ["BEGIN:VCALENDAR"]
+    for title, day in events:
+        lines += ["BEGIN:VEVENT", f"SUMMARY:{title}", f"DTSTART;VALUE=DATE:{day}", "END:VEVENT"]
+    return "\n".join(lines + ["END:VCALENDAR"])
+
+
+def calendar_fetch(fetch, events: list):
+    def answer(url, method="GET"):
+        return (200, ics(events)) if url == "https://cal" else fetch(url, method)
+    return answer
+
+
 class Scenario:
     """One automation: its repo and inputs, with ``complete`` toggling the input it needs."""
 
@@ -52,6 +65,10 @@ class Scenario:
         env = {"EVENT_NAME": "workflow_dispatch", "ESR_VERSIONS": ESR, "WAIT_ATTEMPTS": "1", **self.env}
         claude = FakeClaude(HIGHLIGHT_ANSWER)
         fetch = published_fetch()
+        if self.task == "release-docs":
+            # The Release Dates calendar, for the next two releases' Release Days.
+            env["CALENDAR_ICS_URL"] = "https://cal"
+            fetch = calendar_fetch(fetch, [("v12.2 Release Day", "20261216"), ("v12.3 Release Day", "20270115")])
         if not complete:
             if self.task == "version-archive":
                 fetch = release_server({}, missing=("mattermost-team",))
