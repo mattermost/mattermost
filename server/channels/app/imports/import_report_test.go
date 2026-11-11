@@ -67,6 +67,19 @@ func TestUnmatchedUsers_CountAction(t *testing.T) {
 	assert.Equal(t, 0, report.UnmatchedUsers.CountAction(UnmatchedUserMembershipSkipped))
 }
 
+func TestUnmatchedUsers_LinkedExistingDeduplicated(t *testing.T) {
+	var report ImportReport
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "alice", Reason: "username_matched_existing", Action: UnmatchedUserLinkedExisting})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "alice", Reason: "username_matched_existing", Action: UnmatchedUserLinkedExisting})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "ALICE", Reason: "username_matched_existing", Action: UnmatchedUserLinkedExisting})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "alice", Team: "t1", Reason: "team_not_found", Action: UnmatchedUserMembershipSkipped})
+	report.UnmatchedUsers.Add(UnmatchedUser{Username: "alice", Team: "t2", Reason: "team_not_found", Action: UnmatchedUserMembershipSkipped})
+
+	assert.Equal(t, 1, report.UnmatchedUsers.CountAction(UnmatchedUserLinkedExisting))
+	assert.Equal(t, 2, report.UnmatchedUsers.CountAction(UnmatchedUserMembershipSkipped))
+	assert.Len(t, report.UnmatchedUsers.All(), 3)
+}
+
 func TestUnmatchedUsers_ConcurrentAdd(t *testing.T) {
 	var report ImportReport
 	var wg sync.WaitGroup

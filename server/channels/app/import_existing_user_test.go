@@ -388,6 +388,30 @@ func TestScopedImportPreservesExistingUserIdentity(t *testing.T) {
 	}
 }
 
+// TestScopedImportReportsDuplicateUsernameMatchOnce checks that repeated user lines
+// for one existing account produce a single linked_existing report entry.
+func TestScopedImportReportsDuplicateUsernameMatchOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	dest := createUserInDB(t, th, model.NewUsername())
+	reader := channelScopedJSONL(t, model.NewRandomTeamName(), model.NewId(), nil,
+		[]string{dest.Username, dest.Username, strings.ToUpper(dest.Username)})
+
+	_, report, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context, reader, nil, false, true, 1, "",
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive},
+	)
+	require.Nil(t, appErr)
+	require.NotNil(t, report)
+
+	require.Equal(t, 1, report.UnmatchedUsers.CountAction(imports.UnmatchedUserLinkedExisting))
+	var sb strings.Builder
+	rows, err := report.WriteUnmatchedUsersCSV(&sb)
+	require.NoError(t, err)
+	require.Equal(t, 1, rows)
+}
+
 // TestImportExistingUserIdentityBaseline checks that a full import still applies
 // the archive email and roles to an existing account found by username.
 func TestImportExistingUserIdentityBaseline(t *testing.T) {

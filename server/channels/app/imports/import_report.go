@@ -69,13 +69,26 @@ type UnmatchedUser struct {
 
 // unmatchedUsers is a concurrency-safe accumulator; import workers run in parallel.
 type unmatchedUsers struct {
-	mu sync.Mutex
-	s  []UnmatchedUser
+	mu     sync.Mutex
+	s      []UnmatchedUser
+	linked map[string]struct{}
 }
 
+// Add records rec. A linked_existing entry is kept once per username, ignoring
+// letter case, because repeated user lines all resolve to the same account.
 func (u *unmatchedUsers) Add(rec UnmatchedUser) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	if rec.Action == UnmatchedUserLinkedExisting {
+		key := strings.ToLower(rec.Username)
+		if _, seen := u.linked[key]; seen {
+			return
+		}
+		if u.linked == nil {
+			u.linked = make(map[string]struct{})
+		}
+		u.linked[key] = struct{}{}
+	}
 	u.s = append(u.s, rec)
 }
 
