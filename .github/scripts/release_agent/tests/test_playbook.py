@@ -16,6 +16,11 @@ class FindRunTest(unittest.TestCase):
         run, problem = playbook.find_run(runs, "v12.2")
         self.assertEqual((run["id"], problem), ("b", None))
 
+    def test_dot_zero_is_the_same_release(self):
+        runs = [{"id": "a", "name": "Release v12.2.0"}, {"id": "b", "name": "v12.2.01"}, {"id": "c", "name": "v12.2.0.1"}]
+        run, problem = playbook.find_run(runs, "v12.2")
+        self.assertEqual((run["id"], problem), ("a", None))
+
     def test_none_or_several_is_reported(self):
         self.assertIn("No in-progress playbook run", playbook.find_run([], "v12.2")[1])
         runs = [{"id": "a", "name": "v12.2 Cloud"}, {"id": "b", "name": "v12.2 Self-Hosted"}]

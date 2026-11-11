@@ -37,8 +37,8 @@ def normalize(title: str) -> str:
 
 
 def name_matches(name: str, fragment: str) -> bool:
-    """``v12.2`` matches "Release v12.2" but not "v12.20" or "v12.2.1"."""
-    return re.search(rf"(?<![\w.]){re.escape(fragment)}(?!\w|\.\d)", name or "", re.IGNORECASE) is not None
+    """``v12.2`` matches "Release v12.2" and "Release v12.2.0" but not "v12.20" or "v12.2.1"."""
+    return re.search(rf"(?<![\w.]){re.escape(fragment)}(?:\.0)?(?!\w|\.\d)", name or "", re.IGNORECASE) is not None
 
 
 def find_run(runs: list[dict], fragment: str, by_name: bool = True) -> tuple[dict | None, str | None]:
