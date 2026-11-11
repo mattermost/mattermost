@@ -215,7 +215,7 @@ describe('components/dot_menu/DotMenu', () => {
         canPin: true,
         canCopyText: true,
         canCopyLink: true,
-        canQuoteReply: true,
+        canQuote: true,
         isBurnOnReadPost: false,
         isUnrevealedBurnOnReadPost: false,
     };
@@ -801,7 +801,7 @@ describe('components/dot_menu/DotMenu', () => {
         });
     });
 
-    describe('quote reply', () => {
+    describe('quote', () => {
         const quotedPost = TestHelper.getPostMock({id: 'post_id_1', channel_id: 'channel_id_1', root_id: 'root_id_1', message: 'line one\n\nline two', type: '' as PostType});
 
         test.each([
@@ -820,7 +820,7 @@ describe('components/dot_menu/DotMenu', () => {
             );
 
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
-            await userEvent.click(screen.getByTestId(`quote_reply_${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId(`quote_post_${quotedPost.id}`));
 
             await waitFor(() => expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, isRHS, 'line one\n\nline two'));
         });
@@ -847,7 +847,7 @@ describe('components/dot_menu/DotMenu', () => {
         test.each([
             ['show', ['create_post']],
             ['hide', []],
-        ])('should %s quote reply based on the create_post permission', async (expected, permissions) => {
+        ])('should %s quote based on the create_post permission', async (expected, permissions) => {
             const state: DeepPartial<GlobalState> = {
                 ...initialState,
                 entities: {
@@ -871,13 +871,13 @@ describe('components/dot_menu/DotMenu', () => {
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
 
             if (expected === 'show') {
-                expect(screen.getByTestId(`quote_reply_${post1.id}`)).toBeInTheDocument();
+                expect(screen.getByTestId(`quote_post_${post1.id}`)).toBeInTheDocument();
             } else {
-                expect(screen.queryByTestId(`quote_reply_${post1.id}`)).not.toBeInTheDocument();
+                expect(screen.queryByTestId(`quote_post_${post1.id}`)).not.toBeInTheDocument();
             }
         });
 
-        test('should not show quote reply in a read-only channel', async () => {
+        test('should not show quote in a read-only channel', async () => {
             renderWithContext(
                 <DotMenu
                     {...baseProps}
@@ -889,10 +889,10 @@ describe('components/dot_menu/DotMenu', () => {
 
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
 
-            expect(screen.queryByTestId(`quote_reply_${quotedPost.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`quote_post_${quotedPost.id}`)).not.toBeInTheDocument();
         });
 
-        test('should not show quote reply for a post without text', async () => {
+        test('should not show quote for a post without text', async () => {
             const post = {...quotedPost, message: ''};
             renderWithContext(
                 <DotMenu
@@ -904,7 +904,7 @@ describe('components/dot_menu/DotMenu', () => {
 
             await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post.id}`));
 
-            expect(screen.queryByTestId(`quote_reply_${post.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`quote_post_${post.id}`)).not.toBeInTheDocument();
         });
     });
 });

@@ -117,7 +117,7 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
-        // Quote Reply goes into the message box shown with the post
+        // Quote goes into the message box shown with the post
         const isCenter = !ownProps.location || ownProps.location === Locations.CENTER;
         const isRHS = ownProps.location === Locations.RHS_ROOT || ownProps.location === Locations.RHS_COMMENT;
 
@@ -169,7 +169,7 @@ function makeMapStateToProps() {
             ),
             canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
             canCopyText: !systemMessage && !isBoRPost,
-            canQuoteReply: !systemMessage && (isCenter || isRHS) && canQuoteFromPost(state, post.id, isRHS),
+            canQuote: !systemMessage && (isCenter || isRHS) && canQuoteFromPost(state, post.id, isRHS),
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
             hasPostAttributes,

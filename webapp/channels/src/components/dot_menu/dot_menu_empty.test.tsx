@@ -124,7 +124,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
             canPin: true,
             canCopyText: true,
             canCopyLink: true,
-            canQuoteReply: true,
+            canQuote: true,
             isBurnOnReadPost: false,
             isUnrevealedBurnOnReadPost: false,
         };

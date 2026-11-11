@@ -110,7 +110,7 @@ type Props = {
     canPin: boolean;
     canCopyText: boolean;
     canCopyLink: boolean;
-    canQuoteReply: boolean;
+    canQuote: boolean;
     canFlagContent?: boolean;
 
     /**
@@ -282,7 +282,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         Utils.copyToClipboard(getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale));
     };
 
-    handleQuoteReply = (): void => {
+    handleQuote = (): void => {
         const message = getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale);
         if (!message.trim()) {
             return;
@@ -488,11 +488,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             }
             break;
 
-            // quote reply
+            // quote
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.Q):
-            if (this.canQuoteReply()) {
+            if (this.canQuotePost()) {
                 forceCloseMenu();
-                this.handleQuoteReply();
+                this.handleQuote();
             }
             break;
 
@@ -532,8 +532,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         }
     };
 
-    canQuoteReply = (): boolean => {
-        return Boolean(this.props.canQuoteReply && !this.props.isReadOnly && (this.props.post.message_source || this.props.post.message).trim());
+    canQuotePost = (): boolean => {
+        return Boolean(this.props.canQuote && !this.props.isReadOnly && (this.props.post.message_source || this.props.post.message).trim());
     };
 
     handleMenuToggle = (open: boolean) => {
@@ -647,7 +647,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
-        const showQuoteReply = !isSystemMessage && !isBurnOnReadPost && this.canQuoteReply();
+        const showQuote = !isSystemMessage && !isBurnOnReadPost && this.canQuotePost();
         const showCopyLink = !isSystemMessage && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId);
         const showEdit = this.state.canEdit && !isBurnOnReadPost;
         const showFlagContent = this.props.canFlagContent;
@@ -657,9 +657,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         // 2. BoR post meeting above criteria
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
-        const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
+        const firstSectionHasItems = showReply || showQuote || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
         const showPostAttributes = Boolean(!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && this.props.hasPostAttributes);
-        const secondSectionHasItems = showPostAttributes || showShowTranslation || showCopyText || showQuoteReply || showCopyLink;
+        const secondSectionHasItems = showPostAttributes || showShowTranslation || showCopyText || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 
         return (
@@ -699,6 +699,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ReplyOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='R'/>}
                         onClick={this.handleCommentClick}
+                    />
+                }
+                {showQuote &&
+                    <Menu.Item
+                        id={`quote_post_${this.props.post.id}`}
+                        data-testid={`quote_post_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.quote'
+                                defaultMessage='Quote'
+                            />
+                        }
+                        leadingElement={<FormatQuoteOpenIcon size={18}/>}
+                        trailingElements={<ShortcutKey shortcutKey='Q'/>}
+                        onClick={this.handleQuote}
                     />
                 }
                 {showForward &&
@@ -846,20 +861,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ContentCopyIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='C'/>}
                         onClick={this.copyText}
-                    />
-                }
-                {showQuoteReply &&
-                    <Menu.Item
-                        id={`quote_reply_${this.props.post.id}`}
-                        data-testid={`quote_reply_${this.props.post.id}`}
-                        labels={
-                            <FormattedMessage
-                                id='post_info.quote_reply'
-                                defaultMessage='Quote Reply'
-                            />}
-                        leadingElement={<FormatQuoteOpenIcon size={18}/>}
-                        trailingElements={<ShortcutKey shortcutKey='Q'/>}
-                        onClick={this.handleQuoteReply}
                     />
                 }
                 {showCopyLink &&
