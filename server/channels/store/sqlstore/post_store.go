@@ -600,7 +600,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					WHERE UserId = ?
 				)
 				TEAM_FILTER
-            ORDER BY CreateAt DESC
+            ORDER BY A.CreateAt DESC, A.Id DESC
             LIMIT ? OFFSET ?`
 
 	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
