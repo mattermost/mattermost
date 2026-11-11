@@ -1693,6 +1693,48 @@ func testAccessControlPolicyStoreSearchByTeamIDWithScope(t *testing.T, rctx requ
 		require.Empty(t, results, "policy scoped to team B should not appear in team A scope filter")
 	})
 
+	t.Run("scope-based: policy re-created under a deleted id matches its first save after the delete", func(t *testing.T) {
+		policy := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Scoped Recreated",
+			Type:     model.AccessControlPolicyTypeParent,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules:    []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+			Scope:    model.AccessControlPolicyScopeTeam,
+			ScopeID:  teamA,
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NoError(t, ss.AccessControlPolicy().Delete(rctx, policy.ID))
+
+		policy.ScopeID = teamB
+		recreated, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, policy.ID) })
+		require.Greater(t, recreated.Revision, 1)
+
+		policy.Rules = []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "false"}}
+		updated, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.Equal(t, recreated.Revision+1, updated.Revision)
+
+		for _, includeChildren := range []bool{false, true} {
+			for teamID, want := range map[string]int{teamA: 0, teamB: 1} {
+				results, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+					Scope:           model.AccessControlPolicyScopeTeam,
+					ScopeID:         teamID,
+					IDs:             []string{policy.ID},
+					IncludeChildren: includeChildren,
+					Limit:           10,
+				})
+				require.NoError(t, err)
+				require.Len(t, results, want)
+			}
+		}
+	})
+
 	t.Run("channel-inference: pre-scope policy with single-team channels found", func(t *testing.T) {
 		parent := &model.AccessControlPolicy{
 			ID:       model.NewId(),

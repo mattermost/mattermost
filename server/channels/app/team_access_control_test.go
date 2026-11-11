@@ -601,6 +601,76 @@ func TestValidateTeamAdminPolicyOwnership(t *testing.T) {
 		}
 	})
 
+	t.Run("parent re-created under a deleted policy's id is judged by its first save after the delete", func(t *testing.T) {
+		teamB := th.CreateTeam(t)
+		teamC := th.CreateTeam(t)
+		policyStore := th.App.Srv().Store().AccessControlPolicy()
+
+		saveParent := func(id, scope, scopeID, expression string) *model.AccessControlPolicy {
+			t.Helper()
+			saved, err := policyStore.Save(th.Context, &model.AccessControlPolicy{
+				ID:       id,
+				Type:     model.AccessControlPolicyTypeParent,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Revision: 1,
+				Name:     "Recreated Team Policy " + id,
+				Rules:    []model.AccessControlPolicyRule{{Expression: expression, Actions: []string{"*"}}},
+				Scope:    scope,
+				ScopeID:  scopeID,
+			})
+			require.NoError(t, err)
+			return saved
+		}
+
+		// The deleted incarnation's first save has the basic team's scope and a later save moves it to teamC.
+		policyID := model.NewId()
+		saveParent(policyID, model.AccessControlPolicyScopeTeam, th.BasicTeam.Id, "true")
+		deleted := saveParent(policyID, model.AccessControlPolicyScopeTeam, teamC.Id, "true")
+		require.Greater(t, deleted.Revision, 1)
+		require.NoError(t, policyStore.Delete(th.Context, policyID))
+
+		recreated := saveParent(policyID, model.AccessControlPolicyScopeTeam, teamB.Id, "true")
+		require.Greater(t, recreated.Revision, deleted.Revision)
+
+		owned, appErr := th.App.ValidateTeamAdminPolicyOwnership(th.Context, teamB.Id, policyID)
+		require.Nil(t, appErr)
+		require.True(t, owned)
+
+		// A later save moves the re-created first save into history; teamB still owns it.
+		saveParent(policyID, model.AccessControlPolicyScopeTeam, teamB.Id, "false")
+		owned, appErr = th.App.ValidateTeamAdminPolicyOwnership(th.Context, teamB.Id, policyID)
+		require.Nil(t, appErr)
+		require.True(t, owned)
+
+		results, _, err := policyStore.SearchPolicies(th.Context, model.AccessControlPolicySearch{
+			Type:            model.AccessControlPolicyTypeParent,
+			Scope:           model.AccessControlPolicyScopeTeam,
+			ScopeID:         teamB.Id,
+			IncludeChildren: true,
+			Limit:           100,
+		})
+		require.NoError(t, err)
+		found := false
+		for _, p := range results {
+			if p.ID == policyID {
+				found = true
+				break
+			}
+		}
+		require.True(t, found)
+
+		// Re-created again with an empty scope: the earlier incarnations' scopes do not carry over,
+		// so a later save that records the basic team's scope does not make it owned.
+		require.NoError(t, policyStore.Delete(th.Context, policyID))
+		saveParent(policyID, "", "", "true")
+		saveParent(policyID, model.AccessControlPolicyScopeTeam, th.BasicTeam.Id, "true")
+		for _, teamID := range []string{th.BasicTeam.Id, teamB.Id} {
+			owned, appErr = th.App.ValidateTeamAdminPolicyOwnership(th.Context, teamID, policyID)
+			require.Nil(t, appErr)
+			require.False(t, owned)
+		}
+	})
+
 	t.Run("policy with no channels and no scope fails", func(t *testing.T) {
 		noChannelPolicy, _ := createTestPolicyHierarchy(t, th, []*model.Channel{})
 

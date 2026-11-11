@@ -329,6 +329,19 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.Wrapf(err, "failed to fetch policy with id=%s", policy.ID)
 		}
+
+		// Re-creating a deleted policy: a history row with NULL Data marks where
+		// this incarnation's revisions start (see firstRevisionScopeExpr).
+		if existingPolicy != nil {
+			existingPolicy.Revision++
+			boundary := s.getQueryBuilder().
+				Insert("AccessControlPolicyHistory").
+				Columns(accessControlPolicyHistorySliceColumns()...).
+				Values(policy.ID, existingPolicy.Name, existingPolicy.Type, model.GetMillis(), existingPolicy.Revision, existingPolicy.Version, nil, nil)
+			if _, err = tx.ExecBuilder(boundary); err != nil {
+				return nil, errors.Wrapf(err, "failed to save re-creation marker for policy with id=%s", policy.ID)
+			}
+		}
 	}
 
 	preSaveAccessControlPolicy(storePolicy, existingPolicy)
@@ -631,17 +644,23 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 }
 
 // firstRevisionScopeExpr matches a policy whose insert revision already had
-// this scope. Revision 1 is the row written on insert. A later save whose
-// Data changed copies that row into AccessControlPolicyHistory.
-// policyIDColumn is the outer query's id column: AccessControlPolicies.ID or p.ID.
-func firstRevisionScopeExpr(policyIDColumn, scope, scopeID string) sq.Sqlizer {
+// this scope. The insert revision is 1, or for a policy re-created under a
+// deleted policy's ID, the revision after the newest history row with NULL
+// Data. A later save whose Data changed copies that row into
+// AccessControlPolicyHistory.
+// policyTable is the outer query's AccessControlPolicies table or alias.
+func firstRevisionScopeExpr(policyTable, scope, scopeID string) sq.Sqlizer {
+	insertRevision := `(COALESCE((
+			SELECT MAX(marker.Revision) FROM AccessControlPolicyHistory marker
+			WHERE marker.ID = ` + policyTable + `.ID AND marker.Data IS NULL
+		), 0) + 1)`
 	return sq.Expr(
-		`(Revision = 1 OR EXISTS (
-			SELECT 1 FROM AccessControlPolicyHistory
-			WHERE AccessControlPolicyHistory.ID = `+policyIDColumn+`
-			  AND AccessControlPolicyHistory.Revision = 1
-			  AND AccessControlPolicyHistory.Data->>'scope' = ?
-			  AND AccessControlPolicyHistory.Data->>'scope_id' = ?
+		`(`+policyTable+`.Revision = `+insertRevision+` OR EXISTS (
+			SELECT 1 FROM AccessControlPolicyHistory history
+			WHERE history.ID = `+policyTable+`.ID
+			  AND history.Revision = `+insertRevision+`
+			  AND history.Data->>'scope' = ?
+			  AND history.Data->>'scope_id' = ?
 		))`,
 		scope,
 		scopeID,
@@ -734,18 +753,18 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	// Scope and ScopeID together select policies whose Data has that scope.
 	// Both must be provided together — a partial match is not meaningful.
 	// The insert revision must carry the same scope and scope id: the current
-	// row when its Revision is 1, or that revision in AccessControlPolicyHistory.
+	// row or that revision in AccessControlPolicyHistory.
 	if opts.Scope != "" && opts.ScopeID != "" {
 		scopeCondition := sq.And{
 			sq.Expr("Data->>'scope' = ?", opts.Scope),
 			sq.Expr("Data->>'scope_id' = ?", opts.ScopeID),
 		}
-		queryID := "AccessControlPolicies.ID"
+		queryTable := "AccessControlPolicies"
 		if opts.IncludeChildren && opts.ParentID == "" {
-			queryID = "p.ID"
+			queryTable = "p"
 		}
-		query = query.Where(scopeCondition).Where(firstRevisionScopeExpr(queryID, opts.Scope, opts.ScopeID))
-		count = count.Where(scopeCondition).Where(firstRevisionScopeExpr("AccessControlPolicies.ID", opts.Scope, opts.ScopeID))
+		query = query.Where(scopeCondition).Where(firstRevisionScopeExpr(queryTable, opts.Scope, opts.ScopeID))
+		count = count.Where(scopeCondition).Where(firstRevisionScopeExpr("AccessControlPolicies", opts.Scope, opts.ScopeID))
 	}
 
 	// TeamID filters to parent policies whose assigned channels ALL belong to the
