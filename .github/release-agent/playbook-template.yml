@@ -17,7 +17,7 @@ checklists:
       - title: Run the workflow to create a changelog draft.
       - title: Check the postgres migrations workflow file for any new Database changes that need to be added to the release notes.
       - title: Notify CES (Adit) on any changes made to the Support Packet (file 1, file 2) - example issue.
-      - title: Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle, Desktop compatibility, and ESR/PostgreSQL compatibility table pages, and add the next ESR version to the chart in the ESR docs page.
+      - title: Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle (add two upcoming versions and mark one version as unsupported), Desktop compatibility, and ESR/PostgreSQL compatibility table pages, and add the next ESR version to the chart in the ESR docs page.
       - title: Update software requirements as needed using these guidelines.
       - title: Ensure that new NOTICE.txt for any new libraries are cherry-picked to the release branch as needed - example PR.
       - title: Throughout the release cycle, check that any recent backports and regression fixes are cherry-picked to the release.
