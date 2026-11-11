@@ -1887,7 +1887,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	// is already hashed or not.
 	if props["already_hashed"] == "true" {
 		if canUpdatePassword {
-			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
+			err = c.App.UpdateHashedPasswordByUserId(c.AppContext, c.Params.UserId, newPassword)
 		} else if c.Params.UserId == c.AppContext.Session().UserId {
 			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
 		} else {
