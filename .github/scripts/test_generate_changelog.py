@@ -554,7 +554,7 @@ class MainTest(unittest.TestCase):
         self.assertIn("changed in the same PR, which added the page", link["basis"])
         self.assertIn(f"is documented in [Feature]({url}) (linked in Administration)", (self.out / "summary.md").read_text())
 
-    def test_docs_link_on_another_prs_bullet_is_dropped(self):
+    def test_docs_link_on_another_prs_bullet_moves_to_the_prs_own_bullet(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
             "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
             "patch": "+# Feature\n+\n+Use the feature.\n",
@@ -571,11 +571,12 @@ class MainTest(unittest.TestCase):
         gc.main()
         url = "https://docs.mattermost.com/administration-guide/manage/admin/feature"
         content = self.changelog.read_text()
-        self.assertNotIn(url, content)
-        self.assertIn("Extended the feature.", content)
+        self.assertIn(f" - Added the feature. See the [Feature]({url}) documentation for details.\n", content)
+        self.assertIn(" - Extended the feature.\n", content)
+        self.assertEqual(content.count(url), 1)
         link = self._payload()["readiness"]["doc_links"][0]
-        self.assertEqual((link["used_in"], link["linked_elsewhere"]), ([], []))
-        self.assertIn("(no bullet links it)", (self.out / "summary.md").read_text())
+        self.assertEqual((link["used_in"], link["linked_elsewhere"]), (["Administration"], []))
+        self.assertNotIn("(no bullet links it)", (self.out / "summary.md").read_text())
 
     def test_docs_line_outranks_the_followed_page_and_is_checked(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
@@ -603,7 +604,7 @@ class MainTest(unittest.TestCase):
         readiness = self._payload()["readiness"]
         self.assertEqual(readiness["doc_links"], [{
             "source": "mattermost/mattermost#1", "url": named, "title": "Named page",
-            "basis": "named on the Docs: line of the PR's release note", "used_in": [], "linked_elsewhere": [],
+            "basis": "named on the Docs: line of the PR's release note", "used_in": ["Administration"], "linked_elsewhere": [],
         }])
         self.assertEqual(readiness["doc_links_named_broken"][0]["source"], "mattermost/mattermost#2")
         self.assertNotIn("Docs:", self.changelog.read_text())
@@ -1053,6 +1054,180 @@ class MainTest(unittest.TestCase):
                          [{"source": "mattermost/mattermost#2", "migration": "000238_add_number_to_property_field_type"}])
         self.assertIn("### Notes that only restate a migration: 1", (self.out / "summary.md").read_text())
 
+    def test_a_note_whose_pr_added_a_listed_migration_tells_the_model_so(self):
+        migration = {"source": "migration:000241_move_access_control_group_to_v3", "derived": True,
+                     "text": "Database schema migration 000241.", "fallback": "Added database migration ``000241``."}
+        saved = gc.changelog_release.derived_notes
+        gc.changelog_release.derived_notes = lambda base, head: saved(base, head) + [migration]
+        self.details[1] = {"head_ref": "dk-pfp-5-cutover", "files": [],
+                           "migrations": ["000241_move_access_control_group_to_v3", "000099_not_in_this_release"]}
+        sent = []
+
+        def polish(notes):
+            sent.extend(notes)
+            return gc._raw_bullets(notes), False
+        gc.polish_with_ai = polish
+        gc.main()
+        note = next(n for n in sent if n["source"] == "mattermost/mattermost#1")
+        self.assertEqual(note["context"], "This PR added the migration ``000241_move_access_control_group_to_v3``, "
+                                          "listed under Database Schema Changes.")
+        self.assertIn(note["context"], gc._notes_text([note]))
+        self.assertNotIn("listed under Database Schema Changes", self.changelog.read_text())  # model context only
+
+    def test_an_endpoint_line_the_router_lacks_is_flagged_not_printed(self):
+        self.prs[0] = self._pr(1, NOTE_BODY.replace("Added a thing.", "Removed the unused usage API.\n"
+                                                    "Removed `GET /posts` (`getPostsUsage`) API endpoint."),
+                               "2026-10-19T10:00:00Z")
+        saved = gc.endpoints_at
+        gc.endpoints_at = lambda ref: set()  # neither release's router has the route
+        self.addCleanup(setattr, gc, "endpoints_at", saved)
+        gc.main()
+        content = self.changelog.read_text()
+        self.assertIn("Removed the unused usage API.", content)
+        self.assertNotIn("GET /posts", content)
+        flagged = [q for q in self._payload()["readiness"]["note_quality"] if q["reason"] == gc.UNRESOLVED_ENDPOINT]
+        self.assertEqual(flagged, [{"source": "mattermost/mattermost#1", "title": self.prs[0]["title"],
+                                    "reason": gc.UNRESOLVED_ENDPOINT, "excerpt": "Removed GET /posts (getPostsUsage)"}])
+
+
+# The router as v12.1.0 had it, for the endpoints #39519, #39523, #39527 and #39528 removed.
+API_GO = (
+    "\tapi.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()\n"
+    "\tapi.BaseRoutes.Cloud = api.BaseRoutes.APIRoot.PathPrefix(\"/cloud\").Subrouter()\n"
+    "\tapi.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix(\"/usage\").Subrouter()\n"
+    "\tapi.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix(\"/hosted_customer\").Subrouter()\n"
+)
+ROUTER_V12_1 = {
+    "server/channels/api4/api.go": API_GO,
+    "server/channels/api4/usage.go": (
+        "\tapi.BaseRoutes.Usage.Handle(\"/posts\", api.APISessionRequired(getPostsUsage)).Methods(http.MethodGet)\n"
+        "\tapi.BaseRoutes.Usage.Handle(\"/storage\", api.APISessionRequired(getStorageUsage)).Methods(http.MethodGet)\n"
+        "\tapi.BaseRoutes.Usage.Handle(\"/teams\", api.APISessionRequired(getTeamsUsage)).Methods(http.MethodGet)\n"),
+    "server/channels/api4/hosted_customer.go": (
+        "\tapi.BaseRoutes.HostedCustomer.Handle(\"/signup_available\", "
+        "api.APISessionRequired(handleSignupAvailable)).Methods(http.MethodGet)\n"),
+    "server/channels/api4/cloud.go": (
+        "\tapi.BaseRoutes.Cloud.Handle(\"/customer\", api.APISessionRequired(getCloudCustomer)).Methods(http.MethodGet)\n"
+        "\tapi.BaseRoutes.Cloud.Handle(\"/customer\", api.APISessionRequired(updateCloudCustomer)).Methods(http.MethodPut)\n"
+        "\tapi.BaseRoutes.Cloud.Handle(\"/subscription/invoices\", "
+        "api.APISessionRequired(getInvoicesForSubscription)).Methods(http.MethodGet)\n"
+        "\tapi.BaseRoutes.Cloud.Handle(\"/subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf\", "
+        "api.APISessionRequired(getSubscriptionInvoicePDF)).Methods(http.MethodGet)\n"),
+    "server/channels/api4/cloud_test.go": "\tapi.BaseRoutes.Cloud.Handle(\"/x\", api.APISessionRequired(ignored)).Methods(http.MethodGet)\n",
+}
+
+
+class EndpointPathTest(unittest.TestCase):
+    def setUp(self):
+        gc._ENDPOINTS_AT.clear()
+        self.addCleanup(gc._ENDPOINTS_AT.clear)
+        self.refs = []
+
+        def ls(ref, path):
+            self.refs.append(ref)
+            return sorted(p for p in ROUTER_V12_1 if p.startswith(path)) if ref == "v12.1.0" else ["server/channels/api4/api.go"]
+        self.lookup = gc.endpoint_lookup("v12.1.0", "origin/release-12.2", lambda ref: gc.endpoints_at(
+            ref, lambda r, path: ROUTER_V12_1.get(path) if r == "v12.1.0" else API_GO, ls))
+
+    def test_39527s_removed_usage_endpoints_get_their_full_paths(self):
+        note = ("Removed the unused /api/v4/usage/posts, /api/v4/usage/storage and /api/v4/usage/teams endpoints.\n"
+                "Removed `GET /posts` (`getPostsUsage`) API endpoint.\n"
+                "Removed `GET /storage` (`getStorageUsage`) API endpoint.\n"
+                "Removed `GET /teams` (`getTeamsUsage`) API endpoint.")
+        text, unresolved = gc.resolve_endpoint_lines(note, self.lookup)
+        self.assertEqual(text.split("\n")[1:], [
+            "Removed ``GET /api/v4/usage/posts`` (``getPostsUsage``) API endpoint.",
+            "Removed ``GET /api/v4/usage/storage`` (``getStorageUsage``) API endpoint.",
+            "Removed ``GET /api/v4/usage/teams`` (``getTeamsUsage``) API endpoint.",
+        ])
+        self.assertEqual(unresolved, [])
+        self.assertEqual(self.refs, ["v12.1.0"])  # a removed route is looked up where it last was
+
+    def test_39528s_signup_endpoint_and_the_cloud_ones_get_their_full_paths(self):
+        note = ("Removed the unused /api/v4/hosted_customer/signup_available endpoint.\n"
+                "Removed `GET /signup_available` (`handleSignupAvailable`) API endpoint.\n"
+                "Removed `PUT /customer` (`updateCloudCustomer`) API endpoint.\n"
+                "Removed `GET /subscription/invoices/{invoice_id:[_A-Za-z0-9]+}/pdf` (`getSubscriptionInvoicePDF`) API endpoint.")
+        text, unresolved = gc.resolve_endpoint_lines(note, self.lookup)
+        self.assertEqual(text.split("\n")[1:], [
+            "Removed ``GET /api/v4/hosted_customer/signup_available`` (``handleSignupAvailable``) API endpoint.",
+            "Removed ``PUT /api/v4/cloud/customer`` (``updateCloudCustomer``) API endpoint.",
+            "Removed ``GET /api/v4/cloud/subscription/invoices/{invoice_id}/pdf`` (``getSubscriptionInvoicePDF``) API endpoint.",
+        ])
+        self.assertEqual(unresolved, [])
+
+    def test_an_endpoint_neither_router_has_is_taken_out_and_returned(self):
+        note = ("Removed the address endpoint.\n"
+                "Removed `PUT /customer/address` (`updateCloudCustomerAddress`) API endpoint.")
+        text, unresolved = gc.resolve_endpoint_lines(note, self.lookup)
+        self.assertEqual(text, "Removed the address endpoint.")
+        self.assertEqual(unresolved, ["Removed PUT /customer/address (updateCloudCustomerAddress)"])
+        self.assertEqual(self.refs, ["v12.1.0", "origin/release-12.2"])  # both releases were searched
+
+    def test_a_pathless_line_is_resolved_by_its_handler(self):
+        text, _ = gc.resolve_endpoint_lines("Removed `GET /` (`getTeamsUsage`) API endpoint.", self.lookup)
+        self.assertEqual(text, "Removed ``GET /api/v4/usage/teams`` (``getTeamsUsage``) API endpoint.")
+
+    def test_without_release_refs_nothing_partial_is_printed(self):
+        text, unresolved = gc.resolve_endpoint_lines("Removed `GET /posts` (`getPostsUsage`) API endpoint.",
+                                                     gc.endpoint_lookup("", ""))
+        self.assertEqual((text, unresolved), ("", ["Removed GET /posts (getPostsUsage)"]))
+
+
+class TidyGeneratedTest(unittest.TestCase):
+    def test_the_schema_summary_names_the_release(self):
+        text = " - The following schema changes are included in the VERSION release. No database downtime is expected.\n"
+        self.assertEqual(gc.fill_version(text, "v12.2"),
+                         " - The following schema changes are included in the v12.2 release. No database downtime is expected.\n")
+
+    def test_added_is_not_put_in_front_of_a_note_with_its_own_verb(self):
+        text = (" - Added ``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` and ``direction=down`` now includes "
+                "replies deleted since ``fromUpdateAt``. [[N4]]\n"
+                " - Added a setting, which now defaults to on. [[N5]]\n")
+        self.assertEqual(gc.drop_added_before_verb(text).split("\n")[:2], [
+            " - ``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` and ``direction=down`` now includes "
+            "replies deleted since ``fromUpdateAt``. [[N4]]",
+            " - Added a setting, which now defaults to on. [[N5]]",
+        ])
+
+    def test_migration_numbers_stay_in_database_schema_changes(self):
+        text = ("### Upgrade Impact\n\n#### Database Schema Changes\n"
+                " - The following schema changes are included in the v12.2 release.\n"
+                "   - Added ``number`` to the ``property_field_type`` enum (migration 000238). [[N1]]\n\n"
+                "### Improvements\n\n#### Administration\n"
+                " - Added the number property field type (migration 000238). [[N2]]\n"
+                " - Added the checkbox property field type in migration ``000239_add_checkbox_to_property_field_type``. [[N3]]\n")
+        out = gc.strip_migration_numbers(text)
+        self.assertIn("enum (migration 000238). [[N1]]", out)
+        self.assertIn(" - Added the number property field type. [[N2]]\n", out)
+        self.assertIn(" - Added the checkbox property field type. [[N3]]\n", out)
+
+    def test_a_docs_page_is_linked_from_its_bullet_in_any_section(self):
+        # v12.2 dry run: #39344, #39433 and #39474 had pages, but "no bullet links it".
+        redis = "https://docs.mattermost.com/deployment-guide/scale/redis#secure-redis-connections-with-tls"
+        preauth = "https://docs.mattermost.com/developers/integrate/plugins/components/webapp#loading-before-login-with-pre_auth"
+        text = ("#### config.json\n - **Changes to All plans:**\n   - Added ``CacheSettings.RedisTLS``. [[N1]]\n"
+                "#### Compatibility\n - Unauthenticated users now get only pre-auth plugin manifests. [[N2]]\n"
+                "### Improvements\n#### Administration\n - Added TLS for [Redis]("
+                + redis + ") on the cluster. [[N3]]\n - Added Redis TLS again. [[N1]]\n")
+        docs = {"N1": (redis, "Redis"), "N2": (preauth, "Webapp components"), "N3": (redis, "Redis")}
+        out = gc.link_docs_pages(text, docs)
+        self.assertIn(f"   - Added ``CacheSettings.RedisTLS``. [[N1]]\n", out)  # the page is linked already, once
+        self.assertIn(f" - Unauthenticated users now get only pre-auth plugin manifests. See the [Webapp components]({preauth}) "
+                      "documentation for details. [[N2]]\n", out)
+        self.assertEqual(out.count(preauth), 1)
+        linked = gc.link_docs_pages("#### config.json\n - **Changes to All plans:**\n   - Added ``RedisTLS``. [[N1]]\n",
+                                    {"N1": (redis, "Redis")})
+        self.assertIn(f"   - Added ``RedisTLS``. See the [Redis]({redis}) documentation for details. [[N1]]", linked)
+
+    def test_the_prompt_places_behaviour_changing_dependency_swaps_and_keeps_verbs(self):
+        # Model-level rules: the v12.2 dry run put the go-crypto swap outside Compatibility and
+        # wrote "Added ``GET .../thread`` ... now includes".
+        self.assertIn("A note that replaces or upgrades a library and also says what now behaves differently", gc.SYSTEM_PROMPT)
+        self.assertIn("goes under `#### Compatibility`", gc.SYSTEM_PROMPT)
+        self.assertIn('never put "Added" in front of it', gc.SYSTEM_PROMPT)
+        self.assertIn("Never write a migration number", gc.SYSTEM_PROMPT)
+
 
 class RetryFilterTest(unittest.TestCase):
     def test_star_and_plus_bullets_for_other_notes_are_dropped(self):
@@ -1089,8 +1264,17 @@ class MigrationRestatedTest(unittest.TestCase):
         self.assertEqual(gc.migration_restated("Added the 000238_add_number_to_property_field_type migration.", self.MIGRATIONS),
                          self.MIGRATIONS[0])
 
+    def test_a_note_saying_no_more_than_the_migration_name_is_restating_it(self):
+        # v12.2 dry run: #39459 and #39460 repeated their Database Schema Changes bullets under Administration.
+        self.assertEqual(gc.migration_restated("Added the number property field type (migration 000238).", self.MIGRATIONS),
+                         self.MIGRATIONS[0])
+        self.assertEqual(gc.migration_restated("Added the checkbox property field type (migration 000239).",
+                                               ["000239_add_checkbox_to_property_field_type"]),
+                         "000239_add_checkbox_to_property_field_type")
+
     def test_a_note_that_says_what_the_change_is_for_is_kept(self):
-        self.assertIsNone(gc.migration_restated("Added the number property field type (migration 000238).", self.MIGRATIONS))
+        self.assertIsNone(gc.migration_restated(
+            "Added the number property field type, so boards can sort cards by estimate (migration 000238).", self.MIGRATIONS))
         self.assertIsNone(gc.migration_restated("Added migration 000239.", self.MIGRATIONS))
 
 

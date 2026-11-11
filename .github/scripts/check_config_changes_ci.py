@@ -402,6 +402,11 @@ _SUBROUTER_RE = re.compile(
 )
 _API_ROUTES_PATH = "server/channels/api4/api.go"
 
+# api.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()
+_ROOT_RE = re.compile(r'BaseRoutes\.(\w+)\s*=\s*[\w.]*Router\.PathPrefix\(model\.(APIURLSuffix\w*)\)')
+# The model constants the roots are built from (server/public/model/client4.go).
+_ROOT_SUFFIXES = {"APIURLSuffix": "/api/v4", "APIURLSuffixV4": "/api/v4", "APIURLSuffixV5": "/api/v5"}
+
 _METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
 
@@ -409,13 +414,17 @@ _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
 def _route_prefixes(api_src: str) -> dict[str, str]:
     """Each api4 subrouter's path prefix, from the PathPrefix(...).Subrouter() lines of api.go.
 
-    A subrouter hangs off another one, so its prefix is the parent's plus its own. The
-    roots (APIRoot and the like) are not defined by such a line and count as empty.
+    A subrouter hangs off another one, so its prefix is the parent's plus its own, back to
+    a root (APIRoot is ``/api/v4``, APIRoot5 ``/api/v5``). A chain that doesn't reach a
+    known root starts from an empty prefix.
     """
     parents = {name: (parent, path) for name, parent, path in _SUBROUTER_RE.findall(api_src)}
-    prefixes: dict[str, str] = {}
+    roots = {name: _ROOT_SUFFIXES[suffix] for name, suffix in _ROOT_RE.findall(api_src) if suffix in _ROOT_SUFFIXES}
+    prefixes: dict[str, str] = dict(roots)
 
     def prefix(name: str, seen: tuple = ()) -> str:
+        if name in roots:
+            return roots[name]
         if name not in parents or name in seen:
             return ""
         if name not in prefixes:
@@ -487,6 +496,27 @@ def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str
         full = _shorten_path_vars(full)
         for method in _parse_methods(methods_raw):
             endpoints.add((full or "/", handler, method))
+    return endpoints
+
+
+def router_endpoints(sources: list[str], api_src: str) -> set[tuple[str, str, str]]:
+    """Every endpoint registered in ``sources`` (api4 files), with its full path.
+
+    Only routes on a known subrouter or root are returned: a route on any other receiver
+    has no prefix that can be worked out, so its path would be partial.
+    """
+    prefixes = _route_prefixes(api_src)
+    known = {name for name in prefixes}
+    endpoints: set[tuple[str, str, str]] = set()
+    for src in sources:
+        blob = " ".join(src.split())
+        for m in _HANDLE_RE.finditer(blob):
+            receiver = m.group(1).rsplit(".", 1)[-1]
+            if receiver not in known:
+                continue
+            full = _shorten_path_vars(prefixes[receiver] + m.group(2))
+            for method in _parse_methods(m.group(4)):
+                endpoints.add((full or "/", m.group(3), method))
     return endpoints
 
 

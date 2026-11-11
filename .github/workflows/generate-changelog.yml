@@ -198,7 +198,7 @@ jobs:
         run: |
           # Run the generator from this checkout even after the PR branch is checked out
           # below: that branch was cut when the PR was opened and may carry an older copy.
-          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py "$RUNNER_TEMP/"
+          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/check_config_changes_ci.py "$RUNNER_TEMP/"
 
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
           BODY_FILE=""
@@ -282,6 +282,13 @@ jobs:
             echo
             cat "$SUMMARY"
           } >> "$GITHUB_STEP_SUMMARY"
+          # A dry run's output is only read here and in the artifact; the log keeps a copy
+          # that can be read without downloading it.
+          if [ "$MODE" = "dry_run" ]; then
+            echo "::group::Run summary"
+            cat "$SUMMARY"
+            echo "::endgroup::"
+          fi
 
       - name: Upload changelog output
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

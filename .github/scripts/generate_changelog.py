@@ -65,6 +65,7 @@ from urllib3.util.retry import Retry
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import changelog_release  # noqa: E402
+import check_config_changes_ci as config_checker  # noqa: E402  (its router parser)
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 REPOS = [r.strip() for r in os.environ["REPOS"].split(",") if r.strip()]
@@ -189,9 +190,13 @@ Here are your instructions:
 
 12.  **Source markers:** Each raw release note begins with an ID in square brackets, such as `[N12]`. Every note you are given must appear in your output: end every bullet you write with the ID of the note it came from in double square brackets, separated from the text by one space: ` - Fixed an issue where the channel header was hidden. [[N12]]`. A note with no marker on any bullet is treated as left out of the changelog, so check before you answer that every ID you were given appears at least once. If a bullet combines several related notes, it must carry the ID of every note it combines, either in one marker or in several: `[[N3,N7]]` or `[[N3]][[N7]]`. Never merge a note into another bullet without adding its ID to that bullet. Do not put a marker on headings, on the `See BLOG_POST_LINK` line, on the config.json description paragraph, on plan-label bullets such as ` - **Changes to All plans:**`, or on the Database Schema Changes summary bullet; put it on the bullets nested beneath them instead. Never write a marker anywhere else. Markers are removed automatically before publishing.
 
-13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing.
+13.  **Notes read from the release diff:** Some notes were not written by a developer but read from the code or the performance team's report: pre-packaged plugin version changes, added or removed WebSocket events, database schema migrations (given as SQL), and the benchmarking result. Place each in its section: plugin versions at the top of `#### User Interface` (keep the plugin bullet text and link exactly as given), WebSocket events under `### WebSocket Event Changes`, migrations under `#### Database Schema Changes`, and the benchmarking result as the first bullet of `#### Performance` under `### Improvements`, kept exactly as given. When a developer's note already describes the same change, write one bullet that combines them and carries both IDs, rather than two bullets saying the same thing. A developer's note about a schema change listed under `#### Database Schema Changes` (its PR added that migration, or the note names it) goes into that migration's bullet, carrying both IDs: never write a second bullet for it in another section. Never write a migration number (such as ``000238``) or migration file name anywhere outside `#### Database Schema Changes`.
 
-14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. When that note's bullet goes under `### Improvements`, link the feature's name in the bullet to that URL, exactly as given, the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link it once, and only in an `### Improvements` bullet. Never add a docs.mattermost.com link that was not given in a note."""
+14.  **Documentation links:** A note may end with a `Docs page:` line, found by following its PR to the documentation that PR changed. Link that note's bullet to that URL, exactly as given, wherever the bullet goes (under `### Improvements`, `#### config.json`, `#### Compatibility` or any other section), by linking the feature's name the way existing entries do: ` - Added [channel attributes](https://docs.mattermost.com/administration-guide/manage/admin/channel-attributes) on Enterprise Advanced.` Link each page once. Never add a docs.mattermost.com link that was not given in a note.
+
+15.  **Verbs:** Start a bullet with "Added" only when the note is about something new being added. A note that is already a sentence with its own verb (such as "``GET /api/v4/posts/{post_id}/thread`` with ``updatesOnly=true`` now includes deleted replies") is kept as that sentence, or rewritten with a fitting verb ("Updated ... so that ..."); never put "Added" in front of it.
+
+16.  **Dependency changes that change behaviour:** A note that replaces or upgrades a library and also says what now behaves differently for administrators or users (what is now rejected, required or checked) goes under `#### Compatibility` in `### Upgrade Impact`, not under `### Open Source Components` or `### Improvements`. When another note under `#### Compatibility` describes the same change, write one bullet that combines them and carries both IDs."""
 
 
 def get_milestone_number(repo: str, title: str) -> int | None:
@@ -299,7 +304,8 @@ DETAIL_WORKERS = 8
 
 
 def get_pr_details(repo: str, number: int) -> dict:
-    """A PR's branch name and, for DOCS_REPO, the docs files it changed with their patches."""
+    """A PR's branch name and, for DOCS_REPO, the docs files it changed with their patches and
+    the schema migrations it added."""
     resp = SESSION.get(f"https://api.github.com/repos/{repo}/pulls/{number}", timeout=API_TIMEOUT)
     resp.raise_for_status()
     details = {"head_ref": resp.json().get("head", {}).get("ref", ""), "files": []}
@@ -315,19 +321,30 @@ def get_pr_details(repo: str, number: int) -> dict:
             {"filename": f["filename"], "status": f.get("status"), "patch": f.get("patch")}
             for f in batch if f["filename"].startswith("docs/")
         ]
+        details["migrations"] = details.get("migrations", []) + [
+            os.path.basename(f["filename"]).removesuffix(".up.sql") for f in batch
+            if f["filename"].startswith(changelog_release.MIGRATIONS_DIR + "/") and f["filename"].endswith(".up.sql")
+            and f.get("status") == "added"
+        ]
         if len(batch) < 100:
             break
         page += 1
     return details
 
 
-def find_docs_links(prs: dict, sources: set, read_file) -> dict:
-    """``changelog_release.docs_link`` for each source PR, fetching PR details in parallel."""
+def find_docs_links(prs: dict, sources: set, read_file, details_out: dict | None = None) -> dict:
+    """``changelog_release.docs_link`` for each source PR, fetching PR details in parallel.
+
+    The details fetched are also put in ``details_out``, when given, so the migrations each
+    PR added can be read without fetching them again.
+    """
     from concurrent.futures import ThreadPoolExecutor
 
     keys = sorted(prs)
     with ThreadPoolExecutor(DETAIL_WORKERS) as pool:
         details = dict(zip(keys, pool.map(lambda s: get_pr_details(*_split_source(s)), keys)))
+    if details_out is not None:
+        details_out.update(details)
     info = {source: {**prs[source], "head_ref": details[source]["head_ref"]} for source in keys}
     return {
         source: changelog_release.docs_link(source, info, lambda s: details[s]["files"], read_file)
@@ -433,6 +450,73 @@ def note_quality_issue(text: str) -> str | None:
     return None
 
 
+# "Removed `GET /posts` (`getPostsUsage`) API endpoint.", as config-change-checker writes it.
+# Older runs of the checker dropped the subrouter's prefix, so the path is often partial.
+_ENDPOINT_LINE_RE = re.compile(
+    r"^[ \t]*(?P<verb>Added|Removed)[ \t]+`{1,2}[ \t]*(?P<method>GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)[ \t]*"
+    r"(?P<path>/[^`]*?)?[ \t]*`{1,2}[ \t]*\(`{1,2}(?P<handler>\w+)`{1,2}\)[ \t]*API endpoint\.?[ \t]*$"
+)
+API4_DIR = "server/channels/api4/"
+UNRESOLVED_ENDPOINT = "an API endpoint whose full path isn't in the router"
+_ENDPOINTS_AT: dict = {}
+
+
+def endpoints_at(ref: str, show=changelog_release.git_show, ls=changelog_release.git_ls) -> set:
+    """Every api4 endpoint registered at ``ref``, with its full path, as (path, handler, method)."""
+    if ref not in _ENDPOINTS_AT:
+        files = [path for path in ls(ref, API4_DIR) if path.endswith(".go") and not path.endswith("_test.go")]
+        sources = [show(ref, path) or "" for path in files]
+        _ENDPOINTS_AT[ref] = config_checker.router_endpoints(sources, show(ref, config_checker._API_ROUTES_PATH) or "")
+    return _ENDPOINTS_AT[ref]
+
+
+def endpoint_lookup(base_ref: str, head_ref: str, at=None):
+    """The routers to search for a line's endpoint: a removed one was last registered at the
+    previous release, an added one at this release's branch. Either falls back to the other."""
+    def lookup(verb: str):
+        for ref in ([base_ref, head_ref] if verb == "Removed" else [head_ref, base_ref]):
+            if not ref:
+                continue
+            try:
+                yield (at or endpoints_at)(ref)
+            except RuntimeError as err:
+                print(f"::warning title=Router not read::{ref}: {err}")
+    return lookup
+
+
+def resolve_endpoint_lines(text: str, lookup) -> tuple[str, list[str]]:
+    """Give each config-change-checker endpoint line its full path, read from the router.
+
+    "Removed `GET /posts` (`getPostsUsage`) API endpoint." becomes "Removed ``GET
+    /api/v4/usage/posts`` (``getPostsUsage``) API endpoint.": the route with that handler and
+    method whose full path ends with the one given. A line whose endpoint can't be found, or
+    matches several routes, is taken out of the note, so no partial path is printed, and is
+    returned to be flagged in the report.
+    """
+    out, unresolved = [], []
+    for line in text.split("\n"):
+        match = _ENDPOINT_LINE_RE.match(line)
+        if not match:
+            out.append(line)
+            continue
+        verb, method, handler = match.group("verb"), match.group("method"), match.group("handler")
+        path = config_checker._shorten_path_vars((match.group("path") or "").strip()) or "/"
+        if path.startswith("/api/"):
+            out.append(f"{verb} ``{method} {path}`` (``{handler}``) API endpoint.")
+            continue
+        found = set()
+        for endpoints in lookup(verb):
+            found = {full for full, name, how in endpoints
+                     if name == handler and how == method and (path == "/" or full.endswith(path))}
+            if found:
+                break
+        if len(found) == 1:
+            out.append(f"{verb} ``{method} {found.pop()}`` (``{handler}``) API endpoint.")
+        else:
+            unresolved.append(f"{verb} {method} {path} ({handler})")
+    return "\n".join(out).strip(), unresolved
+
+
 def pr_owner(pr: dict) -> str | None:
     """Who to ask about a PR: its author, or for a bot-authored PR its first assignee."""
     user = pr.get("user") or {}
@@ -519,6 +603,7 @@ def _notes_text(notes: list[dict]) -> str:
     """The notes as the model reads them: each with its ID, and its docs page when one was found."""
     return "\n\n---\n\n".join(
         f"[{note['id']}] {note['text']}" + (f"\nDocs page: {note['docs_url']}" if note.get("docs_url") else "")
+        + (f"\n{note['context']}" if note.get("context") else "")
         for note in notes
     )
 
@@ -1046,12 +1131,13 @@ _MIGRATION_FILLER = {"added", "removed", "the", "a", "new", "database", "schema"
 
 
 def migration_restated(text: str, migrations: list[str]) -> str | None:
-    """The listed migration a developer's note only names, or None.
+    """The listed migration a developer's note only restates, or None.
 
-    A note such as "Added migration 000238." restates the Database Schema Changes bullet
-    written for that migration. A note that also says what the change is for, such as
-    "Added the number property field type (migration 000238).", is kept: its feature
-    would be lost with it.
+    A note names a migration ("Added migration 000238.") and otherwise says no more than the
+    migration's name does ("Added the number property field type (migration 000238)." for
+    ``000238_add_number_to_property_field_type``): the Database Schema Changes bullet written
+    for that migration already says it. A note that also says something the name doesn't,
+    such as what the change is for, is kept.
     """
     for name in migrations:
         number = name.split("_", 1)[0]
@@ -1060,8 +1146,9 @@ def migration_restated(text: str, migrations: list[str]) -> str | None:
             pattern += r"|(?<!\d)" + re.escape(number) + r"(?!\d)"
         if not re.search(pattern, text):
             continue
+        allowed = _MIGRATION_FILLER | set(name.lower().split("_")[1:])
         rest = re.findall(r"[a-z]+", re.sub(pattern, " ", text).lower())
-        if all(word in _MIGRATION_FILLER for word in rest):
+        if all(word in allowed or word.rstrip("s") in allowed for word in rest):
             return name
     return None
 
@@ -1983,6 +2070,7 @@ def render_fragment(notes: list[dict], sources_by_id: dict) -> tuple[str, list[d
         if note.get("docs_url"):
             url_sources.setdefault(note["docs_url"], set()).add(note["source"])
     polished = drop_repeated_notes(drop_misplaced_doc_links(polished, url_sources, sources_by_id))
+    polished = tidy_generated(polished, notes)
     polished, items, referenced = extract_source_markers(polished, sources_by_id)
 
     items, referenced = _drop_go_version(items, referenced)
@@ -2070,6 +2158,82 @@ def drop_repeated_notes(text: str) -> str:
     return "\n".join(line for number, line in enumerate(lines) if number not in drop)
 
 
+DB_SCHEMA = "Database Schema Changes"
+# "(migration 000238)", "(migrations 000238 and 000239)", " in migration ``000238_add_x``".
+_MIGRATION_REF_RES = (
+    re.compile(r"[ \t]*\((?:[^()]*\s)?(?:database |schema )?migrations?\b[^()]*\b\d{6}\b[^()]*\)", re.IGNORECASE),
+    re.compile(r"[ \t]*,?[ \t]*\b(?:in|with|via|using|by)?[ \t]*(?:the[ \t]+)?(?:database |schema )?migrations?[ \t]+"
+               r"`{0,2}\d{6}(?:_\w+)?`{0,2}(?:[ \t]*(?:,|and)[ \t]*`{0,2}\d{6}(?:_\w+)?`{0,2})*", re.IGNORECASE),
+    re.compile(r"[ \t]*\(`{0,2}\d{6}_\w+`{0,2}\)"),
+)
+_TRAILING_MARKERS_RE = re.compile(r"((?:[ \t]*\[\[[^\]]*\]\])+)[ \t]*$")
+# "Added ``GET .../thread`` with ``updatesOnly=true`` now includes ...": the note already has its verb.
+_ADDED_SENTENCE_RE = re.compile(r"^(?P<lead>[ \t]*- )Added (?P<rest>(?!.*\b(?:which|that|it)\s+now\b).*\bnow\s+[a-z]+s\b.*)$")
+
+
+def fill_version(text: str, version_short: str) -> str:
+    """The Database Schema Changes summary with the version in place of the prompt's placeholder."""
+    return re.sub(r"\b(?:the )?VERSION release\b", f"the {version_short} release", text)
+
+
+def strip_migration_numbers(text: str) -> str:
+    """Take migration numbers and file names out of every bullet outside Database Schema Changes."""
+    lines = text.split("\n")
+    for block in _bullet_blocks(lines):
+        if block["subsection"] == DB_SCHEMA:
+            continue
+        for number in range(block["start"], block["end"]):
+            line = lines[number]
+            for pattern in _MIGRATION_REF_RES:
+                line = pattern.sub("", line)
+            lines[number] = re.sub(r"[ \t]+([.,;])", r"\1", line)
+    return "\n".join(lines)
+
+
+def drop_added_before_verb(text: str) -> str:
+    """Drop an "Added" the model put in front of a note that is already a sentence with its own verb."""
+    out = []
+    for line in text.split("\n"):
+        match = _ADDED_SENTENCE_RE.match(line)
+        if match:
+            rest = match.group("rest")
+            line = match.group("lead") + (rest[:1].upper() + rest[1:] if rest[:1].isalpha() else rest)
+        out.append(line)
+    return "\n".join(out)
+
+
+def link_docs_pages(text: str, docs: dict, already: str = "") -> str:
+    """Link each note's docs page from its bullet, wherever the bullet is, once.
+
+    ``docs`` maps a note ID to ``(url, title)``. A page the model linked anywhere (in ``text``
+    or ``already``) is left alone; otherwise the first bullet carrying one of the page's notes
+    gets "See the [title](url) documentation for details." before its markers.
+    """
+    lines = text.split("\n")
+    for block in _bullet_blocks(lines):
+        for note_id in block["ids"]:
+            url, title = docs.get(note_id, (None, None))
+            if not url:
+                continue
+            page = url.split("#")[0].rstrip("/")
+            if page in "\n".join(lines) or page in already:
+                continue
+            last = block["end"] - 1
+            markers = _TRAILING_MARKERS_RE.search(lines[last])
+            body = lines[last][:markers.start()] if markers else lines[last]
+            tail = lines[last][markers.start():] if markers else ""
+            label = f"[{title}]({url}) documentation" if title else f"[documentation]({url})"
+            lines[last] = f"{body.rstrip()} See the {label} for details.{tail}"
+    return "\n".join(lines)
+
+
+def tidy_generated(text: str, notes: list[dict], already: str = "") -> str:
+    """The deterministic fixes applied to the model's text while it still carries its markers."""
+    docs = {note["id"]: (note["docs_url"], note.get("docs_title")) for note in notes if note.get("docs_url")}
+    text = fill_version(text, changelog_release.short_version(VERSION))
+    return link_docs_pages(drop_added_before_verb(strip_migration_numbers(text)), docs, already)
+
+
 def _drop_go_version(items: list[dict], referenced: set) -> tuple[list[dict], set]:
     """Forget the bullets under ``### Go Version`` and the notes only they carried.
 
@@ -2150,6 +2314,7 @@ def _place_missing(polished: str, items: list[dict], referenced: set, missing: l
     retry_text = drop_bulletless_sections(keep_requested_bullets(normalize_formatting(retry_raw), wanted))
     retry_text = escape_mdx_unsafe(normalize_formatting(retry_text))
     retry_text = drop_misplaced_doc_links(retry_text, url_sources, sources_by_id)
+    retry_text = tidy_generated(retry_text, missing, already=polished)
     retry_text, retry_items, retry_referenced = extract_source_markers(retry_text, sources_by_id)
     retry_items, retry_referenced = _drop_go_version(retry_items, retry_referenced)
     if not retry_referenced & wanted:
@@ -2201,6 +2366,8 @@ def main():
     milestone_prs = {}
     private_repos = []
     named_docs = {}
+    lookup_endpoint = endpoint_lookup(os.environ.get("RELEASE_BASE_REF", "").strip(),
+                                      os.environ.get("RELEASE_HEAD_REF", "").strip())
 
     for repo in REPOS:
         print(f"── {repo}")
@@ -2241,6 +2408,11 @@ def main():
                     note, named_url = split_docs_line(note)
                     if named_url:
                         named_docs.setdefault(source, named_url)
+                    note, unresolved = resolve_endpoint_lines(note, lookup_endpoint)
+                    for line in unresolved:
+                        print(f"::warning title=API endpoint path not resolved::{source}: {line}")
+                        note_quality.append({"source": source, "title": pr["title"], "reason": UNRESOLVED_ENDPOINT,
+                                             "excerpt": line})
                     if not note:
                         continue
                     all_notes.append({"source": source, "text": note, "merged_at": merged_at})
@@ -2277,8 +2449,9 @@ def main():
     # Docs pages are read as they are on master at the start of the run: in update mode
     # the checkout is the changelog PR's branch, cut before later docs changes landed.
     docs_ref = os.environ.get("DOCS_REF", "").strip() or "HEAD"
+    pr_details = {}
     docs_links = find_docs_links(
-        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path)
+        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path), pr_details
     ) if noted else {}
     site_cache = {}
 
@@ -2305,6 +2478,7 @@ def main():
             docs_links[source] = {"url": url, "title": title, "basis": basis}
     for note in all_notes:
         note["docs_url"] = docs_links.get(note["source"], {}).get("url")
+        note["docs_title"] = docs_links.get(note["source"], {}).get("title")
     linked = {source: link for source, link in docs_links.items() if link.get("url")}
     print(f"📚 Docs pages found for {len(linked)} of {len(noted)} PR(s) with release notes")
     for source, link in linked.items():
@@ -2389,6 +2563,12 @@ def main():
         print(f"ℹ️  {len(included)} source(s) already in the changelog PR; {len(all_notes)} new note(s) to add")
 
     all_notes, restated = split_restated_notes(all_notes, derived)
+    listed = {note["source"][len("migration:"):] for note in derived if note["source"].startswith("migration:")}
+    for note in all_notes:
+        added = [name for name in pr_details.get(note["source"], {}).get("migrations", []) if name in listed]
+        if added:
+            note["context"] = (f"This PR added the migration{'s' if len(added) > 1 else ''} "
+                               f"{', '.join(f'``{name}``' for name in added)}, listed under Database Schema Changes.")
     for note in restated:
         print(f"ℹ️  {note['source']} only restates migration {note['migration']}, which is listed under Database Schema Changes; no bullet written")
 

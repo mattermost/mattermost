@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/scripts/generate_changelog.py'
+      - '.github/scripts/check_config_changes_ci.py'
       - '.github/scripts/changelog_release.py'
       - '.github/scripts/test_generate_changelog.py'
       - '.github/scripts/test_changelog_release.py'

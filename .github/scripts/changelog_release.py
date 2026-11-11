@@ -239,6 +239,14 @@ def git_show(ref: str, path: str) -> str | None:
     raise RuntimeError(f"git show {ref}:{path} failed: {(result.stderr or listing.stderr).strip()}")
 
 
+def git_ls(ref: str, path: str) -> list[str]:
+    """The files directly under the directory ``path`` (ending in ``/``) at ``ref``. A failing git command raises."""
+    result = _git("ls-tree", "--name-only", ref, "--", path)
+    if result.returncode != 0:
+        raise RuntimeError(f"git ls-tree {ref} -- {path} failed: {result.stderr.strip()}")
+    return sorted(line for line in result.stdout.splitlines() if line.strip())
+
+
 def git_added_files(base: str, head: str, path: str) -> list[str]:
     """Files under ``path`` added between ``base`` and ``head``. A failing git command raises."""
     result = _git("diff", "--name-only", "--diff-filter=A", base, head, "--", path)
