@@ -467,6 +467,7 @@ test.describe('Post height', () => {
                 // * Verify no height changes were detected
                 const observations = await sizeWatcher.getObservations();
                 if (testCase.allowSubpixelHeightChange) {
+                    expect(observations.length).toBeGreaterThan(0);
                     for (const {height} of observations) {
                         expect(height).toBeCloseTo(observations[0].height, 0);
                     }
@@ -477,7 +478,8 @@ test.describe('Post height', () => {
         );
     }
 
-    // Images that are scaled down to fit the width of the post rather than being capped by the max image height
+    // Images that are scaled down to fit the width of the post rather than being capped by the max image height. The
+    // server's previews of these images keep their exact aspect ratio, so their placeholders can match exactly.
     const wideImageSurfaces = [
         {
             name: 'attachment',
@@ -547,8 +549,12 @@ test.describe('Post height', () => {
                         await expect(image).toBeVisible();
                         await waitForImagesLoaded(postComponent.container);
 
-                        // * Verify that the image took the place of the placeholder without changing the post's height
-                        expect(await image.boundingBox()).toEqual(placeholderBox);
+                        // * Verify that the image has the size of the placeholder and the post's height didn't change
+                        const imageBox = await image.boundingBox();
+                        expect({width: imageBox?.width, height: imageBox?.height}).toEqual({
+                            width: placeholderBox?.width,
+                            height: placeholderBox?.height,
+                        });
                         expect(await sizeWatcher.getObservations()).toHaveLength(1);
                     },
                 );
