@@ -13,7 +13,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
 import type {Node as PMNode} from '@tiptap/pm/model';
 import {splitListItem} from '@tiptap/pm/schema-list';
-import {Plugin, PluginKey, Selection} from '@tiptap/pm/state';
+import {Plugin, PluginKey, Selection, TextSelection} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
@@ -663,14 +663,20 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 {type: 'paragraph'},
             ];
 
-            if (ed.isEmpty) {
-                ed.commands.setContent(content);
-            } else {
-                ed.commands.insertContentAt(ed.state.doc.content.size, content);
-            }
+            const wasEmpty = ed.isEmpty;
 
             // Inside the second to last paragraph, which is followed by the hidden last one
-            ed.chain().focus().setTextSelection(ed.state.doc.content.size - 3).run();
+            ed.chain().insertContentAt(ed.state.doc.content.size, content).command(({tr}) => {
+                tr.setSelection(TextSelection.create(tr.doc, tr.doc.content.size - 3));
+                return true;
+            }).focus().run();
+
+            // Remove the empty paragraph the editor started with in a separate transaction. Replacing
+            // the paragraph that holds the caret in the one that moves it, as setContent does, leaves
+            // Chrome typing at the start of the document even though the selection looks right.
+            if (wasEmpty) {
+                ed.commands.deleteRange({from: 0, to: ed.state.doc.child(0).nodeSize});
+            }
         },
         focus: () => {
             const ed = editorRef.current;
