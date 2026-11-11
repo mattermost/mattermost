@@ -89,10 +89,14 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
     Add the following line, replacing `&#123;mattermost-server-IP&#125;`:
 
     ``` text
-    host all all {mattermost-server-IP}/32 md5
+    host mattermost mmuser {mattermost-server-IP}/32 scram-sha-256
     ```
 
-    Restrict the source to the Mattermost server's address rather than a wider range, so the database only accepts connections from the application layer.
+    This entry only accepts the `mmuser` user connecting to the `mattermost` database, matching the names created above. Restrict the source to the Mattermost server's address rather than a wider range, so the database only accepts connections from the application layer.
+
+    Use `scram-sha-256` rather than `md5`. PostgreSQL v14 and later store new passwords as SCRAM hashes by default, so the user created above already works with this method. MD5 isn't a FIPS-approved algorithm, so Mattermost's [FIPS-compliant images](/administration-guide/manage/admin/fips-migration) can't authenticate with it.
+
+    If you're changing an existing `md5` entry to `scram-sha-256`, first confirm that the Mattermost user's password is stored as a SCRAM hash. A `scram-sha-256` entry rejects passwords that are still stored as MD5 hashes, so Mattermost would no longer be able to connect. The [FIPS migration guide](/administration-guide/manage/admin/fips-migration#before-you-begin) explains how to check and convert the stored password.
 
 3.  Restart the PostgreSQL service to apply the configuration changes:
 
