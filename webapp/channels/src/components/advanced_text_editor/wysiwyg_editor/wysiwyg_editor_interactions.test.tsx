@@ -438,6 +438,19 @@ describe('WysiwygEditor interactions', () => {
             });
         });
 
+        test('quotes a post that is only an image', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('![alt](https://example.com/image.png)');
+            });
+
+            expect(editor.getJSON().content?.[0]).toMatchObject({
+                type: 'blockquote',
+                content: [{type: 'paragraph', content: [{type: 'image'}]}],
+            });
+        });
+
         test('does nothing for blank text', () => {
             const {ref, editor} = renderEditor('Hey there');
 
