@@ -1220,6 +1220,29 @@ class TidyGeneratedTest(unittest.TestCase):
                                     {"N1": (redis, "Redis")})
         self.assertIn(f"   - Added ``RedisTLS``. See the [Redis]({redis}) documentation for details. [[N1]]", linked)
 
+    def test_added_stays_on_a_sentence_whose_now_belongs_to_another_clause(self):
+        text = (" - Added TLS so the cluster now uses encryption. [[N1]]\n"
+                " - Added ``RedisTLS``, so Redis now uses TLS. [[N2]]\n"
+                " - Added a setting the cluster now reads. [[N3]]\n")
+        self.assertEqual(gc.drop_added_before_verb(text), text)
+
+    def test_a_bullet_whose_subject_is_the_migration_keeps_it(self):
+        text = "### Improvements\n#### Administration\n - Reverted migration 000238. [[N1]]\n"
+        self.assertEqual(gc.strip_migration_numbers(text), text)
+
+    def test_a_page_whose_url_is_a_prefix_of_a_linked_one_is_still_linked(self):
+        tls = "https://docs.mattermost.com/deployment-guide/scale/redis-tls"
+        redis = "https://docs.mattermost.com/deployment-guide/scale/redis"
+        text = f" - Added [TLS]({tls}). [[N1]]\n - Added Redis caching. [[N2]]\n"
+        out = gc.link_docs_pages(text, {"N2": (redis, "Redis")})
+        self.assertIn(f" - Added Redis caching. See the [Redis]({redis}) documentation for details. [[N2]]", out)
+        self.assertEqual(gc.link_docs_pages(text, {"N2": (redis, "Redis")}, already=f"[Redis]({redis}#setup)"), text)
+
+    def test_the_inserted_page_title_is_mdx_safe(self):
+        url = "https://docs.mattermost.com/x"
+        out = gc.link_docs_pages(" - Added it. [[N1]]\n", {"N1": (url, "Use {feature} with <Tag> [beta]")})
+        self.assertIn(f"See the [Use \\{{feature}} with \\<Tag> \\[beta\\]]({url}) documentation", out)
+
     def test_the_prompt_places_behaviour_changing_dependency_swaps_and_keeps_verbs(self):
         # Model-level rules: the v12.2 dry run put the go-crypto swap outside Compatibility and
         # wrote "Added ``GET .../thread`` ... now includes".

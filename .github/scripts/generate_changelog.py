@@ -2168,7 +2168,14 @@ _MIGRATION_REF_RES = (
 )
 _TRAILING_MARKERS_RE = re.compile(r"((?:[ \t]*\[\[[^\]]*\]\])+)[ \t]*$")
 # "Added ``GET .../thread`` with ``updatesOnly=true`` now includes ...": the note already has its verb.
-_ADDED_SENTENCE_RE = re.compile(r"^(?P<lead>[ \t]*- )Added (?P<rest>(?!.*\b(?:which|that|it)\s+now\b).*\bnow\s+[a-z]+s\b.*)$")
+# Only when the bullet goes straight from an identifier to its "now <verb>s", with no clause
+# in between ("Added TLS so the cluster now uses ..." is a sentence and keeps its "Added").
+_ADDED_SENTENCE_RE = re.compile(
+    r"^(?P<lead>[ \t]*- )Added (?P<rest>``[^`]+``"
+    r"(?:(?!\b(?:so|which|that|it|they|this|where|when|because|while|if)\b)[^,;:.])*?\bnow\s+[a-z]+s\b.*)$"
+)
+# Fewer words than this left after taking a migration reference out: the reference was the subject.
+MIN_STRIPPED_WORDS = 3
 
 
 def fill_version(text: str, version_short: str) -> str:
@@ -2182,11 +2189,18 @@ def strip_migration_numbers(text: str) -> str:
     for block in _bullet_blocks(lines):
         if block["subsection"] == DB_SCHEMA:
             continue
-        for number in range(block["start"], block["end"]):
-            line = lines[number]
+        stripped = []
+        for line in lines[block["start"]:block["end"]]:
             for pattern in _MIGRATION_REF_RES:
                 line = pattern.sub("", line)
-            lines[number] = re.sub(r"[ \t]+([.,;])", r"\1", line)
+            stripped.append(re.sub(r"[ \t]+([.,;])", r"\1", line))
+        words = re.findall(r"[A-Za-z]+", _SOURCE_MARKER_RE.sub("", " ".join(stripped)))
+        if len(words) < MIN_STRIPPED_WORDS:
+            # "Reverted migration 000238." would become "Reverted.": keep it for a reviewer.
+            print(f"::warning title=Migration number left in a bullet::{lines[block['start']].strip()[:120]} "
+                  "names a migration outside Database Schema Changes; move it there by hand")
+            continue
+        lines[block["start"]:block["end"]] = stripped
     return "\n".join(lines)
 
 
@@ -2209,19 +2223,24 @@ def link_docs_pages(text: str, docs: dict, already: str = "") -> str:
     or ``already``) is left alone; otherwise the first bullet carrying one of the page's notes
     gets "See the [title](url) documentation for details." before its markers.
     """
+    def page(url: str) -> str:
+        return url.split("#")[0].split("?")[0].rstrip("/")
+
     lines = text.split("\n")
+    linked = {page(match.group(2)) for match in _MD_LINK_RE.finditer(already)}
     for block in _bullet_blocks(lines):
         for note_id in block["ids"]:
             url, title = docs.get(note_id, (None, None))
             if not url:
                 continue
-            page = url.split("#")[0].rstrip("/")
-            if page in "\n".join(lines) or page in already:
+            if page(url) in linked | {page(match.group(2)) for match in _MD_LINK_RE.finditer("\n".join(lines))}:
                 continue
             last = block["end"] - 1
             markers = _TRAILING_MARKERS_RE.search(lines[last])
             body = lines[last][:markers.start()] if markers else lines[last]
             tail = lines[last][markers.start():] if markers else ""
+            # The title is page text: escaped like the rest of the fragment, which was escaped before this.
+            title = escape_mdx_unsafe(re.sub(r"([\[\]])", r"\\\1", title)) if title else title
             label = f"[{title}]({url}) documentation" if title else f"[documentation]({url})"
             lines[last] = f"{body.rstrip()} See the {label} for details.{tail}"
     return "\n".join(lines)
