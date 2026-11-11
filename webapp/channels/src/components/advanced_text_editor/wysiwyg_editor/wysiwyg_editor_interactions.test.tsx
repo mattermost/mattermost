@@ -393,6 +393,22 @@ describe('WysiwygEditor interactions', () => {
             expect(editor.state.doc.lastChild!.content.size).toBe(0);
         });
 
+        test('replaces the empty paragraph of an empty editor and puts the caret in the paragraph after the quote', () => {
+            const {ref, editor} = renderEditor('');
+
+            act(() => {
+                ref.current!.appendQuote('Diam sapien');
+            });
+
+            // The quote, the paragraph for the reply and the hidden last one, with no empty paragraph left before the quote
+            expect(editor.state.doc.childCount).toBe(3);
+            expect(editor.state.doc.firstChild!.type.name).toBe('blockquote');
+
+            const {$from} = editor.state.selection;
+            expect($from.parent.type.name).toBe('paragraph');
+            expect($from.index(0)).toBe(1);
+        });
+
         test('appends the quote after existing content', () => {
             const {ref, editor} = renderEditor('Hey there');
 

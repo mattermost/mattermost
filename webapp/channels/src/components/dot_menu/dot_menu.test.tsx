@@ -825,6 +825,25 @@ describe('components/dot_menu/DotMenu', () => {
             await waitFor(() => expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, isRHS, 'line one\n\nline two'));
         });
 
+        test('should quote the post when pressing Q with the menu open', async () => {
+            const quoteTextFromPost = jest.fn();
+            renderWithContext(
+                <DotMenu
+                    {...baseProps}
+                    actions={{...baseProps.actions, quoteTextFromPost}}
+                    post={quotedPost}
+                    location={Locations.CENTER}
+                />,
+                initialState,
+            );
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            screen.getByRole('menu').focus();
+            await userEvent.keyboard('q');
+
+            expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, false, 'line one\n\nline two');
+        });
+
         test.each([
             ['show', ['create_post']],
             ['hide', []],
