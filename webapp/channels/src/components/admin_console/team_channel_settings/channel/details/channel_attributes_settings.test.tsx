@@ -161,6 +161,131 @@ describe('ChannelAttributesSettings', () => {
         }
     });
 
+    test('a single-select value can be cleared from its chip', async () => {
+        const field = makeField();
+        mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+        mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
+
+        const onChange = jest.fn();
+        renderWithContext(
+            <ChannelAttributesSettings
+                channelId='channel1'
+                onChange={onChange}
+            />,
+        );
+
+        const remove = await screen.findByRole('button', {name: 'Remove AURORA'});
+        fireEvent.keyDown(remove, {key: 'Enter'});
+
+        expect(onChange).toHaveBeenCalledWith({[field.id]: null});
+    });
+
+    test('a value whose change policy forbids clearing has no remove control', async () => {
+        const field = makeField({attrs: {display_name: 'Program', change_policy: 'raise_only', options: [{id: 'opt1', name: 'AURORA'}, {id: 'opt2', name: 'ZEPHYR'}]}});
+        mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+        mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
+
+        renderWithContext(
+            <ChannelAttributesSettings
+                channelId='channel1'
+                onChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByText('AURORA')).toBeInTheDocument());
+        expect(screen.queryByRole('button', {name: 'Remove AURORA'})).not.toBeInTheDocument();
+    });
+
+    describe('required attributes', () => {
+        const requiredState = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagChannelAttributes: 'true',
+                        FeatureFlagChannelAttributesRequired: 'true',
+                    },
+                },
+            },
+        };
+
+        const requiredField = () => makeField({attrs: {display_name: 'Program', required: true, options: [{id: 'opt1', name: 'AURORA'}]}});
+
+        test('reports a required value that was never set, as not cleared', async () => {
+            const field = requiredField();
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
+
+            const onMissingRequiredChange = jest.fn();
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    onMissingRequiredChange={onMissingRequiredChange}
+                />,
+                requiredState,
+            );
+
+            await waitFor(() => expect(onMissingRequiredChange).toHaveBeenLastCalledWith([{fieldId: field.id, label: 'Program', cleared: false}]));
+        });
+
+        test('reports a required value cleared on this page, as cleared', async () => {
+            const field = requiredField();
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
+
+            const onMissingRequiredChange = jest.fn();
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    onMissingRequiredChange={onMissingRequiredChange}
+                />,
+                requiredState,
+            );
+
+            await waitFor(() => expect(onMissingRequiredChange).toHaveBeenLastCalledWith([]));
+
+            fireEvent.keyDown(await screen.findByRole('button', {name: 'Remove AURORA'}), {key: 'Enter'});
+
+            await waitFor(() => expect(onMissingRequiredChange).toHaveBeenLastCalledWith([{fieldId: field.id, label: 'Program', cleared: true}]));
+        });
+
+        test('reports nothing while required enforcement is off', async () => {
+            const field = requiredField();
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
+
+            const onMissingRequiredChange = jest.fn();
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    onMissingRequiredChange={onMissingRequiredChange}
+                />,
+            );
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeEnabled());
+            expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
+        });
+
+        test('marks the missing attribute once a save was refused', async () => {
+            const field = requiredField();
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
+
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    showRequiredErrors={true}
+                />,
+                requiredState,
+            );
+
+            expect(await screen.findByText('This attribute is required. Set a value to save.')).toBeInTheDocument();
+        });
+    });
+
     test('a field locked by permission_values="none" is disabled', async () => {
         const field = makeField({permission_values: 'none'});
         mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});

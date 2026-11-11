@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
+import classNames from 'classnames';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon, ChevronDownIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -11,7 +12,8 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
-import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
@@ -24,11 +26,32 @@ import './channel_attributes_settings.scss';
 
 export type PendingChannelAttributeValue = string | string[] | null;
 
+export type MissingRequiredChannelAttribute = {
+    fieldId: string;
+    label: string;
+
+    // The channel had a value and this page's pending edits remove it, as
+    // opposed to a channel that never had one (e.g. one being unarchived).
+    cleared: boolean;
+};
+
 type Props = {
     channelId: string;
     isDisabled?: boolean;
     onChange: (values: Record<string, PendingChannelAttributeValue>) => void;
+
+    // Required attributes this page can edit that would be saved without a
+    // value. The page decides which of them block Save.
+    onMissingRequiredChange?: (missing: MissingRequiredChannelAttribute[]) => void;
+
+    // Marks each attribute still in onMissingRequiredChange's list, once a
+    // Save has been refused because of them.
+    showRequiredErrors?: boolean;
 };
+
+// Types this page has an editor for. A required attribute of any other type
+// can't be filled in here, so it never blocks Save.
+const EDITABLE_FIELD_TYPES = new Set(['text', 'graph', 'select', 'multiselect', 'rank']);
 
 function fieldOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
@@ -56,11 +79,12 @@ function selectedOptionIds(rawValue: unknown): string[] {
  * Attributes and Channel Info use: a bordered dropdown with wrapping value
  * chips for select/multiselect/rank, and the hierarchical picker for graph.
  */
-const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => {
+const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRequiredChange, showRequiredErrors}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const {enabled, loading: fieldsLoading, fields} = useChannelAttributes();
+    const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
 
     // Fields are warmed by useChannelAttributes; this channel's own values are
     // not fetched anywhere on this page, so they need their own warm-up here.
@@ -97,9 +121,37 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
         });
     }, [onChange]);
 
+    // Empty until the channel's values load, so a slow fetch never reads as
+    // every required attribute being unset.
+    const missingRequired = useMemo<MissingRequiredChannelAttribute[]>(() => {
+        if (!enabled || !requiredEnforced || !valuesLoaded) {
+            return [];
+        }
+        return attributes.flatMap(({field, value}) => {
+            if (!isPropertyFieldRequired(field) || !EDITABLE_FIELD_TYPES.has(field.type) || field.permission_values === 'none') {
+                return [];
+            }
+            const savedSet = isPropertyValueSet(value?.value);
+            const effective = field.id in pending ? pending[field.id] : value?.value;
+            if (isPropertyValueSet(effective)) {
+                return [];
+            }
+            return [{fieldId: field.id, label: getPropertyFieldLabel(field), cleared: savedSet}];
+        });
+    }, [enabled, requiredEnforced, valuesLoaded, attributes, pending]);
+
+    const missingRequiredKey = missingRequired.map((m) => `${m.fieldId}:${m.cleared}`).join(',');
+    useEffect(() => {
+        onMissingRequiredChange?.(missingRequired);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [missingRequiredKey, onMissingRequiredChange]);
+
     if (!enabled || (!fieldsLoading && fields.length === 0)) {
         return null;
     }
+
+    const missingRequiredIds = new Set(missingRequired.map((m) => m.fieldId));
 
     return (
         <AdminPanel
@@ -117,10 +169,15 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                     const policy = getPropertyFieldChangePolicy(field);
                     const currentOptionId = typeof savedRaw === 'string' ? savedRaw : undefined;
                     const options = fieldOptions(field);
+
+                    // Same rule as the Channel Info editor: only a policy that
+                    // allows any change lets an existing value be cleared.
+                    const clearable = policy === 'any' || !hasValue;
                     const reachableOptions = options.filter((option) => option.id === currentOptionId || canMoveToOption(field, savedRaw, option.id));
-                    const stuck = field.type !== 'text' && hasValue && reachableOptions.every((option) => option.id === currentOptionId);
+                    const stuck = field.type !== 'text' && hasValue && !clearable && reachableOptions.every((option) => option.id === currentOptionId);
                     const locked = field.permission_values === 'none' || (hasValue && (policy === 'never' || stuck));
                     const disabled = Boolean(isDisabled) || locked || !valuesLoaded;
+                    const showRequiredError = Boolean(showRequiredErrors) && missingRequiredIds.has(field.id);
 
                     const rawValue = field.id in pending ? pending[field.id] : (savedRaw ?? null);
                     const label = getPropertyFieldLabel(field);
@@ -174,6 +231,13 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                 handleFieldChange(field.id, optionId);
                             }
                         };
+                        const handleRemove = (optionId: string) => {
+                            if (isMulti) {
+                                handlePick(optionId);
+                            } else {
+                                handleFieldChange(field.id, null);
+                            }
+                        };
 
                         control = (
                             <Menu.Container
@@ -194,7 +258,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                                             className='ChannelAttributesSettings__chip'
                                                         >
                                                             <span className='ChannelAttributesSettings__chipLabel'>{option.name}</span>
-                                                            {isMulti && !disabled && (
+                                                            {clearable && !disabled && (
                                                                 <span
                                                                     className='ChannelAttributesSettings__chipRemove'
                                                                     role='button'
@@ -210,7 +274,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                                                         }
                                                                         e.stopPropagation();
                                                                         e.preventDefault();
-                                                                        handlePick(option.id);
+                                                                        handleRemove(option.id);
                                                                     }}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -220,7 +284,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                                                         if (e.key === 'Enter' || e.key === ' ') {
                                                                             e.stopPropagation();
                                                                             e.preventDefault();
-                                                                            handlePick(option.id);
+                                                                            handleRemove(option.id);
                                                                         }
                                                                     }}
                                                                 >
@@ -279,7 +343,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
 
                     return (
                         <div
-                            className='ChannelAttributesSettings__row'
+                            className={classNames('ChannelAttributesSettings__row', {'ChannelAttributesSettings__row--error': showRequiredError})}
                             key={field.id}
                             data-testid={`channelAttributesSettingsRow-${field.name}`}
                         >
@@ -287,6 +351,14 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange}: Props) => 
                                 {label}
                             </label>
                             {control}
+                            {showRequiredError && (
+                                <span className='ChannelAttributesSettings__error'>
+                                    <FormattedMessage
+                                        id='admin.channel_settings.channel_detail.attributes.required_error'
+                                        defaultMessage='This attribute is required. Set a value to save.'
+                                    />
+                                </span>
+                            )}
                         </div>
                     );
                 })}

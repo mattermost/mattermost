@@ -271,6 +271,12 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                             </th>
                             <th>
                                 <FormattedMessage
+                                    id='admin.global_attributes.applies_to.channels.without_value.column.team'
+                                    defaultMessage='Team'
+                                />
+                            </th>
+                            <th>
+                                <FormattedMessage
                                     id='admin.global_attributes.applies_to.channels.without_value.column.admin'
                                     defaultMessage='Channel admin'
                                 />
@@ -295,6 +301,14 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                                             <OpenInNewIcon size={14}/>
                                         </ExternalLink>
                                     </div>
+                                </td>
+                                <td>
+                                    <span
+                                        className='ChannelsWithoutValueModal__team-cell'
+                                        title={ch.team_display_name}
+                                    >
+                                        {ch.team_display_name}
+                                    </span>
                                 </td>
                                 <td>
                                     {ch.channel_admins.length > 0 ? (

@@ -2851,6 +2851,14 @@
     "defaultMessage": "Remove {value}",
     "description": "Accessible label for the button that removes one selected value from a multi-select attribute in the System Console > Channels > channel details page, \"Channel attributes\" section; {value} is the option's name."
   },
+  "admin.channel_settings.channel_detail.attributes.required_error": {
+    "defaultMessage": "This attribute is required. Set a value to save.",
+    "description": "Error under a required channel attribute in System Console > Channel Configuration, shown after Save was refused because the attribute has no value."
+  },
+  "admin.channel_settings.channel_detail.attributes.required_missing": {
+    "defaultMessage": "Set a value for {attributes} before saving. {count, plural, one {This attribute is} other {These attributes are}} required.",
+    "description": "Error at the Save bar of System Console > Channel Configuration when a required channel attribute would be saved without a value (cleared, or unset on a channel being unarchived); {attributes} is a comma-separated list of attribute names and {count} their number."
+  },
   "admin.channel_settings.channel_detail.attributesDescription": {
     "defaultMessage": "Set this channel's value for each channel attribute.",
     "description": "Description under the heading of the System Console > Channels > channel details page, \"Channel attributes\" section."
@@ -5934,6 +5942,10 @@
   "admin.global_attributes.applies_to.channels.without_value.column.channel": {
     "defaultMessage": "Channel",
     "description": "Column header in the System Console \"Channels without a value\" modal, opened from the Required banner of a channel attribute for the channel name."
+  },
+  "admin.global_attributes.applies_to.channels.without_value.column.team": {
+    "defaultMessage": "Team",
+    "description": "Column header in the System Console list of channels missing a channel attribute value; the column shows the team each channel belongs to."
   },
   "admin.global_attributes.applies_to.channels.without_value.empty": {
     "defaultMessage": "Every channel has a value",

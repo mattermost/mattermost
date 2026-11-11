@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -123,9 +124,48 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		assert.Equal(t, bot.UserId, posts[0].UserId)
 		assert.Equal(t, model.PostTypeDefault, posts[0].Type)
 		assert.Equal(t, field.ID, posts[0].GetProp("property_field_id"))
+		assert.True(t, strings.HasPrefix(posts[0].Message, "Please set a value for **Cost center** on these channels you manage."), posts[0].Message)
 		for _, c := range channels {
 			assert.Contains(t, posts[0].Message, c.DisplayName)
 		}
+	})
+
+	t.Run("an already required attribute gets the required wording, singular for one channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		team := th.CreateTeam(t)
+		soleAdmin := th.CreateUser(t)
+		multiAdmin := th.CreateUser(t)
+		groupID := model.NewId()
+		field := makeField("Cost center")
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+
+		th.LinkUserToTeam(t, soleAdmin, team)
+		th.LinkUserToTeam(t, multiAdmin, team)
+		makeAdmin := func(user *model.User, c *model.Channel) {
+			th.AddUserToChannel(t, user, c)
+			_, promoteErr := th.App.UpdateChannelMemberSchemeRoles(th.Context, c.Id, user.Id, false, true, true)
+			require.Nil(t, promoteErr)
+		}
+		makeAdmin(soleAdmin, newChannelNoAdmin(t, th, team))
+		makeAdmin(multiAdmin, newChannelNoAdmin(t, th, team))
+		makeAdmin(multiAdmin, newChannelNoAdmin(t, th, team))
+
+		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
+		require.Nil(t, appErr)
+
+		require.Eventually(t, func() bool {
+			return len(dmPostsFromBotToUser(t, th, bot.UserId, soleAdmin.Id)) == 1 && len(dmPostsFromBotToUser(t, th, bot.UserId, multiAdmin.Id)) == 1
+		}, waitTimeout, waitInterval)
+
+		single := dmPostsFromBotToUser(t, th, bot.UserId, soleAdmin.Id)[0].Message
+		assert.True(t, strings.HasPrefix(single, "You're a channel admin for a channel that is missing a required channel attribute. Please set a **Cost center** value."), single)
+
+		multiple := dmPostsFromBotToUser(t, th, bot.UserId, multiAdmin.Id)[0].Message
+		assert.True(t, strings.HasPrefix(multiple, "You're a channel admin for channels that are missing a required channel attribute. Please set a **Cost center** value."), multiple)
 	})
 
 	t.Run("channels with no channel admin are counted but nobody is notified", func(t *testing.T) {
@@ -239,6 +279,9 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		_, appErr = th.App.NotifyChannelAdminsOfMissingAttribute(th.Context, groupID, field)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusTooManyRequests, appErr.StatusCode)
+		assert.Equal(t, "api.property_field.notify_missing_values.throttled.app_error", appErr.Id)
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		assert.Contains(t, appErr.Message, "You can send another notification in 60 minutes.")
 
 		posts := dmPostsFromBotToUser(t, th, bot.UserId, admin.Id)
 		assert.Len(t, posts, 1, "the throttled call must not send a second DM")
@@ -263,7 +306,7 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		batches := map[string]*channelAttributeAdminBatch{
 			model.NewId(): {username: "ghost", locale: "en"},
 		}
-		th.App.sendChannelAttributeNotifyDMs(th.Context, batches, "Cost center", fieldID, token)
+		th.App.sendChannelAttributeNotifyDMs(th.Context, batches, "Cost center", false, fieldID, token)
 
 		canClaimAgain, _, appErr := th.App.claimChannelAttributeNotifyThrottle(fieldID)
 		require.Nil(t, appErr)
@@ -391,8 +434,34 @@ func TestChannelAttributeDisplayName(t *testing.T) {
 
 	t.Run("the preview names the attribute the same way", func(t *testing.T) {
 		field := linked("data_owner", template.ID, nil)
-		preview := channelAttributeNotifyMessagePreview(th.App.channelAttributeDisplayName(rctx, groupID, field), "en")
+		preview := channelAttributeNotifyMessagePreview(th.App.channelAttributeDisplayName(rctx, groupID, field), false, 3, "en")
 		assert.Contains(t, preview, "**Data Owner**")
+	})
+}
+
+func TestChannelAttributeNotifyMessagePreview(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	T := i18n.GetUserTranslations("en")
+
+	t.Run("matches the text the DM opens with", func(t *testing.T) {
+		for _, required := range []bool{false, true} {
+			assert.Equal(t,
+				channelAttributeNotifyMessageHeader("Cost center", required, 2, T),
+				channelAttributeNotifyMessagePreview("Cost center", required, 5, "en"),
+			)
+		}
+	})
+
+	t.Run("uses the singular required wording when only one channel is affected", func(t *testing.T) {
+		assert.Equal(t,
+			channelAttributeNotifyMessageHeader("Cost center", true, 1, T),
+			channelAttributeNotifyMessagePreview("Cost center", true, 1, "en"),
+		)
+	})
+
+	t.Run("is empty without an attribute name", func(t *testing.T) {
+		assert.Empty(t, channelAttributeNotifyMessagePreview("", true, 1, "en"))
 	})
 }
 

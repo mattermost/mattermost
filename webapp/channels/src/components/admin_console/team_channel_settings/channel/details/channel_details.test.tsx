@@ -18,8 +18,38 @@ jest.mock('utils/browser_history', () => ({
 
 jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
 
-jest.mock('./channel_attributes_settings', () => (props: {onChange: (values: Record<string, string>) => void}) => (
-    <button onClick={() => props.onChange({field1: 'value1'})}>{'EditChannelAttribute'}</button>
+type MockAttributesProps = {
+    onChange: (values: Record<string, string | null>) => void;
+    onMissingRequiredChange?: (missing: Array<{fieldId: string; label: string; cleared: boolean}>) => void;
+};
+jest.mock('./channel_attributes_settings', () => (props: MockAttributesProps) => (
+    <>
+        <button onClick={() => props.onChange({field1: 'value1'})}>{'EditChannelAttribute'}</button>
+        <button
+            onClick={() => {
+                props.onChange({field1: null});
+                props.onMissingRequiredChange?.([{fieldId: 'field1', label: 'Program', cleared: true}]);
+            }}
+        >
+            {'ClearRequiredAttribute'}
+        </button>
+        <button
+            onClick={() => {
+                props.onChange({field2: 'value2'});
+                props.onMissingRequiredChange?.([{fieldId: 'field1', label: 'Program', cleared: false}]);
+            }}
+        >
+            {'EditWithRequiredNeverSet'}
+        </button>
+        <button
+            onClick={() => {
+                props.onChange({field1: 'value1'});
+                props.onMissingRequiredChange?.([]);
+            }}
+        >
+            {'FillRequiredAttribute'}
+        </button>
+    </>
 ));
 
 const mockChannelLevelAccessRules = jest.fn();
@@ -329,5 +359,82 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]);
         expect(patchChannel).not.toHaveBeenCalled();
         expect(setNavigationBlocked).toHaveBeenLastCalledWith(true);
+    });
+
+    describe('required channel attributes', () => {
+        const renderDetails = (channel: Channel & {team_name: string}, overrides: Partial<typeof actions> = {}) => {
+            const patchChannelAttributeValues = jest.fn().mockResolvedValue({data: []});
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            const patchChannel = jest.fn().mockResolvedValue({data: {}});
+            const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
+            renderWithContext(
+                <ChannelDetails
+                    teamScheme={teamScheme}
+                    groups={groups}
+                    team={team}
+                    totalGroups={groups.length}
+                    actions={{...actions, patchChannelAttributeValues, unarchiveChannel, patchChannel, deleteAccessControlPolicy, ...overrides}}
+                    channel={channel}
+                    channelID={channel.id}
+                    allGroups={allGroups}
+                    channelPermissions={[]}
+                    guestAccountsEnabled={true}
+                    channelModerationEnabled={false}
+                    channelGroupsEnabled={false}
+                    abacSupported={false}
+                    channelAttributesEnabled={true}
+                    isDisabled={false}
+                />,
+            );
+            return {patchChannelAttributeValues, unarchiveChannel};
+        };
+
+        test('refuses to save a cleared required attribute', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByText('Set a value for Program before saving. This attribute is required.')).toBeInTheDocument();
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
+
+        test('refuses to unarchive while a required attribute has no value', async () => {
+            const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByText('Set a value for Program before saving. This attribute is required.')).toBeInTheDocument();
+            expect(unarchiveChannel).not.toHaveBeenCalled();
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
+
+        test('unarchives once the refused required attribute is filled in', async () => {
+            const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            expect(await screen.findByText(/before saving/)).toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+        });
+
+        test('does not hold up other edits on an active channel that never had the required value', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field2', value: 'value2'}]));
+            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+        });
     });
 });

@@ -134,6 +134,6 @@ func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID str
 		SharedChannelCount:        missingAll - missingLocal,
 		UniqueAdminCount:          uniqueAdminCount,
 		ChannelsWithoutAdminCount: missingLocal - channelsWithAdminCount,
-		MessagePreview:            channelAttributeNotifyMessagePreview(a.channelAttributeDisplayName(rctx, groupID, field), viewerLocale),
+		MessagePreview:            channelAttributeNotifyMessagePreview(a.channelAttributeDisplayName(rctx, groupID, field), required, channelsWithAdminCount, viewerLocale),
 	}, nil
 }

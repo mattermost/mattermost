@@ -88,8 +88,13 @@
             text-transform: uppercase;
 
             &:first-child {
-                width: 40%;
+                width: 36%;
                 padding-right: 24px;
+            }
+
+            &:nth-child(2) {
+                width: 24%;
+                padding-right: 16px;
             }
         }
 
@@ -109,7 +114,18 @@
             &:first-child {
                 padding-right: 24px;
             }
+
+            &:nth-child(2) {
+                padding-right: 16px;
+            }
         }
+    }
+
+    &__team-cell {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__empty,
