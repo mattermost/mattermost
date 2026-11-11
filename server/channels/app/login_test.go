@@ -315,3 +315,134 @@ func TestDoLoginVoIPDeviceId(t *testing.T) {
 		require.NotNil(t, getErr, "prior session matched by VoIPDeviceId must be revoked")
 	})
 }
+
+func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserWillLogIn(c *plugin.Context, user *model.User) string {
+			_ = p.API.KVSet(user.Id, []byte("called"))
+			return ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	r := &http.Request{}
+
+	for _, tc := range []struct {
+		name       string
+		kind       string
+		deactivate bool
+		wantErrID  string
+		wantStatus int
+	}{
+		{name: "DeleteAt zero", kind: "user"},
+		{
+			name:       "DeleteAt set",
+			kind:       "user",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{name: "guest DeleteAt zero", kind: "guest"},
+		{
+			name:       "guest DeleteAt set",
+			kind:       "guest",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "system admin DeleteAt set",
+			kind:       "admin",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "bot DeleteAt zero",
+			kind:       "bot",
+			wantErrID:  "api.user.login.bot_login_forbidden.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "bot DeleteAt set",
+			kind:       "bot",
+			deactivate: true,
+			wantErrID:  "api.user.login.inactive.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			var user *model.User
+			switch tc.kind {
+			case "guest":
+				user = th.CreateGuest(t)
+			case "admin":
+				user = th.CreateUser(t)
+				_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+				require.Nil(t, appErr)
+				var getErr *model.AppError
+				user, getErr = th.App.GetUser(user.Id)
+				require.Nil(t, getErr)
+			case "bot":
+				bot := th.CreateBot(t)
+				var getErr *model.AppError
+				user, getErr = th.App.GetUser(bot.UserId)
+				require.Nil(t, getErr)
+			default:
+				user = th.CreateUser(t)
+			}
+			if tc.deactivate {
+				var appErr *model.AppError
+				user, appErr = th.App.UpdateActive(th.Context, user, false)
+				require.Nil(t, appErr)
+			}
+
+			sessionsBefore, getErr := th.App.GetSessions(th.Context, user.Id)
+			require.Nil(t, getErr)
+
+			// Checks that DoLogin consults user DeleteAt and IsBot before creating a session.
+			session, err := th.App.DoLogin(th.Context, w, r, user, model.LoginOptions{})
+			hookValue, kvErr := th.App.GetPluginKey(pluginID, user.Id)
+			require.Nil(t, kvErr)
+			if tc.wantErrID == "" {
+				require.Nil(t, err)
+				require.NotNil(t, session)
+				assert.Equal(t, user.Id, session.UserId)
+				assert.Equal(t, "called", string(hookValue))
+				return
+			}
+
+			require.NotNil(t, err)
+			require.Nil(t, session)
+			assert.Equal(t, tc.wantStatus, err.StatusCode)
+			assert.Equal(t, tc.wantErrID, err.Id)
+			assert.Nil(t, hookValue, "UserWillLogIn must not run for a rejected user")
+
+			sessionsAfter, getErr := th.App.GetSessions(th.Context, user.Id)
+			require.Nil(t, getErr)
+			assert.Equal(t, len(sessionsBefore), len(sessionsAfter))
+		})
+	}
+}
