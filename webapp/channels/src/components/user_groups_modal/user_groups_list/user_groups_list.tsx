@@ -232,7 +232,7 @@ const UserGroupsList = (props: Props) => {
         return (
             <div className='user-groups-modal__content user-groups-list user-groups-list--empty'>
                 <NoResultsIndicator
-                    variant={NoResultsVariant.Search}
+                    variant={NoResultsVariant.ChannelSearch}
                     titleValues={{channelName: `${searchTerm}`}}
                 />
                 <ADLDAPUpsellBanner/>
