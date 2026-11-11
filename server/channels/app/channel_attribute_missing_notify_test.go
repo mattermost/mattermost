@@ -35,6 +35,11 @@ func setupMissingAttributes(t *testing.T) *TestHelper {
 // that state.
 func createMissingAttributesField(t *testing.T, th *TestHelper, displayName string, required bool, valueWrite model.PermissionLevel) *model.PropertyField {
 	t.Helper()
+	return createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeText, displayName, required, valueWrite)
+}
+
+func createMissingAttributesFieldOfType(t *testing.T, th *TestHelper, fieldType model.PropertyFieldType, displayName string, required bool, valueWrite model.PermissionLevel) *model.PropertyField {
+	t.Helper()
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -42,7 +47,7 @@ func createMissingAttributesField(t *testing.T, th *TestHelper, displayName stri
 	sysadmin := model.PermissionLevelSysadmin
 	field, err := th.App.Srv().PropertyService().CreatePropertyField(th.Context, &model.PropertyField{
 		Name:              "f_" + model.NewId(),
-		Type:              model.PropertyFieldTypeText,
+		Type:              fieldType,
 		GroupID:           group.ID,
 		ObjectType:        model.PropertyFieldObjectTypeChannel,
 		TargetType:        model.PropertyValueTargetTypeSystem,
@@ -705,6 +710,55 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		assert.Contains(t, posts[0].Message, `(\[click\]\(https://evil.example\) \*\*x\*\*)`)
 		assert.NotContains(t, posts[0].Message, "[click](")
 		assert.NotContains(t, posts[0].Message, "**x**")
+	})
+
+	t.Run("attribute names are escaped so they cannot inject markup", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		team, admin := newAttributesTeamAndMember(t, th)
+		channel := administeredChannel(t, th, team, admin, model.ChannelTypeOpen, "Channel")
+		createMissingAttributesField(t, th, "[click](https://evil.example) *x*", true, model.PermissionLevelAdmin)
+
+		th.App.NotifyNewChannelAdminOfMissingRequiredAttributes(th.Context, admin.Id, []*model.Channel{channel})
+
+		posts := missingAttributesPosts(t, th, bot.UserId, admin.Id)
+		require.Len(t, posts, 1)
+		assert.Contains(t, posts[0].Message, `**\[click\]\(https://evil.example\) \*x\***`)
+		assert.NotContains(t, posts[0].Message, "[click](")
+	})
+
+	t.Run("attributes with no editor are left out", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		team, admin := newAttributesTeamAndMember(t, th)
+		withEditor := administeredChannel(t, th, team, admin, model.ChannelTypeOpen, "With Editor")
+		program := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
+		createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeDate, "Review Date", true, model.PermissionLevelAdmin)
+		createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeUser, "Owner", true, model.PermissionLevelAdmin)
+
+		th.App.NotifyNewChannelAdminOfMissingRequiredAttributes(th.Context, admin.Id, []*model.Channel{withEditor})
+
+		posts := missingAttributesPosts(t, th, bot.UserId, admin.Id)
+		require.Len(t, posts, 1)
+		assert.Contains(t, posts[0].Message, "**Program**")
+		assert.NotContains(t, posts[0].Message, "Review Date")
+		assert.NotContains(t, posts[0].Message, "Owner")
+		assert.ElementsMatch(t, []any{program.ID}, posts[0].GetProp("property_field_ids"))
+	})
+
+	t.Run("a channel missing only attributes with no editor sends nothing", func(t *testing.T) {
+		th := setupMissingAttributes(t)
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+		team, admin := newAttributesTeamAndMember(t, th)
+		channel := administeredChannel(t, th, team, admin, model.ChannelTypeOpen, "Channel")
+		createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeDate, "Review Date", true, model.PermissionLevelAdmin)
+
+		th.App.NotifyNewChannelAdminOfMissingRequiredAttributes(th.Context, admin.Id, []*model.Channel{channel})
+
+		assert.Empty(t, missingAttributesPosts(t, th, bot.UserId, admin.Id))
 	})
 
 	t.Run("one message lists every channel that still misses something", func(t *testing.T) {

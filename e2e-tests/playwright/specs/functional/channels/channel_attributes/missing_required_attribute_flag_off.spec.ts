@@ -81,14 +81,17 @@ test.describe(
                 await channelsPage.centerView.missingRequiredAttributes.toBeHidden(field.name);
 
                 // * Neither the team creation nor the promotion sent a System bot message. Both would have
-                // been sent in the background seconds ago, while the page above loaded.
-                for (const user of [creator, member]) {
-                    const {client} = await pw.makeClient(user);
-                    const bot = await client.getUserByUsername(SYSTEM_BOT_USERNAME);
-                    const dm = await client.createDirectChannel([user.id, bot.id]);
-                    const list = await client.getPosts(dm.id);
-                    const sent = list.order.filter((id) => list.posts[id].message.includes(MESSAGE_LEAD));
-                    expect(sent).toHaveLength(0);
+                // been sent in the background seconds ago, while the page above loaded. The bot is created
+                // on first use, so on a fresh server its absence already means nothing was sent.
+                const bot = await adminClient.getUserByUsername(SYSTEM_BOT_USERNAME).catch(() => null);
+                if (bot) {
+                    for (const user of [creator, member]) {
+                        const {client} = await pw.makeClient(user);
+                        const dm = await client.createDirectChannel([user.id, bot.id]);
+                        const list = await client.getPosts(dm.id);
+                        const sent = list.order.filter((id) => list.posts[id].message.includes(MESSAGE_LEAD));
+                        expect(sent).toHaveLength(0);
+                    }
                 }
             } finally {
                 await deleteAttributes(adminClient, created);

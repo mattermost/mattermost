@@ -1262,6 +1262,26 @@ describe('ChannelInfoAttributes missing required attributes', () => {
         expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
 
+    test('an editor opened by a pending edit does not reopen on the next channel', async () => {
+        const state = mergeObjects(loadedState([field('program', {required: true})], [], pendingFor('program')), {
+            entities: {
+                channels: {
+                    channels: {[OTHER_CHANNEL_ID]: {id: OTHER_CHANNEL_ID, team_id: TEAM_ID, type: 'P'}},
+                    myMembers: {[OTHER_CHANNEL_ID]: {channel_id: OTHER_CHANNEL_ID, user_id: 'user1', roles: 'channel_user channel_admin'}},
+                },
+                properties: {loadedValueTargets: {[OTHER_CHANNEL_ID]: true}},
+            },
+        } as DeepPartial<GlobalState>);
+        const {rerender} = renderWithContext(<ChannelInfoAttributes channelId={CHANNEL_ID}/>, state);
+
+        expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+
+        rerender(<ChannelInfoAttributes channelId={OTHER_CHANNEL_ID}/>);
+
+        expect(await screen.findByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument());
+    });
+
     test('a pending edit for a row the viewer cannot edit opens nothing and is cleared', async () => {
         const {store} = renderWithContext(
             <ChannelInfoAttributes channelId={CHANNEL_ID}/>,

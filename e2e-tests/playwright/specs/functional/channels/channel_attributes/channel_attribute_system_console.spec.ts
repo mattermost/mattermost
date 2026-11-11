@@ -64,6 +64,10 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
             await trigger.click();
             await page.getByText('AURORA', {exact: true}).click();
 
+            // A Save click while the menu is still closing lands on its backdrop.
+            await expect(page.getByRole('menu')).toHaveCount(0);
+            await expect(trigger).toContainText('AURORA');
+
             // * The pending edit has not reached the server
             expect(valueFor(await readChannelValues(adminClient, channel.id), program)).toBeUndefined();
 

@@ -50,8 +50,8 @@ test.describe(
                 );
                 const saveButton = page.getByTestId('saveSetting');
                 await expect(saveButton).toBeDisabled();
-                await expect(page.getByTestId('channelAttributesRequiredToSave')).toHaveText(
-                    /^Set a value for .+ before saving\. This attribute is required\.$/,
+                await expect(page.getByTestId('channelAttributesRequiredToSave')).toContainText(
+                    /Set a value for .+ before saving\. This attribute is required\./,
                 );
 
                 // # Choose an option

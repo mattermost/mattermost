@@ -329,7 +329,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             // * But the row is there, saying the channel is incomplete, and it can be filled
             const info = await channelsPage.openChannelInfo();
-            await expect(info.attributes.unset(undesignated.name)).toBeVisible();
+            await expect(info.attributes.missingValue(undesignated.name)).toHaveText('Select a value');
             await info.attributes.select(undesignated.name, 'FILLED');
             await expect(info.attributes.chip(undesignated.name)).toHaveText('FILLED');
 

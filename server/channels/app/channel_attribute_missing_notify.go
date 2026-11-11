@@ -151,6 +151,18 @@ func (a *App) queueNewChannelAdminMissingAttributesNoticeByID(rctx request.CTX, 
 	a.queueNewChannelAdminMissingAttributesNotice(rctx, userID, channel)
 }
 
+// channelAttributeHasEditor mirrors the webapp's hasEditor: date and user-valued
+// attributes have no editor yet, so a message pointing at Channel Info for them
+// would send the admin to a field they can't fill.
+func channelAttributeHasEditor(field *model.PropertyField) bool {
+	switch field.Type {
+	case model.PropertyFieldTypeText, model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect,
+		model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph:
+		return true
+	}
+	return false
+}
+
 // missingChannelAttributesForAdmin is one channel the recipient was just made
 // admin of, with the missing attributes they may both see and set.
 type missingChannelAttributesForAdmin struct {
@@ -213,6 +225,9 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 
 		var fixable []*model.PropertyField
 		for _, field := range missing {
+			if !channelAttributeHasEditor(field) {
+				continue
+			}
 			canRead := a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueRead, channel.Id).Allowed
 			canWrite := a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueWrite, channel.Id).Allowed
 			if canRead && canWrite {
@@ -327,7 +342,7 @@ func (a *App) missingRequiredAttributesChannelList(rctx request.CTX, userID, gro
 
 		names := make([]string, 0, len(entry.fields))
 		for _, field := range entry.fields {
-			names = append(names, "**"+a.channelAttributeDisplayName(propertyCtx, groupID, field)+"**")
+			names = append(names, "**"+escapeChannelAttributeMarkdownPlainText(a.channelAttributeDisplayName(propertyCtx, groupID, field))+"**")
 		}
 
 		b.WriteString(T("app.channel_attributes.new_admin_missing_value.dm_channel_line", model.StringInterface{

@@ -181,7 +181,10 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
     const requiredEnforced = useSelector(isChannelAttributesRequiredEnabled);
 
     // Bumped on every consumed request so a menu that was closed again reopens.
-    const [openRequest, setOpenRequest] = useState<{fieldId: string; signal: number}>();
+    // It carries its channel: after a switch the row's editor remounts, and its
+    // mount effect runs before any reset here would, so a request from the
+    // previous channel must already read as none during render.
+    const [openRequest, setOpenRequest] = useState<{channelId: string; fieldId: string; signal: number}>();
 
     // Added through Add Attribute this session; nothing else keeps their row up.
     const [revealedFieldIds, setRevealedFieldIds] = useState<string[]>([]);
@@ -369,7 +372,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
 
         const {field} = target;
         setEditingFieldId(field.id);
-        setOpenRequest((previous) => ({fieldId: field.id, signal: (previous?.signal ?? 0) + 1}));
+        setOpenRequest((previous) => ({channelId, fieldId: field.id, signal: (previous?.signal ?? 0) + 1}));
         requestAnimationFrame(() => {
             const row = rootRef.current?.querySelector(`[data-testid="channelInfoAttributeRow-${field.name}"]`);
             row?.scrollIntoView({block: 'nearest'});
@@ -439,7 +442,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     onCancel={() => handleCancel(field.id)}
                                     saving={savingFieldId === field.id}
                                     missing={isMissing}
-                                    openSignal={openRequest?.fieldId === field.id ? openRequest.signal : 0}
+                                    openSignal={openRequest?.channelId === channelId && openRequest.fieldId === field.id ? openRequest.signal : 0}
                                     required={requiredEnforced && isPropertyFieldRequired(field)}
                                 />
                             );
