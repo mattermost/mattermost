@@ -31,7 +31,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(createTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(getAllTeams)).Methods(http.MethodGet)
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateTeamScheme)).Methods(http.MethodPut)
-	api.BaseRoutes.Teams.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchTeams)).Methods(http.MethodPost)
+	api.BaseRoutes.Teams.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchTeams, handlerParamScopedSession)).Methods(http.MethodPost)
 	api.BaseRoutes.TeamsForUser.Handle("", api.APISessionRequired(getTeamsForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.APISessionRequired(getTeamsUnreadForUser)).Methods(http.MethodGet)
 
@@ -1488,6 +1488,34 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// searchTeamsInSessionScope is searchTeams for a scoped session: it searches
+// only the teams the scope can view.
+func searchTeamsInSessionScope(c *Context, w http.ResponseWriter, props *model.TeamSearch, scope *model.SessionScope) {
+	teams, appErr := c.App.SearchTeamsInSessionScope(c.AppContext, scope, props.Term)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
+
+	var payload []byte
+	if props.IsPaginated() {
+		if *props.Page < 0 || *props.PerPage < 0 {
+			c.SetInvalidParam("page")
+			return
+		}
+		totalCount := len(teams)
+		start := min(*props.Page**props.PerPage, totalCount)
+		teams = teams[start:min(start+*props.PerPage, totalCount)]
+		payload = model.ToJSON(map[string]any{"teams": teams, "total_count": totalCount})
+	} else {
+		payload = model.ToJSON(teams)
+	}
+	if _, err := w.Write(payload); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.TeamSearch
 	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
@@ -1501,6 +1529,11 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	// policy ID may only be used through the /data_retention/policies endpoint
 	props.PolicyID = nil
+
+	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		searchTeamsInSessionScope(c, w, &props, scope)
+		return
+	}
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
 		props.IncludePolicyID = new(true)
 	}
