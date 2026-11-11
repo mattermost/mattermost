@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,6 +49,62 @@ func TestGetWSQueuesStatus(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, queues)
 	})
+}
+
+func TestGetWSQueuesPermissionAttributes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	register := func(t *testing.T, proxyDeviceID string) *WebConn {
+		c, _, err := (&websocket.Dialer{}).Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+		require.NoError(t, err)
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket:     c,
+			Session:       model.Session{UserId: model.NewId()},
+			ConnectionID:  model.NewId(),
+			ProxyDeviceID: proxyDeviceID,
+		}, th.Suite, &hookRunner{})
+		for i := range 3 {
+			wc.addToDeadQueue(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "").SetSequence(int64(i)))
+		}
+		require.NoError(t, th.Service.HubRegister(wc))
+		go wc.Pump()
+		wc.Close()
+		return wc
+	}
+
+	t.Run("should hand over the attributes of the old connection", func(t *testing.T) {
+		wc := register(t, "device-1")
+
+		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 3)
+		require.NoError(t, err)
+		require.NotNil(t, queues)
+		assert.Equal(t, permissionAttributesKey("device-1", nil), queues.PermissionAttributes)
+		assert.NotEmpty(t, queues.PermissionAttributes)
+	})
+
+	t.Run("should not report attributes for a connection without any", func(t *testing.T) {
+		wc := register(t, "")
+
+		queues, err := th.Service.GetWSQueues(wc.UserId, wc.GetConnectionID(), 3)
+		require.NoError(t, err)
+		require.NotNil(t, queues)
+		assert.Empty(t, queues.PermissionAttributes)
+	})
+}
+
+func TestPermissionAttributesKey(t *testing.T) {
+	derived := map[string]any{"ip_address": "192.0.2.10", "user_agent_os": "Android"}
+
+	assert.Empty(t, permissionAttributesKey("", nil))
+	assert.Empty(t, permissionAttributesKey("", map[string]any{}))
+	assert.NotEmpty(t, permissionAttributesKey("device-1", nil))
+	assert.NotEmpty(t, permissionAttributesKey("", derived))
+	assert.Equal(t, permissionAttributesKey("device-1", derived), permissionAttributesKey("device-1", map[string]any{"user_agent_os": "Android", "ip_address": "192.0.2.10"}))
+	assert.NotEqual(t, permissionAttributesKey("device-1", derived), permissionAttributesKey("device-2", derived))
+	assert.NotEqual(t, permissionAttributesKey("device-1", derived), permissionAttributesKey("device-1", map[string]any{"ip_address": "192.0.2.11", "user_agent_os": "Android"}))
 }
 
 func TestMarshalAQ(t *testing.T) {

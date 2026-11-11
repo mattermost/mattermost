@@ -42,8 +42,9 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		}
 		// send only aq
 		return &model.WSQueues{
-			ActiveQ:    aqSlice,
-			ReuseCount: connRes.ReuseCount,
+			ActiveQ:              aqSlice,
+			ReuseCount:           connRes.ReuseCount,
+			PermissionAttributes: connRes.PermissionAttributes,
 		}, nil
 	}
 
@@ -60,9 +61,10 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		}
 		// send aq + drainedDq.
 		return &model.WSQueues{
-			ActiveQ:    aqSlice,
-			DeadQ:      dqSlice,
-			ReuseCount: connRes.ReuseCount,
+			ActiveQ:              aqSlice,
+			DeadQ:                dqSlice,
+			ReuseCount:           connRes.ReuseCount,
+			PermissionAttributes: connRes.PermissionAttributes,
 		}, nil
 	}
 

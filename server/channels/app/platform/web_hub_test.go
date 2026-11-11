@@ -696,6 +696,35 @@ func TestCheckWebConn(t *testing.T) {
 			assert.False(t, isRemote)
 		})
 
+		t.Run("should return the permission attributes of a connection on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": nil,
+				"node2": {ActiveQ: []model.ActiveQueueItem{}, PermissionAttributes: "attributes"},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			require.NotNil(t, res)
+			assert.Equal(t, "attributes", res.PermissionAttributes)
+			assert.Empty(t, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should not resume a connection on another node with different attributes", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {ActiveQ: []model.ActiveQueueItem{}, PermissionAttributes: "attributes"},
+			}
+			cluster.err = nil
+
+			cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: model.NewId()}, &WebConnConfig{
+				ConnectionID:  model.NewId(),
+				ProxyDeviceID: "device-1",
+			}, "5")
+			require.NoError(t, err)
+			assert.Zero(t, cfg.sequence)
+			assert.Nil(t, cfg.activeQueue)
+		})
+
 		t.Run("should report a cluster error", func(t *testing.T) {
 			cluster.queues = nil
 			cluster.err = errors.New("timed out")

@@ -148,6 +148,9 @@ type WSQueues struct {
 	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
 	ReuseCount int               `json:"reuse_count"`
 	Status     WSQueuesStatus    `json:"status,omitempty"`
+	// PermissionAttributes identifies the request-scoped attributes the old connection was
+	// evaluated with, so a resume with different attributes can be refused.
+	PermissionAttributes string `json:"permission_attributes,omitempty"`
 }
 
 type WebSocketMessage interface {

@@ -359,6 +359,7 @@ func (ps *PlatformService) CheckWebConn(userID, connectionID string, seqNum int6
 
 		connRes.ActiveQueue = aq
 		connRes.ReuseCount = queues.ReuseCount
+		connRes.PermissionAttributes = queues.PermissionAttributes
 
 		// parse the deadq
 		if queues.DeadQ != nil {
@@ -660,6 +661,8 @@ func (h *Hub) Start() {
 						DeadQueue:        conn.deadQueue,
 						DeadQueuePointer: conn.deadQueuePointer,
 						ReuseCount:       conn.reuseCount + 1,
+
+						PermissionAttributes: permissionAttributesKey(conn.ProxyDeviceID, conn.ServerDerivedAttributes),
 					}
 				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID {
 					res.active = conn.Active.Load()

@@ -66,6 +66,78 @@ func TestPopulateWebConnConfigRejectedResume(t *testing.T) {
 	metricsMock.AssertExpectations(t)
 }
 
+func TestPopulateWebConnConfigResumeWithPermissionAttributes(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	serverDerived := map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10"}
+
+	register := func(t *testing.T) *WebConn {
+		c, _, err := (&websocket.Dialer{}).Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+		require.NoError(t, err)
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket:               c,
+			Session:                 model.Session{UserId: model.NewId()},
+			ConnectionID:            model.NewId(),
+			ProxyDeviceID:           "device-1",
+			ServerDerivedAttributes: serverDerived,
+		}, th.Suite, &hookRunner{})
+		require.NoError(t, th.Service.HubRegister(wc))
+		go wc.Pump()
+		wc.Close()
+		return wc
+	}
+
+	tests := []struct {
+		name          string
+		proxyDeviceID string
+		serverDerived map[string]any
+		resumed       bool
+	}{
+		{"same attributes resume", "device-1", serverDerived, true},
+		{"missing device ID starts a new connection", "", serverDerived, false},
+		{"different device ID starts a new connection", "device-2", serverDerived, false},
+		{"missing server-derived attributes start a new connection", "device-1", nil, false},
+		{"different server-derived attributes start a new connection", "device-1", map[string]any{model.SessionAttributesPropertyFieldIPAddress: "198.51.100.7"}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wc := register(t)
+
+			cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: wc.UserId}, &WebConnConfig{
+				ConnectionID:            wc.GetConnectionID(),
+				ProxyDeviceID:           tt.proxyDeviceID,
+				ServerDerivedAttributes: tt.serverDerived,
+			}, "5")
+			require.NoError(t, err)
+			if tt.resumed {
+				assert.Equal(t, wc.GetConnectionID(), cfg.ConnectionID)
+				assert.EqualValues(t, 5, cfg.sequence)
+			} else {
+				assert.NotEqual(t, wc.GetConnectionID(), cfg.ConnectionID)
+				assert.Zero(t, cfg.sequence)
+				assert.Nil(t, cfg.activeQueue)
+			}
+		})
+	}
+
+	t.Run("connection without attributes does not resume with attributes", func(t *testing.T) {
+		wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+		wc.Close()
+
+		cfg, err := th.Service.PopulateWebConnConfig(&model.Session{UserId: wc.UserId}, &WebConnConfig{
+			ConnectionID:  wc.GetConnectionID(),
+			ProxyDeviceID: "device-1",
+		}, "5")
+		require.NoError(t, err)
+		assert.NotEqual(t, wc.GetConnectionID(), cfg.ConnectionID)
+	})
+}
+
 type hookRunner struct {
 }
 
