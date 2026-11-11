@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -4082,16 +4083,62 @@ func TestGetFlaggedPostsForUserPaging(t *testing.T) {
 			require.Len(t, all.Order, 7)
 
 			var paged []string
-			for page, expectedLen := range []int{3, 3, 1, 0} {
+			for page, expected := range []struct {
+				len     int
+				hasNext bool
+			}{{3, true}, {3, true}, {1, false}, {0, false}} {
 				rpl, _, err := getFlaggedPosts(page, 3)
 				require.NoError(t, err)
-				assert.Len(t, rpl.Order, expectedLen, "page %d", page)
+				assert.Len(t, rpl.Order, expected.len, "page %d", page)
+				require.NotNil(t, rpl.HasNext, "page %d", page)
+				assert.Equal(t, expected.hasNext, *rpl.HasNext, "page %d", page)
 				paged = append(paged, rpl.Order...)
 			}
 
 			assert.ElementsMatch(t, all.Order, paged)
 		})
 	}
+}
+
+func TestGetFlaggedPostsForUserHasNextWithHistoryLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	user := th.BasicUser
+
+	var posts []*model.Post
+	preferences := model.Preferences{}
+	for range 4 {
+		post := th.CreatePost(t)
+		posts = append(posts, post)
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+		time.Sleep(2 * time.Millisecond)
+	}
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
+
+	license := model.NewTestLicense("")
+	license.Limits = &model.LicenseLimits{PostHistory: 10000}
+	th.App.Srv().SetLicense(license)
+
+	newest := posts[len(posts)-1]
+	err = th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+		Name:  model.SystemLastAccessiblePostTime,
+		Value: strconv.FormatInt(newest.CreateAt, 10),
+	})
+	require.NoError(t, err)
+
+	rpl, _, err := client.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 2)
+	require.NoError(t, err)
+	assert.Equal(t, []string{newest.Id}, rpl.Order)
+	require.NotNil(t, rpl.HasNext)
+	assert.False(t, *rpl.HasNext)
 }
 
 func TestGetPostsBefore(t *testing.T) {

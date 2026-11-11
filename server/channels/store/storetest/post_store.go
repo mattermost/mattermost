@@ -3553,14 +3553,17 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.True(t, *r3.HasNext)
 
 	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.False(t, *r3.HasNext)
 
 	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
 	require.NoError(t, err)
 	require.Empty(t, r3.Order, "should be empty")
+	assert.False(t, *r3.HasNext)
 
 	r4, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 	require.NoError(t, err)

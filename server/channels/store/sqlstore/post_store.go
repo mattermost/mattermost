@@ -614,16 +614,22 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
 	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
 
-	queryParams = append(queryParams, limit, offset)
+	queryParams = append(queryParams, limit+1, offset)
 
 	if err := s.GetReplica().Select(&posts, query, queryParams...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
+	}
+
+	hasNext := len(posts) > limit
+	if hasNext {
+		posts = posts[:limit]
 	}
 
 	for _, post := range posts {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}
+	pl.HasNext = &hasNext
 
 	return pl, nil
 }

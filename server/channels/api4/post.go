@@ -578,6 +578,10 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		pl.AddOrder(post.Id)
 	}
 
+	// Saved posts are sorted newest first, so once the history limit hides one, every later page is hidden too.
+	hasNext := model.SafeDereference(posts.HasNext) && posts.FirstInaccessiblePostTime == 0
+	pl.HasNext = &hasNext
+
 	pl.SortByCreateAt()
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, pl, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
