@@ -255,7 +255,8 @@
             overflow: auto;
 
             // Search with no matches: fill the space below the filter so the empty state centers.
-            &.user-groups-list--empty {
+            // Doubled class so max-height beats the 460px cap on `.user-groups-list` below.
+            &.user-groups-list.user-groups-list--empty {
                 @include mixins.fill-height-column;
 
                 max-height: none;
