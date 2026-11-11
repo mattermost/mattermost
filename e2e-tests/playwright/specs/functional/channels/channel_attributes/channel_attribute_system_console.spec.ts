@@ -64,6 +64,10 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
             await trigger.click();
             await page.getByText('AURORA', {exact: true}).click();
 
+            // A Save click while the menu is still closing lands on its backdrop.
+            await expect(page.getByRole('menu')).toHaveCount(0);
+            await expect(trigger).toContainText('AURORA');
+
             // * The pending edit has not reached the server
             expect(valueFor(await readChannelValues(adminClient, channel.id), program)).toBeUndefined();
 
@@ -123,7 +127,7 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
 
     /**
      * @objective Verify a select value can be cleared from its chip, and that
-     * Save refuses to clear one that is required.
+     * Save stays disabled while a required one is cleared.
      */
     test('refuses to save a cleared required value', async ({pw}) => {
         await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
@@ -154,12 +158,12 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
             await page.goto(`/admin_console/user_management/channels/${channel.id}`);
             await expect(page.getByTestId(`channelAttributesSettings-${program.name}`)).toContainText('AURORA');
 
-            // # Clear the value from its chip and save
+            // # Clear the value from its chip
             await page.getByRole('button', {name: 'Remove AURORA'}).click();
             await expect(page.getByTestId(`channelAttributesSettings-${program.name}`)).toContainText('Not set');
-            await page.getByTestId('saveSetting').click();
 
-            // * Save is refused with an error, and the value is still stored
+            // * Save is disabled with an error, and the value is still stored
+            await expect(page.getByTestId('saveSetting')).toBeDisabled();
             await expect(page.getByText(/before saving\. This attribute is required\./)).toBeVisible();
             await expect(page.getByText('This attribute is required. Set a value to save.')).toBeVisible();
             expect(valueFor(await readChannelValues(adminClient, channel.id), program)).toBe(
@@ -203,17 +207,17 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
             const {page} = await pw.testBrowser.login(adminUser);
             await page.goto(`/admin_console/user_management/channels/${channel.id}`);
 
-            // # Unarchive without setting the value, then save
+            // # Unarchive without setting the value
             await page.getByRole('button', {name: 'Unarchive Channel'}).click();
             const trigger = page.getByTestId(`channelAttributesSettings-${program.name}`);
             await expect(trigger).toContainText('Not set');
-            await page.getByTestId('saveSetting').click();
 
-            // * Save is refused and the channel stays archived
+            // * Save is disabled and the channel stays archived
+            await expect(page.getByTestId('saveSetting')).toBeDisabled();
             await expect(page.getByText(/before saving\. This attribute is required\./)).toBeVisible();
             expect((await adminClient.getChannel(channel.id)).delete_at).not.toBe(0);
 
-            // # Set the value and save again
+            // # Set the value and save
             await trigger.click();
             await page.getByText('ZEPHYR', {exact: true}).click();
             await page.getByTestId('saveSetting').click();

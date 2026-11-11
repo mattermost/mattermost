@@ -707,6 +707,24 @@ export function setEditChannelMembers(active: boolean) {
     };
 }
 
+export function openChannelAttributeEditor(channelId: string, fieldId: string): ActionFunc {
+    return (dispatch) => {
+        dispatch(showChannelInfo(channelId));
+        dispatch({
+            type: ActionTypes.SET_PENDING_CHANNEL_ATTRIBUTE_EDIT,
+            channelId,
+            fieldId,
+        });
+        return {data: true};
+    };
+}
+
+export function clearPendingChannelAttributeEdit() {
+    return {
+        type: ActionTypes.CLEAR_PENDING_CHANNEL_ATTRIBUTE_EDIT,
+    };
+}
+
 export function measureRhsOpened() {
     return () => {
         measureAndReport({

@@ -116,6 +116,10 @@ export function makeGetPropertyValuesForTarget(): (state: GlobalState, targetId:
     );
 }
 
+export function arePropertyValuesLoadedForTarget(state: GlobalState, targetId: string): boolean {
+    return Boolean(state.entities.properties.loadedValueTargets[targetId]);
+}
+
 /**
  * The post-attribute fields that apply to a post in a given channel: the channel's
  * scope chain, which is every system-scoped field plus the ones targeting this

@@ -389,52 +389,70 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             return {patchChannelAttributeValues, unarchiveChannel};
         };
 
-        test('refuses to save a cleared required attribute', async () => {
+        const missingMessage = 'Set a value for Program before saving. This attribute is required.';
+
+        test('holds back Save while a cleared required attribute is empty', async () => {
             const {patchChannelAttributeValues} = renderDetails(testChannel);
 
             await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
-            await userEvent.click(screen.getByTestId('saveSetting'));
 
-            expect(await screen.findByText('Set a value for Program before saving. This attribute is required.')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
             expect(patchChannelAttributeValues).not.toHaveBeenCalled();
         });
 
-        test('refuses to unarchive while a required attribute has no value', async () => {
+        test('holds back other edits on an active channel that never had the required value', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
+
+        test('releases Save and the message once the required attribute is filled in', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+        });
+
+        test('holds back unarchive until the required attribute is filled in', async () => {
             const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
 
             await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
             await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
-            await userEvent.click(screen.getByTestId('saveSetting'));
 
-            expect(await screen.findByText('Set a value for Program before saving. This attribute is required.')).toBeInTheDocument();
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
             expect(unarchiveChannel).not.toHaveBeenCalled();
-            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
-        });
-
-        test('unarchives once the refused required attribute is filled in', async () => {
-            const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
-
-            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
-            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
-            await userEvent.click(screen.getByTestId('saveSetting'));
-            expect(await screen.findByText(/before saving/)).toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
             await userEvent.click(screen.getByTestId('saveSetting'));
 
             await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
             await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
-            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
         });
 
-        test('does not hold up other edits on an active channel that never had the required value', async () => {
-            const {patchChannelAttributeValues} = renderDetails(testChannel);
+        test('keeps a save error visible next to the required-attributes message', async () => {
+            renderDetails(testChannel, {patchChannelAttributeValues: jest.fn().mockResolvedValue({error: {message: 'attribute save failed'}})});
 
-            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
             await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(screen.getByText('attribute save failed')).toBeInTheDocument());
 
-            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field2', value: 'value2'}]));
-            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
+
+            expect(screen.getByText('attribute save failed')).toBeInTheDocument();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
         });
     });
 });

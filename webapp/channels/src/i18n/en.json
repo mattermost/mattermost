@@ -19587,6 +19587,10 @@
     "defaultMessage": "Edit {label}",
     "description": "Screen-reader label for the button that edits a channel attribute's value in the channel info right-hand panel. {label} is the attribute's display name. 'Edit' is a verb."
   },
+  "channel_attributes.info.enter_a_value": {
+    "defaultMessage": "Enter a value",
+    "description": "Placeholder in a Channel Info row for a required text attribute that has no value yet. Selecting it opens the text editor."
+  },
   "channel_attributes.info.heading": {
     "defaultMessage": "Channel Attributes",
     "description": "Section heading in the channel info right-hand panel above the list of the channel's attributes, such as classification."
@@ -19623,13 +19627,33 @@
     "defaultMessage": "Couldn't save {label}. Try again.",
     "description": "Inline error under a channel attribute in the channel info right-hand panel when saving its new value fails. {label} is the attribute's display name."
   },
+  "channel_attributes.info.save_failed_required": {
+    "defaultMessage": "{label} is required. Choose a value instead of clearing it.",
+    "description": "Inline error under a channel attribute in the channel info right-hand panel when the server refuses to clear a required attribute. {label} is the attribute's display name. Retrying can't help, so it asks for a different value instead."
+  },
+  "channel_attributes.info.select_a_value": {
+    "defaultMessage": "Select a value",
+    "description": "Placeholder in a Channel Info row for a required attribute that has no value yet. Selecting it opens the list of values to choose from."
+  },
   "channel_attributes.labels.overflow": {
     "defaultMessage": "+{count}",
     "description": "Compact button after the row of channel attribute chips in the channel header and thread headers, when some chips do not fit. {count} is the number of hidden chips. Opens a popover that lists them."
   },
+  "channel_attributes.labels.set_value": {
+    "defaultMessage": "Set {label}",
+    "description": "Text of a dashed chip in the channel header that prompts a channel admin to set a required channel attribute that has no value yet. {label} is the attribute's name. Opens Channel Info with that attribute in edit mode."
+  },
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
+  },
+  "channel_attributes.missing_notice.add_values": {
+    "defaultMessage": "Add values",
+    "description": "Button inside the red notice under the channel header. Opens Channel Info with the first missing required channel attribute in edit mode."
+  },
+  "channel_attributes.missing_notice.text": {
+    "defaultMessage": "Channel attribute values are missing",
+    "description": "Text of the red notice shown under the channel header to channel admins when a required channel attribute has no value on the channel."
   },
   "channel_attributes.select_value": {
     "defaultMessage": "Select a value",
@@ -19982,6 +20006,10 @@
   "channel_header.openChannelInfo": {
     "defaultMessage": "View Info",
     "description": "Tooltip of the info button in the channel header; opens the channel info sidebar."
+  },
+  "channel_header.openChannelInfo.missing_values": {
+    "defaultMessage": "{label}, channel attribute values are missing",
+    "description": "Accessible label of the channel info button in the channel header when the channel lacks required attribute values. {label} is the button's usual label, for example View Info."
   },
   "channel_header.otherchannel": {
     "defaultMessage": "{displayName} Channel Menu",

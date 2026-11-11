@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {batchActions} from 'redux-batched-actions';
+
 import type {PropertyField, PropertyFieldsScope, PropertyValue} from '@mattermost/types/properties';
 
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
@@ -177,10 +179,18 @@ export function fetchPropertyValues<T = unknown>(
     return async (dispatch) => {
         const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
 
-        dispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
+        // The marker is dispatched even for an empty list: that is the only way
+        // the store can say "loaded, no values".
+        dispatch(batchActions([
+            {
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values},
+            },
+            {
+                type: PropertyTypes.PROPERTY_VALUES_LOADED_FOR_TARGET,
+                data: {targetId},
+            },
+        ]));
 
         return {data: values};
     };

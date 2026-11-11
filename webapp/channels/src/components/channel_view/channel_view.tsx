@@ -8,6 +8,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import {Button} from '@mattermost/compass-ui/components/button';
 
 import AdvancedCreatePost from 'components/advanced_create_post';
+import MissingRequiredAttributesNotice from 'components/channel_attributes/missing_required_attributes_notice';
 import ChannelBanner from 'components/channel_banner/channel_banner';
 import ChannelBookmarks from 'components/channel_bookmarks';
 import ChannelHeader from 'components/channel_header';
@@ -273,6 +274,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     key='channelBanner'
                     channelId={this.props.channelId}
                 />
+                <MissingRequiredAttributesNotice channelId={this.props.channelId}/>
                 {this.props.isChannelBookmarksEnabled && (
                     <ChannelBookmarks
                         key='channelBookmarks'

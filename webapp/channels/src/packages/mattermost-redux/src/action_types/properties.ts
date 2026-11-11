@@ -15,6 +15,7 @@ export default keyMirror({
     PROPERTY_VALUE_DELETED: null,
     PROPERTY_VALUES_DELETED_FOR_FIELD: null,
     PROPERTY_VALUES_DELETED_FOR_TARGET: null,
+    PROPERTY_VALUES_LOADED_FOR_TARGET: null,
 
     // Group actions
     RECEIVED_PROPERTY_GROUP: null,

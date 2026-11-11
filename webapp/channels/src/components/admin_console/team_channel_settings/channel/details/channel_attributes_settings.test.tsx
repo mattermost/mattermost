@@ -10,6 +10,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import ChannelAttributesSettings from './channel_attributes_settings';
 
@@ -268,7 +269,7 @@ describe('ChannelAttributesSettings', () => {
             expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
         });
 
-        test('marks the missing attribute once a save was refused', async () => {
+        test('marks the missing attribute while the page holds back Save', async () => {
             const field = requiredField();
             mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
             mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
@@ -318,5 +319,144 @@ describe('ChannelAttributesSettings', () => {
         fireEvent.change(input, {target: {value: 'hello'}});
 
         expect(onChange).toHaveBeenCalledWith({[field.id]: 'hello'});
+    });
+
+    describe('required fields', () => {
+        const requiredState = {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagChannelAttributes: 'true',
+                        FeatureFlagChannelAttributesRequired: 'true',
+                    },
+                },
+            },
+        };
+
+        // The page passes showRequiredErrors while it holds back Save; here it
+        // is always on, so an error shows exactly when a field is reported.
+        function setup(field: PropertyField, rawValue: unknown, state: Record<string, unknown> = requiredState, onMissing = jest.fn(), isDisabled = false) {
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, rawValue)]);
+            const onChange = jest.fn();
+            renderWithContext(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={onChange}
+                    onMissingRequiredChange={onMissing}
+                    showRequiredErrors={true}
+                    isDisabled={isDisabled}
+                />,
+                state,
+            );
+            return {onChange, onMissing};
+        }
+
+        function requiredField(overrides: Partial<PropertyField> = {}) {
+            return makeField({attrs: {display_name: 'Program', required: true, options: [{id: 'opt1', name: 'AURORA'}, {id: 'opt2', name: 'ZEPHYR'}]}, ...overrides});
+        }
+
+        test('shows the error on an empty required field and reports it', async () => {
+            const {onMissing} = setup(requiredField(), undefined);
+
+            const error = await screen.findByTestId('channelAttributeRequiredError-program');
+            expect(error).toHaveTextContent('This attribute is required.');
+
+            const control = screen.getByTestId('channelAttributesSettings-program');
+            expect(control).toHaveAttribute('aria-invalid', 'true');
+            expect(control).toHaveAttribute('aria-describedby', error.id);
+            expect(control).toHaveClass('ChannelAttributesSettings__select--error');
+            await waitFor(() => expect(onMissing).toHaveBeenLastCalledWith([{fieldId: expect.any(String), label: 'Program', cleared: false}]));
+        });
+
+        test('marks a required text input invalid and clears the error once it is filled', async () => {
+            const field = requiredField({name: 'notes', type: 'text', attrs: {display_name: 'Notes', required: true}});
+            const {onMissing} = setup(field, undefined);
+
+            expect(await screen.findByTestId('channelAttributeRequiredError-notes')).toBeInTheDocument();
+            const input = screen.getByTestId('channelAttributesSettings-notes');
+            expect(input).toHaveAttribute('aria-invalid', 'true');
+
+            fireEvent.change(input, {target: {value: 'hello'}});
+
+            await waitFor(() => expect(screen.queryByTestId('channelAttributeRequiredError-notes')).not.toBeInTheDocument());
+            expect(input).not.toHaveAttribute('aria-invalid');
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
+
+        test('no error when the required field already has a value', async () => {
+            const {onMissing} = setup(requiredField(), 'opt1');
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
+
+        test('no error for an optional field', async () => {
+            setup(makeField(), undefined);
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+        });
+
+        test('a field the admin cannot edit never errors', async () => {
+            const {onMissing} = setup(requiredField({permission_values: 'none'}), undefined);
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
+
+        test('a field type with no editor never errors', async () => {
+            const {onMissing} = setup(requiredField({name: 'when', type: 'date'}), undefined);
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-when')).toBeInTheDocument());
+            expect(screen.queryByTestId('channelAttributeRequiredError-when')).not.toBeInTheDocument();
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
+
+        test('no error when the required flag is off', async () => {
+            const {onMissing} = setup(requiredField(), undefined, {
+                entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'false'}}},
+            });
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeInTheDocument());
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
+
+        test('still reports for a channel the page is unarchiving', async () => {
+            const channel = TestHelper.getChannelMock({id: 'channel1', delete_at: 123});
+            const {onMissing} = setup(requiredField(), undefined, {
+                entities: {
+                    ...requiredState.entities,
+                    channels: {channels: {channel1: channel}},
+                },
+            });
+
+            expect(await screen.findByTestId('channelAttributeRequiredError-program')).toBeInTheDocument();
+            await waitFor(() => expect(onMissing).toHaveBeenLastCalledWith([{fieldId: expect.any(String), label: 'Program', cleared: false}]));
+        });
+
+        test('reports nothing while the page is read-only', async () => {
+            const {onMissing} = setup(requiredField(), undefined, requiredState, jest.fn(), true);
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled());
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
+        });
+
+        test('a failed value fetch never reports a missing required field or shows an error', async () => {
+            const {Client4} = jest.requireMock('mattermost-redux/client');
+            Client4.getPropertyValues.mockRejectedValueOnce(new Error('network'));
+
+            const {onMissing} = setup(requiredField(), undefined);
+
+            await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-program')).toBeEnabled());
+            expect(Client4.getPropertyValues).toHaveBeenCalled();
+            expect(screen.queryByTestId('channelAttributeRequiredError-program')).not.toBeInTheDocument();
+            expect(onMissing).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
+            expect(onMissing).toHaveBeenLastCalledWith([]);
+        });
     });
 });

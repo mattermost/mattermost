@@ -4,6 +4,7 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {MissingRequiredAttributes} from './channel_attributes';
 import ChannelsHeader from './header';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
@@ -30,6 +31,7 @@ export default class ChannelsCenterView {
     readonly notificationSeparator;
     readonly postViews;
     readonly channelIntro;
+    readonly missingRequiredAttributes: MissingRequiredAttributes;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -50,6 +52,7 @@ export default class ChannelsCenterView {
         this.notificationSeparator = container.locator('.NotificationSeparator');
         this.postViews = container.getByTestId('postView');
         this.channelIntro = container.locator('#channelIntro');
+        this.missingRequiredAttributes = new MissingRequiredAttributes(container);
     }
 
     async toBeVisible() {

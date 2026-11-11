@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor} from '@testing-library/react';
-import {useSelector} from 'react-redux';
+import {act, waitFor} from '@testing-library/react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import {GeneralTypes, PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
 
@@ -14,7 +15,7 @@ import {renderHookWithContext} from 'tests/react_testing_utils';
 import type {GlobalState} from 'types/store';
 
 import useChannelAttributes from './useChannelAttributes';
-import useMissingRequiredChannelAttributes from './useMissingRequiredChannelAttributes';
+import useMissingRequiredChannelAttributes, {missingRequiredFields} from './useMissingRequiredChannelAttributes';
 
 jest.mock('./useChannelAttributes');
 jest.mock('mattermost-redux/client', () => ({
@@ -203,5 +204,170 @@ describe('useMissingRequiredChannelAttributes', () => {
         await waitFor(() => expect(result.current.loading).toBe(false));
         expect(result.current.missing).toEqual([]);
         expect(mockGetPropertyValues).not.toHaveBeenCalled();
+    });
+
+    describe('preferStore', () => {
+        const loadedState = (values: Array<PropertyValue<unknown>>) => ({
+            ...requiredEnforcedState,
+            entities: {
+                ...requiredEnforcedState.entities,
+                properties: {
+                    values: {
+                        byTargetId: {channel1: Object.fromEntries(values.map((v) => [v.field_id, v]))},
+                        byFieldId: {},
+                    },
+                    loadedValueTargets: {channel1: true as const},
+                },
+            },
+        });
+
+        test('derives from the store without a request when the channel is loaded', () => {
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                loadedState([propertyValue('field1', '')]),
+            );
+
+            expect(result.current.loading).toBe(false);
+            expect(result.current.missing).toEqual([requiredField]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+        });
+
+        test('treats a loaded channel with no values as missing the required field', () => {
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                loadedState([]),
+            );
+
+            expect(result.current.missing).toEqual([requiredField]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+        });
+
+        test('fetches exactly once when the channel is not loaded, then derives from the store', async () => {
+            mockGetPropertyValues.mockResolvedValue([propertyValue('field1', 'set')]);
+
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                requiredEnforcedState,
+            );
+
+            expect(result.current.loading).toBe(true);
+            expect(result.current.missing).toEqual([]);
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.missing).toEqual([]);
+            expect(mockGetPropertyValues).toHaveBeenCalledTimes(1);
+        });
+
+        test('reports the missing field after the single fetch when the server has no value', async () => {
+            mockGetPropertyValues.mockResolvedValue([]);
+
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                requiredEnforcedState,
+            );
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.missing).toEqual([requiredField]);
+            expect(mockGetPropertyValues).toHaveBeenCalledTimes(1);
+        });
+
+        test('a websocket-style RECEIVED_PROPERTY_VALUES empties missing without a fetch', async () => {
+            const {result} = renderHookWithContext(
+                () => ({
+                    missing: useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                    dispatch: useDispatch(),
+                }),
+                loadedState([]),
+            );
+
+            expect(result.current.missing.missing).toEqual([requiredField]);
+
+            act(() => {
+                result.current.dispatch({
+                    type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                    data: {values: [propertyValue('field1', 'set')]},
+                });
+            });
+
+            expect(result.current.missing.missing).toEqual([]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+        });
+
+        test('refetches once when a reconnect clears the marker while mounted, then derives again', async () => {
+            mockGetPropertyValues.mockResolvedValue([]);
+
+            const {result} = renderHookWithContext(
+                () => ({
+                    missing: useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                    dispatch: useDispatch(),
+                }),
+                loadedState([propertyValue('field1', 'set')]),
+            );
+
+            expect(result.current.missing.missing).toEqual([]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+
+            act(() => {
+                result.current.dispatch({type: GeneralTypes.WEBSOCKET_SUCCESS});
+            });
+
+            expect(result.current.missing.loading).toBe(true);
+            await waitFor(() => expect(result.current.missing.loading).toBe(false));
+            expect(mockGetPropertyValues).toHaveBeenCalledTimes(1);
+            expect(result.current.missing.missing).toEqual([requiredField]);
+        });
+
+        test('fails open when the fetch rejects', async () => {
+            mockGetPropertyValues.mockRejectedValue(new Error('network'));
+
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                requiredEnforcedState,
+            );
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+            expect(result.current.missing).toEqual([]);
+        });
+
+        test('makes no request while ChannelAttributesRequired is off', () => {
+            const {result} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1', {preferStore: true}), {
+                entities: {general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'false'}}},
+            });
+
+            expect(result.current.loading).toBe(false);
+            expect(result.current.missing).toEqual([]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+            expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+        });
+
+        test('asks for no fields when skipped', () => {
+            renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1', {preferStore: true, skip: true}), requiredEnforcedState);
+
+            expect(mockUseChannelAttributes).toHaveBeenLastCalledWith(expect.objectContaining({skip: true}));
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+        });
+
+        test('makes no request while channel attributes are disabled (no license)', () => {
+            mockUseChannelAttributes.mockReturnValue({enabled: false, loading: false, failed: false, fields: []});
+
+            const {result} = renderHookWithContext(
+                () => useMissingRequiredChannelAttributes('channel1', {preferStore: true}),
+                requiredEnforcedState,
+            );
+
+            expect(result.current.loading).toBe(false);
+            expect(result.current.missing).toEqual([]);
+            expect(mockGetPropertyValues).not.toHaveBeenCalled();
+        });
+    });
+});
+
+describe('missingRequiredFields', () => {
+    const optionalField: PropertyField = {...requiredField, id: 'field2', attrs: {display_name: 'Optional'}};
+
+    test('returns only required fields without a set value', () => {
+        expect(missingRequiredFields([requiredField, optionalField], [])).toEqual([requiredField]);
+        expect(missingRequiredFields([requiredField, optionalField], [propertyValue('field1', 'x')])).toEqual([]);
+        expect(missingRequiredFields([requiredField], undefined)).toEqual([requiredField]);
     });
 });
