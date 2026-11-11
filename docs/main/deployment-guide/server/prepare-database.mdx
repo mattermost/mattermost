@@ -95,7 +95,7 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
     host mattermost mmuser {mattermost-server-IP}/32 scram-sha-256
     ```
 
-    This entry lets the `mmuser` user connect to the `mattermost` database, matching the names created above, from the Mattermost server's address. Use that address rather than a wider range. This entry doesn't block connections on its own: PostgreSQL uses the first entry that matches a connection, and other entries can still allow connections from other addresses. Review the other entries in `pg_hba.conf`, and remove or narrow any that allow more access than you need.
+    This entry lets the `mmuser` user connect to the `mattermost` database, matching the names created above, from the Mattermost server's address. Use that address rather than a wider range. If a connection pooler such as PgBouncer runs on a separate host between Mattermost and PostgreSQL, PostgreSQL sees connections coming from the pooler instead, so use the pooler's address. This entry doesn't block connections on its own: PostgreSQL uses the first entry that matches a connection, and other entries can still allow connections from other addresses. Review the other entries in `pg_hba.conf`, and remove or narrow any that allow more access than you need.
 
     Use `scram-sha-256` rather than `md5`. It requires the password to be stored as a SCRAM hash, as described in [Create the database and user](#create-the-database-and-user). MD5 isn't a FIPS-approved algorithm, so Mattermost's [FIPS-compliant images](/administration-guide/manage/admin/fips-migration) can't authenticate with it.
 
