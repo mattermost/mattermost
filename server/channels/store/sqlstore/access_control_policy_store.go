@@ -76,11 +76,12 @@ func importsPolicyExpr(policyID string) sq.Sqlizer {
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
 type accessControlPolicyV0_1 struct {
-	Imports []string                        `json:"imports"`
-	Rules   []model.AccessControlPolicyRule `json:"rules"`
-	Roles   []string                        `json:"roles,omitempty"`
-	Scope   string                          `json:"scope,omitempty"`
-	ScopeID string                          `json:"scope_id,omitempty"`
+	Imports     []string                        `json:"imports"`
+	Rules       []model.AccessControlPolicyRule `json:"rules"`
+	Roles       []string                        `json:"roles,omitempty"`
+	Scope       string                          `json:"scope,omitempty"`
+	ScopeID     string                          `json:"scope_id,omitempty"`
+	Description string                          `json:"description,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -119,6 +120,7 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		policy.Roles = p.Roles
 		policy.Scope = p.Scope
 		policy.ScopeID = p.ScopeID
+		policy.Description = p.Description
 	}
 
 	if len(s.Props) > 0 {
@@ -136,11 +138,12 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 		imports = []string{}
 	}
 	data, err := json.Marshal(&accessControlPolicyV0_1{
-		Imports: imports,
-		Rules:   policy.Rules,
-		Roles:   policy.Roles,
-		Scope:   policy.Scope,
-		ScopeID: policy.ScopeID,
+		Imports:     imports,
+		Rules:       policy.Rules,
+		Roles:       policy.Roles,
+		Scope:       policy.Scope,
+		ScopeID:     policy.ScopeID,
+		Description: policy.Description,
 	})
 	if err != nil {
 		return nil, err

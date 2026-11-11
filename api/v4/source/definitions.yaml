@@ -4835,6 +4835,12 @@ components:
           description: >
             The name of the policy. Required for `parent` and `permission`
             policies.
+        description:
+          type: string
+          maxLength: 1024
+          description: >
+            Why the policy exists, for example the requirement or ticket behind
+            it. Optional. Stored with the policy and returned on read.
         type:
           type: string
           enum: [parent, channel, team, permission]

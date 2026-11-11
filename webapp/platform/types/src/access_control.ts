@@ -6,6 +6,7 @@ import type {UserProfile} from './users';
 export type AccessControlPolicy = {
     id: string;
     name: string;
+    description?: string;
     type: string;
     revision?: number;
     created_at?: number;
