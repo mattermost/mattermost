@@ -907,15 +907,22 @@ def changelog_migrations(ctx: Context, rule: dict) -> Result:
 
 
 def changelog_labels(ctx: Context, rule: dict) -> Result:
-    """Every merged milestone PR has one of the changelog labels."""
+    """Every merged milestone PR has one of the changelog labels.
+
+    generate-changelog.yml adds the labels itself, so this is a backstop: a PR listed here is
+    one the changelog workflow hasn't labelled yet, not a task for its developer.
+    """
     query = ctx.query(rule)
     exclusions = " ".join(f'-label:"{label}"' for label in query["labels"])
     missing = []
     for repo in query["repos"]:
         search = f'repo:{repo} is:pr is:merged milestone:"{ctx.vars["milestone"]}" {exclusions}'
-        missing += [pr_item(repo, pr) for pr in ctx.github.search_issues(search)]
+        # No owner: labelling is the workflow's job, so no developer is named.
+        missing += [Item(item.label, item.title, item.url, repo=repo)
+                    for item in (pr_item(repo, pr) for pr in ctx.github.search_issues(search))]
     if missing:
-        return Result(FAIL, f"{plural(len(missing), 'merged PR')} without a changelog label{private_count(missing)}", missing)
+        return Result(FAIL, f"{plural(len(missing), 'merged PR')}{private_count(missing)}: the changelog workflow "
+                      "hasn't labelled these yet", missing)
     return Result(PASS, "Every merged milestone PR has a changelog label")
 
 

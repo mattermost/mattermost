@@ -328,7 +328,8 @@ rules:
     pass_when: state_reached
     on_fail: needs_attention
 
-  # No playbook item; changelog labels feed the changelog draft.
+  # No playbook item. generate-changelog.yml adds these labels itself; this is a backstop
+  # listing the merged PRs the changelog workflow hasn't labelled yet.
   - task: changelog-labels
     title: Changelog labels
     playbook_item: null

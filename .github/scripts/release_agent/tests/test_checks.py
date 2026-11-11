@@ -873,8 +873,9 @@ class ChangelogLabelsTest(unittest.TestCase):
         github = FakeGitHub()
         github.searches["repo:mattermost/enterprise"] = [pr(5)]
         result = checks.changelog_labels(context(github), RULES["changelog-labels"])
-        self.assertEqual((result.status, result.summary), (checks.FAIL, "1 merged PR without a changelog label (1 in a private repo)"))
+        self.assertEqual((result.status, result.summary), (checks.FAIL, "1 merged PR (1 in a private repo): the changelog workflow hasn't labelled these yet"))
         self.assertIn('-label:"Changelog/Done" -label:"Changelog/Not Needed"', github.queries[0])
+        self.assertEqual(result.items[0].owner, "")  # not a developer task
 
     def test_none_missing(self):
         self.assertEqual(checks.changelog_labels(context(), RULES["changelog-labels"]).status, checks.PASS)

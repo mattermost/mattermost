@@ -13,6 +13,11 @@ looks after the PR:
   merge    - on Release Day, merges the PR when every condition holds, else lists what is
              missing. Only when CHANGELOG_AUTO_MERGE is "true"; otherwise it reports.
   digest   - posts the readiness digest to the release's Hub channel, then edits that post.
+  label    - after an auto run has updated the PR, adds Changelog/Done to each source PR
+             whose note is in the entry and Changelog/Not Needed to each merged milestone
+             PR skipped as having no note. merge also swaps Changelog/Done for
+             Changelog/Not Needed on a PR whose bullet a reviewer deleted, when the
+             workflow added Changelog/Done.
 
 Only the standard library is needed, apart from `anthropic` for the rewrites (installed
 by the generate job). The Actions log and step summary carry public PR refs and counts;
@@ -20,6 +25,7 @@ names and note details go to Hub only.
 """
 
 import base64
+import difflib
 import json
 import os
 import re
@@ -95,6 +101,9 @@ class Api:
 
     def put(self, path: str, body=None):
         return self.request("PUT", path, body=body if body is not None else {})
+
+    def delete(self, path: str):
+        return self.request("DELETE", path)
 
     def graphql(self, query: str, variables: dict):
         result = self.request("POST", "/graphql", body={"query": query, "variables": variables}) or {}
@@ -494,12 +503,13 @@ def merge_problems(api, version: str, pr: dict, content: str | None, report: dic
     return problems
 
 
-def fetch_report(version: str, env: dict, run=subprocess.run, repo: str = REPO, limit: int = 30) -> dict | None:
-    """sections.json of the newest successful generate-changelog run for ``version``.
+def fetch_reports(version: str, env: dict, run=subprocess.run, repo: str = REPO, limit: int = 30):
+    """sections.json of each successful generate-changelog run for ``version``, newest first.
 
     It is the generator's own account of the release (benchmarking, notes the model did not
-    place, preflight), so merging doesn't redo that work. Read with the gh CLI and a token
-    that can read Actions.
+    place, preflight, the bullets each run wrote), so merging doesn't redo that work. Read
+    with the gh CLI and a token that can read Actions. Runs are downloaded one at a time, as
+    they are asked for.
     """
     gh_env = {**os.environ, "GH_TOKEN": env.get("ACTIONS_TOKEN", "")}
 
@@ -509,7 +519,7 @@ def fetch_report(version: str, env: dict, run=subprocess.run, repo: str = REPO, 
     listing = gh("run", "list", "--repo", repo, "--workflow", "generate-changelog.yml", "--status", "success",
                  "--limit", str(limit), "--json", "databaseId")
     if listing.returncode != 0:
-        return None
+        return
     with tempfile.TemporaryDirectory() as directory:
         for found in json.loads(listing.stdout or "[]"):
             target = os.path.join(directory, str(found["databaseId"]))
@@ -518,8 +528,12 @@ def fetch_report(version: str, env: dict, run=subprocess.run, repo: str = REPO, 
                 continue
             report = _load_report(os.path.join(target, "sections.json"))
             if report and report.get("version") == version:
-                return report
-    return None
+                yield report
+
+
+def fetch_report(version: str, env: dict, run=subprocess.run, repo: str = REPO, limit: int = 30) -> dict | None:
+    """sections.json of the newest successful generate-changelog run for ``version``."""
+    return next(fetch_reports(version, env, run, repo, limit), None)
 
 
 def release_version(event: str, tag: str, dispatched: str) -> str | None:
@@ -589,6 +603,11 @@ def digest_message(version: str, pr_number: int, report: dict) -> str:
     if weak:
         lines += ["", f"**Weak notes** ({len(weak)}):"]
         lines += [f"- {w['source']}: {w['reason']}" for w in weak]
+    failed = (report.get("labels") or {}).get("failed", [])
+    if failed:
+        lines += ["", (f"**Changelog labels the workflow couldn't add** ({len(failed)}); add them by hand or give the "
+                       "changelog write app Pull requests: write on the repo:")]
+        lines += [f"- {f['source']}: {f['label']}" for f in failed]
     metrics = report.get("metrics", {})
     if metrics.get("suggestions_made"):
         lines += ["", f"Rewrite suggestions: {metrics['suggestions_made']} made, {metrics.get('suggestions_accepted', 0)} "
@@ -618,6 +637,181 @@ def find_channel(mattermost, version: str, names: list[str], overrides: dict | N
         return overrides[short]
     found = {c["id"] for name in names for c in mattermost.channels_named(name.format(short_version=short))}
     return found.pop() if len(found) == 1 else None
+
+
+# ── 5. Changelog labels ─────────────────────────────────────────────────────────────
+
+DONE, NOT_NEEDED = "Changelog/Done", "Changelog/Not Needed"
+CHANGELOG_LABELS = (DONE, NOT_NEEDED)
+LABEL_REPOS = ("mattermost/mattermost", "mattermost/enterprise")
+_PR_SOURCE = re.compile(r"^(mattermost/(?:mattermost|enterprise))#(\d+)$")
+KEPT_SIMILARITY = 0.6  # a bullet this close to the generated text is the same bullet, edited
+
+
+def pr_sources(sources) -> list[str]:
+    """The ``owner/repo#N`` sources in the repos the workflow labels, without derived ones."""
+    return sorted({s for s in sources if _PR_SOURCE.match(s)}, key=lambda s: (s.partition("#")[0], int(s.partition("#")[2])))
+
+
+def label_targets(report: dict) -> dict[str, str]:
+    """The label each source PR should have after this run.
+
+    Changelog/Done for the PRs whose note is in the entry (the PR's changelog-sources list
+    and the bullets this run wrote). Changelog/Not Needed for the merged milestone PRs
+    skipped as having no note: NONE, or an opt-out label. A PR without a note and without
+    an opt-out label is left for its developer, and so is a note the model did not place.
+    """
+    items = [item for group in report.get("sections", []) for item in group.get("items", [])]
+    done = pr_sources([*report.get("sources_included", []), *(s for item in items for s in item.get("sources", []))])
+    flagged = {f.get("source") for f in report.get("prs_flagged", [])}
+    skipped = pr_sources(p.get("source", "") for p in report.get("prs_without_notes", []))
+    targets = {source: DONE for source in done}
+    targets.update({source: NOT_NEEDED for source in skipped if source not in flagged and source not in targets})
+    return targets
+
+
+def _issue_path(source: str) -> str:
+    repo, _, number = source.partition("#")
+    return f"/repos/{repo}/issues/{number}"
+
+
+def _label_path(source: str, label: str) -> str:
+    return f"{_issue_path(source)}/labels/{urllib.parse.quote(label, safe='')}"
+
+
+def _empty_counts() -> dict:
+    return {repo: {DONE: 0, NOT_NEEDED: 0} for repo in LABEL_REPOS}
+
+
+def apply_labels(api, report: dict, mode: str) -> dict:
+    """Add the changelog label each source PR should have. Only in auto mode.
+
+    A PR that has the right label already is skipped; one that has the other label (a person
+    chose it) is left as it is, so no PR gets both. Nothing is ever removed here. A PR the
+    token can't read or label is recorded in ``failed``.
+    """
+    result = {"added": _empty_counts(), "already": 0, "kept": 0, "failed": []}
+    if mode != "auto":
+        result["skipped"] = f"labels are added on auto runs only, not {mode or 'this mode'}"
+        return result
+    for source, label in label_targets(report).items():
+        repo = source.partition("#")[0]
+        try:
+            labels = {found.get("name") for found in api.paginate(f"{_issue_path(source)}/labels")}
+            if label in labels:
+                result["already"] += 1
+                continue
+            if labels & set(CHANGELOG_LABELS):
+                result["kept"] += 1
+                continue
+            api.post(f"{_issue_path(source)}/labels", {"labels": [label]})
+        except ApiError as err:
+            result["failed"].append({"source": source, "label": label, "status": err.status})
+            continue
+        result["added"][repo][label] += 1
+    return result
+
+
+def labels_summary(result: dict) -> str:
+    """The labelling as the public Actions summary shows it: counts per repo, no titles."""
+    if result.get("skipped"):
+        return f"Changelog labels: none added ({result['skipped']})."
+    lines = ["Changelog labels added:"]
+    for repo in LABEL_REPOS:
+        added = result["added"][repo]
+        lines.append(f"- {repo}: {added[DONE]} {DONE}, {added[NOT_NEEDED]} {NOT_NEEDED}")
+    lines.append(f"- {result['already']} PR(s) already had the right label; {result['kept']} kept the other label a person added.")
+    for repo in LABEL_REPOS:
+        failed = sum(1 for f in result["failed"] if f["source"].startswith(repo + "#"))
+        if failed:
+            where = "listed in the Hub digest" if repo != REPO else "listed in the Hub digest; check the write app's permissions"
+            lines.append(f"- {failed} PR(s) in {repo} couldn't be labelled ({where}).")
+    return "\n".join(lines)
+
+
+def bullet_texts(content: str | None, version: str) -> list[str]:
+    return [match.group(2).strip() for _, line in entry_lines(content, version) if (match := _BULLET.match(line))]
+
+
+def _similar(a: str, b: str) -> float:
+    return difflib.SequenceMatcher(None, " ".join(a.lower().split()), " ".join(b.lower().split())).ratio()
+
+
+def deleted_sources(reports: list[dict], suggestions: list[dict], content: str | None, version: str) -> list[str]:
+    """Source PRs whose bullets are all gone from the merged entry.
+
+    A source's bullets are the texts the generator wrote for it (every run's sections.json)
+    and any rewrite suggested for it. A bullet still in the entry, or one this close to a
+    bullet there (edited by a reviewer), counts as kept. A source with no known bullet is
+    never counted as deleted.
+    """
+    bullets = bullet_texts(content, version)
+    entry = "\n".join(line for _, line in entry_lines(content, version))
+    texts: dict[str, list[str]] = {}
+    for report in reports:
+        for group in report.get("sections", []):
+            for item in group.get("items", []):
+                for source in pr_sources(item.get("sources", [])):
+                    texts.setdefault(source, []).append(item.get("text", ""))
+    for suggestion in suggestions:
+        match = _BULLET.match(suggestion.get("line", ""))
+        if match and suggestion["source"] in texts:
+            texts[suggestion["source"]].append(match.group(2))
+
+    def kept(text: str) -> bool:
+        text = text.strip()
+        first = text.split("\n", 1)[0]
+        return bool(text) and (text in entry or any(_similar(first, b) >= KEPT_SIMILARITY for b in bullets))
+
+    return [source for source, found in texts.items() if not any(kept(text) for text in found)]
+
+
+def added_by(api, source: str, label: str, actor: str) -> bool:
+    """Whether the latest time ``label`` was added to the PR, ``actor`` added it."""
+    labelled = [e for e in api.paginate(f"{_issue_path(source)}/events")
+                if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == label]
+    return bool(labelled) and (labelled[-1].get("actor") or {}).get("login") == actor
+
+
+def reconcile_labels(api, reports: list[dict], suggestions: list[dict], content: str | None, version: str,
+                     actor: str) -> dict:
+    """At T-0: swap Changelog/Done for Changelog/Not Needed on each PR whose bullet a reviewer
+    deleted, only where the workflow (``actor``) added Changelog/Done."""
+    result = {"swapped": {repo: 0 for repo in LABEL_REPOS}, "person": 0, "failed": {repo: 0 for repo in LABEL_REPOS}}
+    for source in deleted_sources(reports, suggestions, content, version):
+        repo = source.partition("#")[0]
+        try:
+            labels = {found.get("name") for found in api.paginate(f"{_issue_path(source)}/labels")}
+            if DONE not in labels or NOT_NEEDED in labels:
+                continue
+            if not added_by(api, source, DONE, actor):
+                result["person"] += 1
+                continue
+            api.delete(_label_path(source, DONE))
+            api.post(f"{_issue_path(source)}/labels", {"labels": [NOT_NEEDED]})
+        except ApiError:
+            result["failed"][repo] += 1
+            continue
+        result["swapped"][repo] += 1
+    return result
+
+
+def reconcile_summary(result: dict) -> str:
+    parts = [f"{repo}: {result['swapped'][repo]}" for repo in LABEL_REPOS]
+    lines = [f"Changelog/Done swapped for Changelog/Not Needed where a reviewer deleted the bullet: {', '.join(parts)}."]
+    if result["person"]:
+        lines.append(f"{result['person']} PR(s) whose bullet was deleted kept Changelog/Done, which a person added.")
+    failed = sum(result["failed"].values())
+    if failed:
+        lines.append("Couldn't swap the labels on " + ", ".join(f"{n} PR(s) in {repo}" for repo, n in result["failed"].items() if n) + ".")
+    return " ".join(lines)
+
+
+def merged_changelog_pr(api, version: str, repo: str = REPO) -> dict | None:
+    """The version's changelog PR, if it is merged."""
+    prs = api.get(f"/repos/{repo}/pulls", head=f"{repo.split('/')[0]}:changelog/{version}", state="closed",
+                  sort="created", direction="desc", per_page=100) or []
+    return next((pr for pr in prs if pr.get("merged_at")), None)
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────────────
@@ -695,9 +889,41 @@ def cmd_merge(env: dict) -> int:
     if version is None:
         _summary("Not a feature release (vX.Y.0), so no changelog is merged.")
         return 0
-    report = fetch_report(version, env)
-    outcome = run_merge(Api(env["GH_TOKEN"]), version, report, env.get("AUTO_MERGE", "").strip().lower() == "true")
+    reports = fetch_reports(version, env, limit=100)
+    report = next(reports, None)
+    api = Api(env["GH_TOKEN"])
+    outcome = run_merge(api, version, report, env.get("AUTO_MERGE", "").strip().lower() == "true")
     _summary(merge_summary(version, outcome))
+    _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", "")))
+    return 0
+
+
+def merge_labels(api, version: str, reports: list[dict], actor: str) -> str:
+    """Reconcile the changelog labels against the merged entry; the summary line."""
+    if not actor:
+        return "Changelog labels not reconciled: the write app's bot login is unknown."
+    pr = merged_changelog_pr(api, version)
+    if pr is None:
+        return "Changelog labels are reconciled once the changelog PR is merged."
+    if not reports:
+        return "Changelog labels not reconciled: no generator report was found, so the bullets each PR got are unknown."
+    content = file_text(api, REPO, changelog_release.changelog_path(version), pr["head"]["sha"])
+    result = reconcile_labels(api, reports, bot_suggestions(api, REPO, pr["number"]), content, version, actor)
+    return reconcile_summary(result)
+
+
+def cmd_label(env: dict) -> int:
+    path = os.path.join(env["OUTPUT_DIR"], "sections.json")
+    report = _load_report(path)
+    if report is None:
+        print("No sections.json; no labels added.")
+        return 0
+    result = apply_labels(Api(env["GH_TOKEN"]), report, env.get("MODE", ""))
+    report["labels"] = result
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+        f.write("\n")
+    _summary(labels_summary(result))
     return 0
 
 
@@ -723,7 +949,7 @@ def cmd_digest(env: dict) -> int:
     return 0
 
 
-COMMANDS = {"suggest": cmd_suggest, "ready": cmd_ready, "merge": cmd_merge, "digest": cmd_digest}
+COMMANDS = {"suggest": cmd_suggest, "ready": cmd_ready, "merge": cmd_merge, "digest": cmd_digest, "label": cmd_label}
 
 
 def main(argv: list[str]) -> int:

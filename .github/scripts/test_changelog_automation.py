@@ -1,5 +1,7 @@
 import base64
+import re
 import unittest
+import urllib.parse
 from datetime import date
 
 import changelog_automation as ca
@@ -65,6 +67,9 @@ class FakeApi:
 
     def put(self, path, body=None):
         return self._route("PUT", path, body)
+
+    def delete(self, path):
+        return self._route("DELETE", path, None)
 
     def graphql(self, query, variables):
         return self._route("POST", "graphql", variables)
@@ -510,6 +515,168 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(ca.find_channel(FakeMattermost(), VERSION, names), "c122")
         self.assertEqual(ca.find_channel(FakeMattermost(), VERSION, names, {"v12.2": "override"}), "override")
         self.assertIsNone(ca.find_channel(FakeMattermost(), "v12.3.0", names))
+
+
+class FakeLabels(FakeApi):
+    """Labels and label events on source PRs, changed by the calls the module makes."""
+
+    def __init__(self, labels=None, events=None, refuse=()):
+        super().__init__()
+        self.labels = {source: list(found) for source, found in (labels or {}).items()}
+        self.events = {source: list(found) for source, found in (events or {}).items()}
+        self.refuse = set(refuse)
+
+    def _route(self, method, path, payload):
+        match = re.match(r"^/repos/([^/]+/[^/]+)/issues/(\d+)/(labels|events)(?:/(.+))?$", path)
+        if not match:
+            return super()._route(method, path, payload)
+        self.calls.append((method, path, payload))
+        source = f"{match.group(1)}#{match.group(2)}"
+        if match.group(1) in self.refuse and method != "GET":
+            raise ca.ApiError(403)
+        if match.group(3) == "events":
+            return self.events.get(source, [])
+        labels = self.labels.setdefault(source, [])
+        if method == "POST":
+            for name in payload["labels"]:
+                labels.append(name)
+                self.events.setdefault(source, []).append({"event": "labeled", "label": {"name": name}, "actor": {"login": "changelog-app[bot]"}})
+        elif method == "DELETE":
+            labels.remove(urllib.parse.unquote(match.group(4)))
+        return [{"name": name} for name in labels]
+
+    def added(self):
+        return [(path, body["labels"]) for method, path, body in self.calls if method == "POST"]
+
+
+ENT = "mattermost/enterprise#9"
+LABEL_REPORT = {
+    "version": VERSION,
+    "sources_included": [SRC, "mattermost/mattermost#102", ENT, "derived:websocket:foo"],
+    "sections": REPORT["sections"],
+    "prs_without_notes": [{"source": "mattermost/mattermost#7", "title": "No note, no label"},
+                          {"source": "mattermost/mattermost#8", "title": "Wrote NONE"},
+                          {"source": "mattermost/enterprise#10", "title": "Secret enterprise thing"}],
+    "prs_flagged": [{"source": "mattermost/mattermost#7", "title": "No note, no label", "reason": "no release note"}],
+}
+
+
+class LabelTest(unittest.TestCase):
+    def test_labels_are_added_once_and_a_rerun_adds_nothing(self):
+        api = FakeLabels()
+        result = ca.apply_labels(api, LABEL_REPORT, "auto")
+        self.assertEqual(sorted(api.added()), sorted([
+            ("/repos/mattermost/mattermost/issues/101/labels", ["Changelog/Done"]),
+            ("/repos/mattermost/mattermost/issues/102/labels", ["Changelog/Done"]),
+            ("/repos/mattermost/enterprise/issues/9/labels", ["Changelog/Done"]),
+            ("/repos/mattermost/mattermost/issues/8/labels", ["Changelog/Not Needed"]),
+            ("/repos/mattermost/enterprise/issues/10/labels", ["Changelog/Not Needed"])]))
+        self.assertNotIn("mattermost/mattermost#7", api.labels)  # no note and no opt-out: the developer's to fix
+        self.assertEqual(result["added"], {"mattermost/mattermost": {"Changelog/Done": 2, "Changelog/Not Needed": 1},
+                                           "mattermost/enterprise": {"Changelog/Done": 1, "Changelog/Not Needed": 1}})
+        api.calls.clear()
+        again = ca.apply_labels(api, LABEL_REPORT, "auto")
+        self.assertEqual(api.added(), [])
+        self.assertEqual(again["already"], 5)
+
+    def test_a_persons_label_is_kept_and_no_pr_gets_both(self):
+        api = FakeLabels({SRC: ["Changelog/Not Needed"], "mattermost/mattermost#8": ["Changelog/Done"]})
+        result = ca.apply_labels(api, LABEL_REPORT, "auto")
+        self.assertEqual(api.labels[SRC], ["Changelog/Not Needed"])
+        self.assertEqual(api.labels["mattermost/mattermost#8"], ["Changelog/Done"])
+        self.assertEqual(result["kept"], 2)
+        self.assertFalse(any(m == "DELETE" for m, _, _ in api.calls))
+
+    def test_dry_run_and_regenerate_add_nothing(self):
+        for mode in ("dry_run", "regenerate"):
+            api = FakeLabels()
+            result = ca.apply_labels(api, LABEL_REPORT, mode)
+            self.assertEqual(api.calls, [])
+            self.assertIn("auto runs only", ca.labels_summary(result))
+
+    def test_an_enterprise_permission_failure_is_counted_and_listed_on_hub_only(self):
+        api = FakeLabels(refuse={"mattermost/enterprise"})
+        result = ca.apply_labels(api, LABEL_REPORT, "auto")
+        self.assertEqual([f["source"] for f in result["failed"]], [ENT, "mattermost/enterprise#10"])
+        summary = ca.labels_summary(result)
+        self.assertIn("- 2 PR(s) in mattermost/enterprise couldn't be labelled (listed in the Hub digest).", summary)
+        self.assertIn("- mattermost/mattermost: 2 Changelog/Done, 1 Changelog/Not Needed", summary)
+        self.assertNotIn("enterprise#", summary)
+        digest = ca.digest_message(VERSION, 50, {**REPORT, "labels": result})
+        self.assertIn("- mattermost/enterprise#9: Changelog/Done", digest)
+        self.assertIn("- mattermost/enterprise#10: Changelog/Not Needed", digest)
+
+    def test_no_enterprise_titles_in_the_summary(self):
+        summary = ca.labels_summary(ca.apply_labels(FakeLabels(), LABEL_REPORT, "auto"))
+        self.assertIn("- mattermost/enterprise: 1 Changelog/Done, 1 Changelog/Not Needed", summary)
+        for private in ("Secret enterprise thing", "enterprise#9", "enterprise#10"):
+            self.assertNotIn(private, summary)
+
+    def test_the_label_command_records_the_result_for_the_digest(self):
+        import json
+        import os
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as directory:
+            with open(os.path.join(directory, "sections.json"), "w") as f:
+                json.dump(LABEL_REPORT, f)
+            api = FakeLabels()
+            with mock.patch.object(ca, "Api", return_value=api), mock.patch.object(ca, "_summary"):
+                ca.cmd_label({"GH_TOKEN": "t", "MODE": "auto", "OUTPUT_DIR": directory})
+            with open(os.path.join(directory, "sections.json")) as f:
+                self.assertEqual(json.load(f)["labels"]["added"]["mattermost/enterprise"]["Changelog/Done"], 1)
+
+
+MERGED = CHANGELOG.replace(" - Updated sidebar.\n - Fixed", " - Fixed", 1)  # a reviewer deleted #101's bullet
+
+
+class ReconcileTest(unittest.TestCase):
+    def reconcile(self, api, content=MERGED, suggestions=()):
+        return ca.reconcile_labels(api, [REPORT], list(suggestions), content, VERSION, "changelog-app[bot]")
+
+    def labelled_by(self, actor):
+        return FakeLabels({SRC: ["Changelog/Done"], "mattermost/mattermost#102": ["Changelog/Done"]},
+                          {SRC: [{"event": "labeled", "label": {"name": "Changelog/Done"}, "actor": {"login": actor}}]})
+
+    def test_a_deleted_bullet_gets_done_swapped_for_not_needed(self):
+        api = self.labelled_by("changelog-app[bot]")
+        result = self.reconcile(api)
+        self.assertEqual(api.labels[SRC], ["Changelog/Not Needed"])
+        self.assertEqual(api.labels["mattermost/mattermost#102"], ["Changelog/Done"])  # its bullet is still there
+        self.assertEqual(result["swapped"]["mattermost/mattermost"], 1)
+
+    def test_done_added_by_a_person_is_kept(self):
+        api = self.labelled_by("amy")
+        result = self.reconcile(api)
+        self.assertEqual(api.labels[SRC], ["Changelog/Done"])
+        self.assertEqual(result["person"], 1)
+
+    def test_an_edited_or_rewritten_bullet_is_not_deleted(self):
+        edited = CHANGELOG.replace(" - Updated sidebar.\n - Fixed", " - Updated the sidebar.\n - Fixed", 1)
+        api = self.labelled_by("changelog-app[bot]")
+        self.reconcile(api, edited)
+        rewritten = CHANGELOG.replace(" - Updated sidebar.\n - Fixed", " - Made the sidebar remember its width per team.\n - Fixed", 1)
+        self.reconcile(api, rewritten, [{"source": SRC, "line": " - Made the sidebar remember its width per team."}])
+        self.assertEqual(api.labels[SRC], ["Changelog/Done"])
+        self.assertFalse(any(m == "DELETE" for m, _, _ in api.calls))
+
+    def test_the_merge_job_reconciles_against_the_merged_entry(self):
+        api = self.labelled_by("changelog-app[bot]")
+        base = "/repos/mattermost/mattermost"
+        api.routes[("GET", f"{base}/pulls")] = [{**pr(), "merged_at": "2026-11-16T10:00:00Z"}]
+        api.routes[("GET", f"{base}/contents/{ca.urllib.parse.quote(FILE)}")] = {
+            "encoding": "base64", "content": base64.b64encode(MERGED.encode()).decode()}
+        api.routes[("GET", f"{base}/pulls/50/comments")] = []
+        summary = ca.merge_labels(api, VERSION, [REPORT], "changelog-app[bot]")
+        self.assertEqual(api.labels[SRC], ["Changelog/Not Needed"])
+        self.assertIn("mattermost/mattermost: 1, mattermost/enterprise: 0", summary)
+
+    def test_reconciled_only_once_the_pr_is_merged(self):
+        api = self.labelled_by("changelog-app[bot]")
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls")] = [{"number": 49, "merged_at": None}]
+        self.assertEqual(ca.merge_labels(api, VERSION, [REPORT], "changelog-app[bot]"),
+                         "Changelog labels are reconciled once the changelog PR is merged.")
+        self.assertEqual(api.labels[SRC], ["Changelog/Done"])
 
 
 if __name__ == "__main__":

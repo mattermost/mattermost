@@ -42,6 +42,13 @@ name: Generate Changelog
 #   - on the first scheduled run on or after RC-1 + 1 working day (weekends skipped),
 #     marks the draft PR ready for review and requests the reviewers above, unless the
 #     preflight has a blocking failure. A PR that was ready once is not marked again;
+#   - sets the changelog labels on the source PRs in mattermost/mattermost and
+#     mattermost/enterprise, so developers don't have to: Changelog/Done on each PR whose
+#     note is in the entry, Changelog/Not Needed on each merged milestone PR skipped as
+#     having no note (NONE or an opt-out label). A PR with the right label is skipped, one
+#     with the other label (a person's choice) is left alone, and no label is removed.
+#     Never in dry_run or regenerate. The run summary has counts per repo; a PR the token
+#     can't label is listed in the Hub digest only;
 #   - for scheduled runs, edits one digest post in the release's Hub channel: sections
 #     ready or pending, missing notes by owner, weak notes and the PR link. Owner names
 #     and note details go to Hub only; the run summary has counts.
@@ -49,7 +56,12 @@ name: Generate Changelog
 # merge mode with a version) runs the merge job: it merges the changelog PR only when
 # every required review is approved, checks are green (including Changelog Link Check),
 # no "Release day: TBD" is left, benchmarking is not pending and no note was left unplaced
-# by the model; otherwise it lists what is missing in the run summary.
+# by the model; otherwise it lists what is missing in the run summary. Once the PR is
+# merged, it swaps Changelog/Done for Changelog/Not Needed on each PR whose bullet a
+# reviewer deleted, only where this workflow's app added Changelog/Done.
+#
+# Labelling uses the changelog write app, which needs Pull requests (or Issues): write on
+# mattermost/enterprise as well as this repo.
 #
 # The digest job reads RELEASE_AGENT_MM_TOKEN and RELEASE_AGENT_MM_URL, the release
 # agent's Hub bot token and URL, which are repository-level (Settings → Secrets and variables → Actions).
@@ -436,7 +448,18 @@ jobs:
           OUTPUT_DIR: ${{ runner.temp }}/changelog-output
         run: python3 "$RUNNER_TEMP/changelog_automation.py" suggest
 
-      # Last, so the artifact carries the suggestion metrics written to sections.json.
+      # Changelog/Done and Changelog/Not Needed on the source PRs, after the PR is updated.
+      # An auto run only: never dry_run or regenerate. Writes what it did into sections.json,
+      # so a PR it couldn't label reaches the Hub digest; the summary has counts only.
+      - name: Set changelog labels on the source PRs
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && needs.resolve.outputs.mode == 'auto' }}
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          MODE: ${{ needs.resolve.outputs.mode }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+        run: python3 "$RUNNER_TEMP/changelog_automation.py" label
+
+      # Last, so the artifact carries the suggestion metrics and labels written to sections.json.
       - name: Upload changelog output
         if: ${{ !cancelled() && steps.generate.outcome == 'success' }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -520,4 +543,6 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           INPUT_VERSION: ${{ inputs.version }}
           AUTO_MERGE: ${{ vars.CHANGELOG_AUTO_MERGE }}
+          # Changelog/Done is swapped only on PRs this app labelled.
+          LABEL_ACTOR: ${{ steps.writeToken.outputs.app-slug }}[bot]
         run: python3 .github/scripts/changelog_automation.py merge
