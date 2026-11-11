@@ -3927,9 +3927,13 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rpl.Posts, 2, "should have returned 2 posts")
 
-	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 2, 2)
+	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 1, 2)
 	require.NoError(t, err)
 	require.Len(t, rpl.Posts, 1, "should have returned 1 post")
+
+	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 2, 2)
+	require.NoError(t, err)
+	require.Empty(t, rpl.Posts)
 
 	rpl, _, err = client.GetFlaggedPostsForUser(context.Background(), user.Id, 1000, 10)
 	require.NoError(t, err)
@@ -4037,6 +4041,57 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 10)
 	require.Error(t, err)
 	CheckInternalErrorStatus(t, resp)
+}
+
+func TestGetFlaggedPostsForUserPaging(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	user := th.BasicUser
+
+	preferences := model.Preferences{}
+	for range 7 {
+		post := th.CreatePost(t)
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+	}
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
+
+	variants := map[string]func(page, perPage int) (*model.PostList, *model.Response, error){
+		"all": func(page, perPage int) (*model.PostList, *model.Response, error) {
+			return client.GetFlaggedPostsForUser(context.Background(), user.Id, page, perPage)
+		},
+		"team": func(page, perPage int) (*model.PostList, *model.Response, error) {
+			return client.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, th.BasicTeam.Id, page, perPage)
+		},
+		"channel": func(page, perPage int) (*model.PostList, *model.Response, error) {
+			return client.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, th.BasicChannel.Id, page, perPage)
+		},
+	}
+
+	for name, getFlaggedPosts := range variants {
+		t.Run(name, func(t *testing.T) {
+			all, _, err := getFlaggedPosts(0, 100)
+			require.NoError(t, err)
+			require.Len(t, all.Order, 7)
+
+			var paged []string
+			for page, expectedLen := range []int{3, 3, 1, 0} {
+				rpl, _, err := getFlaggedPosts(page, 3)
+				require.NoError(t, err)
+				assert.Len(t, rpl.Order, expectedLen, "page %d", page)
+				paged = append(paged, rpl.Order...)
+			}
+
+			assert.ElementsMatch(t, all.Order, paged)
+		})
+	}
 }
 
 func TestGetPostsBefore(t *testing.T) {
