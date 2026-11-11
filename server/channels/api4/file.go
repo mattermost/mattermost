@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -560,7 +561,7 @@ func (f *multipartForm) removeAll() error {
 // readMultipartFormFile reads the file part into memory if it fits within the
 // remaining memory budget, and into a temporary file otherwise.
 func readMultipartFormFile(part *multipart.Part, memoryLeft int64) (*multipartFormFile, error) {
-	file := &multipartFormFile{filename: part.FileName()}
+	file := &multipartFormFile{filename: strings.Clone(part.FileName())}
 
 	var head bytes.Buffer
 	if _, err := io.CopyN(&head, part, memoryLeft+1); err != nil && err != io.EOF {
@@ -613,7 +614,7 @@ func readMultipartForm(mr *multipart.Reader) (_ *multipartForm, err error) {
 			return nil, multipart.ErrMessageTooLarge
 		}
 
-		name := part.FormName()
+		name := strings.Clone(part.FormName())
 		if name == "" {
 			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
 				return nil, err
