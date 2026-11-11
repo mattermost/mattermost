@@ -119,7 +119,7 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx in
                   >
                     <span
                       aria-label="Loading Icon"
-                      class="_spinner_3elm7_10 spinner"
+                      class="_spinner_mvrwe_21 spinner"
                       role="status"
                       style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                     />
@@ -275,11 +275,11 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Delete
                     </span>
@@ -321,11 +321,11 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
                   class="manage-teams__team-actions"
                 >
                   <button
-                    class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+                    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
                     type="button"
                   >
                     <span
-                      class="_button__label_we8pe_31"
+                      class="_button__label_1pij1_55"
                     >
                       Delete
                     </span>

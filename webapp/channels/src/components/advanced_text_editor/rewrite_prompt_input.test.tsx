@@ -134,6 +134,56 @@ describe('RewritePromptInput', () => {
         expect(input.value).toBe('글');
     });
 
+    test('keeps text typed after composition when a re-render arrives with an older value', () => {
+        const {rerender} = renderWithContext(<RewritePromptInput {...baseProps}/>);
+        const input = screen.getByPlaceholderText('Ask AI to edit message...') as HTMLInputElement;
+
+        fireEvent.compositionStart(input);
+        fireEvent.input(input, {target: {value: '잘'}});
+        fireEvent.compositionEnd(input);
+        fireEvent.input(input, {target: {value: '잘 '}});
+
+        // The value prop lags behind: it still holds what was reported before the space.
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value='잘'
+            />,
+        );
+
+        expect(input.value).toBe('잘 ');
+    });
+
+    test('applies external resets after typing (clear after submit, then regenerate)', () => {
+        const {rerender} = renderWithContext(<RewritePromptInput {...baseProps}/>);
+        const input = screen.getByPlaceholderText('Ask AI to edit message...') as HTMLInputElement;
+
+        fireEvent.input(input, {target: {value: 'shorten this'}});
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value='shorten this'
+            />,
+        );
+        expect(input.value).toBe('shorten this');
+
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value=''
+            />,
+        );
+        expect(input.value).toBe('');
+
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value='shorten this'
+            />,
+        );
+        expect(input.value).toBe('shorten this');
+    });
+
     test('syncs an externally changed value into the input (e.g. clearing after submit)', () => {
         const {rerender} = renderWithContext(
             <RewritePromptInput

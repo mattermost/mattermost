@@ -433,6 +433,7 @@ export type SearchSuggestionsComponent = PluginComponent & {
 export type SearchButtonsComponent = PluginComponent & {
     component: React.ComponentType; // Review the props
     action: (terms: string) => void;
+    priority?: number;
 };
 
 export type PostActionComponent = PluginComponent & {
