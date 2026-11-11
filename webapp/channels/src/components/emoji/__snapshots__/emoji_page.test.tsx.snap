@@ -15,15 +15,14 @@ exports[`EmojiPage should render without crashing 1`] = `
         data-testid="permission-gate"
       >
         <a
-          class="add-link"
+          class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
           href="/team/emoji/add"
         >
-          <button
-            class="btn btn-primary"
-            type="button"
+          <span
+            class="_button__label_1pij1_55"
           >
             Add Custom Emoji
-          </button>
+          </span>
         </a>
       </div>
     </div>

@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,10 +17,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -2057,5 +2061,291 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, `Bearer test`, *resp.Text)
+	})
+}
+
+func TestWebhookStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+	*th.App.Config().ServiceSettings.EnableIncomingWebhooks = true
+	*th.App.Config().ServiceSettings.EnableOutgoingWebhooks = true
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	notFound := func() error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("Webhook", model.NewId()))
+	}
+	invalidInput := func() error {
+		return fmt.Errorf("query: %w", store.NewErrInvalidInput("Webhook", "Id", "x"))
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+	storeAppErr := func() *model.AppError {
+		return model.NewAppError("store", "store.app_error", nil, "", http.StatusConflict)
+	}
+
+	bindings := map[string]*mock.Call{}
+	bind := func(name string, s any) {
+		if previous := bindings[name]; previous != nil {
+			previous.Unset()
+		}
+		bindings[name] = mockStore.On(name).Return(s)
+	}
+
+	type expectation struct {
+		id     string
+		status int
+	}
+
+	t.Run("incoming webhook store errors", func(t *testing.T) {
+		channel := &model.Channel{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.webhooks.save_incoming.existing.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.webhooks.save_incoming.app_error", http.StatusInternalServerError}},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("SaveIncoming", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.CreateIncomingWebhookForChannel(model.NewId(), channel, &model.IncomingWebhook{ChannelId: channel.Id})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+		webhookStore := &storemocks.WebhookStore{}
+		webhookStore.On("SaveIncoming", mock.Anything).Return(nil, cause).Once()
+		bind("Webhook", webhookStore)
+		_, got := th.App.CreateIncomingWebhookForChannel(model.NewId(), channel, &model.IncomingWebhook{ChannelId: channel.Id})
+		assert.Same(t, cause, got)
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetIncoming", mock.Anything, mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.GetIncomingWebhook(model.NewId())
+			require.NotNil(t, got)
+			assert.Equal(t, "app.webhooks.get_incoming.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+	})
+
+	t.Run("outgoing webhook store errors", func(t *testing.T) {
+		teamID := model.NewId()
+		channelID := model.NewId()
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.channel.get.existing.app_error", http.StatusNotFound}},
+			{plain(), expectation{"app.channel.get.find.app_error", http.StatusInternalServerError}},
+		} {
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", channelID, mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			_, got := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{ChannelId: channelID, TeamId: teamID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		channelStore := &storemocks.ChannelStore{}
+		channelStore.On("Get", channelID, mock.Anything).Return(&model.Channel{Id: channelID, TeamId: teamID, Type: model.ChannelTypeOpen}, nil)
+		bind("Channel", channelStore)
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.webhooks.save_outgoing.override.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.webhooks.save_outgoing.app_error", http.StatusInternalServerError}},
+			{cause, expectation{cause.Id, cause.StatusCode}},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetOutgoingByTeam", teamID, -1, -1).Return([]*model.OutgoingWebhook{}, nil)
+			webhookStore.On("SaveOutgoing", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{ChannelId: channelID, TeamId: teamID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetOutgoing", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.GetOutgoingWebhook(model.NewId())
+			require.NotNil(t, got)
+			assert.Equal(t, "app.webhooks.get_outgoing.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+	})
+
+	t.Run("command webhook store errors", func(t *testing.T) {
+		args := &model.CommandArgs{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.command_webhook.create_command_webhook.existing", http.StatusBadRequest}},
+			{cause, expectation{cause.Id, cause.StatusCode}},
+			{plain(), expectation{"app.command_webhook.create_command_webhook.internal_error", http.StatusInternalServerError}},
+		} {
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Save", mock.Anything).Return(nil, tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			_, got := th.App.CreateCommandWebhook(model.NewId(), args)
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.command_webhook.get.missing", http.StatusNotFound}},
+			{plain(), expectation{"app.command_webhook.get.internal_error", http.StatusInternalServerError}},
+		} {
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Get", mock.Anything).Return(nil, tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			got := th.App.HandleCommandWebhook(th.Context, model.NewId(), &model.CommandResponse{})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		hook := &model.CommandWebhook{Id: model.NewId(), CommandId: model.NewId(), UserId: model.NewId(), ChannelId: model.NewId()}
+		commandWebhookStore := &storemocks.CommandWebhookStore{}
+		commandWebhookStore.On("Get", mock.Anything).Return(hook, nil)
+		bind("CommandWebhook", commandWebhookStore)
+
+		commandStore := &storemocks.CommandStore{}
+		commandStore.On("Get", hook.CommandId).Return(nil, cause).Once()
+		bind("Command", commandStore)
+		got := th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+		assert.Same(t, cause, got)
+
+		commandStore = &storemocks.CommandStore{}
+		commandStore.On("Get", hook.CommandId).Return(nil, plain()).Once()
+		bind("Command", commandStore)
+		got = th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+		require.NotNil(t, got)
+		assert.Equal(t, "web.command_webhook.command.app_error", got.Id)
+		assert.Equal(t, http.StatusBadRequest, got.StatusCode)
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.command_webhook.try_use.invalid", http.StatusBadRequest}},
+			{plain(), expectation{"app.command_webhook.try_use.internal_error", http.StatusInternalServerError}},
+		} {
+			commandStore := &storemocks.CommandStore{}
+			commandStore.On("Get", hook.CommandId).Return(&model.Command{Id: hook.CommandId, TeamId: model.NewId()}, nil)
+			bind("Command", commandStore)
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Get", mock.Anything).Return(hook, nil)
+			commandWebhookStore.On("TryUse", hook.Id, 5).Return(tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			got := th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+	})
+
+	t.Run("HandleIncomingWebhook store errors", func(t *testing.T) {
+		hook := &model.IncomingWebhook{Id: model.NewId(), UserId: model.NewId(), TeamId: model.NewId(), ChannelId: model.NewId()}
+		namedHook := &model.IncomingWebhook{Id: model.NewId(), UserId: hook.UserId, TeamId: hook.TeamId}
+		channel := &model.Channel{Id: hook.ChannelId, TeamId: hook.TeamId, Type: model.ChannelTypeOpen}
+
+		userStore := &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, hook.UserId).Return(&model.User{Id: hook.UserId}, nil)
+		userStore.On("GetProfileByIds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, nil)
+		bind("User", userStore)
+
+		setupHook := func(h *model.IncomingWebhook) {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetIncoming", h.Id, mock.Anything).Return(h, nil)
+			bind("Webhook", webhookStore)
+		}
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.channel.get.existing.app_error", http.StatusNotFound}},
+			{plain(), expectation{"app.channel.get.find.app_error", http.StatusInternalServerError}},
+		} {
+			setupHook(hook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", hook.ChannelId, mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			got := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "hello"})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			setupHook(namedHook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("GetByName", namedHook.TeamId, "town-square", mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			got := th.App.HandleIncomingWebhook(th.Context, namedHook.Id, &model.IncomingWebhookRequest{Text: "hello", ChannelName: "#town-square"})
+			require.NotNil(t, got)
+			assert.Equal(t, "web.incoming_webhook.channel.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+
+		rootID := model.NewId()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"api.post.create_post.root_id.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.post.get.app_error", http.StatusInternalServerError}},
+		} {
+			setupHook(hook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", hook.ChannelId, mock.Anything).Return(channel, nil)
+			bind("Channel", channelStore)
+			postStore := &storemocks.PostStore{}
+			postStore.On("GetSingle", mock.Anything, rootID, false).Return(nil, tc.err).Once()
+			bind("Post", postStore)
+			got := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "hello", RootId: rootID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
 	})
 }

@@ -5,8 +5,10 @@ exports[`ResetToDefaultButton should render if section name is valid 1`] = `
   <button
     class="ChannelNotificationModal__reset-btn"
     data-testid="resetToDefaultButton-desktop"
+    type="button"
   >
     <i
+      aria-hidden="true"
       class="icon icon-refresh"
     />
     Reset to default

@@ -75,21 +75,10 @@
     }
 }
 
-// Button shell (transparent at rest, no border, inline-flex sizing to
-// content) comes from buttonClassNames({emphasis: 'quaternary'}) -- this
-// rule must NOT set its own `display`, since a block-level `display: flex`
-// here would fight .btn's own `display: inline-flex` and, combined with
-// this trigger's flex-column parent defaulting every child to
-// align-self: stretch, stretch the button to the full row width instead of
-// sizing to its content. align-self: flex-start opts back out of that
-// stretch regardless of which `display` wins.
-// The hover-tint override is nested under the repeated .btn.btn-quaternary
-// classes (not just .AttributeExternalSource__trigger alone) so this
-// selector's specificity reliably beats _buttons.scss's own same-named rule,
-// regardless of stylesheet load order.
-// WithTooltip clones this wrap as the floating-ui reference. A flex-column
-// child stretches to the full Options column, so the tooltip would sit over
-// empty space instead of the compact trigger. Size to the button.
+// Compass Button is inline-flex; align-self keeps the flex-column parent
+// from stretching the trigger to the full Options column width.
+// WithTooltip clones this wrap as the floating-ui reference — size to the
+// button so the tooltip anchors over the compact trigger, not empty space.
 .AttributeExternalSource__triggerLockWrap {
     display: inline-flex;
     max-width: 100%;
@@ -97,16 +86,5 @@
 }
 
 .AttributeExternalSource__trigger {
-    align-items: center;
     align-self: flex-start;
-    gap: 6px;
-
-    &.btn.btn-quaternary:hover {
-        background: rgba(var(--link-color-rgb), 0.08);
-    }
-
-    .icon {
-        color: inherit;
-        font-size: 16px;
-    }
 }

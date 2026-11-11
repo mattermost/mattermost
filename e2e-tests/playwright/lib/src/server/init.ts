@@ -5,7 +5,6 @@ import {expect} from '@playwright/test';
 import type {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
-import {getOnPremServerConfigPatch} from './default_config';
 import {createNewTeam} from './team';
 import {createNewUserProfile} from './user';
 
@@ -35,11 +34,6 @@ export async function initSetup({
             );
         }
 
-        // The on-prem overrides only. Sending the full defaultServerConfig snapshot instead would
-        // 403 on PluginSettings.EnableUploads and replace the PluginStates map of concurrent specs.
-        // Settings outside this patch keep their current value, so specs patch what they depend on.
-        const adminConfig = await adminClient.patchConfig(getOnPremServerConfigPatch() as any);
-
         // Create new team
         const team = await createNewTeam(adminClient, teamsOptions);
 
@@ -58,7 +52,6 @@ export async function initSetup({
         return {
             adminClient,
             adminUser,
-            adminConfig,
             user,
             userClient,
             team,

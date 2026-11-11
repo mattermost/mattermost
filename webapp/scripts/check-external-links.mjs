@@ -22,6 +22,7 @@ const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 // them from CI.
 const UNCRAWLABLE_HOSTS = new Set([
     'support.mattermost.com', // Zendesk fronted by Cloudflare bot mgmt
+    'www.mattermost.com', // Cloudflare bot mgmt; the apex host it redirects to is still checked
 ]);
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];

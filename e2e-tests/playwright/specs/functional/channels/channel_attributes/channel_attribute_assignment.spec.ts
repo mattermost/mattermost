@@ -19,15 +19,15 @@ import {
 test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
 
+    // required: true below needs the kill switch on; the server refuses to mark any
+    // field required while it is off (model.IsChannelAttributesRequiredEnabled).
+
     /**
      * @objective Verify every supported attribute control can be assigned while creating a channel.
      */
     test('assigns select, multiselect, and text attribute values at channel creation', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-
-        // The Properties route gate is evaluated when the API router is built, so
-        // the flag has to be in the server config before boot.
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -108,8 +108,8 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      * @objective Verify attribute assignment works for a private channel, not only a public one.
      */
     test('assigns attribute values when creating a private channel', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, user, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -155,8 +155,8 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
      * @objective Verify the server refuses a channel that is missing a required value.
      */
     test('rejects a create that omits a required attribute', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();

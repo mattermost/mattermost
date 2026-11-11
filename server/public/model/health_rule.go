@@ -34,7 +34,7 @@ func AllHealthAreas() []HealthArea {
 }
 
 type RuleText struct {
-	SummaryID     string `json:"summary_id"`
+	TitleID       string `json:"title_id"`
 	RemediationID string `json:"remediation_id"`
 	DocsURL       string `json:"docs_url,omitempty"`
 	ConsolePath   string `json:"console_path,omitempty"`

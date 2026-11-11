@@ -217,7 +217,7 @@ describe('Plugin Marketplace', () => {
         cy.get('#confirmModal').should('be.visible');
 
         // # Confirm update
-        cy.get('#confirmModal').find('.btn.btn-primary').click();
+        cy.get('#confirmModalButton').click();
 
         // * Verify confirmation modal should not be visible
         cy.get('#confirmModal').should('not.exist');

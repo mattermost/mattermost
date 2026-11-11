@@ -191,6 +191,10 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
+func (c *Context) SetError(err error) {
+	c.Err = model.AsAppError(err)
+}
+
 func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
@@ -401,7 +405,7 @@ func (c *Context) RequireUsername() *Context {
 		return c
 	}
 
-	if !model.IsValidUsername(c.Params.Username) {
+	if !model.IsValidUsernameAllowRemote(c.Params.Username) {
 		c.SetInvalidParam("username")
 	}
 
@@ -783,18 +787,6 @@ func (c *Context) RequireBotUserId() *Context {
 	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidURLParam("bot_user_id")
 	}
-	return c
-}
-
-func (c *Context) RequireInvoiceId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if len(c.Params.InvoiceId) != 27 && c.Params.InvoiceId != model.UpcomingInvoice {
-		c.SetInvalidURLParam("invoice_id")
-	}
-
 	return c
 }
 

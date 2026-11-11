@@ -1690,6 +1690,65 @@ func TestOpenInteractiveDialog(t *testing.T) {
 		err = th.App.OpenInteractiveDialog(th.Context, request)
 		require.Nil(t, err)
 	})
+
+	// Dialog.Size and a collapsible's subtype are both validated by
+	// Dialog.IsValid, but validation here is advisory: the error is logged and
+	// the dialog opens regardless. The docs say so, and these pin it, because
+	// "rejected" would be a reasonable thing to assume and is not what happens.
+	t.Run("should open the dialog despite an unknown size, logging rather than rejecting", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Size:       "enormous",
+			},
+		}
+
+		require.Error(t, request.Dialog.IsValid())
+
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
+
+	t.Run("should open the dialog despite an unknown collapsible subtype", func(t *testing.T) {
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
+		require.Nil(t, err)
+
+		request := model.OpenDialogRequest{
+			TriggerId: triggerId,
+			URL:       "http://localhost:8065",
+			Dialog: model.Dialog{
+				CallbackId: "callbackid",
+				Title:      "Test Dialog",
+				Elements: []model.DialogElement{
+					{
+						DisplayName: "Orders",
+						Name:        "order_grid",
+						Type:        "collapsible",
+						SubType:     "gird",
+						Optional:    true,
+						CollapsibleConfig: &model.DialogElementCollapsibleConfig{
+							Elements: []model.DialogElement{
+								{DisplayName: "Order #", Name: "cell_r1_order", Type: "text"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		require.Error(t, request.Dialog.IsValid())
+
+		// The client is what falls back to a stacked layout; nothing on this
+		// path refuses the dialog.
+		err = th.App.OpenInteractiveDialog(th.Context, request)
+		require.Nil(t, err)
+	})
 }
 
 func TestDoActionRequest(t *testing.T) {

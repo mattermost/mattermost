@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    allOwnersAreUninstalledPlugins,
     CPA_FIELD_NAME_PATTERN,
     CPA_FIELD_NAME_RESERVED_WORDS,
     filterCELIdentifier,
@@ -274,6 +275,29 @@ describe('filterCELIdentifier', () => {
 
     test.each(cases)('%s: %s → %s', (_label, input, expected) => {
         expect(filterCELIdentifier(input)).toBe(expected);
+    });
+});
+
+describe('allOwnersAreUninstalledPlugins', () => {
+    const plugin = (id: string) => ({id, type: 'plugin' as const, scopes: []});
+    const installed = new Set(['com.acme.here']);
+
+    it('is false with no owners', () => {
+        expect(allOwnersAreUninstalledPlugins([], installed)).toBe(false);
+    });
+
+    it('is true for uninstalled plugins only', () => {
+        expect(allOwnersAreUninstalledPlugins([plugin('com.acme.gone')], installed)).toBe(true);
+        expect(allOwnersAreUninstalledPlugins([plugin('com.acme.gone'), plugin('com.acme.also')], installed)).toBe(true);
+    });
+
+    it('is false when any plugin owner is installed', () => {
+        expect(allOwnersAreUninstalledPlugins([plugin('com.acme.here')], installed)).toBe(false);
+        expect(allOwnersAreUninstalledPlugins([plugin('com.acme.gone'), plugin('com.acme.here')], installed)).toBe(false);
+    });
+
+    it('is false when any owner is not a plugin', () => {
+        expect(allOwnersAreUninstalledPlugins([plugin('com.acme.gone'), {id: 'svc', type: 'service', scopes: []}], installed)).toBe(false);
     });
 });
 

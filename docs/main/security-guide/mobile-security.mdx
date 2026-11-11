@@ -37,6 +37,12 @@ Jailbreaking or rooting a device disables many built-in security measures, makin
 
 By detecting such devices, Mattermost ensures that only secure, uncompromised devices can access sensitive data. When enabled by the system admin, this proactive measure ensures the underlying mobile platform operates reliably and performs the expected kernel and operating system security protections before sending any customer data to the Mattermost application, and minimizes risk in environments where personal device security cannot be guaranteed. Learn more about Mattermost [mobile jailbreak and root detection](/deployment-guide/mobile/mobile-security-features#jailbreak-and-root-detection).
 
+## Session attribute collection
+
+Session attributes let the mobile app report the posture of the current connection - the device, the network it's on, and how it's managed - so administrators can require a specific posture before a user performs a controlled action, like uploading or downloading a file. Reported values are held only in the server's in-memory session cache and are refreshed on a per-attribute interval that administrators control. After the TTL expires, Mattermost can continue to evaluate the last value during the grace period. If no fresh report arrives before TTL plus grace period, the attribute is treated as absent and policies that require it deny access.
+
+Reporting the Wi-Fi network name requires the user to grant location access, because both iOS and Android gate Wi-Fi information behind that permission. Learn more about Mattermost [mobile session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection) and how administrators [enable and use session attributes](/administration-guide/manage/admin/session-attributes).
+
 ## Biometric authentication
 
 Native biometric authentication ensures only the authorized device owner can access the Mattermost application. By utilizing hardware-level security, biometrics significantly enhance data protection, especially in cases of lost or stolen devices. This advanced security measure is far more robust and user-friendly compared to traditional passwords, adding a resilient layer of protection against unauthorized access.

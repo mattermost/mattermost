@@ -152,6 +152,48 @@ export const languages = {
         order: 21,
         url: langFiles.ja,
     },
+    da: {
+        value: 'da',
+        name: 'Dansk',
+        order: 22,
+        url: langFiles.da,
+    },
+    cs: {
+        value: 'cs',
+        name: 'Čeština (Experimental)',
+        order: 23,
+        url: langFiles.cs,
+    },
+    hr: {
+        value: 'hr',
+        name: 'Hrvatski (Experimental)',
+        order: 24,
+        url: langFiles.hr,
+    },
+    lt: {
+        value: 'lt',
+        name: 'Lietuvių (Experimental)',
+        order: 25,
+        url: langFiles.lt,
+    },
+    'nb-NO': {
+        value: 'nb-NO',
+        name: 'Norsk bokmål (Experimental)',
+        order: 26,
+        url: langFiles['nb-NO'],
+    },
+    pt: {
+        value: 'pt',
+        name: 'Português (Portugal) (Experimental)',
+        order: 27,
+        url: langFiles.pt,
+    },
+    fi: {
+        value: 'fi',
+        name: 'Suomi (Experimental)',
+        order: 28,
+        url: langFiles.fi,
+    },
 };
 
 export function getAllLanguages(): Record<string, Language> {

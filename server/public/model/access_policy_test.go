@@ -730,6 +730,57 @@ func TestAccessPolicyVersionV0_4(t *testing.T) {
 	})
 }
 
+func TestPermissionPolicyRoles(t *testing.T) {
+	newPermissionPolicy := func(version string, roles []string) *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
+			Revision: 0,
+			Version:  version,
+			Roles:    roles,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+	}
+
+	for _, version := range []string{AccessControlPolicyVersionV0_3, AccessControlPolicyVersionV0_4} {
+		t.Run(version, func(t *testing.T) {
+			for _, role := range []string{
+				SystemAdminRoleId,
+				SystemUserRoleId,
+				SystemGuestRoleId,
+				AccessControlPolicyRoleSystemBot,
+				SystemManagerRoleId,
+				"custom_role",
+			} {
+				t.Run("accepts "+role, func(t *testing.T) {
+					require.Nil(t, newPermissionPolicy(version, []string{role}).IsValid())
+				})
+			}
+
+			tests := []struct {
+				name  string
+				roles []string
+			}{
+				{"empty roles", []string{}},
+				{"blank role", []string{""}},
+				{"whitespace role", []string{"   "}},
+				{"multiple roles", []string{SystemUserRoleId, AccessControlPolicyRoleSystemBot}},
+			}
+			for _, tc := range tests {
+				t.Run(tc.name, func(t *testing.T) {
+					err := newPermissionPolicy(version, tc.roles).IsValid()
+					require.NotNil(t, err)
+					require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+				})
+			}
+		})
+	}
+}
+
 func TestInheritV0_4(t *testing.T) {
 	t.Run("v0.4 child can import v0.4 parent", func(t *testing.T) {
 		// Same-version happy path: a v0.4 channel policy importing
@@ -1864,4 +1915,47 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, "model.access_policy.inherit.version.app_error", err.Id)
 	require.Empty(t, child.Imports)
+}
+
+// TestCreateBurnOnReadPostAction covers how create_burn_on_read_post validates.
+// It is a permission action, so a v0.4 channel policy needs a channel role and a
+// unique rule name for it. A v0.3 system permission policy needs neither — its
+// role comes from the policy-level Roles field.
+func TestCreateBurnOnReadPostAction(t *testing.T) {
+	t.Run("is a permission action", func(t *testing.T) {
+		require.True(t, IsPermissionAction(AccessControlPolicyActionCreateBurnOnReadPost))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionCreateBurnOnReadPost])
+	})
+
+	t.Run("valid on a v0.3 system permission policy", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Name:     "Burn-on-read for engineering",
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionCreateBurnOnReadPost},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("valid on a v0.4 channel policy with a channel role and rule name", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name:       "Burn-on-read for engineering",
+				Role:       ChannelUserRoleId,
+				Actions:    []string{AccessControlPolicyActionCreateBurnOnReadPost},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_4())
+	})
 }

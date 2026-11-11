@@ -12,12 +12,12 @@ import {getDirectChannelName, getUserIdFromChannelName, isDirectChannel} from 'm
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
-    canUserSendBurnOnRead,
 } from 'selectors/burn_on_read';
 
 import BurnOnReadButton from 'components/burn_on_read/burn_on_read_button';
 import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import 'components/burn_on_read/burn_on_read_control.scss';
 
@@ -46,8 +46,8 @@ const useBurnOnRead = (
     const rootId = draft.rootId;
     const channelId = draft.channelId;
     const isEnabled = useSelector(isBurnOnReadEnabled);
+    const allowedByPolicy = useCreateBurnOnReadAccess(draft.channelId);
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
-    const canSend = useSelector(canUserSendBurnOnRead);
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const currentUser = useSelector(getCurrentUser);
 
@@ -102,6 +102,11 @@ const useBurnOnRead = (
         handleBurnOnReadApply(false);
     }, [handleBurnOnReadApply]);
 
+    // For the edge case where a draft was in Burn-on-Read and the policy was revoked, do not allow sending.
+    const isBurnOnReadSendable = useMemo(() => (
+        !(hasBurnOnReadSet && !allowedByPolicy)
+    ), [hasBurnOnReadSet, allowedByPolicy]);
+
     // Label component (shows above editor when active)
     const labels = useMemo(() => (
         (hasBurnOnReadSet && !rootId) ? (
@@ -115,7 +120,7 @@ const useBurnOnRead = (
 
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
-        (!rootId && isEnabled && canSend && isAllowedInChannel ? (
+        (!rootId && isEnabled && allowedByPolicy && isAllowedInChannel ? (
             <div
                 key='burn-on-read-control-key'
                 className='BurnOnReadControl'
@@ -132,13 +137,14 @@ const useBurnOnRead = (
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, canSend, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
 
     return {
         labels,
         additionalControl,
         handleBurnOnReadApply,
         handleRemoveBurnOnRead,
+        isBurnOnReadSendable,
     };
 };
 

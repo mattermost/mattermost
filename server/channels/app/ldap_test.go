@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -37,24 +38,24 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 	}
 
 	t.Run("no connection setting changed and no password submitted", func(t *testing.T) {
-		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", savedSettings()))
+		require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", savedSettings()))
 	})
 
 	t.Run("no connection setting changed and masked password submitted", func(t *testing.T) {
 		settings := savedSettings()
 		settings.BindPassword = model.NewPointer(model.FakeSetting)
-		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+		require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 	})
 
 	t.Run("connection settings omitted entirely", func(t *testing.T) {
-		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", model.LdapSettings{}))
+		require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", model.LdapSettings{}))
 	})
 
 	t.Run("only skip certificate verification changed and no password submitted", func(t *testing.T) {
 		settings := savedSettings()
 		settings.SkipCertificateVerification = model.NewPointer(true)
 
-		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+		require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 	})
 
 	t.Run("only skip certificate verification changed and masked password submitted", func(t *testing.T) {
@@ -62,7 +63,7 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 		settings.SkipCertificateVerification = model.NewPointer(true)
 		settings.BindPassword = model.NewPointer(model.FakeSetting)
 
-		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+		require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 	})
 
 	t.Run("skip certificate verification submitted as false while connection security is empty", func(t *testing.T) {
@@ -86,12 +87,14 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 			BindPassword:                model.NewPointer(model.FakeSetting),
 		}
 
-		require.Nil(t, th2.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+		require.NoError(t, th2.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 
 		settings.LdapServer = model.NewPointer("attacker.example.com")
-		appErr := th2.App.checkLdapTestBindPassword("TestLdapConnection", settings)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
+		err := th2.App.checkLdapTestBindPassword("TestLdapConnection", settings)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
 	})
 
 	t.Run("no saved bind password", func(t *testing.T) {
@@ -104,7 +107,7 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 
 		settings := savedSettings()
 		settings.LdapServer = model.NewPointer("attacker.example.com")
-		require.Nil(t, th2.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+		require.NoError(t, th2.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 	})
 
 	changedCases := map[string]func(settings *model.LdapSettings){
@@ -127,10 +130,12 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 			settings := savedSettings()
 			mutate(&settings)
 
-			appErr := th.App.checkLdapTestBindPassword("TestLdapConnection", settings)
-			require.NotNil(t, appErr)
-			require.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
-			require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+			err := th.App.checkLdapTestBindPassword("TestLdapConnection", settings)
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		})
 
 		t.Run(name+" with a masked password", func(t *testing.T) {
@@ -138,9 +143,11 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 			mutate(&settings)
 			settings.BindPassword = model.NewPointer(model.FakeSetting)
 
-			appErr := th.App.checkLdapTestBindPassword("TestLdapConnection", settings)
-			require.NotNil(t, appErr)
-			require.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
+			err := th.App.checkLdapTestBindPassword("TestLdapConnection", settings)
+			require.Error(t, err)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
 		})
 
 		t.Run(name+" with a re-entered password", func(t *testing.T) {
@@ -148,7 +155,7 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 			mutate(&settings)
 			settings.BindPassword = model.NewPointer("new-password")
 
-			require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+			require.NoError(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
 		})
 	}
 }

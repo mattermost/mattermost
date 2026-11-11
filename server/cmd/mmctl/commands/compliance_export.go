@@ -142,6 +142,8 @@ func complianceExportDownloadCmdF(c client.Client, command *cobra.Command, args 
 		return err
 	}
 
+	suggestedFilename = model.SanitizeFilename(suggestedFilename)
+
 	// If we didn't provide a path and got a suggested filename, rename the file
 	if len(args) == 1 && suggestedFilename != "" && suggestedFilename != path {
 		// If the suggested name already exists, don't overwrite

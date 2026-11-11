@@ -12,26 +12,29 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // Keep the admin-console Save path so unrelated settings are not reset.
-    // If the radios are already in the desired state, Save stays disabled —
-    // skip instead of waiting for it to enable (MM-T622 flake).
+    // # Visit integration management at system console and change override values
     cy.visit('/admin_console/integrations/integration_management');
 
-    const usernameTestId = 'ServiceSettings.EnablePostUsernameOverride' + enableUsername;
-    const iconTestId = 'ServiceSettings.EnablePostIconOverride' + enableIcon;
+    // Each option is a radio pair (testid suffixed 'true'/'false'). Only click the ones not
+    // already in the desired state: a sibling spec can leave this setting already matching,
+    // and clicking an already-checked radio doesn't mark the form dirty, so unconditionally
+    // waiting for Save to become enabled would time out.
+    checkIfNotAlreadyChecked('ServiceSettings.EnablePostUsernameOverride' + enableUsername);
+    checkIfNotAlreadyChecked('ServiceSettings.EnablePostIconOverride' + enableIcon);
 
-    cy.findByTestId(usernameTestId).should('exist');
-    cy.findByTestId(iconTestId).should('exist');
-
-    cy.findByTestId(usernameTestId).then(($username) => {
-        cy.findByTestId(iconTestId).then(($icon) => {
-            if ($username.is(':checked') && $icon.is(':checked')) {
-                return;
-            }
-            cy.findByTestId(usernameTestId).check({force: true});
-            cy.findByTestId(iconTestId).check({force: true});
-            cy.get('#saveSetting').should('be.enabled').click({force: true});
+    // # Save the settings only if something actually changed
+    cy.get('body').then(($body) => {
+        if ($body.find('#saveSetting:not(:disabled)').length > 0) {
+            cy.get('#saveSetting').click({force: true});
             cy.get('#saveSetting').should('be.disabled');
-        });
+        }
+    });
+}
+
+function checkIfNotAlreadyChecked(testId) {
+    cy.findByTestId(testId).then(($el) => {
+        if (!$el.prop('checked')) {
+            cy.wrap($el).check({force: true});
+        }
     });
 }

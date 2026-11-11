@@ -39,7 +39,6 @@ const OUT = join(SITE_ROOT, 'sidebars', 'documentation.generated.json');
 // if it's standalone. Forgetting logs `WARN: N file(s) missing from *_ORDER`
 // and appends it at the section root, so it surfaces as a build warning
 // rather than disappearing.
-
 const TOP_LEVEL = [
   {dir: 'product-overview',     label: 'Overview'},
   {dir: 'use-case-guide',       label: 'Use Case Guide'},
@@ -80,6 +79,7 @@ const OVERVIEW_GROUPS = {
       'release-policy',
       {label: 'Server', landing: 'server', items: [
         'mattermost-server-releases',
+        'mattermost-v12-changelog',
         'mattermost-v11-changelog',
         'mattermost-v10-changelog',
         'unsupported-legacy-releases',
@@ -318,12 +318,13 @@ const DEPLOYMENT_GROUPS = {
     label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
     items: [
+      'desktop/windows-desktop-install',
+      'desktop/macos-desktop-install',
       'desktop/linux-desktop-install',
+      'desktop/desktop-app-policies',
+      'desktop/desktop-app-privacy',
+      'desktop/desktop-vdi-deployment',
       'desktop/distribute-a-custom-desktop-app',
-      'desktop/silent-windows-desktop-distribution',
-      'desktop/desktop-msi-installer-and-group-policy-install',
-      'desktop/desktop-custom-dictionaries',
-      'desktop/desktop-app-managed-resources',
       'desktop/desktop-troubleshooting',
     ],
   },
@@ -352,7 +353,9 @@ const DEPLOYMENT_GROUPS = {
 // constraints that shape the whole deployment, above the level of the
 // server-specific planning pages.
 const DEPLOYMENT_ROOT_ORDER = [
-  'quick-start-evaluation',
+  // Overview index + child pages (1-hour preview, Docker/Azure); auto keeps
+  // sidebar_position order without a hand-maintained items list.
+  {auto: 'quick-start-evaluation'},
   {group: 'deploymentScenarios'},
   {group: 'serverDeployment'},
   {group: 'calls'},
@@ -476,10 +479,11 @@ const ADMIN_MANAGE_GROUPS = {
   // "Access control" rather than "Users and access": every page here is about
   // what a user is allowed to do, not about the user records themselves.
   //
-  // User attributes nests under ABAC as its first child. Custom profile
-  // attributes are usable on their own, and the page stays directly linkable,
-  // but they are a prerequisite of the access rules that follow — you define
-  // the attributes before you can write a policy against them.
+  // Attribute-based access control reads in task order: define the user,
+  // channel and session attributes first, then write policies against them
+  // (system-wide, then team, then channel), then the expression reference that
+  // all the policy editors share. The page for the User Attributes screen of
+  // releases before v12.0 comes last; its title already marks it as legacy.
   //
   // Advanced permissions is a two-page topic, so the main page is the group's
   // landing and the backend-infrastructure page is its child.
@@ -493,11 +497,15 @@ const ADMIN_MANAGE_GROUPS = {
       ]},
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
-        'admin/user-attributes',
+        'admin/attribute-management',
+        'admin/channel-attributes',
+        'admin/session-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
+        'admin/abac-policy-expressions',
+        'admin/user-attributes',
       ]},
     ],
   },
@@ -506,6 +514,7 @@ const ADMIN_MANAGE_GROUPS = {
     items: [
       'mmctl-command-line-tool',
       'command-line-tools',
+      'offline-documentation',
       'logging',
     ],
   },
@@ -562,10 +571,11 @@ const ADMIN_MANAGE_ORDER = [
 
 const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/server-maintenance',
-  'admin/user-management', 'admin/user-attributes', 'team-channel-members',
+  'admin/user-management', 'admin/attribute-management', 'admin/user-attributes', 'admin/channel-attributes', 'team-channel-members',
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
-  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'admin/session-attributes',
+  'command-line-tools', 'mmctl-command-line-tool', 'offline-documentation', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',
@@ -580,7 +590,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'code-signing-custom-builds',
   // Listed under Monitor and troubleshoot.
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
-  'configure-health-check-probes', 'request-server-health-check',
+  'site-health-dashboard', 'configure-health-check-probes', 'request-server-health-check',
   'admin/error-codes', 'admin/generating-support-packet',
 ]);
 
@@ -777,9 +787,9 @@ const ADMIN_ONBOARD_HIDDEN = new Set([
   'delegated-granular-administration',
   // Listed under Configure.
   'connected-workspaces',
-  // Listed under Migration.
-  'migrating-to-mattermost', 'migrate-from-slack', 'migrate-from-rocketchat', 'migrate-gitlab-omnibus',
-  'migration-announcement-email', 'bulk-loading-data',
+  // Listed under Migration (or unlisted).
+  'migrating-to-mattermost', 'slack-migration-overview', 'migrate-from-slack', 'migrate-from-rocketchat',
+  'migrate-gitlab-omnibus', 'migration-announcement-email', 'bulk-loading-data',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -806,6 +816,7 @@ const ADMIN_SCALE_GROUPS = {
   health: {
     label: 'Health and diagnostics',
     items: [
+      {doc: 'administration-guide/manage/site-health-dashboard'},
       {doc: 'administration-guide/configure/optimize-your-workspace'},
       {doc: 'administration-guide/manage/statistics'},
       {doc: 'administration-guide/manage/configure-health-check-probes'},
@@ -848,6 +859,7 @@ const ADMIN_COMPLY_ORDER = [
   'legal-hold',
   'custom-terms-of-service',
   'embedded-json-audit-log-schema',
+  'post-delivery-audit-logging',
 ];
 
 const ADMIN_COMPLY_HIDDEN = new Set([]);
@@ -898,19 +910,18 @@ const ADMIN_MIGRATION = {
   label: 'Migrate',
   landing: 'administration-guide/manage/admin/migration',
   items: [
-    'administration-guide/onboard/bulk-loading-data',
-    'administration-guide/manage/bulk-export-tool',
-    {label: 'Migrate from MySQL to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
+    {label: 'Migrate from Slack', landing: 'administration-guide/onboard/slack-migration-overview', items: [
+      {doc: 'administration-guide/onboard/migrate-from-slack', label: 'Slack migration guide'},
+    ]},
+    {doc: 'administration-guide/onboard/migrate-from-rocketchat', label: 'Migrate from RocketChat'},
+    {doc: 'administration-guide/onboard/migrate-gitlab-omnibus', label: 'Migrate from GitLab Omnibus'},
+    {label: 'Migrate to PostgreSQL', landing: 'administration-guide/manage/admin/postgres-migration', items: [
       'administration-guide/manage/admin/postgres-migration-assist-tool',
       'administration-guide/manage/admin/manual-postgres-migration',
     ]},
     'administration-guide/manage/admin/fips-migration',
-    {label: 'Migrate from another platform', landing: 'administration-guide/onboard/migrating-to-mattermost', items: [
-      'administration-guide/onboard/migrate-from-slack',
-      'administration-guide/onboard/migrate-from-rocketchat',
-      'administration-guide/onboard/migrate-gitlab-omnibus',
-      'administration-guide/onboard/migration-announcement-email',
-    ]},
+    'administration-guide/onboard/bulk-loading-data',
+    'administration-guide/manage/bulk-export-tool',
   ],
 };
 
@@ -1034,7 +1045,6 @@ const INTEGRATIONS_GROUPS = {
         'github',
         'gitlab',
         'jira',
-        'servicenow',
         'zoom',
       ]},
     ],
@@ -1071,7 +1081,7 @@ const INTEGRATIONS_HIDDEN = new Set([
   'popular-integrations',
   'mattermost-mission-collaboration-for-m365', 'microsoft-calendar',
   'microsoft-teams-meetings', 'microsoft-teams-sync',
-  'github', 'gitlab', 'jira', 'servicenow', 'zoom',
+  'github', 'gitlab', 'jira', 'zoom',
   'webhook-integrations', 'incoming-webhooks', 'outgoing-webhooks',
   'slash-commands', 'run-slash-commands', 'built-in-slash-commands',
 ]);

@@ -79,30 +79,8 @@ jobs:
         run: |
           echo "::warning title=Non-English i18n files changed::This PR modifies non-English translation files directly. Ensure the changes are intentional and will not be overwritten by Weblate."
 
-  verify-webapp:
-    name: Verify webapp translation files
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        working-directory: webapp
-    steps:
-      - name: ci/checkout-repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: ci/setup
-        uses: ./.github/actions/webapp-setup
-        with:
-          read-only: "true"
-
-      - name: ci/i18n-verify-translations
-        working-directory: webapp/channels
-        run: |
-          npm run i18n-verify-translations -- --warn-missing-keys
-
-  verify-server:
-    name: Verify server translation files
+  verify:
+    name: Verify translations
     needs: buildenv
     runs-on: ubuntu-24.04
     steps:
@@ -111,11 +89,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: ci/setup-webapp
+        uses: ./.github/actions/webapp-setup
+        with:
+          read-only: "true"
+
       - name: ci/restore-go-cache
         uses: ./.github/actions/restore-go-cache
 
-      - name: ci/i18n-verify
+      - name: ci/i18n-verify-all
         uses: ./.github/actions/run-in-buildenv
         with:
           build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
-          run: make i18n-verify
+          run: make i18n-verify-all

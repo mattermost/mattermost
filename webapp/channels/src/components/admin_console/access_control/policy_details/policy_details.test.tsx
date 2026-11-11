@@ -361,7 +361,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // The mode-toggle button is disabled while no usable attributes are
         // available, so the test needs at least one to actually exercise the
         // Simple → Advanced → Simple round-trip.
-        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: true}}]});
+        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: 'program'}}]});
 
         const props = {
             ...defaultProps,
@@ -560,7 +560,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const renderWithLoadedExpression = (expression: string, attributeName: string) => {
             // A single usable (LDAP-synced) attribute clears the no-usable-attributes
             // gate so the toggle reflects the expression, not the attributes state.
-            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: 'program'}}]});
             const props = {
                 ...defaultProps,
                 actions: {
@@ -592,6 +592,14 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 '("Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program)',
                 'program',
             );
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('a "has any of" group without parens stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('"Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program', 'program');
 
             await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
 

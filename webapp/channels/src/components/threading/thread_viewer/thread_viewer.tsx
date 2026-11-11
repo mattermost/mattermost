@@ -55,6 +55,9 @@ export type Props = Attrs & {
     isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
+
+    /** When set, the list shows replies only. The root post stays selected so the thread still loads. */
+    hideRoot?: boolean;
     lastUpdateAt: number;
 };
 
@@ -250,6 +253,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}
                                     postIds={this.props.postIds}
+                                    hideRoot={this.props.hideRoot}
                                     selected={this.props.selected}
                                     useRelativeTimestamp={this.props.useRelativeTimestamp || false}
                                     highlightedPostId={this.props.highlightedPostId}

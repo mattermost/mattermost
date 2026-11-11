@@ -3,10 +3,12 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -19,12 +21,10 @@ import type {Team} from '@mattermost/types/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import Card from 'components/card/card';
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
-import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
@@ -39,6 +39,53 @@ import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
 import './policy_details.scss';
+
+const panelMessages = defineMessages({
+    accessRulesTitle: {
+        id: 'admin.access_control.policy.edit_policy.access_rules.title',
+        defaultMessage: 'Attribute-based membership rules',
+    },
+    accessRulesSubtitle: {
+        id: 'admin.access_control.policy.edit_policy.access_rules.subtitle',
+        defaultMessage: 'Select user attributes and values that qualifying users must have',
+    },
+    switchToAdvanced: {
+        id: 'admin.access_control.policy.edit_policy.switch_to_advanced',
+        defaultMessage: 'Switch to Advanced Mode',
+    },
+    switchToSimple: {
+        id: 'admin.access_control.policy.edit_policy.switch_to_simple',
+        defaultMessage: 'Switch to Simple Mode',
+    },
+    channelSelectorTitle: {
+        id: 'admin.access_control.policy.edit_policy.channel_selector.title',
+        defaultMessage: 'Assigned channels',
+    },
+    channelSelectorSubtitle: {
+        id: 'admin.access_control.policy.edit_policy.channel_selector.subtitle',
+        defaultMessage: 'Add channels that this membership policy will apply to.',
+    },
+    addChannels: {
+        id: 'admin.access_control.policy.edit_policy.channel_selector.addChannels',
+        defaultMessage: 'Add channels',
+    },
+    deleteTitle: {
+        id: 'admin.access_control.policy.edit_policy.delete_policy.title',
+        defaultMessage: 'Delete policy',
+    },
+    deleteSubtitle: {
+        id: 'admin.access_control.policy.edit_policy.delete_policy.subtitle',
+        defaultMessage: 'This policy will be deleted and cannot be recovered.',
+    },
+    deleteSubtitleHasResources: {
+        id: 'admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources',
+        defaultMessage: 'Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy',
+    },
+    deleteButton: {
+        id: 'admin.access_control.policy.edit_policy.delete_policy.delete',
+        defaultMessage: 'Delete',
+    },
+});
 
 interface PolicyActions {
     fetchPolicy: (id: string) => Promise<ActionResult>;
@@ -547,18 +594,16 @@ function PolicyDetails({
                                     defaultMessage='Please add user attributes and values to use Attribute-Based Access Control'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.notice.text',
                                 defaultMessage: 'You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.',
                             })}
-                            primaryButton={{
-                                text: formatMessage({
-                                    id: 'admin.access_control.policy.edit_policy.notice.button',
-                                    defaultMessage: 'Configure user attributes',
-                                }),
-                                onClick: () => {
-                                    getHistory().push('/admin_console/system_attributes/user_attributes');
-                                },
+                            primaryButtonLabel={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.notice.button',
+                                defaultMessage: 'Configure user attributes',
+                            })}
+                            onPrimaryAction={() => {
+                                getHistory().push('/admin_console/system_attributes/manage_attributes');
                             }}
                         />
                     </div>)}
@@ -571,177 +616,167 @@ function PolicyDetails({
                                     defaultMessage='Channels without this attribute lose all members'
                                 />
                             }
-                            text={formatMessage({
+                            description={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
                                 defaultMessage: 'If an assigned channel is missing the referenced attribute, every member of that channel is removed.',
                             })}
                         />
                     </div>)}
-                    <Card
-                        expanded={true}
-                        className={'console'}
-                    >
-                        <Card.Header>
-                            <TitleAndButtonCardHeader
-                                title={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.access_rules.title'
-                                        defaultMessage='Attribute-based membership rules'
-                                    />
-                                }
-                                subtitle={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.access_rules.subtitle'
-                                        defaultMessage='Select user attributes and values that qualifying users must have'
-                                    />
-                                }
-                                buttonText={
-                                    editorMode === 'table' ? (
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.switch_to_advanced'
-                                            defaultMessage='Switch to Advanced Mode'
-                                        />
-                                    ) : (
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.switch_to_simple'
-                                            defaultMessage='Switch to Simple Mode'
-                                        />
-                                    )
-                                }
+                    {(() => {
+                        const editorModeDisabled = noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression));
+                        let editorModeTooltip: string | undefined;
+                        if (noUsableAttributes) {
+                            editorModeTooltip = formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip',
+                                defaultMessage: 'Please configure user attributes to use the editor.',
+                            });
+                        } else if (editorMode === 'cel' && !isSimpleExpression(expression)) {
+                            editorModeTooltip = formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
+                                defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
+                            });
+                        }
+                        let editorModeButton = (
+                            <Button
+                                disabled={editorModeDisabled}
+                                emphasis='primary'
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                                isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
-                                tooltipText={(() => {
-                                    if (noUsableAttributes) {
-                                        return formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip',
-                                            defaultMessage: 'Please configure user attributes to use the editor.',
-                                        });
-                                    }
-                                    if (editorMode === 'cel' && !isSimpleExpression(expression)) {
-                                        return formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
-                                            defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
-                                        });
-                                    }
-                                    return undefined;
-                                })()}
-                            />
-                        </Card.Header>
-                        <Card.Body>
-                            {hasMaskedRows && (
-                                <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={
-                                            <FormattedMessage
-                                                id='admin.access_control.policy.edit_policy.masked_values_warning.title'
-                                                defaultMessage='This policy contains restricted values'
-                                            />
-                                        }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
-                                            defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
-                                        })}
+                            >
+                                <FormattedMessage
+                                    {...(editorMode === 'table' ? panelMessages.switchToAdvanced : panelMessages.switchToSimple)}
+                                />
+                            </Button>
+                        );
+                        if (editorModeDisabled && editorModeTooltip) {
+                            editorModeButton = (
+                                <WithTooltip title={editorModeTooltip}>
+                                    {editorModeButton}
+                                </WithTooltip>
+                            );
+                        }
+                        return (
+                            <AdminPanel
+                                id='access_control_membership_rules'
+                                title={panelMessages.accessRulesTitle}
+                                subtitle={panelMessages.accessRulesSubtitle}
+                                button={editorModeButton}
+                            >
+                                {hasMaskedRows && (
+                                    <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                        <SectionNotice
+                                            type='warning'
+                                            title={
+                                                <FormattedMessage
+                                                    id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                                    defaultMessage='This policy contains restricted values'
+                                                />
+                                            }
+                                            description={formatMessage({
+                                                id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                                defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                                            })}
+                                        />
+                                    </div>
+                                )}
+                                {editorMode === 'cel' ? (
+                                    <CELEditor
+                                        value={expression}
+                                        onChange={(value) => {
+                                            setExpression(value);
+                                            setSaveNeeded(true);
+                                            actions.setNavigationBlocked(true);
+                                        }}
+                                        onValidate={() => {}}
+                                        disabled={noUsableAttributes}
+                                        hasMaskedRows={hasMaskedRows}
+                                        userAttributes={toCELEditorAttributes(userFields, accessControlSettings.EnableUserManagedAttributes)}
+                                        resourceAttributes={resourceFields.map((attr) => ({
+                                            attribute: attr.name,
+                                        }))}
                                     />
-                                </div>
-                            )}
-                            {editorMode === 'cel' ? (
-                                <CELEditor
-                                    value={expression}
-                                    onChange={(value) => {
-                                        setExpression(value);
-                                        setSaveNeeded(true);
-                                        actions.setNavigationBlocked(true);
-                                    }}
-                                    onValidate={() => {}}
-                                    disabled={noUsableAttributes}
-                                    hasMaskedRows={hasMaskedRows}
-                                    userAttributes={toCELEditorAttributes(userFields, accessControlSettings.EnableUserManagedAttributes)}
-                                    resourceAttributes={resourceFields.map((attr) => ({
-                                        attribute: attr.name,
-                                    }))}
-                                />
-                            ) : (
-                                <TableEditor
-                                    value={expression}
-                                    onChange={(value) => {
-                                        setExpression(value);
-                                        setSaveNeeded(true);
-                                        actions.setNavigationBlocked(true);
-                                    }}
-                                    onValidate={() => {}}
-                                    disabled={noUsableAttributes}
-                                    userAttributes={autocompleteResult}
-                                    onParseError={() => {
-                                        setEditorMode('cel');
-                                    }}
-                                    enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
-                                    actions={abacActions}
-                                />
-                            )}
-                        </Card.Body>
-                    </Card>
+                                ) : (
+                                    <TableEditor
+                                        value={expression}
+                                        onChange={(value) => {
+                                            setExpression(value);
+                                            setSaveNeeded(true);
+                                            actions.setNavigationBlocked(true);
+                                        }}
+                                        onValidate={() => {}}
+                                        disabled={noUsableAttributes}
+                                        userAttributes={autocompleteResult}
+                                        onParseError={() => {
+                                            setEditorMode('cel');
+                                        }}
+                                        enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
+                                        actions={abacActions}
+                                    />
+                                )}
+                            </AdminPanel>
+                        );
+                    })()}
 
-                    <Card
-                        expanded={true}
-                        className={'console add-channels'}
-                    >
-                        <Card.Header>
-                            <TitleAndButtonCardHeader
-                                title={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.channel_selector.title'
-                                        defaultMessage='Assigned channels'
-                                    />
-                                }
-                                subtitle={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this membership policy will apply to.'
-                                    />
-                                }
-                                buttonText={
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
-                                        defaultMessage='Add channels'
-                                    />
-                                }
+                    <AdminPanel
+                        id='access_control_assigned_channels'
+                        className='add-channels'
+                        title={panelMessages.channelSelectorTitle}
+                        subtitle={panelMessages.channelSelectorSubtitle}
+                        button={
+                            <Button
+                                emphasis='primary'
                                 onClick={() => setAddChannelOpen(true)}
-                            />
-                        </Card.Header>
-                        <Card.Body expanded={true}>
-                            <ChannelList
-                                onRemoveCallback={(channel) => addToRemovedChannels(channel)}
-                                channelsToRemove={channelChanges.removed}
-                                channelsToAdd={channelChanges.added}
-                                policyId={policyId}
-                                policyActiveStatusChanges={policyActiveStatusChanges}
-                                onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
-                                saving={saving}
-                            />
-                            {hasMixedChannels && (
-                                <div className='AccessControlPolicySettings__mixedChannelsNotice'>
-                                    <SectionNotice
-                                        type='warning'
-                                        title={
-                                            <FormattedMessage
-                                                id='admin.access_control.policy.edit_policy.mixed_channels.title'
-                                                defaultMessage='Membership policies affect public and private channels differently'
-                                            />
-                                        }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
-                                            defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
-                                        })}
-                                    />
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
+                            >
+                                <FormattedMessage {...panelMessages.addChannels}/>
+                            </Button>
+                        }
+                    >
+                        <ChannelList
+                            onRemoveCallback={(channel) => addToRemovedChannels(channel)}
+                            channelsToRemove={channelChanges.removed}
+                            channelsToAdd={channelChanges.added}
+                            policyId={policyId}
+                            policyActiveStatusChanges={policyActiveStatusChanges}
+                            onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
+                            saving={saving}
+                        />
+                        {hasMixedChannels && (
+                            <div className='AccessControlPolicySettings__mixedChannelsNotice'>
+                                <SectionNotice
+                                    type='warning'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                            defaultMessage='Membership policies affect public and private channels differently'
+                                        />
+                                    }
+                                    description={formatMessage({
+                                        id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                        defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                                    })}
+                                />
+                            </div>
+                        )}
+                    </AdminPanel>
                     {policyId && (
-                        <Card
-                            expanded={true}
-                            className={'console delete-policy'}
+                        <AdminPanel
+                            id='access_control_delete_policy'
+                            className='delete-policy'
+                            title={panelMessages.deleteTitle}
+                            subtitle={hasAssignedResources() ? panelMessages.deleteSubtitleHasResources : panelMessages.deleteSubtitle}
+                            button={
+                                <Button
+                                    emphasis='primary'
+                                    disabled={hasAssignedResources() || hasMaskedRows}
+                                    onClick={() => {
+                                        if (hasAssignedResources()) {
+                                            return;
+                                        }
+                                        setShowDeleteConfirmationModal(true);
+                                    }}
+                                >
+                                    <FormattedMessage {...panelMessages.deleteButton}/>
+                                </Button>
+                            }
                         >
                             {hasMaskedRows && (
                                 <div className='admin-console__warning-notice EditPolicy__delete-masked-values-warning'>
@@ -753,7 +788,7 @@ function PolicyDetails({
                                                 defaultMessage='This policy contains restricted values - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
+                                        description={formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.delete_policy.masked_values_warning.text',
                                             defaultMessage: 'Removing this policy could affect access for users you cannot fully account for.',
                                         })}
@@ -770,62 +805,29 @@ function PolicyDetails({
                                                 defaultMessage='This policy is assigned to teams - Deletion not allowed'
                                             />
                                         }
-                                        text={formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
-                                            defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
-                                        })}
-                                    >
-                                        {assignedTeams.length > 0 && (
-                                            <ul className='EditPolicy__delete-linked-teams-list'>
-                                                {assignedTeams.map((team) => (
-                                                    <li key={team.id}>
-                                                        <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
-                                                            {team.display_name}
-                                                        </BlockableLink>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </SectionNotice>
+                                        description={
+                                            <>
+                                                {formatMessage({
+                                                    id: 'admin.access_control.policy.edit_policy.delete_policy.linked_teams_warning.text',
+                                                    defaultMessage: 'Remove this policy from the following teams before deleting it. Team assignment is managed from each team\'s System Console page.',
+                                                })}
+                                                {assignedTeams.length > 0 && (
+                                                    <ul className='EditPolicy__delete-linked-teams-list'>
+                                                        {assignedTeams.map((team) => (
+                                                            <li key={team.id}>
+                                                                <BlockableLink to={`/admin_console/user_management/teams/${team.id}`}>
+                                                                    {team.display_name}
+                                                                </BlockableLink>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </>
+                                        }
+                                    />
                                 </div>
                             )}
-                            <Card.Header>
-                                <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.delete_policy.title'
-                                            defaultMessage='Delete policy'
-                                        />
-                                    }
-                                    subtitle={
-                                        hasAssignedResources() ? (
-                                            <FormattedMessage
-                                                id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                                defaultMessage='Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy'
-                                            />
-                                        ) : (
-                                            <FormattedMessage
-                                                id='admin.access_control.policy.edit_policy.delete_policy.subtitle'
-                                                defaultMessage='This policy will be deleted and cannot be recovered.'
-                                            />
-                                        )
-                                    }
-                                    buttonText={
-                                        <FormattedMessage
-                                            id='admin.access_control.policy.edit_policy.delete_policy.delete'
-                                            defaultMessage='Delete'
-                                        />
-                                    }
-                                    onClick={() => {
-                                        if (hasAssignedResources()) {
-                                            return;
-                                        }
-                                        setShowDeleteConfirmationModal(true);
-                                    }}
-                                    isDisabled={hasAssignedResources() || hasMaskedRows}
-                                />
-                            </Card.Header>
-                        </Card>
+                        </AdminPanel>
                     )}
                 </div>
             </div>
@@ -871,7 +873,7 @@ function PolicyDetails({
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonVariant='destructive'
+                    destructive={true}
                     compassDesign={true}
                 >
                     <>
@@ -904,15 +906,17 @@ function PolicyDetails({
                         />
                     }
                 />
-                <BlockableLink
-                    className={buttonClassNames({emphasis: 'quaternary'})}
-                    to='/admin_console/system_attributes/membership_policies'
+                <Button
+                    asChild={true}
+                    emphasis='tertiary'
                 >
-                    <FormattedMessage
-                        id='admin.access_control.edit_policy.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </BlockableLink>
+                    <BlockableLink to='/admin_console/system_attributes/membership_policies'>
+                        <FormattedMessage
+                            id='admin.access_control.edit_policy.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </BlockableLink>
+                </Button>
                 {serverError && (
                     <span className='EditPolicy__error'>
                         <i className='icon icon-alert-outline'/>

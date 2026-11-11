@@ -96,7 +96,9 @@ func (r *ActionSearchRequest) IsValid() *AppError {
 	if r.Resource.Type == "" {
 		return NewAppError("ActionSearchRequest.IsValid", "model.access_control_decision.is_valid.resource_type.app_error", nil, "", http.StatusBadRequest)
 	}
-	if !IsValidId(r.Resource.ID) {
+	// System-level permission actions have no resource instance, so their ID may be empty.
+	systemLevel := r.Resource.Type == AccessControlPolicyTypePermission && r.Resource.ID == ""
+	if !systemLevel && !IsValidId(r.Resource.ID) {
 		return NewAppError("ActionSearchRequest.IsValid", "model.access_control_decision.is_valid.resource_id.app_error", nil, "", http.StatusBadRequest)
 	}
 	// nil/empty Actions = discovery mode (valid). Validate bounds only when non-empty.

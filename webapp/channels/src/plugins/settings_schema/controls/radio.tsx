@@ -27,19 +27,24 @@ const Radio = ({
     onChange,
 }: Props) => {
     return (
-        <fieldset key={setting.name}>
+        <fieldset
+            key={setting.name}
+            className='radio-option-list'
+        >
             <legend className='form-legend hidden-label'>
                 {setting.title || setting.name}
             </legend>
-            {setting.options.map((option) => (
-                <RadioOption
-                    key={option.value}
-                    name={setting.name}
-                    option={option}
-                    selectedValue={value}
-                    onSelected={onChange}
-                />
-            ))}
+            <div className='settings-radio-group'>
+                {setting.options.map((option) => (
+                    <RadioOption
+                        key={option.value}
+                        name={setting.name}
+                        option={option}
+                        selectedValue={value}
+                        onSelected={onChange}
+                    />
+                ))}
+            </div>
             {setting.helpText && (
                 <div className='mt-5'>
                     <Markdown

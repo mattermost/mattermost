@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -15,7 +16,6 @@ import {searchAllChannels} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {ChannelIcon} from 'components/channel_type_icon';
-import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
 import Constants from 'utils/constants';

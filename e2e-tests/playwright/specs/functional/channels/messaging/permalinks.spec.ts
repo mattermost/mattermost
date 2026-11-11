@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that clicking a post timestamp in the RHS or center channel highlights the post in the center channel.
@@ -64,7 +64,7 @@ test('MM-T3308 follows a permalink to the first post without endless loading', {
     await channelsPage.toBeVisible();
 
     // # Post a permalink to the first (oldest) post into the public channel
-    const permalink = `${new URL(page.url()).origin}/${team.name}/pl/${firstPostId}`;
+    const permalink = `${testConfig.baseURL}/${team.name}/pl/${firstPostId}`;
     await channelsPage.postMessage(permalink);
     await channelsPage.centerView.waitUntilLastPostContains(permalink);
 

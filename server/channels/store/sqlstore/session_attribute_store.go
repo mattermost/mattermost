@@ -27,6 +27,10 @@ func (s *SqlSessionAttributeStore) Get(_ string) (map[string]any, map[string]int
 	return map[string]any{}, map[string]int64{}, nil
 }
 
+func (s *SqlSessionAttributeStore) GetEpoch(_ string) (string, error) {
+	return "0", nil
+}
+
 func (s *SqlSessionAttributeStore) Invalidate(_ string) error {
 	return nil
 }

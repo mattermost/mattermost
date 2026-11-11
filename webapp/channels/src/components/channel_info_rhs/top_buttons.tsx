@@ -2,93 +2,70 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl, FormattedMessage} from 'react-intl';
+import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {
+    AccountPlusOutlineIcon,
+    BellOffOutlineIcon,
+    BellOutlineIcon,
+    CheckIcon,
+    LinkVariantIcon,
+    StarIcon,
+    StarOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {TileButton} from '@mattermost/compass-ui/components/tile-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useCopyText from 'components/common/hooks/useCopyText';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
+    gap: var(--spacing-xs);
     color: rgba(var(--center-channel-color-rgb), 0.75);
     margin-top: 24px;
     padding: 0 18px;
-`;
 
-const Button = styled.button`
-    flex: 1;
-    padding: 12px 0 10px 0;
-    border: 0;
-    margin: 0 6px;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
-    border-radius: 4px;
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.8);
-
-        & i {
-            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
-        }
-    }
-
-    &:active,
-    &.active {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: var(--button-bg);
-
-        & i {
-            color: var(--button-bg-rgb);
-        }
-    }
-
-    &:disabled {
-        opacity: 0.32;
-        cursor: default;
-    }
-
-    & i {
-        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
-        font-size: 24px;
-    }
-
-    & span {
-        font-size: 10px;
-        font-weight: 600;
-        line-height: 16px;
+    /* TileButton defaults to a fixed 108px width; share the RHS row evenly. */
+    > button {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
     }
 `;
 
-const CopyButton = styled(Button)`
-    transition: background-color 0.5s ease;
-
-    &:active,
-    &.active {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        transition: none;
-    }
-
-    &.success {
-        background: var(--online-indicator);
-        color: var(--button-color);
-
-        & i {
-            color: var(--button-color);
-        }
-    }
-`;
+const messages = {
+    favorite: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.favorite.tooltip', defaultMessage: 'Add this channel to favorites'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.favorite.tooltip.board', defaultMessage: 'Add this board to favorites'}),
+    },
+    mute: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.mute.tooltip', defaultMessage: 'Mute notifications for this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.mute.tooltip.board', defaultMessage: 'Mute notifications for this board'}),
+    },
+    addPeople: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.add_people.tooltip', defaultMessage: 'Add team members to this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.add_people.tooltip.board', defaultMessage: 'Add team members to this board'}),
+    },
+    copyLink: {
+        channel: defineMessage({id: 'channel_info_rhs.top_buttons.copy_link.tooltip', defaultMessage: 'Copy link to this channel'}),
+        board: defineMessage({id: 'channel_info_rhs.top_buttons.copy_link.tooltip.board', defaultMessage: 'Copy link to this board'}),
+    },
+} satisfies Record<string, KindMessages>;
 
 export interface Props {
+    channelKind?: ChannelKind;
     channelType: string;
     channelURL?: string;
 
     isFavorite: boolean;
     isMuted: boolean;
-    isInvitingPeople: boolean;
     isArchived?: boolean;
     isInManagedCategory: boolean;
 
@@ -102,11 +79,11 @@ export interface Props {
 }
 
 export default function TopButtons({
+    channelKind = 'channel',
     channelType,
     channelURL,
     isFavorite,
     isMuted,
-    isInvitingPeople,
     isArchived = false,
     isInManagedCategory,
     canAddPeople: propsCanAddPeople,
@@ -123,113 +100,85 @@ export default function TopButtons({
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
-    // Favorite Button State
-    const favoriteIcon = isFavorite ? 'icon-star' : 'icon-star-outline';
-    const favoriteText = isFavorite ? formatMessage({id: 'channel_info_rhs.top_buttons.favorited', defaultMessage: 'Favorited'}) : formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
+    // Toggle labels stay constant; state is conveyed by aria-pressed (via TileButton `toggled`).
+    const favoriteIcon = isFavorite ? <StarIcon/> : <StarOutlineIcon/>;
+    const favoriteText = formatMessage({id: 'channel_info_rhs.top_buttons.favorite', defaultMessage: 'Favorite'});
 
-    // Mute Button State
-    const mutedIcon = isMuted ? 'icon-bell-off-outline' : 'icon-bell-outline';
-    const mutedText = isMuted ? formatMessage({id: 'channel_info_rhs.top_buttons.muted', defaultMessage: 'Muted'}) : formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
+    const mutedIcon = isMuted ? <BellOffOutlineIcon/> : <BellOutlineIcon/>;
+    const mutedText = formatMessage({id: 'channel_info_rhs.top_buttons.mute', defaultMessage: 'Mute'});
 
     // Copy Button State
-    const copyIcon = copyLink.copiedRecently ? 'icon-check' : 'icon-link-variant';
+    const copyIcon = copyLink.copiedRecently ? <CheckIcon/> : <LinkVariantIcon/>;
     const copyText = copyLink.copiedRecently ? formatMessage({id: 'channel_info_rhs.top_buttons.copied', defaultMessage: 'Copied'}) : formatMessage({id: 'channel_info_rhs.top_buttons.copy', defaultMessage: 'Copy Link'});
+
+    let favoriteTooltip;
+    if (isInManagedCategory) {
+        favoriteTooltip = (
+            <FormattedMessage
+                id='channelHeader.managedCategoryFavoriteDisabled'
+                defaultMessage='Channels in managed categories cannot be favorited.'
+            />
+        );
+    } else {
+        favoriteTooltip = <FormattedMessage {...messages.favorite[channelKind]}/>;
+    }
 
     return (
         <ChannelInfoRhsTopButtons>
             <WithTooltip
-                title={
-                    isInManagedCategory ? (
-                        <FormattedMessage
-                            id='channelHeader.managedCategoryFavoriteDisabled'
-                            defaultMessage='Channels in managed categories cannot be favorited.'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.favorite.tooltip'
-                            defaultMessage='Add this channel to favorites'
-                        />
-                    )
-                }
+                title={favoriteTooltip}
             >
-                <Button
+                <TileButton
                     onClick={actions.toggleFavorite}
-                    className={isFavorite ? 'active' : ''}
+                    toggled={isFavorite}
                     disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
-                >
-                    <div>
-                        <i className={'icon ' + favoriteIcon}/>
-                    </div>
-                    <span>{favoriteText}</span>
-                </Button>
+                    icon={<Icon glyph={favoriteIcon}/>}
+                    label={favoriteText}
+                />
             </WithTooltip>
             <WithTooltip
-                title={
-                    <FormattedMessage
-                        id='channel_info_rhs.top_buttons.mute.tooltip'
-                        defaultMessage='Mute notifications for this channel'
-                    />
-                }
+                title={<FormattedMessage {...messages.mute[channelKind]}/>}
             >
-                <Button
+                <TileButton
                     onClick={actions.toggleMute}
-                    className={isMuted ? 'active' : ''}
+                    toggled={isMuted}
                     aria-label={mutedText}
                     id='channelInfoRHSMuteChannelButton'
-                >
-                    <div>
-                        <i className={'icon ' + mutedIcon}/>
-                    </div>
-                    <span>{mutedText}</span>
-                </Button>
+                    icon={<Icon glyph={mutedIcon}/>}
+                    label={mutedText}
+                />
             </WithTooltip>
             {canAddPeople && (
                 <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.add_people.tooltip'
-                            defaultMessage='Add team members to this channel'
-                        />
-                    }
+                    title={<FormattedMessage {...messages.addPeople[channelKind]}/>}
                 >
-                    <Button
+                    <TileButton
                         onClick={actions.addPeople}
-                        className={isInvitingPeople ? 'active' : ''}
                         id='channelInfoRHSAddPeopleButton'
-                    >
-                        <div>
-                            <i className='icon icon-account-plus-outline'/>
-                        </div>
-                        <span>
+                        aria-label={formatMessage({id: 'channel_info_rhs.top_buttons.add_people', defaultMessage: 'Add People'})}
+                        aria-haspopup='dialog'
+                        icon={<Icon glyph={<AccountPlusOutlineIcon/>}/>}
+                        label={
                             <FormattedMessage
                                 id='channel_info_rhs.top_buttons.add_people'
                                 defaultMessage='Add People'
                             />
-                        </span>
-                    </Button>
+                        }
+                    />
                 </WithTooltip>
             )}
             {canCopyLink && (
                 <WithTooltip
-                    title={
-                        <FormattedMessage
-                            id='channel_info_rhs.top_buttons.copy_link.tooltip'
-                            defaultMessage='Copy link to this channel'
-                        />
-                    }
+                    title={<FormattedMessage {...messages.copyLink[channelKind]}/>}
                 >
-                    <CopyButton
+                    <TileButton
                         onClick={copyLink.onClick}
-                        className={copyLink.copiedRecently ? 'success' : ''}
                         aria-label={copyText}
-                    >
-                        <div>
-                            <i className={'icon ' + copyIcon}/>
-                        </div>
-                        <span>{copyText}</span>
-                    </CopyButton>
+                        icon={<Icon glyph={copyIcon}/>}
+                        label={copyText}
+                    />
                 </WithTooltip>
             )}
         </ChannelInfoRhsTopButtons>

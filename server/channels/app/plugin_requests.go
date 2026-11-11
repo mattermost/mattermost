@@ -40,7 +40,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
 	if err != nil {
 		// Log the path only; the query string can carry an access_token.
-		mlog.Debug("Access to route for non-existent plugin",
+		ch.srv.Log().Debug("Access to route for non-existent plugin",
 			mlog.String("missing_plugin_id", pluginID),
 			mlog.String("url", r.URL.Path),
 			mlog.Err(err))
@@ -273,8 +273,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	maxBodyBytes := *ch.cfgSvc.Config().ServiceSettings.MaximumPayloadSizeBytes + bytes.MinRead
 	csrfValid, err := validateCSRFForPluginRequest(rctx, w, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement, maxBodyBytes)
 	if err != nil {
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
+		if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 			http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 			return
 		}

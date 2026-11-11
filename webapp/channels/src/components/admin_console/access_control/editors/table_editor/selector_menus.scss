@@ -5,6 +5,32 @@
     overflow-y: auto;
 }
 
+// Only the graph operator menu carries a sentence of help text under each
+// label, so only it needs a width to wrap that text against — the bare-label
+// menus stay as narrow as their longest operator.
+.select-operator-mui-menu--described {
+    max-width: 460px;
+
+    // Menu items don't wrap, and size their label column to its content without
+    // letting it shrink, so a description would be clipped at the menu's edge.
+    // The extra type selector out-specifies the item's own three-class emotion
+    // rule, which is what sets the column up that way.
+    li.MuiMenuItem-root > .label-elements {
+        min-width: 0;
+        flex-shrink: 1;
+        white-space: normal;
+    }
+
+    // The trailing function name is a pointer to the CEL function the operator
+    // maps to rather than part of the explanation, so it sits a step below the
+    // description. Opacity rather than colour: the description's own colour is
+    // set by the menu item's styled-component, which would out-specify this.
+    .operator-selector-menu__function-name {
+        opacity: 0.75;
+        white-space: nowrap;
+    }
+}
+
 .field-selector-menu-button {
     width: 100%;
     // 40px is the floor, not the height: the value trigger wraps its selected-value

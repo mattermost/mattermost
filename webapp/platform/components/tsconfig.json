@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "esnext",
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "jsx": "react",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
@@ -14,7 +14,10 @@
         "declaration": true,
         "outDir": "dist",
         "rootDir": "src",
-        "composite": true
+        "composite": true,
+        "emitDeclarationOnly": true,
+        "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+        "noUncheckedSideEffectImports": false
     },
     "include": [
         "./src/**/*"

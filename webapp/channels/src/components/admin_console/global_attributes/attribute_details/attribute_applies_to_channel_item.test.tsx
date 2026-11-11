@@ -71,6 +71,28 @@ describe('AttributeAppliesToChannelItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
     });
 
+    it('removeLockedTooltip locks only Remove behind a tooltip wrap', async () => {
+        renderComponent({removeLockedTooltip: 'Locked'});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToRow-channel-removeLockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+        expect(onRemove).not.toHaveBeenCalled();
+
+        expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('channelsResourceLocation-display_label_header'));
+        expect(onConfigChange).toHaveBeenCalled();
+    });
+
+    it('renders no Remove lock wrap and enables Remove without removeLockedTooltip', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToRow-channel-removeLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
+    });
+
     it('states the configuration in the row summary', async () => {
         renderComponent({config: {required: true, changePolicy: 'never', displayLocations: ['display_label_header']}});
 

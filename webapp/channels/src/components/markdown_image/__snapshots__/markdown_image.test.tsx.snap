@@ -91,7 +91,7 @@ exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimen
 <div>
   <div
     class="file-preview__button"
-    style="display: block;"
+    style=""
   >
     <figure
       class="image-loaded-container"
@@ -213,7 +213,7 @@ exports[`components/MarkdownImage should provide image src as an alt text for Ma
     </button>
     <div
       class="file-preview__button"
-      style="display: block;"
+      style=""
     >
       <figure
         class="image-loaded-container"
@@ -296,7 +296,7 @@ exports[`components/MarkdownImage should render an image with no preview if the 
 <div>
   <div
     class="file-preview__button"
-    style="display: block;"
+    style=""
   >
     <figure
       class="image-loaded-container"
@@ -364,7 +364,7 @@ exports[`components/MarkdownImage should render an image with preview modal if t
 <div>
   <div
     class="file-preview__button"
-    style="display: block;"
+    style=""
   >
     <figure
       class="image-loaded-container"
@@ -443,7 +443,7 @@ exports[`components/MarkdownImage should render image with MarkdownImageExpand i
     </button>
     <div
       class="file-preview__button"
-      style="display: block;"
+      style=""
     >
       <figure
         class="image-loaded-container"

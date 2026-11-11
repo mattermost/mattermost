@@ -21,7 +21,7 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     )),
 }));
 
-function field(permissionValues: PropertyField['permission_values'], changePolicy?: string): PropertyField {
+function field(permissionValues: PropertyField['permission_values'], changePolicy?: string, attrs: Record<string, unknown> = {}): PropertyField {
     return {
         id: 'field1',
         group_id: 'group1',
@@ -33,6 +33,7 @@ function field(permissionValues: PropertyField['permission_values'], changePolic
         permission_values: permissionValues,
         attrs: {
             ...(changePolicy === undefined ? {} : {change_policy: changePolicy}),
+            ...attrs,
         },
         create_at: 1,
         update_at: 1,
@@ -132,5 +133,40 @@ describe('useCanSetChannelAttributes', () => {
 
         expect(result.current(field(undefined, 'never'), true)).toBe(false);
         expect(result.current(field(undefined, 'never'), false)).toBe(true);
+    });
+
+    // The server refuses a session write to these before permission_values is
+    // reached, so the most permissive tier and the most privileged user still
+    // must not be offered an editor.
+    describe('an attribute whose values an integration owns', () => {
+        const ownership: Array<[string, Record<string, unknown>]> = [
+            ['a protected attribute', {protected: true, source_plugin_id: 'com.example.markings'}],
+            ['an owner-managed attribute', {owners: [{id: 'com.example.scim', type: 'plugin', scopes: []}]}],
+            ['an ldap-synced attribute', {ldap: 'department'}],
+            ['a saml-synced attribute', {saml: 'Department'}],
+        ];
+
+        // Unlike a change policy, ownership does not wait for a value to exist,
+        // so both directions of hasValue have to be refused.
+        test.each(ownership)(
+            '%s is not settable by a system admin on the member tier, set or unset',
+            (_name, attrs) => {
+                mockChannelPermissions = {read_channel: true, manage_channel_roles: true};
+                const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState(true));
+
+                expect(result.current(field('member', undefined, attrs), true)).toBe(false);
+                expect(result.current(field('member', undefined, attrs), false)).toBe(false);
+            },
+        );
+
+        // The gate has to key off the ownership attrs alone: a field the same
+        // plugin created but did not reserve stays an ordinary attribute.
+        test('does not spill onto a plugin-created field that is not reserved', () => {
+            mockChannelPermissions = {read_channel: true, manage_channel_roles: true};
+            const {result} = renderHookWithContext(() => useCanSetChannelAttributes(CHANNEL_ID), makeState());
+
+            expect(result.current(field('member', undefined, {source_plugin_id: 'com.example.markings'}))).toBe(true);
+            expect(result.current(field('member', undefined, {protected: false, owners: []}))).toBe(true);
+        });
     });
 });

@@ -63,6 +63,21 @@ func (mr *MockClientMockRecorder) AddChannelMember(ctx, channelID, userID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddChannelMember", reflect.TypeOf((*MockClient)(nil).AddChannelMember), ctx, channelID, userID)
 }
 
+// AddPluginPublicKey mocks base method.
+func (m *MockClient) AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPluginPublicKey", ctx, name, key)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddPluginPublicKey indicates an expected call of AddPluginPublicKey.
+func (mr *MockClientMockRecorder) AddPluginPublicKey(ctx, name, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPluginPublicKey", reflect.TypeOf((*MockClient)(nil).AddPluginPublicKey), ctx, name, key)
+}
+
 // AddTeamMember mocks base method.
 func (m *MockClient) AddTeamMember(ctx context.Context, teamID, userID string) (*model.TeamMember, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -484,6 +499,21 @@ func (m *MockClient) DeleteOutgoingWebhook(ctx context.Context, hookID string) (
 func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(ctx, hookID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), ctx, hookID)
+}
+
+// DeletePluginPublicKey mocks base method.
+func (m *MockClient) DeletePluginPublicKey(ctx context.Context, name string) (*model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePluginPublicKey", ctx, name)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeletePluginPublicKey indicates an expected call of DeletePluginPublicKey.
+func (mr *MockClientMockRecorder) DeletePluginPublicKey(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePluginPublicKey", reflect.TypeOf((*MockClient)(nil).DeletePluginPublicKey), ctx, name)
 }
 
 // DeletePost mocks base method.
@@ -946,6 +976,22 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(ctx, teamID, groupOpts any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), ctx, teamID, groupOpts)
 }
 
+// GetHealthFindings mocks base method.
+func (m *MockClient) GetHealthFindings(ctx context.Context, filter model.HealthFindingFilter) (*model.HealthFindingList, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHealthFindings", ctx, filter)
+	ret0, _ := ret[0].(*model.HealthFindingList)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetHealthFindings indicates an expected call of GetHealthFindings.
+func (mr *MockClientMockRecorder) GetHealthFindings(ctx, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHealthFindings", reflect.TypeOf((*MockClient)(nil).GetHealthFindings), ctx, filter)
+}
+
 // GetIncomingWebhook mocks base method.
 func (m *MockClient) GetIncomingWebhook(ctx context.Context, hookID, etag string) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1248,6 +1294,38 @@ func (m *MockClient) GetPingWithOptions(ctx context.Context, options model.Syste
 func (mr *MockClientMockRecorder) GetPingWithOptions(ctx, options any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithOptions", reflect.TypeOf((*MockClient)(nil).GetPingWithOptions), ctx, options)
+}
+
+// GetPluginPublicKey mocks base method.
+func (m *MockClient) GetPluginPublicKey(ctx context.Context, name string) ([]byte, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPluginPublicKey", ctx, name)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPluginPublicKey indicates an expected call of GetPluginPublicKey.
+func (mr *MockClientMockRecorder) GetPluginPublicKey(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPluginPublicKey", reflect.TypeOf((*MockClient)(nil).GetPluginPublicKey), ctx, name)
+}
+
+// GetPluginPublicKeys mocks base method.
+func (m *MockClient) GetPluginPublicKeys(ctx context.Context) ([]string, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPluginPublicKeys", ctx)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPluginPublicKeys indicates an expected call of GetPluginPublicKeys.
+func (mr *MockClientMockRecorder) GetPluginPublicKeys(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPluginPublicKeys", reflect.TypeOf((*MockClient)(nil).GetPluginPublicKeys), ctx)
 }
 
 // GetPlugins mocks base method.
@@ -2116,6 +2194,22 @@ func (m *MockClient) PromoteGuestToUser(ctx context.Context, userID string) (*mo
 func (mr *MockClientMockRecorder) PromoteGuestToUser(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteGuestToUser", reflect.TypeOf((*MockClient)(nil).PromoteGuestToUser), ctx, userID)
+}
+
+// QueryLogs mocks base method.
+func (m *MockClient) QueryLogs(ctx context.Context, page, perPage int, filter *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "QueryLogs", ctx, page, perPage, filter)
+	ret0, _ := ret[0].(map[string][]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// QueryLogs indicates an expected call of QueryLogs.
+func (mr *MockClientMockRecorder) QueryLogs(ctx, page, perPage, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryLogs", reflect.TypeOf((*MockClient)(nil).QueryLogs), ctx, page, perPage, filter)
 }
 
 // RegenOutgoingHookToken mocks base method.

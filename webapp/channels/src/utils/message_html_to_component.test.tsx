@@ -225,6 +225,68 @@ const myFunction = () => {
         });
     });
 
+    describe('phone links', () => {
+        test('should render markdown tel links using MarkdownPhoneLink', () => {
+            const input = 'Call [+34600517276](tel:+34600517276)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toBeInTheDocument();
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent('+34600517276');
+            expect(link?.querySelector('svg')).toBeInTheDocument();
+        });
+
+        test('should render bare tel links using MarkdownPhoneLink without the scheme in the text', () => {
+            const input = 'Call tel:+34600517276';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toBeInTheDocument();
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent(/^\+34600517276$/);
+        });
+
+        test('should keep trailing punctuation outside bare tel links that start with +', () => {
+            const input = 'Call me at tel:+34600517276.';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            const link = container.querySelector('a.markdown-phone-link');
+            expect(link).toHaveAttribute('href', 'tel:+34600517276');
+            expect(link).toHaveTextContent(/^\+34600517276$/);
+            expect(container).toHaveTextContent('Call me at +34600517276.');
+        });
+
+        test('should render a single phone link anchor when plugin tooltips are enabled', () => {
+            const input = 'Call [+34600517276](tel:+34600517276)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html, {hasPluginTooltips: true})}</>);
+
+            const links = container.querySelectorAll('a');
+            expect(links).toHaveLength(1);
+            expect(links[0]).toHaveClass('markdown-phone-link');
+            expect(links[0]).toHaveAttribute('href', 'tel:+34600517276');
+            expect(links[0].querySelector('svg')).toBeInTheDocument();
+        });
+
+        test('should not render other links using MarkdownPhoneLink', () => {
+            const input = '[example](https://example.com)';
+            const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
+
+            const {container} = renderWithContext(<>{messageHtmlToComponent(html)}</>);
+
+            expect(container.querySelector('a.markdown-phone-link')).not.toBeInTheDocument();
+            expect(container.querySelector('a')).toHaveAttribute('href', 'https://example.com');
+        });
+    });
+
     describe('emojis', () => {
         test('should render valid named emojis as spans with background images', () => {
             const input = 'These are emojis: :taco: :astronaut:';

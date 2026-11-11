@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,22 @@ func writeCatalog(t *testing.T, dir, name, body string) string {
 	require.NoError(t, os.WriteFile(p, []byte(body), 0600))
 
 	return p
+}
+
+// canonical re-encodes a catalog body as JSONMarshal writes it, so a case can be
+// written compactly and still pass the canonical-form check. A body that does
+// not decode is returned unchanged, for the cases that test exactly that.
+func canonical(t *testing.T, body string) string {
+	t.Helper()
+
+	var list []Item
+	if err := json.Unmarshal([]byte(body), &list); err != nil {
+		return body
+	}
+	out, err := JSONMarshal(list)
+	require.NoError(t, err)
+
+	return string(out)
 }
 
 // source parses an en.json body into the items a catalog is checked against.
@@ -97,11 +114,39 @@ func TestVerifyLocale(t *testing.T) {
 			warning:        "a.b: missing id",
 		},
 		{
-			name:       "extra id not in en.json",
+			name:       "extra id not in en.json is a warning",
 			localeName: "fr.json",
 			en:         enPlain,
 			locale:     `[{"id":"a.b","translation":"{{.User}} est ici"},{"id":"z.z","translation":"orphelin"}]`,
-			problem:    "z.z: extra id not in en.json",
+			warning:    "z.z: extra id not in en.json",
+		},
+
+		// Right-to-left locales.
+		{
+			name:       "horizontal arrow in a right-to-left locale is a warning",
+			localeName: "fa.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} → اینجاست"}]`,
+			warning:    "a.b: horizontal arrow in a right-to-left locale",
+		},
+		{
+			name:       "horizontal arrow in a plural form of a right-to-left locale is a warning",
+			localeName: "fa.json",
+			en:         `[{"id":"a.b","translation":{"one":"{{.Count}} item","other":"{{.Count}} items"}}]`,
+			locale:     `[{"id":"a.b","translation":{"one":"{{.Count}} مورد ←","other":"{{.Count}} مورد"}}]`,
+			warning:    "a.b: horizontal arrow in a right-to-left locale",
+		},
+		{
+			name:       "horizontal arrow in a left-to-right locale is fine",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} → ici"}]`,
+		},
+		{
+			name:       "vertical arrow in a right-to-left locale is fine",
+			localeName: "fa.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":"{{.User}} ↑ اینجاست"}]`,
 		},
 
 		// Template tokens. An unknown one renders "<no value>"; a dropped one
@@ -165,6 +210,32 @@ func TestVerifyLocale(t *testing.T) {
 			problem:    `plural category "one" is not used by this locale`,
 		},
 
+		// An empty translation renders the raw translation id, exactly as a
+		// missing id does, so it is reported for the same reason and under the
+		// same flag.
+		{
+			name:       "empty translation is an error by default",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":""}]`,
+			problem:    "a.b: empty translation",
+		},
+		{
+			name:           "empty translation is still an error under warn-missing-ids",
+			localeName:     "fr.json",
+			en:             enPlain,
+			locale:         `[{"id":"a.b","translation":""}]`,
+			warnMissingIDs: true,
+			problem:        "a.b: empty translation",
+		},
+		{
+			name:       "whitespace-only translation is an error by default",
+			localeName: "fr.json",
+			en:         enPlain,
+			locale:     `[{"id":"a.b","translation":" "}]`,
+			problem:    "a.b: empty translation",
+		},
+
 		// An empty form renders the raw translation id, so it is worse than no
 		// translation at all.
 		{
@@ -187,7 +258,7 @@ func TestVerifyLocale(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			problems, warnings := verifyLocale(tc.localeName, []byte(tc.locale), source(t, tc.en), tc.warnMissingIDs)
+			problems, warnings := verifyLocale(tc.localeName, []byte(canonical(t, tc.locale)), source(t, tc.en), tc.warnMissingIDs)
 
 			if tc.problem == "" {
 				assert.Empty(t, problems, "expected no problems")
@@ -223,6 +294,41 @@ func TestVerifyLocaleUnknownLocale(t *testing.T) {
 	}
 }
 
+func TestVerifyLocaleDuplicateID(t *testing.T) {
+	t.Parallel()
+
+	body := canonical(t, `[{"id":"a.b","translation":"Un"},{"id":"a.b","translation":"Un"}]`)
+	problems, _ := verifyLocale("fr.json", []byte(body), source(t, `[{"id":"a.b","translation":"One"}]`), false)
+	assert.Contains(t, problems, "fr.json: a.b: duplicate id; the loader keeps only one")
+}
+
+func TestVerifyLocaleCanonicalForm(t *testing.T) {
+	t.Parallel()
+
+	const compact = `[{"id":"a.b","translation":"Bonjour"}]`
+	items := source(t, `[{"id":"a.b","translation":"Hello"}]`)
+
+	for name, body := range map[string]string{
+		"compact":             compact,
+		"four-space indent":   "[\n    {\n        \"id\": \"a.b\",\n        \"translation\": \"Bonjour\"\n    }\n]\n",
+		"no trailing newline": strings.TrimSuffix(canonical(t, compact), "\n"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			problems, _ := verifyLocale("fr.json", []byte(body), items, false)
+			assert.Contains(t, strings.Join(problems, "\n"), "fr.json: not in canonical form")
+		})
+	}
+
+	t.Run("canonical", func(t *testing.T) {
+		t.Parallel()
+
+		problems, _ := verifyLocale("fr.json", []byte(canonical(t, compact)), items, false)
+		assert.Empty(t, problems)
+	})
+}
+
 // Each file is loaded into its own bundle, so a defect in one locale can never
 // be masked by another having already been loaded, in either order.
 func TestVerifyLocaleIsOrderIndependent(t *testing.T) {
@@ -254,7 +360,7 @@ func TestVerifyCmd(t *testing.T) {
 		dir := filepath.Join(serverDir, "i18n")
 		require.NoError(t, os.MkdirAll(dir, 0700))
 		writeCatalog(t, dir, "en.json", `[{"id":"a.b","translation":"{{.User}} is here"}]`)
-		writeCatalog(t, dir, "fr.json", locale)
+		writeCatalog(t, dir, "fr.json", canonical(t, locale))
 
 		// Neither of these is a locale catalog, and neither may be walked.
 		writeCatalog(t, dir, "README.md", "not a catalog")
@@ -341,4 +447,54 @@ func TestVerifyCmd(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to open translation directory")
 	})
+}
+
+func TestRemoveEmptyTranslations(t *testing.T) {
+	items := []Item{
+		{ID: "empty", Translation: json.RawMessage(`""`)},
+		{ID: "space", Translation: json.RawMessage(`" "`)},
+		{ID: "whitespace", Translation: json.RawMessage(`"\n\t "`)},
+		{ID: "text", Translation: json.RawMessage(`"Bonjour"`)},
+		{ID: "plural", Translation: json.RawMessage(`{"one":"","other":"x"}`)},
+	}
+
+	kept, count := removeEmptyTranslations(items)
+
+	assert.Equal(t, 3, count)
+	ids := make([]string, 0, len(kept))
+	for _, item := range kept {
+		ids = append(ids, item.ID)
+	}
+	assert.Equal(t, []string{"text", "plural"}, ids)
+}
+
+// The translation pipeline checks server plural maps in Node, against its own
+// copy of go-i18n's table, i18n/scripts/lib/server_plurals.json. The copy has
+// to say what go-i18n says for every server locale.
+func TestServerPluralTableMatchesGoI18n(t *testing.T) {
+	root := filepath.Join("..", "..", "..")
+	raw, err := os.ReadFile(filepath.Join(root, "i18n", "scripts", "lib", "server_plurals.json"))
+	require.NoError(t, err)
+	var table map[string][]string
+	require.NoError(t, json.Unmarshal(raw, &table))
+
+	files, err := filepath.Glob(filepath.Join(root, "server", "i18n", "*.json"))
+	require.NoError(t, err)
+	locales := map[string]bool{}
+	for _, f := range files {
+		locale := strings.TrimSuffix(filepath.Base(f), ".json")
+		if locale == "en" {
+			continue
+		}
+		locales[locale] = true
+
+		var want []string
+		for c := range pluralCategories(locale) {
+			want = append(want, string(c))
+		}
+		assert.ElementsMatch(t, want, table[locale], "server_plurals.json: %s", locale)
+	}
+	for locale := range table {
+		assert.True(t, locales[locale], "server_plurals.json: %s has no server catalog", locale)
+	}
 }

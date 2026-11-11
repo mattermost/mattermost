@@ -17,8 +17,14 @@ const CHIP_GAP = 4;
 // Keep in sync with min-width on .channel-header__description in _headers.scss.
 const DESCRIPTION_MIN_WIDTH = 100;
 
+// Floor for .channel-header__top so a squeezed channel name does not inflate the
+// chip budget (chips expand → name shrinks → more chip space → flicker).
+// Matches the stubbed name width in channel_attribute_labels.test.tsx.
+const NAME_MIN_WIDTH = 80;
+
 const TITLE_SELECTOR = '.channel-header__title';
 const DESCRIPTION_SELECTOR = 'channel-header__description';
+const NAME_SELECTOR = 'channel-header__top';
 
 const RECALC_DEBOUNCE_MS = 100;
 
@@ -49,6 +55,9 @@ function availableWidthForLabels(containerEl: HTMLElement): number {
                 }
             } else if (child.classList.contains(DESCRIPTION_SELECTOR)) {
                 used += DESCRIPTION_MIN_WIDTH;
+            } else if (child.classList.contains(NAME_SELECTOR)) {
+                // Live width alone oscillates with the chips (see NAME_MIN_WIDTH).
+                used += Math.max(outerWidth(child), NAME_MIN_WIDTH);
             } else {
                 used += outerWidth(child);
             }
@@ -135,11 +144,28 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
 
         const availableWidth = availableWidthForLabels(containerEl);
 
-        // Not laid out yet. Show everything rather than bailing: the row holds only
-        // the chips it is allowed to show, so bailing deadlocks — no visible chips
-        // means no width, means no measurement, means the chips never come back.
+        // No budget left: keep the header's minimum chip (or none in the thread
+        // header), never flash every chip. Showing all here re-expanded the row
+        // whenever the name had already yielded its space, which flickered at
+        // narrow title widths.
+        //
+        // Cache widths for any mounted chips first. Collapsing without a cache
+        // leaves later expands stuck: hidden chips are not in the DOM, so the
+        // main loop exits at the first uncached id and never grows the visible set.
         if (availableWidth <= 0) {
-            setOverflowStartIndex(currentIds.length);
+            for (const id of currentIds) {
+                const chipEl = chipRefs.current.get(id);
+                if (!chipEl) {
+                    continue;
+                }
+                const contentWidth = Math.max(chipEl.getBoundingClientRect().width, chipEl.scrollWidth);
+                if (contentWidth <= 0) {
+                    return;
+                }
+                chipWidthCache.current.set(id, contentWidth);
+            }
+            setOverflowStartIndex(allowEmptyVisibleRef.current ? 0 : Math.min(1, currentIds.length));
+            setMeasured(true);
             return;
         }
 

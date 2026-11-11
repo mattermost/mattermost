@@ -36,6 +36,7 @@ export type ChannelBanner = {
     enabled?: boolean;
     text?: string;
     background_color?: string;
+    attribute_banner_disabled?: boolean;
 };
 
 export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean {
@@ -327,4 +328,3 @@ export type ChannelSearchOpts = {
     exclude_access_control_policy_enforced?: boolean;
     parent_access_control_policy_id?: string;
 };
-

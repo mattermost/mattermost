@@ -1,15 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {MouseEvent, ReactNode, RefObject} from 'react';
-import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
+import {defineMessage, defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {
+    AccountOutlineIcon,
+    BellOffOutlineIcon,
+    FileTextOutlineIcon,
+    PinOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -19,6 +27,7 @@ import Tag from 'components/widgets/tag/tag';
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
 import Pluggable from 'plugins/pluggable';
+import type {KindMessages} from 'utils/channel_kind';
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {
     Constants,
@@ -40,6 +49,25 @@ const membersTooltipMessages = defineMessages({
     members: {id: 'channel_header.channelMembers', defaultMessage: 'Members'},
     membersPendingRequests: {id: 'channel_header.channelMembersPendingRequests', defaultMessage: 'Members — pending join requests'},
 });
+
+const messages = {
+    headerRegion: {
+        channel: defineMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'}),
+        board: defineMessage({id: 'accessibility.sections.channelHeader.board', defaultMessage: 'board header region'}),
+    },
+    hasGuests: {
+        channel: defineMessage({id: 'channel_header.channelHasGuests', defaultMessage: 'Channel has guests'}),
+        board: defineMessage({id: 'channel_header.channelHasGuests.board', defaultMessage: 'Board has guests'}),
+    },
+    autotranslationHint: {
+        channel: defineMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'}),
+        board: defineMessage({id: 'channel_header.autotranslationMessage.tooltip.hint.board', defaultMessage: 'This board is being automatically translated to your language'}),
+    },
+    files: {
+        channel: defineMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'}),
+        board: defineMessage({id: 'channel_header.channelFiles.board', defaultMessage: 'Board files'}),
+    },
+} satisfies Record<string, KindMessages>;
 
 export type Props = WrappedComponentProps & PropsFromRedux;
 
@@ -161,22 +189,20 @@ class ChannelHeader extends React.PureComponent<Props> {
             rhsState,
             hasGuests,
             hideGuestTags,
+            channelKind,
         } = this.props;
         if (!channel) {
             return null;
         }
 
-        const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
+        const ariaLabelChannelHeader = this.props.intl.formatMessage(messages.headerRegion[channelKind]);
 
         let hasGuestsText: ReactNode = '';
         if (hasGuests && !hideGuestTags) {
             hasGuestsText = (
                 <span className='has-guest-header'>
                     <span tabIndex={0}>
-                        <FormattedMessage
-                            id='channel_header.channelHasGuests'
-                            defaultMessage='Channel has guests'
-                        />
+                        <FormattedMessage {...messages.hasGuests[channelKind]}/>
                     </span>
                 </span>
             );
@@ -187,7 +213,7 @@ class ChannelHeader extends React.PureComponent<Props> {
             autotranslationMessage = (
                 <WithTooltip
                     title={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.title', defaultMessage: 'Auto-translation is enabled'})}
-                    hint={this.props.intl.formatMessage({id: 'channel_header.autotranslationMessage.tooltip.hint', defaultMessage: 'This channel is being automatically translated to your language'})}
+                    hint={this.props.intl.formatMessage(messages.autotranslationHint[channelKind])}
                 >
                     <div
                         className='autotranslation-header'
@@ -264,37 +290,16 @@ class ChannelHeader extends React.PureComponent<Props> {
             }
         }
 
-        const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs ', {
-            'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
-        });
-        const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
-        const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
-            'channel-header__icon--active': rhsState === RHSStates.PIN,
-        });
-        const pinnedIcon = this.props.pinnedPostsCount ? (
-            <>
-                <i
-                    aria-hidden='true'
-                    className='icon icon-pin-outline channel-header__pin'
-                />
-                <span
-                    id='channelPinnedPostCountText'
-                    className='icon__text'
-                >
-                    {this.props.pinnedPostsCount}
-                </span>
-            </>
-        ) : (
-            <i
-                aria-hidden='true'
-                className='icon icon-pin-outline channel-header__pin'
-            />
-        );
+        const channelFilesIcon = <Icon glyph={<FileTextOutlineIcon/>}/>;
+        const pinnedIcon = <Icon glyph={<PinOutlineIcon/>}/>;
 
         const pinnedButton = this.props.pinnedPostsCount ? (
             <HeaderIconWrapper
-                buttonClass={pinnedIconClass}
+                active={rhsState === RHSStates.PIN}
+                buttonClass='channel-header__icon channel-header__icon--wide'
                 buttonId={'channelHeaderPinButton'}
+                count={this.props.pinnedPostsCount}
+                countId='channelPinnedPostCountText'
                 onClick={this.showPinnedPosts}
                 tooltip={this.props.intl.formatMessage({id: 'channel_header.pinnedPosts', defaultMessage: 'Pinned messages'})}
             >
@@ -306,42 +311,29 @@ class ChannelHeader extends React.PureComponent<Props> {
 
         let memberListButton = null;
         if (!isDirect) {
-            const membersIconClass = classNames('member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
-                'channel-header__icon--active': rhsState === RHSStates.CHANNEL_MEMBERS,
-            });
             const membersIcon = (
-                <>
-                    <span className='channel-header__members-icon-wrapper'>
-                        <i
+                <span className='channel-header__members-icon-wrapper'>
+                    <Icon glyph={<AccountOutlineIcon/>}/>
+                    {this.props.hasPendingJoinRequests && (
+                        <span
+                            className='channel-header__join-request-badge'
                             aria-hidden='true'
-                            className='icon icon-account-outline channel-header__members'
+                            data-testid='channelHeaderJoinRequestBadge'
                         />
-                        {this.props.hasPendingJoinRequests && (
-                            <span
-                                className='channel-header__join-request-badge'
-                                aria-hidden='true'
-                                data-testid='channelHeaderJoinRequestBadge'
-                            />
-                        )}
-                    </span>
-                    <span
-                        id='channelMemberCountText'
-                        className='icon__text'
-                    >
-                        {this.props.memberCount || '-'}
-                    </span>
-                </>
+                    )}
+                </span>
             );
 
             memberListButton = (
                 <HeaderIconWrapper
+                    active={rhsState === RHSStates.CHANNEL_MEMBERS}
                     tooltip={this.props.intl.formatMessage(
-                        this.props.hasPendingJoinRequests ?
-                            membersTooltipMessages.membersPendingRequests :
-                            membersTooltipMessages.members,
+                        this.props.hasPendingJoinRequests ? membersTooltipMessages.membersPendingRequests : membersTooltipMessages.members,
                     )}
-                    buttonClass={membersIconClass}
+                    buttonClass='member-rhs__trigger channel-header__icon channel-header__icon--wide'
                     buttonId={'member_rhs'}
+                    count={this.props.memberCount}
+                    countId='channelMemberCountText'
                     onClick={this.toggleChannelMembersRHS}
                 >
                     {membersIcon}
@@ -360,17 +352,14 @@ class ChannelHeader extends React.PureComponent<Props> {
                         />
                     }
                 >
-                    <button
+                    <IconButton
                         id='toggleMute'
+                        size='x-small'
+                        className='channel-header__mute channel-header__icon'
+                        icon={<Icon glyph={<BellOffOutlineIcon/>}/>}
                         onClick={this.unmute}
-                        className={'channel-header__mute inactive btn btn-icon btn-xs'}
                         aria-label={this.props.intl.formatMessage({id: 'channelHeader.unmute', defaultMessage: 'Unmute'})}
-                    >
-                        <i
-                            className={'icon icon-bell-off-outline'}
-                            aria-hidden={true}
-                        />
-                    </button>
+                    />
                 </WithTooltip>
             );
         }
@@ -406,12 +395,13 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
+                                    {this.props.canSearchFiles &&
                                         <HeaderIconWrapper
-                                            buttonClass={channelFilesIconClass}
+                                            active={rhsState === RHSStates.CHANNEL_FILES}
+                                            buttonClass='channel-header__icon'
                                             buttonId={'channelHeaderFilesButton'}
                                             onClick={this.showChannelFiles}
-                                            tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
+                                            tooltip={this.props.intl.formatMessage(messages.files[channelKind])}
                                         >
                                             {channelFilesIcon}
                                         </HeaderIconWrapper>
@@ -424,7 +414,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {!isDirect && !isGroup && (
                                         <ChannelAttributeLabels
                                             channelId={channel.id}
-                                            surface={['info', 'header']}
+                                            surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
                                         />
                                     )}
                                 </div>
@@ -451,7 +441,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                     <CallButton/>
                     {canPopout() && !isChannelPopoutWindow() && (
                         <PopoutButton
-                            className='channel-header__icon'
+                            className='channel-header__icon channel-header__icon--small'
                             onClick={this.popoutChannelView}
                         />
                     )}

@@ -30,11 +30,13 @@ type HealthFinding struct {
 	// Details is render context and doubles as the interpolation params for MessageID.
 	Details map[string]string `json:"details,omitempty"`
 
-	// Summary, Remediation and Message are filled only at the API/mmctl boundary from the
-	// request locale; they are always empty in a store result.
-	Summary     string `json:"summary,omitempty"`
+	// Title, Remediation, Message, DocsURL and ConsolePath are filled only at the API/mmctl
+	// boundary, the text from the request locale; they are always empty in a store result.
+	Title       string `json:"title,omitempty"`
 	Remediation string `json:"remediation,omitempty"`
 	Message     string `json:"message,omitempty"`
+	DocsURL     string `json:"docs_url,omitempty"`
+	ConsolePath string `json:"console_path,omitempty"`
 
 	FirstSeenAt int64 `json:"first_seen_at"`
 	LastSeenAt  int64 `json:"last_seen_at"`
@@ -73,9 +75,11 @@ func (f *HealthFinding) Render(t i18n.TranslateFunc, text RuleText) *HealthFindi
 	}
 
 	rendered := *f
-	rendered.Summary = translateFindingText(t, text.SummaryID, args)
+	rendered.Title = translateFindingText(t, text.TitleID, args)
 	rendered.Remediation = translateFindingText(t, text.RemediationID, args)
 	rendered.Message = translateFindingText(t, f.MessageID, args)
+	rendered.DocsURL = text.DocsURL
+	rendered.ConsolePath = text.ConsolePath
 
 	return &rendered
 }
@@ -110,7 +114,36 @@ const (
 	MutedOnly MutedFilter = "only"
 )
 
+func (m MutedFilter) IsValid() bool {
+	switch m {
+	case MutedExcluded, MutedIncluded, MutedOnly:
+		return true
+	default:
+		return false
+	}
+}
+
 type HealthFindingFilter struct {
 	Surfaces []string    `json:"surfaces,omitempty"`
 	Muted    MutedFilter `json:"muted,omitempty"`
+}
+
+// Matches reports whether f passes the filter.
+func (m MutedFilter) Matches(f *HealthFinding) bool {
+	switch m {
+	case MutedIncluded:
+		return true
+	case MutedOnly:
+		return f.IsMuted()
+	default:
+		return !f.IsMuted()
+	}
+}
+
+// HealthFindingList is the findings API response.
+type HealthFindingList struct {
+	// EvaluatedAt is when the server last evaluated its health rules, taken across every stored
+	// finding whatever the filter; 0 means nothing has been evaluated yet or no check has fired yet.
+	EvaluatedAt int64            `json:"evaluated_at"`
+	Findings    []*HealthFinding `json:"findings"`
 }

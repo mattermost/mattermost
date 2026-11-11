@@ -9,6 +9,8 @@ import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
+import type {ExternalSource} from './external_source';
+
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
 export type ResourceObjectType = 'user' | 'channel' | 'post';
@@ -38,6 +40,9 @@ export type AttributeAppliesToItemProps = {
     // lock tooltip convention on the parent page. Undefined (the `saving`
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
+
+    // Locks only Remove and explains why; the rest of the row follows `disabled`.
+    removeLockedTooltip?: ReactNode;
     onRemove: () => void;
 
     // Users-only config. Optional so this shared prop type still fits
@@ -48,6 +53,14 @@ export type AttributeAppliesToItemProps = {
     onVisibilityChange?: (visibility: FieldVisibility) => void;
     managed?: UserManagedValue;
     onManagedChange?: (managed: UserManagedValue) => void;
+
+    // The external system this attribute's values are synced from, when there
+    // is one. Undefined for attributes managed in Mattermost or by a plugin.
+    externalSource?: ExternalSource;
+
+    // Locks only "Who can set the value" at its stored value and explains why;
+    // Profile display keeps following `disabled`; Remove has its own lock.
+    whoCanSetLockedTooltip?: ReactNode;
 };
 
 // Channels is the one resource with settings of its own, so its row takes the

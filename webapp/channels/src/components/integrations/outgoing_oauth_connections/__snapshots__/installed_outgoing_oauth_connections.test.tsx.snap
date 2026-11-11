@@ -12,18 +12,17 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         Outgoing OAuth Connections
       </h1>
       <a
-        class="add-link"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         href="/test/integrations/outgoing-oauth2-connections/add"
+        id="addOutgoingOauthConnection"
       >
-        <button
-          class="btn btn-primary"
-          id="addOutgoingOauthConnection"
-          type="button"
+        <span
+          class="_button__label_1pij1_55"
         >
           <span>
             Add Outgoing OAuth Connection
           </span>
-        </button>
+        </span>
       </a>
     </div>
     <div
@@ -70,18 +69,19 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         <div
           class="loading__content"
         >
-          <p>
+          <span
+            class="LoadingSpinner with-text"
+            data-testid="loadingSpinner"
+            id="loadingSpinner"
+          >
+            <span
+              aria-label="Loading Icon"
+              class="_spinner_mvrwe_21 spinner"
+              role="status"
+              style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
+            />
             Loading
-          </p>
-          <div
-            class="round round-1"
-          />
-          <div
-            class="round round-2"
-          />
-          <div
-            class="round round-3"
-          />
+          </span>
         </div>
       </div>
     </div>
@@ -93,24 +93,70 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
       >
         0 - 0 of 0
         <button
-          aria-label="Previous"
-          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          aria-label="Previous page"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
+          disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-left"
-            title="Previous Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_1d2d4_65"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+            >
+              <div
+                class="_icon__glyph-area_1xcik_20"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
         <button
-          aria-label="Next"
-          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          aria-label="Next page"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
+          disabled=""
           type="button"
         >
-          <i
-            class="icon icon-chevron-right"
-            title="Next Icon"
-          />
+          <span
+            aria-hidden="true"
+            class="_icon-button__icon-slot_1d2d4_65"
+          >
+            <div
+              aria-hidden="true"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+            >
+              <div
+                class="_icon__glyph-area_1xcik_20"
+              >
+                <svg
+                  fill="currentColor"
+                  height="18"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </span>
         </button>
       </div>
     </div>

@@ -3,7 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import type {PopoverOrigin} from '@mui/material/Popover';
+import type {PopoverOrigin, PopoverProps} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
     useState,
@@ -11,9 +11,12 @@ import React, {
     useCallback,
 } from 'react';
 import type {
+    ButtonHTMLAttributes,
+    ComponentType,
     ReactNode,
     MouseEvent,
     KeyboardEvent,
+    Ref,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -39,6 +42,17 @@ export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 const MENU_OPEN_ANIMATION_DURATION = 150;
 export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
+export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref: Ref<HTMLButtonElement>;
+    'data-testid'?: string;
+
+    /**
+     * Forwarded to custom `as` triggers (e.g. Compass IconButton). Ignored for
+     * native button/div triggers.
+     */
+    count?: number;
+};
+
 type MenuButtonProps = {
     id: string;
     dataTestId?: string;
@@ -46,8 +60,14 @@ type MenuButtonProps = {
     'aria-describedby'?: string;
     disabled?: boolean;
     class?: string;
-    as?: 'button' | 'div';
-    children: ReactNode;
+    as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
+    children?: ReactNode;
+
+    /**
+     * Numeric count shown by Compass IconButton triggers (`menuButton.as`).
+     * Not applied to native button/div triggers.
+     */
+    count?: number;
 
     /**
      * Opt-in passthrough for callers that need to inspect or adjust the
@@ -110,6 +130,13 @@ type MenuProps = {
      * Defaults to true (standard MUI behavior).
      */
     autoFocusItem?: boolean;
+
+    /**
+     * Where the popover is portaled; defaults to document.body. A menu inside a
+     * focus-enforcing modal must render within the modal's dialog element, or
+     * the modal and the popover fight over focus.
+     */
+    container?: PopoverProps['container'];
 };
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -240,13 +267,15 @@ export function Menu(props: Props) {
         }
     }
 
-    function handleMenuButtonClick(event: MouseEvent) {
-        event.preventDefault();
-        event.stopPropagation();
-
+    function handleMenuButtonClick(event: MouseEvent | KeyboardEvent) {
+        // Check before preventDefault so Enter/Space on a descendant remove
+        // button can still fire the native button activation.
         if ((event.target as HTMLElement).closest?.('[data-menu-prevent-open]')) {
             return;
         }
+
+        event.preventDefault();
+        event.stopPropagation();
 
         if (isMobileView) {
             dispatch(
@@ -273,9 +302,31 @@ export function Menu(props: Props) {
         }
     }
 
+    function handleMenuButtonKeyDown(event: KeyboardEvent) {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        // Only the trigger itself should open/toggle — not a focused chip remove.
+        if (event.target !== event.currentTarget) {
+            return;
+        }
+
+        handleMenuButtonClick(event);
+    }
+
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
         const MenuButtonComponent = props.menuButton?.as ?? 'button';
+        const isDivTrigger = MenuButtonComponent === 'div';
+        const isDisabled = props.menuButton?.disabled ?? false;
+        let divTabIndex: number | undefined;
+        if (isDivTrigger) {
+            divTabIndex = isDisabled ? -1 : 0;
+        }
+
+        const isNativeTrigger = MenuButtonComponent === 'button' || MenuButtonComponent === 'div';
+        const customTriggerProps = isNativeTrigger ? undefined : {count: props.menuButton.count};
 
         const triggerElement = (
             <MenuButtonComponent
@@ -285,12 +336,20 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
-                disabled={props.menuButton?.disabled ?? false}
+
+                // Native <button> uses disabled. Div triggers are not form
+                // controls, so they expose aria-disabled for AT instead.
+                disabled={isDivTrigger ? undefined : isDisabled}
+                aria-disabled={isDivTrigger ? isDisabled : undefined}
+                role={isDivTrigger ? 'button' : undefined}
+                tabIndex={divTabIndex}
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
                 onMouseDown={props.menuButton?.onMouseDown}
-                onClick={handleMenuButtonClick}
+                onClick={isDisabled ? undefined : handleMenuButtonClick}
+                onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
+                {...customTriggerProps}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
@@ -335,6 +394,7 @@ export function Menu(props: Props) {
                 {menuButton && (
                     <MuiPopover
                         anchorEl={menuButton}
+                        container={props.menu.container}
                         open={isMenuOpen}
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}

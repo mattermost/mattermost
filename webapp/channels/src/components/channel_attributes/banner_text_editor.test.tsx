@@ -83,6 +83,42 @@ const ATTRIBUTES = [
 ];
 
 describe('BannerTextEditor', () => {
+    test('tints a chip whose attribute has no value on this channel, and only that one', () => {
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}} · {{program}} · {{deleted}}'
+                attributes={[attribute('classification', '', 'Classification'), attribute('program', 'AURORA', 'Program')]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerTextEditorChip-classification')).toHaveClass('BannerTextEditor__chip--unset');
+        expect(screen.getByTestId('bannerTextEditorChip-program')).not.toHaveClass('BannerTextEditor__chip--unset');
+
+        // An attribute that no longer exists can never get a value, so it is not flagged.
+        expect(screen.getByTestId('bannerTextEditorChip-deleted')).not.toHaveClass('BannerTextEditor__chip--unset');
+    });
+
+    test('explains an unset chip on hover without changing the text it saves', async () => {
+        const onChange = jest.fn();
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}}'
+                attributes={[attribute('classification', '', 'Classification')]}
+                onChange={onChange}
+            />,
+        );
+
+        await userEvent.hover(screen.getByTestId('bannerTextEditorChip-classification'));
+        expect(await screen.findByText(/has no value set and won't render in the banner/)).toBeInTheDocument();
+
+        const editor = screen.getByTestId('bannerTextEditor');
+        editor.appendChild(document.createTextNode(' - Team'));
+        fireEvent.input(editor);
+
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} - Team');
+    });
+
     test('renders a token as a chip labelled with the display name, not the machine name', () => {
         renderWithContext(
             <BannerTextEditor
@@ -260,19 +296,16 @@ describe('BannerTextEditor', () => {
         expect(screen.getByTestId('bannerTextEditor')).toHaveAttribute('contenteditable', 'false');
     });
 
-    test('offers no remove control for a locked token, but still one for the rest', () => {
+    test('offers a remove control on every chip', () => {
         renderWithContext(
             <BannerTextEditor
                 value='{{classification}} · {{program}}'
                 attributes={ATTRIBUTES}
-                lockedTokens={['classification']}
                 onChange={jest.fn()}
             />,
         );
 
-        // Designation is the admin's call, so the channel may add to the banner but
-        // not drop what was mandated.
-        expect(screen.queryByTestId('bannerTextEditorChipRemove-classification')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerTextEditorChipRemove-classification')).toBeInTheDocument();
         expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
     });
 
@@ -347,7 +380,7 @@ describe('BannerTextEditor', () => {
 
         await userEvent.click(screen.getByTestId('insertProgram'));
 
-        expect(onChange).toHaveBeenLastCalledWith('A{{program}}B');
+        expect(onChange).toHaveBeenLastCalledWith('A {{program}} B');
     });
 
     test('appends when the caret was never placed in the editor', async () => {
@@ -357,6 +390,6 @@ describe('BannerTextEditor', () => {
         await userEvent.click(screen.getByTestId('insertClassification'));
         await userEvent.click(screen.getByTestId('insertProgram'));
 
-        expect(onChange).toHaveBeenLastCalledWith('{{classification}}{{program}}');
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} {{program}}');
     });
 });

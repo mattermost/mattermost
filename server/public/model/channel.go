@@ -51,9 +51,10 @@ const (
 )
 
 type ChannelBannerInfo struct {
-	Enabled         *bool   `json:"enabled"`
-	Text            *string `json:"text"`
-	BackgroundColor *string `json:"background_color"`
+	Enabled                 *bool   `json:"enabled"`
+	Text                    *string `json:"text"`
+	BackgroundColor         *string `json:"background_color"`
+	AttributeBannerDisabled *bool   `json:"attribute_banner_disabled,omitempty"`
 }
 
 func (c *ChannelBannerInfo) Scan(value any) error {
@@ -520,6 +521,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 		if patch.BannerInfo.BackgroundColor != nil {
 			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
+		}
+
+		if patch.BannerInfo.AttributeBannerDisabled != nil {
+			o.BannerInfo.AttributeBannerDisabled = patch.BannerInfo.AttributeBannerDisabled
 		}
 	}
 

@@ -6,8 +6,10 @@ package properties
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"reflect"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -27,7 +29,7 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 	if group.IsPSAv1() && field.IsPSAv1() {
 		return nil
 	}
-	if group.IsPSAv2() && field.IsPSAv2() {
+	if (group.IsPSAv2() || group.IsPSAv3()) && field.IsPSAv2() {
 		return nil
 	}
 
@@ -38,8 +40,9 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 // Private implementation methods (database access)
 
 // callerPinnedValues reports whether the request itself carried
-// permission_values, decided before the hooks default-fill it.
-func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField, callerPinnedValues bool) (*model.PropertyField, error) {
+// permission_values and no permissions, and callerSentPermissions whether it
+// carried permissions, both decided before the hooks fill either.
+func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField, callerPinnedValues, callerSentPermissions bool) (*model.PropertyField, error) {
 	// Whether the caller asked for options of its own, recorded before the linked
 	// field block below can replace the list with its link source's.
 	suppliedOptions := model.PropertyFieldSuppliesOptions(field.Attrs)
@@ -51,10 +54,25 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
-		return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
+		// A legacy field skips the link validation block below entirely, so
+		// without this it could be created carrying both a link and its own
+		// option list: the store still honours the link when hydrating
+		// options, leaving two lists nothing reconciles. Not conditioned on
+		// type -- a flat list collides with an inherited one as badly as a
+		// graph does.
+		if suppliedOptions && field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+			return nil, optionsChangeRefused(
+				"a field linking to field %s takes its option list from that field, so it cannot be created carrying one",
+				*field.LinkedFieldID)
+		}
+		return ps.createFieldWithOptionLinks(field)
 	}
 
-	// If this field links to a source, validate the source and copy its schema
+	// If this field links to a source, validate the source and copy its schema.
+	// source is declared here rather than with := inside the block below so
+	// the permissions default after the block can reuse this same fetch
+	// instead of reading the template a second time.
+	var source *model.PropertyField
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		// Templates are definition-only and cannot themselves be linked
 		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
@@ -67,7 +85,8 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
-		source, err := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
+		var err error
+		source, err = ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {
 				return nil, model.NewAppError(
@@ -135,38 +154,104 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
+		if err := validateLinkedFieldOptionReadCeiling("CreatePropertyField", field, source); err != nil {
+			return nil, err
+		}
+
+		// A linked field serves its template's option list and owns none of its
+		// own. Refused rather than dropped: a caller that sent options would
+		// otherwise be told they were created, when the list actually saved is
+		// the template's. The legacy path above refuses the same combination
+		// for the same reason.
+		if suppliedOptions {
+			return nil, optionsChangeRefused(
+				"a field linking to template %s takes its option list from that template, so it cannot be created carrying one",
+				*field.LinkedFieldID)
+		}
+
 		// Copy type, options, and sync source from source. The sync source
-		// (ldap/saml) must match the template's, since it defines where the
-		// value comes from -- a linked field can't independently claim a
-		// different sync source than the definition it links to.
+		// (ldap/saml/openid) is the template's, since it defines where the value
+		// comes from -- a linked field can't claim one of its own. Only a user
+		// field takes it: an identity source reports attributes of users, and
+		// on any other object type the sync lock it implies would refuse
+		// every write to values no sync ever makes.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
 		}
-		if source.Attrs != nil {
-			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
-				field.Attrs[model.PropertyFieldAttributeOptions] = opts
-			}
-			if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
-				field.Attrs[model.PropertyFieldAttrLDAP] = ldap
-			}
-			if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
-				field.Attrs[model.PropertyFieldAttrSAML] = saml
+		if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
+			field.Attrs[model.PropertyFieldAttributeOptions] = opts
+		}
+		for _, syncSource := range model.PropertySyncSources() {
+			syncAttr := model.PropertySyncSourceAttr(syncSource)
+			delete(field.Attrs, syncAttr)
+			if value, ok := source.Attrs[syncAttr]; ok && field.ObjectType == model.PropertyFieldObjectTypeUser {
+				field.Attrs[syncAttr] = value
 			}
 		}
 
-		// Inherit permission levels from source template
-		if source.PermissionField != nil {
-			field.PermissionField = source.PermissionField
+		if !callerSentPermissions && field.Permissions != nil {
+			convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+			if err != nil {
+				return nil, fmt.Errorf("CreatePropertyField: %w", err)
+			}
+
+			// The hook copied the template's restrictions. The grants are the
+			// field's own, converted from its attrs as the backfill converts a
+			// linked field: its owners, protection, source plugin and the sync
+			// link copied above, which is why this runs after that copy. Master
+			// never applied a template's owners to a linked field, so taking the
+			// template's grants would open a field its own owners lock to every
+			// plugin, and lock a field the template's owners never locked. The
+			// conversion leaves option.read out of every grant, since it reads
+			// the template's options, and gives a synced user field the sync's
+			// grant and takes value.write off every other one.
+			converted := model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(source)})
+
+			// Copied, not edited in place: the hook's Restrictions is the template's own.
+			var restrictions model.Restrictions
+			if field.Permissions.Restrictions != nil {
+				restrictions = *field.Permissions.Restrictions
+			}
+			// A caller pin wins over the template's value.write: a linked field may
+			// be writable at a lower level than the template it inherits from. The
+			// field's own owners, protection or sync lock refuse every human its
+			// values whatever the template allows. The converted value.write
+			// already says both.
+			locked := convertAttrs && (model.HasPropertyFieldOwners(field) || model.IsPropertyFieldProtected(field) || model.IsPropertyFieldSynced(field))
+			if callerPinnedValues || locked {
+				restrictions.Value.Write = converted.Restrictions.Value.Write
+			}
+			// The field's own protection and access mode lock it further, as
+			// master's checks read them from the field itself: on a protected
+			// field only the source plugin edits or deletes the definition (its
+			// grant says so), and a source_only field shows its values to that
+			// plugin alone. They only narrow the template's tiers, never widen
+			// them, and the backfill reads them from the same attrs.
+			if field.Protected || (convertAttrs && model.IsPropertyFieldProtected(field)) {
+				restrictions.Field.Write = narrowerTier(restrictions.Field.Write, converted.Restrictions.Field.Write)
+			}
+			if convertAttrs && model.IsPropertyFieldProtected(field) {
+				restrictions.Option.Write = narrowerTier(restrictions.Option.Write, converted.Restrictions.Option.Write)
+			}
+			if convertAttrs && model.LegacyAccessMode(field) != model.PropertyAccessModePublic {
+				// A shared_only mode the field sets for itself can't be expressed:
+				// a linked field carries no masking of its own, so unless its
+				// template is masked the conversion narrows its reads to none, as
+				// the backfill does.
+				restrictions.Value.Read = narrowerTier(restrictions.Value.Read, converted.Restrictions.Value.Read)
+				restrictions.Option.Read = narrowerTier(restrictions.Option.Read, converted.Restrictions.Option.Read)
+			}
+			field.Permissions = &model.Permissions{Restrictions: &restrictions, Grants: converted.Grants}
 		}
-		// A caller pin wins over the template: a linked field may be writable
-		// at a lower level than the template it inherits its schema from.
-		if source.PermissionValues != nil && !callerPinnedValues {
-			field.PermissionValues = source.PermissionValues
+
+		if err := refuseSelfWritableHoldings("CreatePropertyField", field, source); err != nil {
+			return nil, err
 		}
-		if source.PermissionOptions != nil {
-			field.PermissionOptions = source.PermissionOptions
-		}
+	}
+
+	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {
+		return nil, err
 	}
 
 	// Check for hierarchical name conflicts
@@ -185,7 +270,317 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		)
 	}
 
-	return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
+	return ps.createFieldWithOptionLinks(field)
+}
+
+// defaultPropertyFieldPermissions gives field a Permissions object converted
+// from its legacy permission columns and, for an access_control field, its
+// Attrs, when the caller submitted none -- so every PSAv2/v3 field reaches the
+// store carrying one, and the decision engine can eventually stop consulting
+// the legacy columns at all. A field arriving with its own Permissions is left
+// exactly as submitted: a v3 caller's object is authoritative, and a caller
+// creating a field controls its own permissions by design. template is the
+// linked field's source when field.LinkedFieldID is set (nil otherwise); its
+// Permissions caps the converted field's own option.read, the same cap the
+// startup backfill applies when converting a linked field.
+func (ps *PropertyService) defaultPropertyFieldPermissions(field *model.PropertyField, template *model.PropertyField) error {
+	if field.Permissions != nil {
+		return nil
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("defaultPropertyFieldPermissions: %w", err)
+	}
+
+	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs, Template: templatePermissionsOrZero(template)}
+	field.Permissions = model.PermissionsFromLegacy(field, opts)
+
+	// A fresh install creates boards/session_attributes/managed_category's
+	// builtin fields through this same path, and PermissionsFromLegacy gives
+	// them only the wildcard plugin grant (their group's Attrs were never
+	// enforced, so ConvertAttrs is false and grantsFromLegacy never runs),
+	// which names no service. Without this, the very first version bump after
+	// creation would find its own field carrying permissions and no matching
+	// grant, and refuse itself.
+	group, err := ps.GroupByID(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("defaultPropertyFieldPermissions: failed to resolve group name: %w", err)
+	}
+	if grant := model.SystemOwnedFieldGrant(group.Name, field.Name); grant != nil {
+		field.Permissions.Grants = append(field.Permissions.Grants, *grant)
+	}
+	return nil
+}
+
+// groupConvertsAttrs reports whether groupID is the access_control group,
+// which is the only group whose Attrs (protected, access_mode, owners,
+// source plugin, sync lock) were ever enforced -- everywhere else there is
+// nothing in Attrs to preserve. A deployment that has never registered the
+// group (no CPA fields at all) cannot have a field belonging to it either,
+// so a not-found lookup means false rather than a failed create or update.
+func (ps *PropertyService) groupConvertsAttrs(groupID string) (bool, error) {
+	accessControlGroup, err := ps.Group(model.AccessControlPropertyGroupName)
+	var notFound *store.ErrNotFound
+	switch {
+	case err == nil:
+		return groupID == accessControlGroup.ID, nil
+	case errors.As(err, &notFound):
+		// ps.Group wraps the store error, so the not-found check has to see
+		// through that wrapping -- store.IsErrNotFound does a plain type
+		// assertion and would miss it.
+		return false, nil
+	default:
+		return false, fmt.Errorf("failed to get access control property group: %w", err)
+	}
+}
+
+// templatePermissionsOrZero returns template's Permissions, or a zero-value
+// Permissions when template is nil (field is not linked) or has not itself
+// converted yet -- a template still legacy-shaped is a row the startup
+// backfill has not reached, and validateLinkedFieldOptionReadCeiling already
+// treats an unconverted template as a ceiling of none for the same reason:
+// there is nothing yet to compare against, and refusing the field's own
+// option.read anything but none is the recoverable direction.
+func templatePermissionsOrZero(template *model.PropertyField) *model.Permissions {
+	if template == nil {
+		return nil
+	}
+	if template.Permissions != nil {
+		return template.Permissions
+	}
+	return &model.Permissions{}
+}
+
+// narrowerTier returns whichever of a and b admits fewer callers.
+func narrowerTier(a, b model.PermissionLevel) model.PermissionLevel {
+	if b.AtMostAsPermissiveAs(a) {
+		return b
+	}
+	return a
+}
+
+// validateLinkedFieldOptionReadCeiling refuses a linked field whose option.read
+// tier is more permissive than its template's. option.read on a linked field
+// governs the same list the template owns, so without this check a linked
+// field could be created against a sensitive template with option.read thrown
+// wide open, exposing a scheme the template itself never admitted that widely.
+// A linked field may match its template's tier or tighten it, never loosen it.
+//
+// A template carrying no permissions object at all has a ceiling of none:
+// there is nothing to compare against, and refusing is the recoverable
+// direction — the operator sets the template's option.read first, rather than
+// the linked field being created against a comparison that was never made.
+func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.PropertyField) error {
+	if field.Permissions == nil {
+		return nil
+	}
+
+	fieldTier := field.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+
+	templateTier := model.PermissionLevelNone
+	if template.Permissions != nil {
+		templateTier = template.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	if fieldTier.AtMostAsPermissiveAs(templateTier) {
+		return nil
+	}
+
+	return model.NewAppError(
+		caller,
+		"app.property_field.linked_option_read_ceiling.app_error",
+		map[string]any{"FieldTier": string(fieldTier), "TemplateID": template.ID, "TemplateTier": string(templateTier)},
+		fmt.Sprintf("option.read tier %q exceeds template %q's tier %q", fieldTier, template.ID, templateTier),
+		http.StatusBadRequest,
+	)
+}
+
+// refuseSelfWritableHoldings rejects field when the masking on its template
+// resolves the caller's holdings to field itself and field's own value.write
+// admits member or everyone -- otherwise a caller could widen their own masked
+// view by writing their holdings. It shares holdingsFieldIDFor with
+// resolveFieldMasking so the write gate and the read filter cannot drift.
+//
+// A nil field.Permissions carries no value.write tier, so it is skipped. On
+// update, updatePropertyFields passes a nil through to the store, which clears
+// the typed permissions object rather than keeping the stored one; on create, a
+// field with none is defaulted from legacy settings, which never yield a
+// self-writable holdings field.
+//
+// validateDependentSelfWritableHoldings applies the same rule from the
+// template's side, when masking is added to a template that already has
+// linked fields.
+func refuseSelfWritableHoldings(caller string, field, template *model.PropertyField) error {
+	w, selfWritable := selfWritableHoldingsTier(field, template)
+	if !selfWritable {
+		return nil
+	}
+	return model.NewAppError(
+		caller,
+		"app.property_field.self_writable_holdings.app_error",
+		map[string]any{"FieldID": field.ID, "ValueWrite": string(w)},
+		fmt.Sprintf("field %q is its masked template's holdings source, so its value.write may not be %q", field.ID, w),
+		http.StatusBadRequest,
+	)
+}
+
+// selfWritableHoldingsTier reports whether template's masking reads field's
+// holdings from field itself while field's own value.write admits member or
+// everyone, and if so which of the two it admits.
+func selfWritableHoldingsTier(field, template *model.PropertyField) (model.PermissionLevel, bool) {
+	if field.Permissions == nil || template == nil || template.Permissions == nil || template.Permissions.Masking == nil {
+		return "", false
+	}
+	if holdingsFieldIDFor(field, template.Permissions.Masking) != field.ID {
+		return "", false
+	}
+	w := field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
+	if w != model.PermissionLevelMember && w != model.PermissionLevelEveryone {
+		return "", false
+	}
+	return w, true
+}
+
+// validateDependentSelfWritableHoldings refuses a template update that adds
+// masking, or changes the field its mask_by_field_id names, while a field
+// linked to it would then be its own holdings source and writable by member
+// or everyone. refuseSelfWritableHoldings holds a linked field to the rule
+// whenever that field is written, but a template that gains masking later
+// would otherwise put an already-writable dependent under it unchecked.
+//
+// An unchanged masking needs no check: each dependent was already held to it
+// when it was written. incoming holds every field in the same
+// UpdatePropertyFields call, keyed by ID, so a dependent this same call also
+// updates is judged as the call leaves it, as in
+// validateDependentOptionReadCeilings.
+func (ps *PropertyService) validateDependentSelfWritableHoldings(field, existing *model.PropertyField, incoming map[string]*model.PropertyField) error {
+	if field.Permissions == nil || field.Permissions.Masking == nil {
+		return nil
+	}
+	if existing.Permissions != nil && existing.Permissions.Masking != nil &&
+		existing.Permissions.Masking.MaskByFieldID == field.Permissions.Masking.MaskByFieldID {
+		return nil
+	}
+
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get linked fields for self-writable holdings check: %w", err)
+	}
+
+	for _, dependent := range dependents {
+		if inc, ok := incoming[dependent.ID]; ok {
+			// A dependent this same call unlinks is no longer masked by this
+			// template. Both nil and "" mean unlinked here, for the same
+			// reason as in validateDependentOptionReadCeilings.
+			if inc.LinkedFieldID == nil || *inc.LinkedFieldID == "" {
+				continue
+			}
+			dependent = inc
+		}
+
+		if w, selfWritable := selfWritableHoldingsTier(dependent, field); selfWritable {
+			return model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.self_writable_holdings_dependents.app_error",
+				map[string]any{"DependentID": dependent.ID, "ValueWrite": string(w)},
+				fmt.Sprintf("linked field %q would be its own holdings source under this masking, but its value.write is %q", dependent.ID, w),
+				http.StatusConflict,
+			)
+		}
+	}
+
+	return nil
+}
+
+// templateNamesHoldingsField reports whether template's masking names fieldID
+// in mask_by_field_id, and so reads every caller's holdings from it.
+//
+// refuseSelfWritableHoldings reaches such a field only while it still links to
+// the template, but the template goes on reading holdings from it either way. So
+// a field this returns true for may not be unlinked or deleted until the
+// template stops naming it: unlinked, it could then be made writable by the
+// people the template filters, and deleted, it would leave the template naming a
+// field that fails ValidateMaskByFieldID on every later save.
+func templateNamesHoldingsField(template *model.PropertyField, fieldID string) bool {
+	return template != nil &&
+		template.Permissions != nil &&
+		template.Permissions.Masking != nil &&
+		template.Permissions.Masking.MaskByFieldID == fieldID
+}
+
+// validateDependentOptionReadCeilings refuses a template update that tightens
+// its own option.read below the tier of a field already linked to it.
+// validateLinkedFieldOptionReadCeiling closes the other half of this ceiling —
+// a linked field may not move above its template's tier — but a linked field
+// serves its template's option names without holding a copy of them, and who
+// may read them is decided against the linked field's own option.read, never
+// the template's. So a template's tier could otherwise be lowered out from
+// under a dependent that already sits at the old, more permissive tier, and
+// the dependent would go on serving those names to everyone it was already
+// open to.
+//
+// It runs on every field in the update loop, not only templates: a field
+// nothing links to simply has no dependents to check, and loading them costs
+// nothing when the tier did not tighten (see the early return below).
+//
+// incoming holds every field in the same UpdatePropertyFields call, keyed by
+// ID: a dependent this same call also updates has not reached the store yet,
+// so checking against its stored row would miss a tier the call is raising or
+// lowering right alongside the template.
+func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *model.PropertyField, incoming map[string]*model.PropertyField) error {
+	newTier := model.PermissionLevelNone
+	if field.Permissions != nil {
+		newTier = field.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	oldTier := model.PermissionLevelNone
+	if existing.Permissions != nil {
+		oldTier = existing.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	// Nothing to check unless the tier tightened. Loosening a template can
+	// never put a dependent above it, and an unchanged tier was already
+	// checked when each dependent was written.
+	if newTier == oldTier || !newTier.AtMostAsPermissiveAs(oldTier) {
+		return nil
+	}
+
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get linked fields for option.read ceiling check: %w", err)
+	}
+
+	for _, dependent := range dependents {
+		if inc, ok := incoming[dependent.ID]; ok {
+			// A dependent this same call unlinks serves no options at all once
+			// unlinked, so the template's tier no longer governs anything it
+			// shows. Both nil and "" mean unlinked here: the empty-string-to-nil
+			// canonicalization happens in that field's own turn round the update
+			// loop, which may not have come yet relative to this one.
+			if inc.LinkedFieldID == nil || *inc.LinkedFieldID == "" {
+				continue
+			}
+			dependent = inc
+		}
+
+		dependentTier := model.PermissionLevelNone
+		if dependent.Permissions != nil {
+			dependentTier = dependent.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+		}
+
+		if !dependentTier.AtMostAsPermissiveAs(newTier) {
+			return model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.option_read_ceiling_dependents.app_error",
+				map[string]any{"DependentID": dependent.ID, "DependentTier": string(dependentTier), "NewTier": string(newTier)},
+				fmt.Sprintf("linked field %q at option.read tier %q would exceed the template's new tier %q", dependent.ID, dependentTier, newTier),
+				http.StatusConflict,
+			)
+		}
+	}
+
+	return nil
 }
 
 // createFieldWithOptionLinks writes a new field once the hierarchy its option
@@ -194,29 +589,18 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 // It is called after the schema a linked field takes from its template has been
 // copied over, which is what makes the type it reads the field's real one: a field
 // created by linking to a graph template arrives with no mention of the graph type
-// anywhere in the request. suppliedOptions says whether the caller asked for
-// options of the field's own, which that copy would otherwise have hidden. The
-// other call site is the legacy path above, which cannot link at all and so has
-// nothing copied over it.
-func (ps *PropertyService) createFieldWithOptionLinks(rctx request.CTX, field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
+// anywhere in the request. The other call site is the legacy path above: it returns
+// before that copy step runs, so a legacy field's schema is never copied from
+// anything it links to, even when it carries its own LinkedFieldID.
+func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
-		// A field linking to a graph template serves that template's hierarchy and
-		// owns no part of it. An option of its own could never be given a parent from
-		// that hierarchy -- an edge never crosses fields -- so it could only form a
-		// second hierarchy permanently disconnected from the one the field exists to
-		// serve: covered by nothing but itself, and so granting nothing.
-		//
-		// Refused rather than dropped, which is also the answer the options endpoints
-		// give: a caller that sent options would otherwise be told they were created.
-		if suppliedOptions {
-			return nil, optionsChangeRefused(
-				"a field linking to field %s serves that field's option hierarchy and cannot own options of its own; add them to field %s instead",
-				field.LinkSourceID(), field.LinkSourceID())
-		}
-
-		// Any list the field carries now is its template's, copied in above so a read
-		// of the new field shows what it serves. None of it is this field's to own,
-		// and the store leaves an option owned by the link source alone.
+		// Two callers reach this branch and both skip validateOptionBlobLinks, for
+		// different reasons. On the linking path, any list the field carries now is
+		// its template's, copied in above so a read of the new field shows what it
+		// serves — none of it is this field's to own. On the legacy path there is no
+		// list to validate: a legacy field carrying both a link and an option list is
+		// refused before createFieldWithOptionLinks is ever called. Either way the
+		// store leaves an option owned by the link source alone.
 		return ps.fieldStore.Create(field)
 	}
 
@@ -230,6 +614,38 @@ func (ps *PropertyService) getPropertyField(rctx request.CTX, groupID, id string
 	return ps.fieldStore.Get(rctx, groupID, id)
 }
 
+// linkedTemplate returns field's linked template, or nil when field isn't
+// linked. A non-nil templates caches reads by template ID.
+func (ps *PropertyService) linkedTemplate(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.PropertyField, error) {
+	id := field.LinkSourceID()
+	if id == "" {
+		return nil, nil
+	}
+	if template, ok := templates[id]; ok {
+		return template, nil
+	}
+	template, err := ps.fieldStore.Get(rctx, "", id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get linked template field %q: %w", id, err)
+	}
+	if templates != nil {
+		templates[id] = template
+	}
+	return template, nil
+}
+
+// legacyViewTemplate is linkedTemplate for projecting field's legacy view. A
+// template that does not exist projects as no template, which is how the read
+// path projects it too, so a field left pointing at a missing template can
+// still be unlinked. Any other read error is returned.
+func (ps *PropertyService) legacyViewTemplate(rctx request.CTX, field *model.PropertyField, templates map[string]*model.PropertyField) (*model.PropertyField, error) {
+	template, err := ps.linkedTemplate(rctx, field, templates)
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+		return nil, nil
+	}
+	return template, err
+}
+
 func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	return ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
 }
@@ -237,8 +653,7 @@ func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID,
 func (ps *PropertyService) getPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	fields, err := ps.fieldStore.GetMany(rctx, groupID, ids)
 	if err != nil {
-		var resultsMismatchErr *store.ErrResultsMismatch
-		if errors.As(err, &resultsMismatchErr) {
+		if _, ok := errors.AsType[*store.ErrResultsMismatch](err); ok {
 			return nil, fmt.Errorf("%w: %w", ErrFieldNotFound, err)
 		}
 		return nil, err
@@ -292,6 +707,16 @@ func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string,
 }
 
 func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	return ps.updatePropertyFieldsIfUnchanged(rctx, groupID, fields, nil)
+}
+
+// updatePropertyFieldsIfUnchanged is updatePropertyFields for a caller that
+// built fields from its own earlier read and must not write over a change made
+// since. readUpdateAts holds each field's UpdateAt as that read returned it; a
+// field whose stored row has moved on fails the whole call with
+// store.ErrConflict before anything is checked or written. With nil, the only
+// conflict check is against the re-read below, as for updatePropertyFields.
+func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, groupID string, fields []*model.PropertyField, readUpdateAts map[string]int64) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	if len(fields) == 0 {
 		return nil, nil, nil, nil
 	}
@@ -319,6 +744,29 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		existingByID[ef.ID] = ef
 	}
 
+	// Every check below, and the write, would otherwise run against the copy
+	// the caller read rather than the change that replaced it. Once this
+	// holds, the expected UpdateAt the store checks below is the one the
+	// caller read, so the window up to the write is closed too.
+	if readUpdateAts != nil {
+		for _, field := range fields {
+			readUpdateAt, ok := readUpdateAts[field.ID]
+			if existing, found := existingByID[field.ID]; !ok || !found || existing.UpdateAt != readUpdateAt {
+				return nil, nil, nil, store.NewErrConflict("PropertyField", nil, fmt.Sprintf("field %q changed since it was read", field.ID))
+			}
+		}
+	}
+
+	// A field elsewhere in this same call is not yet in the store, so the
+	// option.read ceiling checks below must consult this map before falling
+	// back to a store read — otherwise a call that moves a template and one
+	// of its linked fields in the same request has each side judged against
+	// the other's stale, pre-update row.
+	incoming := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		incoming[f.ID] = f
+	}
+
 	// Enforce version match between field and group for each field
 	for _, field := range fields {
 		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
@@ -326,11 +774,25 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		}
 	}
 
+	// Stored templates, by ID. A template updated in this same call starts as
+	// its stored row: that is what a caller echoing its linked field was shown.
+	templates := maps.Clone(existingByID)
+
 	// Check each field for changes that require conflict validation and linked field restrictions
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
 		if !ok {
 			continue
+		}
+
+		// A field converted at create time carries the owners, source plugin
+		// and sync source it had at that moment. Keep it in sync with a v2
+		// caller's legacy-shaped update before anything below reads
+		// field.Permissions, or a co-owner or sync source added through the
+		// legacy Attrs path would be silently refused by the very object that
+		// was supposed to grant it.
+		if err := ps.translateLegacyPermissionKeys(rctx, field, existing, templates); err != nil {
+			return nil, nil, nil, err
 		}
 
 		// A field with more than model.PropertyFieldMaxHydratedOptions options
@@ -402,21 +864,9 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			return nil, nil, nil, err
 		}
 
-		// Legacy properties (PSAv1) skip the conflict check.
-		if field.IsPSAv1() {
-			continue
-		}
-
-		// Block type changes on linked fields
-		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
-			return nil, nil, nil, model.NewAppError(
-				"UpdatePropertyFields",
-				"app.property_field.update.linked_type_change.app_error",
-				nil,
-				"cannot modify type of a linked field",
-				http.StatusBadRequest,
-			)
-		}
+		// Checked before the PSAv1 skip below: which field a linked field's
+		// option list belongs to, and whether a link may be created after the
+		// fact, do not depend on which property generation the field belongs to.
 
 		// Block options changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
@@ -465,7 +915,49 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
-		// Block type changes on source fields with active linked dependents
+		// A field its template names as the holdings source stays linked until
+		// the template stops naming it (see templateNamesHoldingsField). The
+		// template is read from this same call first, so a call that clears
+		// mask_by_field_id and unlinks the field together is allowed, and one that
+		// names the field while unlinking it is not. A template that does not
+		// exist names nothing, so its field may be unlinked.
+		if existingIsLinked && !newIsLinked {
+			template, ok := incoming[*existing.LinkedFieldID]
+			if !ok {
+				var tErr error
+				template, tErr = ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *existing.LinkedFieldID)
+				if tErr != nil && !store.IsErrNotFound(tErr) {
+					return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *existing.LinkedFieldID, tErr)
+				}
+			}
+
+			if templateNamesHoldingsField(template, field.ID) {
+				return nil, nil, nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.unlink_mask_holdings.app_error",
+					map[string]any{"FieldID": field.ID, "TemplateID": template.ID},
+					fmt.Sprintf("field %q is the holdings source named by template %q's mask_by_field_id, so it cannot be unlinked", field.ID, template.ID),
+					http.StatusConflict,
+				)
+			}
+		}
+
+		// Checked before the PSAv1 skip below: whether a linked field's type may
+		// change does not depend on which property generation the field belongs to.
+		if existingIsLinked && field.Type != existing.Type {
+			return nil, nil, nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.linked_type_change.app_error",
+				nil,
+				"cannot modify type of a linked field",
+				http.StatusBadRequest,
+			)
+		}
+
+		// The same rule seen from the other end: a field that others link to
+		// cannot change type either, because they take their options from it and
+		// would be left serving options of the wrong kind. Above the skip below
+		// because a legacy field can be a link source just as easily.
 		if field.Type != existing.Type {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
 			if cErr != nil {
@@ -481,6 +973,54 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 					http.StatusConflict,
 				)
 			}
+		}
+
+		// Legacy properties (PSAv1) stop here, because nothing below can apply to
+		// them. A legacy field is not allowed a Permissions object at all, so the
+		// two option.read checks have nothing to read; and legacy name uniqueness
+		// is enforced by a database constraint, so CheckPropertyNameConflict
+		// returns early for them anyway.
+		if field.IsPSAv1() {
+			continue
+		}
+
+		// The option.read ceiling holds for the life of a linked field, not just
+		// at creation. Only load the template when there is something to check:
+		// a linked field being updated without a Permissions object writes no
+		// restrictions, so it cannot breach the ceiling, and an unlinked field
+		// (checked against field.LinkedFieldID, final as of the canonicalization
+		// above) has no ceiling to hold it to.
+		if newIsLinked && field.Permissions != nil {
+			template, ok := incoming[*field.LinkedFieldID]
+			if !ok {
+				var tErr error
+				template, tErr = ps.linkedTemplate(store.RequestContextWithMaster(rctx), field, templates)
+				if tErr != nil {
+					return nil, nil, nil, tErr
+				}
+			}
+
+			if err := validateLinkedFieldOptionReadCeiling("UpdatePropertyFields", field, template); err != nil {
+				return nil, nil, nil, err
+			}
+
+			if err := refuseSelfWritableHoldings("UpdatePropertyFields", field, template); err != nil {
+				return nil, nil, nil, err
+			}
+		}
+
+		// The ceiling holds from the template's side too: tightening this
+		// field's own option.read below what a field linked to it already
+		// sits at is the same breach reached from the other direction.
+		if err := ps.validateDependentOptionReadCeilings(field, existing, incoming); err != nil {
+			return nil, nil, nil, err
+		}
+
+		// Likewise for the self-writable holdings rule: a template gaining
+		// masking must not put a dependent that members can already write
+		// under it.
+		if err := ps.validateDependentSelfWritableHoldings(field, existing, incoming); err != nil {
+			return nil, nil, nil, err
 		}
 
 		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
@@ -505,6 +1045,24 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 					http.StatusConflict,
 				)
 			}
+		}
+	}
+
+	// A field left with no Permissions by translateLegacyPermissionKeys above
+	// (nothing legacy changed, so nothing was reconverted) still must not
+	// reach the store nil: there is no legitimate "clear the permissions"
+	// write, and a field with none would eventually deny everyone everything
+	// once nothing else falls back to the legacy columns. Backfilling here,
+	// after every check above that treats nil as meaningful (the option-read
+	// ceiling in particular) has already run, is what lets those checks keep
+	// seeing "no Permissions object was submitted" for a field nothing
+	// changed on.
+	for _, field := range fields {
+		if field.Permissions != nil || field.IsPSAv1() {
+			continue
+		}
+		if existing, ok := existingByID[field.ID]; ok {
+			field.Permissions = existing.Permissions
 		}
 	}
 
@@ -557,12 +1115,472 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	return requested, propagated, clearedFieldIDs, nil
 }
 
-func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id string) error {
-	// if groupID is not empty, we need to check first that the field belongs to the group
-	if groupID != "" {
-		if _, err := ps.getPropertyField(rctx, groupID, id); err != nil {
-			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
+// translateLegacyPermissionKeys reconverts field.Permissions when a
+// legacy-shaped update changes one of the columns or attrs it was last
+// converted from, so a field converted at create time does not go stale the
+// moment a co-owner or a sync source is added through the legacy Attrs path
+// afterward -- a converted Permissions object is authoritative over the
+// legacy columns, so a stale one would go on refusing the very identity that
+// was just given ownership.
+//
+// Deliberately leaves a nil field.Permissions nil when nothing legacy
+// changed, rather than filling it from existing here: the option-read
+// ceiling check later in this same loop treats a nil Permissions as "nothing
+// to check", which is correct when nothing did change, and filling it in
+// this early would make every linked-field update pay that check's cost even
+// when the field itself asked for nothing. updatePropertyFields backfills a
+// still-nil Permissions from existing right before the write, once every
+// check that cares about the distinction has already run.
+//
+// Skips a PSAv1 field outright: it cannot hold a Permissions object, so
+// translating one would produce a row the store refuses -- a plugin
+// changing its own field's access_mode would start getting a 400 where it
+// works today.
+func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field, existing *model.PropertyField, templates map[string]*model.PropertyField) error {
+	if field.IsPSAv1() {
+		return nil
+	}
+
+	convertAttrs, err := ps.groupConvertsAttrs(field.GroupID)
+	if err != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
+	}
+
+	// Keyed on existing: the submitted link can be "" on an unlink, and the
+	// caller was shown existing's view either way.
+	template, err := ps.legacyViewTemplate(store.RequestContextWithMaster(rctx), existing, templates)
+	if err != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: %w", err)
+	}
+
+	columns := legacyPermissionColumnsChanged(field, existing, convertAttrs)
+	attrsChanged := legacyPermissionAttrsChanged(field, existing, template)
+	// After detection, which must still see a projection echo as unchanged.
+	dropSyntheticOwners(field, existing)
+	if !columns.any() && !attrsChanged {
+		// A v2 caller's whole-object update always carries these columns back
+		// exactly as read, so "unchanged from what's stored" and "unchanged
+		// from what the caller was shown" are the same question. A pure v3
+		// caller that never sets a legacy column or attr compares as
+		// unchanged too, by the same rule: there is nothing to diff against.
+		return nil
+	}
+
+	// Both paths below rebuild field.Permissions from existing, so a caller
+	// that also submitted a changed object would lose it and still be told the
+	// update succeeded -- keeping a grant or a wider tier it had just removed.
+	// Neither shape can say which of the two it meant to win, so refuse rather
+	// than pick one. A nil object was never submitted, and one equivalent to
+	// existing is an echo.
+	if field.Permissions != nil && (existing.Permissions == nil || !permissionsEquivalent(field.Permissions, existing.Permissions)) {
+		return model.NewAppError(
+			"UpdatePropertyFields",
+			"app.property_field.update.permissions_with_legacy_keys.app_error",
+			nil,
+			"cannot change a field's permissions object and its legacy permission columns or attrs in the same update",
+			http.StatusBadRequest,
+		)
+	}
+
+	opts := model.LegacyConversionOpts{ConvertAttrs: convertAttrs}
+	if template != nil && field.LinkSourceID() != "" {
+		opts.Template = templatePermissionsOrZero(template)
+	}
+
+	// The columns and Protected each map to one write leaf, so a change to
+	// them alone must leave the rest of the stored object -- grants, masking,
+	// read tiers -- as it is. Rebuilding it from the field's own columns and
+	// attrs would drop anything that never came from them: a template's
+	// inherited grants, or content authored through v3.
+	if !attrsChanged && existing.Permissions != nil {
+		reconverted := model.PermissionsFromLegacy(fillOwnerAllowFromStored(field, existing), opts)
+		field.Permissions = patchPermissionLeaves(existing.Permissions, reconverted.Restrictions, columns)
+		return nil
+	}
+
+	group, gErr := ps.GroupByID(field.GroupID)
+	if gErr != nil {
+		return fmt.Errorf("translateLegacyPermissionKeys: failed to resolve group name: %w", gErr)
+	}
+
+	if existing.Permissions != nil {
+		// An attr change rebuilds the whole object from the legacy columns and
+		// attrs, which is lossless only if the stored object came from them.
+		roundTripped, rtErr := reconvertFromLegacy(legacySourceOf(existing), existing, opts, group.Name)
+		if rtErr != nil {
+			return rtErr
 		}
+		if !permissionsEquivalent(roundTripped, existing.Permissions) {
+			return model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.legacy_attrs_lossy.app_error",
+				nil,
+				"cannot change this field's owners, access mode, protected or sync attributes through the legacy shape: its permissions cannot be expressed in it",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	reconverted, err := reconvertFromLegacy(field, existing, opts, group.Name)
+	if err != nil {
+		return err
+	}
+	field.Permissions = reconverted
+	return nil
+}
+
+func reconvertFromLegacy(field, existing *model.PropertyField, opts model.LegacyConversionOpts, groupName string) (*model.Permissions, error) {
+	reconverted := model.PermissionsFromLegacy(fillOwnerAllowFromStored(field, existing), opts)
+	if err := reconcileTranslatedMasking(reconverted, existing); err != nil {
+		return nil, err
+	}
+
+	// PermissionsFromLegacy does not mint the subsystem grant that create
+	// and ConvertSystemOwnedFields add. Reconversion would otherwise drop it
+	// the first time a legacy-shaped update of a boards/session_attributes/
+	// managed_category builtin looks like a column change.
+	if grant := model.SystemOwnedFieldGrant(groupName, field.Name); grant != nil &&
+		reconverted.MatchingGrant(grant.Type, grant.ID, "", model.PropertyActionFieldWrite) == nil {
+		reconverted.Grants = append(reconverted.Grants, *grant)
+	}
+	return reconverted, nil
+}
+
+// permissionsEquivalent compares two objects ignoring grant order and a nil
+// versus empty grant list, neither of which the store preserves.
+func permissionsEquivalent(a, b *model.Permissions) bool {
+	if !reflect.DeepEqual(a.Restrictions, b.Restrictions) || !reflect.DeepEqual(a.Masking, b.Masking) {
+		return false
+	}
+	if len(a.Grants) != len(b.Grants) {
+		return false
+	}
+	for _, g := range a.Grants {
+		if !slices.ContainsFunc(b.Grants, func(h model.Grant) bool { return reflect.DeepEqual(g, h) }) {
+			return false
+		}
+	}
+	return true
+}
+
+// legacySourceOf returns what existing.Permissions was converted from: the
+// stored attrs, with the columns the store no longer returns taken from the
+// projection.
+func legacySourceOf(existing *model.PropertyField) *model.PropertyField {
+	projected := model.ProjectLegacyPermissions(existing)
+	source := *existing
+	source.Protected = projected.Protected
+	source.PermissionField = projected.PermissionField
+	source.PermissionOptions = projected.PermissionOptions
+	source.PermissionValues = projected.PermissionValues
+	return &source
+}
+
+// legacyPermissionColumnsChanged and legacyPermissionAttrsChanged report
+// whether field's legacy-shaped permission keys -- Protected and the three
+// permission levels, then the sync-source and protected/owners/access_mode
+// attrs -- differ from what is already stored on existing.
+//
+// The comparison runs against ProjectLegacyPermissions(existing), not the raw
+// stored row: that is the v2 view a caller was shown and would echo back. For a
+// converted field the projection reports its permissions object; for a field
+// with no permissions object the projection returns the field unchanged, so the
+// comparison falls through to the columns the store selects. PermissionValues is
+// always compared that way; Protected, PermissionField and PermissionOptions
+// only when this group's update hook does not pin Field/Options to sysadmin
+// first -- that pin would otherwise make every protected-field update look like
+// a column change.
+// The owners / access_mode / protected attrs are still stored, and count as
+// changed only when they differ from both existing.Attrs and the projection:
+// api4 echoes the raw row, whose owners attr can carry fewer entries than the
+// projection once a source plugin or a sync lock has added a grant of its
+// own, while plugin API and v2 readers echo the
+// projection. The sync-source attrs are not projected, so they compare against
+// existing.Attrs alone. The projected access_mode follows existing's linked
+// template, passed in as template, as every v2 read of the field does.
+//
+// A submitted permission-level pointer of nil never counts as a change: a v2
+// caller's whole-object update always carries a real value here (every v2
+// create pins all three before the row is ever written), so nil only means a
+// caller that never speaks the legacy shape, and there is no legitimate way
+// to ask "clear this column" through this path.
+//
+// legacyColumnChanges records which write leaves a legacy column or
+// Protected change asks for. Protected and PermissionField both decide
+// field.write, so either one sets fieldWrite.
+type legacyColumnChanges struct {
+	fieldWrite, optionWrite, valueWrite bool
+}
+
+func (c legacyColumnChanges) any() bool {
+	return c.fieldWrite || c.optionWrite || c.valueWrite
+}
+
+func legacyPermissionColumnsChanged(field, existing *model.PropertyField, columnsPinned bool) legacyColumnChanges {
+	projected := model.ProjectLegacyPermissions(existing)
+	var c legacyColumnChanges
+	if !columnsPinned {
+		c.fieldWrite = field.Protected != projected.Protected ||
+			permissionLevelPtrChanged(field.PermissionField, projected.PermissionField)
+		c.optionWrite = permissionLevelPtrChanged(field.PermissionOptions, projected.PermissionOptions)
+	}
+	c.valueWrite = permissionLevelPtrChanged(field.PermissionValues, projected.PermissionValues)
+	return c
+}
+
+func legacyPermissionAttrsChanged(field, existing, template *model.PropertyField) bool {
+	// An echo of either the raw row (api4) or the projection (plugin API, v2
+	// clients) is unchanged.
+	projected := model.ProjectLegacyPermissionsWithTemplate(existing, template)
+	accessMode := legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode)
+	if accessMode != legacyAttrString(existing.Attrs, model.PropertyAttrsAccessMode) &&
+		accessMode != legacyAttrString(projected.Attrs, model.PropertyAttrsAccessMode) {
+		return true
+	}
+	protected := legacyAttrBool(field.Attrs, model.PropertyAttrsProtected)
+	if protected != legacyAttrBool(existing.Attrs, model.PropertyAttrsProtected) &&
+		protected != legacyAttrBool(projected.Attrs, model.PropertyAttrsProtected) {
+		return true
+	}
+	for _, source := range model.PropertySyncSources() {
+		syncAttr := model.PropertySyncSourceAttr(source)
+		if legacyAttrString(field.Attrs, syncAttr) != legacyAttrString(existing.Attrs, syncAttr) {
+			return true
+		}
+	}
+	return legacyOwnersChanged(field, existing)
+}
+
+// legacyOwnersChanged reports whether field's owners attr differs from both
+// existing's raw row and its projection, so an echo of either is unchanged.
+func legacyOwnersChanged(field, existing *model.PropertyField) bool {
+	owners := comparableOwners(field)
+	return !reflect.DeepEqual(owners, comparableOwners(existing)) &&
+		!reflect.DeepEqual(owners, comparableOwners(model.ProjectLegacyPermissions(existing)))
+}
+
+// comparableOwners returns field's owners in the owner sanitizer's shape:
+// same-identity entries merged, as the projection reports a scoped owner as
+// two, and nil Scopes made empty, as the sanitizer writes [] for an unscoped
+// owner while the projection copies an unscoped grant's nil.
+func comparableOwners(field *model.PropertyField) []model.PropertyOwner {
+	owners := mergeDuplicateOwners(model.GetPropertyFieldOwners(field))
+	for i := range owners {
+		if owners[i].Scopes == nil {
+			owners[i].Scopes = []string{}
+		}
+	}
+	return owners
+}
+
+// dropSyntheticOwners removes from field's owners every identity the
+// projection of existing reports as an owner but its stored owners attr does
+// not: the source plugin and the sync identity, whose grants the conversion
+// derives from the other attrs. The plugin:* wildcard is never projected, so
+// it never comes back here. Echoed back as owners,
+// they would make the field owner-managed, freeze those grants' actions at
+// their pre-change values, and be saved as real owners.
+//
+// Dropping them loses nothing: an attr change reconverts only once the
+// round-trip check passes, so each dropped grant is derived again, and a
+// column change keeps the stored grants.
+func dropSyntheticOwners(field, existing *model.PropertyField) {
+	submitted := model.GetPropertyFieldOwners(field)
+	if len(submitted) == 0 {
+		return
+	}
+
+	synthetic := syntheticOwnerIdentities(existing)
+	kept := slices.DeleteFunc(slices.Clone(submitted), func(owner model.PropertyOwner) bool {
+		return synthetic[model.Identity{Type: owner.Type, ID: owner.ID}]
+	})
+	if len(kept) == len(submitted) {
+		return
+	}
+
+	field.Attrs = maps.Clone(field.Attrs)
+	if len(kept) == 0 {
+		delete(field.Attrs, model.PropertyAttrsOwners)
+	} else {
+		field.Attrs[model.PropertyAttrsOwners] = kept
+	}
+}
+
+// syntheticOwnerIdentities returns the identities the projection of existing
+// reports as owners but its stored owners attr does not.
+func syntheticOwnerIdentities(existing *model.PropertyField) map[model.Identity]bool {
+	stored := map[model.Identity]bool{}
+	for _, owner := range model.GetPropertyFieldOwners(existing) {
+		stored[model.Identity{Type: owner.Type, ID: owner.ID}] = true
+	}
+	synthetic := map[model.Identity]bool{}
+	for _, owner := range model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(existing)) {
+		if identity := (model.Identity{Type: owner.Type, ID: owner.ID}); !stored[identity] {
+			synthetic[identity] = true
+		}
+	}
+	return synthetic
+}
+
+func permissionLevelPtrChanged(submitted, stored *model.PermissionLevel) bool {
+	if submitted == nil {
+		return false
+	}
+	return stored == nil || *submitted != *stored
+}
+
+// patchPermissionLeaves returns a copy of stored with only the changed write
+// leaves taken from converted. stored is never modified: it is the row just
+// read, and other checks in the same update still compare against it.
+func patchPermissionLeaves(stored *model.Permissions, converted *model.Restrictions, changed legacyColumnChanges) *model.Permissions {
+	patched := *stored
+	patched.Grants = slices.Clone(stored.Grants)
+	var restrictions model.Restrictions
+	if stored.Restrictions != nil {
+		restrictions = *stored.Restrictions
+	}
+	if changed.fieldWrite {
+		restrictions.Field.Write = converted.Field.Write
+	}
+	if changed.optionWrite {
+		restrictions.Option.Write = converted.Option.Write
+	}
+	if changed.valueWrite {
+		restrictions.Value.Write = converted.Value.Write
+	}
+	patched.Restrictions = &restrictions
+	return &patched
+}
+
+func legacyAttrString(attrs model.StringInterface, key string) string {
+	if attrs == nil {
+		return ""
+	}
+	s, _ := attrs[key].(string)
+	return s
+}
+
+func legacyAttrBool(attrs model.StringInterface, key string) bool {
+	if attrs == nil {
+		return false
+	}
+	b, _ := attrs[key].(bool)
+	return b
+}
+
+// legacyValidatorGates reports, for each of the two legacy update validators
+// the hook still runs, whether the key that validator judges is one the
+// caller actually asked to change. "Changed" here means differs from
+// ProjectLegacyPermissionsWithTemplate(existing, template) -- the same
+// legacy-shaped view a caller reading this field would have been shown, with
+// template being existing's linked template or nil -- not from the raw stored
+// columns: a field converted straight from a typed permissions object, with
+// no legacy columns of its own, still needs a caller's echoed-back read to
+// compare as unchanged. legacyPermissionColumnsChanged and
+// legacyPermissionAttrsChanged answer a different question (has anything
+// legacy been asked to change at all) for deciding whether to reconvert
+// Permissions, and are deliberately not reused here for that reason.
+func legacyValidatorGates(field, existing, template *model.PropertyField) (accessModeChanged, protectedChanged bool) {
+	projected := model.ProjectLegacyPermissionsWithTemplate(existing, template)
+	accessModeChanged = legacyAttrString(field.Attrs, model.PropertyAttrsAccessMode) != legacyAttrString(projected.Attrs, model.PropertyAttrsAccessMode)
+	protectedChanged = legacyAttrBool(field.Attrs, model.PropertyAttrsProtected) != legacyAttrBool(projected.Attrs, model.PropertyAttrsProtected)
+	return accessModeChanged, protectedChanged
+}
+
+// fillOwnerAllowFromStored replaces an empty Allow on any owner field
+// submits with the Allow already stored for that identity, read off the
+// projection of existing -- exactly what a v2 caller was shown.
+// PermissionsFromLegacy enumerates every action for an owner with no Allow,
+// which is right for a first conversion and wrong for a v2 client that never
+// knew action lists existed: it would silently re-widen an owner's grant to
+// every action on every save. An owner naming an identity with nothing
+// stored keeps that all-five default, since there is nothing to preserve.
+//
+// An identity can be split across two stored owners -- one for the value
+// actions, one for the rest -- when they carry different scopes (see
+// grantsFromLegacy), so every stored match's Allow is merged rather than
+// just the first, and the submission's own Scopes are kept rather than
+// overwritten by whichever stored half happened to match.
+func fillOwnerAllowFromStored(field, existing *model.PropertyField) *model.PropertyField {
+	submitted := model.GetPropertyFieldOwners(field)
+	if len(submitted) == 0 {
+		return field
+	}
+
+	stored := model.GetPropertyFieldOwners(model.ProjectLegacyPermissions(existing))
+	if len(stored) == 0 {
+		return field
+	}
+
+	changed := false
+	filled := make([]model.PropertyOwner, 0, len(submitted))
+	for _, owner := range submitted {
+		if len(owner.Allow) > 0 {
+			filled = append(filled, owner)
+			continue
+		}
+		var allow []string
+		for _, s := range stored {
+			if s.Type == owner.Type && s.ID == owner.ID {
+				allow = append(allow, s.Allow...)
+			}
+		}
+		if len(allow) == 0 {
+			filled = append(filled, owner)
+			continue
+		}
+		owner.Allow = allow
+		filled = append(filled, owner)
+		changed = true
+	}
+	if !changed {
+		return field
+	}
+
+	copied := *field
+	copied.Attrs = maps.Clone(field.Attrs)
+	copied.Attrs[model.PropertyAttrsOwners] = filled
+	return &copied
+}
+
+// reconcileTranslatedMasking folds a translated field's stored masking back
+// into its freshly reconverted Permissions. Masking's internals --
+// mask_by_field_id and except -- are never shown to a v2 caller, so an
+// inbound access_mode must never flatten them to an empty object; this is the
+// same refusal an access control policy already gives a caller editing a
+// rule carrying masked values, rather than trusting them to notice a flag and
+// re-read.
+func reconcileTranslatedMasking(reconverted *model.Permissions, existing *model.PropertyField) error {
+	var stored *model.Masking
+	if existing.Permissions != nil {
+		stored = existing.Permissions.Masking
+	}
+
+	if reconverted.Masking != nil {
+		if stored != nil {
+			reconverted.Masking = stored
+		}
+		return nil
+	}
+
+	if stored != nil && (stored.MaskByFieldID != "" || len(stored.Except) > 0) {
+		return model.NewAppError(
+			"UpdatePropertyFields",
+			"app.property_field.update.masking_discarded.app_error",
+			nil,
+			"cannot change this field's access mode because it contains data the caller may not read",
+			http.StatusBadRequest,
+		)
+	}
+
+	return nil
+}
+
+func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id string) error {
+	// Also checks the field belongs to the group, when groupID is not empty.
+	field, err := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
+	if err != nil {
+		return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
 	}
 
 	// Deletion protection: cannot delete a field that has active linked dependents
@@ -580,6 +1598,25 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 		)
 	}
 
+	// Nor a field its template names as the holdings source (see
+	// templateNamesHoldingsField). A template that does not exist names
+	// nothing, so its field may be deleted.
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		template, tErr := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
+		if tErr != nil && !store.IsErrNotFound(tErr) {
+			return fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+		}
+		if templateNamesHoldingsField(template, id) {
+			return model.NewAppError(
+				"DeletePropertyField",
+				"app.property_field.delete.mask_holdings.app_error",
+				map[string]any{"FieldID": id, "TemplateID": template.ID},
+				fmt.Sprintf("field %q is the holdings source named by template %q's mask_by_field_id, so it cannot be deleted", id, template.ID),
+				http.StatusConflict,
+			)
+		}
+	}
+
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}
@@ -590,16 +1627,19 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 // Public methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	// Captured before the hooks run: they default-fill PermissionValues, so
-	// afterwards an explicit pin is indistinguishable from a server default.
-	callerPinnedValues := field.PermissionValues != nil
+	// Captured before the hooks run: they default-fill PermissionValues and
+	// copy a linked field's Permissions from its template, so afterwards an
+	// explicit pin is indistinguishable from a server default. A caller that
+	// sent Permissions pinned nothing: its object is authoritative.
+	callerSentPermissions := field.Permissions != nil
+	callerPinnedValues := field.PermissionValues != nil && !callerSentPermissions
 
 	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 
-	return ps.createPropertyField(rctx, field, callerPinnedValues)
+	return ps.createPropertyField(rctx, field, callerPinnedValues, callerSentPermissions)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {

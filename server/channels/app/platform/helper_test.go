@@ -56,6 +56,10 @@ func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherU
 	return true, nil
 }
 
+func (ms *mockSuite) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+	return nil, nil
+}
+
 func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	return true, true
 }
@@ -64,7 +68,7 @@ func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, user
 	return true
 }
 
-func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+func (ms *mockSuite) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	return true
 }
 
@@ -174,7 +178,7 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
-	options = append(options, ConfigStore(configStore))
+	options = append(options, ConfigStore(configStore), DisableGlobalLogger())
 
 	ps, err := New(
 		ServiceConfig{

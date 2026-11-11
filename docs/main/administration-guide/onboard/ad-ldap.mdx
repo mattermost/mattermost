@@ -103,6 +103,8 @@ The AD/LDAP synchronization depends on email. Make sure all users on your AD/LDA
 
 When Mattermost is configured to use AD/LDAP for user authentication, the following user attribute changes can't be made through the API: first name, last name, position, nickname, email, profile picture, or username. LDAP must be the authoritative source for these user attributes.
 
+Synchronization can also fill the user attributes you define in [Attribute Management](/administration-guide/manage/admin/attribute-management), such as a department or a security clearance used in access control policies. Map each one to an AD/LDAP attribute in the **Account sync** section of the wizard. See [User attributes sync](/administration-guide/configure/authentication-configuration-settings#adldap-user-attributes-sync) for details.
+
 To configure AD/LDAP synchronization with AD/LDAP sign-in:
 
 1.  Go to **System Console \> Authentication \> AD/LDAP** to open the AD/LDAP wizard and navigate to the **Connection Settings** section. Set **Enable Synchronization with AD/LDAP** to **true**.
@@ -126,18 +128,6 @@ To configure AD/LDAP synchronization with AD/LDAP sign-in:
 </Note>
 
 3.  From Mattermost v10.9, you can configure Mattermost to automatically [re-add members of an LDAP group to group-synchronized teams or channels](/administration-guide/configure/authentication-configuration-settings#re-add-removed-members-on-sync) during LDAP synchronization, even if those members were previously removed. This option enables you to maintain uninterrupted collaboration and address specific organizational needs, ensuring users who were unintentionally removed due to changes in LDAP group membership, synchronization errors, or exceptions to the standard group sync rules can be seamlessly restored.
-
-> <div class="note">
->
-> <div class="title">
->
-> Note
->
-> </div>
->
-> The [mmctl ldap sync](/administration-guide/manage/mmctl-command-line-tool#mmctl-ldap-sync) command takes precedence over this server configuration setting. If you have this setting disabled, and run the mmctl command with the `--include-removed-members` flag, removed members will be re-added during LDAP synchronization.
->
-> </div>
 
 ## Configure AD/LDAP sign-in using filters
 

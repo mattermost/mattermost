@@ -6,6 +6,7 @@ import React, {memo, useEffect, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
@@ -90,19 +91,21 @@ function ADLDAPUpsellBanner() {
 
     let btn: JSX.Element | null = (
         <StartTrialBtn
-            btnClass='ad-ldap-banner-btn'
-            renderAsButton={true}
+            className='ad-ldap-banner-btn'
+            emphasis='link'
             onClick={() => setConfirmed(true)}
         />);
 
     if (prevTrialed || isCloud) {
         btn = (
-            <button
+            <Button
+                type='button'
+                emphasis='link'
                 className='ad-ldap-banner-btn'
                 onClick={openSalesLink}
             >
                 {formatMessage({id: 'adldap_upsell_banner.sales_btn', defaultMessage: 'Contact sales to use'})}
-            </button>
+            </Button>
         );
     }
 
@@ -119,7 +122,7 @@ function ADLDAPUpsellBanner() {
                 {btn}
                 <button
                     type='button'
-                    aria-label='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     className='banner-close'
                     onClick={() => setShow(false)}
                 >

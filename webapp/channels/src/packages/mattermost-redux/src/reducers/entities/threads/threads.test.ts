@@ -617,13 +617,13 @@ describe('threads', () => {
 
             // DM/GM threads
             [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2', 't3'], unread: ['t2']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
-            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: []}}],
+            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: ['t3']}}],
+            [undefined, {id: 't3', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2', 't3'], unread: ['t2', 't3']}, b: {all: ['t1', 't3'], unread: ['t3']}}],
             [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
             [undefined, {id: 't3', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
             [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
-            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: []}}],
+            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: ['t2']}}],
+            [undefined, {id: 't2', last_reply_at: 40, unread_mentions: 0, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1', 't2'], unread: ['t2']}}],
             [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 0, unread_replies: 0}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
             [undefined, {id: 't2', last_reply_at: 5, unread_mentions: 1, unread_replies: 1}, {a: {all: ['t1', 't2'], unread: ['t2']}, b: {all: ['t1'], unread: []}}],
         ])('should handle "%s" team and thread %o', (teamId, thread, expected) => {

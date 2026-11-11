@@ -12,8 +12,10 @@ import (
 
 func TestHealthFindingRender(t *testing.T) {
 	text := RuleText{
-		SummaryID:     "health.rule.summary",
+		TitleID:       "health.rule.title",
 		RemediationID: "health.rule.remediation",
+		DocsURL:       "https://mattermost.com/pl/health-doc",
+		ConsolePath:   "/admin_console/environment/web_server",
 	}
 
 	t.Run("nil receiver returns nil", func(t *testing.T) {
@@ -36,9 +38,18 @@ func TestHealthFindingRender(t *testing.T) {
 		rendered := f.Render(translate, text)
 
 		require.NotNil(t, rendered)
-		assert.Equal(t, "health.rule.summary:node-1", rendered.Summary)
+		assert.Equal(t, "health.rule.title:node-1", rendered.Title)
 		assert.Equal(t, "health.rule.remediation:node-1", rendered.Remediation)
 		assert.Equal(t, "health.rule.message:node-1", rendered.Message)
+		assert.Equal(t, "https://mattermost.com/pl/health-doc", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
+	})
+
+	t.Run("links are copied untranslated even without a translate func", func(t *testing.T) {
+		rendered := (&HealthFinding{}).Render(nil, text)
+
+		assert.Equal(t, "https://mattermost.com/pl/health-doc", rendered.DocsURL)
+		assert.Equal(t, "/admin_console/environment/web_server", rendered.ConsolePath)
 	})
 
 	t.Run("no details passes no args to the translate func", func(t *testing.T) {
@@ -63,7 +74,7 @@ func TestHealthFindingRender(t *testing.T) {
 
 		rendered := f.Render(nil, text)
 
-		assert.Equal(t, "health.rule.summary", rendered.Summary)
+		assert.Equal(t, "health.rule.title", rendered.Title)
 		assert.Equal(t, "health.rule.remediation", rendered.Remediation)
 		assert.Equal(t, "health.rule.message", rendered.Message)
 	})
@@ -75,9 +86,11 @@ func TestHealthFindingRender(t *testing.T) {
 			return "translated"
 		}, RuleText{})
 
-		assert.Empty(t, rendered.Summary)
+		assert.Empty(t, rendered.Title)
 		assert.Empty(t, rendered.Remediation)
 		assert.Empty(t, rendered.Message)
+		assert.Empty(t, rendered.DocsURL)
+		assert.Empty(t, rendered.ConsolePath)
 	})
 
 	t.Run("does not mutate the receiver", func(t *testing.T) {
@@ -87,8 +100,29 @@ func TestHealthFindingRender(t *testing.T) {
 			return "translated"
 		}, text)
 
-		assert.Empty(t, f.Summary)
+		assert.Empty(t, f.Title)
 		assert.Empty(t, f.Remediation)
 		assert.Empty(t, f.Message)
+		assert.Empty(t, f.DocsURL)
+		assert.Empty(t, f.ConsolePath)
 	})
+}
+
+func TestMutedFilterIsValid(t *testing.T) {
+	for _, muted := range []MutedFilter{MutedExcluded, MutedIncluded, MutedOnly} {
+		assert.True(t, muted.IsValid(), "muted=%q", muted)
+	}
+	assert.False(t, MutedFilter("all").IsValid())
+}
+
+func TestMutedFilterMatches(t *testing.T) {
+	muted := &HealthFinding{MutedAt: 1}
+	unmuted := &HealthFinding{}
+
+	assert.True(t, MutedExcluded.Matches(unmuted))
+	assert.False(t, MutedExcluded.Matches(muted))
+	assert.True(t, MutedIncluded.Matches(unmuted))
+	assert.True(t, MutedIncluded.Matches(muted))
+	assert.False(t, MutedOnly.Matches(unmuted))
+	assert.True(t, MutedOnly.Matches(muted))
 }
