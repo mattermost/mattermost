@@ -341,10 +341,8 @@ describe('rhs view actions', () => {
     });
 
     describe('getMoreFlaggedPosts', () => {
-        function savedPostsStore(paging: {page: number; isEnd: boolean}, rhsState: RhsState = RHSStates.FLAG, isSearchGettingMore = false) {
-            let state = cloneDeep(initialState);
-            state = set(state, 'entities.search', {flaggedPaging: paging, isSearchGettingMore});
-            state = set(state, 'views.rhs.rhsState', rhsState);
+        function savedPostsStore(paging: {page: number; isEnd: boolean}, isSearchGettingMore = false) {
+            const state = set(cloneDeep(initialState), 'entities.search', {flaggedPaging: paging, isSearchGettingMore});
             return mockStore(state);
         }
 
@@ -360,36 +358,21 @@ describe('rhs view actions', () => {
         });
 
         test('does nothing while another page is loading', async () => {
-            const savedStore = savedPostsStore({page: 0, isEnd: false}, RHSStates.FLAG, true);
+            const savedStore = savedPostsStore({page: 0, isEnd: false}, true);
 
             await savedStore.dispatch(getMoreFlaggedPosts());
 
             expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
         });
 
-        test('appends the next page to the results', async () => {
+        test('fetches the next page', async () => {
             (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
             const savedStore = savedPostsStore({page: 0, isEnd: false});
 
             await savedStore.dispatch(getMoreFlaggedPosts());
 
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(1);
             expect(SearchActions.getFlaggedPosts).toHaveBeenCalledWith(1);
-            expect(savedStore.getActions()).toEqual([
-                {
-                    type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                    data: page,
-                    isGettingMore: true,
-                },
-            ]);
-        });
-
-        test('drops the page if the saved messages panel was closed', async () => {
-            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
-            const savedStore = savedPostsStore({page: 0, isEnd: false}, RHSStates.MENTION);
-
-            await savedStore.dispatch(getMoreFlaggedPosts());
-
-            expect(savedStore.getActions()).toEqual([]);
         });
 
         test('keeps loading past an empty page', async () => {
@@ -425,24 +408,12 @@ describe('rhs view actions', () => {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
                 {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
                     },
-                    payload: [
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                            data: 'data',
-                        },
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_TERM,
-                            data: {
-                                teamId: currentTeamId,
-                                terms: null,
-                                isOrSearch: false,
-                            },
-                        },
-                    ],
                 },
             ]);
         });
@@ -1024,7 +995,14 @@ describe('rhs view actions', () => {
                 {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
-                batchingReducerBatch,
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
             ]);
         });
 

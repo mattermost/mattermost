@@ -98,29 +98,15 @@ export function handleNewPost(post: Post, msg?: WebSocketMessages.Posted | WebSo
 const getPostsForIds = PostSelectors.makeGetPostsForIds();
 
 export function flagPost(postId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await dispatch(PostActions.flagPost(postId));
-        const state = getState();
-        const rhsState = getRhsState(state);
-
-        if (rhsState === RHSStates.FLAG) {
-            dispatch(addPostToSearchResults(postId));
-        }
-
         return {data: true};
     };
 }
 
 export function unflagPost(postId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         await dispatch(PostActions.unflagPost(postId));
-        const state = getState();
-        const rhsState = getRhsState(state);
-
-        if (rhsState === RHSStates.FLAG) {
-            removePostFromSearchResults(postId, state, dispatch);
-        }
-
         return {data: true};
     };
 }

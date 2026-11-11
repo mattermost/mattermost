@@ -9,7 +9,6 @@ import {useSelector} from 'react-redux';
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {debounce} from 'mattermost-redux/actions/helpers';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -18,7 +17,7 @@ import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 import {getExplicitSearchTeam, getMentionFilters, getSearchTeam} from 'selectors/rhs';
 
-import Scrollbars from 'components/common/scrollbars';
+import PagedList from 'components/common/paged_list';
 import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -27,7 +26,6 @@ import {getSearchPopoutTitle} from 'components/rhs_search_popout/title';
 import type {SearchFilterType} from 'components/search/types';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResultsHeader from 'components/search_results_header';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {searchHintOptions, DataSearchTypes, RHSStates} from 'utils/constants';
@@ -47,14 +45,11 @@ import type {OwnProps, PropsFromRedux} from './index';
 
 import './search_results.scss';
 
-const GET_MORE_BUFFER = 30;
-
 export type Props = OwnProps & PropsFromRedux & {
     channelDisplayName?: string;
     crossTeamSearchEnabled: boolean;
     isCard?: boolean;
     isChannelFiles: boolean;
-    isFlaggedPosts: boolean;
     isMentionSearch: boolean;
     isOpened?: boolean;
     isSideBarExpanded: boolean;
@@ -102,13 +97,13 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     useEffect(() => {
         // reset search type when switching views
         setSearchType(props.searchType);
-    }, [props.isFlaggedPosts, props.isPinnedPosts, props.isMentionSearch]);
+    }, [props.isPinnedPosts, props.isMentionSearch]);
 
     useEffect(() => {
         // after the first page of search results, there is no way to
         // know if the search has more results to return, so we search
         // for the second page and stop if it yields no results
-        if (props.searchPage === 0 && !props.isChannelFiles && !props.isFlaggedPosts && !props.isSearchingTerm) {
+        if (props.searchPage === 0 && !props.isChannelFiles && !props.isSearchingTerm) {
             setTimeout(() => {
                 props.getMorePostsForSearch();
                 props.getMoreFilesForSearch();
@@ -116,53 +111,17 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         }
     }, [props.searchPage, props.searchTerms, props.isSearchingTerm]);
 
-    const handleScroll = (): void => {
-        if (props.isFlaggedPosts && props.isFlaggedPostsAtEnd) {
-            return;
-        }
-
-        if (!props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchingFlaggedPost && !props.isSearchGettingMore && !props.isChannelFiles) {
-            const scrollHeight = scrollbars.current?.scrollHeight || 0;
-            const scrollTop = scrollbars.current?.scrollTop || 0;
-            const clientHeight = scrollbars.current?.clientHeight || 0;
-            if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
-                if (searchType === DataSearchTypes.FILES_SEARCH_TYPE && !props.isFlaggedPosts) {
-                    loadMoreFiles();
-                } else {
-                    loadMorePosts();
-                }
-            }
-        }
-    };
-
-    useEffect(() => {
-        // Saved posts are filtered after each page is selected, so a page may not fill the panel enough to scroll.
-        if (props.isFlaggedPosts) {
-            handleScroll();
-        }
-    }, [props.isFlaggedPosts, props.results, props.isFlaggedPostsAtEnd, props.isSearchingFlaggedPost]);
-
     const setSearchTeam = (teamId: string): void => {
         props.updateSearchTeam(teamId);
     };
 
-    const loadMorePosts = debounce(
-        () => {
-            props.getMorePostsForSearch();
-        },
-        100,
-        false,
-        (): void => {},
-    );
-
-    const loadMoreFiles = debounce(
-        () => {
+    const loadMore = (): void => {
+        if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
             props.getMoreFilesForSearch();
-        },
-        100,
-        false,
-        (): void => {},
-    );
+        } else {
+            props.getMorePostsForSearch();
+        }
+    };
 
     const {
         results,
@@ -172,8 +131,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         isSearchAtEnd,
         isSearchFilesAtEnd,
         isSearchingTerm,
-        isFlaggedPosts,
-        isSearchingFlaggedPost,
         isPinnedPosts,
         isChannelFiles,
         isSearchingPinnedPost,
@@ -195,13 +152,13 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     // counts the non-string entries. Otherwise the count is inflated by one
     // per date group (see MM-67904).
     const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string').length : 0;
-    const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
-    const isAtEnd = isFlaggedPosts ? props.isFlaggedPostsAtEnd : (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
+    const isLoading = isSearchingTerm || isSearchingPinnedPost || !isOpened;
+    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
     const showLoadMore = !isAtEnd && !isChannelFiles && !isPinnedPosts;
-    const isMessagesSearch = (!isFlaggedPosts && !isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
+    const isMessagesSearch = (!isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
 
     let contentItems;
-    let loadingMorePostsComponent;
+    let hasMore = false;
 
     let sortedResults: any = results;
 
@@ -216,17 +173,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         titleDescriptor = defineMessage({
             id: 'search_header.title2',
             defaultMessage: 'Recent Mentions',
-        });
-    } else if (isFlaggedPosts) {
-        noResultsProps.variant = NoResultsVariant.FlaggedPosts;
-        noResultsProps.subtitleValues = {buttonText: <strong>{
-            intl.formatMessage({
-                id: 'flag_post.flag',
-                defaultMessage: 'Save Message'},
-            )}</strong>};
-        titleDescriptor = defineMessage({
-            id: 'search_header.title3',
-            defaultMessage: 'Saved messages',
         });
     } else if (isPinnedPosts) {
         noResultsProps.variant = NoResultsVariant.PinnedPosts;
@@ -290,8 +236,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         let mode: NonNullable<RhsState> = RHSStates.SEARCH;
         if (isMentionSearch) {
             mode = RHSStates.MENTION;
-        } else if (isFlaggedPosts) {
-            mode = RHSStates.FLAG;
         } else if (isPinnedPosts) {
             mode = RHSStates.PIN;
         } else if (isChannelFiles) {
@@ -314,7 +258,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             isMentionSearch ? (explicitSearchTeamId ?? '') : searchTeamId,
             isMentionSearch ? mentionFiltersToSearchParams(mentionFilters) : undefined,
         );
-    }, [isMentionSearch, isFlaggedPosts, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId, explicitSearchTeamId, mentionFilters]);
+    }, [isMentionSearch, isPinnedPosts, isChannelFiles, intl, searchTerms, searchType, currentTeam?.name, currentChannel?.name, searchTeamId, explicitSearchTeamId, mentionFilters]);
 
     switch (true) {
     case isLoading:
@@ -326,7 +270,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             </div>
         );
         break;
-    case (noResults && !searchTerms && !isMentionSearch && !isPinnedPosts && !isFlaggedPosts && !isChannelFiles):
+    case (noResults && !searchTerms && !isMentionSearch && !isPinnedPosts && !isChannelFiles):
         contentItems = (
             <div className='sidebar--right__subheader search__hints a11y__section'>
                 <SearchHint
@@ -392,7 +336,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         post={post}
                         matches={props.matches[post.id]}
                         searchTerm={searchTerms}
-                        isFlaggedPosts={props.isFlaggedPosts}
+                        isFlaggedPosts={false}
                         isMentionSearch={props.isMentionSearch}
                         isPinnedPosts={props.isPinnedPosts}
                         a11yIndex={index}
@@ -410,13 +354,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             );
         });
 
-        loadingMorePostsComponent = (showLoadMore) ? (
-            <div className='loading-screen'>
-                <div className='loading__content'>
-                    <LoadingSpinner/>
-                </div>
-            </div>
-        ) : null;
+        hasMore = showLoadMore;
     }
 
     return (
@@ -463,10 +401,11 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
             <SearchLimitsBanner
                 searchType={searchType}
             />
-            <Scrollbars
+            <PagedList
                 ref={scrollbars}
-                color='--center-channel-color-rgb'
-                onScroll={handleScroll}
+                hasMore={hasMore}
+                isLoadingMore={isSearchingTerm || props.isSearchGettingMore}
+                onLoadMore={loadMore}
             >
                 <div
                     id='search-items-container'
@@ -493,9 +432,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     >
                         {contentItems}
                     </div>
-                    {loadingMorePostsComponent}
                 </div>
-            </Scrollbars>
+            </PagedList>
         </div>
     );
 };

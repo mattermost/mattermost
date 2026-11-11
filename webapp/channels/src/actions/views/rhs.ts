@@ -327,26 +327,16 @@ export function showFlaggedPosts(): ActionFuncAsync {
             state: RHSStates.FLAG,
         });
 
-        const results = await dispatch(getFlaggedPosts());
-        let data;
-        if ('data' in results) {
-            data = results.data;
-        }
+        await dispatch(getFlaggedPosts());
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
+        dispatch({
+            type: SearchTypes.RECEIVED_SEARCH_TERM,
+            data: {
+                teamId,
+                terms: null,
+                isOrSearch: false,
             },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
-                },
-            },
-        ]));
+        });
 
         return {data: true};
     };
@@ -360,15 +350,9 @@ export function getMoreFlaggedPosts(): ActionFuncAsync {
         }
 
         const result = await dispatch(getFlaggedPosts(flaggedPaging.page + 1));
-        if (!result.data || getRhsState(getState()) !== RHSStates.FLAG) {
+        if (!result.data) {
             return {data: false};
         }
-
-        dispatch({
-            type: SearchTypes.RECEIVED_SEARCH_POSTS,
-            data: result.data,
-            isGettingMore: true,
-        });
 
         if (result.data.order.length === 0) {
             return dispatch(getMoreFlaggedPosts());

@@ -739,7 +739,6 @@ describe('Actions.Posts', () => {
         await testStore.dispatch(Actions.flagPost(post.id));
         expect(testStore.getActions()).toEqual([
             {args: [post.id], type: 'MOCK_FLAG_POST'},
-            {data: {posts: {[post.id]: post}, order: [post.id]}, type: SearchTypes.RECEIVED_SEARCH_POSTS},
         ]);
     });
 
@@ -753,7 +752,6 @@ describe('Actions.Posts', () => {
         await testStore.dispatch(Actions.unflagPost(post.id));
         expect(testStore.getActions()).toEqual([
             {args: [post.id], type: 'MOCK_UNFLAG_POST'},
-            {data: {posts: [], order: []}, type: SearchTypes.RECEIVED_SEARCH_POSTS},
         ]);
     });
 

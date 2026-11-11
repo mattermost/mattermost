@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor, within} from '@testing-library/react';
+import {within} from '@testing-library/react';
 import merge from 'lodash/merge';
 import React from 'react';
 
@@ -39,11 +39,6 @@ jest.mock('components/search_results_header', () => ({
             )}
         </div>
     ),
-}));
-
-jest.mock('components/search_results/post_search_results_item', () => ({
-    __esModule: true,
-    default: (props: {post: {id: string}}) => <div data-testid={`post-${props.post.id}`}/>,
 }));
 
 window.HTMLElement.prototype.scrollTo = jest.fn();
@@ -103,17 +98,14 @@ describe('components/SearchResults', () => {
         searchTerms: 'hello',
         searchSelectedType: 'messages',
         isSearchingTerm: false,
-        isSearchingFlaggedPost: false,
         isSearchingPinnedPost: false,
         isSearchGettingMore: false,
         isSearchAtEnd: true,
         isSearchFilesAtEnd: true,
-        isFlaggedPostsAtEnd: true,
         currentTeamName: team.name,
         channelDisplayName: '',
         crossTeamSearchEnabled: false,
         isChannelFiles: false,
-        isFlaggedPosts: false,
         isMentionSearch: false,
         isOpened: true,
         isPinnedPosts: false,
@@ -151,12 +143,6 @@ describe('components/SearchResults', () => {
             clickPopout({isMentionSearch: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id, {},
-            );
-
-            jest.clearAllMocks();
-            clickPopout({isFlaggedPosts: true});
-            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id, undefined,
             );
 
             jest.clearAllMocks();
@@ -277,58 +263,6 @@ describe('components/SearchResults', () => {
 
             const counter = container.querySelector('.messages-tab .counter');
             expect(counter?.textContent).toBe('1+');
-        });
-    });
-
-    describe('saved messages paging', () => {
-        const savedProps: Partial<Props> = {
-            isFlaggedPosts: true,
-            searchTerms: '',
-            results: [TestHelper.getPostMock({id: 'post1'})],
-        };
-
-        test('should load more saved messages when the list does not fill the panel', async () => {
-            const getMorePostsForSearch = jest.fn();
-
-            const {container} = renderSearchResults({
-                ...savedProps,
-                isFlaggedPostsAtEnd: false,
-                getMorePostsForSearch,
-            });
-
-            await waitFor(() => expect(getMorePostsForSearch).toHaveBeenCalled());
-            expect(container.querySelector('.loading-screen')).not.toBeNull();
-        });
-
-        test('should not load more saved messages at the end of the list', async () => {
-            const getMorePostsForSearch = jest.fn();
-            const getMoreFilesForSearch = jest.fn();
-
-            const {container} = renderSearchResults({
-                ...savedProps,
-                isFlaggedPostsAtEnd: true,
-                getMorePostsForSearch,
-                getMoreFilesForSearch,
-            });
-
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            expect(getMorePostsForSearch).not.toHaveBeenCalled();
-            expect(getMoreFilesForSearch).not.toHaveBeenCalled();
-            expect(container.querySelector('.loading-screen')).toBeNull();
-        });
-
-        test('should not load more saved messages while the first page is loading', async () => {
-            const getMorePostsForSearch = jest.fn();
-
-            renderSearchResults({
-                ...savedProps,
-                isFlaggedPostsAtEnd: false,
-                isSearchingFlaggedPost: true,
-                getMorePostsForSearch,
-            });
-
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            expect(getMorePostsForSearch).not.toHaveBeenCalled();
         });
     });
 
