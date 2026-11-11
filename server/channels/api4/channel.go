@@ -89,14 +89,14 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.APISessionRequired(updateCategoryForTeamForUser)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.APISessionRequired(deleteCategoryForTeamForUser)).Methods(http.MethodDelete)
 
-	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(updateChannel)).Methods(http.MethodPut)
 	api.BaseRoutes.Channel.Handle("/patch", api.APISessionRequired(patchChannel)).Methods(http.MethodPut)
 	api.BaseRoutes.Channel.Handle("/privacy", api.APISessionRequired(updateChannelPrivacy)).Methods(http.MethodPut)
 	api.BaseRoutes.Channel.Handle("/restore", api.APISessionRequired(restoreChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("", api.APISessionRequired(deleteChannel)).Methods(http.MethodDelete)
-	api.BaseRoutes.Channel.Handle("/stats", api.APISessionRequired(getChannelStats)).Methods(http.MethodGet)
-	api.BaseRoutes.Channel.Handle("/pinned", api.APISessionRequired(getPinnedPosts)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/stats", api.APISessionRequired(getChannelStats, handlerParamScopedSession)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/pinned", api.APISessionRequired(getPinnedPosts, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/timezones", api.APISessionRequired(getChannelMembersTimezones)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/members_minus_group_members", api.APISessionRequired(channelMembersMinusGroupMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/move", api.APISessionRequired(moveChannel)).Methods(http.MethodPost)
@@ -107,8 +107,8 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.APISessionRequired(getChannelUnread)).Methods(http.MethodGet)
 
-	api.BaseRoutes.ChannelByName.Handle("", api.APISessionRequired(getChannelByName)).Methods(http.MethodGet)
-	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.APISessionRequired(getChannelByNameForTeamName)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelByName.Handle("", api.APISessionRequired(getChannelByName, handlerParamScopedSession)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.APISessionRequired(getChannelByNameForTeamName, handlerParamScopedSession)).Methods(http.MethodGet)
 
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods(http.MethodPost)
@@ -1132,6 +1132,9 @@ func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Chann
 // 403/404 to a non-member can keep its prior failure shape while opting in
 // to the discoverable surface with a single `if served { return }` guard.
 func serveDiscoverableNonMember(c *Context, w http.ResponseWriter, channel *model.Channel) bool {
+	if c.AppContext.Session().IsScoped() {
+		return false
+	}
 	sanitized, err := discoverableNonMemberView(c, channel)
 	if err != nil {
 		c.Err = err

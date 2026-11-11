@@ -575,6 +575,8 @@ type SessionStore interface {
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
+	// GetScopedSessions returns every unexpired session that carries a scope.
+	GetScopedSessions(rctx request.CTX) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
 	RemoveAllSessions() error

@@ -23,15 +23,15 @@ import (
 
 func (api *API) InitPost() {
 	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods(http.MethodPost)
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods(http.MethodDelete)
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods(http.MethodPost)
 	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods(http.MethodGet)
-	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.Post.Handle("/info", api.APISessionRequired(getPostInfo)).Methods(http.MethodGet)
-	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods(http.MethodGet)
-	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost, handlerParamScopedSession)).Methods(http.MethodGet)
+	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel, handlerParamScopedSession)).Methods(http.MethodGet)
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods(http.MethodGet)
 
 	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods(http.MethodGet)

@@ -48,6 +48,7 @@ func (ch *Channels) DetachPlugin(pluginID string) *model.AppError {
 	// Deactivate and remove any existing plugin, if present.
 	pluginsEnvironment.Deactivate(pluginID)
 	pluginsEnvironment.RemovePlugin(pluginID)
+	ch.revokeScopedSessionsForPlugin(pluginID)
 
 	return nil
 }
