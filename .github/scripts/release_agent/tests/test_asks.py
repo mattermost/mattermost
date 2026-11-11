@@ -495,6 +495,22 @@ class ManualTestsTest(unittest.TestCase):
         h2.hub.react(h2.sent("c122")[0]["id"], asks.APPROVE_EMOJI, user_id="saturn.abril")
         self.assertEqual(h2.ask("manual-tests", date(2026, 10, 27)).summary, "QA reacted to the ask as done")
 
+    def test_qa_saying_not_done_is_not_done(self):
+        h = self.harness(mobile_files=["share_extension/index.tsx"])
+        h.ask("manual-tests", date(2026, 10, 26))
+        h.reply(h.sent("c122")[0], "yasser.khan", "Manual testing is not done yet, will update tomorrow.", date(2026, 10, 27))
+        self.assertEqual(h.ask("manual-tests", date(2026, 10, 27)).state, asks.WAITING)
+
+    def test_manual_done_wording(self):
+        for text in ["Manual testing is done for mobile.", "manual tests done", "Done with the manual tests",
+                     "Manual testing complete, no issues found. Thanks!", "Desktop manual tests passed"]:
+            self.assertTrue(asks.manual_done(text), text)
+        for text in ["manual testing is not done", "not done with the manual tests yet", "Manual testing isn't complete",
+                     "We haven't finished manual testing", "Manual tests are yet to be done",
+                     "Desktop manual testing done, mobile not done yet", "Is manual testing done?", "manual testing done?",
+                     "Starting manual testing now", ""]:
+            self.assertFalse(asks.manual_done(text), text)
+
     def test_overdue_from_the_working_day_before_the_final_build(self):
         h = self.harness(mobile_files=["share_extension/index.tsx"])
         h.ask("manual-tests", date(2026, 10, 26))

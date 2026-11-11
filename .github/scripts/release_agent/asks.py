@@ -453,6 +453,17 @@ def done_docs_labels(env: AskEnv, rule: dict, post: dict | None, facts: dict):
 
 MANUAL_DONE = re.compile(r"manual[\w -]*?\b(?:is |are )?(?:done|complete|completed|passed|finished)\b"
                          r"|\b(?:done|completed|finished) (?:with )?(?:the )?manual", re.IGNORECASE)
+MANUAL_NOT_DONE = re.compile(r"(?:\b(?:not|never|yet to)\b|n't\b)[\w -]*?\b(?:done|complete|completed|passed|finished)\b",
+                             re.IGNORECASE)
+
+
+def manual_done(text: str) -> bool:
+    """The text says manual testing is done. Any "not done" in it, even for one platform, means
+    it isn't, and a question ("Is manual testing done?") doesn't count."""
+    if MANUAL_NOT_DONE.search(text or ""):
+        return False
+    sentences = re.findall(r"[^.;!?\n]+[.;!?\n]*", text or "")
+    return any(MANUAL_DONE.search(s) and not s.rstrip().endswith("?") for s in sentences)
 
 
 def done_qa(env: AskEnv, rule: dict, post: dict | None, facts: dict):
@@ -462,7 +473,7 @@ def done_qa(env: AskEnv, rule: dict, post: dict | None, facts: dict):
     bot = hub.me()["id"]
     for reply in hub.thread(post["id"])[1:]:
         by_owner = reply.get("user_id") in owners if owners else reply.get("user_id") != bot
-        if by_owner and MANUAL_DONE.search(reply.get("message") or ""):
+        if by_owner and manual_done(reply.get("message") or ""):
             return True, "QA said manual testing is done", hub.post_link(reply["id"])
     for reaction in hub.reactions(post["id"]):
         if reaction.get("emoji_name") == APPROVE_EMOJI and (reaction.get("user_id") in owners if owners
@@ -472,7 +483,7 @@ def done_qa(env: AskEnv, rule: dict, post: dict | None, facts: dict):
         version = env.ctx.release.short_version
         for alert in hub.posts_since(env.ctx.testing_alerts_channel, post.get("create_at", 0)):
             text = alert.get("message") or ""
-            if playbook.name_matches(text, version) and MANUAL_DONE.search(text):
+            if playbook.name_matches(text, version) and manual_done(text):
                 return True, "Release: Testing Alerts says manual testing is done", hub.post_link(alert["id"])
     return False, "QA hasn't said manual testing is done", ""
 
