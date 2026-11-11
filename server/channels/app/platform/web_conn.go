@@ -81,19 +81,20 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket         *websocket.Conn
-	Session           model.Session
-	TFunc             i18n.TranslateFunc
-	Locale            string
-	ConnectionID      string
-	Active            bool
-	ReuseCount        int
-	OriginClient      string
-	PostedAck         bool
-	RemoteAddress     string
-	XForwardedFor     string
-	DisconnectErrCode string
-	ProxyDeviceID     string
+	WebSocket               *websocket.Conn
+	Session                 model.Session
+	TFunc                   i18n.TranslateFunc
+	Locale                  string
+	ConnectionID            string
+	Active                  bool
+	ReuseCount              int
+	OriginClient            string
+	PostedAck               bool
+	RemoteAddress           string
+	XForwardedFor           string
+	DisconnectErrCode       string
+	ProxyDeviceID           string
+	ServerDerivedAttributes map[string]any
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int64
@@ -119,6 +120,9 @@ type WebConn struct {
 	DisconnectErrCode string
 	// ProxyDeviceID is the tls_device_id proven by the websocket upgrade request.
 	ProxyDeviceID string
+	// ServerDerivedAttributes are the server-derived session attributes (IP, user agent fields)
+	// proven by the websocket upgrade request.
+	ServerDerivedAttributes map[string]any
 
 	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
@@ -265,30 +269,31 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	}
 
 	wc := &WebConn{
-		Platform:           ps,
-		Suite:              suite,
-		HookRunner:         runner,
-		send:               cfg.activeQueue,
-		deadQueue:          cfg.deadQueue,
-		deadQueuePointer:   cfg.deadQueuePointer,
-		Sequence:           cfg.sequence,
-		WebSocket:          cfg.WebSocket,
-		lastUserActivityAt: model.GetMillis(),
-		UserId:             cfg.Session.UserId,
-		T:                  cfg.TFunc,
-		Locale:             cfg.Locale,
-		PostedAck:          cfg.PostedAck,
-		DisconnectErrCode:  cfg.DisconnectErrCode,
-		ProxyDeviceID:      cfg.ProxyDeviceID,
-		reuseCount:         cfg.ReuseCount,
-		endWritePump:       make(chan struct{}),
-		pumpFinished:       make(chan struct{}),
-		pluginPosted:       make(chan pluginWSPostedHook, 10),
-		lastLogTimeSlow:    time.Now(),
-		lastLogTimeFull:    time.Now(),
-		originClient:       cfg.OriginClient,
-		remoteAddress:      cfg.RemoteAddress,
-		xForwardedFor:      cfg.XForwardedFor,
+		Platform:                ps,
+		Suite:                   suite,
+		HookRunner:              runner,
+		send:                    cfg.activeQueue,
+		deadQueue:               cfg.deadQueue,
+		deadQueuePointer:        cfg.deadQueuePointer,
+		Sequence:                cfg.sequence,
+		WebSocket:               cfg.WebSocket,
+		lastUserActivityAt:      model.GetMillis(),
+		UserId:                  cfg.Session.UserId,
+		T:                       cfg.TFunc,
+		Locale:                  cfg.Locale,
+		PostedAck:               cfg.PostedAck,
+		DisconnectErrCode:       cfg.DisconnectErrCode,
+		ProxyDeviceID:           cfg.ProxyDeviceID,
+		ServerDerivedAttributes: cfg.ServerDerivedAttributes,
+		reuseCount:              cfg.ReuseCount,
+		endWritePump:            make(chan struct{}),
+		pumpFinished:            make(chan struct{}),
+		pluginPosted:            make(chan pluginWSPostedHook, 10),
+		lastLogTimeSlow:         time.Now(),
+		lastLogTimeFull:         time.Now(),
+		originClient:            cfg.OriginClient,
+		remoteAddress:           cfg.RemoteAddress,
+		xForwardedFor:           cfg.XForwardedFor,
 	}
 	wc.Active.Store(cfg.Active)
 

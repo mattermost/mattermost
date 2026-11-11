@@ -1141,6 +1141,53 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		assert.NotNil(t, gotPost.Metadata.Images, "Images should be preserved when files are stripped")
 		assert.Contains(t, gotPost.Metadata.Images, "https://example.com/img.png")
 	})
+
+	t.Run("server-derived attributes are restored from WebSocket connection", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 1)
+		msg := makeMessage(channelID, postJSON)
+
+		// Create WebConn with server-derived attributes (IP address, user agent)
+		serverDerivedAttrs := map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		}
+
+		mockSuite := &platform_mocks.SuiteIFace{}
+		// Mock should verify that the context has the server-derived attributes
+		mockSuite.On("HasPermissionToChannelAction",
+			mock.MatchedBy(func(rctx request.CTX) bool {
+				// Verify server-derived attributes are present in the context
+				attrs := ServerDerivedAttributes(rctx)
+				return attrs != nil &&
+					attrs[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10" &&
+					attrs[model.SessionAttributesPropertyFieldUserAgentBrowserName] == "Chrome"
+			}),
+			userID,
+			mock.AnythingOfType("string"),
+			channelID,
+			model.AccessControlPolicyActionDownloadFileAttachment,
+		).Return(true)
+
+		wc := &platform.WebConn{
+			UserId:                  userID,
+			Platform:                &platform.PlatformService{},
+			Suite:                   mockSuite,
+			ServerDerivedAttributes: serverDerivedAttrs,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 1))
+		require.NoError(t, err)
+
+		// Verify the mock was called with the correct context
+		mockSuite.AssertExpectations(t)
+
+		// Files should be preserved since permission was granted
+		gotPost := extractPost(t, msg)
+		assert.Len(t, gotPost.Metadata.Files, 1)
+		assert.Len(t, gotPost.FileIds, 1)
+	})
 }
 
 func TestSetupBroadcastHookForAbacFiles(t *testing.T) {

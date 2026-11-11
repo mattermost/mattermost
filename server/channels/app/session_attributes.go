@@ -109,6 +109,14 @@ func ServerDerivedAttributes(rctx request.CTX) map[string]any {
 	return attrs
 }
 
+// WithWebSocketRequestAttributes returns rctx carrying the device ID and server-derived
+// attributes that the websocket upgrade request proved. Use this to restore request-scoped
+// attributes when evaluating permissions during WebSocket broadcasts.
+func WithWebSocketRequestAttributes(rctx request.CTX, proxyDeviceID string, serverDerivedAttrs map[string]any) request.CTX {
+	rctx = WithProxyDeviceID(rctx, proxyDeviceID)
+	return WithServerDerivedAttributes(rctx, serverDerivedAttrs)
+}
+
 // ProcessSessionAttributesRequest refreshes the session's cached attributes
 // from r and returns rctx carrying the device ID and server-derived attributes
 // that r itself proved.
