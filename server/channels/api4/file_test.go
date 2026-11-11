@@ -1376,6 +1376,22 @@ func TestUploadFileMultipartLegacyForm(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("rejected form does not leave temporary files behind", func(t *testing.T) {
+		body, contentType := buildUploadMultipartBody(t,
+			uploadMultipartPart{formName: "files", fileName: "first.bin", value: firstLargeBlob},
+			uploadMultipartPart{formName: "client_ids", value: bytes.Repeat([]byte("a"), maxMultipartFormDataBytes+1)},
+			uploadMultipartPart{formName: "channel_id", value: channelID},
+		)
+
+		before := tempFiles(t)
+
+		_, resp, err := testDoUploadFileRequest(t, th.Client, "", body, contentType, -1)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+
+		require.Equal(t, before, tempFiles(t))
+	})
 }
 
 // TestUploadFileMultipartBufferBounds checks that the memory the file upload

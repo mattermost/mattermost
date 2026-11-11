@@ -10,9 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -44,11 +46,9 @@ const (
 	// what holding a value costs beyond its own bytes is accounted for.
 	multipartFormValueOverheadBytes = 200
 
-	// multipartReadFormReservedBytes is the number of bytes
-	// multipart.Reader.ReadForm holds for the values of non-file parts on top of
-	// the budget it is given, as documented on that method. A budget is offset
-	// by it to arrive at the number of bytes those values are held to.
-	multipartReadFormReservedBytes = 10 << 20
+	// maxMultipartParts is the number of parts of a multipart upload that are
+	// read through the buffered path.
+	maxMultipartParts = 1000
 )
 
 func (api *API) InitFile() {
@@ -255,6 +255,11 @@ func (p *prebufferedBody) stopMirroring() {
 	p.mirroring = false
 }
 
+var (
+	errMultipartValueTooLarge    = fmt.Errorf("value is longer than the limit of %d bytes", maxMultipartFormDataBytes)
+	errMultipartFormDataTooLarge = fmt.Errorf("form data is longer than the limit of %d bytes", maxMultipartPrebufferBytes)
+)
+
 // readMultipartFormValue copies the value of a form field part into w and
 // returns the number of bytes it holds. It fails if the part holds more than
 // maxMultipartFormDataBytes.
@@ -266,7 +271,7 @@ func readMultipartFormValue(w io.Writer, part io.Reader) (int64, error) {
 		return n, err
 	}
 	if n > maxMultipartFormDataBytes {
-		return n, fmt.Errorf("value is longer than the limit of %d bytes", maxMultipartFormDataBytes)
+		return n, errMultipartValueTooLarge
 	}
 
 	return n, nil
@@ -514,17 +519,157 @@ NextPart:
 	return &resp
 }
 
-// uploadFileMultipartLegacy reads, buffers, and then uploads the message,
-// borrowing from http.ParseMultipartForm.  If successful it returns a
-// *model.FileUploadResponse filled in with the individual model.FileInfo's.
+// multipartFormFile is a file part of a multipart form that was read in full:
+// it is held in content if it is small enough, and in the temporary file at
+// path otherwise.
+type multipartFormFile struct {
+	filename string
+	content  []byte
+	path     string
+}
+
+func (f *multipartFormFile) open() (io.ReadCloser, error) {
+	if f.path == "" {
+		return io.NopCloser(bytes.NewReader(f.content)), nil
+	}
+
+	return os.Open(f.path)
+}
+
+// multipartForm is a multipart form that was read in full, with at most
+// maxMultipartPrebufferBytes of its values and of its files held in memory.
+type multipartForm struct {
+	values map[string][]string
+	files  []*multipartFormFile
+}
+
+func (f *multipartForm) removeAll() error {
+	var errs []error
+	for _, file := range f.files {
+		if file.path == "" {
+			continue
+		}
+		if err := os.Remove(file.path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+// readMultipartFormFile reads the file part into memory if it fits within the
+// remaining memory budget, and into a temporary file otherwise.
+func readMultipartFormFile(part *multipart.Part, memoryLeft int64) (*multipartFormFile, error) {
+	file := &multipartFormFile{filename: part.FileName()}
+
+	var head bytes.Buffer
+	if _, err := io.CopyN(&head, part, memoryLeft+1); err != nil && err != io.EOF {
+		return nil, err
+	} else if err == io.EOF {
+		file.content = head.Bytes()
+		return file, nil
+	}
+
+	tmp, err := os.CreateTemp("", "multipart-")
+	if err != nil {
+		return nil, err
+	}
+	file.path = tmp.Name()
+
+	_, err = io.Copy(tmp, io.MultiReader(&head, part))
+	if closeErr := tmp.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		_ = os.Remove(file.path)
+		return nil, err
+	}
+
+	return file, nil
+}
+
+// readMultipartForm reads every part of the form, holding at most
+// maxMultipartPrebufferBytes of values and of file content in memory and
+// writing larger files to temporary files. On error nothing is left on disk.
+func readMultipartForm(mr *multipart.Reader) (_ *multipartForm, err error) {
+	form := &multipartForm{values: map[string][]string{}}
+	defer func() {
+		if err != nil {
+			_ = form.removeAll()
+		}
+	}()
+
+	valueBytes := int64(0)
+	fileMemoryBytes := int64(0)
+	for nParts := 0; ; nParts++ {
+		part, err := mr.NextPart()
+		if err == io.EOF {
+			return form, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if nParts >= maxMultipartParts {
+			return nil, multipart.ErrMessageTooLarge
+		}
+
+		name := part.FormName()
+		if name == "" {
+			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		valueBytes += multipartFormValueOverheadBytes
+
+		if part.FileName() == "" {
+			var b bytes.Buffer
+			n, err := readMultipartFormValue(&b, part)
+			if err != nil {
+				return nil, err
+			}
+
+			valueBytes += n
+			if valueBytes > maxMultipartPrebufferBytes {
+				return nil, errMultipartFormDataTooLarge
+			}
+
+			form.values[name] = append(form.values[name], b.String())
+			continue
+		}
+
+		valueBytes += int64(len(part.FileName()))
+		if valueBytes > maxMultipartPrebufferBytes {
+			return nil, errMultipartFormDataTooLarge
+		}
+
+		if name != "files" {
+			if _, err = io.Copy(io.Discard, part); err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		file, err := readMultipartFormFile(part, maxMultipartPrebufferBytes-fileMemoryBytes)
+		if err != nil {
+			return nil, err
+		}
+		fileMemoryBytes += int64(len(file.content))
+		form.files = append(form.files, file)
+	}
+}
+
+// uploadFileMultipartLegacy reads, buffers, and then uploads the message. If
+// successful it returns a *model.FileUploadResponse filled in with the
+// individual model.FileInfo's.
 func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	timestamp time.Time, isBookmark bool) *model.FileUploadResponse {
-	// Parse the entire form, holding its values to maxMultipartPrebufferBytes
-	// and writing its file parts to temporary files.
-	form, err := mr.ReadForm(maxMultipartPrebufferBytes - multipartReadFormReservedBytes)
+	form, err := readMultipartForm(mr)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, multipart.ErrMessageTooLarge) {
+		if errors.Is(err, multipart.ErrMessageTooLarge) || errors.Is(err, errMultipartValueTooLarge) ||
+			errors.Is(err, errMultipartFormDataTooLarge) {
 			status = http.StatusBadRequest
 		}
 		c.Err = model.NewAppError("uploadFileMultipartLegacy",
@@ -533,17 +678,17 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		return nil
 	}
 	defer func() {
-		if err := form.RemoveAll(); err != nil {
+		if err := form.removeAll(); err != nil {
 			c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
 		}
 	}()
 
 	// get and validate the channel Id, permission to upload there.
-	if len(form.Value["channel_id"]) == 0 {
+	if len(form.values["channel_id"]) == 0 {
 		c.SetInvalidParam("channel_id")
 		return nil
 	}
-	channelId := form.Value["channel_id"][0]
+	channelId := form.values["channel_id"][0]
 	c.Params.ChannelId = channelId
 	c.RequireChannelId()
 	if c.Err != nil {
@@ -555,12 +700,12 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	}
 
 	// Check that we have either no client IDs, or one per file.
-	clientIds := form.Value["client_ids"]
-	fileHeaders := form.File["files"]
-	if len(clientIds) != 0 && len(clientIds) != len(fileHeaders) {
+	clientIds := form.values["client_ids"]
+	files := form.files
+	if len(clientIds) != 0 && len(clientIds) != len(files) {
 		c.Err = model.NewAppError("uploadFilesMultipartBuffered",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(files)},
 			"", http.StatusBadRequest)
 		return nil
 	}
@@ -570,8 +715,8 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		ClientIds: []string{},
 	}
 
-	for i, fileHeader := range fileHeaders {
-		f, err := fileHeader.Open()
+	for i, file := range files {
+		f, err := file.open()
 		if err != nil {
 			c.Err = model.NewAppError("uploadFileMultipartLegacy",
 				"api.file.upload_file.read_request.app_error",
@@ -595,7 +740,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			model.AddEventParameterToAuditRec(auditRec, model.BookmarkFileOwner, true)
 		}
 
-		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
+		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, file.filename, f,
 			app.UploadFileSetTeamId(FileTeamId),
 			app.UploadFileSetUserId(creatorId),
 			app.UploadFileSetTimestamp(timestamp),
