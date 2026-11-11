@@ -15,7 +15,7 @@ Outline:
 3. Configure the LiveKit URL, API key and API secret.
 4. Plan a quiet window. Switching disconnects users and ends active calls. Use `/call list-all` on v1 to see active calls and `/call end-all` to end them.
 5. Set `PluginSettings.CallsVersion` to `v2` (or `MM_PLUGINSETTINGS_CALLSVERSION=v2`).
-6. Verify: start a call, join from outside the network, share a screen.
+6. Verify: run `/call diag` (see [Run the built-in diagnostic](v2/calls-v2-overview.mdx#run-the-built-in-diagnostic)), then start a call, join from outside the network, and share a screen.
 7. Move recording and transcription to the v2 [Calls Offloader](calls-offloader-setup.mdx) setup if used.
 8. Roll back: set the version back to `v1`. The database changes are additive, so v1 keeps working.
 9. High availability setups: confirm what happens to calls that were active on other nodes at the time of the switch.
