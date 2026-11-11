@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -39,6 +40,7 @@ const (
 	pingInterval                   = (pongWaitTime * 6) / 10
 	authCheckInterval              = 5 * time.Second
 	webConnMemberCacheTime         = 1000 * 60 * 30 // 30 minutes
+	webConnViewRestrictionsTime    = 1000 * 30      // 30 seconds
 	deadQueueSize                  = 128            // Approximated from /proc/sys/net/core/wmem_default / 2048 (avg msg size)
 	websocketSuppressWarnThreshold = time.Minute
 )
@@ -47,6 +49,24 @@ const (
 	reconnectFound    = "success"
 	reconnectNotFound = "failure"
 	reconnectLossless = "lossless"
+)
+
+const (
+	// reconnectFailureOldConnStillOpen means the old connection is still considered active,
+	// usually because its network vanished and the server is waiting out its pong deadline.
+	reconnectFailureOldConnStillOpen = "old_conn_still_open"
+
+	// reconnectFailureMissedEventsEvicted means the old connection was found, but the events
+	// the client missed have already been evicted from its dead queue.
+	reconnectFailureMissedEventsEvicted = "missed_events_evicted"
+
+	// reconnectFailureConnNotFound means no node has the old connection: it was reaped, its
+	// node restarted, or its send queue overflowed while it was inactive.
+	reconnectFailureConnNotFound = "conn_not_found"
+
+	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
+	// old connection.
+	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
 )
 
 const websocketMessagePluginPrefix = "custom_"
@@ -100,8 +120,13 @@ type WebConn struct {
 
 	allChannelMembers         channelSet
 	lastAllChannelMembersTime int64
-	lastUserActivityAt        int64
-	send                      chan model.WebSocketMessage
+	// viewRestrictions caches which users this connection's user may see, so that
+	// per-event visibility checks do not hit the database for every event.
+	viewRestrictions        *model.ViewUsersRestrictions
+	viewRestrictionChannels map[string]struct{}
+	viewRestrictionsTime    int64
+	lastUserActivityAt      int64
+	send                    chan model.WebSocketMessage
 	// deadQueue behaves like a queue of a finite size
 	// which is used to store all messages that are sent via the websocket.
 	// It basically acts as the user-space socket buffer, and is used
@@ -177,12 +202,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
 	}
 
-	// This does not handle reconnect requests across nodes in a cluster.
-	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
+	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
-		// If the connection is not present, then we assume either timeout,
-		// or server restart. In that case, we set a new one.
+		ps.Log().Debug("Websocket resume failed, issuing new connection id",
+			mlog.String("user_id", s.UserId),
+			mlog.String("connection_id", cfg.ConnectionID),
+			mlog.Int("sequence_number", seqNum),
+			mlog.String("reason", reason),
+			mlog.Bool("is_remote", isRemote),
+			mlog.String("origin_client", cfg.OriginClient),
+			mlog.String("disconnect_err_code", cfg.DisconnectErrCode))
+		if m := ps.metricsIFace; m != nil {
+			m.IncrementWebsocketReconnectEvent(reconnectNotFound, cfg.DisconnectErrCode, cfg.OriginClient)
+			m.IncrementWebsocketReconnectFailure(reason, isRemote, cfg.DisconnectErrCode, cfg.OriginClient)
+		}
 		cfg.ConnectionID = model.NewId()
 	} else {
 		// Connection is present, we get the active queue, dead queue
@@ -518,16 +551,13 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		var decoder interface {
-			Decode(v any) error
-		}
-		if msgType == websocket.TextMessage {
-			decoder = json.NewDecoder(rd)
-		} else {
-			decoder = msgpack.NewDecoder(rd)
-		}
 		var req model.WebSocketRequest
-		if err = decoder.Decode(&req); err != nil {
+		if msgType == websocket.TextMessage {
+			err = json.NewDecoder(rd).Decode(&req)
+		} else {
+			err = decodeBinaryRequest(rd, &req)
+		}
+		if err != nil {
 			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
@@ -558,6 +588,40 @@ func (wc *WebConn) readPump() {
 	}
 }
 
+var errBinaryFrameTooLarge = errors.New("websocket frame exceeds max size")
+
+// binaryFramePool holds buffers one byte larger than the max frame size, so a
+// completely filled buffer means the frame is too large.
+var binaryFramePool = sync.Pool{
+	New: func() any {
+		b := make([]byte, model.SocketMaxMessageSizeKb+1)
+		return &b
+	},
+}
+
+// decodeBinaryRequest reads a binary frame into memory and walks its structure
+// before decoding it, so that the lengths its headers declare are matched
+// against the bytes the frame carries.
+func decodeBinaryRequest(rd io.Reader, req *model.WebSocketRequest) error {
+	bp := binaryFramePool.Get().(*[]byte)
+	defer binaryFramePool.Put(bp)
+
+	n, err := io.ReadFull(rd, *bp)
+	switch {
+	case err == nil:
+		return errBinaryFrameTooLarge
+	case err != io.EOF && err != io.ErrUnexpectedEOF:
+		return err
+	}
+	frame := (*bp)[:n]
+
+	if err := msgpack.NewDecoder(bytes.NewReader(frame)).Skip(); err != nil {
+		return err
+	}
+
+	return msgpack.NewDecoder(bytes.NewReader(frame)).Decode(req)
+}
+
 func (wc *WebConn) writePump() {
 	ticker := time.NewTicker(pingInterval)
 	authTicker := time.NewTicker(authCheckInterval)
@@ -575,9 +639,16 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectFound, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else if wc.hasMsgLoss() {
+			wc.Platform.Log().Debug("Websocket resume failed, missed events evicted from dead queue",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("connection_id", wc.GetConnectionID()),
+				mlog.Int("sequence_number", wc.Sequence),
+				mlog.String("origin_client", wc.originClient),
+				mlog.String("disconnect_err_code", wc.DisconnectErrCode))
+
 			// If the seq number is not in dead queue, but it was supposed to be,
 			// then generate a different connection ID,
 			// and set sequence to 0, and clear dead queue.
@@ -593,11 +664,12 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectNotFound, wc.DisconnectErrCode, wc.originClient)
+				m.IncrementWebsocketReconnectFailure(reconnectFailureMissedEventsEvicted, false, wc.DisconnectErrCode, wc.originClient)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
+				m.IncrementWebsocketReconnectEvent(reconnectLossless, wc.DisconnectErrCode, wc.originClient)
 			}
 		}
 	}
@@ -819,6 +891,9 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 func (wc *WebConn) InvalidateCache() {
 	wc.allChannelMembers = nil
 	wc.lastAllChannelMembersTime = 0
+	wc.viewRestrictions = nil
+	wc.viewRestrictionChannels = nil
+	wc.viewRestrictionsTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
 }
@@ -905,6 +980,9 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	var userID string
 	var canSee bool
+	// Property events can be published once per synced user, so they use the
+	// cached visibility check instead of a store round trip per guest connection.
+	cachedCheck := false
 
 	switch msg.EventType() {
 	case model.WebsocketEventUserUpdated:
@@ -916,6 +994,36 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		userID = user.Id
 	case model.WebsocketEventNewUser:
 		userID = msg.GetData()["user_id"].(string)
+	case model.WebsocketEventCPAValuesUpdated:
+		id, ok := msg.GetData()["user_id"].(string)
+		if !ok || id == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: user_id not found in message", mlog.Any("user_id", msg.GetData()["user_id"]))
+			return false
+		}
+		userID = id
+		cachedCheck = true
+	case model.WebsocketEventPropertyValuesUpdated:
+		// Field-wide clears (a field deleted or its values reset) carry no
+		// object_type or target_id and an empty values list, so they reveal
+		// nothing about any user and every client needs them to drop its cache.
+		if isPropertyFieldValuesClearedEvent(msg) {
+			return true
+		}
+		objectType, ok := msg.GetData()["object_type"].(string)
+		if !ok || objectType == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: object_type not found in message", mlog.Any("object_type", msg.GetData()["object_type"]))
+			return false
+		}
+		if objectType != model.PropertyFieldObjectTypeUser {
+			return true
+		}
+		id, ok := msg.GetData()["target_id"].(string)
+		if !ok || id == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: target_id not found in message", mlog.Any("target_id", msg.GetData()["target_id"]))
+			return false
+		}
+		userID = id
+		cachedCheck = true
 	default:
 		return true
 	}
@@ -924,13 +1032,99 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	// For now, it's fine to create it here.
 	c := request.EmptyContext(wc.Platform.logger)
 
-	canSee, err := wc.Suite.UserCanSeeOtherUser(c, wc.UserId, userID)
+	var err *model.AppError
+	if cachedCheck {
+		canSee, err = wc.canSeeUserCached(c, userID)
+	} else {
+		canSee, err = wc.Suite.UserCanSeeOtherUser(c, wc.UserId, userID)
+	}
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
 	}
 
 	return canSee
+}
+
+// canSeeUserCached answers the same question as Suite.UserCanSeeOtherUser, but
+// reuses the connection user's view restrictions for webConnViewRestrictionsTime
+// (they are also dropped by InvalidateCache when memberships change) and
+// compares channel memberships in memory, so it costs no store query per
+// guest connection once the restrictions are loaded.
+func (wc *WebConn) canSeeUserCached(rctx request.CTX, otherUserID string) (bool, *model.AppError) {
+	if wc.UserId == otherUserID {
+		return true, nil
+	}
+
+	if wc.viewRestrictionsTime == 0 || model.GetMillis()-wc.viewRestrictionsTime > webConnViewRestrictionsTime {
+		restrictions, err := wc.Suite.GetViewUsersRestrictions(rctx, wc.UserId)
+		if err != nil {
+			return false, err
+		}
+		channels := make(map[string]struct{})
+		if restrictions != nil {
+			for _, id := range restrictions.Channels {
+				channels[id] = struct{}{}
+			}
+		}
+		wc.viewRestrictions = restrictions
+		wc.viewRestrictionChannels = channels
+		wc.viewRestrictionsTime = model.GetMillis()
+	}
+
+	if wc.viewRestrictions == nil {
+		return true, nil
+	}
+
+	// Team-wide visibility is rare; keep its exact semantics.
+	if len(wc.viewRestrictions.Teams) > 0 {
+		return wc.Suite.UserCanSeeOtherUser(rctx, wc.UserId, otherUserID)
+	}
+
+	if len(wc.viewRestrictionChannels) == 0 {
+		return false, nil
+	}
+
+	// The store caches this per user and drops it, cluster-wide, on membership changes.
+	otherChannels, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(rctx, otherUserID, true, true)
+	if err != nil {
+		return false, model.NewAppError("canSeeUserCached", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return sharesChannel(otherChannels, wc.viewRestrictionChannels), nil
+}
+
+// sharesChannel reports whether the two channel sets intersect, walking the smaller one.
+func sharesChannel(a map[string]string, b map[string]struct{}) bool {
+	if len(b) < len(a) {
+		for id := range b {
+			if _, ok := a[id]; ok {
+				return true
+			}
+		}
+		return false
+	}
+	for id := range a {
+		if _, ok := b[id]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+// isPropertyFieldValuesClearedEvent reports whether msg is the field-wide
+// property_values_updated event published when a field's values are cleared.
+func isPropertyFieldValuesClearedEvent(msg *model.WebSocketEvent) bool {
+	data := msg.GetData()
+	if _, ok := data["object_type"]; ok {
+		return false
+	}
+	if _, ok := data["target_id"]; ok {
+		return false
+	}
+	fieldID, _ := data["field_id"].(string)
+	values, _ := data["values"].(string)
+	return fieldID != "" && values == "[]"
 }
 
 // ShouldSendEvent returns whether the message should be sent or not. channelKey

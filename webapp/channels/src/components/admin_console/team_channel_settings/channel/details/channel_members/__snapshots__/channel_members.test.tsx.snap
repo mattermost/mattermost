@@ -4,48 +4,48 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
 <div>
   <section
     aria-labelledby="_r_0_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channelMembers"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_0_"
               >
                 Members
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               A list of users who are currently in the channel right now
             </p>
           </div>
         </div>
         <div
-          class="_admin-panel-header__actions_19tix_75"
+          class="_admin-panel-header__actions_vb1i0_28"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="addChannelMembers"
             type="button"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Add Members
             </span>
@@ -54,7 +54,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="DataGrid"
@@ -94,18 +94,18 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             >
               <button
                 aria-expanded="false"
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
+                class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-small_1pij1_77 Filter_button"
                 type="button"
               >
                 <span
-                  class="_button__icon-slot_we8pe_35"
+                  class="_button__icon-slot_1pij1_59"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -123,7 +123,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   </div>
                 </span>
                 <span
-                  class="_button__label_we8pe_31"
+                  class="_button__label_1pij1_55"
                 >
                   Filters
                 </span>
@@ -167,20 +167,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="system_guest"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="system_guest"
                               name="system_guest"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Guest
                             </span>
@@ -194,20 +194,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="channel_user"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="channel_user"
                               name="channel_user"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Member
                             </span>
@@ -221,20 +221,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="channel_admin"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="channel_admin"
                               name="channel_admin"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Channel Admin
                             </span>
@@ -248,20 +248,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="system_admin"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="system_admin"
                               name="system_admin"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               System Admin
                             </span>
@@ -272,12 +272,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   </div>
                 </div>
                 <button
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-small_1pij1_77 Filter_apply"
                   disabled=""
                   type="button"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Apply
                   </span>
@@ -318,7 +318,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             >
               <span
                 aria-label="Loading Icon"
-                class="_spinner_3elm7_10 spinner"
+                class="_spinner_mvrwe_21 spinner"
                 role="status"
                 style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
@@ -340,25 +340,69 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             </span>
             <button
               aria-label="Previous page"
-              class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+              class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
               disabled=""
               type="button"
             >
-              <i
-                class="icon icon-chevron-left"
-                title="Previous Icon"
-              />
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="18"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
             </button>
             <button
               aria-label="Next page"
-              class="btn btn-quaternary btn-icon btn-sm next disabled"
+              class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
               disabled=""
               type="button"
             >
-              <i
-                class="icon icon-chevron-right"
-                title="Next Icon"
-              />
+              <span
+                aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
+              >
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="18"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </span>
             </button>
           </div>
         </div>
@@ -371,49 +415,49 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
 exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot loading no users 1`] = `
 <div>
   <section
-    aria-labelledby="_r_5_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    aria-labelledby="_r_9_"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channelMembers"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
-                id="_r_5_"
+                class="_admin-panel-header__title_vb1i0_58"
+                id="_r_9_"
               >
                 Members
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               A list of users who are currently in the channel right now
             </p>
           </div>
         </div>
         <div
-          class="_admin-panel-header__actions_19tix_75"
+          class="_admin-panel-header__actions_vb1i0_28"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="addChannelMembers"
             type="button"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Add Members
             </span>
@@ -422,7 +466,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="DataGrid"
@@ -462,18 +506,18 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             >
               <button
                 aria-expanded="false"
-                class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-small_we8pe_53 Filter_button"
+                class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-small_1pij1_77 Filter_button"
                 type="button"
               >
                 <span
-                  class="_button__icon-slot_we8pe_35"
+                  class="_button__icon-slot_1pij1_59"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -491,7 +535,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   </div>
                 </span>
                 <span
-                  class="_button__label_we8pe_31"
+                  class="_button__label_1pij1_55"
                 >
                   Filters
                 </span>
@@ -535,20 +579,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="system_guest"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="system_guest"
                               name="system_guest"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Guest
                             </span>
@@ -562,20 +606,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="channel_user"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="channel_user"
                               name="channel_user"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Member
                             </span>
@@ -589,20 +633,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="channel_admin"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="channel_admin"
                               name="channel_admin"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               Channel Admin
                             </span>
@@ -616,20 +660,20 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                           class="FilterList_checkbox"
                         >
                           <label
-                            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                             for="system_admin"
                           >
                             <input
-                              class="_checkbox__input_18swc_25"
+                              class="_checkbox__input_18sf4_36"
                               id="system_admin"
                               name="system_admin"
                               type="checkbox"
                             />
                             <span
-                              class="_checkbox__box_18swc_44"
+                              class="_checkbox__box_18sf4_55"
                             />
                             <span
-                              class="_checkbox__label_18swc_120"
+                              class="_checkbox__label_18sf4_131"
                             >
                               System Admin
                             </span>
@@ -640,12 +684,12 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
                   </div>
                 </div>
                 <button
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53 Filter_apply"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-small_1pij1_77 Filter_apply"
                   disabled=""
                   type="button"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Apply
                   </span>
@@ -686,7 +730,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             >
               <span
                 aria-label="Loading Icon"
-                class="_spinner_3elm7_10 spinner"
+                class="_spinner_mvrwe_21 spinner"
                 role="status"
                 style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />

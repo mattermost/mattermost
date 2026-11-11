@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/types",
-  "version": "12.1.0",
+  "version": "12.2.0",
   "description": "Shared type definitions used by the Mattermost web app",
   "keywords": [
     "mattermost"
@@ -28,10 +28,11 @@
     "directory": "webapp/platform/types"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "@typescript/native": "npm:typescript@7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2"
   },
   "peerDependencies": {
-    "typescript": "^4.3.0 || ^5.0.0"
+    "typescript": "^4.3.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {

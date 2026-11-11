@@ -35,20 +35,20 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -75,20 +75,20 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -112,19 +112,19 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Copy code"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -144,7 +144,7 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </button>
       <a
         aria-label="Download"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file-preview-modal-main-actions__download"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button file-preview-modal-main-actions__download"
         download="img.png"
         href="http://example.com/img.png"
         location="file_preview_modal_main_actions"
@@ -153,14 +153,14 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -180,19 +180,19 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </a>
       <button
         aria-label="Close"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -225,19 +225,19 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Close"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -261,20 +261,20 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
     >
       <button
         aria-label="Previous file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button file_preview_modal_main_nav__prev"
         id="previewArrowLeft"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -301,20 +301,20 @@ exports[`components/file_preview_modal/file_preview_modal_header/FilePreviewModa
       </span>
       <button
         aria-label="Next file"
-        class="_icon-button_13ryy_2 _icon-button--size-medium_13ryy_91 _icon-button--padding-compact_13ryy_72 _icon-button--style-inverted_13ryy_159 file-preview-modal__icon-button file_preview_modal_main_nav__next"
+        class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 _icon-button--padding-compact_1d2d4_96 _icon-button--style-inverted_1d2d4_186 file-preview-modal__icon-button file_preview_modal_main_nav__next"
         id="previewArrowRight"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_13ryy_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-20_1i355_46"
+            class="_icon_1xcik_13 _icon--size-20_1xcik_57"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
