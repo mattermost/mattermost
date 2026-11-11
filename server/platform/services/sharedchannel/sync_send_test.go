@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
@@ -829,4 +830,81 @@ func TestFetchReactionsAndAcknowledgementsForSync(t *testing.T) {
 	assert.Equal(t, acks, sd.acknowledgements)
 	mockReactionStore.AssertExpectations(t)
 	mockAckStore.AssertExpectations(t)
+}
+
+func TestFetchPostsForSync_Repeat(t *testing.T) {
+	const maxPosts = 10
+
+	makePosts := func(n int) []*model.Post {
+		posts := make([]*model.Post, n)
+		for i := range posts {
+			posts[i] = &model.Post{Id: model.NewId(), CreateAt: int64(1000 + i), UpdateAt: int64(1000 + i)}
+		}
+		return posts
+	}
+	newPosts := makePosts(3)
+	updatedPosts := makePosts(5)
+
+	tests := []struct {
+		name       string
+		updated    []*model.Post
+		wantPosts  int
+		wantRepeat bool
+	}{
+		{
+			// The updated-posts query also returns posts created after the cursor.
+			name:       "full updated page that repeats new posts",
+			updated:    append([]*model.Post{newPosts[0], newPosts[1]}, updatedPosts...),
+			wantPosts:  len(newPosts) + len(updatedPosts),
+			wantRepeat: true,
+		},
+		{
+			name:       "partial updated page",
+			updated:    updatedPosts[:4],
+			wantPosts:  len(newPosts) + 4,
+			wantRepeat: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			createdCursor := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1002, LastPostCreateID: newPosts[2].Id}
+			updatedCursor := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1002, LastPostUpdateAt: 1004}
+
+			mockPostStore := &mocks.PostStore{}
+			mockPostStore.On("GetPostsSinceForSync",
+				mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return o.SinceCreateAt }),
+				mock.Anything, maxPosts).Return(newPosts, createdCursor, nil)
+			mockPostStore.On("GetPostsSinceForSync",
+				mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return !o.SinceCreateAt }),
+				createdCursor, maxPosts-len(newPosts)).Return(tt.updated, updatedCursor, nil)
+
+			mockStore := &mocks.Store{}
+			mockStore.On("Post").Return(mockPostStore)
+
+			cfg := &model.Config{}
+			cfg.SetDefaults()
+			cfg.ConnectedWorkspacesSettings.MaxPostsPerSync = model.NewPointer(maxPosts)
+
+			mockServer := &MockServerIface{}
+			mockServer.On("GetStore").Return(mockStore)
+			mockServer.On("GetMetrics").Return(nil)
+			mockServer.On("Config").Return(cfg)
+			mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+
+			mockApp := &MockAppIface{}
+			mockApp.On("PreparePostForClient", mock.Anything, mock.Anything, mock.Anything).
+				Return(func(_ request.CTX, p *model.Post, _ *model.PreparePostForClientOpts) *model.Post { return p })
+
+			scs := &Service{server: mockServer, app: mockApp}
+			sd := newSyncData(syncTask{channelID: model.NewId()}, &model.RemoteCluster{RemoteId: model.NewId()}, &model.SharedChannelRemote{})
+
+			require.NoError(t, scs.fetchPostsForSync(sd))
+
+			assert.Len(t, sd.posts, tt.wantPosts)
+			assert.Equal(t, tt.wantRepeat, sd.resultRepeat)
+			assert.Equal(t, updatedCursor, sd.resultNextCursor)
+			mockPostStore.AssertExpectations(t)
+		})
+	}
 }

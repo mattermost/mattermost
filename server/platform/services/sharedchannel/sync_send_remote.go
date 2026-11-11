@@ -359,8 +359,9 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
-		posts = reducePostsSliceInCache(posts, cache)
+		// Count before dropping posts already fetched as new: nextCursor is past the whole page.
 		count += len(posts)
+		posts = reducePostsSliceInCache(posts, cache)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
