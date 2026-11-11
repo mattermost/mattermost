@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
@@ -26,9 +27,15 @@ type Props = {
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => void;
     repeatDisabledReason?: RepeatDisabledReason;
+
+    // When set, the chevron is disabled and this says why. Unlike `disabled`, which
+    // suppresses the tooltip along with the button, the reason stays visible: a natively
+    // disabled button receives no hover or focus events, so it is shown from a focusable
+    // wrapper around the button.
+    blockedReason?: string;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, blockedReason}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -61,7 +68,9 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
         }));
     }, [repeatDisabledReason, channelId, dispatch, handleSelectCustomTime]);
 
-    return (
+    const buttonDisabled = Boolean(disabled || blockedReason);
+
+    const menu = (
         <Menu.Container
             menuButtonTooltip={{
                 text: formatMessage({
@@ -72,9 +81,9 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             }}
             menuButton={{
                 id: 'button_send_post_options',
-                class: classNames('button_send_post_options', {disabled}),
+                class: classNames('button_send_post_options', {disabled: buttonDisabled}),
                 children: <ChevronDownIcon size={16}/>,
-                disabled,
+                disabled: buttonDisabled,
                 'aria-label': formatMessage({
                     id: 'create_post_button.option.schedule_message',
                     defaultMessage: 'Schedule message',
@@ -121,5 +130,22 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             />
 
         </Menu.Container>
+    );
+
+    if (!blockedReason) {
+        return menu;
+    }
+
+    return (
+        <WithTooltip title={blockedReason}>
+            <span
+                className='send_post_options_blocked'
+
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled chevron is unreachable by keyboard, so the tooltip explaining why is mouse-only
+                tabIndex={0}
+            >
+                {menu}
+            </span>
+        </WithTooltip>
     );
 }

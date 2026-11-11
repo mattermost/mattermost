@@ -753,12 +753,17 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
+    const schedulingBlockedReason = stagedAttributes.values.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_schedule',
+        defaultMessage: 'Messages with attributes can’t be scheduled',
+    }) : undefined;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
+            schedulingBlockedReason={schedulingBlockedReason}
         />
     );
 

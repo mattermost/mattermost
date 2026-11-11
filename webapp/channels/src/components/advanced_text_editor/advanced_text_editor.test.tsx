@@ -1536,12 +1536,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }) as unknown as typeof onSubmit);
         });
 
-        // Stages a value on the `always` chip and picks the `when_set` field
-        // from the composer's own picker, giving it a value too.
-        async function stageAttributes() {
+        async function stageClassification() {
             await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: /^SECRET/}));
             await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET'));
+        }
+
+        // Stages a value on the `always` chip and picks the `when_set` field
+        // from the composer's own picker, giving it a value too.
+        async function stageAttributes() {
+            await stageClassification();
 
             await userEvent.click(screen.getByTestId('post-attributes-add'));
             await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
@@ -1682,6 +1686,45 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             expectNothingStaged();
+        });
+
+        describe('scheduling', () => {
+            const withScheduling = mergeObjects(withAttributes, {
+                entities: {
+                    general: {
+                        config: {
+                            ScheduledPosts: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                        },
+                    },
+                },
+            });
+
+            it('disables only the schedule chevron while a value is staged, and re-enables it when the value is removed', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withScheduling,
+                );
+
+                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+                expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await stageClassification();
+
+                expect(screen.getByRole('button', {name: 'Schedule message'})).toBeDisabled();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+
+                await waitFor(() => expect(screen.getByRole('button', {name: 'Schedule message'})).toBeEnabled());
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+            });
         });
     });
 
