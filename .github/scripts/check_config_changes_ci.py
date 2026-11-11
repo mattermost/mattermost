@@ -41,6 +41,7 @@ except ImportError:  # pragma: no cover - GitHub API helpers unused in unit test
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 PR_NUMBER    = int(os.environ["PR_NUMBER"]) if "PR_NUMBER" in os.environ else 0
 BASE_SHA     = os.environ.get("BASE_SHA", "")
+BASE_REF     = os.environ.get("BASE_REF", "")  # the PR's own base branch, e.g. master or release-12.0
 HEAD_SHA     = os.environ.get("HEAD_SHA", "")
 REPO         = os.environ.get("REPO", "mattermost/mattermost")
 DEFAULT_BRANCH = os.environ.get("DEFAULT_BRANCH", "master")
@@ -150,12 +151,89 @@ def files_changed_in_unique_commits() -> list[str]:
     return sorted(path for path in files if _is_watched(path))
 
 
-def before_ref_for(path: str) -> str:
-    """Parent of the oldest unique commit that touches `path`.
+@lru_cache(maxsize=1)
+def default_merge_base() -> str:
+    """Merge base of HEAD and the current default branch, or "" if there is none.
 
-    That is the file's state before this PR, even when GitHub's base ref is
-    not an ancestor of the work (retarget) and MERGE_BASE would be too old.
+    This is the state of the repository the PR started from, as far as master is
+    concerned. It is newer than the parent of the PR's oldest commit when the head
+    carries older work that master has since taken in some other way, such as the
+    first commits of a stacked PR that were later merged separately.
     """
+    default = default_branch_sha()
+    if not default:
+        return ""
+    result = _git(["merge-base", default, HEAD_SHA], check=False)
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+@lru_cache(maxsize=1)
+def base_tip_ref() -> str:
+    """Current tip of the PR's own base branch (BASE_REF), or BASE_SHA when it is not in this clone.
+
+    For a cherry-pick to release-12.0 that is the release branch, not master, so a
+    change master already has still counts as added there. "" if neither is known.
+    """
+    if BASE_REF:
+        for ref in (f"origin/{BASE_REF}", BASE_REF):
+            result = _git(["rev-parse", "--verify", ref], check=False)
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+    return BASE_SHA
+
+
+def file_at_base_tip(path: str) -> Optional[str]:
+    """Contents of `path` on the base branch's tip, or None when the tip is unknown."""
+    tip = base_tip_ref()
+    return file_at(tip, path) if tip else None
+
+
+def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
+    """What this PR adds and removes, given the sets at its merge base, its head and the base branch's tip.
+
+    Added: in the head, not in the merge base, and not on the base branch's tip (already
+    there by another route, such as the first PR of a stack that was squash-merged).
+    Removed: in the merge base, not in the head, and still on the tip (otherwise the base
+    branch removed it already). With no tip (``None``) the head and merge base decide alone.
+    """
+    added = head - before
+    removed = before - head
+    if tip is not None:
+        added -= tip
+        removed &= tip
+    return added, removed
+
+
+@lru_cache(maxsize=1)
+def release_merge_base() -> str:
+    """Merge base of HEAD and the base branch's tip when the PR targets a release branch
+    (``release-X.Y``), or "".
+
+    A release line has files and routes master never had at the cut (later cherry-picks),
+    so the merge base with master is too old for it: a route the line added and this PR
+    removes would not count as removed, and a file the line added would look new.
+    """
+    if not re.fullmatch(r"release-\d+\.\d+", BASE_REF or ""):
+        return ""
+    tip = base_tip_ref()
+    if not tip:
+        return ""
+    result = _git(["merge-base", tip, HEAD_SHA], check=False)
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def before_ref_for(path: str) -> str:
+    """The state of `path` before this PR: the merge base with its release branch when it
+    targets one, otherwise with the current default branch.
+
+    The default branch works when GitHub's base ref is not an ancestor of the work
+    (retarget), where MERGE_BASE would be too old, and it does not count work master
+    already has as this PR's. Without either in the clone, falls back to the parent of
+    the oldest unique commit that touches `path`.
+    """
+    merge_base = release_merge_base() or default_merge_base()
+    if merge_base:
+        return merge_base
     oldest = None
     for sha in unique_commits():  # newest first; last match is oldest
         if path in _commit_files(sha):
@@ -210,7 +288,7 @@ def file_at(ref: str, path: str) -> str:
 
 
 def file_before(path: str) -> str:
-    """File contents before this PR's unique commits."""
+    """File contents before this PR: at the merge base with the default branch (see ``before_ref_for``)."""
     return file_at(before_ref_for(path), path)
 
 
@@ -228,6 +306,9 @@ def reset_git_caches() -> None:
     """Clear cached git walks. Tests call this after pointing at a new repo."""
     unique_commits.cache_clear()
     _commit_files.cache_clear()
+    default_merge_base.cache_clear()
+    release_merge_base.cache_clear()
+    base_tip_ref.cache_clear()
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
@@ -290,9 +371,10 @@ def check_config(patches: dict[str, str]) -> CheckResult:
  
     base_fields = _scan_struct_fields(file_before(_CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
- 
-    added   = head_fields - base_fields
-    removed = base_fields - head_fields
+    tip_src = file_at_base_tip(_CONFIG_PATH)
+
+    added, removed = net_changes(
+        base_fields, head_fields, None if tip_src is None else _scan_struct_fields(tip_src))
  
     result.additions = sorted(f"``{s}.{f}``" for s, f in added)
     result.removals  = sorted(f"``{s}.{f}``" for s, f in removed)
@@ -309,15 +391,43 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # (e.g. r.APIHandler(...), r.ApiSessionRequired(..., isLocal=true), etc.)
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'          # path
+    r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
     r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
- 
+
+# api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{id}").Subrouter()
+_SUBROUTER_RE = re.compile(
+    r'BaseRoutes\.(\w+)\s*=\s*(?:api\.)?BaseRoutes\.(\w+)\.PathPrefix\("([^"]*)"\)\.Subrouter\(\)'
+)
+_API_ROUTES_PATH = "server/channels/api4/api.go"
+
 _METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
- 
- 
+
+
+def _route_prefixes(api_src: str) -> dict[str, str]:
+    """Each api4 subrouter's path prefix, from the PathPrefix(...).Subrouter() lines of api.go.
+
+    A subrouter hangs off another one, so its prefix is the parent's plus its own. The
+    roots (APIRoot and the like) are not defined by such a line and count as empty.
+    """
+    parents = {name: (parent, path) for name, parent, path in _SUBROUTER_RE.findall(api_src)}
+    prefixes: dict[str, str] = {}
+
+    def prefix(name: str, seen: tuple = ()) -> str:
+        if name not in parents or name in seen:
+            return ""
+        if name not in prefixes:
+            parent, path = parents[name]
+            prefixes[name] = prefix(parent, seen + (name,)) + path
+        return prefixes[name]
+
+    for name in parents:
+        prefix(name)
+    return prefixes
+
+
 def _parse_methods(raw: str) -> list[str]:
     """Split raw Methods(...) content into individual uppercase HTTP verbs.
  
@@ -331,29 +441,55 @@ def _parse_methods(raw: str) -> list[str]:
         if (m := _METHOD_RE.search(token.strip()))
         and (verb := m.group(1).upper()) in _HTTP_METHODS
     ]
- 
- 
+
+
 def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
- 
- 
-def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
+
+
+def _shorten_path_vars(path: str) -> str:
+    """``{name:regexp}`` path variables as ``{name}``. The pattern may hold braces of its own,
+    as in ``/{fingerprint:[a-f0-9]{32}}/mute``, so the variable ends at its matching brace."""
+    out, i = [], 0
+    while i < len(path):
+        if path[i] != "{":
+            out.append(path[i])
+            i += 1
+            continue
+        depth, j = 0, i
+        while j < len(path):
+            depth += {"{": 1, "}": -1}.get(path[j], 0)
+            if depth == 0:
+                break
+            j += 1
+        name = path[i + 1:j].split(":", 1)[0]
+        out.append(f"{{{name}}}")
+        i = j + 1
+    return "".join(out)
+
+
+def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
  
     Whitespace-collapses the entire file first so multi-line declarations
     (e.g. the 18 in group.go) are matched as a single token sequence.
+    A registration on a subrouter, such as ``api.BaseRoutes.PropertyFieldOptions.Handle("", ...)``,
+    gets that subrouter's prefix from ``prefixes`` (see ``_route_prefixes``), and a
+    ``{name:regexp}`` path variable is shortened to ``{name}``.
     Returns {(path, handler, method)} tuples.
     """
     blob = " ".join(src.split())
     endpoints: set[tuple[str, str, str]] = set()
     for m in _HANDLE_RE.finditer(blob):
-        path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
+        receiver, path, handler, methods_raw = m.group(1), m.group(2), m.group(3), m.group(4)
+        full = (prefixes or {}).get(receiver.rsplit(".", 1)[-1], "") + path
+        full = _shorten_path_vars(full)
         for method in _parse_methods(methods_raw):
-            endpoints.add((path or "/", handler, method))
+            endpoints.add((full or "/", handler, method))
     return endpoints
- 
- 
+
+
 def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
@@ -376,10 +512,14 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: set[tuple[str, str, str]] = set()
 
     for fname, patch in api4_patches.items():
-        base_eps = _parse_endpoints(file_before(fname))
-        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
-        added_eps   |= head_eps - base_eps
-        removed_eps |= base_eps - head_eps
+        base_eps = _parse_endpoints(file_before(fname), _route_prefixes(file_before(_API_ROUTES_PATH)))
+        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname), _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
+        tip_src = file_at_base_tip(fname)
+        tip_eps = None if tip_src is None else _parse_endpoints(
+            tip_src, _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or ""))
+        added, removed = net_changes(base_eps, head_eps, tip_eps)
+        added_eps   |= added
+        removed_eps |= removed
  
         # Anchor the check to avoid false positives from unrelated source text
         if re.search(r"^new file mode \d+", patch, re.MULTILINE):
@@ -417,8 +557,12 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     base_events = _parse_audit_events(file_before(_AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
-    result.additions = sorted(f"``{e}``" for e in head_events - base_events)
-    result.removals  = sorted(f"``{e}``" for e in base_events - head_events)
+    tip_src = file_at_base_tip(_AUDIT_EVENT_PATH)
+    added, removed = net_changes(
+        base_events, head_events, None if tip_src is None else _parse_audit_events(tip_src))
+
+    result.additions = sorted(f"``{e}``" for e in added)
+    result.removals  = sorted(f"``{e}``" for e in removed)
     return result
  
  

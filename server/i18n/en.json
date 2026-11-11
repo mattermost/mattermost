@@ -205,6 +205,21 @@
     "description": "Admin console error when the SAML Identity Provider certificate obtained from metadata cannot be written to disk."
   },
   {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "The uploaded Identity Provider certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Identity Provider certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "The uploaded Service Provider private key is not a valid PEM-encoded private key.",
+    "description": "Admin console error when an uploaded SAML Service Provider private key file cannot be parsed; 'PEM' is a key format name."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "The uploaded Service Provider public certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Service Provider public certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Missing Identity Provider SSO Descriptors node in the XML.",
     "description": "Admin console error when SAML Identity Provider metadata XML lacks the IDPSSODescriptor element; technical XML node name."
@@ -9161,11 +9176,6 @@
     "description": "Bulk import error shown to admins when saving imported team membership records fails."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Unable to import team membership because no more members are allowed in that team",
-    "description": "Bulk import error shown to admins when a team has reached its maximum user limit so the membership cannot be added."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences",
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
@@ -9184,6 +9194,16 @@
     "id": "app.import.preflight.auth_provider_not_configured.error",
     "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}",
     "description": "Bulk import pre-check error when the export contains users of a sign-in method that is not set up on this server. {{.Service}} is the internal auth service ID (e.g. ldap, saml, gitlab, google, office365, openid); {{.Detail}} is an untranslated English explanation."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "This file adds {{.Adding}} users to team {{.Team}}, giving it {{.Total}} members, but TeamSettings.MaxUsersPerTeam is {{.Limit}}. Raise the limit or set it to 0 (no limit) before importing.",
+    "description": "Bulk import pre-check error shown before anything is imported when the import would take a team past its member limit. {{.Adding}} is the number of users the file adds to the team, {{.Team}} the team name, {{.Total}} the resulting member count and {{.Limit}} the configured limit. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Unable to read the import file to check TeamSettings.MaxUsersPerTeam.",
+    "description": "Bulk import pre-check error shown when the data file inside the import archive cannot be found or opened, so the team member limit cannot be checked before importing. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -14342,6 +14362,11 @@
     "description": "SAML login error when the Service Provider private key file is missing; 'Service Provider' is a SAML term for the Mattermost side."
   },
   {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML is not configured correctly. Please contact your System Administrator.",
+    "description": "SAML error when the Service Provider could not be configured, e.g. because a stored certificate or key failed to load; 'Service Provider' is a SAML term for the Mattermost side."
+  },
+  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator.",
     "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
@@ -18430,6 +18455,26 @@
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Invalid field filter. A field name must be at most {{.MaxLength}} characters, and can't be empty, \"level\" or \"timestamp\".",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when the field name is not allowed. {{.MaxLength}} is the maximum number of characters. \"level\" and \"timestamp\" are log field names and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Invalid field filter. A field value must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a value is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Invalid field filter. Each field must have between 1 and {{.MaxValues}} values.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a field has no values or too many. {{.MaxValues}} is the maximum number of values."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Invalid field filter. At most {{.MaxKeys}} fields can be filtered on.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by log fields, such as a plugin ID, when too many fields are given. {{.MaxKeys}} is the maximum number of fields."
   },
   {
     "id": "model.log_filter.is_valid.search.app_error",

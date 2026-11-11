@@ -12,12 +12,12 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
         OAuth 2.0 Applications
       </h1>
       <a
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         href="/test/integrations/oauth2-apps/add"
         id="addOauthApp"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           <span>
             Add OAuth 2.0 Application
@@ -153,20 +153,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               </strong>
               <button
                 aria-label="Copy Client Id"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
                 data-testid="copyText"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -301,20 +301,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
               </strong>
               <button
                 aria-label="Copy Client Id"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
                 data-testid="copyText"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -376,20 +376,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
         1 - 2 of 2
         <button
           aria-label="Previous page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -409,20 +409,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -458,12 +458,12 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
         OAuth 2.0 Applications
       </h1>
       <a
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         href="/test/integrations/oauth2-apps/add"
         id="addOauthApp"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           <span>
             Add OAuth 2.0 Application
@@ -599,20 +599,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
               </strong>
               <button
                 aria-label="Copy Client Id"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
                 data-testid="copyText"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -717,20 +717,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
         1 - 2 of 2
         <button
           aria-label="Previous page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -750,20 +750,20 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot for Ap
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
