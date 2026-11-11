@@ -55,8 +55,8 @@ func NewServerManager(cfg Config, logger *mlog.Logger) *ServerManager {
 	return &ServerManager{
 		cfg:    cfg,
 		logger: logger,
-		sideA:  newServerSide("A", cfg.ServerAURL, "mattermost_test", 9065, 1, cfg.Nodes),
-		sideB:  newServerSide("B", cfg.ServerBURL, "mattermost_node_test", 9066, 2, cfg.Nodes),
+		sideA:  newServerSide("A", cfg.ServerAURL, cfg.DBNameA, 9065, 1, cfg.Nodes),
+		sideB:  newServerSide("B", cfg.ServerBURL, cfg.DBNameB, 9066, 2, cfg.Nodes),
 	}
 }
 
@@ -227,8 +227,8 @@ func (sm *ServerManager) resetDatabases(ctx context.Context) error {
 	sm.logger.Info("Resetting databases...")
 	for _, side := range sm.sides() {
 		for _, sql := range []string{
-			fmt.Sprintf("DROP DATABASE IF EXISTS %s", side.dbName),
-			fmt.Sprintf("CREATE DATABASE %s", side.dbName),
+			fmt.Sprintf(`DROP DATABASE IF EXISTS "%s"`, side.dbName),
+			fmt.Sprintf(`CREATE DATABASE "%s"`, side.dbName),
 		} {
 			cmd := exec.CommandContext(ctx, "docker", "exec",
 				"-e", "PGPASSWORD=mostest_password",

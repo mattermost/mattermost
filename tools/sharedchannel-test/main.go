@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"runtime"
 	"syscall"
 
@@ -34,6 +35,8 @@ type Config struct {
 	AdminPass   string
 	Nodes       int
 	NodeImage   string
+	DBNameA     string
+	DBNameB     string
 }
 
 func main() {
@@ -48,7 +51,29 @@ func main() {
 	flag.StringVar(&cfg.AdminPass, "admin-pass", "Admin1234567890", "Admin password")
 	flag.IntVar(&cfg.Nodes, "nodes", 1, "Nodes per server; above 1 runs each server as an HA cluster of Docker containers (managed mode, Linux only)")
 	flag.StringVar(&cfg.NodeImage, "node-image", "alpine:latest", "Container image for HA nodes (the server binary is mounted into it)")
+	flag.StringVar(&cfg.DBNameA, "db-a", "", "Server A database; dropped and recreated in managed mode (default sharedchannel_test_a when managed, mattermost_test otherwise)")
+	flag.StringVar(&cfg.DBNameB, "db-b", "", "Server B database; dropped and recreated in managed mode (default sharedchannel_test_b when managed, mattermost_node_test otherwise)")
 	flag.Parse()
+
+	// Managed mode drops and recreates its databases, so its defaults must not be
+	// the ones make run-server and make run-node use.
+	if cfg.DBNameA == "" {
+		cfg.DBNameA = "mattermost_test"
+		if cfg.Manage {
+			cfg.DBNameA = "sharedchannel_test_a"
+		}
+	}
+	if cfg.DBNameB == "" {
+		cfg.DBNameB = "mattermost_node_test"
+		if cfg.Manage {
+			cfg.DBNameB = "sharedchannel_test_b"
+		}
+	}
+
+	if err := validateDBNames(cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 
 	if cfg.LicensePath == "" {
 		fmt.Fprintln(os.Stderr, "error: --license is required")
@@ -98,6 +123,25 @@ func validateHAConfig(cfg Config) error {
 	}
 	if runtime.GOOS != "linux" {
 		return fmt.Errorf("--nodes > 1 requires Linux (Docker host networking and the 127.0.0.0/8 loopback range)")
+	}
+	return nil
+}
+
+// Names are restricted so they are safe inside a quoted SQL identifier and
+// need no escaping in a datasource URL.
+var dbNamePattern = regexp.MustCompile(`^[a-z_][a-z0-9_]{0,62}$`)
+
+func validateDBNames(cfg Config) error {
+	for _, name := range []string{cfg.DBNameA, cfg.DBNameB} {
+		if !dbNamePattern.MatchString(name) {
+			return fmt.Errorf("invalid database name %q: use lower case letters, digits and underscores, starting with a letter or underscore", name)
+		}
+		if cfg.Manage && (name == "mattermost_test" || name == "mattermost_node_test") {
+			return fmt.Errorf("refusing to use %q in managed mode: it is dropped and recreated, and make run-server/run-node use it", name)
+		}
+	}
+	if cfg.DBNameA == cfg.DBNameB {
+		return fmt.Errorf("--db-a and --db-b must differ, both are %q", cfg.DBNameA)
 	}
 	return nil
 }
