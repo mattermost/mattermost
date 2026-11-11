@@ -50,20 +50,20 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         <button
           aria-label="Filter"
           aria-pressed="true"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 action-icon dots-icon"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -80,7 +80,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
               </div>
             </div>
             <span
-              class="_icon-button__unread-badge_ft92e_48"
+              class="_icon-button__unread-badge_1d2d4_72"
             />
           </span>
         </button>
@@ -170,20 +170,20 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         <button
           aria-label="Filter"
           aria-pressed="true"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 action-icon dots-icon"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 action-icon dots-icon"
           id="filesFilterButton"
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -200,7 +200,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
               </div>
             </div>
             <span
-              class="_icon-button__unread-badge_ft92e_48"
+              class="_icon-button__unread-badge_1d2d4_72"
             />
           </span>
         </button>

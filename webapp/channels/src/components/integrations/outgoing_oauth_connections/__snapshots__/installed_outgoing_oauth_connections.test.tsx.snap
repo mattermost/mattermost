@@ -12,12 +12,12 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         Outgoing OAuth Connections
       </h1>
       <a
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         href="/test/integrations/outgoing-oauth2-connections/add"
         id="addOutgoingOauthConnection"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           <span>
             Add Outgoing OAuth Connection
@@ -76,7 +76,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
           >
             <span
               aria-label="Loading Icon"
-              class="_spinner_3elm7_10 spinner"
+              class="_spinner_mvrwe_21 spinner"
               role="status"
               style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
             />
@@ -94,20 +94,20 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         0 - 0 of 0
         <button
           aria-label="Previous page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 ml-2 prev"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
@@ -127,20 +127,20 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
         </button>
         <button
           aria-label="Next page"
-          class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 next"
+          class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
           disabled=""
           type="button"
         >
           <span
             aria-hidden="true"
-            class="_icon-button__icon-slot_ft92e_41"
+            class="_icon-button__icon-slot_1d2d4_65"
           >
             <div
               aria-hidden="true"
-              class="_icon_1i355_2 _icon--size-16_1i355_38"
+              class="_icon_1xcik_13 _icon--size-16_1xcik_49"
             >
               <div
-                class="_icon__glyph-area_1i355_9"
+                class="_icon__glyph-area_1xcik_20"
               >
                 <svg
                   fill="currentColor"
