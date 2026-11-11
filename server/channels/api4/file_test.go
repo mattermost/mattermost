@@ -1392,6 +1392,19 @@ func TestUploadFileMultipartLegacyForm(t *testing.T) {
 
 		require.Equal(t, before, tempFiles(t))
 	})
+
+	t.Run("form names count towards the form data limit", func(t *testing.T) {
+		parts := []uploadMultipartPart{{formName: "files", fileName: "test.png", value: fileBlob}}
+		for i := range 4 {
+			parts = append(parts, uploadMultipartPart{formName: strings.Repeat(string(rune('a'+i)), maxMultipartPrebufferBytes/3)})
+		}
+		parts = append(parts, uploadMultipartPart{formName: "channel_id", value: channelID})
+		body, contentType := buildUploadMultipartBody(t, parts...)
+
+		_, resp, err := testDoUploadFileRequest(t, th.Client, "", body, contentType, -1)
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+	})
 }
 
 // TestUploadFileMultipartBufferBounds checks that the memory the file upload

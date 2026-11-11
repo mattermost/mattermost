@@ -591,72 +591,75 @@ func readMultipartFormFile(part *multipart.Part, memoryLeft int64) (*multipartFo
 // readMultipartForm reads every part of the form, holding at most
 // maxMultipartPrebufferBytes of values and of file content in memory and
 // writing larger files to temporary files. On error nothing is left on disk.
-func readMultipartForm(mr *multipart.Reader) (_ *multipartForm, err error) {
+func readMultipartForm(mr *multipart.Reader) (*multipartForm, error) {
 	form := &multipartForm{values: map[string][]string{}}
-	defer func() {
-		if err != nil {
-			_ = form.removeAll()
-		}
-	}()
+	if err := form.read(mr); err != nil {
+		_ = form.removeAll()
+		return nil, err
+	}
 
+	return form, nil
+}
+
+func (f *multipartForm) read(mr *multipart.Reader) error {
 	valueBytes := int64(0)
 	fileMemoryBytes := int64(0)
 	for nParts := 0; ; nParts++ {
 		part, err := mr.NextPart()
 		if err == io.EOF {
-			return form, nil
+			return nil
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if nParts >= maxMultipartParts {
-			return nil, multipart.ErrMessageTooLarge
+			return multipart.ErrMessageTooLarge
 		}
 
 		name := part.FormName()
 		if name == "" {
 			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
-				return nil, err
+				return err
 			}
 			continue
 		}
 
-		valueBytes += multipartFormValueOverheadBytes
+		valueBytes += multipartFormValueOverheadBytes + int64(len(name))
 
 		if part.FileName() == "" {
 			var b bytes.Buffer
-			n, err := readMultipartFormValue(&b, part)
-			if err != nil {
-				return nil, err
+			var n int64
+			if n, err = readMultipartFormValue(&b, part); err != nil {
+				return err
 			}
 
 			valueBytes += n
 			if valueBytes > maxMultipartPrebufferBytes {
-				return nil, errMultipartFormDataTooLarge
+				return errMultipartFormDataTooLarge
 			}
 
-			form.values[name] = append(form.values[name], b.String())
+			f.values[name] = append(f.values[name], b.String())
 			continue
 		}
 
 		valueBytes += int64(len(part.FileName()))
 		if valueBytes > maxMultipartPrebufferBytes {
-			return nil, errMultipartFormDataTooLarge
+			return errMultipartFormDataTooLarge
 		}
 
 		if name != "files" {
 			if _, err = io.Copy(io.Discard, part); err != nil {
-				return nil, err
+				return err
 			}
 			continue
 		}
 
-		file, err := readMultipartFormFile(part, maxMultipartPrebufferBytes-fileMemoryBytes)
-		if err != nil {
-			return nil, err
+		var file *multipartFormFile
+		if file, err = readMultipartFormFile(part, maxMultipartPrebufferBytes-fileMemoryBytes); err != nil {
+			return err
 		}
 		fileMemoryBytes += int64(len(file.content))
-		form.files = append(form.files, file)
+		f.files = append(f.files, file)
 	}
 }
 
