@@ -27,7 +27,7 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
    - **The password must be stored and verified with `scram-sha-256`, not `md5`.** MD5 isn't a FIPS-approved algorithm, so the FIPS image can't authenticate to PostgreSQL using `md5` password authentication.
    - **The password must be at least 14 characters.** Beginning with Mattermost v11.7, the FIPS image requires a Postgres password of at least 14 characters.
 
-   If your deployment doesn't meet both requirements, complete these steps before swapping the image. Connect to PostgreSQL with `psql` as a superuser, and replace `mmuser` and `mattermost` with your deployment's database user and database name:
+   Check these requirements before swapping the image. Connect to PostgreSQL with `psql` as a superuser, and replace `mmuser` and `mattermost` with your deployment's database user and database name:
 
    a. Check how the Mattermost database user's password is stored:
 
@@ -35,7 +35,7 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
       SELECT rolname, rolpassword LIKE 'SCRAM-SHA-256$%' AS uses_scram FROM pg_authid WHERE rolname = 'mmuser';
       ```
 
-      If `uses_scram` is `t` and the password is at least 14 characters, your deployment already meets both requirements. Continue to the next item in this list.
+      If `uses_scram` is `t` and the password is at least 14 characters, the stored password already meets both requirements, and you can skip step c. Complete steps b and d regardless. They make sure that future password changes are also stored as SCRAM hashes, and that PostgreSQL verifies the password with SCRAM.
 
    b. Confirm that PostgreSQL hashes new passwords with SCRAM. `scram-sha-256` is the default from PostgreSQL 14, but databases upgraded from older versions may still be set to `md5`:
 
@@ -65,12 +65,14 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
    d. In `pg_hba.conf`, require `scram-sha-256` for connections from the Mattermost server, then reload the configuration with `SELECT pg_reload_conf();`. Scope the entry to the Mattermost database and user. For example:
 
       ```text
-      host mattermost mmuser {mattermost-server-IP}/32 scram-sha-256
+      host mattermost mmuser <mattermost-address> scram-sha-256
       ```
 
-      PostgreSQL uses the first entry that matches a connection, so place this entry above any broader entry that also matches, such as `host all all`. If you change a shared entry like `host all all` to `scram-sha-256` instead, first confirm that every user it covers has a password stored as a SCRAM hash. A user whose password is still stored as an MD5 hash can't authenticate through a `scram-sha-256` entry.
+      Replace `<mattermost-address>` with the address or CIDR range that PostgreSQL sees the Mattermost server's connections coming from. If Mattermost runs in Docker or Kubernetes, don't use the current IP address of the Mattermost container or pod. The image swap recreates it, and it can come back with a different address. Use the network range it connects from instead, such as the Docker Compose network's subnet or your cluster's pod network range.
 
-      For the same reason, make this change only after step c. Until then, leave the existing `md5` entry in place. PostgreSQL already uses SCRAM for a password stored as a SCRAM hash, even when the entry says `md5`.
+      PostgreSQL uses the first entry that matches a connection, so place this entry above any broader entry that also matches, such as a `host all all` entry that uses `md5` or `password`. If you change a shared entry like `host all all` to `scram-sha-256` instead, first confirm that every user it covers has a password stored as a SCRAM hash. A user whose password is still stored as an MD5 hash can't authenticate through a `scram-sha-256` entry.
+
+      For the same reason, make this change only after step a or step c confirms that the password is stored as a SCRAM hash. Until then, leave any existing `md5` entry in place. PostgreSQL already uses SCRAM for a password stored as a SCRAM hash, even when the entry says `md5`.
 
    e. If you changed the password in step c, update it where your deployment stores it at the same time: in the official Docker deployment, the `POSTGRES_PASSWORD` value in `.env`; in Operator-managed Kubernetes deployments, the database Secret referenced by your `Mattermost` custom resource (commonly under `spec.database.external.secret`).
 
