@@ -541,6 +541,22 @@ def _callout_after(lines: list[str], index: int, end: int) -> tuple[int, int] | 
     return first, close
 
 
+def _bullet_end(lines: list[str], bullet: int, end: int) -> int:
+    """The line after a dot release bullet's body: its indented lines, including an indented ``<Attention>``
+    block, whose own lines may be blank or unindented."""
+    i, callout = bullet + 1, False
+    while i < end:
+        line = lines[i]
+        if callout:
+            callout = line.strip() != "</Attention>"
+        elif line.startswith((" ", "\t")) and line.strip() == "<Attention>":
+            callout = True
+        elif not line.strip() or not line.startswith((" ", "\t")):
+            break
+        i += 1
+    return i
+
+
 def update_changelog(content: str, release: Release, result: Result) -> str:
     """The new bullet in the ``## Release vX.Y`` section; the heading never changes."""
     v = release.version
@@ -577,7 +593,7 @@ def update_changelog(content: str, release: Release, result: Result) -> str:
             result.todo(f"the {v.short} section of {changelog_path(v)} has neither a Release day line nor dot release bullets")
             return content
         later = [i for i in bullets if tuple(map(int, DOT_BULLET.match(lines[i]).groups())) < (v.major, v.minor, v.patch)]
-        at = later[0] if later else bullets[-1] + 1
+        at = later[0] if later else _bullet_end(lines, bullets[-1], end)
         lines[at:at] = new
     if breaking:
         lines = _add_breaking(lines, v, breaking)

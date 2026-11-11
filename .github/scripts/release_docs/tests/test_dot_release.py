@@ -507,6 +507,33 @@ class ChangelogTest(unittest.TestCase):
         lines = dr.entry_lines(simple_release("v12.1.1", [("Fixed an issue where a thing broke.", {})]))
         self.assertEqual(lines[1], "  - Fixed an issue where a thing broke.")
 
+    def test_older_dot_release_goes_after_the_last_bullets_body(self):
+        # As in the v11.0 section: no X.Y.0 bullet, and the last bullet's body has an indented callout.
+        section = (f"# Changelog\n\n{HEADING}\n\n"
+                   "- **12.1.3, released 2026-11-20**\n"
+                   "  - Mattermost v12.1.3 contains no database or functional changes.\n"
+                   "- **12.1.2, released 2026-11-10**\n"
+                   " <Attention>\n\n**Critical Fixes**\n  - Mattermost v12.1.2 contains a Critical severity level security fix.\n\n"
+                   " </Attention>\n"
+                   "  - Mattermost v12.1.2 contains no database or functional changes.\n\n"
+                   "<Attention>\n\n**Breaking Changes**\n - Removed the old thing.\n\n</Attention>\n\n"
+                   "### Improvements\n - Added a thing.\n")
+        result = Result(dr.TASK, "x")
+        text = dr.update_changelog(section, simple_release("v12.1.1"), result)
+        self.assertEqual(result.todos, [])
+        self.assertIn("  - Mattermost v12.1.2 contains no database or functional changes.\n"
+                      "- **12.1.1, released 2026-11-02**\n"
+                      "  - Mattermost v12.1.1 contains no database or functional changes.\n\n"
+                      "<Attention>\n\n**Breaking Changes**", text)
+        self.assertIn(" <Attention>\n\n**Critical Fixes**\n  - Mattermost v12.1.2 contains a Critical", text)
+        self.assertEqual(dr.mdx_issues(text), dr.mdx_issues(section))
+
+    def test_older_dot_release_at_the_end_of_the_section(self):
+        section = f"{HEADING}\n\n- **12.1.3, released 2026-11-20**\n  - Original bullet.\n## Release v12.0 - [x]\n"
+        text = dr.update_changelog(section, simple_release("v12.1.2"), Result(dr.TASK, "x"))
+        self.assertIn("  - Original bullet.\n- **12.1.2, released 2026-11-02**\n"
+                      "  - Mattermost v12.1.2 contains no database or functional changes.\n## Release v12.0", text)
+
     def test_no_section_is_a_todo(self):
         result = Result(dr.TASK, "x")
         self.assertEqual(dr.update_changelog(FIRST, simple_release("v11.9.3"), result), FIRST)
