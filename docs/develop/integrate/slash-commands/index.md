@@ -8,14 +8,14 @@ Slash commands are messages that begin with `/` and trigger an HTTP request to a
 Slash commands have an additional feature, **autocomplete**, that displays a list of possible commands based on what has been typed in the message box. Typing `/` in an empty message box will display a list of all slash commands. As the slash command is typed in the message box, autocomplete will also display possible arguments and flags for the command.
 
 Unlike [outgoing webhooks](/developers/integrate/webhooks/outgoing), slash commands work in private channels and direct messages in addition to public channels, and can be configured to auto-complete when typing.
-Mattermost includes a number of [built-in slash commands](https://docs.mattermost.com/channels/interact-with-channels.html). You can also create [custom slash commands](/custom).
+Mattermost includes a number of [built-in slash commands](https://docs.mattermost.com/channels/interact-with-channels.html). You can also create [custom slash commands](./custom/index.md).
 
 ## Tips and best practices
 
 1. Slash commands are designed to easily allow you to post messages. For other actions such as channel creation, you must also use the [Mattermost APIs](https://api.mattermost.com).
 2. Posts size is limited to 16383 characters for servers running [Mattermost Server v5.0 or later](https://docs.mattermost.com/administration/important-upgrade-notes.html). Use the `extra_responses` field to reply to a triggered slash command with more than one post.
 3. You can restrict who can create slash commands in [System Console > Integrations > Integration Management](https://docs.mattermost.com/configure/configuration-settings.html#enable-custom-slash-commands).
-4. Mattermost [outgoing webhooks](/developers/integrate/webhooks/outgoing) are Slack-compatible. You can copy-and-paste code used for a Slack outgoing webhook to create Mattermost integrations. Mattermost [automatically translates Slack's proprietary JSON payload format](/slack#translate-slacks-data-format-to-mattermost).
+4. Mattermost [outgoing webhooks](/developers/integrate/webhooks/outgoing) are Slack-compatible. You can copy-and-paste code used for a Slack outgoing webhook to create Mattermost integrations. Mattermost [automatically translates Slack's proprietary JSON payload format](./slack/index.md#translate-slacks-data-format-to-mattermost).
 5. The external application may be written in any programming language. It needs to provide a URL which receives the request sent by your Mattermost Server and responds with in the required JSON format.
 
 ## FAQ
@@ -92,7 +92,7 @@ Ensure you are emitting the `Content-Type: application/json` header, otherwise y
 
 ### Are slash commands Slack-compatible?
 
-See the [Slack compatibility](/slack) page.
+See the [Slack compatibility](./slack/index.md) page.
 
 ### How do I use Bot Accounts to reply to slash commands?
 

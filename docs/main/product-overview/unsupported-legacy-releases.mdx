@@ -2372,7 +2372,7 @@ If you upgrade from a release earlier than v7.5, please read the other [Importan
 ### Highlights
 
 #### Calls
-- [Audio calling and screen sharing](https://docs.mattermost.com/configure/calls-deployment-guide.html) in channels is now generally available to all Mattermost customers.
+- [Audio calling and screen sharing](/deployment-guide/calls/calls-deployment-guide) in channels is now generally available to all Mattermost customers.
  - Updated [the keyboard shortcut](https://docs.mattermost.com/channels/keyboard-shortcuts-for-channels.html#calls-shortcuts) to start and join calls.
  - Please see [the docs](https://docs.mattermost.com/configure/plugins-configuration-settings.html#calls) for additional details on configuration setting updates.
 
@@ -2776,7 +2776,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 Mattermost v7.3.0 contains a medium severity level security fix. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
 
 ### Important Upgrade Notes
- - Boards is moving from a channel-based to a role-based permissions system. The migration will happen automatically, but your administrator should perform a backup prior to the upgrade. We removed workspaces, so if you were a member of many boards prior to migration, they will now all appear under the same sidebar. Please see [this document](https://docs.mattermost.com/welcome/whats-new-in-v72.html) for more details.
+ - Boards is moving from a channel-based to a role-based permissions system. The migration will happen automatically, but your administrator should perform a backup prior to the upgrade. We removed workspaces, so if you were a member of many boards prior to migration, they will now all appear under the same sidebar. Please see [this document](https://github.com/mattermost/docs/blob/v7.2/source/welcome/whats-new-in-v72.rst) for more details.
 
 <Important>
 
@@ -2801,7 +2801,7 @@ If you upgrade from a release earlier than v7.2, please read the other [Importan
  - Navigate between teams in Boards with the new team switcher.
  - Set board and template permissions in the new **Share** setting.
  - Link boards to channels to automatically grant board permissions to channel members.
- - See [the documentation](https://docs.mattermost.com/welcome/whats-new-in-v72.html) for more details.
+ - See [the documentation](https://github.com/mattermost/docs/blob/v7.2/source/welcome/whats-new-in-v72.rst) for more details.
 
 #### Calls
  - Added support for standalone Calls server and Kubernetes (Enterprise).
@@ -3867,7 +3867,7 @@ in certain conditions. Customers are requested to check for these values in thei
   - Original 6.3.0 release
 
 ### Important Upgrade Notes
- -  [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](https://docs.mattermost.com/configuration-settings.html#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
+ -  [Collapsed Reply Threads](https://docs.mattermost.com/messaging/organizing-conversations.html), available in beta, are known to have a negative impact on server performance. If you cannot easily scale up and tune your database, or if you are running the Mattermost application server and database server on the same machine, we recommended disabling [``ThreadAutoFollow``](/administration-guide/configure/site-configuration-settings#automatically-follow-threads) and [``CollapsedThreads``](https://docs.mattermost.com/configure/configuration-settings.html#collapsed-reply-threads-beta) until Collapsed Reply Threads is promoted to general availability in Q2 2022. Learn more about these [performance considerations here](https://support.mattermost.com/hc/en-us/articles/4413183568276-What-to-expect-when-enabling-Collapsed-Reply-Threads-Beta).
 
 IMPORTANT: If you upgrade from a release earlier than v6.2, please read the other [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html).
 
@@ -6034,7 +6034,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-## Release v5.28 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.28 - [Feature Release](/product-overview/release-policy)
 
 - **v5.28.2, released 2020-12-03**
   - Disabled the xmlsec1-based SAML library in favor of the re-enabled and improved SAML library.
@@ -6191,7 +6191,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ----
 
-## Release v5.27 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.27 - [Quality Release](/product-overview/release-policy)
 
 - **v5.27.2, released 2020-12-03**
   - Disabled the xmlsec1-based SAML library in favor of the re-enabled and improved SAML library.
@@ -6274,7 +6274,7 @@ Mattermost v5.27.0 contains a low level security fix. [Upgrading](https://docs.m
 ## Release v5.26 - [Feature Release](https://docs.mattermost.com/administration/release-definitions.html#feature-release)
 
 - **v5.26.2, released 2020-09-03**
-  - Forcefully disabled the SAML Setting "Use Improved SAML Library (Beta)", as we have identified some issues in this feature. Please follow instructions at https://docs.mattermost.com/deployment/sso-saml-before-you-begin.html for enabling SAML using the feature-equivalent ``xmlsec1`` utility.
+  - Forcefully disabled the SAML Setting "Use Improved SAML Library (Beta)", as we have identified some issues in this feature. Please follow instructions at [SAML Single Sign-On: before you begin](/administration-guide/onboard/sso-saml-before-you-begin) for enabling SAML using the feature-equivalent ``xmlsec1`` utility.
 - **v5.26.1, released 2020-08-25**
   - Fixed an issue where users were unable to use the [``PictureAttribute`` setting](https://docs.mattermost.com/administration/config-settings.html#profile-picture-attribute) with SAML authentication. [MM-27852](https://mattermost.atlassian.net/browse/MM-27852)
   - Fixed an issue where users got unexpectedly logged out from the mobile app when ``ExtendSessionLengthWithActivity`` was enabled as opening the mobile app called an API that overrode session extension triggers of typing, channel change, and posts. [MM-27184](https://mattermost.atlassian.net/browse/MM-27184)
@@ -6458,7 +6458,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
   - Fixed an issue where the Compliance Exports were taking too long on large deployments. This was fixed with a performance optimization of the message export query.
   - Bumped up Go patch version to 1.14.6 to fix an issue where a potential livelock was detected in the app server under heavy load. [MM-26584](https://mattermost.atlassian.net/browse/MM-26584)
 - **v5.25.5, released 2020-09-03**
-  - Forcefully disabled the SAML Setting "Use Improved SAML Library (Beta)", as we have identified some issues in this feature. Please follow instructions at https://docs.mattermost.com/deployment/sso-saml-before-you-begin.html for enabling SAML using the feature-equivalent ``xmlsec1`` utility. 
+  - Forcefully disabled the SAML Setting "Use Improved SAML Library (Beta)", as we have identified some issues in this feature. Please follow instructions at [SAML Single Sign-On: before you begin](/administration-guide/onboard/sso-saml-before-you-begin) for enabling SAML using the feature-equivalent ``xmlsec1`` utility. 
 - **v5.25.4, released 2020-08-25**
   - Fixed an issue where users were unable to use the [``PictureAttribute`` setting](https://docs.mattermost.com/administration/config-settings.html#profile-picture-attribute) with SAML authentication. [MM-27852](https://mattermost.atlassian.net/browse/MM-27852)
   - Fixed an issue where users got unexpectedly logged out from the mobile app when ``ExtendSessionLengthWithActivity`` was enabled as opening the mobile app called an API that overrode session extension triggers of typing, channel change, and posts. [MM-27184](https://mattermost.atlassian.net/browse/MM-27184)
@@ -6557,7 +6557,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.24 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.24 - [Feature Release](/product-overview/release-policy)
 
 - **v5.24.3, released 2020-07-23**
   - Smoothed the database query load while syncing teams and channel roles by fetching data in batches. [MM-27114](https://mattermost.atlassian.net/browse/MM-27114)
@@ -6725,7 +6725,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.23 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.23 - [Quality Release](/product-overview/release-policy)
 
 - **v5.23.2, released 2020-07-23**
   - Smoothed the database query load while syncing teams and channel roles by fetching data in batches. [MM-27114](https://mattermost.atlassian.net/browse/MM-27114)
@@ -6797,7 +6797,7 @@ We highly recommend upgrading to PostgreSQL version 10+. Please follow the instr
 
 ----
 
-## Release v5.22 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.22 - [Feature Release](/product-overview/release-policy)
 
 - **v5.22.3, released 2020-05-11**
   - Fixed an issue where channels were shown as read-only when [Channel Moderation feature](https://docs.mattermost.com/deployment/advanced-permissions.html#channel-moderation-beta-e20) was used in High Availability environments. [MM-24987](https://mattermost.atlassian.net/browse/MM-24987)
@@ -6940,7 +6940,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.21 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.21 - [Quality Release](/product-overview/release-policy)
 
 **Release day: 2020-03-16**
 
@@ -6984,7 +6984,7 @@ Mattermost v5.21.0 contains low level security fixes. [Upgrading](https://docs.m
 
 ----
 
-## Release v5.20 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.20 - [Feature Release](/product-overview/release-policy)
 
 - **v5.20.2, released 2020-03-12**
   - Fixed an issue where Mattermost server crashed when running a compliance export. [MM-23157](https://mattermost.atlassian.net/browse/MM-23157)
@@ -7202,7 +7202,7 @@ If you upgrade from a release earlier than 5.18, please read the other [Importan
 
 ----
 
-## Release v5.18 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.18 - [Feature Release](/product-overview/release-policy)
 
 Mattermost v5.18.0 contains low to high level security fixes. [Upgrading](https://docs.mattermost.com/administration/upgrade.html) is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/?redirect_source=mm-org/).
 
@@ -7372,7 +7372,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.17 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.17 - [Quality Release](/product-overview/release-policy)
 
 Mattermost v5.17.0 contains medium to high level security fixes. [Upgrading](https://docs.mattermost.com/administration/upgrade.html) is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/?redirect_source=mm-org/).
 
@@ -7441,7 +7441,7 @@ A setting option was added to `config.json`. Below is a list of the additions an
 
 ----
 
-## Release v5.16 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.16 - [Feature Release](/product-overview/release-policy)
 
 - **v5.16.5, released 2020-01-08**
   - Mattermost v5.16.5 contains a high level security fix. [Upgrading](https://docs.mattermost.com/administration/upgrade.html) is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/?redirect_source=mm-org/).
@@ -7611,7 +7611,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.15 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.15 - [Quality Release](/product-overview/release-policy)
 
 - **v5.15.5, released 2020-01-08**
   - Fixed an issue where migrating accounts from email to SAML failed. [MM-21472](https://mattermost.atlassian.net/browse/MM-21472)
@@ -7700,7 +7700,7 @@ Mattermost v5.15.0 contains low level security fixes. [Upgrading](https://docs.m
 
 ----
 
-## Release v5.14 - [Feature Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.14 - [Feature Release](/product-overview/release-policy)
 
 - **v5.14.5, released 2019-10-24**
   - Mattermost v5.14.5 contains a high level security fix. [Upgrading](https://docs.mattermost.com/administration/upgrade.html) is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/?redirect_source=mm-org/).
@@ -7898,7 +7898,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 ----
 
-## Release v5.13 - [Quality Release](https://docs.mattermost.com/process/release-faq.html#release-overview)
+## Release v5.13 - [Quality Release](/product-overview/release-policy)
 
 Mattermost v5.13.0 contains low level security fixes. [Upgrading](https://docs.mattermost.com/administration/upgrade.html) is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/?redirect_source=mm-org/).
 
@@ -15092,7 +15092,7 @@ Released 2015-10-20
 
 This is a Quality Release (v1.1.1) and recommended only for users needing a fix to the specific issue listed below. All other users should use the most recent major stable build release (v1.1.0).
 
-[View more information on Mattermost release numbering](https://docs.mattermost.com/process/release-process.html#release-numbering).
+[View more information on Mattermost release numbering](/product-overview/release-policy).
 
 ### Release Purpose
 

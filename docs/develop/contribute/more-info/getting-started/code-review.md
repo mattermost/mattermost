@@ -88,7 +88,7 @@ If you are a core committer seeking a review
 9. Handle any cherry-picks.
     * There is an automated cherry-pick process. 
     * As the author of the pull request, you should make sure the cherry-pick succeeds. 
-    * [Check here](/developers/contribute/more-info/getting-started/branching#cherry-pick-process---developer) for details.
+    * [Check here](/developers/contribute/more-info/getting-started/branching#developer-process) for details.
 10. After a pull request is merged (and cherry-picked where needed), update the Jira ticket.
     * Resolve the ticket for QA from "Ready for QA" button with QA test steps (or "No Testing Required" if no QA testing is needed).
 

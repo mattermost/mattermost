@@ -10,4 +10,4 @@ When building a custom version of the Mattermost mobile app, you will also need 
     - [iOS](/developers/contribute/more-info/mobile/push-notifications/ios)
 2. [Setup the Mattermost push notification service](/developers/contribute/more-info/mobile/push-notifications/service)
 
-If the use of a proxy server is required by your IT policy, see the [corporate proxy](/corporate-proxy) page.
+If the use of a proxy server is required by your IT policy, see the [corporate proxy](./corporate-proxy.md) page.

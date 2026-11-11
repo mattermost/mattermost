@@ -25,7 +25,7 @@ For example, consume the [OnConfigurationChange](/developers/integrate/reference
 
 #### REST API
 
-Implement the [ServeHTTP](/developers/integrate/) hook to extend the existing Mattermost REST API.
+Implement the [ServeHTTP](/developers/integrate/reference/server#Hooks.ServeHTTP) hook to extend the existing Mattermost REST API.
 
 Plugins with both a web app and server component can leverage this REST API to exchange data. Alternatively, expose your REST API to services and developers connecting from outside Mattermost.
 

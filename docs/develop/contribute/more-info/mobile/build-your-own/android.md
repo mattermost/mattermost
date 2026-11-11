@@ -8,7 +8,7 @@ At times, you may want to build your own Mattermost mobile app. The most common 
 * To white label the Mattermost mobile app.
 * To use your own deployment of the Mattermost Push Notification Service (always required if you are building your own version of the mobile app).
 
-# Build preparations
+## Build preparations
 
 ### 1. Package name and source files
 

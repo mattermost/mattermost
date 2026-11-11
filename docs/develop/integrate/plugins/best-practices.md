@@ -132,7 +132,7 @@ Old servers won't do anything with new, unrecognized fields, but also won't brea
 
 ## How to expose performance metrics for a plugin?
 
-From Mattermost v9.4, a [`ServeMetrics`](/developers/integrate/reference/server#API.ServeMetrics) hook can be used to expose performance metrics in the [open metrics format](https://openmetrics.io/) under the common HTTP listener controlled by the [`MetricsSettings.ListenAddress`](https://docs.mattermost.com/configure/environment-configuration-settings.html#listen-address-for-performance) config setting.
+From Mattermost v9.4, a [`ServeMetrics`](/developers/integrate/reference/server#Hooks.ServeMetrics) hook can be used to expose performance metrics in the [open metrics format](https://openmetrics.io/) under the common HTTP listener controlled by the [`MetricsSettings.ListenAddress`](https://docs.mattermost.com/configure/environment-configuration-settings.html#listen-address-for-performance) config setting.
 
 Data returned by the hook's implementation through the given `http.ResponseWriter` object will be served through the `http://SITE_URL:8067/plugins/PLUGIN_ID/metrics` URL.
 

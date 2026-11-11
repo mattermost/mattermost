@@ -285,4 +285,4 @@ To fix this, set the `AppDirectory` of your service using `nssm set mattermost A
 
 If you're seeing `x509: certificate signed by unknown authority` in your server logs, it usually means that the CA for a self-signed certificate for a server your plugin is trying to access has not been added to your local trust store of the machine the Mattermost server is running on.
 
-You can add one in Linux [following instructions in this StackExchange article](https://unix.stackexchange.com/questions/90450/adding-a-self-signed-certificate-to-the-trusted-list), or set up a load balancer like NGINX per [production install guide](https://docs.mattermost.com/config-ssl-http2-nginx.html) to resolve the issue.
+You can add one in Linux [following instructions in this StackExchange article](https://unix.stackexchange.com/questions/90450/adding-a-self-signed-certificate-to-the-trusted-list), or set up a load balancer like NGINX per [production install guide](/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2) to resolve the issue.

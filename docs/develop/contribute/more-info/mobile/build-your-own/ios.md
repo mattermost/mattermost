@@ -20,7 +20,7 @@ $ xcode-select --install
 
 ### 2. Bundle ID and entitlements
 
-* Follow the steps 1, 2, and 3 for [Run on iOS Devices](/developers/contribute/more-info/mobile/developer-setup/run#run-on-ios-devices) in the Developer Setup.
+* Follow the steps 1, 2, and 3 for [Run on iOS Devices](/developers/contribute/more-info/mobile/developer-setup/run#run-on-a-device) in the Developer Setup.
 * After configuring the app in the previous step, **ensure** the bundle ID for each target of the mobile app remains the same as the one in the original [mattermost-mobile GitHub repository](https://github.com/mattermost/mattermost-mobile) (`com.mattermost.rnbeta`, `com.mattermost.rnbeta.MattermostShare`, and `com.mattermost.rnbeta.NotificationService`).
 
 ### 3. Code sign
