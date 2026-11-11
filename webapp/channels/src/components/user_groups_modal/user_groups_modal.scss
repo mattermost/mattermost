@@ -172,10 +172,15 @@
         max-height: 100%;
         padding: 0;
 
-        // Center the empty state in the space below the filter.
-        &:has(> .no-results__wrapper, > .user-groups-list--empty) {
+        // Center the empty state in the space below the filter. The empty states are children of
+        // GenericModal__body, so both it and .modal-body become height-filling columns.
+        &:has(> .GenericModal__body > .no-results__wrapper, > .GenericModal__body > .user-groups-list--empty) {
             display: flex;
             flex-direction: column;
+
+            > .GenericModal__body {
+                @include mixins.fill-height-column;
+            }
         }
 
         .no-results__wrapper {
