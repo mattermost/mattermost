@@ -35,6 +35,7 @@ type NotifyState = {
     status: NotifyStatus;
     queuedAdminCount?: number;
     truncated: boolean;
+    failureMessage?: string;
 };
 
 type Props = {
@@ -97,6 +98,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     const notifyStatus = currentNotifyState.status;
     const queuedAdminCount = currentNotifyState.queuedAdminCount;
     const queuedTruncated = currentNotifyState.truncated;
+    const notifyFailureMessage = currentNotifyState.failureMessage;
     const [attentionKey, setAttentionKey] = useState(0);
     const [attemptedEnable, setAttemptedEnable] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -192,9 +194,17 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                     truncated: result.truncated,
                 });
             }
-        } catch {
+        } catch (error) {
             if (stillCurrent()) {
-                setNotifyState({fieldId: notifyFieldId, status: 'notify_failed', truncated: false});
+                // A throttled run says how long until the next one is
+                // accepted; anything else gets the banner's generic copy.
+                const {status_code: statusCode, message} = (error ?? {}) as {status_code?: number; message?: string};
+                setNotifyState({
+                    fieldId: notifyFieldId,
+                    status: 'notify_failed',
+                    truncated: false,
+                    failureMessage: statusCode === 429 ? message : undefined,
+                });
             }
         }
         if (stillCurrent()) {
@@ -290,6 +300,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                     status={notifyStatus}
                                     queuedAdminCount={queuedAdminCount}
                                     queuedTruncated={queuedTruncated}
+                                    notifyFailureMessage={notifyFailureMessage}
                                     bodyId={MISSING_VALUES_BANNER_BODY_ID}
                                     onNotify={handleNotify}
                                     onViewList={handleViewList}

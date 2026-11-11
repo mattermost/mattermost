@@ -31,6 +31,7 @@ import Constants, {JobTypes} from 'utils/constants';
 
 import {ChannelAccessControl} from './channel_access_control_policy';
 import ChannelAttributesSettings from './channel_attributes_settings';
+import type {MissingRequiredChannelAttribute} from './channel_attributes_settings';
 import {ChannelGroups} from './channel_groups';
 import ChannelLevelAccessRules from './channel_level_access_rules';
 import ChannelMembers from './channel_members';
@@ -111,8 +112,9 @@ interface ChannelDetailsState {
     // a null value means "clear this field".
     channelAttributeValues: Record<string, string | string[] | null>;
 
-    // True while an editable required attribute has no value; holds back Save.
-    channelAttributesMissingRequired: boolean;
+    // Required attributes the attributes section can fill that have no value.
+    // While the page isn't archived, they hold back Save.
+    missingRequiredChannelAttributes: MissingRequiredChannelAttribute[];
 
     // Access rules confirmation modal state
     showAccessRulesConfirmModal: boolean;
@@ -199,7 +201,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             userAttributes: [],
             attributesLoaded: false,
             channelAttributeValues: {},
-            channelAttributesMissingRequired: false,
+            missingRequiredChannelAttributes: [],
 
             // Access rules confirmation modal state
             showAccessRulesConfirmModal: false,
@@ -480,6 +482,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             this.setState({showArchiveConfirmModal: true});
             return;
         }
+
+        // Save is disabled while this holds; this only stops a stray submit.
+        if (this.requiredChannelAttributesBlockSave()) {
+            return;
+        }
+
         const isOriginallyPublic = channel?.type === Constants.OPEN_CHANNEL;
         if (isSynced) {
             isPublic = false;
@@ -1066,13 +1074,20 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.setState(newState);
     };
 
+    private handleMissingRequiredChannelAttributesChange = (missing: MissingRequiredChannelAttribute[]) => {
+        this.setState({missingRequiredChannelAttributes: missing});
+    };
+
+    // A required attribute can't be saved empty from this page, whether it was
+    // cleared, never set, or the channel is being unarchived without it: its
+    // editor is right here. A channel that stays archived is exempt.
+    private requiredChannelAttributesBlockSave = (): boolean => {
+        return !this.state.isLocalArchived && Boolean(this.props.channelAttributesEnabled) && this.state.missingRequiredChannelAttributes.length > 0;
+    };
+
     private handleChannelAttributeValuesChange = (values: Record<string, string | string[] | null>) => {
         this.setState({channelAttributeValues: values, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
-    };
-
-    private handleChannelAttributesMissingRequiredChange = (missing: boolean) => {
-        this.setState({channelAttributesMissingRequired: missing});
     };
 
     private onPolicySelected = (policy: AccessControlPolicy) => {
@@ -1337,7 +1352,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             showArchiveConfirmModal,
             policyToggled,
             accessControlPolicies,
-            channelAttributesMissingRequired,
+            missingRequiredChannelAttributes,
         } = this.state;
         const {channel, team} = this.props;
 
@@ -1345,7 +1360,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             return null;
         }
 
-        const attributesBlockSave = channelAttributesMissingRequired && !isLocalArchived && Boolean(this.props.channelAttributesEnabled);
+        const attributesBlockSave = this.requiredChannelAttributesBlockSave();
 
         const missingGroup = (og: {id: string}) => !groups.find((g: Group) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
@@ -1513,7 +1528,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 channelId={channel.id}
                                 isDisabled={this.props.isDisabled}
                                 onChange={this.handleChannelAttributeValuesChange}
-                                onMissingRequiredChange={this.handleChannelAttributesMissingRequiredChange}
+                                onMissingRequiredChange={this.handleMissingRequiredChannelAttributesChange}
+                                showRequiredErrors={attributesBlockSave}
                             />
                         )}
                         {!isLocalArchived && nonArchivedContent}
@@ -1528,9 +1544,17 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         <>
                             {serverError}
                             <div data-testid='channelAttributesRequiredToSave'>
-                                <FormattedMessage
-                                    id='admin.channel_settings.channel_detail.attributes.required_to_save'
-                                    defaultMessage='Set the required channel attributes to save.'
+                                <FormError
+                                    error={(
+                                        <FormattedMessage
+                                            id='admin.channel_settings.channel_detail.attributes.required_missing'
+                                            defaultMessage='Set a value for {attributes} before saving. {count, plural, one {This attribute is} other {These attributes are}} required.'
+                                            values={{
+                                                attributes: missingRequiredChannelAttributes.map((m) => m.label).join(', '),
+                                                count: missingRequiredChannelAttributes.length,
+                                            }}
+                                        />
+                                    )}
                                 />
                             </div>
                         </>

@@ -45,6 +45,10 @@ type Props = {
     // just queued, not the underlying missing-value tally.
     queuedTruncated?: boolean;
 
+    // Replaces the generic failure copy when the server explained the
+    // failure, e.g. how long until another notify is accepted.
+    notifyFailureMessage?: string;
+
     bodyId: string;
     onNotify: () => void;
     onViewList: () => void;
@@ -103,6 +107,7 @@ export default function ChannelsMissingValuesBanner({
     status,
     queuedAdminCount,
     queuedTruncated,
+    notifyFailureMessage,
     bodyId,
     onNotify,
     onViewList,
@@ -136,7 +141,7 @@ export default function ChannelsMissingValuesBanner({
         mode = 'warning';
         message = (
             <span id={bodyId}>
-                <FormattedMessage {...messages.notifyFailed}/>
+                {notifyFailureMessage || <FormattedMessage {...messages.notifyFailed}/>}
             </span>
         );
     } else if (status === 'queued') {

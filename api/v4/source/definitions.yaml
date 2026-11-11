@@ -853,7 +853,7 @@ components:
           format: int64
         message_preview:
           type: string
-          description: The message channel admins would receive, as Markdown.
+          description: The message channel admins would receive, as Markdown, without the list of their own channels that follows it in the direct message.
     ChannelAttributeNotifyResult:
       type: object
       description: >

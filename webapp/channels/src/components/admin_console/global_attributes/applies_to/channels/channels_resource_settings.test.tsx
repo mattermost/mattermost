@@ -364,6 +364,37 @@ describe('ChannelsResourceSettings', () => {
         expect(screen.queryByText('Notification queued for 20000 channel admins.')).not.toBeInTheDocument();
     });
 
+    it('shows the server\'s explanation when notify is throttled', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({
+            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', required: false},
+        }));
+        promptNotify.mockResolvedValue(true);
+        const throttled = 'The notifications were not sent since channel admins were recently notified about this. You can send another notification in 42 minutes.';
+        mockNotify.mockRejectedValue({status_code: 429, message: throttled});
+
+        renderComponent({channelFieldId: 'field1'});
+
+        await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
+
+        await waitFor(() => expect(screen.getByText(throttled)).toBeInTheDocument());
+        expect(screen.queryByText('The notifications couldn\'t be sent. Please try again.')).not.toBeInTheDocument();
+    });
+
+    it('keeps the generic failure copy for errors other than throttling', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({
+            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', required: false},
+        }));
+        promptNotify.mockResolvedValue(true);
+        mockNotify.mockRejectedValue({status_code: 500, message: 'internal details'});
+
+        renderComponent({channelFieldId: 'field1'});
+
+        await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
+
+        await waitFor(() => expect(screen.getByText('The notifications couldn\'t be sent. Please try again.')).toBeInTheDocument());
+        expect(screen.queryByText('internal details')).not.toBeInTheDocument();
+    });
+
     it('does not carry a field\'s queued notification result over to a different field', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
             summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},

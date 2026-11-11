@@ -14,6 +14,13 @@
         }
     }
 
+    &__row--error {
+        .ChannelAttributesSettings__input,
+        .ChannelAttributesSettings__select {
+            border-color: var(--error-text);
+        }
+    }
+
     &__input {
         height: 40px;
         padding: 0 12px;

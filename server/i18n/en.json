@@ -4286,8 +4286,16 @@
   },
   {
     "id": "api.property_field.notify_missing_values.throttled.app_error",
-    "translation": "A reminder was sent for this attribute recently. Please try again later.",
-    "description": "API error when an admin clicks Notify to remind channel admins about a missing channel attribute value, but a reminder for the same attribute was already sent within the cooldown period."
+    "translation": {
+      "one": "The notifications were not sent since channel admins were recently notified about this. You can send another notification in {{.Count}} minute.",
+      "other": "The notifications were not sent since channel admins were recently notified about this. You can send another notification in {{.Count}} minutes."
+    },
+    "description": "API error when an admin clicks Notify to remind channel admins about a missing channel attribute value, but a reminder for the same attribute was already sent within the one-hour cooldown; {{.Count}} is the number of minutes until another reminder can be sent."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled_unknown_wait.app_error",
+    "translation": "The notifications were not sent since channel admins were recently notified about this. Please try again later.",
+    "description": "API error when an admin clicks Notify to remind channel admins about a missing channel attribute value, but a reminder for the same attribute was already sent within the cooldown period and the remaining wait could not be determined."
   },
   {
     "id": "api.property_field.object_type_mismatch.app_error",
@@ -7740,11 +7748,6 @@
     "description": "Server error when looking up which channel admins to send a direct-message reminder to about a missing channel attribute value fails."
   },
   {
-    "id": "app.channel_attributes.notify_missing_value.dm",
-    "translation": "You're a channel admin for channels that are missing a required channel attribute.\n\nPlease set **{{.AttributeName}}** in the following channels:\n{{.ChannelList}}",
-    "description": "Direct message from the system bot to a channel admin listing their channels that have no value for a required channel attribute; {{.AttributeName}} is the attribute's name and {{.ChannelList}} is a Markdown bullet list of channel links. Keep the Markdown formatting."
-  },
-  {
     "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
     "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})",
     "description": "One Markdown bullet line in the channel-admin reminder direct message, linking to a channel that is missing a channel attribute value; keep the leading newline, the dash and the [text](link) syntax."
@@ -7755,9 +7758,17 @@
     "description": "Last Markdown bullet line in the channel-admin reminder direct message when there are too many channels to list; {{.Count}} is the number of channels not shown. Keep the leading newline, the dash and the underscores (italics)."
   },
   {
-    "id": "app.channel_attributes.notify_missing_value.preview",
-    "translation": "Please set a value for **{{.AttributeName}}** on your channels. A system administrator needs every channel to have this attribute before it can be marked Required.",
-    "description": "Preview, shown to the system admin before confirming Notify, of the reminder sent to channel admins about a channel attribute missing a value; {{.AttributeName}} is the attribute's name. Keep the Markdown bold markers."
+    "id": "app.channel_attributes.notify_missing_value.not_required",
+    "translation": "Please set a value for **{{.AttributeName}}** on these channels you manage. The system administrator needs every channel to have a value before this attribute can be made required.",
+    "description": "Direct message from the system bot to a channel admin whose channels have no value for a channel attribute that is not required yet, followed by a Markdown bullet list of those channels; also shown to the system admin as the preview before sending. {{.AttributeName}} is the attribute's name. Keep the Markdown bold markers."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.required",
+    "translation": {
+      "one": "You're a channel admin for a channel that is missing a required channel attribute. Please set a **{{.AttributeName}}** value.",
+      "other": "You're a channel admin for channels that are missing a required channel attribute. Please set a **{{.AttributeName}}** value."
+    },
+    "description": "Direct message from the system bot to a channel admin whose channels have no value for a required channel attribute, followed by a Markdown bullet list of those channels; also shown to the system admin as the preview before sending. The count is the number of the admin's channels missing the value; {{.AttributeName}} is the attribute's name. Keep the Markdown bold markers."
   },
   {
     "id": "app.channel_attributes.notify_throttle_claim.app_error",

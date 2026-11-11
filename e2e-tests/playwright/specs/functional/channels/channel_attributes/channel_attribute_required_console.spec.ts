@@ -46,12 +46,12 @@ test.describe(
 
                 // * The field is flagged and Save is disabled with the reason
                 await expect(page.getByTestId(`channelAttributeRequiredError-${field.name}`)).toHaveText(
-                    'This attribute is required.',
+                    'This attribute is required. Set a value to save.',
                 );
                 const saveButton = page.getByTestId('saveSetting');
                 await expect(saveButton).toBeDisabled();
                 await expect(page.getByTestId('channelAttributesRequiredToSave')).toHaveText(
-                    'Set the required channel attributes to save.',
+                    /^Set a value for .+ before saving\. This attribute is required\.$/,
                 );
 
                 // # Choose an option

@@ -81,20 +81,33 @@ func propertyFieldDisplayName(field *model.PropertyField) string {
 	return strings.TrimSpace(dn)
 }
 
-// channelAttributeNotifyMessagePreview renders the confirmation modal's
-// preview of the DM channel admins will receive. It is intentionally the
-// generic, no-channel-list form -- the real DM (see
-// channelAttributeNotifyDMBody) is rendered per admin with their own affected
-// channels, which this preview cannot enumerate for everyone at once. It is
-// empty in create mode, where notify is unreachable from the UI.
-func channelAttributeNotifyMessagePreview(attributeDisplayName, viewerLocale string) string {
+// channelAttributeNotifyMessageHeader opens the DM and is the whole of the
+// confirmation modal's preview, so the two can't drift apart. Until the
+// attribute is required, the DM must not claim that it is.
+func channelAttributeNotifyMessageHeader(attributeDisplayName string, required bool, channelCount int, T i18n.TranslateFunc) string {
+	if !required {
+		return T("app.channel_attributes.notify_missing_value.not_required", map[string]any{
+			"AttributeName": attributeDisplayName,
+		})
+	}
+	return T("app.channel_attributes.notify_missing_value.required", channelCount, map[string]any{
+		"AttributeName": attributeDisplayName,
+	})
+}
+
+// channelAttributeNotifyMessagePreview leaves out the channel list, which
+// differs per recipient. Only a single affected channel guarantees every
+// admin gets the singular form; otherwise plural is the likelier one. Empty
+// in create mode, where notify is unreachable from the UI.
+func channelAttributeNotifyMessagePreview(attributeDisplayName string, required bool, channelsWithAdminCount int64, viewerLocale string) string {
 	if attributeDisplayName == "" {
 		return ""
 	}
-	T := i18n.GetUserTranslations(viewerLocale)
-	return T("app.channel_attributes.notify_missing_value.preview", model.StringInterface{
-		"AttributeName": attributeDisplayName,
-	})
+	channelCount := 2
+	if channelsWithAdminCount == 1 {
+		channelCount = 1
+	}
+	return channelAttributeNotifyMessageHeader(attributeDisplayName, required, channelCount, i18n.GetUserTranslations(viewerLocale))
 }
 
 // channelAttributeNotifyChannelRef is enough about one channel to build a
@@ -135,6 +148,27 @@ func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool,
 		return false, "", model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "app.channel_attributes.notify_throttle_claim.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return claimed, token, nil
+}
+
+// channelAttributeNotifyThrottledError names the wait until the next notify
+// is accepted. The claim's value is the millis it was written at; when it
+// can't be read or looks expired (a lagging replica, a release in between),
+// it names no wait rather than a wrong one.
+func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) *model.AppError {
+	var remainingMillis int64
+	if system, err := a.Srv().Store().System().GetByName(channelAttributeNotifyThrottleKey(fieldID)); err != nil {
+		rctx.Logger().Debug("Failed to read channel attribute notify cooldown", mlog.String("field_id", fieldID), mlog.Err(err))
+	} else if claimedAt, parseErr := strconv.ParseInt(system.Value, 10, 64); parseErr == nil {
+		remainingMillis = claimedAt + channelAttributeNotifyCoolOffMillis - model.GetMillis()
+	}
+
+	if remainingMillis <= 0 {
+		return model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled_unknown_wait.app_error", nil, "", http.StatusTooManyRequests)
+	}
+
+	const minuteMillis = 60 * 1000
+	minutes := (remainingMillis + minuteMillis - 1) / minuteMillis
+	return model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled.app_error", map[string]any{"Count": minutes}, "", http.StatusTooManyRequests)
 }
 
 // releaseChannelAttributeNotifyThrottle undoes claimChannelAttributeNotifyThrottle
@@ -202,7 +236,7 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 		return nil, appErr
 	}
 	if !claimed {
-		return nil, model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled.app_error", nil, "", http.StatusTooManyRequests)
+		return nil, a.channelAttributeNotifyThrottledError(rctx, field.ID)
 	}
 
 	missingLocal, err := a.Srv().Store().Channel().GetAllChannelsCount(store.ChannelSearchOpts{
@@ -257,15 +291,16 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 
 	displayName := a.channelAttributeDisplayName(rctx, groupID, field)
 	fieldID := field.ID
+	required := model.IsPropertyFieldRequired(field)
 
 	a.Srv().Go(func() {
-		a.sendChannelAttributeNotifyDMs(rctx, batches, displayName, fieldID, token)
+		a.sendChannelAttributeNotifyDMs(rctx, batches, displayName, required, fieldID, token)
 	})
 
 	return result, nil
 }
 
-func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string]*channelAttributeAdminBatch, attributeDisplayName, fieldID, throttleToken string) {
+func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string]*channelAttributeAdminBatch, attributeDisplayName string, required bool, fieldID, throttleToken string) {
 	if len(batches) == 0 {
 		// Every channel missing the value has no channel admin at all -- the
 		// D5 "report only" outcome, not a failure. Still nobody was
@@ -302,10 +337,8 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 			ChannelId: channel.Id,
 			UserId:    systemBot.UserId,
 			Type:      model.PostTypeDefault,
-			Message: T("app.channel_attributes.notify_missing_value.dm", model.StringInterface{
-				"AttributeName": attributeDisplayName,
-				"ChannelList":   channelAttributeNotifyChannelList(batch.channels, T),
-			}),
+			Message: channelAttributeNotifyMessageHeader(attributeDisplayName, required, len(batch.channels), T) +
+				"\n" + channelAttributeNotifyChannelList(batch.channels, T),
 			Props: model.StringInterface{
 				"property_field_id": fieldID,
 				"attribute_name":    attributeDisplayName,

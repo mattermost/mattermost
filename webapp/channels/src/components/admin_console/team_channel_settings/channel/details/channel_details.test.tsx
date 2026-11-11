@@ -18,11 +18,37 @@ jest.mock('utils/browser_history', () => ({
 
 jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
 
-jest.mock('./channel_attributes_settings', () => (props: {onChange: (values: Record<string, string>) => void; onMissingRequiredChange?: (missing: boolean) => void}) => (
+type MockAttributesProps = {
+    onChange: (values: Record<string, string | null>) => void;
+    onMissingRequiredChange?: (missing: Array<{fieldId: string; label: string; cleared: boolean}>) => void;
+};
+jest.mock('./channel_attributes_settings', () => (props: MockAttributesProps) => (
     <>
         <button onClick={() => props.onChange({field1: 'value1'})}>{'EditChannelAttribute'}</button>
-        <button onClick={() => props.onMissingRequiredChange?.(true)}>{'MissRequiredAttribute'}</button>
-        <button onClick={() => props.onMissingRequiredChange?.(false)}>{'FillRequiredAttribute'}</button>
+        <button
+            onClick={() => {
+                props.onChange({field1: null});
+                props.onMissingRequiredChange?.([{fieldId: 'field1', label: 'Program', cleared: true}]);
+            }}
+        >
+            {'ClearRequiredAttribute'}
+        </button>
+        <button
+            onClick={() => {
+                props.onChange({field2: 'value2'});
+                props.onMissingRequiredChange?.([{fieldId: 'field1', label: 'Program', cleared: false}]);
+            }}
+        >
+            {'EditWithRequiredNeverSet'}
+        </button>
+        <button
+            onClick={() => {
+                props.onChange({field1: 'value1'});
+                props.onMissingRequiredChange?.([]);
+            }}
+        >
+            {'FillRequiredAttribute'}
+        </button>
     </>
 ));
 
@@ -335,69 +361,98 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         expect(setNavigationBlocked).toHaveBeenLastCalledWith(true);
     });
 
-    test('holds back Save with a message while a required attribute is missing and releases it once filled', async () => {
-        renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={team}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                channelPermissions={[]}
-                guestAccountsEnabled={true}
-                channelModerationEnabled={false}
-                channelGroupsEnabled={false}
-                abacSupported={false}
-                channelAttributesEnabled={true}
-                isDisabled={false}
-            />,
-        );
+    describe('required channel attributes', () => {
+        const renderDetails = (channel: Channel & {team_name: string}, overrides: Partial<typeof actions> = {}) => {
+            const patchChannelAttributeValues = jest.fn().mockResolvedValue({data: []});
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            const patchChannel = jest.fn().mockResolvedValue({data: {}});
+            const deleteAccessControlPolicy = jest.fn().mockResolvedValue({data: {}});
+            renderWithContext(
+                <ChannelDetails
+                    teamScheme={teamScheme}
+                    groups={groups}
+                    team={team}
+                    totalGroups={groups.length}
+                    actions={{...actions, patchChannelAttributeValues, unarchiveChannel, patchChannel, deleteAccessControlPolicy, ...overrides}}
+                    channel={channel}
+                    channelID={channel.id}
+                    allGroups={allGroups}
+                    channelPermissions={[]}
+                    guestAccountsEnabled={true}
+                    channelModerationEnabled={false}
+                    channelGroupsEnabled={false}
+                    abacSupported={false}
+                    channelAttributesEnabled={true}
+                    isDisabled={false}
+                />,
+            );
+            return {patchChannelAttributeValues, unarchiveChannel};
+        };
 
-        await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
-        expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        const missingMessage = 'Set a value for Program before saving. This attribute is required.';
 
-        await userEvent.click(screen.getByRole('button', {name: 'MissRequiredAttribute'}));
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
-        expect(screen.getByText('Set the required channel attributes to save.')).toBeInTheDocument();
+        test('holds back Save while a cleared required attribute is empty', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
 
-        await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
-        expect(screen.getByTestId('saveSetting')).toBeEnabled();
-        expect(screen.queryByText('Set the required channel attributes to save.')).not.toBeInTheDocument();
-    });
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
 
-    test('keeps a save error visible next to the required-attributes message', async () => {
-        const patchChannelAttributeValues = jest.fn().mockResolvedValue({error: {message: 'attribute save failed'}});
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
 
-        renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={team}
-                totalGroups={groups.length}
-                actions={{...actions, patchChannelAttributeValues}}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                channelPermissions={[]}
-                guestAccountsEnabled={true}
-                channelModerationEnabled={false}
-                channelGroupsEnabled={false}
-                abacSupported={false}
-                channelAttributesEnabled={true}
-                isDisabled={false}
-            />,
-        );
+        test('holds back other edits on an active channel that never had the required value', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
 
-        await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
-        await userEvent.click(screen.getByTestId('saveSetting'));
-        await waitFor(() => expect(screen.getByText('attribute save failed')).toBeInTheDocument());
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
 
-        await userEvent.click(screen.getByRole('button', {name: 'MissRequiredAttribute'}));
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
+        });
 
-        expect(screen.getByText('attribute save failed')).toBeInTheDocument();
-        expect(screen.getByText('Set the required channel attributes to save.')).toBeInTheDocument();
+        test('releases Save and the message once the required attribute is filled in', async () => {
+            const {patchChannelAttributeValues} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+        });
+
+        test('holds back unarchive until the required attribute is filled in', async () => {
+            const {patchChannelAttributeValues, unarchiveChannel} = renderDetails({...testChannel, delete_at: 1});
+
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'EditWithRequiredNeverSet'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
+            expect(unarchiveChannel).not.toHaveBeenCalled();
+
+            await userEvent.click(screen.getByRole('button', {name: 'FillRequiredAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
+            await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+        });
+
+        test('keeps a save error visible next to the required-attributes message', async () => {
+            renderDetails(testChannel, {patchChannelAttributeValues: jest.fn().mockResolvedValue({error: {message: 'attribute save failed'}})});
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(screen.getByText('attribute save failed')).toBeInTheDocument());
+
+            await userEvent.click(screen.getByRole('button', {name: 'ClearRequiredAttribute'}));
+
+            expect(screen.getByText('attribute save failed')).toBeInTheDocument();
+            expect(screen.getByText(missingMessage)).toBeInTheDocument();
+        });
     });
 });

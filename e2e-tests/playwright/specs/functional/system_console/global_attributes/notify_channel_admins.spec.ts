@@ -72,20 +72,31 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             await attributeAppliesToChannels.expand();
 
             const modal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
-            await expect(modal.messagePreview).not.toHaveText('');
+
+            // * Before Required is on, the preview asks for a value rather than calling it required
+            await expect(modal.messagePreview).toContainText('on these channels you manage');
             await modal.confirm();
 
             // * The banner reflects a successful send
             await expect(attributeAppliesToChannels.missingValuesBanner).toContainText('Notification queued');
 
+            // # Notify again right away
+            const secondModal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
+            await secondModal.confirm();
+
+            // * The second send is refused, and the banner says when another one can go out
+            await expect(attributeAppliesToChannels.missingValuesBanner).toContainText(
+                'You can send another notification in',
+            );
+
             // # Switch to the channel admin's own session and check their DM inbox
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, `@${SYSTEM_BOT_USERNAME}`);
 
-            // * A real DM arrived from the System Bot, naming the channel
-            await expect(channelsPage.centerView.postViews.filter({hasText: channel.display_name})).toBeVisible({
-                timeout: 15000,
-            });
+            // * A real DM arrived from the System Bot, naming the channel, with the same text as the preview
+            const dm = channelsPage.centerView.postViews.filter({hasText: channel.display_name});
+            await expect(dm).toBeVisible({timeout: 15000});
+            await expect(dm).toContainText('on these channels you manage');
         } finally {
             await deleteChannelAttributeField(adminClient, pair);
         }

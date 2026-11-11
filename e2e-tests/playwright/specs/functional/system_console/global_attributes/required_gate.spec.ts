@@ -243,6 +243,7 @@ test.describe(
                 const row = modal.row(channel.display_name);
                 await expect(row).toBeVisible();
                 await expect(row).toContainText(`${user.first_name} ${user.last_name}`);
+                await expect(row).toContainText(team.display_name);
                 await expect(row.getByRole('link', {name: channel.display_name})).toHaveAttribute(
                     'href',
                     `/admin_console/user_management/channels/${channel.id}`,

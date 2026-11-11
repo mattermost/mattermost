@@ -77,6 +77,10 @@ describe('ChannelsWithoutValueModal', () => {
         expect(screen.getByRole('link', {name: /ops-planning/})).toHaveAttribute('href', '/admin_console/user_management/channels/c1');
         expect(screen.getByText('Maya Chen, Jonah Blake')).toBeInTheDocument();
         expect(screen.getByText('No channel admin')).toBeInTheDocument();
+
+        // Two channels with the same display name are told apart by team.
+        expect(screen.getByRole('columnheader', {name: 'Team'})).toBeInTheDocument();
+        expect(screen.getAllByText('Team 1')).toHaveLength(2);
     });
 
     it('shows the subtitle count from props before the first page resolves', () => {
