@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -22,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	oauthgitlab "github.com/mattermost/mattermost/server/v8/channels/app/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -2342,4 +2344,43 @@ func TestRedactOAuthTokenResponse(t *testing.T) {
 			assert.NotContains(t, actual, "def")
 		}
 	})
+}
+
+func TestCompleteOAuthDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GitLabSettings.Enable = true
+	})
+
+	id := model.GetMillis()
+	username := "o" + model.NewId()
+	email := model.NewId() + "@simulator.amazonses.com"
+	gitlabBody := func() io.ReadCloser {
+		js, err := json.Marshal(oauthgitlab.GitLabUser{Id: id, Username: username, Email: email, Name: "Test User"})
+		require.NoError(t, err)
+		return io.NopCloser(bytes.NewReader(js))
+	}
+	props := map[string]string{"action": model.OAuthActionLogin}
+
+	user, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(), props, nil)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	// A successful OAuth login reactivates the account before DoLogin runs.
+	user, appErr = th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabBody(), props, nil)
+	require.Nil(t, appErr)
+	assert.Zero(t, user.DeleteAt)
+
+	stored, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
+	assert.Zero(t, stored.DeleteAt)
+
+	session, appErr := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, user, model.LoginOptions{IsOAuthUser: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, session)
+	assert.Equal(t, user.Id, session.UserId)
 }
