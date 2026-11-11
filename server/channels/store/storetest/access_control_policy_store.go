@@ -38,6 +38,34 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("GetEtagEpoch", func(t *testing.T) { testAccessControlPolicyStoreGetEtagEpoch(t, rctx, ss) })
 	t.Run("PluginPolicy", func(t *testing.T) { testAccessControlPolicyStorePluginPolicy(t, rctx, ss) })
 	t.Run("TypeImmutableOnSave", func(t *testing.T) { testAccessControlPolicyStoreTypeImmutableOnSave(t, rctx, ss) })
+	t.Run("DescriptionRoundtrip", func(t *testing.T) { testAccessControlPolicyStoreDescriptionRoundtrip(t, rctx, ss) })
+}
+
+func testAccessControlPolicyStoreDescriptionRoundtrip(t *testing.T, rctx request.CTX, ss store.Store) {
+	policy := &model.AccessControlPolicy{
+		ID:          model.NewId(),
+		Name:        "Description " + model.NewId(),
+		Description: "Required by the program office",
+		Type:        model.AccessControlPolicyTypePermission,
+		Active:      true,
+		Revision:    1,
+		Version:     model.AccessControlPolicyVersionV0_3,
+		Imports:     []string{},
+		Roles:       []string{model.SystemUserRoleId},
+		Rules: []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Expression: "true",
+		}},
+	}
+
+	saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+	require.NoError(t, err)
+	require.Equal(t, policy.Description, saved.Description)
+	t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, policy.ID) })
+
+	got, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
+	require.NoError(t, err)
+	require.Equal(t, policy.Description, got.Description)
 }
 
 func testAccessControlPolicyStoreGetEtagEpoch(t *testing.T, rctx request.CTX, ss store.Store) {

@@ -1908,3 +1908,34 @@ func TestCreateBurnOnReadPostAction(t *testing.T) {
 		require.Nil(t, policy.accessPolicyVersionV0_4())
 	})
 }
+
+func TestAccessControlPolicyDescription(t *testing.T) {
+	valid := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Name:     "Download policy",
+			Type:     AccessControlPolicyTypePermission,
+			Revision: 1,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+				Expression: "true",
+			}},
+		}
+	}
+
+	t.Run("a description within the limit is valid", func(t *testing.T) {
+		p := valid()
+		p.Description = "Required by the program office"
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("a description over the limit is rejected", func(t *testing.T) {
+		p := valid()
+		p.Description = strings.Repeat("a", MaxPolicyDescriptionLength+1)
+		appErr := p.IsValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.access_policy.is_valid.description.app_error", appErr.Id)
+	})
+}

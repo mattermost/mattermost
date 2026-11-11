@@ -19,7 +19,8 @@ const (
 	AccessControlPolicyTypePermission = "permission"
 	AccessControlPolicyTypeTeam       = "team"
 
-	MaxPolicyNameLength = 128
+	MaxPolicyNameLength        = 128
+	MaxPolicyDescriptionLength = 1024
 
 	// PluginAccessControlPolicyTypeSeparator separates the owning plugin ID
 	// from the resource-type segment of a plugin-owned policy type, e.g.
@@ -230,11 +231,12 @@ type AccessControlPoliciesWithCount struct {
 }
 
 type AccessControlPolicy struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Active   bool   `json:"active"`
-	CreateAt int64  `json:"create_at"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Type        string `json:"type"`
+	Active      bool   `json:"active"`
+	CreateAt    int64  `json:"create_at"`
 
 	Revision int    `json:"revision"`
 	Version  string `json:"version"`
@@ -501,6 +503,10 @@ func (r *AccessControlPolicyActiveUpdateRequest) Auditable() map[string]any {
 }
 
 func (p *AccessControlPolicy) IsValid() *AppError {
+	if len(p.Description) > MaxPolicyDescriptionLength {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.description.app_error", nil, "", 400)
+	}
+
 	if p.Scope != "" || p.ScopeID != "" {
 		if appErr := p.validateScope(); appErr != nil {
 			return appErr

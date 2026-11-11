@@ -199,7 +199,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByText('Switch to Advanced Mode'));
+        await userEvent.click(screen.getByRole('tab', {name: 'Advanced'}));
 
         await waitFor(() => {
             expect(screen.getByTestId('cel-editor')).toBeInTheDocument();
@@ -243,7 +243,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
         expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
-        expect(screen.getByText('Switch to Advanced Mode')).toBeInTheDocument();
+        expect(screen.getByRole('tab', {name: 'Advanced'})).toBeInTheDocument();
     });
 
     test('opens a ranked-operator rule in Simple mode (MM-69527)', async () => {
@@ -251,7 +251,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
         expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
-        expect(screen.getByText('Switch to Advanced Mode')).toBeInTheDocument();
+        expect(screen.getByRole('tab', {name: 'Advanced'})).toBeInTheDocument();
     });
 
     describe('opens simple expressions in Simple (table) mode', () => {
@@ -302,8 +302,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     test('disables the mode toggle when a complex expression forces Advanced mode', async () => {
         renderWithExpression('user.attributes.a == "x" || user.attributes.b == "y"');
 
-        const toggle = await screen.findByText('Switch to Simple Mode');
-        expect(toggle.closest('button')).toBeDisabled();
+        const toggle = await screen.findByRole('tab', {name: 'Simple'});
+        expect(toggle).toBeDisabled();
     });
 
     // MM-64357: after switching an apostrophe-valued rule to Advanced mode, the
@@ -312,9 +312,32 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         renderWithExpression('user.attributes.department == "Matt\'s Department"');
 
         // Opens in Simple mode; switch to Advanced to reach the toggle under test.
-        await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+        await userEvent.click(await screen.findByRole('tab', {name: 'Advanced'}));
 
-        const toggle = await screen.findByText('Switch to Simple Mode');
-        expect(toggle.closest('button')).toBeEnabled();
+        const toggle = await screen.findByRole('tab', {name: 'Simple'});
+        expect(toggle).toBeEnabled();
+    });
+
+    test('shows the authoring sections and the saved description', async () => {
+        mockFetchPolicy.mockResolvedValue({
+            data: {
+                id: 'policy1',
+                name: 'Policy 1',
+                description: 'Required by the program office',
+                roles: ['system_user'],
+                rules: [{actions: ['download_file_attachment'], expression: 'user.attributes.teams == "engineering"'}],
+            },
+        });
+
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>);
+
+        expect(await screen.findByRole('navigation', {name: 'Policy sections'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Policy details'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Who this applies to'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Policy expression'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Permissions'})).toBeInTheDocument();
+        expect(screen.queryByText(/system permission schemes/)).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Policy description')).toHaveValue('Required by the program office');
+        expect(screen.getByText('Allow users to download files to their device')).toBeInTheDocument();
     });
 });

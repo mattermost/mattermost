@@ -16257,6 +16257,11 @@
     "description": "Validation error for an access control policy; permission-action rules are only valid on channel-scoped policies."
   },
   {
+    "id": "model.access_policy.is_valid.description.app_error",
+    "translation": "Policy description must be 1024 characters or fewer.",
+    "description": "Validation error when an access control policy's description is longer than 1024 characters."
+  },
+  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Invalid policy id.",
     "description": "Validation error when an access control policy's ID is malformed."

@@ -10723,6 +10723,26 @@
     "defaultMessage": "Delete policy",
     "description": "Heading of the delete section on the permission policy edit page."
   },
+  "admin.permission_policies.edit.details.description_label": {
+    "defaultMessage": "Policy description",
+    "description": "Label for the description field on the permission policy edit page. The description records why the policy exists."
+  },
+  "admin.permission_policies.edit.details.description_placeholder": {
+    "defaultMessage": "Why this policy exists, for example, the requirement or ticket behind it",
+    "description": "Placeholder of the policy description field on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.details.name_label": {
+    "defaultMessage": "Policy name",
+    "description": "Label for the policy name field inside the Policy details section of the permission policy edit page."
+  },
+  "admin.permission_policies.edit.details.subtitle": {
+    "defaultMessage": "Add information about this policy that will be used to identify it",
+    "description": "Subtitle of the Policy details section on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.details.title": {
+    "defaultMessage": "Policy details",
+    "description": "Heading of the Policy details section on the permission policy edit page, and its entry in the sections navigation."
+  },
   "admin.permission_policies.edit.error.delete": {
     "defaultMessage": "Error deleting policy: {error}",
     "description": "Error message on the permission policy edit page when deletion fails; {error} is the server error detail."
@@ -10747,17 +10767,21 @@
     "defaultMessage": "Please select a role",
     "description": "Validation error on the permission policy edit page when no target role has been selected."
   },
-  "admin.permission_policies.edit.info_banner.evaluation_order": {
-    "defaultMessage": "Permissions evaluation order: Permission policies (evaluated first) → System scheme / Team override scheme (fallback when no policy applies).",
-    "description": "Info banner text on the permission policy edit page describing evaluation order; the arrow character shows precedence between policies and schemes."
+  "admin.permission_policies.edit.mode.advanced": {
+    "defaultMessage": "Advanced",
+    "description": "Tab that shows the CEL expression editor on the permission policy edit page."
   },
-  "admin.permission_policies.edit.info_banner.link": {
-    "defaultMessage": "system permission schemes",
-    "description": "Link text inserted into the info banner title on the permission policy edit page; links to the system permission schemes page."
+  "admin.permission_policies.edit.mode.rules_label": {
+    "defaultMessage": "Attribute-based rules",
+    "description": "Label beside the Simple and Advanced tabs in the Policy expression section of the permission policy edit page."
   },
-  "admin.permission_policies.edit.info_banner.title": {
-    "defaultMessage": "The permissions defined in this policy override the {link} when its conditions are met",
-    "description": "Info banner title on the permission policy edit page; {link} is replaced with the 'system permission schemes' link text."
+  "admin.permission_policies.edit.mode.simple": {
+    "defaultMessage": "Simple",
+    "description": "Tab that shows the table rule editor on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.mode.switch_aria": {
+    "defaultMessage": "Editor mode",
+    "description": "Accessible name of the Simple and Advanced tab list on the permission policy edit page."
   },
   "admin.permission_policies.edit.name_exists": {
     "defaultMessage": "A policy with this name already exists. Please choose a different name.",
@@ -10787,6 +10811,10 @@
     "defaultMessage": "Permission",
     "description": "Table column header for the permission name in the permissions table of the permission policy edit page; compact space."
   },
+  "admin.permission_policies.edit.permissions.description_header": {
+    "defaultMessage": "Description",
+    "description": "Table column header for the permission description in the permissions table of the permission policy edit page."
+  },
   "admin.permission_policies.edit.permissions.empty": {
     "defaultMessage": "Add a permission to this policy",
     "description": "Empty-state text in the permissions table of the permission policy edit page when no permissions are added yet."
@@ -10800,16 +10828,12 @@
     "description": "Accessible label (aria-label) for the button that removes a permission row on the permission policy edit page."
   },
   "admin.permission_policies.edit.permissions.subtitle": {
-    "defaultMessage": "These permissions override the default system permission scheme when policy conditions are met",
+    "defaultMessage": "These override the default permission scheme when the expression is true",
     "description": "Subtitle of the permissions section on the permission policy edit page explaining the override behavior."
   },
   "admin.permission_policies.edit.permissions.title": {
-    "defaultMessage": "What permissions are modified",
-    "description": "Heading of the permissions section on the permission policy edit page."
-  },
-  "admin.permission_policies.edit.policyName.label": {
-    "defaultMessage": "Access policy name:",
-    "description": "Form label (ends with a colon) for the policy name input on the permission policy edit page."
+    "defaultMessage": "Permissions",
+    "description": "Heading of the permissions section on the permission policy edit page, and its entry in the sections navigation."
   },
   "admin.permission_policies.edit.policyName.placeholder": {
     "defaultMessage": "Add a unique policy name",
@@ -10819,29 +10843,33 @@
     "defaultMessage": "Save",
     "description": "Save button on the permission policy edit page."
   },
+  "admin.permission_policies.edit.sections.aria": {
+    "defaultMessage": "Policy sections",
+    "description": "Accessible name of the sections navigation on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.sections.error": {
+    "defaultMessage": ", has an error",
+    "description": "Screen-reader text after a section name in the permission policy navigation when that section failed validation."
+  },
+  "admin.permission_policies.edit.sections.header": {
+    "defaultMessage": "Sections",
+    "description": "Heading of the sections navigation on the permission policy edit page."
+  },
   "admin.permission_policies.edit.serverError": {
     "defaultMessage": "There are errors in the form above: {serverError}",
     "description": "Error banner at the bottom of the permission policy edit form; {serverError} is the server's error message text."
-  },
-  "admin.permission_policies.edit.switch_to_advanced": {
-    "defaultMessage": "Switch to Advanced Mode",
-    "description": "Button on the permission policy edit page that switches the rule editor from the simple table to the advanced CEL expression mode."
-  },
-  "admin.permission_policies.edit.switch_to_simple": {
-    "defaultMessage": "Switch to Simple Mode",
-    "description": "Button on the permission policy edit page that switches the rule editor from advanced CEL mode back to the simple table mode."
   },
   "admin.permission_policies.edit.title": {
     "defaultMessage": "Attribute-Based Permission Policy",
     "description": "Page title of the attribute-based permission policy edit page in the System Console."
   },
   "admin.permission_policies.edit.who.attributes_subtitle": {
-    "defaultMessage": "Select attributes and values that users must have for this policy",
-    "description": "Subtitle above the attribute rule editor on the permission policy edit page."
+    "defaultMessage": "Rules can use user attributes, and can compare them with channel attributes.",
+    "description": "Subtitle of the Policy expression section on the permission policy edit page."
   },
   "admin.permission_policies.edit.who.attributes_title": {
-    "defaultMessage": "User attribute requirements",
-    "description": "Heading of the user attribute requirements subsection on the permission policy edit page."
+    "defaultMessage": "Policy expression",
+    "description": "Heading of the Policy expression section on the permission policy edit page, and its entry in the sections navigation."
   },
   "admin.permission_policies.edit.who.role_label": {
     "defaultMessage": "Select a role from the predefined list of system roles",
@@ -10852,12 +10880,12 @@
     "description": "Accessible label (aria-label) for the role selection dropdown on the permission policy edit page."
   },
   "admin.permission_policies.edit.who.subtitle": {
-    "defaultMessage": "Define rules based on user attributes and values",
-    "description": "Subtitle of the 'who this policy applies to' section on the permission policy edit page."
+    "defaultMessage": "Select the role that this policy applies to",
+    "description": "Subtitle of the section on the permission policy edit page that selects the role the policy applies to."
   },
   "admin.permission_policies.edit.who.title": {
-    "defaultMessage": "Who this policy applies to",
-    "description": "Heading of the section on the permission policy edit page defining which users the policy applies to."
+    "defaultMessage": "Who this applies to",
+    "description": "Heading of the section on the permission policy edit page that selects the role the policy applies to, and its entry in the sections navigation."
   },
   "admin.permission_policies.editor.simulate_rules": {
     "defaultMessage": "Simulate rules",
