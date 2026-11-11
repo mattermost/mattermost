@@ -134,6 +134,8 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("search", "8xyz7gqnfjb1jrkpd5xnqk5mbo"))
 		s.Equal("search", cmd.Flags().ShorthandLookup("s").Name)
 		s.Require().NoError(cmd.Flags().Set("since", "15m"))
+		s.Require().NoError(cmd.Flags().Set("plugin", " com.mattermost.calls,github"))
+		s.Require().NoError(cmd.Flags().Set("plugin", "github"))
 
 		expectServerVersion("12.2.0.12345.abcdef.true")
 		before := time.Now()
@@ -143,7 +145,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			QueryLogs(gomock.Any(), 0, 50, gomock.Any()).
 			DoAndReturn(func(_ context.Context, _, _ int, f *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
 				filter = f
-				return map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "error", "8xyz7gqnfjb1jrkpd5xnqk5mbo failed")}}, &model.Response{}, nil
+				return map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "error", "8xyz7gqnfjb1jrkpd5xnqk5mbo failed", "plugin_id", "github")}}, &model.Response{}, nil
 			}).
 			Times(1)
 
@@ -154,6 +156,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Equal([]string{"node-1", "node-2"}, filter.ServerNames)
 		s.Equal([]string{"panic", "fatal", "critical", "error", "info", "stdlog"}, filter.LogLevels)
 		s.Equal("8xyz7gqnfjb1jrkpd5xnqk5mbo", filter.Search)
+		s.Equal(map[string][]string{"plugin_id": {"com.mattermost.calls", "github"}}, filter.Fields)
 		dateFrom, err := time.Parse(model.LogFilterDateLayout, filter.DateFrom)
 		s.Require().NoError(err)
 		s.WithinRange(dateFrom, before.Add(-15*time.Minute-time.Second), time.Now().Add(-15*time.Minute))
@@ -371,6 +374,25 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().ErrorIs(err, errQueryLogsNotFound)
 	})
 
+	s.Run("Query the logs for --plugin without --follow", func() {
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("plugin", "github"))
+
+		// GET /api/v4/logs can't filter, so a server that can't query the logs fails rather than
+		// printing them unfiltered
+		expectServerVersion("")
+		expectLogFormat(nil)
+		s.client.
+			EXPECT().
+			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+			Times(1)
+
+		_, _, err := testLogsCmdF(s.client, cmd, []string{})
+		s.Require().ErrorIs(err, errQueryLogsNotFound)
+		s.Contains(err.Error(), "--plugin")
+	})
+
 	s.Run("Cap the number of entries at the server's limit", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		expectLogFormat(new(true))
@@ -399,6 +421,9 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"long search", map[string]string{"search": strings.Repeat("a", 257)}, "the search text must be at most 256 characters long"},
 			{"negative number", map[string]string{"number": "-1"}, "--number must not be negative"},
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},
+			{"invalid plugin ID", map[string]string{"plugin": "github,not a plugin"}, `invalid plugin ID "not a plugin"`},
+			{"empty plugin ID", map[string]string{"plugin": "github,"}, `invalid plugin ID ""`},
+			{"too many plugin IDs", map[string]string{"plugin": testPluginIDs(21)}, "--plugin accepts at most 20 plugin IDs"},
 		} {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
@@ -445,6 +470,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"level", map[string]string{"level": "error"}, "--level needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"search", map[string]string{"search": "abc"}, "--search needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"since", map[string]string{"since": "15m"}, "--since needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"plugin", map[string]string{"plugin": "github"}, "--plugin needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"node", map[string]string{"node": "node-1"}, "--node needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"several", map[string]string{"follow": "true", "level": "error", "search": "abc", "node": "node-1"}, "--follow, --level, --node and --search need a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without them"},
 		} {
@@ -724,7 +750,7 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		)
 
 		s.Len(testLogMessages(stdout), logsMaxPerPage)
-		s.Equal(fmt.Sprintf("node \"default\" logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search\n", logsMaxPerPage), stderr)
+		s.Equal(fmt.Sprintf("node \"default\" logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level, --plugin or --search\n", logsMaxPerPage), stderr)
 	})
 
 	s.Run("Don't warn about a full page that reaches past the poll's start", func() {
@@ -825,6 +851,30 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 
 		s.Equal([]string{"has the marker", "has the level"}, testLogMessages(stdout))
 	})
+
+	s.Run("Apply the plugin filter on the client too", func() {
+		_, stdout, _ := follow(&logsOptions{number: 10, plugins: []string{"github", "jira"}},
+			respond(map[string][]json.RawMessage{"default": {
+				testLogLine(t0, "info", "github", "plugin_id", "github"),
+				testLogLine(t0, "info", "jira", "plugin_id", "jira"),
+				testLogLine(t0, "info", "another plugin", "plugin_id", "zoom"),
+				testLogLine(t0, "info", "a different case", "plugin_id", "GitHub"),
+				testLogLine(t0, "info", "no plugin_id", "url", "https://example.com/plugins/github"),
+				json.RawMessage(`{"timestamp":"2026-11-03 08:00:00.000 Z","level":"info","msg":"not a string","plugin_id":42}`),
+			}}),
+		)
+
+		s.Equal([]string{"github", "jira"}, testLogMessages(stdout))
+	})
+}
+
+// testPluginIDs returns n distinct plugin IDs, comma-separated.
+func testPluginIDs(n int) string {
+	ids := make([]string, n)
+	for i := range ids {
+		ids[i] = fmt.Sprintf("plugin%d", i)
+	}
+	return strings.Join(ids, ",")
 }
 
 func (s *MmctlUnitTestSuite) TestLogsUseColors() {

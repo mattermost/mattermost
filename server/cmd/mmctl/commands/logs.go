@@ -39,6 +39,8 @@ const (
 	logsPollOverlap = 30 * time.Second
 	// logsMaxSeenPerNode bounds the keys kept per node to drop entries already printed.
 	logsMaxSeenPerNode = 2 * logsMaxPerPage
+	// logsPluginField is the field the server logs a plugin's ID under, which --plugin filters on.
+	logsPluginField = "plugin_id"
 )
 
 // logsMinServerVersion is the first server version that filters the logs of every node, stops
@@ -56,18 +58,20 @@ var logLevelGroups = map[string][]string{
 
 var logLevelGroupNames = []string{"error", "warn", "info", "debug"}
 
-var errPlainTextLogs = errors.New("the server's log file is not in JSON format, which is needed to filter and follow the logs. Enable LogSettings.FileJson, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
+var errPlainTextLogs = errors.New("the server's log file is not in JSON format, which is needed to filter and follow the logs. Enable LogSettings.FileJson, or run mmctl logs without --follow, --level, --node, --plugin, --search and --since to print them unfiltered")
 
-var errQueryLogsNotFound = errors.New("the server doesn't support querying the logs over this connection, which is needed to filter and follow them. Upgrade the server, or run mmctl logs without --follow, --level, --node, --search and --since to print them unfiltered")
+var errQueryLogsNotFound = errors.New("the server doesn't support querying the logs over this connection, which is needed to filter and follow them. Upgrade the server, or run mmctl logs without --follow, --level, --node, --plugin, --search and --since to print them unfiltered")
 
 var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
 	Long: `Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --plugin, --search and --since aren't available.
 
---follow, --level, --node, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+--follow, --level, --node, --plugin, --search and --since need a v12.2 or later server. Older servers ignore --plugin and --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+
+--plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and the server's entries about the plugin, such as its activation and health checks.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -75,6 +79,9 @@ Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors 
 
   # keep printing new error and warning entries until interrupted
   $ mmctl logs --follow --level error,warn
+
+  # follow the entries of the Calls plugin
+  $ mmctl logs -f --plugin com.mattermost.calls
 
   # follow the entries of a single request, by its request ID
   $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
@@ -94,6 +101,8 @@ func init() {
 	LogsCmd.Flags().Duration("interval", 5*time.Second, fmt.Sprintf("How often to poll for new log entries with --follow. At least %s.", logsMinInterval))
 	LogsCmd.Flags().StringSlice("level", nil, "Only show entries of these level groups: "+strings.Join(logLevelGroupNames, ", ")+".")
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
+	LogsCmd.Flags().StringSlice("plugin", nil, fmt.Sprintf("Only show entries logged by or about these plugins, by plugin ID. At most %d.", model.LogFilterFieldMaxValues))
+	_ = LogsCmd.RegisterFlagCompletionFunc("plugin", validateArgsWithClient(pluginIDCompletionF))
 	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
 	RootCmd.AddCommand(LogsCmd)
@@ -106,8 +115,10 @@ type logsOptions struct {
 	// levels are the server levels the chosen level groups stand for.
 	levels []string
 	nodes  []string
-	search string
-	since  time.Duration
+	// plugins are the plugin IDs to keep, matched against the plugin_id field.
+	plugins []string
+	search  string
+	since   time.Duration
 	// colors colors the level of each entry
 	colors bool
 }
@@ -175,6 +186,20 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 		}
 	}
 
+	plugins, _ := cmd.Flags().GetStringSlice("plugin")
+	for _, id := range plugins {
+		id = strings.TrimSpace(id)
+		if !model.IsValidPluginId(id) {
+			return nil, fmt.Errorf("invalid plugin ID %q", id)
+		}
+		if !slices.Contains(opts.plugins, id) {
+			opts.plugins = append(opts.plugins, id)
+		}
+	}
+	if len(opts.plugins) > model.LogFilterFieldMaxValues {
+		return nil, fmt.Errorf("--plugin accepts at most %d plugin IDs", model.LogFilterFieldMaxValues)
+	}
+
 	if opts.since < 0 {
 		return nil, errors.New("--since must not be negative")
 	}
@@ -188,7 +213,7 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 
 // needsQuery reports whether the options need POST /api/v4/logs/query, which GET /api/v4/logs can't serve.
 func (o *logsOptions) needsQuery() bool {
-	return o.follow || len(o.levels) > 0 || len(o.nodes) > 0 || o.search != "" || o.since > 0
+	return o.follow || len(o.levels) > 0 || len(o.nodes) > 0 || len(o.plugins) > 0 || o.search != "" || o.since > 0
 }
 
 // serverFilterFlags returns the flags set that need a v12.2 or later server.
@@ -204,6 +229,9 @@ func (o *logsOptions) serverFilterFlags() []string {
 	// logs never match its name
 	if len(o.nodes) > 0 {
 		flags = append(flags, "--node")
+	}
+	if len(o.plugins) > 0 {
+		flags = append(flags, "--plugin")
 	}
 	if o.search != "" {
 		flags = append(flags, "--search")
@@ -311,8 +339,9 @@ type logFollower struct {
 	// format caches what logFormat returned, as it's only asked once
 	format *logFileFormat
 
-	levels map[string]bool
-	search string
+	levels  map[string]bool
+	plugins map[string]bool
+	search  string
 
 	// nodes holds every node a response listed. Once there are several, lines are prefixed with their node
 	nodes          map[string]bool
@@ -340,6 +369,7 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 		newWriter:      opts.newWriter,
 		logFormat:      configLogFormat(c),
 		levels:         make(map[string]bool, len(opts.levels)),
+		plugins:        make(map[string]bool, len(opts.plugins)),
 		search:         strings.ToLower(opts.search),
 		nodes:          make(map[string]bool),
 		prefixedWriter: make(map[string]human.LogWriter),
@@ -350,6 +380,9 @@ func newLogFollower(c client.Client, opts *logsOptions, out io.Writer) *logFollo
 	}
 	for _, level := range opts.levels {
 		f.levels[level] = true
+	}
+	for _, id := range opts.plugins {
+		f.plugins[id] = true
 	}
 	return f
 }
@@ -439,6 +472,9 @@ func (f *logFollower) fetch(ctx context.Context, from time.Time, perPage int) (m
 		ServerNames: f.opts.nodes,
 		LogLevels:   f.opts.levels,
 		Search:      f.opts.search,
+	}
+	if len(f.opts.plugins) > 0 {
+		filter.Fields = map[string][]string{logsPluginField: f.opts.plugins}
 	}
 	if !from.IsZero() {
 		filter.DateFrom = from.UTC().Format(model.LogFilterDateLayout)
@@ -532,7 +568,7 @@ func (f *logFollower) warnTruncated(logs map[string][]json.RawMessage, from time
 				// nothing is missing
 				newest, printed := f.newest[node]
 				if !entry.Time.Before(from) && (!printed || entry.Time.After(newest)) {
-					f.warn(fmt.Sprintf("node %q logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search", node, logsMaxPerPage))
+					f.warn(fmt.Sprintf("node %q logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level, --plugin or --search", node, logsMaxPerPage))
 				}
 				break
 			}
@@ -643,6 +679,9 @@ func (f *logFollower) keep(entry logQueryEntry, from time.Time) bool {
 	if len(f.levels) > 0 && !f.levels[entry.Level] {
 		return false
 	}
+	if len(f.plugins) > 0 && !f.plugins[entry.pluginID] {
+		return false
+	}
 	if f.search != "" && !entry.matches(f.search) {
 		return false
 	}
@@ -673,6 +712,8 @@ type logQueryEntry struct {
 	key        string
 	failedNode bool
 	error      string
+	// pluginID is the plugin_id field, when it's a string
+	pluginID string
 }
 
 func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
@@ -685,6 +726,8 @@ func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
 			entry.failedNode, _ = field.Interface.(bool)
 		case "error":
 			entry.error, _ = field.Interface.(string)
+		case logsPluginField:
+			entry.pluginID, _ = field.Interface.(string)
 		}
 	}
 	return entry

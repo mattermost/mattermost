@@ -11,9 +11,11 @@ Synopsis
 
 Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
-The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --search and --since aren't available.
+The logs are read from every node of the cluster, and filtered on each node. This needs the server to write its log file in JSON format (LogSettings.FileJson). Otherwise mmctl prints the logs unfiltered, and --follow, --level, --node, --plugin, --search and --since aren't available.
 
---follow, --level, --node, --search and --since need a v12.2 or later server. Older servers ignore --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+--follow, --level, --node, --plugin, --search and --since need a v12.2 or later server. Older servers ignore --plugin and --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
+
+--plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and the server's entries about the plugin, such as its activation and health checks.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.
 
@@ -32,6 +34,9 @@ Examples
     # keep printing new error and warning entries until interrupted
     $ mmctl logs --follow --level error,warn
 
+    # follow the entries of the Calls plugin
+    $ mmctl logs -f --plugin com.mattermost.calls
+
     # follow the entries of a single request, by its request ID
     $ mmctl logs -f --search 8xyz7gqnfjb1jrkpd5xnqk5mbo
 
@@ -49,6 +54,7 @@ Options
       --level strings       Only show entries of these level groups: error, warn, info, debug.
       --node stringArray    Only show the logs of this cluster node. Can be repeated.
   -n, --number int          Number of log entries to retrieve initially, per node. At most 10000. (default 200)
+      --plugin strings      Only show entries logged by or about these plugins, by plugin ID. At most 20.
   -s, --search string       Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.
       --since duration      Only show entries logged within this duration, e.g. 15m.
 

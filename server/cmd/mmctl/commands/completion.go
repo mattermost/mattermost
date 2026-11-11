@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -76,4 +77,49 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 
 		return res, cobra.ShellCompDirectiveNoFileComp
 	}
+}
+
+// pluginIDCompletionF completes plugin IDs, active and inactive, with the plugin's name as the
+// description. For comma-separated values, it completes the value after the last comma and skips
+// the IDs given before: in the value, in earlier uses of a --plugin flag, or as arguments.
+func pluginIDCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var given []string
+	if cmd != nil {
+		given, _ = cmd.Flags().GetStringSlice("plugin")
+	}
+	given = append(given, args...)
+	prefix := ""
+	if i := strings.LastIndex(toComplete, ","); i >= 0 {
+		prefix = toComplete[:i+1]
+		given = append(given, strings.Split(toComplete[:i], ",")...)
+		toComplete = toComplete[i+1:]
+	}
+	for i := range given {
+		given[i] = strings.TrimSpace(given[i])
+	}
+
+	plugins, _, err := c.GetPlugins(ctx)
+	if err != nil || plugins == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	res := []string{}
+	for _, info := range slices.Concat(plugins.Active, plugins.Inactive) {
+		if info == nil || !strings.HasPrefix(info.Id, toComplete) || slices.Contains(given, info.Id) {
+			continue
+		}
+		completion := prefix + info.Id
+		// Shells split the description off at the tab, and show it on one line
+		if name := strings.Join(strings.Fields(info.Name), " "); name != "" {
+			completion += "\t" + name
+		}
+		res = append(res, completion)
+		// A plugin listed twice is completed once
+		given = append(given, info.Id)
+		if len(res) == shellCompletionMaxItems {
+			break
+		}
+	}
+
+	return res, cobra.ShellCompDirectiveNoFileComp
 }

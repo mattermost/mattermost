@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
@@ -147,6 +148,45 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Require().NoError(<-done)
 		// Only read after the follower stopped
 		s.Empty(warnings)
+	})
+
+	s.RunForSystemAdminAndLocal("Filter the logs by plugin", func(c client.Client) {
+		// Each entry holds the marker, so --search alone would print all of them
+		marker := "mmctl_logs_plugin_" + model.NewId()
+		pluginID := "com.example." + strings.ToLower(model.NewId())
+		s.th.TestLogger.Info(marker+"_kept", mlog.String("plugin_id", pluginID))
+		s.th.TestLogger.Info(marker+"_other", mlog.String("plugin_id", pluginID+"x"))
+		s.th.TestLogger.Info(marker+"_none", mlog.String("url", "https://example.com/plugins/"+pluginID))
+		s.Require().NoError(s.th.TestLogger.Flush())
+
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("plugin", pluginID))
+		s.Require().NoError(cmd.Flags().Set("search", marker))
+
+		data, _, err := testLogsCmdF(c, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], marker+"_kept")
+
+		// --follow prints the same entries first
+		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, plugins: []string{pluginID}, search: marker}
+		queried := &queriedClient{Client: c, queried: make(chan struct{})}
+		var stdout syncBuffer
+		ctx, cancel := context.WithCancel(s.T().Context())
+		done := make(chan error, 1)
+		go func() {
+			done <- newLogFollower(queried, opts, &stdout).run(ctx)
+		}()
+		select {
+		case <-queried.queried:
+		case <-time.After(10 * time.Second):
+			s.FailNow("the initial log query didn't return")
+		}
+		cancel()
+		s.Require().NoError(<-done)
+		lines := testLogMessages(stdout.String())
+		s.Require().Len(lines, 1)
+		s.Contains(lines[0], marker+"_kept")
 	})
 
 	s.RunForSystemAdminAndLocal("Refuse to follow plain-text log files", func(c client.Client) {
