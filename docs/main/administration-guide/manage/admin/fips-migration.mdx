@@ -57,6 +57,8 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
       - **Your current password is at least 14 characters:** enter the same password. The credential doesn't change, so you can do this ahead of time, while Mattermost is still running.
       - **Your current password is shorter than 14 characters:** enter a new password that's at least 14 characters long. Do this at the start of your planned downtime, immediately before the image swap. As soon as the password changes, the running Mattermost server can't open new database connections until it restarts with the new password.
 
+      If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, review its authentication configuration before you do this, even if the password itself doesn't change. Re-hashing the password can also affect how the pooler authenticates. See PgBouncer's [authentication settings](https://www.pgbouncer.org/config.html#authentication-settings).
+
       Use the `psql` `\password` command, which prompts for the password and hashes it before sending it to the server, so the plaintext doesn't end up in your `psql` history or the PostgreSQL logs. Run `SET password_encryption` in the same session first. It applies only to that session and overrides any server, database, or role setting, so the password is stored as a SCRAM hash even if an override remains:
 
       ```text
@@ -77,8 +79,6 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
       PostgreSQL uses the first entry that matches a connection, so place this entry above any broader entry that also matches, such as a `host all all` entry that uses `md5` or `password`. If you change a shared entry like `host all all` to `scram-sha-256` instead, first confirm that every user it covers has a password stored as a SCRAM hash. A user whose password is still stored as an MD5 hash can't authenticate through a `scram-sha-256` entry.
 
       For the same reason, make this change only after step a or step c confirms that the password is stored as a SCRAM hash. Until then, leave any existing `md5` entry in place. PostgreSQL already uses SCRAM for a password stored as a SCRAM hash, even when the entry says `md5`.
-
-      If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, it needs SCRAM rather than MD5 on both of its connections: from Mattermost to the pooler, and from the pooler to PostgreSQL. PostgreSQL sees connections coming from the pooler, so use the pooler's address in this entry. A pooler that logs in to PostgreSQL with a stored MD5 hash can't connect once step c stores the password as a SCRAM hash, so review and update the pooler's stored credentials at the same time as step c. See PgBouncer's [authentication settings](https://www.pgbouncer.org/config.html#authentication-settings) for how to configure it.
 
    e. If you changed the password in step c, update it where your deployment stores it at the same time: in the official Docker deployment, the `POSTGRES_PASSWORD` value in `.env`; in Operator-managed Kubernetes deployments, the database Secret referenced by your `Mattermost` custom resource (commonly under `spec.database.external.secret`).
 
