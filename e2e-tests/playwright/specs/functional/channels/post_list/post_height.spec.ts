@@ -58,6 +58,11 @@ test.describe('Post height', () => {
         additionalCheck?: (args: {postComponent: ChannelsPost}) => Promise<void>;
         /** Playwright project names for which this test case should be skipped. */
         skipProjects?: string[];
+        /**
+         * Allows the post height to change by less than half a pixel. An image file's preview can have a slightly
+         * different aspect ratio than the original that its placeholder is sized from.
+         */
+        allowSubpixelHeightChange?: boolean;
     };
 
     const testCases: PostHeightTestCase[] = [
@@ -122,8 +127,7 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single large image',
-            // MM-69979 Skip this on iPad because images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['ipad'],
+            allowSubpixelHeightChange: true,
             makePost: () =>
                 seedPost({
                     message: 'post with a single large image',
@@ -260,8 +264,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large Markdown image',
-            // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![large image](${fileServerUrl}/huge-image.jpg)`,
@@ -336,8 +338,6 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a large image preview',
-            // MM-69979 Images that are too wide but above the minimum height cause layout shift
-            skipProjects: ['chrome', 'firefox', 'ipad', 'subpath'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `${fileServerUrl}/huge-image.jpg`,
@@ -465,9 +465,95 @@ test.describe('Post height', () => {
                 }
 
                 // * Verify no height changes were detected
-                expect(await sizeWatcher.getObservations()).toHaveLength(1);
+                const observations = await sizeWatcher.getObservations();
+                if (testCase.allowSubpixelHeightChange) {
+                    for (const {height} of observations) {
+                        expect(height).toBeCloseTo(observations[0].height, 0);
+                    }
+                } else {
+                    expect(observations).toHaveLength(1);
+                }
             },
         );
+    }
+
+    // Images that are scaled down to fit the width of the post rather than being capped by the max image height
+    const wideImageSurfaces = [
+        {
+            name: 'attachment',
+            makePost: (file: string) => seedPost({message: `post with a ${file} attachment`, files: [file]}),
+        },
+        {
+            name: 'Markdown image',
+            makePost: (file: string) => seedPost({message: `![wide image](${fileServerUrl}/${file})`}),
+        },
+        {
+            name: 'image preview',
+            makePost: (file: string) => seedPost({message: `${fileServerUrl}/${file}`}),
+        },
+    ];
+
+    for (const file of ['image-2000x400.jpg', 'image-1200x300.jpg']) {
+        for (const messageDisplay of ['full', 'compact']) {
+            for (const surface of wideImageSurfaces) {
+                test(
+                    `image placeholder should match the size of the loaded image (${file} ${surface.name}, ${messageDisplay} display)`,
+                    {tag: '@post_list'},
+                    async () => {
+                        // # Set the message display setting and create the post
+                        await userClient.savePreferences(user.id, [
+                            {
+                                user_id: user.id,
+                                category: 'display_settings',
+                                name: 'message_display',
+                                value: messageDisplay,
+                            },
+                        ]);
+                        const post = await surface.makePost(file);
+
+                        // # Hold back the image so that its placeholder can be measured
+                        let releaseImage = () => {};
+                        const imageReleased = new Promise<void>((resolve) => {
+                            releaseImage = resolve;
+                        });
+                        await page.route(
+                            (url) =>
+                                url.pathname.endsWith(`/${file}`) ||
+                                /\/api\/v4\/files\/[^/]+\/preview$/.test(url.pathname),
+                            async (route) => {
+                                await imageReleased;
+                                await route.continue();
+                            },
+                        );
+
+                        const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
+
+                        // * Verify that the post is shown with the chosen message display
+                        if (messageDisplay === 'compact') {
+                            await expect(postComponent.container).toHaveClass(/post--compact/);
+                        } else {
+                            await expect(postComponent.container).not.toHaveClass(/post--compact/);
+                        }
+
+                        // # Measure the placeholder and then let the image load
+                        const placeholder = postComponent.container.locator('img.image-loading__placeholder');
+                        await expect(placeholder).toBeAttached();
+                        const placeholderBox = await placeholder.boundingBox();
+                        releaseImage();
+
+                        const image = postComponent.container.locator(
+                            '.image-loaded-container img:not(.image-loading__placeholder)',
+                        );
+                        await expect(image).toBeVisible();
+                        await waitForImagesLoaded(postComponent.container);
+
+                        // * Verify that the image took the place of the placeholder without changing the post's height
+                        expect(await image.boundingBox()).toEqual(placeholderBox);
+                        expect(await sizeWatcher.getObservations()).toHaveLength(1);
+                    },
+                );
+            }
+        }
     }
 
     test("a post changes height when it's replied to for the first time", {tag: '@post_list'}, async () => {
@@ -618,7 +704,10 @@ test.describe('Post height', () => {
     }
 });
 
-/** Wait until every <img> within the locator has finished decoding. */
+/**
+ * Wait until every <img> within the locator has finished decoding, except for lazy-loaded ones which the browser
+ * never loads while they're hidden (such as avatars in Compact display).
+ */
 async function waitForImagesLoaded(locator: Locator): Promise<void> {
     await expect
         .poll(async () =>
@@ -626,7 +715,11 @@ async function waitForImagesLoaded(locator: Locator): Promise<void> {
                 .locator('img')
                 .evaluateAll(
                     (imgs) =>
-                        (imgs as HTMLImageElement[]).filter((img) => !(img.complete && img.naturalWidth > 0)).length,
+                        (imgs as HTMLImageElement[]).filter(
+                            (img) =>
+                                !(img.complete && img.naturalWidth > 0) &&
+                                !(img.loading === 'lazy' && img.getClientRects().length === 0),
+                        ).length,
                 ),
         )
         .toBe(0);
