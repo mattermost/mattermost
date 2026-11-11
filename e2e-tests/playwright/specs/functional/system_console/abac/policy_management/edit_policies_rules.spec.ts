@@ -208,10 +208,13 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // Select operator "==" (is)
     const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
     await operatorButton.waitFor({state: 'visible', timeout: 10_000});
-    await operatorButton.click({force: true});
-
-    const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
-    await operatorOption.click({force: true});
+    const operatorLabel = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
+    if (operatorLabel.toLowerCase() !== 'is') {
+        await operatorButton.click({force: true});
+        const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
+        await operatorOption.click({force: true});
+    }
+    await expect(operatorButton).toHaveText(/^\s*is\s*$/i);
 
     // Fill value "Remote"
     const valueInput = page.locator('.values-editor__simple-input').last();

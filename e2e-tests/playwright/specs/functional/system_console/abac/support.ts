@@ -544,6 +544,7 @@ export async function createBasicPolicy(
         await expect(attributeOption).toBeVisible();
         await attributeOption.click({force: true});
         await expect(page.getByTestId('attributeSelectorMenuButton').first()).toContainText(options.attribute);
+        await page.keyboard.press('Escape');
 
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').first();
@@ -559,9 +560,14 @@ export async function createBasicPolicy(
             endsWith: 'ends with',
         };
         const operatorText = operatorMap[options.operator] || options.operator;
-        const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await operatorOption.click({force: true});
-        await expect(operatorButton).toContainText(new RegExp(operatorText, 'i'));
+        const selectedOperator = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
+        if (selectedOperator.toLowerCase() !== operatorText.toLowerCase()) {
+            const operatorOption = page
+                .locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`)
+                .first();
+            await operatorOption.click({force: true});
+        }
+        await expect(operatorButton).toHaveText(new RegExp(`^\\s*${operatorText}\\s*$`, 'i'));
 
         // Fill value
         if (options.operator === 'in') {
@@ -711,6 +717,7 @@ export async function createMultiAttributePolicy(
         await expect(attributeOption).toBeVisible();
         await attributeOption.click({force: true});
         await expect(attributeButton).toContainText(rule.attribute);
+        await page.keyboard.press('Escape');
 
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').nth(i);
@@ -727,9 +734,14 @@ export async function createMultiAttributePolicy(
             endsWith: 'ends with',
         };
         const operatorText = operatorMap[rule.operator] || 'is';
-        const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await operatorOption.click({force: true});
-        await expect(operatorButton).toContainText(new RegExp(operatorText, 'i'));
+        const selectedOperator = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
+        if (selectedOperator.toLowerCase() !== operatorText.toLowerCase()) {
+            const operatorOption = page
+                .locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`)
+                .first();
+            await operatorOption.click({force: true});
+        }
+        await expect(operatorButton).toHaveText(new RegExp(`^\\s*${operatorText}\\s*$`, 'i'));
 
         // Enter value - check if it's a text input or select menu
         const valueInput = page.locator('.values-editor__simple-input').nth(i);

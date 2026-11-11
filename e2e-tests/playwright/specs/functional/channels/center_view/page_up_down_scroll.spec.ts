@@ -1,18 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Page} from '@playwright/test';
 
-async function scrollTopAfterMove(read: () => Promise<number>, previous: number, direction: 'up' | 'down') {
-    let observed = previous;
-    await expect
-        .poll(async () => {
-            observed = await read();
-            return direction === 'up' ? observed < previous : observed > previous;
-        })
-        .toBe(true);
-    return observed;
-}
+import {expect, test} from '@mattermost/playwright-lib';
 
 test('should be able to scroll the post list with page up and down', async ({pw}) => {
     const {user} = await pw.initSetup();
@@ -25,38 +16,52 @@ test('should be able to scroll the post list with page up and down', async ({pw}
         await channelsPage.centerView.postCreate.postMessage('a\n'.repeat(10));
     }
 
-    const postList = page.locator('#postListScrollContainer');
-    const readScrollTop = () => postList.evaluate((el) => el.scrollTop);
-    let lastScrollTop = await readScrollTop();
+    let lastScrollTop = await getScrollTop(page, '#postListScrollContainer');
 
-    // # Press the page up key with the post textbox focused.
-    // The editor moves focus to the post list; send the key again so the list actually scrolls.
-    await channelsPage.centerView.postCreate.input.focus();
+    // # Press the page up key with the post textbox focused
+    channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageUp');
-    await postList.focus();
-    await page.keyboard.press('PageUp');
+    // Sample the in-progress scroll. Waiting until it settles lands on the top or bottom, so the next key cannot move further.
+    // Sample the in-progress scroll before it settles at the top or bottom.
+    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled up by a page
-    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
+    let currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
+    expect(currentScrollTop).toBeLessThan(lastScrollTop);
+    lastScrollTop = currentScrollTop;
 
     // # Press the page up key with the post list focused
     await page.keyboard.press('PageUp');
+    // Sample the in-progress scroll before it settles at the top or bottom.
+    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled up another page
-    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
+    currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
+    expect(currentScrollTop).toBeLessThan(lastScrollTop);
+    lastScrollTop = currentScrollTop;
 
     // # Press the page down key with the post list focused
     await page.keyboard.press('PageDown');
+    // Sample the in-progress scroll before it settles at the top or bottom.
+    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled back down a page
-    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
+    currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
+    expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
+    lastScrollTop = currentScrollTop;
 
     // # Press the page down key with the post textbox focused
-    await channelsPage.centerView.postCreate.input.focus();
+    channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageDown');
-    await postList.focus();
-    await page.keyboard.press('PageDown');
+    // Sample the in-progress scroll before it settles at the top or bottom.
+    await page.waitForTimeout(200);
 
-    // * Verify that the post list scrolled back toward the bottom
-    await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
+    // * Verify that the post list scrolled back to the bottom
+    currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
+    expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
 });
+
+async function getScrollTop(page: Page, selector: string): Promise<number> {
+    const locator = await page.locator(selector);
+    return locator?.evaluate((element) => element.scrollTop);
+}
