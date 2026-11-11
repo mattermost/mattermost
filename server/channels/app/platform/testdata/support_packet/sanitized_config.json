@@ -652,7 +652,8 @@
         "CWSURL": null,
         "CWSAPIURL": null,
         "Disable": null,
-        "PreviewModalBucketURL": null
+        "PreviewModalBucketURL": null,
+        "PreviewLandingPath": null
     },
     "ImportSettings": {
         "Directory": null,

@@ -18,6 +18,7 @@ import SearchResults from 'components/search_results';
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
 import {mentionFiltersFromSearchParams} from 'utils/mention_search';
+import {ID_PATH_REGEX} from 'utils/path';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
 
 import type {GlobalState} from 'types/store';
@@ -37,7 +38,8 @@ export default function RhsSearchPopout() {
         const searchType = queryParams.get('type') as SearchType;
         const mode = queryParams.get('mode') as NonNullable<RhsState>;
         const channelIdentifier = queryParams.get('channel') ?? '';
-        const searchTeamId = queryParams.get('searchTeamId');
+        const rawSearchTeamId = queryParams.get('searchTeamId');
+        const searchTeamId = rawSearchTeamId === '' || ID_PATH_REGEX.test(rawSearchTeamId ?? '') ? rawSearchTeamId : null;
         const mentionFilters = mentionFiltersFromSearchParams(queryParams);
 
         return {

@@ -130,6 +130,7 @@ func TestGenerateCustomerPacketMetadata(t *testing.T) {
 		require.NotZero(t, md.GeneratedAt)
 		require.Equal(t, model.CurrentVersion, md.ServerVersion)
 		require.Equal(t, telemetryID, md.ServerID)
+		require.True(t, model.IsValidId(md.PacketID))
 		require.Equal(t, licenseID, md.LicenseID)
 		require.Equal(t, customerID, md.CustomerID)
 		require.Equal(t, "some.id", md.Extras["plugin_id"])
