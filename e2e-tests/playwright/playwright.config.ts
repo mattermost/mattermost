@@ -79,6 +79,9 @@ export default defineConfig({
             use: {
                 browserName: 'chromium',
                 ...devices['iPad Pro 11'],
+                // Playwright 1.64 forwards device `screen` into the context. Keep the previous
+                // viewport-only emulation so existing iPad snapshots stay stable.
+                screen: undefined,
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],
