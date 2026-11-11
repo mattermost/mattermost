@@ -1039,17 +1039,17 @@ For more information on Aurora replication stats, see the [AWS Aurora documentai
 Example
 
 ``` json
-&#123;
-  "SqlSettings": &#123;
+{
+  "SqlSettings": {
       "ReplicaLagSettings": [
-        &#123;
+        {
             "DataSource": "replica-1",
             "QueryAbsoluteLag": "select server_id, highest_lsn_rcvd-durable_lsn as bindiff from aurora_global_db_instance_status() where server_id=<>",
             "QueryTimeLag": "select server_id, visibility_lag_in_msec from aurora_global_db_instance_status() where server_id=<>"
-        &#125;
+        }
       ]
-  &#125;
-&#125;
+  }
+}
 ```
 
 </TabItem>
@@ -1062,17 +1062,17 @@ For more information on group replication stats, see the [MySQL documentation](h
 Example
 
 ``` json
-&#123;
-  "SqlSettings": &#123;
+{
+  "SqlSettings": {
       "ReplicaLagSettings": [
-        &#123;
+        {
             "DataSource": "replica-1",
             "QueryAbsoluteLag": "select member_id, count_transactions_remote_in_applier_queue FROM performance_schema.replication_group_member_stats where member_id=<>",
             "QueryTimeLag": ""
-        &#125;
+        }
       ]
-  &#125;
-&#125;
+  }
+}
 ```
 
 </TabItem>
@@ -1181,7 +1181,7 @@ If indexing is disabled and then re-enabled after an index is created, purge and
 
 Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
 
-Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
+Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/{channel_id}?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
 
 Documents for those channels can remain in the search index, because indexing is off while they are deleted. Post search only queries channels the user currently belongs to, then loads the posts from the database. Channel search also loads its matches from the database, so a permanently deleted channel is left out. A full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
 

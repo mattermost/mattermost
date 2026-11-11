@@ -64,11 +64,11 @@ Make sure that you understand how to [prepare for your upgrade](/administration-
   - This command won't return anything if `/opt/mattermost/bin` wasn't added to the PATH.
   - Alternatively, you can use the `find / -executable -type f -iname mattermost 2> /dev/null` command to find the `mattermost` binary.
   - The output should be similar to `/opt/mattermost/bin/mattermost`.
-  - The install directory is everything before the first occurrence of the string `/mattermost`. In this example, the `&#123;install-path&#125;` is `/opt`.
+  - The install directory is everything before the first occurrence of the string `/mattermost`. In this example, the `{install-path}` is `/opt`.
   - If that command doesn't produce any results, it's likely because your version is older; try `whereis platform` instead.
 - **Location and size of your local storage directory**: The local storage directory contains all the files that users have attached to their messages.
   - If you don't know its location, open the System Console and go to **Environment \> File Storage**, then read the value in **Local Storage Directory**.
-  - Paths are relative to the `mattermost` directory. For example, if the local storage directory is `./data/` then the absolute path is `&#123;install-path&#125;/mattermost/data`.
+  - Paths are relative to the `mattermost` directory. For example, if the local storage directory is `./data/` then the absolute path is `{install-path}/mattermost/data`.
 - **Database disk space**: If you're upgrading a Mattermost deployment on the same server as your database, we recommend a minimum 2GB of free disk space to allow for extraction, copy, and cleanup, and a minimum of twice the size of your Mattermost installation available for the database.
 
 <Tip>
@@ -228,8 +228,8 @@ wget https://releases.mattermost.com/X.X.X/mattermost-team-X.X.X-linux-amd64.tar
 
     </div>
 
-    - If you didn't use `mattermost` as the owner and group of the install directory, run `sudo chown -hR &#123;owner&#125;:&#123;group&#125; &#123;install-path&#125;/mattermost`.
-    - If you're uncertain what owner or group was defined, use the `ls -l &#123;install-path&#125;/mattermost/bin/mattermost` command to obtain them.
+    - If you didn't use `mattermost` as the owner and group of the install directory, run `sudo chown -hR {owner}:{group} {install-path}/mattermost`.
+    - If you're uncertain what owner or group was defined, use the `ls -l {install-path}/mattermost/bin/mattermost` command to obtain them.
 
     </div>
 

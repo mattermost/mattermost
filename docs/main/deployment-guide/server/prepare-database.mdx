@@ -66,7 +66,7 @@ Complete this section only if the database runs on a different host from Matterm
 <Tabs>
 <TabItem value="ubuntu-debian" label="Ubuntu/Debian">
 
-Edit `/etc/postgresql/&#123;version&#125;/main/postgresql.conf`:
+Edit `/etc/postgresql/{version}/main/postgresql.conf`:
 
     ``` text
     listen_addresses = '*'
@@ -75,7 +75,7 @@ Edit `/etc/postgresql/&#123;version&#125;/main/postgresql.conf`:
 </TabItem>
 <TabItem value="rhel-centos" label="RHEL/CentOS">
 
-Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
+Edit `/var/lib/pgsql/{version}/data/postgresql.conf`:
 
     ``` text
     listen_addresses = '*'
@@ -86,7 +86,7 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
 
 2.  Configure client authentication by editing `pg_hba.conf`.
 
-    Add the following line, replacing `&#123;mattermost-server-IP&#125;`:
+    Add the following line, replacing `{mattermost-server-IP}`:
 
     ``` text
     host all all {mattermost-server-IP}/32 md5
