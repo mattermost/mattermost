@@ -756,7 +756,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         pw,
     }) => {
         const {adminClient, team} = await setupFixture(pw);
-        await enableMaskingFlag(adminClient);
+        await enableMaskingFlag();
 
         // # The team admin holds Alpha but not Bravo, so Bravo is masked for them
         const fieldName = `Prog${getRandomId()}`;

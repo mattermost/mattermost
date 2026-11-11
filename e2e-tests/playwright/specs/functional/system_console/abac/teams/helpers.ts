@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Locator, Page} from '@playwright/test';
 
-import {expect, patchFeatureFlags} from '@mattermost/playwright-lib';
+import {ensureFeatureFlag, expect} from '@mattermost/playwright-lib';
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
@@ -13,7 +13,7 @@ import {expect, patchFeatureFlags} from '@mattermost/playwright-lib';
  * render the membership-policy toggle — mirroring the server enforcement gate.
  */
 export async function enableTeamMembershipPolicies(client: Client4): Promise<void> {
-    await patchFeatureFlags(client, {TeamMembershipAccessControl: true});
+    await ensureFeatureFlag('TeamMembershipAccessControl', true);
     await client.patchConfig({
         AccessControlSettings: {
             EnableAttributeBasedAccessControl: true,

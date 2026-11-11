@@ -3,7 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {patchFeatureFlags} from './server/feature_flags';
+import {ensureFeatureFlag} from './server/feature_flags';
 
 export type EnableAutotranslationOptions = {
     mockBaseUrl: string;
@@ -18,7 +18,7 @@ export async function enableAutotranslationConfig(
     adminClient: Client4,
     options: EnableAutotranslationOptions,
 ): Promise<void> {
-    await patchFeatureFlags(adminClient, {AutoTranslation: true});
+    await ensureFeatureFlag('AutoTranslation', true);
     await adminClient.patchConfig({
         AutoTranslationSettings: {
             Enable: true,
@@ -37,10 +37,9 @@ export async function enableAutotranslationConfig(
 
 /**
  * Disable autotranslation in server config.
- * Uses patchConfig for the same reasons as enableAutotranslationConfig.
  */
 export async function disableAutotranslationConfig(adminClient: Client4): Promise<void> {
-    await patchFeatureFlags(adminClient, {AutoTranslation: false});
+    await ensureFeatureFlag('AutoTranslation', false);
     await adminClient.patchConfig({
         AutoTranslationSettings: {
             Enable: false,

@@ -37,7 +37,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -99,7 +99,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -117,7 +117,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -175,7 +175,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -193,7 +193,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -237,7 +237,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -256,7 +256,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -313,7 +313,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -327,7 +327,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -390,7 +390,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -405,7 +405,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -478,7 +478,7 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
