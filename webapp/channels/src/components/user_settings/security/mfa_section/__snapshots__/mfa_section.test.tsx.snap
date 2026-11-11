@@ -105,11 +105,11 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
             class="pt-2"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 a11y--active a11y--focused"
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 a11y--active a11y--focused"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Reset MFA on Account
               </span>
@@ -134,13 +134,13 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
             class="setting-list-item__buttons"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
               data-testid="cancelButton"
               id="cancelSetting"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Cancel
               </span>
@@ -178,11 +178,11 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
             class="pt-2"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 a11y--active a11y--focused"
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 a11y--active a11y--focused"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Remove MFA from Account
               </span>
@@ -207,13 +207,13 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
             class="setting-list-item__buttons"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
               data-testid="cancelButton"
               id="cancelSetting"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Cancel
               </span>
@@ -251,11 +251,11 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
             class="pt-2"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 a11y--active a11y--focused"
+              class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 a11y--active a11y--focused"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Add MFA to Account
               </span>
@@ -280,13 +280,13 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
             class="setting-list-item__buttons"
           >
             <button
-              class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+              class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
               data-testid="cancelButton"
               id="cancelSetting"
               type="button"
             >
               <span
-                class="_button__label_we8pe_31"
+                class="_button__label_1pij1_55"
               >
                 Cancel
               </span>

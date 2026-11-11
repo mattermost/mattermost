@@ -4,57 +4,57 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
 <div>
   <section
     aria-labelledby="_r_0_"
-    class="_admin-panel_iwm08_2 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name"
+    class="_admin-panel_xr2f9_13 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name"
     id="test-id"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18 _admin-panel-header--expandable_vb1i0_21"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_0_"
               >
                 test-title-default
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               test-subtitle-default
             </p>
           </div>
         </div>
         <div
-          class="_admin-panel-header__actions_19tix_75"
+          class="_admin-panel-header__actions_vb1i0_28"
         >
           <button
             aria-expanded="true"
             aria-label="Collapse section"
-            class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91"
+            class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-20_1i355_46"
+                class="_icon_1xcik_13 _icon--size-20_1xcik_57"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -77,13 +77,13 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
     </header>
     <div
       aria-hidden="false"
-      class="_admin-panel__collapse_iwm08_13 _admin-panel__collapse--expanded_iwm08_18"
+      class="_admin-panel__collapse_xr2f9_24 _admin-panel__collapse--expanded_xr2f9_29"
     >
       <div
-        class="_admin-panel__collapse-inner_iwm08_21"
+        class="_admin-panel__collapse-inner_xr2f9_32"
       >
         <div
-          class="_admin-panel__body_iwm08_25"
+          class="_admin-panel__body_xr2f9_36"
         >
           Test
         </div>
@@ -97,57 +97,57 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
 <div>
   <section
     aria-labelledby="_r_1_"
-    class="_admin-panel_iwm08_2 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name closed"
+    class="_admin-panel_xr2f9_13 AdminPanel AdminPanel--expandable clearfix AdminPanelTogglable test-class-name closed"
     id="test-id"
   >
     <header
-      class="_admin-panel-header_19tix_2"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--expandable_vb1i0_21"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_1_"
               >
                 test-title-default
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               test-subtitle-default
             </p>
           </div>
         </div>
         <div
-          class="_admin-panel-header__actions_19tix_75"
+          class="_admin-panel-header__actions_vb1i0_28"
         >
           <button
             aria-expanded="false"
             aria-label="Expand section"
-            class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91"
+            class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-20_1i355_46"
+                class="_icon_1xcik_13 _icon--size-20_1xcik_57"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -170,14 +170,14 @@ exports[`components/widgets/admin_console/AdminPanelTogglable should match snaps
     </header>
     <div
       aria-hidden="true"
-      class="_admin-panel__collapse_iwm08_13"
+      class="_admin-panel__collapse_xr2f9_24"
       inert=""
     >
       <div
-        class="_admin-panel__collapse-inner_iwm08_21"
+        class="_admin-panel__collapse-inner_xr2f9_32"
       >
         <div
-          class="_admin-panel__body_iwm08_25"
+          class="_admin-panel__body_xr2f9_36"
         >
           Test
         </div>
