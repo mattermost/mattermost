@@ -3,8 +3,9 @@
 
 package config
 
-// replaceFile writes data in place on Windows, which renameio doesn't support. The in-place
-// write still never truncates the file before the new contents are written.
+import "os"
+
+// replaceFile writes the file directly on Windows, which renameio doesn't support.
 func replaceFile(path string, data []byte) error {
-	return writeFileInPlace(path, data, 0600)
+	return os.WriteFile(path, data, 0600)
 }

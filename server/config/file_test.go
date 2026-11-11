@@ -1084,7 +1084,7 @@ func TestWriteFileAtomically(t *testing.T) {
 		assert.Equal(t, "new", string(data))
 	})
 
-	t.Run("writes in place when the directory is not writable", func(t *testing.T) {
+	t.Run("writes directly when the directory is not writable", func(t *testing.T) {
 		if runtime.GOOS == "windows" {
 			t.Skip("unix permissions are not supported on windows")
 		}
@@ -1121,35 +1121,6 @@ func TestWriteFileAtomically(t *testing.T) {
 		entries, err := os.ReadDir(dir)
 		require.NoError(t, err)
 		assert.Len(t, entries, 1)
-	})
-}
-
-func TestWriteFileInPlace(t *testing.T) {
-	for name, tc := range map[string]struct{ old, new string }{
-		"grows":       {"old", "much longer new content"},
-		"shrinks":     {"much longer old content", "new"},
-		"same length": {"abc", "xyz"},
-	} {
-		t.Run(name, func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "config.json")
-			require.NoError(t, os.WriteFile(path, []byte(tc.old), 0600))
-
-			require.NoError(t, writeFileInPlace(path, []byte(tc.new), 0600))
-
-			data, err := os.ReadFile(path)
-			require.NoError(t, err)
-			assert.Equal(t, tc.new, string(data))
-		})
-	}
-
-	t.Run("creates the file if it does not exist", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "config.json")
-
-		require.NoError(t, writeFileInPlace(path, []byte("new"), 0600))
-
-		data, err := os.ReadFile(path)
-		require.NoError(t, err)
-		assert.Equal(t, "new", string(data))
 	})
 }
 
