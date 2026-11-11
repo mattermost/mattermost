@@ -432,10 +432,11 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await purgeAttributes(adminClient);
             await assertNoForeignRequiredAttributes(adminClient);
 
-            // Stored lowest first, so an unsorted menu would read LOW, MID, HIGH.
+            // Rank order differs from both the stored order and its reverse.
             const level = await createAttribute(adminClient, attributeName('level', suffix), {
                 type: 'rank',
-                options: ['LOW', 'MID', 'HIGH'],
+                options: ['ALPHA', 'BRAVO', 'CHARLIE'],
+                optionRanks: {ALPHA: 2, BRAVO: 3, CHARLIE: 1},
                 required: true,
             });
             created.push(level);
@@ -454,17 +455,17 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             // * Highest rank first, each uncoloured option with its badge and no rank text
             await modal.expectAttributeOptionOrder(
                 level.name,
-                ['HIGH', 'MID', 'LOW'].map((name) => optionId(level, name)),
+                ['BRAVO', 'ALPHA', 'CHARLIE'].map((name) => optionId(level, name)),
             );
             await expect(listbox.getByTestId('rank-badge')).toHaveText(['3', '2', '1']);
-            await expect(listbox.getByRole('option')).toHaveText([/^3\s*HIGH$/, /^2\s*MID$/, /^1\s*LOW$/]);
+            await expect(listbox.getByRole('option')).toHaveText([/^3\s*BRAVO$/, /^2\s*ALPHA$/, /^1\s*CHARLIE$/]);
             await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(0);
 
-            // # Pick the middle option
-            await modal.selectAttributeOption(level.name, 'MID');
+            // # Pick the middle-ranked option
+            await modal.selectAttributeOption(level.name, 'ALPHA');
 
             // * The closed field shows it with its badge, and Create is enabled
-            await expect(modal.getAttributeCombobox(level.name)).toHaveValue('MID');
+            await expect(modal.getAttributeCombobox(level.name)).toHaveValue('ALPHA');
             await expect(modal.getAttributeRow(level.name).getByTestId('rank-badge')).toHaveText('2');
             await expect(modal.createButton).toBeEnabled();
 
@@ -472,9 +473,9 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await modal.create();
             await expect(modal.container).not.toBeVisible();
 
-            // * The stored value is MID's option id
+            // * The stored value is ALPHA's option id
             const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
-            expect(valueFor(await readChannelValues(adminClient, channel.id), level)).toBe(optionId(level, 'MID'));
+            expect(valueFor(await readChannelValues(adminClient, channel.id), level)).toBe(optionId(level, 'ALPHA'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
