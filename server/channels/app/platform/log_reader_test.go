@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -256,6 +257,32 @@ func TestGetLogsSkipSendNullLine(t *testing.T) {
 	assert.Equal(t, []string{"null"}, lines)
 }
 
+func TestGetLogsSkipSendLogsUnparsedLinesOnce(t *testing.T) {
+	// Plain-text lines, as the file holds after LogSettings.FileJson is turned off
+	content := logLine("2026-10-21 10:00:00.000 Z", "info", "one") + "\n" +
+		"2026-10-21T10:00:01.000Z info two\n" +
+		"2026-10-21T10:00:02.000Z info three\n" +
+		"2026-10-21T10:00:03.000Z info four\n"
+	ps := newGetLogsTestService(t, []byte(content))
+
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	var buffer mlog.Buffer
+	require.NoError(t, mlog.AddWriterTarget(logger, &buffer, true, mlog.StdAll...))
+	t.Cleanup(func() { require.NoError(t, logger.Shutdown()) })
+
+	lines, appErr := ps.GetLogsSkipSend(request.EmptyContext(logger), 0, 100, &model.LogFilter{})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 4)
+	require.NoError(t, logger.Flush())
+
+	// One message for the scan, so a client polling the logs at debug level can't make the
+	// file grow with every query
+	logged := buffer.String()
+	assert.Equal(t, 1, strings.Count(logged, "Read log lines that aren't JSON"), logged)
+	assert.Contains(t, logged, `"lines":3`)
+}
+
 // TestGetLogsSkipSendLargeFile covers lines that straddle read blocks or are longer than one.
 func TestGetLogsSkipSendLargeFile(t *testing.T) {
 	var sb strings.Builder
@@ -354,6 +381,144 @@ func TestGetLogsSkipSendDateFromEarlyExit(t *testing.T) {
 		lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 1, 2, filter)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{inRange}, lines)
+	})
+}
+
+// dateToTestLogFile returns count mlog JSON lines one second apart, oldest first and starting at
+// start, of varying length so that probes and block boundaries land at different points in lines.
+func dateToTestLogFile(start time.Time, count int) []string {
+	lines := make([]string, count)
+	for i := range lines {
+		level := "info"
+		if i%7 == 0 {
+			level = "error"
+		}
+		lines[i] = logLine(start.Add(time.Duration(i)*time.Second).Format(logr.DefTimestampFormat), level, fmt.Sprintf("entry %d %s", i, strings.Repeat("x", (i*53)%400)))
+	}
+	return lines
+}
+
+// referenceFilteredLogs returns the page GetLogsSkipSend returns when it reads every line.
+func referenceFilteredLogs(rctx request.CTX, all []string, perPage int, filter *model.LogFilter) []string {
+	search := newLogSearch(filter)
+	fields := newLogFields(filter)
+
+	var lines []string
+	for i := len(all) - 1; i >= 0 && len(lines) < perPage; i-- {
+		filtered := isLogFilteredByContent(search, fields, []byte(all[i]))
+		var entry *model.LogEntry
+		if err := json.Unmarshal([]byte(all[i]), &entry); err == nil && entry != nil {
+			filtered = filtered || isLogFilteredByLevel(filter, entry) || isLogFilteredByDate(rctx, filter, entry)
+		}
+		if !filtered {
+			lines = append(lines, all[i])
+		}
+	}
+
+	slices.Reverse(lines)
+	return lines
+}
+
+func TestGetLogsSkipSendDateTo(t *testing.T) {
+	rctx := request.TestContext(t)
+	start := time.Date(2026, 10, 21, 0, 0, 0, 0, time.UTC)
+	at := func(seconds float64) string {
+		return start.Add(time.Duration(seconds * float64(time.Second))).Format(model.LogFilterDateLayout)
+	}
+
+	base := dateToTestLogFile(start, 20000)
+
+	// newService returns the content of lines, its lines as GetLogsSkipSend splits them, and a
+	// service that reads it.
+	newService := func(t *testing.T, lines []string) (string, []string, *PlatformService) {
+		content := strings.Join(lines, "\n")
+		return content, referenceLogLines(content), newGetLogsTestService(t, []byte(content))
+	}
+
+	t.Run("same as reading every line", func(t *testing.T) {
+		_, all, ps := newService(t, base)
+
+		for _, filter := range []model.LogFilter{
+			{DateTo: at(-1)},
+			{DateTo: at(0)},
+			{DateTo: at(0.5)},
+			{DateTo: at(1)},
+			{DateTo: at(150)},
+			{DateTo: at(2000)},
+			{DateTo: at(10000.5)},
+			{DateTo: at(19999)},
+			{DateTo: at(20000)},
+			{DateFrom: at(1000), DateTo: at(1100)},
+			{DateFrom: at(1000), DateTo: at(1000)},
+			{DateFrom: at(3000), DateTo: at(9000)},
+			{DateFrom: at(5000), DateTo: at(5500), LogLevels: []string{"error"}},
+			{DateTo: at(7000), Search: "entry 69"},
+			{DateFrom: at(20001), DateTo: at(30000)},
+		} {
+			for _, perPage := range []int{1, 50, 1000} {
+				lines, appErr := ps.GetLogsSkipSend(rctx, 0, perPage, &filter)
+				require.Nil(t, appErr)
+				assert.Equal(t, referenceFilteredLogs(rctx, all, perPage, &filter), lines, "filter %+v, per page %d", filter, perPage)
+			}
+		}
+	})
+
+	t.Run("entries out of order near date to", func(t *testing.T) {
+		// an entry in range written after newer ones
+		late := logLine(at(9999), "info", "late")
+		lines := slices.Insert(slices.Clone(base), 10100, late)
+		_, _, ps := newService(t, lines)
+
+		filter := &model.LogFilter{DateTo: at(9999)}
+		result, appErr := ps.GetLogsSkipSend(rctx, 0, 2, filter)
+		require.Nil(t, appErr)
+		require.Len(t, result, 2)
+		assert.Equal(t, "\n"+lines[9999], result[0])
+		assert.Equal(t, "\n"+late, result[1])
+	})
+
+	t.Run("unparseable lines at a probe point", func(t *testing.T) {
+		// more than a block, so the probe that lands on them falls back to reading every line
+		lines := slices.Insert(slices.Clone(base), 10000, slices.Repeat([]string{"not json"}, logReadBlockSize/4)...)
+		_, all, ps := newService(t, lines)
+
+		// the file is read from the end, so the unparseable lines are kept as they always have been
+		filter := &model.LogFilter{DateTo: at(5000)}
+		result, appErr := ps.GetLogsSkipSend(rctx, 0, 100, filter)
+		require.Nil(t, appErr)
+		assert.Equal(t, referenceFilteredLogs(rctx, all, 100, filter), result)
+		assert.Equal(t, "\nnot json", result[len(result)-1])
+	})
+
+	t.Run("long entries", func(t *testing.T) {
+		lines := slices.Clone(base)
+		for i := 0; i < len(lines); i += 97 {
+			lines[i] = logLine(start.Add(time.Duration(i)*time.Second).Format(logr.DefTimestampFormat), "error", strings.Repeat("z", 5*logSeekProbeSize+i%logSeekProbeSize))
+		}
+		content, all, ps := newService(t, lines)
+
+		for _, filter := range []model.LogFilter{
+			{DateTo: at(2000)},
+			{DateTo: at(9700.5)},
+			{DateFrom: at(5000), DateTo: at(6000), LogLevels: []string{"error"}},
+		} {
+			dateTo, err := time.Parse(model.LogFilterDateLayout, filter.DateTo)
+			require.NoError(t, err)
+			assert.Less(t, logScanEnd(strings.NewReader(content), int64(len(content)), dateTo), int64(len(content)), "filter %+v", filter)
+
+			result, appErr := ps.GetLogsSkipSend(rctx, 0, 1000, &filter)
+			require.Nil(t, appErr)
+			assert.Equal(t, referenceFilteredLogs(rctx, all, 1000, &filter), result, "filter %+v", filter)
+		}
+	})
+
+	t.Run("a later page counts lines from the end of the file", func(t *testing.T) {
+		_, all, ps := newService(t, base)
+
+		// skipping the newest 1000 lines leaves 19000 in which to find entries up to 15000
+		result, appErr := ps.GetLogsSkipSend(rctx, 1, 1000, &model.LogFilter{DateTo: at(15000)})
+		require.Nil(t, appErr)
+		assert.Equal(t, all[14001:15001], result)
 	})
 }
 
@@ -462,14 +627,16 @@ func TestOpenLogFile(t *testing.T) {
 	})
 }
 
-// benchmarkLogFile returns roughly 64 MiB of mlog JSON lines, one millisecond apart and ending
-// at the returned time. One line in 5000 is an error.
-func benchmarkLogFile(b *testing.B) ([]byte, time.Time) {
+// benchmarkLogFile returns roughly size bytes of mlog JSON lines, one millisecond apart, along
+// with the times of the first and last. One line in 5000 is an error.
+func benchmarkLogFile(b *testing.B, size int) ([]byte, time.Time, time.Time) {
 	b.Helper()
 
 	var sb strings.Builder
+	sb.Grow(size + 1024)
 	ts := time.Date(2026, 10, 21, 0, 0, 0, 0, time.UTC)
-	for i := 0; sb.Len() < 64<<20; i++ {
+	first := ts.Add(time.Millisecond)
+	for i := 0; sb.Len() < size; i++ {
 		ts = ts.Add(time.Millisecond)
 		level := "info"
 		switch {
@@ -482,11 +649,11 @@ func benchmarkLogFile(b *testing.B) ([]byte, time.Time) {
 			ts.Format(logr.DefTimestampFormat), level, i, i%1000)
 	}
 
-	return []byte(sb.String()), ts
+	return []byte(sb.String()), first, ts
 }
 
 func BenchmarkGetLogsSkipSend(b *testing.B) {
-	content, last := benchmarkLogFile(b)
+	content, _, last := benchmarkLogFile(b, 64<<20)
 	ps := newGetLogsTestService(b, content)
 	rctx := request.TestContext(b)
 
@@ -499,6 +666,8 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 		{name: "third page", page: 2},
 		{name: "rare level", filter: model.LogFilter{LogLevels: []string{"error"}}},
 		{name: "recent date from", filter: model.LogFilter{DateFrom: last.Add(-5 * time.Second).Format(model.LogFilterDateLayout)}},
+		// a range ending now, as the viewer sends for one up to today; the seek saves nothing
+		{name: "date to after the last entry", filter: model.LogFilter{DateTo: last.Add(time.Hour).Format(model.LogFilterDateLayout)}},
 		{name: "common search", filter: model.LogFilter{Search: "HTTP request"}},
 		{name: "rare search", filter: model.LogFilter{Search: "no such entry"}},
 		{name: "rare search with escaped characters", filter: model.LogFilter{Search: `"no such entry"`}},
@@ -510,5 +679,23 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 				require.Nil(b, appErr)
 			}
 		})
+	}
+}
+
+func BenchmarkGetLogsSkipSendPastDateRange(b *testing.B) {
+	// a range in the first 10% of a 100 MiB file, which a scan from the end reads about 90 MiB to reach
+	content, first, last := benchmarkLogFile(b, 100<<20)
+	ps := newGetLogsTestService(b, content)
+	rctx := request.TestContext(b)
+	span := last.Sub(first)
+	filter := &model.LogFilter{
+		DateFrom: first.Add(span / 20).Format(model.LogFilterDateLayout),
+		DateTo:   first.Add(span / 10).Format(model.LogFilterDateLayout),
+	}
+
+	b.ReportAllocs()
+	for b.Loop() {
+		_, appErr := ps.GetLogsSkipSend(rctx, 0, 10000, filter)
+		require.Nil(b, appErr)
 	}
 }

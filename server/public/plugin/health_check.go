@@ -56,22 +56,22 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 		return
 	}
 
-	mlog.Warn("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
+	mlog.Warn("Health check failed for plugin", mlog.String("plugin_id", id), mlog.Err(err))
 	timestamps := job.getStoredTimestamps(id)
 	timestamps = append(timestamps, time.Now())
 
 	if shouldDeactivatePlugin(timestamps) {
 		// Order matters here, must deactivate first and then set plugin state
-		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
+		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("plugin_id", id))
 		job.env.Deactivate(id)
 
 		// Reset timestamp state for this plugin
 		job.failureTimestamps.Delete(id)
 		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
-		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
+		mlog.Debug("Restarting plugin due to failed health check", mlog.String("plugin_id", id))
 		if err := job.env.RestartPlugin(id); err != nil {
-			mlog.Error("Failed to restart plugin", mlog.String("id", id), mlog.Err(err))
+			mlog.Error("Failed to restart plugin", mlog.String("plugin_id", id), mlog.Err(err))
 		}
 
 		// Store this failure so we can continue to monitor the plugin

@@ -1266,7 +1266,7 @@
         contains a single entry with `level` set to `error`, `msg` set to
         `Failed to fetch logs from node`, `failed_node` set to `true`, and an
         `error` field describing the failure. This entry is returned regardless
-        of `log_levels`, `date_from`, `date_to` and `search`.
+        of `log_levels`, `date_from`, `date_to`, `search` and `fields`.
 
         ##### Permissions
         Must have `get_logs` permission.
@@ -1328,6 +1328,24 @@
                     whose value contains this text, ignoring case. Fields that aren't strings
                     are matched against their JSON. Leave empty to return every entry.
                   example: "websocket"
+                fields:
+                  type: object
+                  maxProperties: 10
+                  description: >
+                    Returns only entries whose top-level field, named by each key, equals
+                    one of the key's values. Every key must match. Matching is exact and
+                    case-sensitive, and fields that aren't strings are matched against their
+                    JSON. Keys can't be empty, `level` or `timestamp`, and keys and values
+                    are at most 256 characters. Leave out to return every entry.
+                  additionalProperties:
+                    type: array
+                    minItems: 1
+                    maxItems: 20
+                    items:
+                      type: string
+                      maxLength: 256
+                  example:
+                    plugin_id: ["github", "mattermost-ai"]
       responses:
         "200":
           description: >
