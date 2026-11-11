@@ -574,11 +574,30 @@ export function getPlugins() {
     });
 }
 
-export function getPluginStatuses() {
-    return bindClientFunc({
-        clientFunc: Client4.getPluginStatuses,
-        onSuccess: [AdminTypes.RECEIVED_PLUGIN_STATUSES],
-    });
+let pluginStatusesRequestSeq = 0;
+let pluginStatusesAppliedSeq = 0;
+
+// Each response replaces all stored statuses, so a slower, older request must not overwrite a newer one.
+export function getPluginStatuses(): ActionFuncAsync<Awaited<ReturnType<typeof Client4.getPluginStatuses>>> {
+    return async (dispatch, getState) => {
+        const seq = ++pluginStatusesRequestSeq;
+
+        let data;
+        try {
+            data = await Client4.getPluginStatuses();
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        if (seq > pluginStatusesAppliedSeq) {
+            pluginStatusesAppliedSeq = seq;
+            dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data});
+        }
+
+        return {data};
+    };
 }
 
 export function removePlugin(pluginId: string): ActionFuncAsync {
