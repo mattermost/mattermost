@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 .user-groups-modal-create,
 .user-groups-modal-update,
 .view-user-groups-modal,
@@ -171,7 +173,7 @@
         padding: 0;
 
         // Center the empty state in the space below the filter.
-        &:has(> .no-results__wrapper) {
+        &:has(> .no-results__wrapper, > .user-groups-list--empty) {
             display: flex;
             flex-direction: column;
         }
@@ -251,6 +253,13 @@
 
         .user-groups-modal__content {
             overflow: auto;
+
+            // Search with no matches: fill the space below the filter so the empty state centers.
+            &.user-groups-list--empty {
+                @include mixins.fill-height-column;
+
+                max-height: none;
+            }
 
             &.user-groups-list {
                 position: relative;

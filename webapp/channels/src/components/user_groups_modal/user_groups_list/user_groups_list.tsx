@@ -230,7 +230,7 @@ const UserGroupsList = (props: Props) => {
     // be shown or centered there.
     if (groups.length === 0 && searchTerm && !loading) {
         return (
-            <div className='user-groups-modal__content user-groups-list'>
+            <div className='user-groups-modal__content user-groups-list user-groups-list--empty'>
                 <NoResultsIndicator
                     variant={NoResultsVariant.Search}
                     titleValues={{channelName: `${searchTerm}`}}

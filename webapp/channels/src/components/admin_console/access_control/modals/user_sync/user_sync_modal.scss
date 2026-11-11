@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 #user-list-modal-dialog {
     .modal-header {
         padding-bottom: 0px;
@@ -36,6 +38,8 @@
         }
 
         .no-user-message {
+            @include mixins.fill-empty-state;
+
             height: 440px;
         }
     }
