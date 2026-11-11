@@ -91,7 +91,7 @@ func pluginIDFlagCompletionF(ctx context.Context, c client.Client, cmd *cobra.Co
 	prefix := ""
 	if i := strings.LastIndex(toComplete, ","); i >= 0 {
 		prefix = toComplete[:i+1]
-		for _, id := range strings.Split(toComplete[:i], ",") {
+		for id := range strings.SplitSeq(toComplete[:i], ",") {
 			given = append(given, strings.TrimSpace(id))
 		}
 		toComplete = toComplete[i+1:]
