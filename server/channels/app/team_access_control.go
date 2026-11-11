@@ -29,11 +29,13 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 		requestedLimit = teamPoliciesDefaultPerPage
 	}
 
-	// Parents listed for a team are those stored with that team's scope.
+	// Parents listed for a team are those stored with that team's scope,
+	// regardless of where their channels are.
 	scopeOpts := opts
 	scopeOpts.Type = model.AccessControlPolicyTypeParent
 	scopeOpts.Scope = model.AccessControlPolicyScopeTeam
 	scopeOpts.ScopeID = teamID
+	scopeOpts.TeamID = ""
 	scopeOpts.IncludeChildren = true
 	scopeOpts.Cursor = model.AccessControlPolicyCursor{}
 	scopeOpts.Limit = teamPoliciesMaxFetch

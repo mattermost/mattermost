@@ -313,7 +313,7 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
-		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id})
 		require.Nil(t, appErr)
 		found := false
 		for _, p := range policies {
@@ -372,7 +372,7 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
-		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id})
 		require.Nil(t, appErr)
 		found := false
 		for _, p := range policies {
@@ -396,7 +396,7 @@ func TestSearchTeamAccessPolicies(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"), "true", mock.Anything).
 			Return([]*model.User{th.BasicUser}, int64(1), nil).Maybe()
 
-		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{})
+		policies, _, appErr := th.App.SearchTeamAccessPolicies(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.AccessControlPolicySearch{TeamID: th.BasicTeam.Id})
 		require.Nil(t, appErr)
 		found := false
 		for _, p := range policies {
