@@ -95,7 +95,7 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
     host mattermost mmuser {mattermost-server-IP}/32 scram-sha-256
     ```
 
-    This entry lets the `mmuser` user connect to the `mattermost` database, matching the names created above, from the Mattermost server's address. Use that address rather than a wider range. If a connection pooler such as PgBouncer runs on a separate host between Mattermost and PostgreSQL, PostgreSQL sees connections coming from the pooler instead, so use the pooler's address. This entry doesn't block connections on its own: PostgreSQL uses the first entry that matches a connection, and other entries can still allow connections from other addresses. Review the other entries in `pg_hba.conf`, and remove or narrow any that allow more access than you need.
+    This entry lets the `mmuser` user connect to the `mattermost` database, matching the names created above, from the Mattermost server's address. Use that address rather than a wider range. This entry doesn't block connections on its own: PostgreSQL uses the first entry that matches a connection, and other entries can still allow connections from other addresses. Review the other entries in `pg_hba.conf`, and remove or narrow any that allow more access than you need.
 
     Use `scram-sha-256` rather than `md5`. It requires the password to be stored as a SCRAM hash, as described in [Create the database and user](#create-the-database-and-user). MD5 isn't a FIPS-approved algorithm, so Mattermost's [FIPS-compliant images](/administration-guide/manage/admin/fips-migration) can't authenticate with it.
 
@@ -114,7 +114,12 @@ Edit `/var/lib/pgsql/&#123;version&#125;/data/postgresql.conf`:
 
     Change the `pg_hba.conf` entry only after the query returns `t`.
 
-    If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, check how the pooler authenticates to PostgreSQL before you convert the password. A pooler that logs in with a stored MD5 hash, such as one from PgBouncer's `auth_file`, can't open new connections once the password is stored as a SCRAM hash. This happens even while the `pg_hba.conf` entry still says `md5`. Update the pooler's stored credentials as part of the same change.
+    If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, both of its connections need SCRAM:
+
+    - **Pooler to PostgreSQL:** PostgreSQL sees connections coming from the pooler, so use the pooler's address in this `pg_hba.conf` entry. A pooler that logs in with a stored MD5 hash, such as one from PgBouncer's `auth_file`, can't connect once the password is stored as a SCRAM hash. This happens even while the entry still says `md5`, so update the pooler's stored credentials when you convert the password.
+    - **Mattermost to pooler:** configure the pooler to authenticate Mattermost with SCRAM rather than MD5, for example `auth_type = scram-sha-256` in PgBouncer. Mattermost's FIPS-compliant images can't authenticate with MD5 on this connection either.
+
+    See the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html) for its authentication settings.
 
 3.  Restart the PostgreSQL service to apply the configuration changes:
 
