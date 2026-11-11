@@ -93,13 +93,13 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 
 	// Create admin users and login
 	tr.logger.Info("Provisioning admin users...")
-	tr.clientA, err = ProvisionAdmin(ctx, tr.cfg.ServerAURL, "mattermost_test",
+	tr.clientA, err = ProvisionAdmin(ctx, tr.cfg.ServerAURL, tr.cfg.DBNameA,
 		tr.cfg.AdminUser, "admin-a@test.local", tr.cfg.AdminPass)
 	if err != nil {
 		return fmt.Errorf("provision server A: %w", err)
 	}
 
-	tr.clientB, err = ProvisionAdmin(ctx, tr.cfg.ServerBURL, "mattermost_node_test",
+	tr.clientB, err = ProvisionAdmin(ctx, tr.cfg.ServerBURL, tr.cfg.DBNameB,
 		tr.cfg.AdminUser, "admin-b@test.local", tr.cfg.AdminPass)
 	if err != nil {
 		return fmt.Errorf("provision server B: %w", err)

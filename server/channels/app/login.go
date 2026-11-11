@@ -63,8 +63,8 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 		if err = checkUserNotDisabled(user); err != nil {
 			return nil, err
 		}
-		if err = checkUserNotBot(user); err != nil {
-			return nil, err
+		if err := checkUserNotBot(user); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if user.LastLogin > 0 {
 			return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -155,7 +155,7 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	var rejectionReason string
