@@ -379,6 +379,12 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 			wantStatus: http.StatusUnauthorized,
 		},
 		{
+			name:       "bot DeleteAt zero",
+			kind:       "bot",
+			wantErrID:  "api.user.login.bot_login_forbidden.app_error",
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
 			name:       "bot DeleteAt set",
 			kind:       "bot",
 			deactivate: true,
@@ -416,7 +422,7 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 			sessionsBefore, getErr := th.App.GetSessions(th.Context, user.Id)
 			require.Nil(t, getErr)
 
-			// Checks that DoLogin consults user DeleteAt before creating a session.
+			// Checks that DoLogin consults user DeleteAt and IsBot before creating a session.
 			session, err := th.App.DoLogin(th.Context, w, r, user, model.LoginOptions{})
 			hookValue, kvErr := th.App.GetPluginKey(pluginID, user.Id)
 			require.Nil(t, kvErr)
@@ -432,7 +438,7 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 			require.Nil(t, session)
 			assert.Equal(t, tc.wantStatus, err.StatusCode)
 			assert.Equal(t, tc.wantErrID, err.Id)
-			assert.Nil(t, hookValue, "UserWillLogIn must not run for a deactivated user")
+			assert.Nil(t, hookValue, "UserWillLogIn must not run for a rejected user")
 
 			sessionsAfter, getErr := th.App.GetSessions(th.Context, user.Id)
 			require.Nil(t, getErr)

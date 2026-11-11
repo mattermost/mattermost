@@ -11012,6 +11012,46 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("rejects user converted to bot", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
+
+		codeVerifier := "test_code_verifier_convert_to_bot"
+		state := "test_state_convert_to_bot"
+
+		sum := sha256.Sum256([]byte(codeVerifier))
+		codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+		extra := map[string]string{
+			"user_id":               samlUser.Id,
+			"code_challenge":        codeChallenge,
+			"code_challenge_method": "S256",
+			"state":                 state,
+		}
+
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, appErr := th.App.ConvertUserToBot(th.Context, samlUser)
+		require.Nil(t, appErr)
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": codeVerifier,
+			"state":         state,
+		}
+
+		// Checks that a code minted before ConvertUserToBot can't create a session for the bot.
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+		sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, sessErr)
+		assert.Len(t, sessions, 0)
+	})
 }
 
 func TestGetUsersByNames(t *testing.T) {

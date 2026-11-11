@@ -137,6 +137,10 @@ func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, 
 		return nil, err
 	}
 
+	if err := checkUserNotBot(user); err != nil {
+		return nil, err
+	}
+
 	var rejectionReason string
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
