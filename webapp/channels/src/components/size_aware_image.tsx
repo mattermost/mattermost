@@ -424,17 +424,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
             const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
-            const fallbackSrc = miniPreview ?? emptyImageForDimensions(width, height);
-
+            // The placeholder is sized only by its src's intrinsic dimensions, like the real image, so that
+            // each surface's max-width and max-height scale both identically. The mini preview has a fixed
+            // square size, so it's drawn as a background instead of being used as the src.
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
                         className={classNames('image-loading__placeholder', this.props.className)}
-                        src={fallbackSrc}
-                        height={height}
-                        width={width}
+                        src={emptyImageForDimensions(width, height)}
+                        style={miniPreview ? {backgroundImage: `url("${miniPreview}")`} : undefined}
                     />
                 </div>,
             );

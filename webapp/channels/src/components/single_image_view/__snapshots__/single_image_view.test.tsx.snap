@@ -64,10 +64,8 @@ exports[`components/SingleImageView permalink preview should render with permali
                   </div>
                   <img
                     class="image-loading__placeholder image-permalink"
-                    height="200"
                     role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    width="350"
                   />
                 </div>
               </figure>
@@ -186,10 +184,8 @@ exports[`components/SingleImageView should match snapshot 1`] = `
                   </div>
                   <img
                     class="image-loading__placeholder"
-                    height="200"
                     role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    width="350"
                   />
                 </div>
               </figure>
@@ -389,10 +385,8 @@ exports[`components/SingleImageView should match snapshot, SVG image 1`] = `
                   </div>
                   <img
                     class="image-loading__placeholder"
-                    height="200"
                     role="presentation"
                     src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22350%22%20height%3D%22200%22%20viewBox%3D%220%200%20350%20200%22%2F%3E"
-                    width="350"
                   />
                 </div>
               </figure>

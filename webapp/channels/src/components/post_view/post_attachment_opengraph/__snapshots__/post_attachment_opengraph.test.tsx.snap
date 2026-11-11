@@ -74,10 +74,8 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
                 </div>
                 <img
                   class="image-loading__placeholder"
-                  height="205.14666666666668"
                   role="presentation"
                   src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
-                  width="392"
                 />
               </div>
             </figure>
@@ -209,10 +207,8 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
               </div>
               <img
                 class="image-loading__placeholder"
-                height="205.14666666666668"
                 role="presentation"
                 src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
-                width="392"
               />
             </div>
           </figure>

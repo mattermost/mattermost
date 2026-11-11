@@ -58,6 +58,10 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder).not.toBeNull();
         expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
 
+        // The placeholder is sized only by its src, like the real image, so CSS constraints scale it the same way
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
+
         // The actual image is rendered but its container is hidden until the image loads
         const realImage = screen.getByRole('img', {hidden: true});
         const imageContainer = realImage?.closest('.file-preview__button') as HTMLElement;
@@ -103,6 +107,18 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
         expect(container.querySelector('.file__image-loading')).toBeNull();
+        expect((placeholder as HTMLElement).style.backgroundImage).toEqual('');
+    });
+
+    test.each([
+        {name: 'wide', dimensions: {width: 2000, height: 400}, viewBox: '0 0 1750 350'},
+        {name: 'tall', dimensions: {width: 600, height: 1200}, viewBox: '0 0 175 350'},
+        {name: 'short', dimensions: {width: 400, height: 40}, viewBox: '0 0 400 40'},
+    ])('should give the placeholder the image aspect ratio capped to the max image height ($name image)', ({dimensions, viewBox}) => {
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder');
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent(`viewBox="${viewBox}"`));
     });
 
     test('should render a mini preview when showLoader is true and preview is set', () => {
@@ -118,8 +134,10 @@ describe('components/SizeAwareImage', () => {
         // The component initially has loaded=false and error=false, so mini preview should show
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
-        const miniPreviewImg = container.querySelector('.image-loading__container img');
-        expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
+        // The mini preview has a fixed size, so it's drawn over the placeholder rather than used to size it
+        const placeholder = container.querySelector('.image-loading__container img') as HTMLElement;
+        expect(placeholder.style.backgroundImage).toEqual('url("data:mime_type;base64,mini_preview")');
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
     });
 
     test('should leave display to CSS in loaded state', async () => {

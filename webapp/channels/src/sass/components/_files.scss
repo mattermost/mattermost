@@ -697,7 +697,7 @@
     max-height: inherit;
 
     .image-loading__placeholder {
-        box-sizing: content-box;
+        background-size: 100% 100%;
     }
 }
 
