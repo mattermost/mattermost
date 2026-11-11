@@ -186,6 +186,18 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 		dateFrom, err := time.Parse(model.LogFilterDateLayout, logFilter.DateFrom)
 		hasDateFrom := err == nil
 		var olderEntries int
+		// countOlder counts an entry with the given timestamp, if it parsed, and reports whether
+		// that ends the scan
+		countOlder := func(timestamp time.Time, parsed bool) bool {
+			if parsed {
+				if timestamp.Before(dateFrom) {
+					olderEntries++
+				} else {
+					olderEntries = 0
+				}
+			}
+			return olderEntries == logDateFromStopEntries
+		}
 
 		// Entries newer than DateTo can't match, so the scan starts at the first of them rather
 		// than at the end of the file. A later page skips lines counted from the end of the file,
@@ -213,10 +225,19 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				continue
 			}
 
-			// A line that can't match the search or fields needs no decoding, unless the date scan counts it
+			// A line that can't match the search or fields needs no decoding: the date scan only needs
+			// its timestamp, which can be read from the raw bytes unless the line is unusual
 			filtered := search.rejectsRaw(line) || fields.rejectsRaw(line)
 			if filtered && !hasDateFrom {
 				continue
+			}
+			if filtered {
+				if timestamp, parsed, known := rawLogTimestamp(line); known {
+					if countOlder(timestamp, parsed) {
+						break
+					}
+					continue
+				}
 			}
 
 			var entry *model.LogEntry
@@ -224,17 +245,8 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 			if err != nil || entry == nil {
 				unparsed++
 			} else {
-				if hasDateFrom {
-					if timestamp, ok := logEntryTimestamp(entry); ok {
-						if timestamp.Before(dateFrom) {
-							olderEntries++
-						} else {
-							olderEntries = 0
-						}
-					}
-					if olderEntries == logDateFromStopEntries {
-						break
-					}
+				if hasDateFrom && countOlder(logEntryTimestamp(entry)) {
+					break
 				}
 
 				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
@@ -445,6 +457,67 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 func logEntryTimestamp(entry *model.LogEntry) (time.Time, bool) {
 	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
 	return timestamp, err == nil
+}
+
+var (
+	// rawLogTimestampStart is how a line mlog writes in JSON starts, up to its timestamp's value.
+	rawLogTimestampStart = []byte(`{"timestamp":"`)
+	// rawLogLevelStart follows the timestamp's value in a line mlog writes in JSON.
+	rawLogLevelStart = []byte(`","level":"`)
+)
+
+// rawLogTimestamp returns the timestamp of the entry on line without decoding the line, when known
+// reports that it can tell the result is what decoding it into a model.LogEntry and calling
+// logEntryTimestamp would give. parsed reports whether that timestamp parses.
+//
+// It can tell for a line that starts as mlog writes one, with the timestamp then the level, ends
+// as a JSON object does and holds no other key json.Unmarshal could match to either (it matches
+// keys regardless of case and keeps the last value). It doesn't check the rest is valid JSON, so a
+// line that decoding would reject counts by its timestamp.
+func rawLogTimestamp(line []byte) (timestamp time.Time, parsed, known bool) {
+	line = bytes.Trim(line, " \t\r\n")
+	rest, ok := bytes.CutPrefix(line, rawLogTimestampStart)
+	if !ok || !bytes.HasSuffix(rest, []byte("}")) {
+		return time.Time{}, false, false
+	}
+
+	end := bytes.IndexByte(rest, '"')
+	if end < 0 {
+		return time.Time{}, false, false
+	}
+	value := rest[:end]
+	if bytes.IndexByte(value, '\\') >= 0 {
+		// an escape sequence, which decoding would have to unescape
+		return time.Time{}, false, false
+	}
+
+	rest, ok = bytes.CutPrefix(rest[end:], rawLogLevelStart)
+	if !ok || hasRawLogEntryKey(rest) {
+		return time.Time{}, false, false
+	}
+
+	timestamp, err := time.Parse(logr.DefTimestampFormat, string(value))
+	return timestamp, err == nil, true
+}
+
+// hasRawLogEntryKey reports whether b holds, after one of its quotes, a key json.Unmarshal could
+// match to a model.LogEntry field. It may also report a string value that reads like one.
+func hasRawLogEntryKey(b []byte) bool {
+	for {
+		i := bytes.IndexByte(b, '"')
+		if i < 0 {
+			return false
+		}
+		b = b[i+1:]
+		if hasFoldPrefix(b, `timestamp"`) || hasFoldPrefix(b, `level"`) {
+			return true
+		}
+	}
+}
+
+// hasFoldPrefix reports whether b starts with prefix, ignoring case.
+func hasFoldPrefix(b []byte, prefix string) bool {
+	return len(b) >= len(prefix) && strings.EqualFold(string(b[:len(prefix)]), prefix)
 }
 
 func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {

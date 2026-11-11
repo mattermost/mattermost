@@ -373,6 +373,83 @@ func TestGetLogsSkipSendDateFromEarlyExit(t *testing.T) {
 		})
 	}
 
+	// Lines the search or the field filters rule out are counted by their timestamp without being
+	// decoded, and must count exactly as decoded lines do
+	t.Run("filtered", func(t *testing.T) {
+		const plugin = "com.example.plugin"
+		match := logLine("2026-10-21 10:00:00.000 Z", "info", "match")
+		pluginMatch := fmt.Sprintf(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"match","plugin_id":%q}`, plugin)
+		olderPlugin := `{"timestamp":"2026-10-21 09:59:59.999 Z","level":"info","msg":"older","plugin_id":"other"}`
+		// decoding keeps the last key matching Timestamp regardless of case, which is in range
+		olderThenInRange := `{"timestamp":"2026-10-21 09:59:59.999 Z","level":"info","msg":"older","Timestamp":"2026-10-21 10:00:00.000 Z"}`
+		// a level that isn't a string fails decoding, so the line isn't counted
+		badLevel := `{"timestamp":"2026-10-21 09:59:59.999 Z","level":"info","msg":"older","Level":3}`
+		truncated := `{"timestamp":"2026-10-21 09:59:59.999 Z","level":"info","msg":"ol`
+		search := &model.LogFilter{DateFrom: dateFrom, Search: "match"}
+		fields := &model.LogFilter{DateFrom: dateFrom, Fields: map[string][]string{"plugin_id": {plugin}}}
+
+		for _, tc := range []struct {
+			name   string
+			filter *model.LogFilter
+			// lines are oldest first
+			lines    []string
+			expected []string
+		}{
+			{
+				name:     "enough consecutive older entries ruled out by the search end the scan",
+				filter:   search,
+				lines:    slices.Concat([]string{match}, slices.Repeat([]string{older}, logDateFromStopEntries), []string{match}),
+				expected: []string{"\n" + match},
+			},
+			{
+				name:     "fewer consecutive older entries ruled out by the search do not end the scan",
+				filter:   search,
+				lines:    slices.Concat([]string{match}, slices.Repeat([]string{older}, logDateFromStopEntries-1), []string{match}),
+				expected: []string{match, "\n" + match},
+			},
+			{
+				name:     "enough consecutive older entries ruled out by the fields end the scan",
+				filter:   fields,
+				lines:    slices.Concat([]string{pluginMatch}, slices.Repeat([]string{olderPlugin}, logDateFromStopEntries), []string{pluginMatch}),
+				expected: []string{"\n" + pluginMatch},
+			},
+			{
+				name:     "fewer consecutive older entries ruled out by the fields do not end the scan",
+				filter:   fields,
+				lines:    slices.Concat([]string{pluginMatch}, slices.Repeat([]string{olderPlugin}, logDateFromStopEntries-1), []string{pluginMatch}),
+				expected: []string{pluginMatch, "\n" + pluginMatch},
+			},
+			{
+				name:     "an out of order entry ruled out by the search restarts the count",
+				filter:   search,
+				lines:    slices.Concat([]string{match}, slices.Repeat([]string{older}, logDateFromStopEntries/2), []string{inRange}, slices.Repeat([]string{older}, logDateFromStopEntries/2), []string{match}),
+				expected: []string{match, "\n" + match},
+			},
+			{
+				name:   "lines ruled out by the search without a readable timestamp are not counted",
+				filter: search,
+				lines: slices.Concat([]string{match}, slices.Repeat([]string{
+					older, "not json", logLine("bad timestamp", "info", ""), truncated, badLevel, "null",
+				}, logDateFromStopEntries-1), []string{match}),
+				expected: []string{match, "\n" + match},
+			},
+			{
+				name:     "an entry whose decoded timestamp is in range restarts the count",
+				filter:   search,
+				lines:    slices.Concat([]string{match}, slices.Repeat([]string{older}, logDateFromStopEntries/2), []string{olderThenInRange}, slices.Repeat([]string{older}, logDateFromStopEntries/2), []string{match}),
+				expected: []string{match, "\n" + match},
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				ps := newGetLogsTestService(t, []byte(strings.Join(tc.lines, "\n")))
+
+				lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 0, 1000, tc.filter)
+				require.Nil(t, appErr)
+				assert.Equal(t, tc.expected, lines)
+			})
+		}
+	})
+
 	t.Run("skipped page is not counted", func(t *testing.T) {
 		content := strings.Join(slices.Concat([]string{inRange}, slices.Repeat([]string{older}, logDateFromStopEntries+1)), "\n")
 		ps := newGetLogsTestService(t, []byte(content))
@@ -381,6 +458,83 @@ func TestGetLogsSkipSendDateFromEarlyExit(t *testing.T) {
 		lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 1, 2, filter)
 		require.Nil(t, appErr)
 		assert.Equal(t, []string{inRange}, lines)
+	})
+}
+
+func TestRawLogTimestamp(t *testing.T) {
+	const timestamp = "2026-10-21 10:00:00.123 +02:00"
+	expected, err := time.Parse(logr.DefTimestampFormat, timestamp)
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name   string
+		line   string
+		parsed bool
+		known  bool
+	}{
+		{name: "mlog line", line: logLine(timestamp, "info", "msg"), parsed: true, known: true},
+		{name: "after a line break", line: "\n" + logLine(timestamp, "info", "msg"), parsed: true, known: true},
+		{name: "carriage return", line: "\n" + logLine(timestamp, "info", "msg") + "\r", parsed: true, known: true},
+		{name: "fields", line: `{"timestamp":"` + timestamp + `","level":"info","msg":"a \"level\" of \"timestamp\"","caller":"app/x.go:1","_timestamp":"x","_level":3}`, parsed: true, known: true},
+		{name: "unparseable timestamp", line: logLine("bad timestamp", "info", "msg"), known: true},
+		{name: "empty timestamp", line: logLine("", "info", "msg"), known: true},
+		{name: "not json", line: "2026-10-21T10:00:00.123Z info msg"},
+		{name: "null", line: "null"},
+		{name: "empty", line: ""},
+		{name: "truncated", line: `{"timestamp":"` + timestamp + `","level":"info","msg":"ms`},
+		{name: "truncated in the timestamp", line: `{"timestamp":"2026-10-21`},
+		{name: "escaped timestamp", line: `{"timestamp":"2026-10-21 10:00:00.123 \u002b02:00","level":"info","msg":"msg"}`},
+		{name: "level first", line: `{"level":"info","timestamp":"` + timestamp + `","msg":"msg"}`},
+		{name: "no level", line: `{"timestamp":"` + timestamp + `","msg":"msg"}`},
+		{name: "level not a string", line: `{"timestamp":"` + timestamp + `","level":3,"msg":"msg"}`},
+		{name: "spaces", line: `{"timestamp": "` + timestamp + `", "level": "info"}`},
+		{name: "another timestamp key", line: logLine(timestamp, "info", "msg")[:len(logLine(timestamp, "info", "msg"))-1] + `,"Timestamp":"2026-10-21 10:00:00.000 Z"}`},
+		{name: "another level key", line: logLine(timestamp, "info", "msg")[:len(logLine(timestamp, "info", "msg"))-1] + `,"LEVEL":3}`},
+		{name: "nested timestamp key", line: logLine(timestamp, "info", "msg")[:len(logLine(timestamp, "info", "msg"))-1] + `,"data":{"timestamp":"x"}}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, parsed, known := rawLogTimestamp([]byte(tc.line))
+			assert.Equal(t, tc.known, known)
+			assert.Equal(t, tc.parsed, parsed)
+			if !known {
+				return
+			}
+
+			// A known result must be what decoding the line gives
+			var entry *model.LogEntry
+			require.NoError(t, json.Unmarshal([]byte(tc.line), &entry))
+			require.NotNil(t, entry)
+			decoded, decodedOK := logEntryTimestamp(entry)
+			assert.Equal(t, decodedOK, parsed)
+			if parsed {
+				assert.True(t, expected.Equal(got), got)
+				assert.True(t, decoded.Equal(got), got)
+			}
+		})
+	}
+
+	t.Run("written by mlog", func(t *testing.T) {
+		buffer := &mlog.Buffer{}
+		logger, err := mlog.NewLogger()
+		require.NoError(t, err)
+		require.NoError(t, mlog.AddWriterTarget(logger, buffer, true, mlog.StdAll...))
+		logger.Info("Request failed", mlog.String("timestamp", "x"), mlog.String("level", "y"), mlog.String("plugin_id", "jira"))
+		logger.Error("<\"html\"> & \u2028")
+		require.NoError(t, logger.Shutdown())
+
+		lines := strings.Split(strings.TrimSuffix(buffer.String(), "\n"), "\n")
+		require.Len(t, lines, 2)
+		for _, line := range lines {
+			got, parsed, known := rawLogTimestamp([]byte(line))
+			require.True(t, known, line)
+			require.True(t, parsed, line)
+
+			var entry *model.LogEntry
+			require.NoError(t, json.Unmarshal([]byte(line), &entry))
+			decoded, ok := logEntryTimestamp(entry)
+			require.True(t, ok)
+			assert.True(t, decoded.Equal(got), line)
+		}
 	})
 }
 
@@ -671,6 +825,9 @@ func BenchmarkGetLogsSkipSend(b *testing.B) {
 		{name: "common search", filter: model.LogFilter{Search: "HTTP request"}},
 		{name: "rare search", filter: model.LogFilter{Search: "no such entry"}},
 		{name: "rare search with escaped characters", filter: model.LogFilter{Search: `"no such entry"`}},
+		// as mmctl logs -f sends on each poll after the first, with --search or --plugin
+		{name: "rare search with date from", filter: model.LogFilter{Search: "no such entry", DateFrom: last.Add(-time.Minute).Format(model.LogFilterDateLayout)}},
+		{name: "rare field with date from", filter: model.LogFilter{Fields: map[string][]string{"plugin_id": {"com.example.plugin"}}, DateFrom: last.Add(-time.Minute).Format(model.LogFilterDateLayout)}},
 	} {
 		b.Run(bc.name, func(b *testing.B) {
 			b.ReportAllocs()
