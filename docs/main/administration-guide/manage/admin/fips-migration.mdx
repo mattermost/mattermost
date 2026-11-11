@@ -78,12 +78,7 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
 
       For the same reason, make this change only after step a or step c confirms that the password is stored as a SCRAM hash. Until then, leave any existing `md5` entry in place. PostgreSQL already uses SCRAM for a password stored as a SCRAM hash, even when the entry says `md5`.
 
-      If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, both of its connections need SCRAM:
-
-      - **Pooler to PostgreSQL:** PostgreSQL sees connections coming from the pooler, so use the pooler's address in this entry. A pooler that logs in with a stored MD5 hash, such as one from PgBouncer's `auth_file`, can't connect once step c stores the password as a SCRAM hash. This happens even while the entry still says `md5`, so update the pooler's stored credentials at the same time as step c, then reload the pooler. For PgBouncer, run `RELOAD;` on its admin console; `pg_reload_conf()` doesn't reload PgBouncer.
-      - **Mattermost to pooler:** configure the pooler to authenticate Mattermost with SCRAM rather than MD5, for example `auth_type = scram-sha-256` in PgBouncer. The FIPS image can't authenticate with MD5 on this connection either. Changing `auth_type` doesn't convert existing MD5 hashes in `auth_file`, so store a SCRAM secret or a plaintext password for the Mattermost user, and reload PgBouncer before the image swap.
-
-      See the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html) for its authentication settings.
+      If a connection pooler such as PgBouncer sits between Mattermost and PostgreSQL, it needs SCRAM rather than MD5 on both of its connections: from Mattermost to the pooler, and from the pooler to PostgreSQL. PostgreSQL sees connections coming from the pooler, so use the pooler's address in this entry. A pooler that logs in to PostgreSQL with a stored MD5 hash can't connect once step c stores the password as a SCRAM hash, so review and update the pooler's stored credentials at the same time as step c. See PgBouncer's [authentication settings](https://www.pgbouncer.org/config.html#authentication-settings) for how to configure it.
 
    e. If you changed the password in step c, update it where your deployment stores it at the same time: in the official Docker deployment, the `POSTGRES_PASSWORD` value in `.env`; in Operator-managed Kubernetes deployments, the database Secret referenced by your `Mattermost` custom resource (commonly under `spec.database.external.secret`).
 
