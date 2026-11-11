@@ -22,17 +22,52 @@ For background on what the FIPS build is and how it's constructed, see the **FIP
 
 4. **Plan for additional plugins.** The FIPS image includes Boards, Playbooks, and Agents prepackaged and running in FIPS mode. Any additional plugins you've installed will continue to run inside the FIPS image, but they run in non-FIPS mode. This is expected behavior, not a configuration error.
 
-5. **PostgreSQL password length.** Beginning with Mattermost v11.7, the Postgres password used by the Mattermost server must be at least 14 characters when running the FIPS image. If your current password is shorter, complete these steps before swapping the image:
+5. **PostgreSQL authentication method and password length.** The FIPS image places two requirements on how the Mattermost server authenticates to PostgreSQL:
 
-   a. Rotate the password in PostgreSQL. For example, connecting as a Postgres superuser and replacing `mmuser` and `<new password>` to match your deployment:
+   - **The password must be stored and verified with `scram-sha-256`, not `md5`.** MD5 isn't a FIPS-approved algorithm, so the FIPS image can't authenticate to PostgreSQL using `md5` password authentication.
+   - **The password must be at least 14 characters.** Beginning with Mattermost v11.7, the FIPS image requires a Postgres password of at least 14 characters.
+
+   If your deployment doesn't meet both requirements, complete these steps before swapping the image. Connect to PostgreSQL as a superuser, and replace `mmuser` to match your deployment:
+
+   a. Check how the Mattermost database user's password is stored:
 
       ```sql
-      ALTER USER mmuser WITH PASSWORD '<new password>';
+      SELECT rolname, rolpassword LIKE 'SCRAM-SHA-256$%' AS uses_scram FROM pg_authid WHERE rolname = 'mmuser';
       ```
 
-   b. Update the password where your deployment stores it: in the official Docker deployment, the `POSTGRES_PASSWORD` value in `.env`; in Operator-managed Kubernetes deployments, the database Secret referenced by your `Mattermost` custom resource (commonly under `spec.database.external.secret`).
+      If `uses_scram` is `t` and the password is at least 14 characters, your deployment already meets both requirements. Continue to the next item in this list.
 
-   c. Proceed to the image swap procedure for your deployment type below. Recreating the container as part of the migration applies the new credentials — no separate restart is required.
+   b. Confirm that PostgreSQL hashes new passwords with SCRAM. `scram-sha-256` is the default from PostgreSQL 14, but databases upgraded from older versions may still be set to `md5`:
+
+      ```sql
+      SHOW password_encryption;
+      ```
+
+      If the result is `md5`, set `password_encryption = 'scram-sha-256'` in `postgresql.conf`, then reload the configuration:
+
+      ```sql
+      SELECT pg_reload_conf();
+      ```
+
+   c. Set the password again so that PostgreSQL stores it as a SCRAM hash. Changing `password_encryption` doesn't convert existing passwords, which remain stored as MD5 hashes until they're set again. If your current password is shorter than 14 characters, choose a new one that's at least 14 characters long:
+
+      ```sql
+      ALTER USER mmuser WITH PASSWORD '<password>';
+      ```
+
+      Run the query from step a again to confirm that `uses_scram` is now `t`.
+
+   d. In `pg_hba.conf`, change the authentication method from `md5` to `scram-sha-256` on the entries that match connections from the Mattermost server, then reload the configuration with `SELECT pg_reload_conf();`. For example:
+
+      ```text
+      host all all {mattermost-server-IP}/32 scram-sha-256
+      ```
+
+      Make this change only after step c. A `scram-sha-256` entry rejects passwords that are still stored as MD5 hashes, while an `md5` entry already uses SCRAM for passwords stored as SCRAM hashes.
+
+   e. If you changed the password, update it where your deployment stores it: in the official Docker deployment, the `POSTGRES_PASSWORD` value in `.env`; in Operator-managed Kubernetes deployments, the database Secret referenced by your `Mattermost` custom resource (commonly under `spec.database.external.secret`).
+
+   f. Proceed to the image swap procedure for your deployment type below. Recreating the container as part of the migration applies the new credentials — no separate restart is required.
 
 6. **Plan for downtime.** The migration requires pulling the new image and restarting the Mattermost container or pod.
 
