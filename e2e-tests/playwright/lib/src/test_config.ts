@@ -293,7 +293,8 @@ export class TestConfig {
 
     /**
      * True when the server syncs feature flags from the mock Split service, so pw.ensureFeatureFlag() can change
-     * them at runtime. Otherwise a flag change restarts the server with MM_FEATUREFLAGS_* set.
+     * them at runtime. Otherwise there is no mock to push a change through, so pw.ensureFeatureFlag() can only
+     * skip the test when a flag needs to change.
      */
     get splitMockEnabled(): boolean {
         return this.useTestContainers && this.testcontainersServices.includes('splitmock');
