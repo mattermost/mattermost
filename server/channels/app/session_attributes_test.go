@@ -309,7 +309,7 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		serverDerived := ServerDerivedAttributes(requestCtx)
 		assert.Equal(t, "Android", serverDerived[model.SessionAttributesPropertyFieldUserAgentPlatform])
 		assert.Equal(t, "Android", serverDerived[model.SessionAttributesPropertyFieldUserAgentOS])
-		
+
 		// Not in cache
 		valuesByName := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.NotContains(t, valuesByName, model.SessionAttributesPropertyFieldUserAgentPlatform)

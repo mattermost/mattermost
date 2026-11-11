@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 	"time"
@@ -370,9 +371,7 @@ func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]an
 		if attrs == nil {
 			attrs = make(map[string]any, len(serverDerived)+1)
 		}
-		for k, v := range serverDerived {
-			attrs[k] = v
-		}
+		maps.Copy(attrs, serverDerived)
 	}
 
 	if deviceID := ProxyDeviceID(rctx); deviceID != "" && a.sessionAttributesEnabled() {
