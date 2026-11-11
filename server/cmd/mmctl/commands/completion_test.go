@@ -175,7 +175,6 @@ func TestPluginIDCompletion(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		toComplete string
-		args       []string
 		flags      []string
 		expected   []string
 	}{
@@ -204,11 +203,6 @@ func TestPluginIDCompletion(t *testing.T) {
 			flags:      []string{"github", "jira"},
 			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
 		},
-		"skips the IDs given as arguments": {
-			toComplete: "",
-			args:       []string{"com.mattermost.calls", "github"},
-			expected:   []string{"jira\tJira Cloud and Server", "com.mattermost.nps"},
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := mocks.NewMockClient(gomock.NewController(t))
@@ -220,17 +214,28 @@ func TestPluginIDCompletion(t *testing.T) {
 				assert.NoError(t, cmd.Flags().Set("plugin", value))
 			}
 
-			comp, directive := pluginIDCompletionF(context.Background(), c, cmd, tc.args, tc.toComplete)
+			comp, directive := pluginIDFlagCompletionF(context.Background(), c, cmd, nil, tc.toComplete)
 			assert.Equal(t, tc.expected, comp)
 			assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
 		})
 	}
 
+	t.Run("arguments skip the IDs given before, and aren't split at commas", func(t *testing.T) {
+		c := mocks.NewMockClient(gomock.NewController(t))
+		c.EXPECT().GetPlugins(gomock.Any()).Return(plugins, &model.Response{}, nil).Times(2)
+
+		comp, _ := pluginIDCompletionF(context.Background(), c, nil, []string{"com.mattermost.calls", "github"}, "")
+		assert.Equal(t, []string{"jira\tJira Cloud and Server", "com.mattermost.nps"}, comp)
+
+		comp, _ = pluginIDCompletionF(context.Background(), c, nil, nil, "github,")
+		assert.Empty(t, comp)
+	})
+
 	t.Run("an error returns nothing and no file completion", func(t *testing.T) {
 		c := mocks.NewMockClient(gomock.NewController(t))
 		c.EXPECT().GetPlugins(gomock.Any()).Return(nil, &model.Response{StatusCode: 403}, errors.New("forbidden")).Times(1)
 
-		comp, directive := pluginIDCompletionF(context.Background(), c, nil, nil, "")
+		comp, directive := pluginIDFlagCompletionF(context.Background(), c, nil, nil, "")
 		assert.Empty(t, comp)
 		assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
 	})

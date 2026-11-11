@@ -411,6 +411,12 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Reject invalid flags", func() {
+		ids := make([]string, model.LogFilterFieldMaxValues+1)
+		for i := range ids {
+			ids[i] = fmt.Sprintf("plugin%d", i)
+		}
+		tooManyPluginIDs := strings.Join(ids, ",")
+
 		for _, tc := range []struct {
 			name  string
 			flags map[string]string
@@ -423,7 +429,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},
 			{"invalid plugin ID", map[string]string{"plugin": "github,not a plugin"}, `invalid plugin ID "not a plugin"`},
 			{"empty plugin ID", map[string]string{"plugin": "github,"}, `invalid plugin ID ""`},
-			{"too many plugin IDs", map[string]string{"plugin": testPluginIDs(21)}, "--plugin accepts at most 20 plugin IDs"},
+			{"too many plugin IDs", map[string]string{"plugin": tooManyPluginIDs}, "--plugin accepts at most 20 plugin IDs"},
 		} {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
@@ -853,10 +859,11 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 	})
 
 	s.Run("Apply the plugin filter on the client too", func() {
-		_, stdout, _ := follow(&logsOptions{number: 10, plugins: []string{"github", "jira"}},
+		_, stdout, _ := follow(&logsOptions{number: 10, plugins: []string{"github", "jira", "12345"}},
 			respond(map[string][]json.RawMessage{"default": {
 				testLogLine(t0, "info", "github", "plugin_id", "github"),
 				testLogLine(t0, "info", "jira", "plugin_id", "jira"),
+				json.RawMessage(`{"timestamp":"2026-11-03 08:00:00.000 Z","level":"info","msg":"a number, compared as its JSON","plugin_id":12345}`),
 				testLogLine(t0, "info", "another plugin", "plugin_id", "zoom"),
 				testLogLine(t0, "info", "a different case", "plugin_id", "GitHub"),
 				testLogLine(t0, "info", "no plugin_id", "url", "https://example.com/plugins/github"),
@@ -864,17 +871,8 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 			}}),
 		)
 
-		s.Equal([]string{"github", "jira"}, testLogMessages(stdout))
+		s.Equal([]string{"github", "jira", "a number, compared as its JSON"}, testLogMessages(stdout))
 	})
-}
-
-// testPluginIDs returns n distinct plugin IDs, comma-separated.
-func testPluginIDs(n int) string {
-	ids := make([]string, n)
-	for i := range ids {
-		ids[i] = fmt.Sprintf("plugin%d", i)
-	}
-	return strings.Join(ids, ",")
 }
 
 func (s *MmctlUnitTestSuite) TestLogsUseColors() {

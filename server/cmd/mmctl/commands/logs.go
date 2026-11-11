@@ -102,7 +102,7 @@ func init() {
 	LogsCmd.Flags().StringSlice("level", nil, "Only show entries of these level groups: "+strings.Join(logLevelGroupNames, ", ")+".")
 	LogsCmd.Flags().StringArray("node", nil, "Only show the logs of this cluster node. Can be repeated.")
 	LogsCmd.Flags().StringSlice("plugin", nil, fmt.Sprintf("Only show entries logged by or about these plugins, by plugin ID. At most %d.", model.LogFilterFieldMaxValues))
-	_ = LogsCmd.RegisterFlagCompletionFunc("plugin", validateArgsWithClient(pluginIDCompletionF))
+	_ = LogsCmd.RegisterFlagCompletionFunc("plugin", validateArgsWithClient(pluginIDFlagCompletionF))
 	LogsCmd.Flags().StringP("search", "s", "", "Only show entries with a value, other than the level and timestamp, that contains this text, ignoring case.")
 	LogsCmd.Flags().Duration("since", 0, "Only show entries logged within this duration, e.g. 15m.")
 	RootCmd.AddCommand(LogsCmd)
@@ -712,7 +712,7 @@ type logQueryEntry struct {
 	key        string
 	failedNode bool
 	error      string
-	// pluginID is the plugin_id field, when it's a string
+	// pluginID is the plugin_id field, as the server compares it
 	pluginID string
 }
 
@@ -727,7 +727,7 @@ func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
 		case "error":
 			entry.error, _ = field.Interface.(string)
 		case logsPluginField:
-			entry.pluginID, _ = field.Interface.(string)
+			entry.pluginID, _ = logFieldString(field.Interface)
 		}
 	}
 	return entry
@@ -744,19 +744,25 @@ func (e logQueryEntry) matches(search string) bool {
 		if field.Key == "timestamp" {
 			continue
 		}
-		s, ok := field.Interface.(string)
-		if !ok {
-			b, err := json.Marshal(field.Interface)
-			if err != nil {
-				continue
-			}
-			s = string(b)
-		}
-		if strings.Contains(strings.ToLower(s), search) {
+		s, ok := logFieldString(field.Interface)
+		if ok && strings.Contains(strings.ToLower(s), search) {
 			return true
 		}
 	}
 	return false
+}
+
+// logFieldString returns a field's value as the server compares it: a string as is, and any
+// other value as its JSON.
+func logFieldString(v any) (string, bool) {
+	if s, ok := v.(string); ok {
+		return s, true
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "", false
+	}
+	return string(b), true
 }
 
 type seenLog struct {
