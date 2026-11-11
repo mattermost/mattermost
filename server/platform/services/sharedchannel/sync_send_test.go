@@ -49,6 +49,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		mockServer := &MockServerIface{}
 		mockServer.On("GetStore").Return(mockStore)
 		mockServer.On("GetMetrics").Return(nil)
+		mockServer.On("GetCluster").Return(nil)
 		mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
 
 		return &Service{
@@ -86,7 +87,7 @@ func TestProcessTask_RemoteClusterLookup(t *testing.T) {
 		task := newSyncTask(channelID, "", remoteID, nil, nil)
 		scs.addTask(task)
 
-		scs.doSync()
+		scs.doSync(nil)
 
 		assert.Empty(t, scs.tasks, "the orphaned task must be drained, not re-enqueued for retry")
 		scStore.AssertNumberOfCalls(t, "DeleteRemote", 1)
@@ -220,6 +221,8 @@ type mockRCSForSync struct {
 	cbErr        error
 
 	enqueueErr error // when set, SendMsg returns this WITHOUT invoking the callback
+
+	sent []model.RemoteClusterMsg
 }
 
 func (m *mockRCSForSync) NotifySyncFailed(remoteId string) {
@@ -239,6 +242,9 @@ func (m *mockRCSForSync) AddConnectionStateListener(listener remotecluster.Conne
 }
 func (m *mockRCSForSync) RemoveConnectionStateListener(listenerId string) {}
 func (m *mockRCSForSync) SendMsg(_ context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	m.mu.Lock()
+	m.sent = append(m.sent, msg)
+	m.mu.Unlock()
 	// Simulate an enqueue failure (e.g. BufferFullError): the callback never runs.
 	if m.enqueueErr != nil {
 		return m.enqueueErr
@@ -295,6 +301,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail immediately
 
 	scs := &Service{
@@ -307,7 +314,7 @@ func TestProcessTask_RetryDelay(t *testing.T) {
 	scs.addTask(task)
 
 	before := time.Now()
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -341,6 +348,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs makes syncForRemote fail for each remote
 
 	scs := &Service{
@@ -352,7 +360,7 @@ func TestProcessTask_FanOutRetryPerRemote(t *testing.T) {
 	// Fan-out task: empty remoteID.
 	scs.addTask(newSyncTask(channelID, "", "", nil, nil))
 
-	scs.doSync()
+	scs.doSync(nil)
 
 	scs.mux.RLock()
 	tasksCopy := make(map[string]syncTask, len(scs.tasks))
@@ -576,6 +584,7 @@ func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
 	mockServer := &MockServerIface{}
 	mockServer.On("GetStore").Return(mockStore)
 	mockServer.On("GetMetrics").Return(nil)
+	mockServer.On("GetCluster").Return(nil)
 	mockServer.On("GetRemoteClusterService").Return(nil) // nil rcs causes syncForRemote to fail
 
 	scs := newTestService()
@@ -585,7 +594,7 @@ func TestDoSync_CatchUpRetryKeepsFlag(t *testing.T) {
 	task.catchUp = true
 	scs.addTask(task)
 
-	scs.doSync()
+	scs.doSync(nil)
 
 	require.Len(t, scs.tasks, 1, "failed task should be re-enqueued for retry")
 	for _, retried := range scs.tasks {
