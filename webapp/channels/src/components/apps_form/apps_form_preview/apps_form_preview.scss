@@ -1,0 +1,72 @@
+.apps-form-preview {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    padding: 0;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    cursor: zoom-in;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+        border-color: rgba(var(--center-channel-color-rgb), 0.32);
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &__media {
+        display: block;
+        width: 100%;
+        height: auto;
+
+        // Images show at their natural size, shrinking only to fit, so small ones are not
+        // upscaled. PDFs keep the full width their canvas was rendered at.
+        &--image {
+            width: auto;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+    }
+
+    // Scrollable PDF viewer: PDFPreview listens for scroll on this element to render
+    // pages as they come into view. Pages are rendered at a fixed scale and fit to width here.
+    &__viewer {
+        overflow-y: auto;
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .post-code {
+            overflow: visible;
+        }
+
+        // A single page cropped to maxHeight rather than scrolled.
+        &--first-page {
+            overflow-y: hidden;
+        }
+    }
+
+    &__loading {
+        display: flex;
+        min-height: 120px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__error {
+        padding: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+}

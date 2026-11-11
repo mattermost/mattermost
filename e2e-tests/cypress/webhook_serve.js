@@ -3,6 +3,9 @@
 
 /* eslint-disable no-console */
 
+const fs = require('fs');
+const path = require('path');
+
 const express = require('express');
 const axios = require('axios');
 const ClientOAuth2 = require('client-oauth2');
@@ -45,6 +48,7 @@ server.post('/dialog/mission/cargo_source', onMissionCargoSource);
 server.post('/dialog/mission/schedule', onMissionScheduleDialog);
 server.post('/dialog/submit_buttons', onSubmitButtonsDialogRequest);
 server.post('/dialog/reset', onResetDialogDemoData);
+server.post('/dialog/preview', onPreviewDialogRequest);
 server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/dialog/refresh_nav', onRefreshNavDialogRequest);
 server.post('/refresh_nav_source', onRefreshNavSource);
@@ -100,6 +104,7 @@ function ping(req, res) {
             'POST /dialog/mission/cargo_source',
             'POST /dialog/mission/schedule',
             'POST /dialog/submit_buttons',
+            'POST /dialog/preview',
             'POST /field_refresh_source',
             'POST /dialog/refresh_nav',
             'POST /refresh_nav_source',
@@ -1280,4 +1285,155 @@ function onFieldRefreshSource(req, res) {
             elements,
         },
     });
+}
+
+// ---------------------------------------------------------------------------
+// Preview: one dialog showing every way the `preview` element renders a file.
+// Used by preview_spec.js.
+// ---------------------------------------------------------------------------
+
+// Pages in the preview test PDF: more than the viewer draws on load (3), so preview_spec
+// can check that later pages are drawn as they scroll into view.
+const PREVIEW_TEST_PDF_PAGES = 6;
+
+// Builds a generic letter-size test PDF: each page has a heading, a filled block so the
+// drawn canvas has visible content, and "Page N of M".
+function buildPreviewTestPdf(pageCount) {
+    const pageStreams = [];
+    for (let i = 1; i <= pageCount; i++) {
+        pageStreams.push([
+            '0.29 0.49 0.82 rg 40 560 532 160 re f',
+            '0 g',
+            'BT /F2 24 Tf 40 740 Td (Preview test document) Tj ET',
+            `BT /F1 18 Tf 40 520 Td (Page ${i} of ${pageCount}) Tj ET`,
+        ].join('\n'));
+    }
+    return assemblePdf(pageStreams);
+}
+
+// Wraps page content streams in a PDF 1.4 file with built-in Helvetica fonts (F1, F2 bold).
+function assemblePdf(pageStreams) {
+    // Objects: 1 catalog, 2 page tree, 3-4 fonts, then a page and its content stream per page.
+    const pageObjNum = (i) => 5 + (i * 2);
+    const objects = [
+        '<< /Type /Catalog /Pages 2 0 R >>',
+        `<< /Type /Pages /Kids [${pageStreams.map((_, i) => `${pageObjNum(i)} 0 R`).join(' ')}] /Count ${pageStreams.length} >>`,
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+        '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+    ];
+    pageStreams.forEach((stream, i) => {
+        objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pageObjNum(i) + 1} 0 R >>`);
+        objects.push(`<< /Length ${Buffer.byteLength(stream, 'latin1')} >>\nstream\n${stream}\nendstream`);
+    });
+
+    let pdf = '%PDF-1.4\n';
+    const offsets = objects.map((obj, i) => {
+        const offset = Buffer.byteLength(pdf, 'latin1');
+        pdf += `${i + 1} 0 obj\n${obj}\nendobj\n`;
+        return offset;
+    });
+    const xrefOffset = Buffer.byteLength(pdf, 'latin1');
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    pdf += offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('');
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+    return Buffer.from(pdf, 'latin1');
+}
+
+// Uploaded preview file IDs, keyed by channel, so each channel uploads them once.
+const previewDemoFileIds = {};
+
+async function uploadPreviewDemoFiles(channelId) {
+    if (!previewDemoFileIds[channelId]) {
+        const image = fs.readFileSync(path.join(__dirname, 'tests/fixtures/mattermost-icon.png'));
+        const [pdfId, imageId] = await Promise.all([
+            uploadFileAsAdmin(channelId, buildPreviewTestPdf(PREVIEW_TEST_PDF_PAGES), 'application/pdf', 'preview-demo.pdf'),
+            uploadFileAsAdmin(channelId, image, 'image/png', 'preview-demo.png'),
+        ]);
+        previewDemoFileIds[channelId] = {pdfId, imageId};
+    }
+    return previewDemoFileIds[channelId];
+}
+
+function getPreviewDialogForm({pdfId, imageId}) {
+    return {
+        callback_id: 'preview_demo',
+        title: 'Preview Demo',
+        submit_label: 'Close',
+        elements: [
+            {
+                display_name: 'Inline PDF',
+                name: 'pdf_inline',
+                type: 'preview',
+                default: pdfId,
+                help_text: 'Scrollable viewer of every page, one page tall.',
+            },
+            {
+                display_name: 'First page',
+                name: 'pdf_first_page',
+                type: 'preview',
+                subtype: 'first_page',
+                max_height: 200,
+                default: pdfId,
+            },
+            {
+                display_name: 'File card',
+                name: 'pdf_file',
+                type: 'preview',
+                subtype: 'file',
+                default: pdfId,
+            },
+            {
+                display_name: 'Image',
+                name: 'image',
+                type: 'preview',
+                default: imageId,
+            },
+            {
+                display_name: 'Invalid file ID',
+                name: 'invalid',
+                type: 'preview',
+                default: '../users/me',
+            },
+        ],
+    };
+}
+
+async function onPreviewDialogRequest(req, res) {
+    const {body} = req;
+    res.setHeader('Content-Type', 'application/json');
+    if (body.trigger_id) {
+        try {
+            const fileIds = await uploadPreviewDemoFiles(body.channel_id);
+            openDialog({
+                trigger_id: body.trigger_id,
+                url: `${webhookBaseUrl}/dialog_submit`,
+                dialog: getPreviewDialogForm(fileIds),
+            });
+        } catch (err) {
+            console.error('Preview upload failed:', err.response ? JSON.stringify(err.response.data) : err.message);
+            return res.json({text: 'Preview files could not be uploaded.'});
+        }
+    }
+    return res.json({text: 'Preview dialog opened!'});
+}
+
+// Uploads a file to the channel as the /setup admin, without posting it, and returns its file ID.
+async function uploadFileAsAdmin(channelId, data, type, name) {
+    const login = await axios({
+        url: `${baseUrl}/api/v4/users/login`,
+        method: 'post',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        data: {login_id: adminUsername, password: adminPassword},
+    });
+
+    const form = new FormData();
+    form.append('channel_id', channelId);
+    form.append('files', new Blob([data], {type}), name);
+    const upload = await axios({
+        url: `${baseUrl}/api/v4/files`,
+        method: 'post',
+        headers: {Authorization: `Bearer ${login.headers.token}`},
+        data: form,
+    });
+    return upload.data.file_infos[0].id;
 }

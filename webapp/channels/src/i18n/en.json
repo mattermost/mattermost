@@ -18355,6 +18355,14 @@
     "defaultMessage": "Times in {timezone}",
     "description": "Hint below a date-time field in an apps form telling the user which timezone applies; {timezone} is the timezone name."
   },
+  "apps_form.preview.open": {
+    "defaultMessage": "Open {name}",
+    "description": "Accessible label for an inline file preview in an apps form / interactive dialog; clicking it opens the full file. {name} is the file name."
+  },
+  "apps_form.preview.unavailable": {
+    "defaultMessage": "Preview unavailable",
+    "description": "Shown in place of an inline file preview in an apps form / interactive dialog when the file cannot be loaded."
+  },
   "apps.error": {
     "defaultMessage": "Error: {error}",
     "description": "Generic error wrapper for responses from the Apps framework (interactive integrations); {error} is the error detail text returned by the app or server."

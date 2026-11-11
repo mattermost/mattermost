@@ -22,9 +22,9 @@ export const getDocument = jest.fn(() => ({
                 cleanup: jest.fn(),
             }),
         ),
-        destroy: jest.fn(),
+        destroy: jest.fn(() => Promise.resolve()),
     }),
-    destroy: jest.fn(),
+    destroy: jest.fn(() => Promise.resolve()),
 }));
 
 export const version = '4.10.38';

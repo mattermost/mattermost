@@ -29,6 +29,7 @@ import AppsFormDateField from '../apps_form_date_field';
 import AppsFormDateTimeField from '../apps_form_datetime_field';
 
 const AppsFormFileUpload = React.lazy(() => import('components/apps_form/apps_form_file_upload'));
+const AppsFormPreview = React.lazy(() => import('components/apps_form/apps_form_preview'));
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -328,6 +329,22 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     context={field.action_button_context}
                     channelId={this.props.channelId}
                 />
+            );
+        }
+        case AppFieldTypes.PREVIEW: {
+            if (!field.preview_file_id) {
+                return null;
+            }
+            return (
+                <React.Suspense fallback={<LoadingSpinner/>}>
+                    <AppsFormPreview
+                        fileId={field.preview_file_id}
+                        maxHeight={field.preview_max_height}
+                        mode={field.subtype === 'file' || field.subtype === 'first_page' ? field.subtype : 'inline'}
+                        label={field.label}
+                        description={field.description}
+                    />
+                </React.Suspense>
             );
         }
         }

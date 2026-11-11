@@ -528,6 +528,10 @@ export type AppField = {
     // Action button props
     action_button_url?: string;
     action_button_context?: Record<string, string>;
+
+    // Preview props: ID of the file rendered inline, and crop height in pixels (0 or unset shows it all)
+    preview_file_id?: string;
+    preview_max_height?: number;
 };
 
 /**
@@ -662,6 +666,14 @@ function isAppField(v: unknown): v is AppField {
         if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
             return false;
         }
+    }
+
+    if (field.preview_file_id !== undefined && typeof field.preview_file_id !== 'string') {
+        return false;
+    }
+
+    if (field.preview_max_height !== undefined && typeof field.preview_max_height !== 'number') {
+        return false;
     }
 
     return true;
