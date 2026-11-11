@@ -70,6 +70,7 @@ import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
 import type {SystemSetting} from '@mattermost/types/general';
+import type {GlobalAttributeListing, GlobalAttributeListingSearch} from '@mattermost/types/global_attributes';
 import type {
     Group,
     GroupPatch,
@@ -2587,6 +2588,13 @@ export default class Client4 {
         );
     };
 
+    searchGlobalAttributes = async (search: GlobalAttributeListingSearch) => {
+        return this.doFetch<GlobalAttributeListing>(
+            `${this.getBaseRoute()}/properties/groups/access_control/attributes/search`,
+            {method: 'POST', body: JSON.stringify(search)},
+        );
+    };
+
     createPropertyField = async (groupName: string, objectType: string, field: Partial<PropertyField> & Record<string, unknown>) => {
         return this.doFetch<PropertyField>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}`,
@@ -4864,6 +4872,27 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -4906,13 +4935,16 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+
+            // The media type without parameters such as "; charset=binary", which proxies may add.
+            const mediaType = contentType?.split(';')[0].trim().toLowerCase();
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (mediaType === 'application/zip' || mediaType === 'application/octet-stream' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -5270,13 +5302,17 @@ export default class Client4 {
         );
     };
 
-    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string) => {
-        const requestBody: {expression: string; channelId?: string; teamId?: string} = {expression};
+    // membership also rejects what the membership sync can't evaluate.
+    checkAccessControlExpression = (expression: string, channelId?: string, teamId?: string, membership?: boolean) => {
+        const requestBody: {expression: string; channelId?: string; teamId?: string; membership?: boolean} = {expression};
         if (channelId) {
             requestBody.channelId = channelId;
         }
         if (teamId) {
             requestBody.teamId = teamId;
+        }
+        if (membership) {
+            requestBody.membership = true;
         }
 
         return this.doFetch<CELExpressionError[]>(

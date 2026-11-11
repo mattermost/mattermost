@@ -117,7 +117,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	body, err := rcs.sendRemoteRequest(req.WithContext(ctx))
+	body, err := rcs.sendRemoteRequest(rcs.uploadClient, req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}

@@ -46,6 +46,9 @@ type ServerManager struct {
 	license   string
 	sideA     *serverSide
 	sideB     *serverSide
+	// pluginDir holds a separate plugin and client plugin directory for each
+	// server, so test plugins stay out of ServerDir and the servers don't share one.
+	pluginDir string
 }
 
 func NewServerManager(cfg Config, logger *mlog.Logger) *ServerManager {
@@ -120,6 +123,9 @@ func (sm *ServerManager) Setup(ctx context.Context) error {
 	if err := sm.resetDatabases(ctx); err != nil {
 		return fmt.Errorf("reset databases: %w", err)
 	}
+	if err := sm.makePluginDirs(); err != nil {
+		return fmt.Errorf("plugin directories: %w", err)
+	}
 	if err := sm.startServers(ctx); err != nil {
 		return fmt.Errorf("start servers: %w", err)
 	}
@@ -137,6 +143,33 @@ func (sm *ServerManager) Teardown() {
 			side.proxy.Close()
 			side.proxy = nil
 		}
+	}
+	if sm.pluginDir != "" {
+		_ = os.RemoveAll(sm.pluginDir)
+	}
+}
+
+func (sm *ServerManager) makePluginDirs() error {
+	dir, err := os.MkdirTemp("", "sharedchannel-test-plugins-")
+	if err != nil {
+		return err
+	}
+	sm.pluginDir = dir
+	for _, server := range []string{"a", "b"} {
+		for _, sub := range []string{"plugins", "client"} {
+			if err := os.MkdirAll(filepath.Join(dir, server, sub), 0o755); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// pluginEnv points one server ("a" or "b") at its own plugin directories.
+func (sm *ServerManager) pluginEnv(server string) []string {
+	return []string{
+		"MM_PLUGINSETTINGS_DIRECTORY=" + filepath.Join(sm.pluginDir, server, "plugins"),
+		"MM_PLUGINSETTINGS_CLIENTDIRECTORY=" + filepath.Join(sm.pluginDir, server, "client"),
 	}
 }
 
@@ -225,6 +258,15 @@ func (sm *ServerManager) commonEnv() []string {
 		// so they don't collide on the metrics port (:8067) when the loaded config.json
 		// happens to have metrics enabled.
 		"MM_METRICSSETTINGS_ENABLE=false",
+		// The cursor rewind test uploads a small unsigned plugin.
+		"MM_PLUGINSETTINGS_ENABLE=true",
+		"MM_PLUGINSETTINGS_ENABLEUPLOADS=true",
+		"MM_PLUGINSETTINGS_REQUIREPLUGINSIGNATURE=false",
+		// The catch-up and rewind tests write more posts than one batch holds, so
+		// they cover sync continuing across batches.
+		"MM_CONNECTEDWORKSPACESSETTINGS_MAXPOSTSPERSYNC=50",
+		// Post reads leave out acknowledgements when post priority is off.
+		"MM_SERVICESETTINGS_POSTPRIORITY=true",
 	}
 }
 
@@ -236,7 +278,7 @@ func (sm *ServerManager) nodeEnv(side *serverSide, n *serverNode) []string {
 		"MM_LOGSETTINGS_FILELOCATION=" + filepath.Join(sm.logsDir(), n.logBase+".log"),
 	}
 	if !sm.ha() {
-		return env
+		return append(env, sm.pluginEnv(strings.ToLower(side.name))...)
 	}
 
 	return append(env,
