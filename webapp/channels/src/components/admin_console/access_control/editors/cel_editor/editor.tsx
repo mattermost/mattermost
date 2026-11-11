@@ -66,6 +66,12 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     wrappingIndent: 'none',
     wrappingStrategy: 'advanced',
     contextmenu: false,
+
+    // Monaco 0.55+ defaults to Chrome's EditContext API, whose textupdate events React does not treat
+    // as discrete, so state updates from typing are deferred. The effect syncing editorState.expression
+    // back into Monaco then runs with a stale value and calls setValue mid-typing, resetting the cursor
+    // and scrambling input on slower machines. The textarea input path keeps those updates synchronous.
+    editContext: false,
 };
 
 type CELUserAttribute = {

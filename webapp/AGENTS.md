@@ -40,6 +40,7 @@ Each has a contract type in `@mattermost/shared/types/global/` and a build-time 
 - `window.WebappUtils.modals` — contract `PublishedModalUtils`; allowlist in `published_modals.ts`.
 - `window.WebappUtils.editor` — contract `PublishedEditorUtils`; allowlist in `published_editor.ts`.
 - `window.WebappUtils.components` — contract `PublishedComponents`; allowlist in `published_components.ts`.
+- `window.WebappUtils.isolatedFrames` — contract `PublishedIsolatedFrameUtils`; allowlist in `published_isolated_frames.ts`. Backed by the message firewall in `channels/src/utils/isolated_frame_firewall.ts`, which `root.tsx` installs before any other module runs; keep it first.
 
 **Adding an entry**
 

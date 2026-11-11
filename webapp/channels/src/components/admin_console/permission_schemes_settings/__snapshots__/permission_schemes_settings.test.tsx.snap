@@ -17,7 +17,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
@@ -67,34 +67,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
         <section
           aria-labelledby="_r_2_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink"
           data-testid="systemScheme"
           id="systemScheme"
         >
           <header
-            class="_admin-panel-header_19tix_2"
+            class="_admin-panel-header_vb1i0_13"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_2_"
                     >
                       System Scheme
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Set the default permissions inherited by all teams unless a 
                     <a
@@ -110,15 +110,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="systemScheme-link"
                   href="/admin_console/user_management/permissions/system_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Edit Scheme
                   </span>
@@ -129,34 +129,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </section>
         <section
           aria-labelledby="_r_3_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink permissions-block"
           data-testid="team-override-schemes"
           id="team-override-schemes"
         >
           <header
-            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_3_"
                     >
                       Team Override Schemes
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Use when specific teams need permission exceptions to the 
                     <a
@@ -172,15 +172,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="team-override-schemes-link"
                   href="/admin_console/user_management/permissions/team_override_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     New Team Override Scheme
                   </span>
@@ -189,7 +189,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </div>
           </header>
           <div
-            class="_admin-panel__body_iwm08_25"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="permissions-scheme-summary"
@@ -355,34 +355,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
         <section
           aria-labelledby="_r_0_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink"
           data-testid="systemScheme"
           id="systemScheme"
         >
           <header
-            class="_admin-panel-header_19tix_2"
+            class="_admin-panel-header_vb1i0_13"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_0_"
                     >
                       System Scheme
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Set the default permissions inherited by all teams unless a 
                     <a
@@ -398,15 +398,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="systemScheme-link"
                   href="/admin_console/user_management/permissions/system_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Edit Scheme
                   </span>
@@ -417,34 +417,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </section>
         <section
           aria-labelledby="_r_1_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink permissions-block"
           data-testid="team-override-schemes"
           id="team-override-schemes"
         >
           <header
-            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_1_"
                     >
                       Team Override Schemes
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Use when specific teams need permission exceptions to the 
                     <a
@@ -460,15 +460,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="team-override-schemes-link"
                   href="/admin_console/user_management/permissions/team_override_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     New Team Override Scheme
                   </span>
@@ -477,7 +477,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </div>
           </header>
           <div
-            class="_admin-panel__body_iwm08_25"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="no-team-schemes"
@@ -531,34 +531,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
         <section
           aria-labelledby="_r_4_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink"
           data-testid="systemScheme"
           id="systemScheme"
         >
           <header
-            class="_admin-panel-header_19tix_2"
+            class="_admin-panel-header_vb1i0_13"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_4_"
                     >
                       System Scheme
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Set the default permissions inherited by all teams unless a 
                     <a
@@ -574,16 +574,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
                   aria-disabled="true"
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--disabled_1pij1_52"
                   data-testid="systemScheme-link"
                   href="/admin_console/user_management/permissions/system_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Edit Scheme
                   </span>
@@ -594,34 +594,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </section>
         <section
           aria-labelledby="_r_5_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink permissions-block"
           data-testid="team-override-schemes"
           id="team-override-schemes"
         >
           <header
-            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_5_"
                     >
                       Team Override Schemes
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Use when specific teams need permission exceptions to the 
                     <a
@@ -637,16 +637,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
                   aria-disabled="true"
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--disabled_1pij1_52"
                   data-testid="team-override-schemes-link"
                   href="/admin_console/user_management/permissions/team_override_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     New Team Override Scheme
                   </span>
@@ -655,7 +655,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </div>
           </header>
           <div
-            class="_admin-panel__body_iwm08_25"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="team-override-unavailable"
@@ -839,34 +839,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
         <section
           aria-labelledby="_r_6_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink"
           data-testid="systemScheme"
           id="systemScheme"
         >
           <header
-            class="_admin-panel-header_19tix_2"
+            class="_admin-panel-header_vb1i0_13"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_6_"
                     >
                       System Scheme
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Set the default permissions inherited by all teams unless a 
                     <a
@@ -882,16 +882,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
                   aria-disabled="true"
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--disabled_1pij1_52"
                   data-testid="systemScheme-link"
                   href="/admin_console/user_management/permissions/system_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Edit Scheme
                   </span>
@@ -902,34 +902,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </section>
         <section
           aria-labelledby="_r_7_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink permissions-block"
           data-testid="team-override-schemes"
           id="team-override-schemes"
         >
           <header
-            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_7_"
                     >
                       Team Override Schemes
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Use when specific teams need permission exceptions to the 
                     <a
@@ -945,16 +945,16 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
                   aria-disabled="true"
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 _button--disabled_we8pe_28"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 _button--disabled_1pij1_52"
                   data-testid="team-override-schemes-link"
                   href="/admin_console/user_management/permissions/team_override_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     New Team Override Scheme
                   </span>
@@ -963,7 +963,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </div>
           </header>
           <div
-            class="_admin-panel__body_iwm08_25"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="team-override-unavailable"
@@ -1147,34 +1147,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </div>
         <section
           aria-labelledby="_r_8_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink"
           data-testid="systemScheme"
           id="systemScheme"
         >
           <header
-            class="_admin-panel-header_19tix_2"
+            class="_admin-panel-header_vb1i0_13"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_8_"
                     >
                       System Scheme
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Set the default permissions inherited by all teams unless a 
                     <a
@@ -1190,15 +1190,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="systemScheme-link"
                   href="/admin_console/user_management/permissions/system_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     Edit Scheme
                   </span>
@@ -1209,34 +1209,34 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
         </section>
         <section
           aria-labelledby="_r_9_"
-          class="_admin-panel_iwm08_2 AdminPanel clearfix AdminPanelWithLink permissions-block"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix AdminPanelWithLink permissions-block"
           data-testid="team-override-schemes"
           id="team-override-schemes"
         >
           <header
-            class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="_admin-panel-header__main_19tix_10"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                class="_admin-panel-header__start_19tix_19"
+                class="_admin-panel-header__start_vb1i0_40"
               >
                 <div
-                  class="_admin-panel-header__title-stack_19tix_37"
+                  class="_admin-panel-header__title-stack_vb1i0_58"
                 >
                   <div
-                    class="_admin-panel-header__title-row_19tix_46"
+                    class="_admin-panel-header__title-row_vb1i0_67"
                   >
                     <h2
-                      class="_admin-panel-header__title_19tix_37"
+                      class="_admin-panel-header__title_vb1i0_58"
                       id="_r_9_"
                     >
                       Team Override Schemes
                     </h2>
                   </div>
                   <p
-                    class="_admin-panel-header__subtitle_19tix_66"
+                    class="_admin-panel-header__subtitle_vb1i0_87"
                   >
                     Use when specific teams need permission exceptions to the 
                     <a
@@ -1252,15 +1252,15 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
                 </div>
               </div>
               <div
-                class="_admin-panel-header__actions_19tix_75"
+                class="_admin-panel-header__actions_vb1i0_28"
               >
                 <a
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
                   data-testid="team-override-schemes-link"
                   href="/admin_console/user_management/permissions/team_override_scheme"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     New Team Override Scheme
                   </span>
@@ -1269,7 +1269,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_schemes
             </div>
           </header>
           <div
-            class="_admin-panel__body_iwm08_25"
+            class="_admin-panel__body_xr2f9_36"
           >
             <div
               class="permissions-scheme-summary"

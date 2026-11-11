@@ -41,10 +41,10 @@ Common Name: example.mattermost.com
 Email Address: admin@mattermost.com
 ```
 
-2.  Create the client side key for `mmuser` with a passphrase, and the certificate signing request:
+2.  Create the client side key for `mmuser` with a passphrase, and the certificate signing request. Use at least 2048 bits. Current OpenSSL security levels, such as the default on Ubuntu 22.04, reject shorter RSA keys.
 
 ``` sh
-openssl genrsa -des3 -out mmuser-mattermost.key 1024
+openssl genrsa -des3 -out mmuser-mattermost.key 2048
 ```
 
 ``` text
@@ -79,29 +79,41 @@ openssl x509 -req -days 365 -in mmuser-mattermost.csr -CA ca.mattermost.crt -CAk
 openssl x509 -in mmuser-mattermost.crt -text -noout
 ```
 
-5.  Open the file `/etc/nginx/sites-available/mattermost` and modify the following lines, so that the NGINX proxy server requests and verifies the client certificate:
+5.  Open the NGINX site file (`/etc/nginx/sites-available/mattermost` on Ubuntu and Debian, or `/etc/nginx/conf.d/mattermost.conf` on RHEL/CentOS) and add the following lines, so that the NGINX proxy server requests and verifies the client certificate and passes a device identity to Mattermost Server. The rest of the server configuration is the one in [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy).
 
-``` text
-ssl on;
-ssl_certificate /etc/letsencrypt/live/example.mattermost.com/fullchain.pem;
-ssl_certificate_key /etc/letsencrypt/live/example.mattermost.com/privkey.pem;
-ssl_client_certificate /opt/mattermost/config/ca.mattermost.crt;
-ssl_verify_client on;
+``` nginx
+server {
+    ...                                                               # listen, server_name and headers as in the NGINX guide
+    ssl_certificate /etc/ssl/mattermost/fullchain.pem;                # your certificate and its chain
+    ssl_certificate_key /etc/ssl/mattermost/privkey.pem;              # your private key
+    ssl_client_certificate /opt/mattermost/config/ca.mattermost.crt;  # CA that signs the client certificates
+    ssl_verify_client on;                                             # reject clients without a valid certificate
 
-...
+    location ~ /api/v[0-9]+/websocket/?$ {
+        ...                                                           # upgrade, forwarded headers and timeouts as in the NGINX guide
+        # the client certificate and its subject
+        proxy_set_header X-SSL-Client-Cert $ssl_client_cert;
+        proxy_set_header X-SSL-Client-Cert-Subject-DN $ssl_client_s_dn;
+        # device ID: the certificate fingerprint
+        proxy_set_header X-Mattermost-Session-Attribute-Device-Id $ssl_client_fingerprint;
+        proxy_pass http://backend;                                    # forward to Mattermost
+    }
 
-location ~ /api/v[0-9]+/(users/)?websocket$ {
- proxy_set_header X-SSL-Client-Cert $ssl_client_cert;
- proxy_set_header X-SSL-Client-Cert-Subject-DN $ssl_client_s_dn;
-
-...
-
-location / {
- proxy_set_header X-SSL-Client-Cert $ssl_client_cert;
- proxy_set_header X-SSL-Client-Cert-Subject-DN $ssl_client_s_dn;
-
-...
+    location / {
+        ...                                                           # forwarded headers, timeouts and limits as in the NGINX guide
+        # the client certificate and its subject
+        proxy_set_header X-SSL-Client-Cert $ssl_client_cert;
+        proxy_set_header X-SSL-Client-Cert-Subject-DN $ssl_client_s_dn;
+        # device ID: the certificate fingerprint
+        proxy_set_header X-Mattermost-Session-Attribute-Device-Id $ssl_client_fingerprint;
+        proxy_pass http://backend;                                    # forward to Mattermost
+    }
+}
 ```
+
+Each location passes the client certificate and its subject to Mattermost, plus the certificate fingerprint as the device ID. Mattermost only uses the device ID when [`AccessControlSettings.TrustProxyDeviceIdentityHeader`](/administration-guide/manage/admin/session-attributes#trust-proxy-device-identity-header) is enabled. Read the warning on that page first.
+
+Set the same three headers in every other location that proxies to Mattermost, such as the subpath location from the [NGINX FAQ](/deployment-guide/server/setup-nginx-proxy#why-am-i-seeing-the-error-too-many-redirects). A location without them forwards any value that a client sends.
 
 6.  Confirm the CA key for `mmuser` works by the following curl command to the proxy:
 

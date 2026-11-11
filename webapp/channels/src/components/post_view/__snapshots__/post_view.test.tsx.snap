@@ -20,7 +20,7 @@ exports[`components/post_view/post_view should match snapshot for channel loadin
         >
           <span
             aria-label="Loading Icon"
-            class="_spinner_3elm7_10 spinner"
+            class="_spinner_mvrwe_21 spinner"
             role="status"
             style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
           />
@@ -52,7 +52,7 @@ exports[`components/post_view/post_view should match snapshot for loaderForChang
         >
           <span
             aria-label="Loading Icon"
-            class="_spinner_3elm7_10 spinner"
+            class="_spinner_mvrwe_21 spinner"
             role="status"
             style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
           />

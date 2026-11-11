@@ -5,20 +5,30 @@ package platform
 
 import (
 	"bytes"
+	"encoding/binary"
+	"encoding/json"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
+	"slices"
+	"strings"
+	"sync"
 	"testing"
+	"testing/iotest"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -276,6 +286,289 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 	})
 }
 
+type visibilitySuite struct {
+	mockSuite
+	canSee bool
+	// restrictions, when set, is returned as is instead of the canSee-derived one.
+	restrictions            *model.ViewUsersRestrictions
+	restrictionsCalls       int
+	userCanSeeOtherUserCall int
+}
+
+// GetViewUsersRestrictions returns no restrictions (sees everyone) when canSee is
+// set, and empty restrictions (sees no one) otherwise.
+func (vs *visibilitySuite) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+	vs.restrictionsCalls++
+	if vs.restrictions != nil {
+		return vs.restrictions, nil
+	}
+	if vs.canSee {
+		return nil, nil
+	}
+	return &model.ViewUsersRestrictions{}, nil
+}
+
+func (vs *visibilitySuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserID string) (bool, *model.AppError) {
+	vs.userCanSeeOtherUserCall++
+	return vs.canSee, nil
+}
+
+func TestWebConnShouldSendEventToGuest(t *testing.T) {
+	th := Setup(t)
+
+	targetUserID := model.NewId()
+
+	newGuestConn := func(canSee bool) *WebConn {
+		return &WebConn{
+			Platform: th.Service,
+			Suite:    &visibilitySuite{canSee: canSee},
+			UserId:   model.NewId(),
+		}
+	}
+
+	cpaEvent := func(userID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+		if userID != nil {
+			msg.Add("user_id", userID)
+		}
+		msg.Add("values", map[string]string{"fieldID": "secret"})
+		return msg
+	}
+
+	propertyEvent := func(objectType any, targetID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		if objectType != nil {
+			msg.Add("object_type", objectType)
+		}
+		if targetID != nil {
+			msg.Add("target_id", targetID)
+		}
+		msg.Add("values", `[{"value":"secret"}]`)
+		return msg
+	}
+
+	t.Run("CPA values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent("")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(42)))
+	})
+
+	t.Run("user property values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, "")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, 42)))
+	})
+
+	t.Run("non-user property values updated is unaffected", func(t *testing.T) {
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypePost,
+			model.PropertyFieldObjectTypeChannel,
+			model.PropertyFieldObjectTypeSystem,
+		} {
+			assert.True(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(objectType, model.NewId())), objectType)
+		}
+	})
+
+	t.Run("property values updated is not sent when object_type is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(nil, targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent("", targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(42, targetUserID)))
+	})
+
+	fieldClearedEvent := func() *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		msg.Add("field_id", model.NewId())
+		msg.Add("values", "[]")
+		return msg
+	}
+
+	t.Run("field-wide property values cleared is sent to a guest", func(t *testing.T) {
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(fieldClearedEvent()))
+	})
+
+	t.Run("field-wide property values event is not sent when it carries a target or values", func(t *testing.T) {
+		withValues := fieldClearedEvent()
+		withValues.Add("values", `[{"value":"secret"}]`)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withValues))
+
+		withTarget := fieldClearedEvent()
+		withTarget.Add("target_id", targetUserID)
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withTarget))
+
+		withoutField := fieldClearedEvent()
+		withoutField.Add("field_id", "")
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(withoutField))
+	})
+
+	t.Run("unrelated events are unaffected", func(t *testing.T) {
+		msg := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "", "", nil, "")
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(msg))
+	})
+}
+
+func TestWebConnCanSeeUserCached(t *testing.T) {
+	th := Setup(t)
+
+	team := th.CreateTeam(t)
+	guest := th.CreateUserOrGuest(t, true)
+	sharing := th.CreateUserOrGuest(t, false)
+	notSharing := th.CreateUserOrGuest(t, false)
+
+	addToChannel := func(user *model.User, channel *model.Channel) {
+		_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+	}
+
+	shared := th.CreateChannel(t, team)
+	addToChannel(guest, shared)
+	addToChannel(sharing, shared)
+	addToChannel(notSharing, th.CreateChannel(t, team))
+
+	restrictionsFor := func(userID string) *model.ViewUsersRestrictions {
+		members, err := th.Service.Store.Channel().GetAllChannelMembersForUser(th.Context, userID, false, true)
+		require.NoError(t, err)
+		restrictions := &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
+		for id := range members {
+			restrictions.Channels = append(restrictions.Channels, id)
+		}
+		return restrictions
+	}
+
+	newConn := func(suite *visibilitySuite) *WebConn {
+		return &WebConn{Platform: th.Service, Suite: suite, UserId: guest.Id}
+	}
+
+	t.Run("sees only users it shares a channel with", func(t *testing.T) {
+		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
+
+		canSee, appErr := wc.canSeeUserCached(th.Context, sharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+
+		canSee, appErr = wc.canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("always sees itself, even without restrictions loaded", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		canSee, appErr := newConn(suite).canSeeUserCached(th.Context, guest.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+		assert.Zero(t, suite.restrictionsCalls)
+	})
+
+	t.Run("sees everyone when it has no restrictions", func(t *testing.T) {
+		canSee, appErr := newConn(&visibilitySuite{canSee: true}).canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+	})
+
+	t.Run("sees no one when it has no channels", func(t *testing.T) {
+		canSee, appErr := newConn(&visibilitySuite{canSee: false}).canSeeUserCached(th.Context, sharing.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("falls back to UserCanSeeOtherUser when team-wide visibility applies", func(t *testing.T) {
+		suite := &visibilitySuite{canSee: true, restrictions: &model.ViewUsersRestrictions{Teams: []string{team.Id}}}
+		wc := newConn(suite)
+		canSee, appErr := wc.canSeeUserCached(th.Context, notSharing.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+		assert.Equal(t, 1, suite.userCanSeeOtherUserCall)
+	})
+
+	t.Run("loads restrictions once across many events", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		wc := newConn(suite)
+		for range 100 {
+			_, appErr := wc.canSeeUserCached(th.Context, sharing.Id)
+			require.Nil(t, appErr)
+			_, appErr = wc.canSeeUserCached(th.Context, notSharing.Id)
+			require.Nil(t, appErr)
+		}
+		assert.Equal(t, 1, suite.restrictionsCalls)
+		assert.Zero(t, suite.userCanSeeOtherUserCall)
+	})
+
+	t.Run("InvalidateCache picks up new memberships", func(t *testing.T) {
+		later := th.CreateUserOrGuest(t, false)
+		suite := &visibilitySuite{}
+		wc := newConn(suite)
+
+		suite.restrictions = restrictionsFor(guest.Id)
+		canSee, appErr := wc.canSeeUserCached(th.Context, later.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+
+		// The guest joins a channel that `later` is in.
+		other := th.CreateChannel(t, team)
+		addToChannel(later, other)
+		addToChannel(guest, other)
+		// The app layer invalidates the per-user caches on membership changes.
+		th.Service.InvalidateChannelCacheForUser(later.Id)
+		th.Service.InvalidateChannelCacheForUser(guest.Id)
+		suite.restrictions = restrictionsFor(guest.Id)
+
+		wc.InvalidateCache()
+		canSee, appErr = wc.canSeeUserCached(th.Context, later.Id)
+		require.Nil(t, appErr)
+		assert.True(t, canSee)
+	})
+
+	t.Run("invalidating a user drops the cached channels immediately", func(t *testing.T) {
+		target := th.CreateUserOrGuest(t, false)
+		joined := th.CreateChannel(t, team)
+		addToChannel(guest, joined)
+		addToChannel(target, joined)
+
+		wc := newConn(&visibilitySuite{restrictions: restrictionsFor(guest.Id)})
+		canSee, appErr := wc.canSeeUserCached(th.Context, target.Id)
+		require.Nil(t, appErr)
+		require.True(t, canSee)
+
+		require.NoError(t, th.Service.Store.Channel().RemoveMember(th.Context, joined.Id, target.Id))
+		th.Service.InvalidateChannelCacheForUser(target.Id)
+
+		canSee, appErr = wc.canSeeUserCached(th.Context, target.Id)
+		require.Nil(t, appErr)
+		assert.False(t, canSee)
+	})
+
+	t.Run("ShouldSendEventToGuest does not query the suite per event", func(t *testing.T) {
+		suite := &visibilitySuite{restrictions: restrictionsFor(guest.Id)}
+		wc := newConn(suite)
+		event := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+		event.Add("user_id", sharing.Id)
+		for range 50 {
+			assert.True(t, wc.ShouldSendEventToGuest(event))
+		}
+		assert.Equal(t, 1, suite.restrictionsCalls)
+	})
+}
+
 func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	th := Setup(t)
 
@@ -318,6 +611,237 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	case <-readPumpDone:
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "readPump did not exit after receiving binary frame")
+	}
+}
+
+// recordingWebSocketHandler hands every request it is given back to the test.
+type recordingWebSocketHandler struct {
+	requests chan *model.WebSocketRequest
+}
+
+func (h *recordingWebSocketHandler) ServeWebSocket(_ *WebConn, req *model.WebSocketRequest) {
+	h.requests <- req
+}
+
+// authenticatedWebConnServer serves each incoming websocket connection with a
+// readPump running on a WebConn that carries the given session.
+type authenticatedWebConnServer struct {
+	*httptest.Server
+
+	conns        chan *WebConn
+	readPumpDone chan struct{}
+}
+
+func newAuthenticatedWebConnServer(tb testing.TB, th *TestHelper, session model.Session, capacity int) *authenticatedWebConnServer {
+	s := &authenticatedWebConnServer{
+		conns:        make(chan *WebConn, capacity),
+		readPumpDone: make(chan struct{}, capacity),
+	}
+
+	s.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upgrader := &websocket.Upgrader{}
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket: conn,
+			Session:   session,
+		}, th.Suite, &hookRunner{})
+		s.conns <- wc
+
+		go func() {
+			wc.readPump()
+			s.readPumpDone <- struct{}{}
+		}()
+	}))
+	tb.Cleanup(s.Close)
+
+	return s
+}
+
+// dial opens a client connection and returns it together with the server side
+// WebConn serving it.
+func (s *authenticatedWebConnServer) dial(tb testing.TB) (*websocket.Conn, *WebConn) {
+	d := websocket.Dialer{}
+	clientConn, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+	require.NoError(tb, err)
+	tb.Cleanup(func() {
+		clientConn.Close()
+	})
+
+	select {
+	case wc := <-s.conns:
+		return clientConn, wc
+	case <-time.After(5 * time.Second):
+		require.FailNow(tb, "server did not accept the websocket connection")
+		return nil, nil
+	}
+}
+
+func (s *authenticatedWebConnServer) waitForReadPumps(tb testing.TB, count int) {
+	for range count {
+		select {
+		case <-s.readPumpDone:
+		case <-time.After(10 * time.Second):
+			require.FailNow(tb, "readPump did not return for every connection")
+		}
+	}
+}
+
+func TestWebConnDecodeAllocationTracksFrameSize(t *testing.T) {
+	th := Setup(t)
+
+	user := th.CreateUserOrGuest(t, false)
+	session := model.Session{
+		UserId:    user.Id,
+		Token:     model.NewId(),
+		ExpiresAt: model.GetMillis() + 100000,
+	}
+
+	// Number of connections decoding a frame at the same time, and the amount
+	// by which a run may exceed the reference run below. The reference run
+	// allocates on the order of a MiB in total, so the allowance leaves a wide
+	// band for run to run variance.
+	const (
+		concurrentConnections = 20
+		allowance             = 32 << 20
+		declaredEntries       = 1_000_000
+		declaredShortEntries  = 65535
+	)
+
+	msgpackString := func(s string) []byte {
+		require.Less(t, len(s), 32, "only fixstr lengths are built here")
+		return append([]byte{0xA0 | byte(len(s))}, s...)
+	}
+
+	// frame builds {"action": "custom_x", "data": <data>}. The action is
+	// plugin prefixed so a decoded frame is handed to the plugin hooks
+	// without going through the websocket router.
+	frame := func(data []byte) []byte {
+		b := []byte{0x82} // two entry map
+		b = append(b, msgpackString("action")...)
+		b = append(b, msgpackString("custom_x")...)
+		b = append(b, msgpackString("data")...)
+		return append(b, data...)
+	}
+
+	// map32 and array32 headers declare an entry count in the frame header,
+	// independently of how many entries the frame goes on to carry.
+	map32Header := func(entries uint32) []byte {
+		return binary.BigEndian.AppendUint32([]byte{0xDF}, entries)
+	}
+	array32Header := func(elements uint32) []byte {
+		return binary.BigEndian.AppendUint32([]byte{0xDD}, elements)
+	}
+
+	// map16 declares its entry count in two header bytes instead of four.
+	map16Header := func(entries uint16) []byte {
+		return binary.BigEndian.AppendUint16([]byte{0xDE}, entries)
+	}
+
+	oneEntryMap := func(key string, value []byte) []byte {
+		b := []byte{0x81}
+		b = append(b, msgpackString(key)...)
+		return append(b, value...)
+	}
+
+	// nestedDeclaredMaps builds {"k1": "v1", "k2": <count headers>, "k3": "v3"},
+	// where each header sits in the value position of the entry opened by the
+	// header before it, below two entries the frame does carry.
+	nestedDeclaredMaps := func(count int) []byte {
+		b := []byte{0x83} // three entry map
+		b = append(b, msgpackString("k1")...)
+		b = append(b, msgpackString("v1")...)
+		b = append(b, msgpackString("k2")...)
+		for range count {
+			b = append(b, map16Header(declaredShortEntries)...)
+			b = append(b, msgpackString("")...) // key of the entry each header opens
+		}
+		b = append(b, msgpackString("k3")...)
+		return append(b, msgpackString("v3")...)
+	}
+
+	// The reference frame carries the entries it declares: {"data": {"a": "b"}}.
+	referenceFrame := frame(oneEntryMap("a", msgpackString("b")))
+
+	asMiB := func(b uint64) float64 {
+		return float64(b) / (1 << 20)
+	}
+
+	sendFrame := func(t *testing.T, payload []byte) {
+		s := newAuthenticatedWebConnServer(t, th, session, concurrentConnections)
+
+		clientConns := make([]*websocket.Conn, 0, concurrentConnections)
+		for range concurrentConnections {
+			clientConn, wc := s.dial(t)
+			require.True(t, wc.IsAuthenticated())
+			clientConns = append(clientConns, clientConn)
+		}
+
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		for _, clientConn := range clientConns {
+			wg.Go(func() {
+				<-start
+				assert.NoError(t, clientConn.WriteMessage(websocket.BinaryMessage, payload))
+			})
+		}
+		close(start)
+		wg.Wait()
+
+		for _, clientConn := range clientConns {
+			clientConn.Close()
+		}
+		s.waitForReadPumps(t, concurrentConnections)
+	}
+
+	measure := func(t *testing.T, payload []byte) uint64 {
+		var before, after runtime.MemStats
+
+		runtime.GC()
+		runtime.ReadMemStats(&before)
+
+		sendFrame(t, payload)
+
+		runtime.GC()
+		runtime.ReadMemStats(&after)
+
+		return after.TotalAlloc - before.TotalAlloc
+	}
+
+	testCases := []struct {
+		name  string
+		frame []byte
+	}{
+		{
+			name:  "declared map length",
+			frame: frame(map32Header(declaredEntries)),
+		},
+		{
+			name:  "declared array length",
+			frame: frame(oneEntryMap("a", array32Header(declaredEntries))),
+		},
+		{
+			name:  "declared map length in a short header",
+			frame: frame(map16Header(declaredShortEntries)),
+		},
+		{
+			name:  "declared lengths nested below entries the frame carries",
+			frame: frame(nestedDeclaredMaps(3)),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			reference := measure(t, referenceFrame)
+			allocated := measure(t, tc.frame)
+
+			require.LessOrEqualf(t, allocated, reference+allowance,
+				"%d connections sending a %d byte frame allocated %.1f MiB, while the same number of connections sending a %d byte frame carrying its entries allocated %.1f MiB (allowance %.1f MiB)",
+				concurrentConnections, len(tc.frame), asMiB(allocated), len(referenceFrame), asMiB(reference), asMiB(allowance))
+		})
 	}
 }
 
@@ -490,6 +1014,242 @@ func TestWebConnShouldSendEventAllocs(t *testing.T) {
 			assert.Zero(t, allocs, "ShouldSendEvent should not allocate")
 		})
 	}
+}
+
+func TestWebConnDecodesAuthenticatedFrames(t *testing.T) {
+	th := Setup(t)
+
+	user := th.CreateUserOrGuest(t, false)
+	session := model.Session{
+		UserId:    user.Id,
+		Token:     model.NewId(),
+		ExpiresAt: model.GetMillis() + 100000,
+	}
+
+	const action = "test_decoded_action"
+	routed := make(chan *model.WebSocketRequest, 1)
+	th.Service.WebSocketRouter.Handle(action, &recordingWebSocketHandler{requests: routed})
+
+	req := &model.WebSocketRequest{
+		Seq:    1,
+		Action: action,
+		Data: map[string]any{
+			"channel_id":     model.NewId(),
+			"is_thread_view": true,
+			"ids":            []any{"first", "second", "third"},
+			"options": map[string]any{
+				"one":   "1",
+				"two":   "2",
+				"three": "3",
+				"four":  "4",
+			},
+		},
+	}
+
+	// Collections whose declared lengths are zero, and collections nested
+	// several levels below the top of the frame.
+	sparseReq := &model.WebSocketRequest{
+		Seq:    2,
+		Action: action,
+		Data: map[string]any{
+			"empty_map":  map[string]any{},
+			"empty_list": []any{},
+			"nested": map[string]any{
+				"second": map[string]any{
+					"third": []any{map[string]any{"fourth": []any{"leaf"}}},
+				},
+			},
+		},
+	}
+
+	testCases := []struct {
+		name        string
+		messageType int
+		request     *model.WebSocketRequest
+	}{
+		{
+			name:        "binary msgpack frame",
+			messageType: websocket.BinaryMessage,
+			request:     req,
+		},
+		{
+			name:        "text JSON frame",
+			messageType: websocket.TextMessage,
+			request:     req,
+		},
+		{
+			name:        "binary frame of empty and nested collections",
+			messageType: websocket.BinaryMessage,
+			request:     sparseReq,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var frame []byte
+			var err error
+			if tc.messageType == websocket.BinaryMessage {
+				frame, err = msgpack.Marshal(tc.request)
+			} else {
+				frame, err = json.Marshal(tc.request)
+			}
+			require.NoError(t, err)
+
+			s := newAuthenticatedWebConnServer(t, th, session, 1)
+
+			clientConn, wc := s.dial(t)
+			require.True(t, wc.IsAuthenticated())
+
+			require.NoError(t, clientConn.WriteMessage(tc.messageType, frame))
+
+			select {
+			case got := <-routed:
+				assert.Equal(t, tc.request.Seq, got.Seq)
+				assert.Equal(t, tc.request.Action, got.Action)
+				assert.Equal(t, tc.request.Data, got.Data)
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the request was not dispatched to its handler")
+			}
+
+			select {
+			case posted := <-wc.pluginPosted:
+				assert.Equal(t, tc.request.Action, posted.req.Action)
+				for key, value := range tc.request.Data {
+					assert.Equal(t, value, posted.req.Data[key])
+				}
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the request was not forwarded to the plugin hooks")
+			}
+
+			clientConn.Close()
+			s.waitForReadPumps(t, 1)
+		})
+	}
+}
+
+// binaryFrameOfSize returns the msgpack encoding of a request for action,
+// padded so the encoding is exactly size bytes.
+func binaryFrameOfSize(tb testing.TB, action string, size int) []byte {
+	padding := size
+	for range 10 {
+		encoded, err := msgpack.Marshal(&model.WebSocketRequest{
+			Seq:    1,
+			Action: action,
+			Data:   map[string]any{"padding": strings.Repeat("x", padding)},
+		})
+		require.NoError(tb, err)
+		if len(encoded) == size {
+			return encoded
+		}
+		padding += size - len(encoded)
+		require.Positive(tb, padding)
+	}
+
+	require.FailNow(tb, "could not encode a request of the requested size")
+	return nil
+}
+
+func TestWebConnReadsBinaryFramesUpToTheReadLimit(t *testing.T) {
+	th := Setup(t)
+
+	user := th.CreateUserOrGuest(t, false)
+	session := model.Session{
+		UserId:    user.Id,
+		Token:     model.NewId(),
+		ExpiresAt: model.GetMillis() + 100000,
+	}
+
+	const action = "test_read_limit_action"
+	routed := make(chan *model.WebSocketRequest, 1)
+	th.Service.WebSocketRouter.Handle(action, &recordingWebSocketHandler{requests: routed})
+
+	atLimit := binaryFrameOfSize(t, action, model.SocketMaxMessageSizeKb)
+
+	// One byte past the limit, trailing an encoding that is complete without it.
+	pastLimit := append(slices.Clone(atLimit), 0xC0)
+
+	testCases := []struct {
+		name           string
+		frame          []byte
+		wantDispatched bool
+	}{
+		{
+			name:           "frame at the read limit",
+			frame:          atLimit,
+			wantDispatched: true,
+		},
+		{
+			name:           "frame past the read limit",
+			frame:          pastLimit,
+			wantDispatched: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := newAuthenticatedWebConnServer(t, th, session, 1)
+
+			clientConn, wc := s.dial(t)
+			require.True(t, wc.IsAuthenticated())
+
+			require.NoError(t, clientConn.WriteMessage(websocket.BinaryMessage, tc.frame))
+
+			select {
+			case got := <-routed:
+				require.Truef(t, tc.wantDispatched,
+					"a %d byte frame was dispatched to its handler, over a read limit of %d bytes",
+					len(tc.frame), model.SocketMaxMessageSizeKb)
+				assert.Equal(t, action, got.Action)
+
+				clientConn.Close()
+				s.waitForReadPumps(t, 1)
+			case <-s.readPumpDone:
+				require.Falsef(t, tc.wantDispatched,
+					"readPump returned without dispatching a %d byte frame, under a read limit of %d bytes",
+					len(tc.frame), model.SocketMaxMessageSizeKb)
+
+				clientConn.Close()
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the connection neither dispatched the frame nor closed")
+			}
+		})
+	}
+}
+
+func TestDecodeBinaryRequestEnforcesMaxSize(t *testing.T) {
+	const action = "test_decode_size_action"
+	atLimit := binaryFrameOfSize(t, action, model.SocketMaxMessageSizeKb)
+
+	t.Run("frame at the max size decodes", func(t *testing.T) {
+		var req model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(atLimit), &req))
+		assert.Equal(t, action, req.Action)
+	})
+
+	t.Run("frame past the max size is rejected rather than truncated", func(t *testing.T) {
+		pastLimit := append(slices.Clone(atLimit), 0xC0)
+		var req model.WebSocketRequest
+		require.ErrorIs(t, decodeBinaryRequest(bytes.NewReader(pastLimit), &req), errBinaryFrameTooLarge)
+		assert.Empty(t, req.Action)
+	})
+
+	t.Run("reader errors are returned", func(t *testing.T) {
+		readErr := errors.New("read failed")
+		var req model.WebSocketRequest
+		require.ErrorIs(t, decodeBinaryRequest(io.MultiReader(bytes.NewReader(atLimit[:10]), iotest.ErrReader(readErr)), &req), readErr)
+	})
+
+	t.Run("decoded values do not share the pooled buffer", func(t *testing.T) {
+		var first model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(atLimit), &first))
+		padding := first.Data["padding"].(string)
+
+		overwrite := bytes.ReplaceAll(atLimit, []byte("x"), []byte("y"))
+		var second model.WebSocketRequest
+		require.NoError(t, decodeBinaryRequest(bytes.NewReader(overwrite), &second))
+
+		assert.Equal(t, strings.Repeat("x", len(padding)), padding)
+	})
 }
 
 func BenchmarkShouldSendEvent(b *testing.B) {

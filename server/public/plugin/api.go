@@ -1408,6 +1408,15 @@ type API interface {
 	// Minimum server version: 9.5
 	UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error
 
+	// GetSharedChannelCursor returns the sync cursor for the specified channel and RemoteID (passed by
+	// the plugin when registering). The remote must belong to the calling plugin. This can be used to
+	// track the progress of a re-sync started by rewinding the cursor with UpdateSharedChannelCursor.
+	// Returns an error if the remote is not invited to the channel or its invite is not yet confirmed.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 12.2
+	GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error)
+
 	// SyncSharedChannel forces a shared channel to send any changed content to all remotes.
 	//
 	// @tag SharedChannels
