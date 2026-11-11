@@ -1590,7 +1590,7 @@ func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, 
 	// Space backing channels are internal and carry no chat read-state.
 	typeClause, typeArgs := nonMessageBackingChannelTypesNotIn()
 	query := `
-		SELECT SUM(` + mentionCountColumn + `)
+		SELECT COALESCE(SUM(` + mentionCountColumn + `), 0)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id

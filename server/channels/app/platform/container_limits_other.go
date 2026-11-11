@@ -5,6 +5,9 @@
 
 package platform
 
+// cgroupV2Info has no fields here: cgroups are only read on Linux.
+type cgroupV2Info struct{}
+
 func getCgroupV2Info() (cgroupV2Info, error) {
 	return cgroupV2Info{}, nil
 }

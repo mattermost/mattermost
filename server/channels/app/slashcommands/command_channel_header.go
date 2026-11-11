@@ -79,6 +79,13 @@ func (*HeaderProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Comma
 		}
 	}
 
+	if channelManagementDenied(a, rctx, args, channel) {
+		return &model.CommandResponse{
+			Text:         args.T("api.channel.channel_management_access.abac_denied.app_error"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
+	}
+
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.message.app_error"),

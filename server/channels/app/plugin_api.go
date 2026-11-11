@@ -197,7 +197,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID, false)
+	return api.app.GetTeamsUnreadForUser(api.ctx, "", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {

@@ -697,6 +697,13 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, "", http.StatusForbidden).Wrap(err)
 			return nil, err
 		}
+		// The command was gated on write access to the channel it was typed in. A
+		// response that redirects the post elsewhere lands there under the user's name,
+		// so that channel's write policy has to allow it too.
+		if response.ChannelId != args.ChannelId && !a.EnforceChannelWriteAccessByID(rctx, args.UserId, response.ChannelId) {
+			return nil, model.NewAppError("HandleCommandResponsePost", "api.channel.channel_write_access.abac_denied.app_error", nil,
+				"userId="+args.UserId+", channelId="+response.ChannelId, http.StatusForbidden)
+		}
 		post.ChannelId = response.ChannelId
 	}
 

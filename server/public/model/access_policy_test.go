@@ -1866,6 +1866,274 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	require.Empty(t, child.Imports)
 }
 
+// TestChannelReadAccessAction covers what is particular to channel_read_access. The
+// generic permission-action rules are covered by TestAccessPolicyVersionV0_3 and
+// TestAccessPolicyVersionV0_4; on top of them, v0.3 accepts channel_read_access only
+// where the policy resolves to a channel.
+func TestChannelReadAccessAction(t *testing.T) {
+	t.Run("is registered as a permission action", func(t *testing.T) {
+		require.True(t, IsPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelReadAccess])
+
+		// The action can be on any rule, not just the first.
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionMembership}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
+		}}
+		require.True(t, policy.HasPermissionRuleAction())
+	})
+
+	t.Run("is gated by the ChannelPermissionActions flag", func(t *testing.T) {
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelWriteAccess))
+		require.True(t, IsChannelPermissionAction(AccessControlPolicyActionChannelManagementAccess))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionUploadFileAttachment))
+		require.False(t, IsChannelPermissionAction(AccessControlPolicyActionMembership))
+
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionMembership}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
+		}}
+		require.True(t, policy.HasChannelPermissionAction())
+
+		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
+			{Actions: []string{AccessControlPolicyActionUploadFileAttachment}},
+		}}
+		require.False(t, fileOnly.HasChannelPermissionAction())
+
+		var nilPolicy *AccessControlPolicy
+		require.False(t, nilPolicy.HasChannelPermissionAction())
+	})
+
+	t.Run("accepted on a v0.3 system permission policy", func(t *testing.T) {
+		// Session attributes are allowed here, unlike on a membership rule.
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Restrict viewing",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+				Expression: `user.session.device_type == "desktop"`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	t.Run("accepted on a v0.3 channel policy", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+				Expression: `user.attributes.dept == "eng"`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	// v0.4 rejects every permission action outside channel policies, but the app layer
+	// stamps every policy v0.3 and only bumps channel policies to v0.4, so v0.3 is the
+	// version parent and team policies actually reach.
+	t.Run("rejected on a v0.3 parent or team policy", func(t *testing.T) {
+		for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a channel",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
+					Expression: "true",
+				}},
+			}
+			err := policy.IsValid()
+			require.NotNil(t, err, policyType)
+			require.Equal(t, "model.access_policy.is_valid.actions.channel_read_access_type.app_error", err.Id, policyType)
+		}
+	})
+
+	t.Run("other permission actions are still allowed on a v0.3 parent or team policy", func(t *testing.T) {
+		// The v0.3 guard must be scoped to channel_read_access. The file actions are
+		// permission actions too, and v0.3 accepts them on these types.
+		for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a channel",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+					Expression: "true",
+				}},
+			}
+			require.Nil(t, policy.IsValid(), policyType)
+		}
+	})
+}
+
+// TestChannelWriteAndManagementAccessActions covers how channel_write_access and
+// channel_management_access validate. They share every rule: permission action,
+// channel-role requirement on v0.4, channel-resolving policy types only.
+func TestChannelWriteAndManagementAccessActions(t *testing.T) {
+	for _, action := range []string{
+		AccessControlPolicyActionChannelWriteAccess,
+		AccessControlPolicyActionChannelManagementAccess,
+	} {
+		t.Run(action, func(t *testing.T) {
+			t.Run("is a permission action", func(t *testing.T) {
+				require.True(t, IsPermissionAction(action))
+				require.True(t, allowedActionsV0_3[action])
+			})
+
+			t.Run("accepted on a v0.3 system permission policy with session attributes", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypePermission,
+					Name:     "Managed devices only",
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_3,
+					Roles:    []string{SystemUserRoleId},
+					Rules: []AccessControlPolicyRule{{
+						Actions:    []string{action},
+						Expression: `user.session.ip_address.inCIDR("10.0.0.0/8")`,
+					}},
+				}
+				require.Nil(t, policy.IsValid())
+			})
+
+			t.Run("accepted on a v0.4 channel policy with name and channel role", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypeChannel,
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_4,
+					Rules: []AccessControlPolicyRule{{
+						Name:       "Members only",
+						Role:       ChannelUserRoleId,
+						Actions:    []string{action},
+						Expression: `user.attributes.dept == "eng"`,
+					}},
+				}
+				require.Nil(t, policy.IsValid())
+			})
+
+			t.Run("v0.4 channel rule requires a channel-scoped role", func(t *testing.T) {
+				policy := &AccessControlPolicy{
+					ID:       NewId(),
+					Type:     AccessControlPolicyTypeChannel,
+					Revision: 0,
+					Version:  AccessControlPolicyVersionV0_4,
+					Rules: []AccessControlPolicyRule{{
+						Name:       "No role",
+						Actions:    []string{action},
+						Expression: "true",
+					}},
+				}
+				require.NotNil(t, policy.IsValid())
+			})
+
+			// Same reasoning as the read action: parent and team policies never resolve
+			// to a channel, and v0.3 is the version those types actually reach.
+			for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+				t.Run("rejected on a v0.3 "+policyType+" policy", func(t *testing.T) {
+					policy := &AccessControlPolicy{
+						ID:       NewId(),
+						Type:     policyType,
+						Name:     "Not a channel",
+						Revision: 0,
+						Version:  AccessControlPolicyVersionV0_3,
+						Rules: []AccessControlPolicyRule{{
+							Actions:    []string{action},
+							Expression: "true",
+						}},
+					}
+					err := policy.IsValid()
+					require.NotNil(t, err)
+					require.Equal(t, "model.access_policy.is_valid.actions."+action+"_type.app_error", err.Id)
+				})
+			}
+		})
+	}
+
+	t.Run("all channel-access actions and the file actions may share a rule", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name: "Everything at once",
+				Role: ChannelUserRoleId,
+				Actions: []string{
+					AccessControlPolicyActionChannelReadAccess,
+					AccessControlPolicyActionChannelWriteAccess,
+					AccessControlPolicyActionChannelManagementAccess,
+					AccessControlPolicyActionUploadFileAttachment,
+				},
+				Expression: "true",
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+}
+
+// A v0.3 system permission policy's subject only ever carries system_admin, system_guest
+// or system_user and no channel role, so a channel-access rule shaped any other way would
+// save but never apply.
+func TestChannelAccessActionsOnPermissionPolicyRoles(t *testing.T) {
+	permissionPolicy := func(role, ruleRole, action string) *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:      NewId(),
+			Type:    AccessControlPolicyTypePermission,
+			Name:    "Channel access",
+			Version: AccessControlPolicyVersionV0_3,
+			Roles:   []string{role},
+			Rules: []AccessControlPolicyRule{{
+				Role:       ruleRole,
+				Actions:    []string{action},
+				Expression: `user.attributes.dept == "eng"`,
+			}},
+		}
+	}
+
+	for _, action := range []string{
+		AccessControlPolicyActionChannelReadAccess,
+		AccessControlPolicyActionChannelWriteAccess,
+		AccessControlPolicyActionChannelManagementAccess,
+	} {
+		t.Run(action, func(t *testing.T) {
+			for _, role := range []string{SystemUserRoleId, SystemGuestRoleId, SystemAdminRoleId} {
+				t.Run("accepted for "+role, func(t *testing.T) {
+					require.Nil(t, permissionPolicy(role, "", action).IsValid())
+				})
+			}
+
+			t.Run("rejected for a custom system role", func(t *testing.T) {
+				appErr := permissionPolicy("custom_auditor", "", action).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.actions.channel_access_policy_role.app_error", appErr.Id)
+			})
+
+			t.Run("rejected for a rule carrying a role", func(t *testing.T) {
+				appErr := permissionPolicy(SystemUserRoleId, ChannelUserRoleId, action).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.actions.channel_access_rule_role.app_error", appErr.Id)
+			})
+		})
+	}
+
+	t.Run("file actions on a custom system role are left as they were", func(t *testing.T) {
+		require.Nil(t, permissionPolicy("custom_auditor", "", AccessControlPolicyActionUploadFileAttachment).IsValid())
+	})
+}
+
 // TestCreateBurnOnReadPostAction covers how create_burn_on_read_post validates.
 // It is a permission action, so a v0.4 channel policy needs a channel role and a
 // unique rule name for it. A v0.3 system permission policy needs neither — its

@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -1459,20 +1460,60 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		return model.NewFileInfoList(), true, nil
 	}
 
-	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
-	if nErr != nil {
-		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
-			return nil, false, appErr
-		}
-		return nil, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
-
-	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
+	fileInfoSearchResults, rawLen, allFilesHaveMembership, appErr := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
 	if appErr != nil {
 		return nil, false, appErr
 	}
 
+	if !a.ChannelAccessEnforcementActive() {
+		return fileInfoSearchResults, allFilesHaveMembership, nil
+	}
+
+	// Additive top-up, for the same reason as the post-search equivalent: the database
+	// search path ignores perPage, so trimming the page back to it would lose rows.
+	for range putils.FetchUntilMaxRounds {
+		if len(fileInfoSearchResults.Order) >= perPage || rawLen < perPage {
+			return fileInfoSearchResults, allFilesHaveMembership, nil
+		}
+
+		page++
+		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
+		if nextErr != nil {
+			return nil, false, nextErr
+		}
+
+		fileInfoSearchResults.Extend(next)
+		allFilesHaveMembership = allFilesHaveMembership && nextAllHaveMembership
+		rawLen = nextRawLen
+	}
+
+	rctx.Logger().Warn("Gave up filling a page of file search results; the policy denies most of what this query returns",
+		mlog.String("user_id", userId),
+		mlog.Int("rounds", putils.FetchUntilMaxRounds),
+	)
+
 	return fileInfoSearchResults, allFilesHaveMembership, nil
+}
+
+// searchFilesInTeamForUserPage runs one store page through the filters. rawLen is the
+// number of files the store returned before any filtering.
+func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userId, teamId string, page, perPage int) (results *model.FileInfoList, rawLen int, allFilesHaveMembership bool, appErr *model.AppError) {
+	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
+	if nErr != nil {
+		if nAppErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, 0, false, nAppErr
+		}
+		return nil, 0, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	rawLen = len(fileInfoSearchResults.Order)
+
+	allFilesHaveMembership, appErr = a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
+	if appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	return fileInfoSearchResults, rawLen, allFilesHaveMembership, nil
 }
 
 func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) (bool, *model.AppError) {

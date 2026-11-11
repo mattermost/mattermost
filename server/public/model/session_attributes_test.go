@@ -238,3 +238,35 @@ func TestIsValidSessionAttributeValue(t *testing.T) {
 		assert.False(t, IsValidSessionAttributeValue(boolField, "yes"))
 	})
 }
+
+func TestSessionAttributeValueValidator(t *testing.T) {
+	t.Run("select accepts an option by name or ID", func(t *testing.T) {
+		v := NewSessionAttributeValueValidator(&PropertyField{
+			Type: PropertyFieldTypeSelect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []map[string]string{{"id": "wifi-id", "name": "wifi"}},
+			},
+		})
+		assert.True(t, v.IsValid("wifi"))
+		assert.True(t, v.IsValid("wifi-id"))
+		assert.False(t, v.IsValid("ethernet"))
+		assert.False(t, v.IsValid(""))
+	})
+
+	t.Run("select without options rejects everything", func(t *testing.T) {
+		assert.False(t, NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeSelect}).IsValid("wifi"))
+	})
+
+	t.Run("text accepts any non-empty string", func(t *testing.T) {
+		v := NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeText})
+		assert.True(t, v.IsValid("anything"))
+		assert.False(t, v.IsValid(""))
+		assert.False(t, v.IsValid(nil))
+	})
+
+	t.Run("rejects other field types and a nil field", func(t *testing.T) {
+		assert.False(t, NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeDate}).IsValid("2026-10-01"))
+		assert.Nil(t, NewSessionAttributeValueValidator(nil))
+		assert.False(t, NewSessionAttributeValueValidator(nil).IsValid("value"))
+	})
+}

@@ -66,6 +66,12 @@ func (*JoinProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Command
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
+	// HasPermissionToChannel is RBAC only. Joining is a read-tier action, gated on the
+	// channel's read rules exactly as the REST addChannelMember self-join is.
+	if !a.HasChannelReadAccess(rctx, args.UserId, channel) {
+		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+	}
+
 	if appErr := a.JoinChannel(rctx, channel, args.UserId); appErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}

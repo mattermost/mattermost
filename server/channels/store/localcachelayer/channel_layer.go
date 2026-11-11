@@ -61,6 +61,14 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelForUser(msg *mode
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberRoles(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelMemberRolesCache.Purge()
+	} else {
+		s.rootStore.channelMemberRolesCache.Remove(string(msg.Data))
+	}
+}
+
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersNotifyProps(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.channelMembersNotifyPropsCache.Purge()
@@ -79,6 +87,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 
 func (s LocalCacheChannelStore) ClearMembersForUserCache() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesCache)
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
@@ -87,6 +96,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersNotifyPropsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
 	if s.rootStore.metrics != nil {
@@ -95,6 +105,7 @@ func (s LocalCacheChannelStore) ClearCaches() {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelGuestCountCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
 	}
@@ -327,6 +338,79 @@ func (s LocalCacheChannelStore) GetAllChannelMembersForUser(rctx request.CTX, us
 	return ids, nil
 }
 
+func channelMemberRolesKey(userID, channelID string) string {
+	return userID + ":" + channelID
+}
+
+// GetChannelMemberRoles caches each membership on its own, so a single-channel lookup (the
+// channel_read_access broadcast hook makes one per recipient, on the hub) decodes one small
+// value. Only memberships that exist are cached: a join can never leave a stale "not a
+// member" behind, and the membership writes below invalidate what is cached.
+func (s LocalCacheChannelStore) GetChannelMemberRoles(rctx request.CTX, userID string, channelIDs []string, allowFromCache bool) (map[string]store.ChannelMemberRoles, error) {
+	if !allowFromCache {
+		return s.ChannelStore.GetChannelMemberRoles(rctx, userID, channelIDs, allowFromCache)
+	}
+
+	memberRoles := make(map[string]store.ChannelMemberRoles, len(channelIDs))
+	keys := make([]string, len(channelIDs))
+	for i, channelID := range channelIDs {
+		keys[i] = channelMemberRolesKey(userID, channelID)
+	}
+
+	var missing []string
+	toPass := allocateCacheTargets[store.ChannelMemberRoles](len(keys))
+	errs := s.rootStore.doMultiReadCache(s.rootStore.channelMemberRolesCache, keys, toPass)
+	for i, err := range errs {
+		if err != nil {
+			if err != cache.ErrKeyNotFound {
+				s.rootStore.logger.Warn("Error in Channelstore.GetChannelMemberRoles: ", mlog.Err(err))
+			}
+			missing = append(missing, channelIDs[i])
+			continue
+		}
+		memberRoles[channelIDs[i]] = *(toPass[i].(*store.ChannelMemberRoles))
+	}
+
+	if len(missing) == 0 {
+		return memberRoles, nil
+	}
+
+	fetched, err := s.ChannelStore.GetChannelMemberRoles(rctx, userID, missing, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+	for channelID, roles := range fetched {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelMemberRolesCache, channelMemberRolesKey(userID, channelID), roles)
+		memberRoles[channelID] = roles
+	}
+
+	return memberRoles, nil
+}
+
+// invalidateChannelMemberRoles drops the cached roles of userIDs in channelID.
+func (s LocalCacheChannelStore) invalidateChannelMemberRoles(channelID string, userIDs ...string) {
+	if len(userIDs) == 0 {
+		return
+	}
+	keys := make([]string, len(userIDs))
+	for i, userID := range userIDs {
+		keys[i] = channelMemberRolesKey(userID, channelID)
+	}
+	s.rootStore.doMultiInvalidateCacheCluster(s.rootStore.channelMemberRolesCache, keys, nil)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
+	}
+}
+
+// clearChannelMemberRoles drops every cached membership role, for the writes that change
+// memberships without saying which.
+func (s LocalCacheChannelStore) clearChannelMemberRoles() {
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberRolesCache)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberRolesCache.Name())
+	}
+}
+
 func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error) {
 	if allowFromCache {
 		var cacheItem map[string]model.StringMap
@@ -524,6 +608,7 @@ func (s LocalCacheChannelStore) UpdateMember(rctx request.CTX, member *model.Cha
 		return nil, err
 	}
 	s.InvalidateMemberCount(member.ChannelId)
+	s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
 	return member, nil
 }
 
@@ -534,6 +619,7 @@ func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMe
 	}
 	for _, member := range members {
 		s.InvalidateMemberCount(member.ChannelId)
+		s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
 	}
 	return members, nil
 }
@@ -543,6 +629,7 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	if err != nil {
 		return err
 	}
+	s.invalidateChannelMemberRoles(channelId, userId)
 
 	// For redis, directly decrement member count.
 	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
@@ -558,11 +645,64 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
+	s.invalidateChannelMemberRoles(channelId, userIds...)
 	// For redis, directly decrement member count.
 	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
 		s.rootStore.doDecrementCache(externalCache, channelId, len(userIds))
 	} else {
 		s.InvalidateMemberCount(channelId)
 	}
+	return nil
+}
+
+func (s LocalCacheChannelStore) UpdateMembersRole(channelID string, userIDs []string) ([]*model.ChannelMember, error) {
+	updated, err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, member := range updated {
+		s.invalidateChannelMemberRoles(member.ChannelId, member.UserId)
+	}
+	return updated, nil
+}
+
+func (s LocalCacheChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error {
+	if err := s.ChannelStore.RemoveAllDeactivatedMembers(rctx, channelID); err != nil {
+		return err
+	}
+	s.clearChannelMemberRoles()
+	return nil
+}
+
+func (s LocalCacheChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelID string) error {
+	if err := s.ChannelStore.PermanentDeleteMembersByChannel(rctx, channelID); err != nil {
+		return err
+	}
+	s.clearChannelMemberRoles()
+	return nil
+}
+
+func (s LocalCacheChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userID string) error {
+	if err := s.ChannelStore.PermanentDeleteMembersByUser(rctx, userID); err != nil {
+		return err
+	}
+	s.clearChannelMemberRoles()
+	return nil
+}
+
+func (s LocalCacheChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
+	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserID)
+	if err != nil {
+		return nil, err
+	}
+	s.clearChannelMemberRoles()
+	return result, nil
+}
+
+func (s LocalCacheChannelStore) ClearAllCustomRoleAssignments() error {
+	if err := s.ChannelStore.ClearAllCustomRoleAssignments(); err != nil {
+		return err
+	}
+	s.clearChannelMemberRoles()
 	return nil
 }

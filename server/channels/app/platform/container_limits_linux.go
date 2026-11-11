@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+type cgroupV2Info struct {
+	dir                  string
+	memoryStatsSupported bool
+}
+
 // resourcePaths holds procfs files used to inspect system resources.
 // These are package-level variables so they can be overridden in tests.
 var resourcePaths = struct {

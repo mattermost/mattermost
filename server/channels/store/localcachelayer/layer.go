@@ -46,6 +46,9 @@ const (
 	AllChannelMembersForUserCacheSize     = model.SessionCacheSize
 	AllChannelMembersForUserCacheDuration = 15 * time.Minute
 
+	ChannelMemberRolesCacheSize     = 500000 // User+channel combos; ~300 B each, so ~150-190 MB when full
+	ChannelMemberRolesCacheDuration = 15 * time.Minute
+
 	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SessionCacheSize
 	AllChannelMembersNotifyPropsForChannelCacheDuration = 30 * time.Minute
 
@@ -139,6 +142,7 @@ type LocalCacheStore struct {
 	channelPinnedPostCountsCache   cache.Cache
 	channelByIdCache               cache.Cache
 	channelMembersForUserCache     cache.Cache
+	channelMemberRolesCache        cache.Cache
 	channelMembersNotifyPropsCache cache.Cache
 	channelByNameCache             cache.Cache
 
@@ -329,6 +333,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "ChannelMembersForUser",
 		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelMemberRolesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ChannelMemberRolesCacheSize,
+		Name:                   "ChannelMemberRoles",
+		DefaultExpiry:          ChannelMemberRolesCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelMemberRoles,
 	}); err != nil {
 		return
 	}
@@ -585,6 +597,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelGuestCount, localCacheStore.channel.handleClusterInvalidateChannelGuestCounts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannel, localCacheStore.channel.handleClusterInvalidateChannelById)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUser, localCacheStore.channel.handleClusterInvalidateChannelForUser)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMemberRoles, localCacheStore.channel.handleClusterInvalidateChannelMemberRoles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelMembersNotifyProps, localCacheStore.channel.handleClusterInvalidateChannelMembersNotifyProps)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelByName, localCacheStore.channel.handleClusterInvalidateChannelByName)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForLastPosts, localCacheStore.post.handleClusterInvalidateLastPosts)
@@ -818,6 +831,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.channelByIdCache)
 	s.doClearCacheCluster(s.channelMembersForUserCache)
+	s.doClearCacheCluster(s.channelMemberRolesCache)
 	s.doClearCacheCluster(s.channelMembersNotifyPropsCache)
 	s.doClearCacheCluster(s.channelByNameCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
