@@ -28,7 +28,7 @@
     "testcontainers:down": "node script/testcontainers_down.mjs",
     "tc:up": "npm run testcontainers:up",
     "tc:down": "npm run testcontainers:down",
-    "percy:docker": "npm run build && cross-env PW_PERCY_ENABLE=true PERCY_BROWSER_EXECUTABLE='/ms-playwright/chromium-1169/chrome-linux/chrome' percy exec -- playwright test specs/visual --grep @visual --project=chrome --project=ipad",
+    "percy:docker": "npm run build && cross-env PW_PERCY_ENABLE=true PERCY_BROWSER_EXECUTABLE='/ms-playwright/chromium-1254/chrome-linux64/chrome' percy exec -- playwright test specs/visual --grep @visual --project=chrome --project=ipad",
     "codegen": "npm run build && cross-env playwright codegen $PW_BASE_URL",
     "playwright-ui": "npm run build && cross-env playwright test --ui",
     "show-report": "npm run build && npx playwright show-report results/reporter",
@@ -42,27 +42,28 @@
   },
   "devDependencies": {
     "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
-    "@playwright/test": "1.62.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
     "@types/pg": "8.23.1",
-    "@typescript-eslint/eslint-plugin": "8.67.0",
-    "chalk": "6.0.0",
+    "@typescript-eslint/eslint-plugin": "8.72.2",
+    "chalk": "6.0.1",
     "cross-env": "10.1.0",
     "dayjs": "1.11.23",
-    "eslint": "9.39.4",
+    "eslint": "9.39.5",
     "eslint-import-resolver-typescript": "4.4.5",
-    "glob": "13.0.6",
-    "globals": "17.11.0",
-    "pg": "8.23.0",
-    "playwright-core": "1.62.1",
-    "prettier": "3.9.6",
+    "glob": "14.0.4",
+    "globals": "17.14.0",
+    "pg": "8.23.1",
+    "playwright-core": "1.65.0",
+    "prettier": "3.9.10",
     "typescript": "6.0.3",
-    "zod": "4.4.3"
+    "zod": "4.6.7"
   },
   "allowScripts": {
     "cpu-features@0.0.10": true,
     "ssh2@1.17.0": true,
     "fsevents@2.3.2": true,
-    "protobufjs@7.6.5": true,
-    "@percy/core@1.32.6": true
+    "protobufjs@7.6.6": true,
+    "@percy/core@1.32.12": true
   }
 }
