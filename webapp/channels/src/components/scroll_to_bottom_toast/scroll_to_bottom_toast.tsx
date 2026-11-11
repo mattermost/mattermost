@@ -45,8 +45,10 @@ export const ScrollToBottomToast = ({onDismiss, onClick}: ScrollToBottomToastPro
             className='scroll-to-bottom-toast'
             onClick={handleScrollToBottom}
         >
-            <UnreadBelowIcon/>
-            {jumpToRecentsMessage}
+            <span className='scroll-to-bottom-toast__message'>
+                <UnreadBelowIcon/>
+                {jumpToRecentsMessage}
+            </span>
             <div
                 className='scroll-to-bottom-toast__dismiss'
                 onClick={handleDismiss}

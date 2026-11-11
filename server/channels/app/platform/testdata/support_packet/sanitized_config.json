@@ -630,7 +630,8 @@
         "AutomaticPrepackagedPlugins": null,
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
-        "SignaturePublicKeyFiles": null
+        "SignaturePublicKeyFiles": null,
+        "RestrictUnauthenticatedWebappPlugins": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,
@@ -651,7 +652,8 @@
         "CWSURL": null,
         "CWSAPIURL": null,
         "Disable": null,
-        "PreviewModalBucketURL": null
+        "PreviewModalBucketURL": null,
+        "PreviewLandingPath": null
     },
     "ImportSettings": {
         "Directory": null,

@@ -3,7 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import type {PopoverOrigin} from '@mui/material/Popover';
+import type {PopoverOrigin, PopoverProps} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
     useState,
@@ -45,6 +45,12 @@ export const MENU_CLOSE_ANIMATION_DURATION = 100;
 export type MenuButtonComponentProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     ref: Ref<HTMLButtonElement>;
     'data-testid'?: string;
+
+    /**
+     * Forwarded to custom `as` triggers (e.g. Compass IconButton). Ignored for
+     * native button/div triggers.
+     */
+    count?: number;
 };
 
 type MenuButtonProps = {
@@ -56,6 +62,12 @@ type MenuButtonProps = {
     class?: string;
     as?: 'button' | 'div' | ComponentType<MenuButtonComponentProps>;
     children?: ReactNode;
+
+    /**
+     * Numeric count shown by Compass IconButton triggers (`menuButton.as`).
+     * Not applied to native button/div triggers.
+     */
+    count?: number;
 
     /**
      * Opt-in passthrough for callers that need to inspect or adjust the
@@ -118,6 +130,13 @@ type MenuProps = {
      * Defaults to true (standard MUI behavior).
      */
     autoFocusItem?: boolean;
+
+    /**
+     * Where the popover is portaled; defaults to document.body. A menu inside a
+     * focus-enforcing modal must render within the modal's dialog element, or
+     * the modal and the popover fight over focus.
+     */
+    container?: PopoverProps['container'];
 };
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
@@ -306,6 +325,9 @@ export function Menu(props: Props) {
             divTabIndex = isDisabled ? -1 : 0;
         }
 
+        const isNativeTrigger = MenuButtonComponent === 'button' || MenuButtonComponent === 'div';
+        const customTriggerProps = isNativeTrigger ? undefined : {count: props.menuButton.count};
+
         const triggerElement = (
             <MenuButtonComponent
                 ref={setMenuButton}
@@ -327,6 +349,7 @@ export function Menu(props: Props) {
                 onMouseDown={props.menuButton?.onMouseDown}
                 onClick={isDisabled ? undefined : handleMenuButtonClick}
                 onKeyDown={isDivTrigger && !isDisabled ? handleMenuButtonKeyDown : undefined}
+                {...customTriggerProps}
             >
                 {props.menuButton.children}
             </MenuButtonComponent>
@@ -371,6 +394,7 @@ export function Menu(props: Props) {
                 {menuButton && (
                     <MuiPopover
                         anchorEl={menuButton}
+                        container={props.menu.container}
                         open={isMenuOpen}
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}

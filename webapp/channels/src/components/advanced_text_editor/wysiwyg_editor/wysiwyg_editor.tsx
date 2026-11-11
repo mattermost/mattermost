@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Extensions} from '@tiptap/core';
+import type {Editor as CoreEditor, Extensions, JSONContent} from '@tiptap/core';
 import {Extension} from '@tiptap/core';
 import {CodeBlockLowlight} from '@tiptap/extension-code-block-lowlight';
 import Link from '@tiptap/extension-link';
@@ -13,7 +13,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import {Markdown} from '@tiptap/markdown';
 import type {Node as PMNode} from '@tiptap/pm/model';
 import {splitListItem} from '@tiptap/pm/schema-list';
-import {Plugin, PluginKey} from '@tiptap/pm/state';
+import {Plugin, PluginKey, Selection} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
@@ -21,7 +21,8 @@ import StarterKit from '@tiptap/starter-kit';
 import emojiRegex from 'emoji-regex';
 import isPlainObject from 'lodash/isPlainObject';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import {flushSync} from 'react-dom';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -30,10 +31,11 @@ import {editLatestPost} from 'actions/views/create_comment';
 
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
+import {formatQuote} from 'utils/quote';
 import {canHighlight} from 'utils/syntax_highlighting';
 
 import WysiwygImage from './wysiwyg_image';
-import {insertMarkdown, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
+import {insertMarkdown, parseMarkdownContent, plainTextContent, serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygMention from './wysiwyg_mention';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
@@ -153,6 +155,10 @@ export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
 
+    // Appends the Markdown as a blockquote at the end of the document, followed by an
+    // empty paragraph that receives the caret.
+    appendQuote: (markdown: string) => void;
+
     // Parity with the legacy `Textbox` ref so focus/upload hooks can drive
     // either composer.
     focus: () => void;
@@ -185,6 +191,13 @@ type Props = {
 };
 
 const EMPTY_JSON_DOC = {type: 'doc', content: [{type: 'paragraph'}]} as const;
+
+const moveCursorToEnd = (editor: CoreEditor) => {
+    editor.commands.command(({tr}) => {
+        tr.setSelection(Selection.atEnd(tr.doc));
+        return true;
+    });
+};
 
 const parseJsonModeContent = (value: string): {content: string | Record<string, unknown>; error: Error | null} => {
     if (!value) {
@@ -229,7 +242,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const rootIdRef = useLatest(rootId);
 
     const onSubmitRef = useLatest(onSubmit);
-    const onChangeRef = useLatest(onChange);
     const onFocusRef = useLatest(onFocus);
     const onBlurRef = useLatest(onBlur);
     const disabledRef = useLatest(disabled);
@@ -241,24 +253,43 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const editorRef = useRef<Editor | null>(null);
 
+    // What the editor holds as far as the consumer knows, so the value it echoes back isn't reloaded.
+    const syncedRef = useRef({value, channelId, rootId});
+
+    // The latest onChange for the channel or thread the content belongs to, so a report doesn't undo
+    // draft changes made since the typing. It moves to a new location only once pending typing is reported.
+    const onChangeRef = useRef(onChange);
+    useLayoutEffect(() => {
+        if (syncedRef.current.channelId === channelId && syncedRef.current.rootId === rootId) {
+            onChangeRef.current = onChange;
+        }
+    });
+
     const pendingChangeRef = useRef<(() => void) | null>(null);
     const flushPendingChange = useCallback(() => {
         const pendingChange = pendingChangeRef.current;
         pendingChangeRef.current = null;
         pendingChange?.();
     }, []);
-    const debouncedFlushPendingChange = useDebounce(flushPendingChange, SERIALIZE_DEBOUNCE_MS);
 
-    const handleSuggestionSubmit = useCallback(() => {
+    // Reported from a timer, the change would otherwise render later, and an Enter pressed before that submits the old draft.
+    const debouncedFlushPendingChange = useDebounce(() => flushSync(flushPendingChange), SERIALIZE_DEBOUNCE_MS);
+
+    // The consumer submits the value it was last given, so typing not yet reported has to reach it first.
+    const submit = useCallback(() => {
+        debouncedFlushPendingChange.cancel();
+        flushSync(flushPendingChange);
         onSubmitRef.current();
-    }, [onSubmitRef]);
+    }, [debouncedFlushPendingChange, flushPendingChange, onSubmitRef]);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         const content = jsonMode ? JSON.stringify(editor.getJSON()) : serializeToMarkdown(editor);
-        const onChangeForLocation = onChangeRef.current;
-        pendingChangeRef.current = () => onChangeForLocation(content);
+        pendingChangeRef.current = () => {
+            syncedRef.current.value = content;
+            onChangeRef.current(content);
+        };
         debouncedFlushPendingChange();
-    }, [debouncedFlushPendingChange, jsonMode, onChangeRef]);
+    }, [debouncedFlushPendingChange, jsonMode]);
 
     const baseExtensions: Extensions = [
         StarterKit.configure({
@@ -555,7 +586,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                             return false;
                         }
                         event.preventDefault();
-                        onSubmitRef.current();
+                        submit();
                         return true;
                     }
                     return false;
@@ -564,7 +595,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 if (sendCodeBlockOnCtrlEnterRef.current && insideCodeBlock) {
                     if (ctrlOrMeta && !event.shiftKey && !event.altKey) {
                         event.preventDefault();
-                        onSubmitRef.current();
+                        submit();
                         return true;
                     }
                     return false;
@@ -579,7 +610,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 }
 
                 event.preventDefault();
-                onSubmitRef.current();
+                submit();
                 return true;
             },
         },
@@ -593,6 +624,9 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     useEffect(() => {
         editorRef.current = editor;
+        if (editor && !editor.isDestroyed) {
+            moveCursorToEnd(editor);
+        }
     }, [editor]);
 
     useImperativeHandle(ref, () => ({
@@ -607,6 +641,36 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
+        },
+        appendQuote: (markdown: string) => {
+            const ed = editorRef.current;
+            if (!ed || ed.isDestroyed || readOnlyRef.current) {
+                return;
+            }
+
+            const quote = formatQuote(markdown);
+            const parsed = quote ? parseMarkdownContent(ed, quote)?.content : undefined;
+            if (!parsed?.length) {
+                return;
+            }
+
+            const content: JSONContent[] = [
+                ...parsed,
+                {type: 'paragraph'},
+
+                // The editor hides an empty last paragraph, so the reply goes in the one before it,
+                // matching what pressing Enter twice at the end of a quote produces.
+                {type: 'paragraph'},
+            ];
+
+            if (ed.isEmpty) {
+                ed.commands.setContent(content);
+            } else {
+                ed.commands.insertContentAt(ed.state.doc.content.size, content);
+            }
+
+            // Inside the second to last paragraph, which is followed by the hidden last one
+            ed.chain().focus().setTextSelection(ed.state.doc.content.size - 3).run();
         },
         focus: () => {
             const ed = editorRef.current;
@@ -630,39 +694,33 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         hasContentError: () => hasContentErrorRef.current,
     }), []);
 
-    const locationRef = useRef({channelId, rootId});
     useEffect(() => {
         if (!editor || editor.isDestroyed) {
             return;
         }
-        const location = locationRef.current;
-        if (location.channelId === channelId && location.rootId === rootId) {
+        const synced = syncedRef.current;
+        const locationChanged = synced.channelId !== channelId || synced.rootId !== rootId;
+        if (!locationChanged && synced.value === value) {
             return;
         }
-        locationRef.current = {channelId, rootId};
 
+        // Typing not yet reported belongs to the previous channel or thread, and is overridden by a new value for this one.
         debouncedFlushPendingChange.cancel();
-        flushPendingChange();
+        if (locationChanged) {
+            flushPendingChange();
+        } else {
+            pendingChangeRef.current = null;
+        }
+        syncedRef.current = {value, channelId, rootId};
+        onChangeRef.current = onChange;
 
         if (jsonMode) {
             editor.commands.setContent(parseJsonModeContent(value).content, {emitUpdate: false});
         } else {
             editor.commands.setContent(value, {contentType: 'markdown', emitUpdate: false});
         }
-    }, [channelId, rootId, editor, debouncedFlushPendingChange, flushPendingChange]);
-
-    const lastValueRef = useRef(value);
-    useEffect(() => {
-        if (!editor || editor.isDestroyed) {
-            return;
-        }
-        const prev = lastValueRef.current;
-        lastValueRef.current = value;
-
-        if (value === '' && prev !== '' && !editor.isEmpty) {
-            editor.commands.clearContent();
-        }
-    }, [value, editor]);
+        moveCursorToEnd(editor);
+    }, [value, channelId, rootId, onChange, editor, jsonMode, debouncedFlushPendingChange, flushPendingChange]);
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
@@ -678,7 +736,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     editor={editor}
                     channelId={channelId}
                     rootId={rootId}
-                    onSubmit={handleSuggestionSubmit}
+                    onSubmit={submit}
                 />
             )}
         </div>

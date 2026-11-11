@@ -974,6 +974,77 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due parent with newer create-at value.")
 }
 
+func TestImportValidatePostPriorityImportData(t *testing.T) {
+	postCreateAt := model.GetMillis()
+	ackRequested := &model.PostPriority{Priority: new(""), RequestedAck: new(true)}
+
+	testCases := []struct {
+		name             string
+		priority         *model.PostPriority
+		acknowledgements *[]PostAcknowledgementImportData
+		expectedErrorID  string
+	}{
+		{name: "no priority"},
+		{name: "urgent with persistent notifications", priority: &model.PostPriority{Priority: new(model.PostPriorityUrgent), PersistentNotifications: new(true)}},
+		{
+			name:             "standard priority with acknowledgements",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+		},
+		{
+			name:            "missing priority value",
+			priority:        &model.PostPriority{RequestedAck: new(true)},
+			expectedErrorID: "app.import.validate_post_priority_import_data.priority_missing.error",
+		},
+		{
+			name:            "persistent notifications without urgent",
+			priority:        &model.PostPriority{Priority: new("important"), PersistentNotifications: new(true)},
+			expectedErrorID: "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error",
+		},
+		{
+			name:             "acknowledgements without priority",
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+		},
+		{
+			name:             "acknowledgements without requested ack",
+			priority:         &model.PostPriority{Priority: new("important"), RequestedAck: new(false)},
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error",
+		},
+		{
+			name:             "acknowledgement without user",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{AcknowledgedAt: new(postCreateAt)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error",
+		},
+		{
+			name:             "acknowledgement without acknowledged_at",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username")}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+		},
+		{
+			name:             "acknowledgement before the post",
+			priority:         ackRequested,
+			acknowledgements: &[]PostAcknowledgementImportData{{User: new("username"), AcknowledgedAt: new(postCreateAt - 1)}},
+			expectedErrorID:  "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidatePostPriorityImportData(tc.priority, tc.acknowledgements, postCreateAt)
+			if tc.expectedErrorID == "" {
+				require.Nil(t, err)
+			} else {
+				require.NotNil(t, err)
+				require.Equal(t, tc.expectedErrorID, err.Id)
+			}
+		})
+	}
+}
+
 func TestImportValidateReplyImportData(t *testing.T) {
 	// Test with minimum required valid properties.
 	parentCreateAt := model.GetMillis() - 100
@@ -1199,6 +1270,20 @@ func TestImportValidatePostImportData(t *testing.T) {
 		err := ValidatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err)
 		assert.Equal(t, err.Id, "app.import.validate_post_import_data.attachment.error")
+	})
+
+	t.Run("Test with missing priority value", func(t *testing.T) {
+		data := PostImportData{
+			Team:     new("teamname"),
+			Channel:  new("channelname"),
+			User:     new("username"),
+			Message:  new("message"),
+			CreateAt: new(model.GetMillis()),
+			Priority: &model.PostPriority{},
+		}
+		err := ValidatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.import.validate_post_priority_import_data.priority_missing.error", err.Id)
 	})
 }
 
@@ -1576,6 +1661,18 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	err = ValidateDirectPostImportData(&data, maxPostSize)
 	require.NotNil(t, err, "Should have failed due to invalid attachment path.")
 	require.Equal(t, err.Id, "app.import.validate_direct_post_import_data.attachment.error")
+
+	// Test with missing priority value.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{member1, member2},
+		User:           new("username"),
+		Message:        new("message"),
+		CreateAt:       new(model.GetMillis()),
+		Priority:       &model.PostPriority{},
+	}
+	err = ValidateDirectPostImportData(&data, maxPostSize)
+	require.NotNil(t, err, "Should have failed due to missing priority value.")
+	require.Equal(t, "app.import.validate_post_priority_import_data.priority_missing.error", err.Id)
 }
 
 func TestImportValidateEmojiImportData(t *testing.T) {

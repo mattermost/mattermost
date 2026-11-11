@@ -338,15 +338,26 @@ func ValidatePropertyValueForFieldType(fieldType PropertyFieldType, raw json.Raw
 }
 
 // BroadcastValue returns what a websocket broadcast may carry in place of
-// value: the value itself for a public field, the withheld marker
-// otherwise.
+// value: the value itself when everyone may read it
+// (PropertyFieldReadableByEveryone), the withheld marker otherwise. It has no
+// template to read a linked field's masking from, so a linked field's value is
+// always withheld; a caller that can read the template uses
+// BroadcastValueWithTemplate.
 //
 // Accepted ceiling: a caller who writes the literal JSON
 // `{"withheld":true}` into a text field makes clients refetch that field
 // once and get the real value back. That is the worst outcome, so no
 // escaping scheme is built for it.
 func BroadcastValue(field *PropertyField, value json.RawMessage) json.RawMessage {
-	if field != nil && field.GetAccessMode() == PropertyAccessModePublic {
+	return BroadcastValueWithTemplate(field, nil, value)
+}
+
+// BroadcastValueWithTemplate is BroadcastValue for a caller that has read the
+// template a linked field links to. template is nil when field isn't linked,
+// or when its template couldn't be read, which withholds a linked field's
+// value.
+func BroadcastValueWithTemplate(field, template *PropertyField, value json.RawMessage) json.RawMessage {
+	if PropertyFieldReadableByEveryone(field, template, PropertyActionValueRead) {
 		return value
 	}
 	return json.RawMessage(PropertyValueWithheldJSON)

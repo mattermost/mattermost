@@ -50,18 +50,34 @@ exports[`components/marketplace/ doesn't show web marketplace banner for Cloud 1
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -178,18 +194,34 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -282,11 +314,11 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     class="more-modal__actions"
                   >
                     <a
-                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
+                      class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88 plugin-configure"
                       href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
                       <span
-                        class="_button__label_we8pe_31"
+                        class="_button__label_1pij1_55"
                       >
                         Configure
                       </span>
@@ -373,11 +405,11 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     class="more-modal__actions"
                   >
                     <button
-                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 plugin-install"
                       type="button"
                     >
                       <span
-                        class="_button__label_we8pe_31"
+                        class="_button__label_1pij1_55"
                       >
                         Install
                       </span>
@@ -494,18 +526,34 @@ exports[`components/marketplace/ should render default 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -530,7 +578,7 @@ exports[`components/marketplace/ should render default 1`] = `
                   >
                     <span
                       aria-label="Loading Icon"
-                      class="_spinner_3elm7_10 spinner"
+                      class="_spinner_mvrwe_21 spinner"
                       role="status"
                       style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                     />
@@ -647,18 +695,34 @@ exports[`components/marketplace/ should render with error banner 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -841,18 +905,34 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -1019,18 +1099,34 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -1123,11 +1219,11 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 plugin-install"
                       type="button"
                     >
                       <span
-                        class="_button__label_we8pe_31"
+                        class="_button__label_1pij1_55"
                       >
                         Install
                       </span>
@@ -1244,18 +1340,34 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
             </div>
             <button
               aria-label="Close"
-              class="close"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 GenericModal__close"
               type="button"
             >
               <span
                 aria-hidden="true"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
-                ×
-              </span>
-              <span
-                class="sr-only"
-              >
-                Close
+                <div
+                  aria-hidden="true"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
+                >
+                  <div
+                    class="_icon__glyph-area_1xcik_20"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="24"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </span>
             </button>
           </div>
@@ -1348,11 +1460,11 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     class="more-modal__actions"
                   >
                     <a
-                      class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 plugin-configure"
+                      class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88 plugin-configure"
                       href="/admin_console/plugins/plugin_com.mattermost.test"
                     >
                       <span
-                        class="_button__label_we8pe_31"
+                        class="_button__label_1pij1_55"
                       >
                         Configure
                       </span>
@@ -1439,11 +1551,11 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     class="more-modal__actions"
                   >
                     <button
-                      class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 plugin-install"
+                      class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 plugin-install"
                       type="button"
                     >
                       <span
-                        class="_button__label_we8pe_31"
+                        class="_button__label_1pij1_55"
                       >
                         Install
                       </span>

@@ -1098,6 +1098,13 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.KVListWithOptions(page, perPage, options)
+	api.recordTime(startTime, "KVListWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)
@@ -1434,6 +1441,13 @@ func (api *apiTimerLayer) UpdateSharedChannelCursor(channelID, remoteID string, 
 	_returnsA := api.apiImpl.UpdateSharedChannelCursor(channelID, remoteID, cusror)
 	api.recordTime(startTime, "UpdateSharedChannelCursor", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSharedChannelCursor(channelID, remoteID)
+	api.recordTime(startTime, "GetSharedChannelCursor", _returnsB == nil)
+	return _returnsA, _returnsB
 }
 
 func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {

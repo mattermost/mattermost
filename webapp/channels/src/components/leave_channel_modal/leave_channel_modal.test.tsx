@@ -8,6 +8,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 import LeaveChannelModal from 'components/leave_channel_modal/leave_channel_modal';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 describe('components/LeaveChannelModal', () => {
     const channels = {
@@ -233,5 +234,60 @@ describe('components/LeaveChannelModal', () => {
             expect(leaveChannel).toHaveBeenCalledTimes(1);
         });
         expect(muteChannel).not.toHaveBeenCalled();
+    });
+
+    test('says board for a private board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={channels['channel-1']}
+                onExited={jest.fn()}
+                actions={{leaveChannel: jest.fn()}}
+            />,
+            boardChannelsState('channel-1'),
+        );
+
+        expect(screen.getByText(/Leave Private Board/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the private board/)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Yes, leave board'})).toBeInTheDocument();
+        expect(screen.queryByText(/Leave Private Channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/private channel/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Yes, leave channel'})).not.toBeInTheDocument();
+    });
+
+    test('says board for a public board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={channels['town-square']}
+                onExited={jest.fn()}
+                actions={{leaveChannel: jest.fn()}}
+            />,
+            boardChannelsState('town-square-id'),
+        );
+
+        expect(screen.getByText(/Leave Board/)).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to leave the board/)).toBeInTheDocument();
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
+    });
+
+    test('says board for a policy enforced public board', () => {
+        renderWithContext(
+            <LeaveChannelModal
+                channel={{...channels['town-square'], policy_enforced: true}}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel: jest.fn(),
+                    muteChannel: jest.fn(),
+                }}
+            />,
+            boardChannelsState('town-square-id'),
+        );
+
+        expect(screen.getByText('Leave Town Square board')).toBeInTheDocument();
+        expect(screen.getByText("You're part of this board's membership policy. If you leave, you will not be automatically re-added.")).toBeInTheDocument();
+        expect(screen.getByText('To stay a member without notifications, you can mute this board instead.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Leave board'})).toBeInTheDocument();
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
     });
 });

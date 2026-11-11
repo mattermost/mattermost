@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/logr/v2"
@@ -136,6 +138,8 @@ const logDateFromStopEntries = 100
 
 func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
+	search := newLogSearch(logFilter)
+	fields := newLogFields(logFilter)
 
 	if *ps.Config().LogSettings.EnableFile {
 		ps.Log().Flush()
@@ -183,8 +187,19 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 		hasDateFrom := err == nil
 		var olderEntries int
 
-		reader := newReverseLineReader(file, size, logReadBlockSize)
+		// Entries newer than DateTo can't match, so the scan starts at the first of them rather
+		// than at the end of the file. A later page skips lines counted from the end of the file,
+		// so it still starts there.
+		end := size
+		if dateTo, err := time.Parse(model.LogFilterDateLayout, logFilter.DateTo); err == nil && page == 0 {
+			end = logScanEnd(file, size, dateTo)
+		}
+
+		reader := newReverseLineReader(file, end, logReadBlockSize)
 		toSkip := page * perPage
+		// Lines that aren't JSON are logged once with a count, not one by one: each message is a
+		// line in this file, which a client polling the logs would read back on its next query
+		var unparsed int
 		for len(lines) < perPage {
 			line, err := reader.Next()
 			if err == io.EOF {
@@ -198,14 +213,19 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				continue
 			}
 
-			filtered := false
+			// A line that can't match the search or fields needs no decoding, unless the date scan counts it
+			filtered := search.rejectsRaw(line) || fields.rejectsRaw(line)
+			if filtered && !hasDateFrom {
+				continue
+			}
+
 			var entry *model.LogEntry
 			err = json.Unmarshal(line, &entry)
 			if err != nil || entry == nil {
-				rctx.Logger().Debug("Failed to parse line, skipping")
+				unparsed++
 			} else {
 				if hasDateFrom {
-					if timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp); err == nil {
+					if timestamp, ok := logEntryTimestamp(entry); ok {
 						if timestamp.Before(dateFrom) {
 							olderEntries++
 						} else {
@@ -220,10 +240,14 @@ func (ps *PlatformService) GetLogsSkipSend(rctx request.CTX, page, perPage int, 
 				filtered = isLogFilteredByLevel(logFilter, entry) || filtered
 				filtered = isLogFilteredByDate(rctx, logFilter, entry) || filtered
 			}
+			filtered = filtered || isLogFilteredByContent(search, fields, line)
 
 			if !filtered {
 				lines = append(lines, string(line))
 			}
+		}
+		if unparsed > 0 {
+			rctx.Logger().Debug("Read log lines that aren't JSON", mlog.Int("lines", unparsed))
 		}
 
 		for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
@@ -416,6 +440,13 @@ func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 	return !slices.Contains(logLevels, entry.Level)
 }
 
+// logEntryTimestamp returns when entry was logged, if its timestamp parses. Entries use mlog's
+// layout, which writes UTC as "Z" rather than "+00:00".
+func logEntryTimestamp(entry *model.LogEntry) (time.Time, bool) {
+	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
+	return timestamp, err == nil
+}
+
 func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
 		return false
@@ -431,9 +462,8 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		dateTo = time.Now()
 	}
 
-	// Entries use mlog's layout, which writes UTC as "Z" rather than "+00:00".
-	timestamp, err := time.Parse(logr.DefTimestampFormat, entry.Timestamp)
-	if err != nil {
+	timestamp, ok := logEntryTimestamp(entry)
+	if !ok {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false
 	}
@@ -446,4 +476,188 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 	}
 
 	return true
+}
+
+// logSearch is a LogFilter's search term, lowercased once for every line a query scans.
+type logSearch struct {
+	term []byte
+
+	// The longest part of the term that the log encoders never escape. A line whose raw bytes
+	// don't contain it can't contain the term in any value either.
+	raw []byte
+}
+
+func newLogSearch(logFilter *model.LogFilter) *logSearch {
+	if logFilter == nil || logFilter.Search == "" {
+		return nil
+	}
+
+	term := strings.ToLower(logFilter.Search)
+	var raw string
+	for part := range strings.FieldsFuncSeq(term, func(r rune) bool {
+		return r < 0x20 || strings.ContainsRune("\"\\<>&\u2028\u2029", r)
+	}) {
+		if len(part) > len(raw) {
+			raw = part
+		}
+	}
+
+	return &logSearch{term: []byte(term), raw: []byte(raw)}
+}
+
+// rejectsRaw reports whether the line's raw bytes show it can't contain the term.
+func (s *logSearch) rejectsRaw(line []byte) bool {
+	return s != nil && len(s.raw) > 0 && !containsFold(line, s.raw)
+}
+
+// containsFold reports whether b, lowercased, contains the lowercased term.
+func containsFold(b, term []byte) bool {
+	if !isASCII(b) {
+		return bytes.Contains(bytes.ToLower(b), term)
+	}
+
+	// ASCII lowercases byte by byte, so comparing in place gives the same result without a copy
+	for i := 0; i+len(term) <= len(b); i++ {
+		j := 0
+		for j < len(term) && toLowerASCII(b[i+j]) == term[j] {
+			j++
+		}
+		if j == len(term) {
+			return true
+		}
+	}
+	return false
+}
+
+func isASCII(b []byte) bool {
+	for _, c := range b {
+		if c >= utf8.RuneSelf {
+			return false
+		}
+	}
+	return true
+}
+
+func toLowerASCII(c byte) byte {
+	if 'A' <= c && c <= 'Z' {
+		return c + ('a' - 'A')
+	}
+	return c
+}
+
+// logFields is a LogFilter's field filters, ready for every line a query scans.
+type logFields struct {
+	values map[string]model.StringSet
+
+	// For each field, the bytes one of which a line that can match must contain: the field written
+	// with each of its values, or only the field's name when a value or name could be escaped.
+	raw [][][]byte
+}
+
+func newLogFields(logFilter *model.LogFilter) *logFields {
+	if logFilter == nil || len(logFilter.Fields) == 0 {
+		return nil
+	}
+
+	fields := &logFields{values: make(map[string]model.StringSet, len(logFilter.Fields))}
+	for key, values := range logFilter.Fields {
+		set := make(model.StringSet, len(values))
+		for _, value := range values {
+			set.Add(value)
+		}
+		fields.values[key] = set
+
+		if !isUnescaped(key) {
+			continue
+		}
+		prefix := `"` + key + `":`
+		if !slices.ContainsFunc(values, func(v string) bool { return !isUnescaped(v) }) {
+			// A value is written quoted when it's a string, and bare when it's a number or boolean
+			var written [][]byte
+			for _, value := range values {
+				written = append(written, []byte(prefix+`"`+value+`"`), []byte(prefix+value))
+			}
+			fields.raw = append(fields.raw, written)
+		} else {
+			fields.raw = append(fields.raw, [][]byte{[]byte(prefix)})
+		}
+	}
+
+	return fields
+}
+
+// isUnescaped reports whether the log encoders write s as is inside a JSON string.
+func isUnescaped(s string) bool {
+	return !strings.ContainsFunc(s, func(r rune) bool {
+		return r < 0x20 || r >= utf8.RuneSelf || strings.ContainsRune("\"\\<>&", r)
+	})
+}
+
+// rejectsRaw reports whether the line's raw bytes show it can't match one of the fields.
+func (f *logFields) rejectsRaw(line []byte) bool {
+	if f == nil {
+		return false
+	}
+	for _, written := range f.raw {
+		if !slices.ContainsFunc(written, func(w []byte) bool { return bytes.Contains(line, w) }) {
+			return true
+		}
+	}
+	return false
+}
+
+// rejects reports whether the entry lacks one of the fields, or has a value other than the given ones.
+func (f *logFields) rejects(entry map[string]json.RawMessage) bool {
+	if f == nil {
+		return false
+	}
+	for key, values := range f.values {
+		raw, ok := entry[key]
+		if !ok || !values.Has(string(logValue(raw))) {
+			return true
+		}
+	}
+	return false
+}
+
+// isLogFilteredByContent reports whether the line fails the search or the field filters.
+// The search must be found in a value other than level and timestamp, and every field must equal
+// one of its values. Values that aren't strings are compared as their JSON.
+func isLogFilteredByContent(search *logSearch, fields *logFields, line []byte) bool {
+	if search == nil && fields == nil {
+		return false
+	}
+
+	var entry map[string]json.RawMessage
+	if err := json.Unmarshal(line, &entry); err != nil {
+		return true
+	}
+
+	if fields.rejects(entry) {
+		return true
+	}
+
+	if search == nil {
+		return false
+	}
+
+	for key, raw := range entry {
+		if key == "level" || key == "timestamp" {
+			continue
+		}
+		if containsFold(logValue(raw), search.term) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// logValue returns a decoded string value, or any other value as its JSON.
+func logValue(raw json.RawMessage) []byte {
+	var s string
+	if len(raw) > 0 && raw[0] == '"' && json.Unmarshal(raw, &s) == nil {
+		return []byte(s)
+	}
+	return raw
 }

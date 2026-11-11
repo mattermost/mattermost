@@ -383,6 +383,41 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
     });
 
+    test('should stack schema sections in admin-console__schema-sections for content gap', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                sections: [
+                    {
+                        key: 'section-a',
+                        title: 'Section A',
+                        description: 'Description A',
+                        settings: [],
+                    },
+                    {
+                        key: 'section-b',
+                        title: 'Section B',
+                        description: 'Description B',
+                        settings: [],
+                    },
+                ],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const stack = container.querySelector('.admin-console__schema-sections');
+
+        expect(stack).toBeInTheDocument();
+        expect(stack?.querySelectorAll(':scope > .AdminPanel.AdminSectionPanel')).toHaveLength(2);
+        expect(screen.getByRole('heading', {name: 'Section A'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Section B'})).toBeInTheDocument();
+    });
+
     test('should render top-level settings and sections between the schema header and footer', () => {
         const props = {
             ...DefaultProps,
@@ -1115,6 +1150,69 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         // patchConfig should be called
         await waitFor(() => {
             expect(mockPatchConfig).toHaveBeenCalled();
+        });
+    });
+
+    describe('fileupload setting', () => {
+        const renderFileUpload = (uploadAction: jest.Mock) => {
+            const fileUploadSchema = {
+                id: 'Config',
+                name: 'config',
+                name_default: 'Configuration',
+                settings: [
+                    {
+                        key: 'SamlSettings.IdpCertificateFile',
+                        label: 'label-file',
+                        label_default: 'Certificate',
+                        type: 'fileupload',
+                        remove_button_text: 'Remove Certificate',
+                        upload_action: uploadAction,
+                        remove_action: jest.fn(),
+                    },
+                ],
+            } as unknown as AdminDefinitionSubSectionSchema;
+
+            const {container} = renderWithContext(
+                <SchemaAdminSettings
+                    {...DefaultProps}
+                    config={config}
+                    environmentConfig={environmentConfig}
+                    schema={fileUploadSchema}
+                    patchConfig={jest.fn()}
+                />,
+            );
+
+            return container.querySelector('input[type="file"]') as HTMLInputElement;
+        };
+
+        test('should show the server error when an upload is rejected', async () => {
+            const uploadAction = jest.fn((file, success, error) => error({message: 'Invalid certificate'}));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(uploadAction).toHaveBeenCalled();
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Remove Certificate'})).not.toBeInTheDocument();
+        });
+
+        test('should clear the error after a successful upload', async () => {
+            const uploadAction = jest.fn().
+                mockImplementationOnce((file, success, error) => error({message: 'Invalid certificate'})).
+                mockImplementationOnce((file, success) => success('saml-idp.crt'));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+
+            await userEvent.upload(fileInput, new File(['cert'], 'valid.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(screen.queryByText('Invalid certificate')).not.toBeInTheDocument();
+            expect(screen.getByText('saml-idp.crt')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Remove Certificate'})).toBeInTheDocument();
         });
     });
 });
