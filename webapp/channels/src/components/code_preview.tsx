@@ -81,6 +81,8 @@ const CodePreview = ({
     const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
 
     useEffect(() => {
+        let shouldSetContent = true;
+
         const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
 
         if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
@@ -96,19 +98,32 @@ const CodePreview = ({
                 code = new XMLSerializer().serializeToString(dataAsNode);
             }
 
+            if (!shouldSetContent) {
+                return;
+            }
+
             getContent?.(code);
+
+            const highlighted = await SyntaxHighlighting.highlight(codeInfo.lang, code);
+
+            // A different file may have been opened while this one was waiting to be highlighted
+            if (!shouldSetContent) {
+                return;
+            }
 
             setCodeInfo({
                 ...codeInfo,
                 code,
-                highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
+                highlighted,
             });
 
             setStatus('success');
         };
 
         const handleReceivedError = () => {
-            setStatus('fail');
+            if (shouldSetContent) {
+                setStatus('fail');
+            }
         };
 
         const getCode = async () => {
@@ -136,6 +151,10 @@ const CodePreview = ({
         if (status === 'loading' && codeInfo.lang && !shouldNotGetCode) {
             getCode();
         }
+
+        return () => {
+            shouldSetContent = false;
+        };
     }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode, status]);
 
     if (status === 'loading') {
@@ -173,13 +192,16 @@ const CodePreview = ({
         );
     }
 
-    const language = SyntaxHighlighting.getLanguageName(codeInfo.lang);
+    let title = fileInfo.name;
+    if (SyntaxHighlighting.canHighlightCode(codeInfo.lang, codeInfo.code)) {
+        title += ` - ${SyntaxHighlighting.getLanguageName(codeInfo.lang)}`;
+    }
 
     return (
         <div className={classNames('post-code code-preview', {'code-preview--fixed-size code-preview--wrap': isMarkdownFile})}>
             {!isMarkdownFile && (
                 <span className='post-code__language'>
-                    {`${fileInfo.name} - ${language}`}
+                    {title}
                 </span>
             )}
             <div className='hljs'>
