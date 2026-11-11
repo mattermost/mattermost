@@ -32,7 +32,7 @@ test('MM-64155 search box clear button should not leave type badge after closing
     await expect(searchInput).toHaveValue('');
 
     // # Close the search box by clicking outside
-    await channelsPage.page.click('body', {position: {x: 0, y: 0}});
+    await channelsPage.page.locator('body').click({position: {x: 0, y: 0}});
 
     // * Verify the search box is closed
     await expect(channelsPage.searchBox.container).not.toBeVisible();

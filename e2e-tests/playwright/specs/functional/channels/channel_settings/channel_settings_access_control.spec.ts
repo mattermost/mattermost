@@ -322,17 +322,19 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await confirmModal.waitFor({state: 'hidden', timeout: 15000});
 
         // * Poll until target user appears as a channel member (sync job runs asynchronously)
-        let isMember = false;
-        for (let i = 0; i < 30; i++) {
-            try {
-                await adminClient.getChannelMember(channel.id, targetUser.id);
-                isMember = true;
-                break;
-            } catch {
-                await page.waitForTimeout(1000);
-            }
-        }
-        expect(isMember).toBe(true);
+        await expect
+            .poll(
+                async () => {
+                    try {
+                        await adminClient.getChannelMember(channel.id, targetUser.id);
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                },
+                {timeout: 30_000},
+            )
+            .toBe(true);
 
         await channelSettings.close();
     });

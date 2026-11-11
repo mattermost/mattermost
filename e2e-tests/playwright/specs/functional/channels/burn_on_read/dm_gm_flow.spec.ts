@@ -359,16 +359,16 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
             const placeholder = concealedPlaceholders.nth(i);
             if (await placeholder.isVisible()) {
                 await placeholder.click();
-                // Wait for reveal animation
-                await receiverPage.page.waitForTimeout(500);
+                await expect(placeholder).not.toBeVisible();
             }
         }
 
         // * Verify at least one of the messages is visible after revealing
-        const pageContent = await receiverPage.centerView.container.textContent();
-        const hasMessage1 = pageContent?.includes(message1);
-        const hasMessage2 = pageContent?.includes(message2);
-        expect(hasMessage1 || hasMessage2).toBe(true);
+        await expect(
+            receiverPage.centerView.container
+                .getByText(message1)
+                .or(receiverPage.centerView.container.getByText(message2)),
+        ).toBeVisible();
     });
 
     test('MM-66742_8 BoR toggle resets after sending message', {tag: [BOR_TAG]}, async ({pw}) => {
