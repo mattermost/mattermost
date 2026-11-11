@@ -367,12 +367,13 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
             }
         }
 
-        // * Verify at least one of the messages is visible after revealing
-        await expect(
-            receiverPage.centerView.container
-                .getByText(message1)
-                .or(receiverPage.centerView.container.getByText(message2)),
-        ).toBeVisible();
+        // * Verify at least one of the messages is visible after revealing.
+        // Match the post body only; the screen-reader live region repeats the same text.
+        const revealedMessage = receiverPage.centerView.container
+            .locator('p')
+            .filter({hasText: message1})
+            .or(receiverPage.centerView.container.locator('p').filter({hasText: message2}));
+        await expect(revealedMessage.first()).toBeVisible();
     });
 
     test('MM-66742_8 BoR toggle resets after sending message', {tag: [BOR_TAG]}, async ({pw}) => {

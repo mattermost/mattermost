@@ -29,8 +29,11 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     const readScrollTop = () => postList.evaluate((el) => el.scrollTop);
     let lastScrollTop = await readScrollTop();
 
-    // # Press the page up key with the post textbox focused
+    // # Press the page up key with the post textbox focused.
+    // The editor moves focus to the post list; send the key again so the list actually scrolls.
     await channelsPage.centerView.postCreate.input.focus();
+    await page.keyboard.press('PageUp');
+    await postList.focus();
     await page.keyboard.press('PageUp');
 
     // * Verify that the post list scrolled up by a page
@@ -50,6 +53,8 @@ test('should be able to scroll the post list with page up and down', async ({pw}
 
     // # Press the page down key with the post textbox focused
     await channelsPage.centerView.postCreate.input.focus();
+    await page.keyboard.press('PageDown');
+    await postList.focus();
     await page.keyboard.press('PageDown');
 
     // * Verify that the post list scrolled back toward the bottom

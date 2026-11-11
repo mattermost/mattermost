@@ -560,9 +560,8 @@ export async function createBasicPolicy(
         };
         const operatorText = operatorMap[options.operator] || options.operator;
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await expect(operatorOption).toBeVisible();
         await operatorOption.click({force: true});
-        await expect(page.locator('[id^="operator-selector-menu"]:visible')).toHaveCount(0);
+        await expect(operatorButton).toContainText(new RegExp(operatorText, 'i'));
 
         // Fill value
         if (options.operator === 'in') {
@@ -729,9 +728,8 @@ export async function createMultiAttributePolicy(
         };
         const operatorText = operatorMap[rule.operator] || 'is';
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await expect(operatorOption).toBeVisible();
         await operatorOption.click({force: true});
-        await expect(page.locator('[id^="operator-selector-menu"]:visible')).toHaveCount(0);
+        await expect(operatorButton).toContainText(new RegExp(operatorText, 'i'));
 
         // Enter value - check if it's a text input or select menu
         const valueInput = page.locator('.values-editor__simple-input').nth(i);
