@@ -5648,6 +5648,57 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Equal(t, getPostIds(posts[4:5]), getPostIds(page2))
 	})
 
+	t.Run("Deleted post sharing CreateAt with the last post of a full live page", func(t *testing.T) {
+		tieChannelID := model.NewId()
+		base := model.GetMillis()
+
+		save := func(id string, createAt, deleteAt int64) *model.Post {
+			p, err := ss.Post().Save(rctx, &model.Post{
+				Id:        id,
+				RemoteId:  new(model.NewId()),
+				ChannelId: tieChannelID,
+				UserId:    model.NewId(),
+				Message:   "tie test post",
+				CreateAt:  createAt,
+				DeleteAt:  deleteAt,
+			})
+			require.NoError(t, err)
+			return p
+		}
+
+		// The deleted post sorts before the last live post by Id, so it only makes the first
+		// page if the deleted half's CreateAt bound is inclusive.
+		tiedIDs := []string{model.NewId(), model.NewId()}
+		slices.Sort(tiedIDs)
+
+		live0 := save(model.NewId(), base+100, 0)
+		live1 := save(model.NewId(), base+200, 0)
+		live2 := save(tiedIDs[1], base+300, 0)
+		tied := save(tiedIDs[0], base+300, base+500)
+		later := save(model.NewId(), base+400, base+500)
+
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:      tieChannelID,
+			SinceCreateAt:  true,
+			IncludeDeleted: true,
+		}
+
+		page1, cursor, err := ss.Post().GetPostsSinceForSync(opt, model.GetPostsSinceForSyncCursor{LastPostCreateAt: base}, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{live0, live1, tied}), getPostIds(page1))
+		require.Equal(t, tied.CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, tied.Id, cursor.LastPostCreateID)
+
+		page2, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{live2, later}), getPostIds(page2))
+		require.Equal(t, later.Id, cursor.LastPostCreateID)
+
+		page3, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Empty(t, page3)
+	})
+
 	t.Run("CreateAt collisions", func(t *testing.T) {
 		// this test requires all the CreateAt timestamps to be the same.
 		result, err := s.GetMaster().Exec("UPDATE Posts SET CreateAt = ?", model.GetMillis())
