@@ -5,6 +5,7 @@ import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
+import type {PluginRedux} from '@mattermost/types/plugins';
 
 import {fakeNow} from 'tests/helpers/date';
 import {act, renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
@@ -71,6 +72,7 @@ describe('components/admin_console/server_logs/Logs', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
+                plugins={{}}
                 actions={{getLogs, getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
             />
         );
@@ -198,6 +200,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
             truncatedLogNodes={[]}
             plainLogs={[]}
             isPlainLogs={false}
+            plugins={{}}
             actions={{getLogs: jest.fn(), getNewLogs: jest.fn(), getPlainLogs: jest.fn()}}
         />
     );
@@ -278,6 +281,7 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
+                plugins={{}}
                 actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
@@ -600,6 +604,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
+                plugins={{}}
                 actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />
         );
@@ -631,6 +636,7 @@ describe('components/admin_console/server_logs/Logs nodes', () => {
                 truncatedLogNodes={['node-b']}
                 plainLogs={[]}
                 isPlainLogs={false}
+                plugins={{}}
                 actions={{getLogs: jest.fn().mockResolvedValue({}), getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
@@ -765,6 +771,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={false}
+                plugins={{}}
                 actions={{getLogs, getNewLogs, getPlainLogs: jest.fn().mockResolvedValue({})}}
             />,
         );
@@ -791,7 +798,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await poll();
 
         await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
-        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: ''});
+        expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '2026-10-20 09:44:30.000 +00:00', dateTo: '', search: '', fields: undefined});
         expect(getLogs).toHaveBeenCalledTimes(1);
     });
 
@@ -837,7 +844,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
 
         await poll();
 
-        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: ''}));
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledWith({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', search: '', fields: undefined}));
     });
 
     test('should not reach back past the start of the time range', async () => {
@@ -891,7 +898,7 @@ describe('components/admin_console/server_logs/Logs live tail', () => {
         await pickMenuItem('Open menu to select which log levels to show', 'Debug', 'menuitemcheckbox');
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(2));
-        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: ''}, expect.any(AbortSignal));
+        expect(getLogs).toHaveBeenLastCalledWith({serverNames: [], logLevels: ['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog'], dateFrom: '', dateTo: '', search: '', fields: undefined}, expect.any(AbortSignal));
     });
 
     test('should reload everything on a manual reload while live tail is on', async () => {
@@ -919,22 +926,43 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         jest.useRealTimers();
     });
 
-    function renderLogs(url: string, {getLogs = jest.fn().mockResolvedValue({}), isPlainLogs = false} = {}) {
+    type RenderOptions = {
+        getLogs?: jest.Mock;
+        isPlainLogs?: boolean;
+        logs?: LogObjectWithAdditionalInfo[];
+        plugins?: Record<string, PluginRedux>;
+    };
+
+    function renderLogs(url: string, {
+        getLogs = jest.fn().mockResolvedValue({}),
+        isPlainLogs = false,
+        logs = [nodeLog('node-a', 'a'), nodeLog('node-b', 'b')],
+        plugins = {},
+    }: RenderOptions = {}) {
         const history = createMemoryHistory({initialEntries: [url]});
         const getPlainLogs = jest.fn().mockResolvedValue({});
         renderWithContext(
             <Logs
-                logs={[nodeLog('node-a', 'a'), nodeLog('node-b', 'b')]}
+                logs={logs}
                 logNodes={['node-a', 'node-b']}
                 truncatedLogNodes={[]}
                 plainLogs={[]}
                 isPlainLogs={isPlainLogs}
+                plugins={plugins}
                 actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs}}
             />,
             {},
             {history},
         );
         return {history, getLogs, getPlainLogs};
+    }
+
+    function pluginLog(pluginId: string): LogObjectWithAdditionalInfo {
+        return {...nodeLog('node-a', `from ${pluginId}`), plugin_id: pluginId};
+    }
+
+    function installedPlugin(id: string, name: string): PluginRedux {
+        return {id, name, version: '1.0.0', active: true} as PluginRedux;
     }
 
     async function pickMenuItem(menuLabel: string, item: string, role: 'menuitemradio' | 'menuitemcheckbox' = 'menuitemradio') {
@@ -948,7 +976,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
     test('should load the filters from the URL and send them with the first query', async () => {
         fakeNow('2026-10-20T12:00:00Z');
-        const {getLogs} = renderLogs(`${PAGE}?search=timeout&levels=error,warn&node=node-b&range=60`);
+        const {getLogs} = renderLogs(`${PAGE}?search=timeout&levels=error,warn&node=node-b&range=60&field.plugin_id=github`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
         expect(getLogs).toHaveBeenCalledWith({
@@ -957,11 +985,13 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             serverNames: ['node-b'],
             dateFrom: '2026-10-20 11:00:00.000 +00:00',
             dateTo: '',
+            fields: {plugin_id: ['github']},
         }, expect.any(AbortSignal));
         expect(screen.getByLabelText('Search logs')).toHaveValue('timeout');
         expect(screen.getByLabelText('Levels')).toHaveValue('2 selected');
         expect(screen.getByLabelText('Node')).toHaveValue('node-b');
         expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
+        expect(screen.getByLabelText('Plugin')).toHaveValue('github');
     });
 
     test('should load a custom range from the URL', async () => {
@@ -1003,7 +1033,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         const {getLogs, history} = renderLogs(`${PAGE}?search=${'a'.repeat(257)}&levels=bogus,warn&range=7&from=2026-10-20T11:00:00Z&to=yesterday&tab=1`);
 
         await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
-        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: ''}, expect.any(AbortSignal));
+        expect(getLogs).toHaveBeenCalledWith({search: '', logLevels: ['warn'], serverNames: [], dateFrom: '', dateTo: '', fields: undefined}, expect.any(AbortSignal));
         expect(screen.getByLabelText('Duration')).toHaveValue('All time');
 
         // Parameters that aren't filters are left alone
@@ -1017,6 +1047,9 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
         ['dates without a timezone offset', 'from=2026-10-20T11:00:00&to=2026-10-20T12:00:00', {dateFrom: '', dateTo: ''}],
         ['dates that are not on the calendar', 'from=2026-02-30T11:00:00Z&to=2026-03-02T12:00:00Z', {dateFrom: '', dateTo: ''}],
         ['an invalid custom range in favor of a valid preset', 'range=60&from=bad&to=2026-10-20T12:00:00Z', {dateFrom: '2026-10-20 11:00:00.000 +00:00', dateTo: ''}],
+        ['field filters the server would reject', `field.level=error&field.timestamp=x&field.=x&field.plugin_id=&field.user_id=${'a'.repeat(257)}`, {fields: undefined}],
+        ['repeated field values', 'field.plugin_id=github&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
+        ['fields the viewer has no filter for, so they can\'t filter it unseen', 'field.user_id=abc&field.caller=x&field.plugin_id=github', {fields: {plugin_id: ['github']}}],
     ])('should ignore %s', async (_, query, expected) => {
         fakeNow('2026-10-20T12:00:00Z');
         localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({enabledLevels: ['error']}));
@@ -1100,6 +1133,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
             serverNames: ['node-b'],
             dateFrom: '2026-10-20 11:00:00.000 +00:00',
             dateTo: '',
+            fields: undefined,
         }, expect.any(AbortSignal)));
         expect(screen.getByLabelText('Search logs')).toHaveValue('second');
         expect(screen.getByLabelText('Duration')).toHaveValue('Last hour');
@@ -1126,7 +1160,7 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         act(() => history.push(PAGE));
 
-        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: ''}, expect.any(AbortSignal)));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith({search: '', logLevels: [], serverNames: [], dateFrom: '', dateTo: '', fields: undefined}, expect.any(AbortSignal)));
         expect(screen.getByLabelText('Search logs')).toHaveValue('');
         expect(history.location.search).toBe('');
     });
@@ -1145,5 +1179,53 @@ describe('components/admin_console/server_logs/Logs URL filters', () => {
 
         await waitFor(() => expect(getPlainLogs).toHaveBeenCalled());
         expect(history.location.search).toBe('');
+    });
+
+    test('should offer installed plugins by name and plugins seen in the logs by ID, and filter by the picked ones', async () => {
+        const {getLogs, history} = renderLogs(PAGE, {
+            logs: [pluginLog('mattermost-ai'), pluginLog('github')],
+            plugins: {github: installedPlugin('github', 'GitHub'), jira: installedPlugin('jira', 'Jira')},
+        });
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(screen.getByLabelText('Plugin')).toHaveValue('All logs');
+
+        await userEvent.click(screen.getByLabelText('Plugin'));
+        const items = screen.getAllByRole('menuitemcheckbox').map((item) => item.textContent);
+        expect(items).toEqual(['GitHubgithub', 'Jirajira', 'mattermost-ai']);
+
+        await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /^GitHub/}));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {plugin_id: ['github']}}), expect.any(AbortSignal)));
+        await waitFor(() => expect(urlParams(history)).toEqual({'field.plugin_id': 'github'}));
+
+        await userEvent.click(screen.getByRole('menuitemcheckbox', {name: /^mattermost-ai/}));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: {plugin_id: ['github', 'mattermost-ai']}}), expect.any(AbortSignal)));
+        expect(new URLSearchParams(history.location.search).getAll('field.plugin_id')).toEqual(['github', 'mattermost-ai']);
+        expect(screen.getByLabelText('Plugin')).toHaveValue('2 plugins');
+
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({fields: undefined}), expect.any(AbortSignal)));
+        await waitFor(() => expect(history.location.search).toBe(''));
+    });
+
+    test('should show the name of a plugin picked by a link', async () => {
+        const {getLogs} = renderLogs(`${PAGE}?field.plugin_id=mattermost-ai`, {plugins: {'mattermost-ai': installedPlugin('mattermost-ai', 'Agents')}});
+
+        await waitFor(() => expect(getLogs).toHaveBeenCalledWith(expect.objectContaining({fields: {plugin_id: ['mattermost-ai']}}), expect.any(AbortSignal)));
+        expect(screen.getByLabelText('Plugin')).toHaveValue('Agents');
+    });
+
+    test('should not offer the plugin menu without plugins', async () => {
+        const {getLogs} = renderLogs(PAGE);
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+        expect(screen.queryByLabelText('Plugin')).not.toBeInTheDocument();
+    });
+
+    test('should not reload when "All logs" is picked with no plugin picked', async () => {
+        const {getLogs} = renderLogs(PAGE, {logs: [pluginLog('github')]});
+        await waitFor(() => expect(getLogs).toHaveBeenCalledTimes(1));
+
+        await userEvent.click(screen.getByLabelText('Plugin'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'All logs'}));
+        expect(getLogs).toHaveBeenCalledTimes(1);
     });
 });

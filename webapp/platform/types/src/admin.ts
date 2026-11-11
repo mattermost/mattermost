@@ -76,6 +76,9 @@ export type LogFilter = {
 
     // Matched case-insensitively against every field except level and timestamp
     search?: string;
+
+    // Keeps entries whose top-level field equals one of its values, such as {plugin_id: ['github']}
+    fields?: LogFieldFilters;
 };
 
 export type LogFilterQuery = {
@@ -84,7 +87,10 @@ export type LogFilterQuery = {
     date_from: LogDateFrom;
     date_to: LogDateTo;
     search?: string;
+    fields?: LogFieldFilters;
 };
+
+export type LogFieldFilters = Record<string, string[]>;
 
 export type AdminState = {
     logs: LogsByNode;

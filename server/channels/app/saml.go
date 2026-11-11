@@ -4,6 +4,9 @@
 package app
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
@@ -15,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -37,75 +41,195 @@ func (a *App) GetSamlMetadata(rctx request.CTX) (string, *model.AppError) {
 	return result, nil
 }
 
-func (a *App) writeSamlFile(filename string, fileData *multipart.FileHeader) *model.AppError {
+func readSamlFile(fileData *multipart.FileHeader) ([]byte, *model.AppError) {
 	file, err := fileData.Open()
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
+		return nil, model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return data, nil
+}
+
+func (ch *Channels) configureSaml(rctx request.CTX) {
+	if ch.Saml == nil {
+		return
+	}
+
+	if err := ch.Saml.ConfigureSP(rctx); err != nil {
+		rctx.Logger().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+	}
+}
+
+// Rotated certificates keep their filename, so no config listener fires; force the reload on every node.
+func (a *App) reloadSaml(rctx request.CTX) {
+	if a.Saml() == nil {
+		return
+	}
+
+	a.ch.configureSaml(rctx)
+
+	if a.Cluster() != nil {
+		a.Cluster().SendClusterMessage(&model.ClusterMessage{
+			Event:    model.ClusterEventReloadSaml,
+			SendType: model.ClusterSendReliable,
+		})
+	}
+}
+
+func (a *App) saveSamlSettings(update func(*model.SamlSettings)) *model.AppError {
+	cfg := a.Config().Clone()
+	update(&cfg.SamlSettings)
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	_, _, err := a.SaveConfig(cfg, true)
+	return err
+}
+
+// The certificate is already written, so reload even if saving the config fails.
+func (a *App) saveSamlCertificateConfig(rctx request.CTX, filename string, field func(*model.SamlSettings) *string) *model.AppError {
+	appErr := a.saveSamlSettings(func(s *model.SamlSettings) { *field(s) = filename })
+
+	a.reloadSaml(rctx)
+
+	return appErr
+}
+
+func (a *App) addSamlCertificate(rctx request.CTX, filename string, data []byte, field func(*model.SamlSettings) *string) *model.AppError {
+	if err := a.Srv().platform.SetConfigFile(filename, data); err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	err = a.Srv().platform.SetConfigFile(filename, data)
+	return a.saveSamlCertificateConfig(rctx, filename, field)
+}
+
+func (a *App) AddSamlPublicCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
+	data, appErr := readSamlFile(fileData)
+	if appErr != nil {
+		return appErr
+	}
+
+	if err := validateSamlSpCertificate(data); err != nil {
+		return model.NewAppError("AddSamlPublicCertificate", "api.admin.saml.invalid_public_certificate_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.addSamlCertificate(rctx, SamlPublicCertificateName, data, func(s *model.SamlSettings) *string { return s.PublicCertificateFile })
+}
+
+func (a *App) AddSamlPrivateCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
+	data, appErr := readSamlFile(fileData)
+	if appErr != nil {
+		return appErr
+	}
+
+	if err := validateSamlSpPrivateKey(data); err != nil {
+		return model.NewAppError("AddSamlPrivateCertificate", "api.admin.saml.invalid_private_key_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return a.addSamlCertificate(rctx, SamlPrivateKeyName, data, func(s *model.SamlSettings) *string { return s.PrivateKeyFile })
+}
+
+// validateSamlSpCertificate accepts PEM data whose first CERTIFICATE block parses as X.509.
+//
+// The SP certificate and key are validated the way tls.X509KeyPair parses them when the SAML
+// implementation loads the key pair, so anything rejected here would also fail to load. Invalid
+// data must be rejected, since the SP would otherwise keep using the previous key pair until a
+// restart. They aren't checked against each other: during a rotation they're uploaded one at a
+// time, so the first upload always mismatches the file still on disk.
+func validateSamlSpCertificate(pemData []byte) error {
+	for {
+		var block *pem.Block
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return errors.New("no PEM-encoded certificate found")
+		}
+		if block.Type == "CERTIFICATE" {
+			_, err := x509.ParseCertificate(block.Bytes)
+			return err
+		}
+	}
+}
+
+// validateSamlSpPrivateKey accepts PEM data whose first private key block holds a PKCS #1,
+// PKCS #8 or SEC 1 key of a type TLS supports. See validateSamlSpCertificate.
+func validateSamlSpPrivateKey(pemData []byte) error {
+	for {
+		var block *pem.Block
+		block, pemData = pem.Decode(pemData)
+		if block == nil {
+			return errors.New("no PEM-encoded private key found")
+		}
+		if block.Type == "PRIVATE KEY" || strings.HasSuffix(block.Type, " PRIVATE KEY") {
+			return parseSamlSpPrivateKey(block.Bytes)
+		}
+	}
+}
+
+func parseSamlSpPrivateKey(der []byte) error {
+	if _, err := x509.ParsePKCS1PrivateKey(der); err == nil {
+		return nil
+	}
+	if key, err := x509.ParsePKCS8PrivateKey(der); err == nil {
+		switch key.(type) {
+		case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey:
+			return nil
+		default:
+			return fmt.Errorf("unsupported private key type %T", key)
+		}
+	}
+	if _, err := x509.ParseECPrivateKey(der); err == nil {
+		return nil
+	}
+
+	return errors.New("failed to parse private key")
+}
+
+func (a *App) AddSamlIdpCertificate(rctx request.CTX, fileData *multipart.FileHeader) *model.AppError {
+	data, appErr := readSamlFile(fileData)
+	if appErr != nil {
+		return appErr
+	}
+
+	der, err := parseSamlIdpCertificate(data)
 	if err != nil {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("AddSamlIdpCertificate", "api.admin.saml.invalid_idp_certificate_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	return nil
+	return a.setSamlIdpCertificate(rctx, der)
 }
 
-func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlPublicCertificateName, fileData); err != nil {
-		return err
+// parseSamlIdpCertificate returns the DER bytes of a PEM-encoded X.509 certificate.
+// Invalid data must be rejected, since the SP would otherwise keep trusting the previous certificate.
+func parseSamlIdpCertificate(pemData []byte) ([]byte, error) {
+	block, _ := pem.Decode(pemData)
+	if block == nil {
+		return nil, errors.New("invalid PEM data")
+	}
+	if _, err := x509.ParseCertificate(block.Bytes); err != nil {
+		return nil, err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return block.Bytes, nil
 }
 
-func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlPrivateKeyName, fileData); err != nil {
-		return err
+func (a *App) setSamlIdpCertificate(rctx request.CTX, der []byte) *model.AppError {
+	data := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: der,
+	})
+	if err := a.Srv().platform.SetConfigFile(SamlIdpCertificateName, data); err != nil {
+		return model.NewAppError("setSamlIdpCertificate", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
-}
-
-func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeSamlFile(SamlIdpCertificateName, fileData); err != nil {
-		return err
-	}
-
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return a.saveSamlCertificateConfig(rctx, SamlIdpCertificateName, func(s *model.SamlSettings) *string { return s.IdpCertificateFile })
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
@@ -121,17 +245,10 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = ""
-	*cfg.SamlSettings.Encrypt = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return a.saveSamlSettings(func(s *model.SamlSettings) {
+		*s.PublicCertificateFile = ""
+		*s.Encrypt = false
+	})
 }
 
 func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
@@ -139,17 +256,10 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = ""
-	*cfg.SamlSettings.Encrypt = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return a.saveSamlSettings(func(s *model.SamlSettings) {
+		*s.PrivateKeyFile = ""
+		*s.Encrypt = false
+	})
 }
 
 func (a *App) RemoveSamlIdpCertificate() *model.AppError {
@@ -157,17 +267,10 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 		return err
 	}
 
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = ""
-	*cfg.SamlSettings.Enable = false
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return a.saveSamlSettings(func(s *model.SamlSettings) {
+		*s.IdpCertificateFile = ""
+		*s.Enable = false
+	})
 }
 
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
@@ -254,35 +357,16 @@ func (a *App) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataRe
 	return data, nil
 }
 
-func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
+func (a *App) SetSamlIdpCertificateFromMetadata(rctx request.CTX, data []byte) *model.AppError {
 	const certPrefix = "-----BEGIN CERTIFICATE-----\n"
 	const certSuffix = "\n-----END CERTIFICATE-----"
-	fixedCertTxt := certPrefix + string(data) + certSuffix
 
-	block, _ := pem.Decode([]byte(fixedCertTxt))
-	if _, e := x509.ParseCertificate(block.Bytes); e != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusInternalServerError).Wrap(e)
+	der, err := parseSamlIdpCertificate([]byte(certPrefix + string(data) + certSuffix))
+	if err != nil {
+		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_parse_idp_certificate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	data = pem.EncodeToMemory(&pem.Block{
-		Type:  "CERTIFICATE",
-		Bytes: block.Bytes,
-	})
-
-	if err := a.Srv().platform.SetConfigFile(SamlIdpCertificateName, data); err != nil {
-		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
-
-	if err := cfg.IsValid(); err != nil {
-		return err
-	}
-
-	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-
-	return nil
+	return a.setSamlIdpCertificate(rctx, der)
 }
 
 func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {

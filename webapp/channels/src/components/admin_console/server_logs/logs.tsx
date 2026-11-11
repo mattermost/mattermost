@@ -9,6 +9,7 @@ import type {
     LogFilter,
     LogServerNames,
 } from '@mattermost/types/admin';
+import type {PluginRedux} from '@mattermost/types/plugins';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -19,10 +20,11 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import LogFormatMenu from './log_format_menu';
 import LogList, {loadPrefs} from './log_list';
 import PlainLogList from './plain_log_list';
-import type {CustomTimeRange, LogObjectWithAdditionalInfo, ScanLimitedLogNode, TimeRange} from './types';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
 import {parseUrlFilters, withUrlFilters} from './url_filters';
+import useAccumulated from './use_accumulated';
 import useLogPolling from './use_log_polling';
-import {LEVEL_GROUPS, groupLevels, presetStartMs} from './utils';
+import {LEVEL_GROUPS, PLUGIN_ID_FIELD, groupLevels, presetStartMs} from './utils';
 
 import './logs.scss';
 
@@ -33,6 +35,9 @@ type Props = {
     scanLimitedLogNodes?: ScanLimitedLogNode[];
     plainLogs: string[];
     isPlainLogs: boolean;
+
+    // Installed plugins, as loaded by the admin sidebar. None when plugins are off or the admin can't list them
+    plugins: Record<string, PluginRedux>;
     actions: {
         getLogs: (logFilter: LogFilter, signal?: AbortSignal) => Promise<ActionResult | undefined>;
         getNewLogs: (logFilter: LogFilter) => Promise<ActionResult | undefined>;
@@ -86,6 +91,8 @@ const POLL_OVERLAP_MS = 30000;
 
 const ALL_SERVER_NAMES: LogServerNames = [];
 
+const NO_PLUGINS: string[] = [];
+
 const PLAIN_LOGS_PER_PAGE = 1000;
 
 const PRESET_MINUTES = TIME_PRESETS.map((preset) => preset.minutes);
@@ -114,7 +121,7 @@ function getInitialFormat(configIsPlainLogs: boolean, hasUrlFilters: boolean): b
 
 const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
 
-export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogNodes = NO_SCAN_LIMITED_NODES, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogNodes = NO_SCAN_LIMITED_NODES, plainLogs, isPlainLogs: configIsPlainLogs, plugins, actions}: Props) {
     const history = useHistory();
     const [urlFilters] = useState(() => parseUrlFilters(history.location.search, PRESET_MINUTES));
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs, Object.keys(urlFilters).length > 0));
@@ -124,6 +131,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
     const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
     const [selectedNode, setSelectedNode] = useState(urlFilters.node ?? initialPrefs.node);
     const [timeRange, setTimeRange] = useState<TimeRange>(urlFilters.timeRange ?? null);
+    const [selectedPlugins, setSelectedPlugins] = useState(urlFilters.plugins ?? NO_PLUGINS);
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(30000);
 
@@ -134,12 +142,12 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
     // The search is mirrored once debounced, and the plain viewer has no filters to share
     useEffect(() => {
         const {location} = history;
-        const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange});
+        const query = withUrlFilters(location.search, isPlainLogs ? null : {search, enabledLevels, node: selectedNode, timeRange, plugins: selectedPlugins});
         writtenSearchRef.current = query;
         if (query !== location.search) {
             history.replace({...location, search: query});
         }
-    }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange]);
+    }, [history, isPlainLogs, search, enabledLevels, selectedNode, timeRange, selectedPlugins]);
 
     // The search box keeps its own text, so it's remounted to show a search that arrived from the URL
     const [viewKey, setViewKey] = useState(0);
@@ -157,6 +165,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
             setEnabledLevels(filters.enabledLevels ?? new Set(prefs.enabledLevels));
             setSelectedNode(filters.node ?? prefs.node);
             setTimeRange(filters.timeRange ?? null);
+            setSelectedPlugins(filters.plugins ?? NO_PLUGINS);
 
             // A range that ends in the past has nothing new to tail
             if (filters.timeRange && typeof filters.timeRange !== 'number') {
@@ -175,13 +184,33 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
     const [timeRangeStart, setTimeRangeStart] = useState<number | null>(null);
 
     // Node-filtered responses only hold the selected node, so the list only ever grows
-    const [knownNodes, setKnownNodes] = useState<string[]>([]);
-    useEffect(() => {
-        setKnownNodes((prev) => {
-            const next = new Set([...prev, ...logNodes]);
-            return next.size === prev.length ? prev : Array.from(next).sort();
-        });
-    }, [logNodes]);
+    const knownNodes = useAccumulated(logNodes);
+
+    // Plugins seen in the logs are listed too: removed plugins can still have entries, and
+    // admins who can't list the installed plugins can still filter by them.
+    // Plugin-filtered responses only hold those plugins, so this list also only grows
+    const pluginIdsInLogs = useMemo(() => Array.from(new Set(logs.map((log) => log[PLUGIN_ID_FIELD]).filter((id): id is string => typeof id === 'string' && id !== ''))), [logs]);
+    const loggedPluginIds = useAccumulated(pluginIdsInLogs);
+
+    const pluginOptions = useMemo(() => {
+        const options = new Map<string, PluginOption>();
+        for (const plugin of Object.values(plugins)) {
+            options.set(plugin.id, {id: plugin.id, name: plugin.name || plugin.id});
+        }
+
+        // A selection from a link is still listed so it can be cleared
+        for (const id of [...loggedPluginIds, ...selectedPlugins]) {
+            if (!options.has(id)) {
+                options.set(id, {id, name: id});
+            }
+        }
+        return Array.from(options.values()).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    }, [plugins, loggedPluginIds, selectedPlugins]);
+
+    // Picking "All logs" with no plugin picked keeps the same array, so it doesn't reload
+    const changeSelectedPlugins = useCallback((ids: string[]) => {
+        setSelectedPlugins((prev) => (ids.length === 0 && prev.length === 0 ? prev : ids));
+    }, []);
 
     // A restored or departed node is still listed so it can be switched away from
     const nodes = useMemo(() => (
@@ -254,6 +283,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
                 dateFrom: since === null ? '' : formatFilterDate(new Date(since)),
                 dateTo: rangeEnd === null ? '' : formatFilterDate(new Date(rangeEnd)),
                 search,
+                fields: selectedPlugins.length ? {[PLUGIN_ID_FIELD]: selectedPlugins} : undefined,
             };
             const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query, signal));
             if (!result?.error) {
@@ -270,7 +300,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
         });
         fetchQueueRef.current = fetched.catch(() => undefined);
         return fetched;
-    }, [isPlainLogs, plainPage, timeRange, enabledLevels, selectedNode, search, actions]);
+    }, [isPlainLogs, plainPage, timeRange, enabledLevels, selectedNode, search, selectedPlugins, actions]);
 
     // reload's deps are the query's inputs, so this also covers every filter and page change
     useEffect(() => {
@@ -342,6 +372,9 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
             nodes={nodes}
             selectedNode={selectedNode}
             onSelectedNodeChange={setSelectedNode}
+            plugins={pluginOptions}
+            selectedPlugins={selectedPlugins}
+            onSelectedPluginsChange={changeSelectedPlugins}
             onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
             liveTailEnabled={liveTailEnabled}

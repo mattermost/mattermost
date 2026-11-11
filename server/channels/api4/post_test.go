@@ -2221,6 +2221,15 @@ func TestUpdatePost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("unknown post", func(t *testing.T) {
+		unknownPost := rpost.Clone()
+		unknownPost.Id = GenerateTestID()
+		_, resp, err := client.UpdatePost(context.Background(), unknownPost.Id, unknownPost)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -2706,7 +2715,20 @@ func TestPatchPost(t *testing.T) {
 		patch := &model.PostPatch{}
 		_, resp, err = client.PatchPost(context.Background(), GenerateTestID(), patch)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
+	t.Run("deleted post", func(t *testing.T) {
+		deletedPost, _, createErr := client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "to be deleted"})
+		require.NoError(t, createErr)
+		_, deleteErr := client.DeletePost(context.Background(), deletedPost.Id)
+		require.NoError(t, deleteErr)
+
+		_, patchResp, patchErr := client.PatchPost(context.Background(), deletedPost.Id, &model.PostPatch{Message: new("edited")})
+		require.Error(t, patchErr)
+		CheckNotFoundStatus(t, patchResp)
+		CheckErrorID(t, patchErr, "app.post.get.app_error")
 	})
 
 	t.Run("logged out", func(t *testing.T) {
@@ -3484,7 +3506,15 @@ func TestPinPost(t *testing.T) {
 
 	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+	CheckErrorID(t, err, "app.post.get.app_error")
+
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+	unreadablePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+	resp, err = client.PinPost(context.Background(), unreadablePost.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -3549,7 +3579,15 @@ func TestUnpinPost(t *testing.T) {
 
 	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+	CheckErrorID(t, err, "app.post.get.app_error")
+
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+	unreadablePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
+	resp, err = client.UnpinPost(context.Background(), unreadablePost.Id)
+	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 
 	_, err = client.Logout(context.Background())
 	require.NoError(t, err)
@@ -6727,6 +6765,13 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		require.Equal(t, "new message", history[1].Message)
 	})
 
+	t.Run("unknown post", func(t *testing.T) {
+		_, resp, err := client.GetEditHistoryForPost(context.Background(), GenerateTestID())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		CheckErrorID(t, err, "app.post.get.app_error")
+	})
+
 	t.Run("logged out", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
@@ -7793,7 +7838,8 @@ func TestRestorePostVersion(t *testing.T) {
 	t.Run("should get error when trying to restore non existent post ori history ID", func(t *testing.T) {
 		restoredPost, response, err := client.RestorePostVersion(context.Background(), model.NewId(), model.NewId())
 		require.Error(t, err)
-		CheckForbiddenStatus(t, response)
+		CheckNotFoundStatus(t, response)
+		CheckErrorID(t, err, "app.post.get.app_error")
 		require.Nil(t, restoredPost)
 
 		post := &model.Post{
@@ -8355,6 +8401,585 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 		CheckCreatedStatus(t, response)
 		require.NotNil(t, createdPost)
 		require.Equal(t, post.PendingPostId, createdPost.PendingPostId)
+	})
+}
+
+// channelMentions returns the channel_mentions prop, or an empty map when it is absent.
+func channelMentions(t *testing.T, post *model.Post) map[string]any {
+	t.Helper()
+
+	prop := post.GetProp(model.PostPropsChannelMentions)
+	if prop == nil {
+		return map[string]any{}
+	}
+
+	mentions, ok := prop.(map[string]any)
+	require.Truef(t, ok, "channel_mentions type %T", prop)
+	return mentions
+}
+
+// TestBurnOnReadPostFields checks the message, hashtags, and channel mentions
+// returned for a burn-on-read post.
+func TestBurnOnReadPostFields(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.GuestAccountsSettings.Enable = new(true)
+	})
+
+	authorClient := th.Client
+	memberClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, memberClient)
+
+	_, guestClient := th.CreateGuestAndClient(t)
+
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	thirdUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, thirdUser, th.BasicTeam)
+	gmChannel, resp, err := authorClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, thirdUser.Id})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	archiveChannel := th.CreatePublicChannel(t)
+	th.AddUserToChannel(t, th.BasicUser2, archiveChannel)
+	unreadChannel := th.CreatePublicChannel(t)
+	th.AddUserToChannel(t, th.BasicUser2, unreadChannel)
+
+	const hashtag = "#borreadtag"
+	mention := th.BasicChannel.Name
+	bothMessage := "see " + hashtag + " ~" + mention
+	hashtagMessage := "see " + hashtag
+	mentionMessage := "see ~" + mention
+
+	type readPath string
+	const (
+		readChannel readPath = "channel"
+		readSingle  readPath = "single"
+		readThread  readPath = "thread"
+		readFlagged readPath = "flagged"
+		readAfter   readPath = "after"
+		readUnread  readPath = "unread"
+		readPinned  readPath = "pinned"
+		readIDs     readPath = "ids"
+	)
+
+	testCases := []struct {
+		name         string
+		client       *model.Client4
+		userID       string
+		channel      *model.Channel
+		message      string
+		revealFirst  bool
+		read         readPath
+		showMessage  bool
+		wantHashtags string
+		wantMention  string
+		pinned       bool
+		archive      bool
+	}{
+		{
+			name:    "unrevealed member, channel posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readChannel,
+		},
+		{
+			name:    "unrevealed member, single post",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readSingle,
+		},
+		{
+			name:         "author, channel posts",
+			client:       authorClient,
+			userID:       th.BasicUser.Id,
+			channel:      th.BasicChannel,
+			message:      bothMessage,
+			read:         readChannel,
+			showMessage:  true,
+			wantHashtags: hashtag,
+			wantMention:  mention,
+		},
+		{
+			name:         "author, single post",
+			client:       authorClient,
+			userID:       th.BasicUser.Id,
+			channel:      th.BasicChannel,
+			message:      bothMessage,
+			read:         readSingle,
+			showMessage:  true,
+			wantHashtags: hashtag,
+			wantMention:  mention,
+		},
+		{
+			name:         "revealed member, channel posts",
+			client:       memberClient,
+			userID:       th.BasicUser2.Id,
+			channel:      th.BasicChannel,
+			message:      bothMessage,
+			revealFirst:  true,
+			read:         readChannel,
+			showMessage:  true,
+			wantHashtags: hashtag,
+			wantMention:  mention,
+		},
+		{
+			name:         "revealed member, single post",
+			client:       memberClient,
+			userID:       th.BasicUser2.Id,
+			channel:      th.BasicChannel,
+			message:      bothMessage,
+			revealFirst:  true,
+			read:         readSingle,
+			showMessage:  true,
+			wantHashtags: hashtag,
+			wantMention:  mention,
+		},
+		{
+			name:    "unrevealed member, empty message",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			read:    readChannel,
+		},
+		{
+			name:    "author, empty message",
+			client:  authorClient,
+			userID:  th.BasicUser.Id,
+			channel: th.BasicChannel,
+			read:    readChannel,
+		},
+		{
+			name:    "unrevealed member, hashtag only",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: hashtagMessage,
+			read:    readChannel,
+		},
+		{
+			name:         "author, hashtag only",
+			client:       authorClient,
+			userID:       th.BasicUser.Id,
+			channel:      th.BasicChannel,
+			message:      hashtagMessage,
+			read:         readChannel,
+			showMessage:  true,
+			wantHashtags: hashtag,
+		},
+		{
+			name:    "unrevealed member, channel mention only",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: mentionMessage,
+			read:    readSingle,
+		},
+		{
+			name:        "author, channel mention only",
+			client:      authorClient,
+			userID:      th.BasicUser.Id,
+			channel:     th.BasicChannel,
+			message:     mentionMessage,
+			read:        readSingle,
+			showMessage: true,
+			wantMention: mention,
+		},
+		{
+			name:    "unrevealed guest, channel posts",
+			client:  guestClient,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readChannel,
+		},
+		{
+			name:    "unrevealed direct channel member, channel posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: dmChannel,
+			message: bothMessage,
+			read:    readChannel,
+		},
+		{
+			name:         "author, direct channel posts",
+			client:       authorClient,
+			userID:       th.BasicUser.Id,
+			channel:      dmChannel,
+			message:      bothMessage,
+			read:         readChannel,
+			showMessage:  true,
+			wantHashtags: hashtag,
+			wantMention:  mention,
+		},
+		{
+			name:    "unrevealed group channel member, channel posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: gmChannel,
+			message: bothMessage,
+			read:    readChannel,
+		},
+		{
+			name:    "unrevealed member, thread",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readThread,
+		},
+		{
+			name:    "unrevealed member, flagged posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readFlagged,
+		},
+		{
+			name:    "unrevealed member, posts after",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readAfter,
+		},
+		{
+			name:    "unrevealed member, unread posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: unreadChannel,
+			message: bothMessage,
+			read:    readUnread,
+		},
+		{
+			name:    "unrevealed member, pinned posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readPinned,
+			pinned:  true,
+		},
+		{
+			name:    "unrevealed member, posts by ids",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: th.BasicChannel,
+			message: bothMessage,
+			read:    readIDs,
+		},
+		{
+			name:    "unrevealed member, archived channel posts",
+			client:  memberClient,
+			userID:  th.BasicUser2.Id,
+			channel: archiveChannel,
+			message: bothMessage,
+			read:    readChannel,
+			archive: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var anchorID string
+			if tc.read == readAfter {
+				anchor, anchorResp, anchorErr := authorClient.CreatePost(context.Background(), &model.Post{
+					ChannelId: tc.channel.Id,
+					Message:   "anchor",
+				})
+				require.NoError(t, anchorErr)
+				CheckCreatedStatus(t, anchorResp)
+				require.NotNil(t, anchor)
+				anchorID = anchor.Id
+			}
+
+			created, createResp, createErr := authorClient.CreatePost(context.Background(), &model.Post{
+				ChannelId: tc.channel.Id,
+				Message:   tc.message,
+				Type:      model.PostTypeBurnOnRead,
+				IsPinned:  tc.pinned,
+			})
+			require.NoError(t, createErr)
+			CheckCreatedStatus(t, createResp)
+			require.NotNil(t, created)
+			if tc.pinned {
+				require.True(t, created.IsPinned)
+			}
+
+			if tc.revealFirst {
+				_, revealResp, revealErr := memberClient.RevealPost(context.Background(), created.Id)
+				require.NoError(t, revealErr)
+				CheckOKStatus(t, revealResp)
+			}
+
+			if tc.read == readUnread {
+				member, memberErr := th.Store.Channel().GetMember(th.Context, tc.channel.Id, tc.userID)
+				require.NoError(t, memberErr)
+				member.LastViewedAt = created.CreateAt - 1
+				_, memberErr = th.Store.Channel().UpdateMember(th.Context, member)
+				require.NoError(t, memberErr)
+			}
+
+			if tc.archive {
+				archiveResp, archiveErr := authorClient.DeleteChannel(context.Background(), tc.channel.Id)
+				require.NoError(t, archiveErr)
+				CheckOKStatus(t, archiveResp)
+			}
+
+			if tc.read == readFlagged {
+				prefResp, prefErr := tc.client.UpdatePreferences(context.Background(), tc.userID, model.Preferences{{
+					UserId:   tc.userID,
+					Category: model.PreferenceCategoryFlaggedPost,
+					Name:     created.Id,
+					Value:    "true",
+				}})
+				require.NoError(t, prefErr)
+				CheckOKStatus(t, prefResp)
+			}
+
+			var got *model.Post
+			switch tc.read {
+			case readChannel:
+				list, readResp, readErr := tc.client.GetPostsForChannel(context.Background(), tc.channel.Id, 0, 100, "", true, false)
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readSingle:
+				var readResp *model.Response
+				var readErr error
+				got, readResp, readErr = tc.client.GetPost(context.Background(), created.Id, "")
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+			case readThread:
+				list, readResp, readErr := tc.client.GetPostThread(context.Background(), created.Id, "", false)
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readFlagged:
+				list, readResp, readErr := tc.client.GetFlaggedPostsForUser(context.Background(), tc.userID, 0, 100)
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readAfter:
+				list, readResp, readErr := tc.client.GetPostsAfter(context.Background(), tc.channel.Id, anchorID, 0, 100, "", false, false)
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readUnread:
+				list, readResp, readErr := tc.client.GetPostsAroundLastUnread(context.Background(), tc.userID, tc.channel.Id, 10, 10, false)
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readPinned:
+				list, readResp, readErr := tc.client.GetPinnedPosts(context.Background(), tc.channel.Id, "")
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				require.NotNil(t, list)
+				got = list.Posts[created.Id]
+			case readIDs:
+				posts, readResp, readErr := tc.client.GetPostsByIds(context.Background(), []string{created.Id})
+				require.NoError(t, readErr)
+				CheckOKStatus(t, readResp)
+				for _, post := range posts {
+					if post != nil && post.Id == created.Id {
+						got = post
+						break
+					}
+				}
+			default:
+				require.FailNow(t, "unknown read")
+			}
+			require.NotNil(t, got)
+
+			if tc.showMessage || tc.wantHashtags != "" || tc.wantMention != "" {
+				// The author, and a member who has revealed the post, receive the message, hashtags, and channel mentions.
+				if tc.showMessage {
+					assert.Equal(t, tc.message, got.Message)
+				} else {
+					assert.Empty(t, got.Message)
+				}
+				assert.Equal(t, tc.wantHashtags, got.Hashtags)
+				if tc.wantMention == "" {
+					assert.Empty(t, channelMentions(t, got))
+				} else {
+					assert.Contains(t, channelMentions(t, got), tc.wantMention)
+				}
+				return
+			}
+
+			// A member who has not revealed the post gets an empty message, empty hashtags, and no channel mentions.
+			assert.Empty(t, got.Message)
+			assert.Empty(t, got.Hashtags)
+			assert.Empty(t, channelMentions(t, got))
+		})
+	}
+}
+
+// TestBurnOnReadPostedEventFields checks hashtags and channel mentions on
+// post events for the author and for another channel member.
+func TestBurnOnReadPostedEventFields(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	enableBurnOnReadFeature(th)
+
+	authorClient := th.Client
+	memberClient := th.CreateClient()
+	th.LoginBasic2WithClient(t, memberClient)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+
+	const hashtag = "#borreadtag"
+	mention := th.BasicChannel.Name
+	message := "see " + hashtag + " ~" + mention
+
+	waitForPostEvent := func(t *testing.T, wsClient *model.WebSocketClient, eventType model.WebsocketEventType, postID string) *model.Post {
+		t.Helper()
+
+		timeout := time.After(5 * time.Second)
+		for {
+			select {
+			case event := <-wsClient.EventChannel:
+				if event.EventType() != eventType {
+					continue
+				}
+				raw, ok := event.GetData()["post"].(string)
+				if !ok {
+					continue
+				}
+				var posted model.Post
+				require.NoError(t, json.Unmarshal([]byte(raw), &posted))
+				if posted.Id != postID {
+					continue
+				}
+				return &posted
+			case <-timeout:
+				require.FailNow(t, "timed out waiting for post event")
+				return nil
+			}
+		}
+	}
+
+	assertEventFields := func(t *testing.T, posted *model.Post, wantHashtags string) {
+		t.Helper()
+
+		if wantHashtags == "" {
+			// A member who has not revealed the post gets an empty message, empty hashtags, and no channel mentions.
+			assert.Empty(t, posted.Message)
+			assert.Empty(t, posted.Hashtags)
+			assert.Empty(t, channelMentions(t, posted))
+			return
+		}
+
+		// The author receives the hashtags and the channel mention.
+		assert.Equal(t, hashtag, posted.Hashtags)
+		assert.Contains(t, channelMentions(t, posted), mention)
+	}
+
+	testCases := []struct {
+		name         string
+		client       *model.Client4
+		wantHashtags string
+		eventType    model.WebsocketEventType
+		deletePost   bool
+	}{
+		{
+			name:         "author",
+			client:       authorClient,
+			wantHashtags: hashtag,
+			eventType:    model.WebsocketEventPosted,
+		},
+		{
+			name:      "unrevealed member",
+			client:    memberClient,
+			eventType: model.WebsocketEventPosted,
+		},
+		{
+			name:         "author, deleted event",
+			client:       authorClient,
+			wantHashtags: hashtag,
+			eventType:    model.WebsocketEventPostDeleted,
+			deletePost:   true,
+		},
+		{
+			name:       "unrevealed member, deleted event",
+			client:     memberClient,
+			eventType:  model.WebsocketEventPostDeleted,
+			deletePost: true,
+		},
+		{
+			name:       "unrevealed system admin channel member, deleted event",
+			client:     th.SystemAdminClient,
+			eventType:  model.WebsocketEventPostDeleted,
+			deletePost: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			wsClient := th.CreateConnectedWebSocketClientWithClient(t, tc.client)
+
+			created, resp, err := authorClient.CreatePost(context.Background(), &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   message,
+				Type:      model.PostTypeBurnOnRead,
+			})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			require.NotNil(t, created)
+
+			if tc.deletePost {
+				deleteResp, deleteErr := authorClient.DeletePost(context.Background(), created.Id)
+				require.NoError(t, deleteErr)
+				CheckOKStatus(t, deleteResp)
+			}
+
+			posted := waitForPostEvent(t, wsClient, tc.eventType, created.Id)
+			assertEventFields(t, posted, tc.wantHashtags)
+		})
+	}
+
+	t.Run("author and member, one post", func(t *testing.T) {
+		authorWS := th.CreateConnectedWebSocketClientWithClient(t, authorClient)
+		memberWS := th.CreateConnectedWebSocketClientWithClient(t, memberClient)
+
+		created, resp, err := authorClient.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   message,
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created)
+
+		authorPosted := waitForPostEvent(t, authorWS, model.WebsocketEventPosted, created.Id)
+		memberPosted := waitForPostEvent(t, memberWS, model.WebsocketEventPosted, created.Id)
+		assertEventFields(t, authorPosted, hashtag)
+		assertEventFields(t, memberPosted, "")
+
+		// A later read still returns hashtags to the author and empty hashtags to the member.
+		authorGot, authorResp, authorErr := authorClient.GetPost(context.Background(), created.Id, "")
+		require.NoError(t, authorErr)
+		CheckOKStatus(t, authorResp)
+		assert.Equal(t, hashtag, authorGot.Hashtags)
+		assert.Contains(t, channelMentions(t, authorGot), mention)
+
+		memberGot, memberResp, memberErr := memberClient.GetPost(context.Background(), created.Id, "")
+		require.NoError(t, memberErr)
+		CheckOKStatus(t, memberResp)
+		assert.Empty(t, memberGot.Hashtags)
+		assert.Empty(t, channelMentions(t, memberGot))
 	})
 }
 

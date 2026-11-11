@@ -18,3 +18,9 @@ export type CustomTimeRange = {
 
 // A preset's length in minutes, or an absolute range
 export type TimeRange = number | CustomTimeRange | null;
+
+// A plugin the viewer can filter by. One that isn't installed is named by the ID in its entries
+export type PluginOption = {
+    id: string;
+    name: string;
+};

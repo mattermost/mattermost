@@ -33,7 +33,6 @@ export const SERVER_SOURCED_NAMES = [
 ] as const;
 
 const DURATION_PRESET_LABELS: Record<number, string> = {
-    30: '30s',
     60: '1m',
     300: '5m',
     3600: '1h',
