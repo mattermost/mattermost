@@ -422,10 +422,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const width = dimensions?.width ?? 0;
             const height = dimensions?.height ?? 0;
 
-            // Rather than setting a fixed width and height, give the placeholder the natural size of the image
-            // so that each surface's max-width and max-height scale it exactly like the real image. Size
-            // containment makes that size apply before the src is decoded. The mini preview has a fixed size,
-            // so it's drawn as a background to keep it from affecting the placeholder's size.
+            // The placeholder has the image's natural size so that each surface's max-width and max-height scale
+            // it exactly like the real image. Size containment applies that size before the src is decoded. The
+            // mini preview has a fixed size, so it's drawn as a background to keep it from affecting sizing.
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
                     {this.renderImageLoaderIfNeeded()}
