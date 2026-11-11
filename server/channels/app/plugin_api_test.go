@@ -815,7 +815,7 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 		return req.Resource.ID == th.BasicChannel.Id &&
 			req.Action == model.AccessControlPolicyActionUploadFileAttachment &&
-			req.Subject.Session[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10"
+			req.Subject.Session == nil
 	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
 
 	tests := []struct {
@@ -867,7 +867,7 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 			expected:  false,
 		},
 		{
-			name:      "policy allow with session attributes",
+			name:      "policy allow without request-scoped session attributes",
 			sessionID: activeSession.Id,
 			fileID:    fileInfo.Id,
 			action:    model.AccessControlPolicyActionUploadFileAttachment,
