@@ -19467,10 +19467,6 @@
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
   },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
-  },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
     "description": "Section heading of the channel attributes editor in channel settings."
