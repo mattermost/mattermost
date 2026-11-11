@@ -12,7 +12,7 @@ import type {GlobalState} from 'types/store';
 import {mapStateToProps} from './index';
 
 describe('components/backstage mapStateToProps', () => {
-    function getState(systemPermissions: string[], config: Record<string, string> = {}) {
+    function getState(systemPermissions: string[], config: Record<string, string> = {}, teamPermissions: string[] = []) {
         const state: DeepPartial<GlobalState> = {
             entities: {
                 general: {
@@ -36,7 +36,7 @@ describe('components/backstage mapStateToProps', () => {
                 roles: {
                     roles: {
                         system_user: TestHelper.getRoleMock({name: 'system_user', permissions: systemPermissions}),
-                        team_user: TestHelper.getRoleMock({name: 'team_user', permissions: []}),
+                        team_user: TestHelper.getRoleMock({name: 'team_user', permissions: teamPermissions}),
                     },
                 },
             },
@@ -59,6 +59,12 @@ describe('components/backstage mapStateToProps', () => {
 
     test('should not allow managing integrations when outgoing OAuth connections are enabled but the user lacks the permission', () => {
         const state = getState([], {EnableOutgoingOAuthConnections: 'true'});
+
+        expect(mapStateToProps(state).canManageIntegrations).toBe(false);
+    });
+
+    test('should not allow managing integrations when the outgoing OAuth connections permission is only granted by a team role', () => {
+        const state = getState([], {EnableOutgoingOAuthConnections: 'true'}, [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]);
 
         expect(mapStateToProps(state).canManageIntegrations).toBe(false);
     });

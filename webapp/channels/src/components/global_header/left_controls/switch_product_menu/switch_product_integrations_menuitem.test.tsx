@@ -188,6 +188,19 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
         expect(screen.getByText('Integrations')).toBeInTheDocument();
     });
 
+    test('should not show when outgoing OAuth connections permission is only granted by a team role', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledOutgoingOAuthConnections={true}
+            />,
+            getStateWithPermissions([Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]),
+        );
+
+        expect(screen.queryByText('Integrations')).not.toBeInTheDocument();
+    });
+
     test('should not show when outgoing OAuth connections are disabled and that is the only permission', () => {
         renderWithContext(
             <ProductSwitcherIntegrationsMenuItem
