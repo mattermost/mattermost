@@ -24,7 +24,6 @@ import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
-const MAX_IMAGE_HEIGHT = 350;
 
 export type Props = WrappedComponentProps & {
 
@@ -415,10 +414,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
-            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
-            const height = (dimensions?.height ?? 0) * ratio;
-            const width = (dimensions?.width ?? 0) * ratio;
-
             // Placeholder-only mode reserves layout without rendering image-derived content;
             // rejected files should also avoid preview content.
             const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
@@ -433,7 +428,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     <img
                         role='presentation'
                         className={classNames('image-loading__placeholder', this.props.className)}
-                        src={emptyImageForDimensions(width, height)}
+                        src={emptyImageForDimensions(dimensions?.width ?? 0, dimensions?.height ?? 0)}
                         style={miniPreview ? {backgroundImage: `url("${miniPreview}")`} : undefined}
                     />
                 </div>,

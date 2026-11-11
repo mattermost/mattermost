@@ -110,15 +110,12 @@ describe('components/SizeAwareImage', () => {
         expect((placeholder as HTMLElement).style.backgroundImage).toEqual('');
     });
 
-    test.each([
-        {name: 'wide', dimensions: {width: 2000, height: 400}, viewBox: '0 0 1750 350'},
-        {name: 'tall', dimensions: {width: 600, height: 1200}, viewBox: '0 0 175 350'},
-        {name: 'short', dimensions: {width: 400, height: 40}, viewBox: '0 0 400 40'},
-    ])('should give the placeholder the image aspect ratio capped to the max image height ($name image)', ({dimensions, viewBox}) => {
+    test('should leave scaling down a large placeholder to CSS so it matches the real image', () => {
+        const dimensions = {width: 3664, height: 2443};
         const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions}}/>, state);
 
         const placeholder = container.querySelector('img.image-loading__placeholder');
-        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent(`viewBox="${viewBox}"`));
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('width="3664" height="2443" viewBox="0 0 3664 2443"'));
     });
 
     test('should render a mini preview when showLoader is true and preview is set', () => {
