@@ -77,6 +77,18 @@ class ReleaseLifecycleTest(unittest.TestCase):
         self.assertIn("    v11.10                 :done, 2026-08-14, 2026-11-15", lines)  # ended the day before v12.1
         self.assertIn("    v11.11                 :active, 2026-09-16, 2026-12-15", lines)
 
+    def test_a_missing_next_release_is_a_todo_even_when_later_ones_are_dated(self):
+        result = build(cal=(("v12.3 Release Day", "20270115"), ("v12.4 Release Day", "20270216")))
+        self.assertIn("no Release Day for v12.2 on the Release Dates calendar, so the Release Lifecycle chart has no line "
+                      "for it", result.todos)
+        self.assertIn("    v12.3                  :active, 2027-01-15, 2027-04-15", chart_lines(result))
+        self.assertEqual(sum(1 for line in chart_lines(result) if line.split()[0] == "v12.4"), 1)  # only the planned ESR line
+
+    def test_the_next_major_follows_the_last_minor(self):
+        found = release_docs_pr.upcoming_releases(Version.parse("v12.9.0"), events(
+            ("v13.0 Release Day", "20270716"), ("v13.1 Release Day", "20270816")))
+        self.assertEqual([(v.short, str(day)) for v, day in found], [("v13.0", "2027-07-16"), ("v13.1", "2027-08-16")])
+
     def test_a_release_with_no_release_day_is_a_todo_not_a_guess(self):
         result = build(cal=(("v12.2 Release Day", "20261216"),))
         self.assertIn("no Release Day for v12.3 on the Release Dates calendar, so the Release Lifecycle chart has no line "
@@ -119,11 +131,13 @@ class DelayedReleaseTest(unittest.TestCase):
 
 
 class FakeJira:
-    def __init__(self, tickets):
-        self.tickets, self.queries = tickets, []
+    def __init__(self, tickets, error=None):
+        self.tickets, self.queries, self.error = tickets, [], error
 
     def search(self, jql, fields):
         self.queries.append(jql)
+        if self.error:
+            raise self.error
         return self.tickets
 
     def browse_url(self, key):
@@ -152,7 +166,8 @@ class AccessibilityTest(unittest.TestCase):
         hub = FakeHub()
         run = self.run_release_docs(jira_client, hub)
         self.assertIn("parent = MM-59517", jira_client.queries[0])
-        self.assertIn('updated >= "2026-09-30" AND updated <= "2026-10-28"', jira_client.queries[0])  # since v12.0's FC
+        # Since v12.0's FC, and before tomorrow: a date-only bound is midnight, so "<= today" would miss today's updates.
+        self.assertIn('updated >= "2026-09-30" AND updated < "2026-10-29"', jira_client.queries[0])
         self.assertIn("- [ ] UI & Accessibility changelog. 2 accessibility tickets to review, listed on Hub.", run.result.body)
         posts = hub.posts_in("review")
         self.assertEqual(len(posts), 1)
@@ -165,6 +180,30 @@ class AccessibilityTest(unittest.TestCase):
         self.assertIn(release_docs_pr.PLACEHOLDER_MARKER, run.result.files[release_docs_pr.UI_ADA_CHANGELOG])
         self.run_release_docs(jira_client, hub)  # a rerun lists them once
         self.assertEqual(len(hub.posts_in("review")), 1)
+
+    def test_tickets_found_later_are_added_in_the_thread(self):
+        first = {"key": "MM-77701", "fields": {"summary": "Fix contrast of the sidebar"}}
+        later = {"key": "MM-77703", "fields": {"summary": "Announce the unread count"}}
+        jira_client, hub = FakeJira([first]), FakeHub()
+        self.run_release_docs(jira_client, hub)
+        jira_client.tickets = [first, later]
+        run = self.run_release_docs(jira_client, hub)
+        root, = hub.posts_in("review", root="")
+        replies = hub.posts_in("review", root=root["id"])
+        self.assertEqual(len(replies), 1)
+        self.assertIn("1 more accessibility ticket for v12.1", replies[0]["message"])
+        self.assertIn("- [MM-77703](https://jira.example/browse/MM-77703) Announce the unread count", replies[0]["message"])
+        self.assertNotIn("MM-77701", replies[0]["message"])
+        self.assertIn("2 accessibility tickets to review, listed on Hub.", run.result.body)
+        self.run_release_docs(jira_client, hub)  # nothing new: nothing posted
+        self.assertEqual(len(hub.posts_in("review")), 2)
+
+    def test_a_failed_jira_search_is_a_todo_not_an_unconfigured_jira(self):
+        run = self.run_release_docs(FakeJira([], error=RuntimeError("HTTP 500")), FakeHub())
+        self.assertIn("the accessibility tickets couldn't be read from Jira (RuntimeError); run the playbook's filter by hand",
+                      run.result.todos)
+        self.assertIn("Accessibility tickets not checked: the Jira search failed (see the TODO).", run.result.body)
+        self.assertNotIn("Jira isn't configured", run.result.body)
 
     def test_without_jira_the_pr_says_so(self):
         run = self.run_release_docs(None, FakeHub())

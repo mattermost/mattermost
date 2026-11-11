@@ -528,6 +528,13 @@ class ChangelogTest(unittest.TestCase):
         self.assertIn(" <Attention>\n\n**Critical Fixes**\n  - Mattermost v12.1.2 contains a Critical", text)
         self.assertEqual(dr.mdx_issues(text), dr.mdx_issues(section))
 
+    def test_a_blank_line_inside_the_last_bullets_body_keeps_its_items_with_it(self):
+        section = (f"{HEADING}\n\n- **12.1.3, released 2026-11-20**\n  - First fix.\n\n  - Second fix.\n\n"
+                   "### Improvements\n - Added a thing.\n")
+        text = dr.update_changelog(section, simple_release("v12.1.2"), Result(dr.TASK, "x"))
+        self.assertIn("  - First fix.\n\n  - Second fix.\n- **12.1.2, released 2026-11-02**\n"
+                      "  - Mattermost v12.1.2 contains no database or functional changes.\n\n### Improvements", text)
+
     def test_older_dot_release_at_the_end_of_the_section(self):
         section = f"{HEADING}\n\n- **12.1.3, released 2026-11-20**\n  - Original bullet.\n## Release v12.0 - [x]\n"
         text = dr.update_changelog(section, simple_release("v12.1.2"), Result(dr.TASK, "x"))

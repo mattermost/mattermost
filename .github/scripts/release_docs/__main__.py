@@ -586,9 +586,10 @@ def accessibility_tickets(env: dict, version: Version, events: list, live: bool,
     """(count, listed on Hub) for the playbook item's accessibility filter, or None without Jira.
 
     The window runs from the previous release's Feature Complete (31 days back when the
-    calendar doesn't have it) to today. Jira is private, so the tickets are listed only on
-    Hub, in the review channel (in a dry run, the test channel), once per release; the PR
-    body and the run output get the count only.
+    calendar doesn't have it) to today, including tickets updated today. Jira is private, so
+    the tickets are listed only on Hub, in the review channel (in a dry run, the test channel):
+    one post per release, and a reply in its thread for tickets a later run finds. The PR body
+    and the run output get the count only. A failed search is a TODO and ``(None, False)``.
     """
     client = jira.from_env(env)
     if client is None:
@@ -598,24 +599,39 @@ def accessibility_tickets(env: dict, version: Version, events: list, live: bool,
                      if line < version.line and "feature_complete" in found)
     since = (calendar.milestones(events)[earlier[-1]]["feature_complete"].start if earlier
              else today - timedelta(days=31))
-    jql = release_docs_pr.ACCESSIBILITY_JQL.format(since=since.isoformat(), until=today.isoformat())
+    # A date-only bound is midnight in Jira's time zone: "before tomorrow" keeps today's updates.
+    jql = release_docs_pr.ACCESSIBILITY_JQL.format(since=since.isoformat(), before=(today + timedelta(days=1)).isoformat())
     try:
         tickets = client.search(jql, ["summary"])
     except Exception as err:  # noqa: BLE001 - only the error type is public
-        result.notes.append(f"The accessibility tickets couldn't be read from Jira ({type(err).__name__}).")
-        return None
+        result.todo(f"the accessibility tickets couldn't be read from Jira ({type(err).__name__}); run the playbook's "
+                    "filter by hand")
+        return None, False
     hub = hublib.from_env(env)
     review = hublib.review_channel_id(env, live, hublib.release_channel(hub, version) if hub else None) if hub else ""
     if not hub or not review:
         return len(tickets), False
+
+    def lines(found):
+        return "\n".join(f"- [{t['key']}]({client.browse_url(t['key'])}) "
+                         f"{' '.join(((t.get('fields') or {}).get('summary') or '').split())}" for t in found)
     marker = f"release-docs:accessibility:{version.short}"
-    if not hublib.find_post(hub, review, marker):
-        lines = [f"- [{t['key']}]({client.browse_url(t['key'])}) {' '.join(((t.get('fields') or {}).get('summary') or '').split())}"
-                 for t in tickets] or ["- None found."]
+    root = hublib.find_post(hub, review, marker)
+    if root is None:
         hub.create_post(review, f"Accessibility tickets for the {version.short} UI & Accessibility changelog "
                                 f"(resolved or closed, updated {since.isoformat()} to {today.isoformat()}), "
-                                f"[from this filter]({client.filter_url(jql)}):\n\n" + "\n".join(lines),
+                                f"[from this filter]({client.filter_url(jql)}):\n\n" + (lines(tickets) or "- None found."),
                         {hublib.MARKER_PROP: marker})
+        return len(tickets), True
+    bot = hub.me()["id"]
+    listed = {key for post in hub.thread(root["id"]) if post.get("user_id") == bot
+              for key in re.findall(r"\[([A-Z][A-Z0-9]+-\d+)\]\(", post.get("message") or "")}
+    new = [t for t in tickets if t["key"] not in listed]
+    if new:
+        hub.create_post(review, f"{len(new)} more accessibility ticket{'s' if len(new) > 1 else ''} for "
+                                f"{version.short} since the list above (updated up to {today.isoformat()}, "
+                                f"[from this filter]({client.filter_url(jql)})):\n\n" + lines(new),
+                        {hublib.MARKER_PROP: f"{marker}:{today.isoformat()}"}, root_id=root["id"])
     return len(tickets), True
 
 

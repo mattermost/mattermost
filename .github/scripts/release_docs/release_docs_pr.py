@@ -31,7 +31,7 @@ EXAMPLE_PR = "https://github.com/mattermost/mattermost/pull/38573"
 MOBILE_RELEASES = "docs/main/product-overview/mattermost-mobile-releases.mdx"
 # The playbook item's accessibility filter (Jira filter 15011), with this release's dates.
 ACCESSIBILITY_JQL = ('project = MM AND status IN (Resolved, Closed) AND parent = MM-59517 '
-                     'AND updated >= "{since}" AND updated <= "{until}"')
+                     'AND updated >= "{since}" AND updated < "{before}"')
 PLAYBOOK_QUOTE = ("Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source "
                   "Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle (add two "
                   "upcoming versions and mark one version as unsupported), Desktop compatibility, and ESR/PostgreSQL "
@@ -183,16 +183,20 @@ def update_esr_chart(content: str, version: Version, esr_versions: str, release_
 
 def upcoming_releases(version: Version, events: list | None) -> list[tuple[Version, date | None]]:
     """The two server releases after ``version``, with their Release Day from the calendar.
-    One the calendar doesn't have yet is the next minor with no date: a TODO, never a guess."""
+
+    Each is the one right after the last: the next minor, or the next major's .0 when the
+    calendar has that instead. One the calendar doesn't have yet is the next minor with no
+    date, a TODO, never a guess, even when the calendar has the releases after it.
+    """
     from . import calendar
-    found = [(v, ms["release_day"].start) for v, ms in calendar.next_releases(events or [], version, 2)]
-    expected = [Version(version.major, version.minor + 1), Version(version.major, version.minor + 2)]
-    for wanted in expected:
-        if len(found) >= 2:
-            break
-        if all(v.line != wanted.line for v, _ in found):
-            found.append((wanted, None))
-    return sorted(found, key=lambda pair: pair[0].line)[:2]
+    dated = {v.line: (v, ms["release_day"].start) for v, ms in calendar.next_releases(events or [], version, 6)}
+    found, previous = [], version
+    while len(found) < 2:
+        following = ((previous.major, previous.minor + 1), (previous.major + 1, 0))
+        found.append(next((dated[line] for line in following if line in dated),
+                          (Version(previous.major, previous.minor + 1), None)))
+        previous = found[-1][0]
+    return found
 
 
 def add_upcoming_lines(content: str, upcoming: list, esr_versions: str, result: Result) -> str:
@@ -510,6 +514,8 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
                 "have a TODO), versions past their support end marked as unsupported (`:done`)")
     if accessibility is None:
         ada = "Accessibility tickets not checked: Jira isn't configured for this run."
+    elif accessibility[0] is None:
+        ada = "Accessibility tickets not checked: the Jira search failed (see the TODO)."
     elif accessibility[1]:
         ada = f"{accessibility[0]} accessibility tickets to review, listed on Hub."
     else:

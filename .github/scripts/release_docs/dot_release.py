@@ -543,7 +543,8 @@ def _callout_after(lines: list[str], index: int, end: int) -> tuple[int, int] | 
 
 def _bullet_end(lines: list[str], bullet: int, end: int) -> int:
     """The line after a dot release bullet's body: its indented lines, including an indented ``<Attention>``
-    block, whose own lines may be blank or unindented."""
+    block, whose own lines may be blank or unindented. Blank lines followed by more indented lines are
+    part of the body; before an unindented line or the section's end they are not."""
     i, callout = bullet + 1, False
     while i < end:
         line = lines[i]
@@ -551,7 +552,13 @@ def _bullet_end(lines: list[str], bullet: int, end: int) -> int:
             callout = line.strip() != "</Attention>"
         elif line.startswith((" ", "\t")) and line.strip() == "<Attention>":
             callout = True
-        elif not line.strip() or not line.startswith((" ", "\t")):
+        elif not line.strip():
+            following = next((j for j in range(i, end) if lines[j].strip()), end)
+            if following == end or not lines[following].startswith((" ", "\t")):
+                break
+            i = following
+            continue
+        elif not line.startswith((" ", "\t")):
             break
         i += 1
     return i
