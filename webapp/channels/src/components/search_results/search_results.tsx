@@ -196,7 +196,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
 
     let titleDescriptor;
     const noResultsProps: NoResultsProps = {
-        variant: NoResultsVariant.ChannelSearch,
+        variant: NoResultsVariant.Search,
     };
 
     if (isMentionSearch) {
