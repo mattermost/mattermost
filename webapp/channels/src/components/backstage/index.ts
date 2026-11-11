@@ -14,7 +14,7 @@ import type {GlobalState} from 'types/store';
 
 import BackstageController from './backstage_controller';
 
-function mapStateToProps(state: GlobalState) {
+export function mapStateToProps(state: GlobalState) {
     const user = getCurrentUser(state);
     const team = getCurrentTeam(state);
 
@@ -45,7 +45,8 @@ function mapStateToProps(state: GlobalState) {
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS) ||
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OUTGOING_WEBHOOKS) ||
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS) ||
-        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH})
+        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH}) ||
+        (enableOutgoingOAuthConnections && haveITeamPermission(state, team?.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS))
     );
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;

@@ -21,6 +21,7 @@ interface Props {
     haveEnabledOutgoingWebhooks: boolean;
     haveEnabledSlashCommands: boolean;
     haveEnabledOAuthServiceProvider: boolean;
+    haveEnabledOutgoingOAuthConnections: boolean;
     currentTeamName?: string;
 }
 
@@ -52,7 +53,10 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     // 4. OAuth
     const havePermissionToManageOAuth = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH}));
 
-    // 5. Bots
+    // 5. Outgoing OAuth Connections
+    const havePermissionToManageOutgoingOAuthConnections = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
+
+    // 6. Bots
     // We already checked if user have permission to manage bots or others bots above.
 
     const canVisitIntegrationsPage =
@@ -60,6 +64,7 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
         (props.haveEnabledOutgoingWebhooks && (havePermissionToManageOutgoingWebhooks || havePermissionToManageOwnOutgoingWebhooks)) ||
         (props.haveEnabledSlashCommands && (havePermissionToManageSlashCommands || havePermissionToManageOwnSlashCommands)) ||
         (props.haveEnabledOAuthServiceProvider && havePermissionToManageOAuth) ||
+        (props.haveEnabledOutgoingOAuthConnections && havePermissionToManageOutgoingOAuthConnections) ||
         havePermissionToManageSomeBots;
 
     if (!props.isChannelsProductActive) {

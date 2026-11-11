@@ -69,6 +69,7 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
                 haveEnabledOutgoingWebhooks={true}
                 haveEnabledSlashCommands={true}
                 haveEnabledOAuthServiceProvider={true}
+                haveEnabledOutgoingOAuthConnections={true}
             />,
         );
 
@@ -83,6 +84,7 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
                 haveEnabledOutgoingWebhooks={true}
                 haveEnabledSlashCommands={true}
                 haveEnabledOAuthServiceProvider={true}
+                haveEnabledOutgoingOAuthConnections={true}
             />,
             initialState,
         );
@@ -117,6 +119,7 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
         haveEnabledOutgoingWebhooks: false,
         haveEnabledSlashCommands: false,
         haveEnabledOAuthServiceProvider: false,
+        haveEnabledOutgoingOAuthConnections: false,
     };
 
     test('should show when only incoming webhooks are enabled', () => {
@@ -164,11 +167,37 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
                 isChannelsProductActive={true}
                 {...noIntegrationsEnabled}
                 haveEnabledOAuthServiceProvider={true}
+                haveEnabledOutgoingOAuthConnections={true}
             />,
             getStateWithPermissions([], [Permissions.MANAGE_OAUTH]),
         );
 
         expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when only outgoing OAuth connections are enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledOutgoingOAuthConnections={true}
+            />,
+            getStateWithPermissions([], [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should not show when outgoing OAuth connections are disabled and that is the only permission', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+            />,
+            getStateWithPermissions([], [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]),
+        );
+
+        expect(screen.queryByText('Integrations')).not.toBeInTheDocument();
     });
 
     test('should show when the user can manage bots even with no integration enabled', () => {
@@ -230,6 +259,7 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
                 haveEnabledOutgoingWebhooks={false}
                 haveEnabledSlashCommands={false}
                 haveEnabledOAuthServiceProvider={false}
+                haveEnabledOutgoingOAuthConnections={false}
             />,
             state,
         );

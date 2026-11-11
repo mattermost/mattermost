@@ -54,6 +54,7 @@ export function SwitchProductMenu(props: Props) {
     const haveEnabledOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const haveEnabledSlashCommands = config.EnableCommands === 'true';
     const haveEnabledOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const haveEnabledOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
 
     const siteName = config.SiteName;
 
@@ -131,6 +132,7 @@ export function SwitchProductMenu(props: Props) {
                 haveEnabledOutgoingWebhooks={haveEnabledOutgoingWebhooks}
                 haveEnabledSlashCommands={haveEnabledSlashCommands}
                 haveEnabledOAuthServiceProvider={haveEnabledOAuthServiceProvider}
+                haveEnabledOutgoingOAuthConnections={haveEnabledOutgoingOAuthConnections}
                 currentTeamName={currentTeamName}
             />
             <ProductSwitcherUserGroupsMenuItem
