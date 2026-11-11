@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {TimeRange} from './types';
-import {LEVEL_GROUPS, SEARCH_MAX_LENGTH} from './utils';
+import {FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH} from './utils';
 import type {LevelGroup} from './utils';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
@@ -11,9 +11,15 @@ export type UrlFilters = {
     enabledLevels: Set<string>;
     node: string;
     timeRange: TimeRange;
+    plugins: string[];
 };
 
 const PARAMS = ['search', 'levels', 'node', 'range', 'from', 'to'] as const;
+
+// A field filter is one parameter per value, such as field.plugin_id=github. Only the plugin is read, as it's
+// the only field the viewer shows a filter for, so a link can't filter the view in a way the admin can't see or clear
+const FIELD_PARAM_PREFIX = 'field.';
+const PLUGIN_PARAM = FIELD_PARAM_PREFIX + PLUGIN_ID_FIELD;
 
 // An offset is required so a shared range means the same moment in every timezone
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
@@ -68,6 +74,14 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
         filters.timeRange = range;
     }
 
+    // Values the server would reject are left out, keeping the first ones up to its limit
+    const plugins = Array.from(new Set(params.getAll(PLUGIN_PARAM))).
+        filter((id) => id && Array.from(id).length <= FIELD_MAX_LENGTH).
+        slice(0, FIELD_MAX_VALUES);
+    if (plugins.length) {
+        filters.plugins = plugins;
+    }
+
     return filters;
 }
 
@@ -75,9 +89,10 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
 export function withUrlFilters(query: string, filters: UrlFilters | null): string {
     const params = new URLSearchParams(query);
     PARAMS.forEach((param) => params.delete(param));
+    Array.from(params.keys()).filter((param) => param.startsWith(FIELD_PARAM_PREFIX)).forEach((param) => params.delete(param));
 
     if (filters) {
-        const {search, enabledLevels, node, timeRange} = filters;
+        const {search, enabledLevels, node, timeRange, plugins} = filters;
         if (search) {
             params.set('search', search);
         }
@@ -93,6 +108,7 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
             params.set('from', new Date(timeRange.from).toISOString());
             params.set('to', new Date(timeRange.to).toISOString());
         }
+        plugins.forEach((id) => params.append(PLUGIN_PARAM, id));
     }
 
     // Commas and colons are allowed in a query string, and keep shared links readable
