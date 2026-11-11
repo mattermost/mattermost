@@ -43,7 +43,6 @@
   "devDependencies": {
     "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
     "@playwright/test": "1.62.1",
-    "@types/luxon": "3.7.4",
     "@types/pg": "8.23.1",
     "@typescript-eslint/eslint-plugin": "8.67.0",
     "chalk": "6.0.0",
@@ -53,7 +52,6 @@
     "eslint-import-resolver-typescript": "4.4.5",
     "glob": "13.0.6",
     "globals": "17.11.0",
-    "luxon": "3.7.2",
     "pg": "8.23.0",
     "playwright-core": "1.62.1",
     "prettier": "3.9.6",
