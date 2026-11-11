@@ -401,10 +401,11 @@ func dateToTestLogFile(start time.Time, count int) []string {
 // referenceFilteredLogs returns the page GetLogsSkipSend returns when it reads every line.
 func referenceFilteredLogs(rctx request.CTX, all []string, perPage int, filter *model.LogFilter) []string {
 	search := newLogSearch(filter)
+	fields := newLogFields(filter)
 
 	var lines []string
 	for i := len(all) - 1; i >= 0 && len(lines) < perPage; i-- {
-		filtered := isLogFilteredBySearch(search, []byte(all[i]))
+		filtered := isLogFilteredByContent(search, fields, []byte(all[i]))
 		var entry *model.LogEntry
 		if err := json.Unmarshal([]byte(all[i]), &entry); err == nil && entry != nil {
 			filtered = filtered || isLogFilteredByLevel(filter, entry) || isLogFilteredByDate(rctx, filter, entry)
