@@ -137,7 +137,7 @@ function focusTriggerFromChip(event: MouseEvent<HTMLDivElement>) {
     const trigger = closedTriggerOf(event.currentTarget);
     if (trigger) {
         event.preventDefault();
-        trigger.focus();
+        trigger.focus({preventScroll: true});
     }
 }
 

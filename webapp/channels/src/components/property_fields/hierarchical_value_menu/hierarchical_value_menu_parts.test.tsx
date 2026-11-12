@@ -227,6 +227,51 @@ describe('SelectedValueChips', () => {
         expect(onTriggerClick).not.toHaveBeenCalled();
     });
 
+    describe('chip mousedown', () => {
+        // Stand-in for the real trigger: only the class and aria-expanded matter to the handler.
+        const renderInTrigger = (expanded: boolean) => {
+            renderWithContext(
+                <div
+                    role='button'
+                    className='hierarchical-value-menu__button'
+                    aria-expanded={expanded}
+                    tabIndex={-1}
+                >
+                    <SelectedValueChips
+                        selectedIds={['opt-air']}
+                        labelForId={() => named('Air Program')}
+                        disabled={false}
+                        onRemove={jest.fn()}
+                    />
+                </div>,
+            );
+            const triggerElement = document.querySelector('.hierarchical-value-menu__button') as HTMLElement;
+            return {triggerElement, chip: document.querySelector('[data-chip]') as HTMLElement};
+        };
+
+        test('focuses the closed trigger without scrolling it into view', () => {
+            const {triggerElement, chip} = renderInTrigger(false);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            const notPrevented = fireEvent.mouseDown(chip);
+
+            expect(notPrevented).toBe(false);
+            expect(triggerElement).toHaveFocus();
+            expect(focus).toHaveBeenCalledTimes(1);
+            expect(focus).toHaveBeenCalledWith({preventScroll: true});
+        });
+
+        test('does not focus the trigger while the menu is open', () => {
+            const {triggerElement, chip} = renderInTrigger(true);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            const notPrevented = fireEvent.mouseDown(chip);
+
+            expect(notPrevented).toBe(true);
+            expect(focus).not.toHaveBeenCalled();
+        });
+    });
+
     test('Delete on a focused chip removes the value', async () => {
         const onRemove = jest.fn();
         renderChips({selectedIds: ['opt-air'], onRemove});
