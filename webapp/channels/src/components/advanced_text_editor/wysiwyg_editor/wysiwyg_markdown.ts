@@ -102,6 +102,36 @@ export const stripRedundantLinkMarks = (node: JSONContent): JSONContent => {
     return {...node, content: next};
 };
 
+// The Markdown parser can put inline nodes, such as an image on a line of its own, directly in a
+// node that only holds blocks, like a blockquote, which the schema then rejects. Wraps each run of
+// them in a paragraph.
+const wrapInlineChildren = (editor: Editor, node: JSONContent): JSONContent => {
+    const type = node.type ? editor.schema.nodes[node.type] : undefined;
+    if (!node.content || !type || type.isTextblock || type.isInline) {
+        return node;
+    }
+
+    const content: JSONContent[] = [];
+    let inlineRun: JSONContent[] = [];
+    for (const child of node.content) {
+        const childType = child.type ? editor.schema.nodes[child.type] : undefined;
+        if (childType?.isInline) {
+            inlineRun.push(child);
+            continue;
+        }
+        if (inlineRun.length) {
+            content.push({type: 'paragraph', content: inlineRun});
+            inlineRun = [];
+        }
+        content.push(wrapInlineChildren(editor, child));
+    }
+    if (inlineRun.length) {
+        content.push({type: 'paragraph', content: inlineRun});
+    }
+
+    return {...node, content};
+};
+
 export const parseMarkdownContent = (editor: Editor, markdown: string): JSONContent | undefined => {
     const doc = editor.markdown?.parse(markdown);
     if (!doc?.content) {
@@ -112,7 +142,7 @@ export const parseMarkdownContent = (editor: Editor, markdown: string): JSONCont
         ...doc,
         content: doc.content.map((node) => {
             const type = node.type ? editor.schema.nodes[node.type] : undefined;
-            return type?.isInline ? {type: 'paragraph', content: [node]} : node;
+            return type?.isInline ? {type: 'paragraph', content: [node]} : wrapInlineChildren(editor, node);
         }),
     };
 };

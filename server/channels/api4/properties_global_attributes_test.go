@@ -307,6 +307,10 @@ func TestSearchGlobalAttributeListing(t *testing.T) {
 	})
 
 	t.Run("a stored permissions object is withheld like the field endpoints withhold it from a v2 group", func(t *testing.T) {
+		// access_control is a v3 group, so it serves the v2 shape only with the flag off.
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldPermissionsV3 = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldPermissionsV3 = true })
+
 		permissionsToken := "gaperm" + strings.ToLower(model.NewId()[:10])
 		created, storeErr := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
 			GroupID:    group.ID,
