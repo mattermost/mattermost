@@ -234,7 +234,7 @@ $(if mme2e_is_token_in_list "keycloak" "$ENABLED_DOCKER_SERVICES"; then
 $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   cypress:
-    image: "cypress/browsers:node-24.14.0-chrome-145.0.7632.116-1-ff-148.0-edge-145.0.3800.70-1"
+    image: "cypress/browsers:node-24.22.1-chrome-156.0.8078.73-1-ff-159.0-edge-156.0.4314.50-1"
     platform: linux/amd64
     entrypoint: ["/bin/bash", "-c"]
     command: ["until [ -f /var/run/mm_terminate ]; do sleep 5; done"]
