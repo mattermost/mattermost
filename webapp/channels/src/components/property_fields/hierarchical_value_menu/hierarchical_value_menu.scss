@@ -296,6 +296,12 @@
         &.MuiList-padding {
             padding-top: 0;
         }
+
+        // The list's inline width is the trigger's; rows fill it instead of
+        // stopping at the 320px cap.
+        &--trigger-width .hierarchical-value-menu__row {
+            max-width: none;
+        }
     }
 
     &__search {
@@ -458,4 +464,14 @@
 .menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__menu),
 .menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__search) {
     max-width: 320px;
+}
+
+// Trigger-width menus size the list explicitly, so neither our 320px cap nor
+// menu.scss's 496px paper cap applies. Five classes beat menu.scss's four.
+.MuiPopover-root.MuiModal-root.menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__menu--trigger-width) {
+    max-width: none;
+
+    > .hierarchical-value-menu__search {
+        max-width: none;
+    }
 }

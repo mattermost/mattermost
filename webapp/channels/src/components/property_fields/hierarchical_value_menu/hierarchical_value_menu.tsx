@@ -167,6 +167,10 @@ export default function HierarchicalValueMenu({
     const [query, setQuery] = useState('');
     const [expandedOccKeys, setExpandedOccKeys] = useState<Set<string> | null>(null);
 
+    // Form fields open their popover at the field's width, like the Compass Combobox.
+    const matchesTriggerWidth = variant === 'input';
+    const [triggerWidth, setTriggerWidth] = useState<number | null>(null);
+
     const {options, join, status, refetch} = useGraphOptionJoin(field, {
         prefetch: prefetchOnMount,
         open: isOpen,
@@ -289,9 +293,14 @@ export default function HierarchicalValueMenu({
     );
 
     const handleToggle = useCallback((open: boolean) => {
+        if (open && matchesTriggerWidth) {
+            setTriggerWidth(document.getElementById(buttonId)?.offsetWidth || null);
+        }
         setIsOpen(open);
         onMenuOpenChange?.(open);
-    }, [onMenuOpenChange]);
+    }, [matchesTriggerWidth, buttonId, onMenuOpenChange]);
+
+    const menuWidth = matchesTriggerWidth && triggerWidth ? `${triggerWidth}px` : undefined;
 
     const getPopoverContainer = useCallback(() => document.getElementById(buttonId)?.closest<HTMLElement>('[role="dialog"]') ?? null, [buttonId]);
 
@@ -509,8 +518,11 @@ export default function HierarchicalValueMenu({
                 menu={{
                     id: menuId,
                     'aria-label': resolvedAriaLabel,
-                    className: 'hierarchical-value-menu__menu',
-                    maxWidth: '320px',
+                    className: classNames('hierarchical-value-menu__menu', {
+                        'hierarchical-value-menu__menu--trigger-width': menuWidth,
+                    }),
+                    width: menuWidth,
+                    maxWidth: menuWidth ?? '320px',
                     isMenuOpen: isOpen,
                     onToggle: handleToggle,
                     autoFocusItem: false,

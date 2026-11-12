@@ -998,15 +998,33 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
         test('the open menu caps at 320px so long labels can ellipsize', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
-            renderMenu();
+            renderMenu({variant: 'policy'});
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
 
             const menu = screen.getByRole('menu');
             expect(menu).toHaveClass('hierarchical-value-menu__menu');
+            expect(menu).not.toHaveClass('hierarchical-value-menu__menu--trigger-width');
             expect(menu).toHaveStyle({maxWidth: '320px'});
             expect(labelOf('Air Program')).toHaveClass('hierarchical-value-menu__label');
+        });
+
+        test('variant=input opens the menu at the trigger width', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const offsetWidth = jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(480);
+            try {
+                renderMenu();
+
+                await openMenu();
+                await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+                const menu = screen.getByRole('menu');
+                expect(menu).toHaveClass('hierarchical-value-menu__menu--trigger-width');
+                expect(menu).toHaveStyle({width: '480px', maxWidth: '480px'});
+            } finally {
+                offsetWidth.mockRestore();
+            }
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {
