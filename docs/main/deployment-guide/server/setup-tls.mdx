@@ -62,7 +62,7 @@ Do not set up TLS on Mattermost before doing so for NGINX. It breaks the connect
 
 </Warning>
 
-- NGINX will act as a forward proxy to encrypt the traffic between the client and Mattermost server. After installing the SSL certificate, the incoming traffic will be handled via NGINX on port 443 exposed to the internet, proxy to the Mattermost server running on port 80.
+- NGINX acts as a reverse proxy and encrypts the traffic between the client and NGINX. After you install the SSL certificate, NGINX handles incoming traffic on port 443 exposed to the internet and proxies it to Mattermost Server, which listens on port 8065 by default.
 - (Optional) Upstream encryption between NGINX to Mattermost server is allowed.
 - Follow [NGINX's guide on setting up SSL Termination for TCP Upstream Servers](https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-tcp/).
 

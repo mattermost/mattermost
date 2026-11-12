@@ -4,10 +4,12 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -1031,17 +1033,20 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		err = s.deleteThread(transaction, postID, time)
 	} else {
 		err = s.updateThreadAfterReplyDeletion(transaction, id.RootId, id.UserId)
+	}
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", id.RootId)
+	}
+
+	if id.RootId != "" {
 		updatePostQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("UpdateAt", time).
 			Where(sq.Eq{"Id": id.RootId})
 		if _, err = transaction.ExecBuilder(updatePostQuery); err != nil {
-			rctx.Logger().Warn("Error updating Post UpdateAt.", mlog.Err(err))
+			return errors.Wrapf(err, "failed to update UpdateAt of root post with id=%s", id.RootId)
 		}
-	}
-
-	if err != nil {
-		return errors.Wrapf(err, "failed to cleanup Thread with postid=%s", id.RootId)
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -1566,12 +1571,11 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
-	query := s.postsQuery.
-		OrderBy("Posts.UpdateAt", "Id").
-		Limit(uint64(limit))
+	query := s.postsQuery
 
 	if options.SinceCreateAt {
-		query = query.Where(sq.Or{
+		// The redundant lower bound lets the CreateAt index range start at the cursor.
+		query = query.Where(sq.GtOrEq{"Posts.CreateAt": cursor.LastPostCreateAt}).Where(sq.Or{
 			sq.Gt{"Posts.CreateAt": cursor.LastPostCreateAt},
 			sq.And{
 				sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt},
@@ -1579,7 +1583,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 			},
 		})
 	} else {
-		query = query.Where(sq.Or{
+		query = query.Where(sq.GtOrEq{"Posts.UpdateAt": cursor.LastPostUpdateAt}).Where(sq.Or{
 			sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
 			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}},
 		})
@@ -1610,7 +1614,16 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	}
 
 	posts := []*model.Post{}
-	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+	var err error
+	switch {
+	case options.SinceCreateAt && options.IncludeDeleted:
+		posts, err = s.getPostsSinceCreateForSyncIncludingDeleted(query, limit)
+	case options.SinceCreateAt:
+		err = s.GetReplica().SelectBuilder(&posts, query.OrderBy("Posts.CreateAt", "Posts.Id").Limit(uint64(limit)))
+	default:
+		err = s.GetReplica().SelectBuilder(&posts, query.OrderBy("Posts.UpdateAt", "Id").Limit(uint64(limit)))
+	}
+	if err != nil {
 		return nil, cursor, errors.Wrapf(err, "error getting Posts with channelId=%s", options.ChannelId)
 	}
 
@@ -1624,6 +1637,48 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		}
 	}
 	return posts, cursor, nil
+}
+
+// getPostsSinceCreateForSyncIncludingDeleted pages live and deleted posts with separate queries, since no
+// index orders a channel's posts by CreateAt across all DeleteAt values, and merges them by (CreateAt, Id).
+// Both queries must share one snapshot on one replica, or a deleted post could be missed for good or
+// returned by both.
+func (s *SqlPostStore) getPostsSinceCreateForSyncIncludingDeleted(query sq.SelectBuilder, limit int) (_ []*model.Post, err error) {
+	tx, err := s.GetReplica().BeginWithIsolation(&sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	live := []*model.Post{}
+	liveQuery := query.Where(sq.Eq{"Posts.DeleteAt": 0}).OrderBy("Posts.CreateAt", "Posts.Id").Limit(uint64(limit))
+	if err = tx.SelectBuilder(&live, liveQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to get live posts")
+	}
+
+	deletedQuery := query.Where(sq.Gt{"Posts.DeleteAt": 0})
+	if len(live) == limit {
+		deletedQuery = deletedQuery.Where(sq.LtOrEq{"Posts.CreateAt": live[limit-1].CreateAt})
+	}
+	// "+ 0" keeps the planner from walking the server-wide CreateAt index hoping LIMIT stops it early.
+	deletedQuery = deletedQuery.OrderBy("Posts.CreateAt + 0", "Posts.Id").Limit(uint64(limit))
+	deleted := []*model.Post{}
+	if err = tx.SelectBuilder(&deleted, deletedQuery); err != nil {
+		return nil, errors.Wrap(err, "failed to get deleted posts")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	posts := append(live, deleted...)
+	slices.SortFunc(posts, func(a, b *model.Post) int {
+		return cmp.Or(cmp.Compare(a.CreateAt, b.CreateAt), strings.Compare(a.Id, b.Id))
+	})
+	if len(posts) > limit {
+		posts = posts[:limit]
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -3193,6 +3248,18 @@ func (s *SqlPostStore) deleteThreadFiles(transaction *sqlxTxWrapper, postID stri
 	return nil
 }
 
+// threadReplyStatsQuery selects a thread's LastReplyAt and ReplyCount in that order.
+// Selecting COUNT alongside MAX keeps Postgres from rewriting MAX as a backward scan of
+// idx_posts_create_at, which walks the whole index when no live reply remains.
+func threadReplyStatsQuery(rootId string) sq.SelectBuilder {
+	return sq.Select("COALESCE(MAX(CreateAt), 0) AS LastReplyAt", "COUNT(*) AS ReplyCount").
+		From("Posts").
+		Where(sq.Eq{
+			"RootId":   rootId,
+			"DeleteAt": 0,
+		})
+}
+
 // updateThreadAfterReplyDeletion decrements the thread reply count and adjusts the participants
 // list as necessary.
 func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper, rootId string, userId string) error {
@@ -3218,23 +3285,8 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			updateQuery = updateQuery.Set("Participants", sq.Expr("Participants - ?", userId))
 		}
 
-		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
-			From("Posts").
-			Where(sq.Eq{
-				"RootId":   rootId,
-				"DeleteAt": 0,
-			})
-
-		lastReplyCountSubquery := sq.Select("Count(*)").
-			From("Posts").
-			Where(sq.Eq{
-				"RootId":   rootId,
-				"DeleteAt": 0,
-			})
-
 		updateQuery = updateQuery.
-			Set("LastReplyAt", lastReplyAtSubquery).
-			Set("ReplyCount", lastReplyCountSubquery).
+			Set("(LastReplyAt, ReplyCount)", threadReplyStatsQuery(rootId)).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
@@ -3346,15 +3398,11 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				participants = append(participants, item.UserId)
 			}
 
-			// calculate reply count
-			var count int64
-			err := transaction.Get(&count, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? And Posts.DeleteAt=0", rootId)
-			if err != nil {
-				return err
+			var replyStats struct {
+				LastReplyAt int64
+				ReplyCount  int64
 			}
-			// calculate last reply at
-			var lastReplyAt int64
-			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootID=? and Posts.DeleteAt=0", rootId)
+			err := transaction.GetBuilder(&replyStats, threadReplyStatsQuery(rootId))
 			if err != nil {
 				return err
 			}
@@ -3378,8 +3426,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
-				ReplyCount:   count,
-				LastReplyAt:  lastReplyAt,
+				ReplyCount:   replyStats.ReplyCount,
+				LastReplyAt:  replyStats.LastReplyAt,
 				Participants: participants,
 				TeamId:       teamId,
 			}); err != nil {

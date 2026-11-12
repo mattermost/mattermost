@@ -14,6 +14,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -490,6 +491,34 @@ describe('components/channel_invite_modal', () => {
 
         // Modal renders in a portal, so query from document instead of container
         expect(document.querySelector('.AlertBanner')).not.toBeNull();
+    });
+
+    test('should say board in the policy banner for a public board', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, policy_enforced: true}}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('This board has recommended members based on user attributes')).toBeInTheDocument();
+        expect(screen.getByText('A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.')).toBeInTheDocument();
+        expect(screen.queryByText('This channel has recommended members based on user attributes')).not.toBeInTheDocument();
+    });
+
+    test('should say board in the policy banner for a private board', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, type: 'P' as ChannelType, policy_enforced: true}}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Board access is restricted by user attributes')).toBeInTheDocument();
+        expect(screen.getByText('Only people who match the specified access rules can be selected and added to this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel access is restricted by user attributes')).not.toBeInTheDocument();
     });
 
     test('should show attribute tags in AlertBanner', () => {

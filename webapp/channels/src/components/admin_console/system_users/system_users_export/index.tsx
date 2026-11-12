@@ -5,7 +5,9 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {DownloadOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
@@ -103,8 +105,8 @@ export function SystemUsersExport(props: Props) {
             emphasis='tertiary'
             size='medium'
             disabled={!props.usersLenght}
+            leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
         >
-            <span className='icon icon-download-outline'/>
             <FormattedMessage
                 id='admin.system_users.exportButton'
                 defaultMessage='Export'

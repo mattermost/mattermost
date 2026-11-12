@@ -195,6 +195,16 @@ func (ps *PropertyService) GetPropertyValues(rctx request.CTX, groupID string, i
 	return ps.runPostGetPropertyValues(rctx, values)
 }
 
+// FilterPropertyValuesForRead returns those of values the request's caller may read, as a read
+// of them would return them: the read hooks run on values the caller did not read itself, such
+// as a write's values passed on to a plugin. The values must share a group.
+func (ps *PropertyService) FilterPropertyValuesForRead(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	return ps.runPostGetPropertyValues(rctx, values)
+}
+
 func (ps *PropertyService) SearchPropertyValues(rctx request.CTX, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	values, err := ps.searchPropertyValues(rctx, groupID, opts)
 	if err != nil {

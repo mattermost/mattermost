@@ -191,9 +191,9 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 		ps.metricsIFace.IncrementWebsocketEvent(message.EventType())
 	}
 
-	ps.PublishSkipClusterSend(message)
+	ps.publishSkipClusterSend(message, true)
 
-	if ps.clusterIFace != nil {
+	if cluster := ps.clusterIFace; cluster != nil {
 		data, err := message.ToJSON()
 		if err != nil {
 			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
@@ -204,20 +204,30 @@ func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
 			Data:     data,
 		}
 
-		if message.EventType() == model.WebsocketEventPosted ||
-			message.EventType() == model.WebsocketEventPostEdited ||
-			message.EventType() == model.WebsocketEventDirectAdded ||
-			message.EventType() == model.WebsocketEventGroupAdded ||
-			message.EventType() == model.WebsocketEventAddedToTeam ||
-			message.GetBroadcast().ReliableClusterSend {
+		if isReliableClusterPublish(message) {
 			cm.SendType = model.ClusterSendReliable
 		}
 
-		ps.clusterIFace.SendClusterMessage(cm)
+		cluster.SendClusterMessage(cm)
 	}
 }
 
+func isReliableClusterPublish(message *model.WebSocketEvent) bool {
+	return message.EventType() == model.WebsocketEventPosted ||
+		message.EventType() == model.WebsocketEventPostEdited ||
+		message.EventType() == model.WebsocketEventDirectAdded ||
+		message.EventType() == model.WebsocketEventGroupAdded ||
+		message.EventType() == model.WebsocketEventAddedToTeam ||
+		message.GetBroadcast().ReliableClusterSend
+}
+
 func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
+	ps.publishSkipClusterSend(event, false)
+}
+
+// publishSkipClusterSend broadcasts the event to this node's clients. local is true when the
+// event was published on this node rather than received from another node.
+func (ps *PlatformService) publishSkipClusterSend(event *model.WebSocketEvent, local bool) {
 	if event.GetBroadcast().UserId != "" {
 		hub := ps.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {
@@ -230,11 +240,15 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	}
 
 	// Notify shared channel sync service
-	ps.SharedChannelSyncHandler(event)
+	ps.SharedChannelSyncHandler(event, local)
 }
 
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
-	data, err := ps.Store.Plugin().List(pluginID, page*perPage, perPage)
+	return ps.ListPluginKeysWithOptions(pluginID, model.PluginKVListOptions{}, page, perPage)
+}
+
+func (ps *PlatformService) ListPluginKeysWithOptions(pluginID string, options model.PluginKVListOptions, page, perPage int) ([]string, *model.AppError) {
+	data, err := ps.Store.Plugin().ListWithOptions(pluginID, options, page*perPage, perPage)
 	if err != nil {
 		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

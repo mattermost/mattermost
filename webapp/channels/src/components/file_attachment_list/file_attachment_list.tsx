@@ -56,7 +56,6 @@ export default function FileAttachmentList(props: Props) {
     if (!isInPermalink && !props.firstFileRejected && !hasDeletedFile && !isEditHistory) {
         const isMulti = fileInfos.length > 1;
         const isSingleVideo = fileInfos.length === 1 &&
-            !fileInfos[0].archived &&
             getFileType(fileInfos[0].extension) === FileTypes.VIDEO;
 
         const allMedia = sortedFileInfos.length > 0 && sortedFileInfos.every((f) => {
@@ -80,7 +79,7 @@ export default function FileAttachmentList(props: Props) {
 
     // For single image files, use SingleImageView UNLESS the file is rejected
     // If rejected, we want to show the file attachment card instead
-    if (fileInfos && fileInfos.length === 1 && !fileInfos[0].archived && !props.firstFileRejected) {
+    if (fileInfos && fileInfos.length === 1 && !props.firstFileRejected) {
         const fileType = getFileType(fileInfos[0].extension);
 
         if (fileType === FileTypes.IMAGE || (fileType === FileTypes.SVG && enableSVGs)) {

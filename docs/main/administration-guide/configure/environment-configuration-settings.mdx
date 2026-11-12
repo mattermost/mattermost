@@ -353,7 +353,7 @@ Post identity and display-override props (`from_webhook`, `from_bot`, `override_
 
 <Note>
 
-When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/desktop-app-managed-resources) documentation for details.
+When using the Mattermost Desktop App, additional configuration is required to open the link within the Desktop App instead of in a browser. See the [desktop managed resources](/deployment-guide/desktop/distribute-a-custom-desktop-app#managedresources) documentation for details.
 
 </Note>
 
@@ -461,7 +461,7 @@ This setting only takes effect if you are using the built-in server binary direc
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Forwarded-For", "X-Real-Ip"]</code>.</p></td>
+<td><p>Specified headers that will be checked, one by one, for IP addresses (order is important). All other headers are ignored.</p><p>String array input consisting of header names, such as <code>["X-Real-IP"]</code> behind NGINX.</p></td>
 <td><ul><li>System Config path: N/A</li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TrustedProxyIPHeader</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TRUSTEDPROXYIPHEADER</code></li></ul></td>
 </tr>
 </tbody>
@@ -472,8 +472,17 @@ This setting only takes effect if you are using the built-in server binary direc
 - The default value of `[]` means that no header will be trusted.
 - We recommend keeping the default setting when Mattermost is running without a proxy to avoid the client sending the headers and bypassing rate limiting and/or the audit log.
 - For environments that use a reverse proxy, this issue does not exist, provided that the headers are set by the reverse proxy. In those environments, only explicitly whitelist the header set by the reverse proxy and no additional values.
+- Behind NGINX, set this to `["X-Real-IP"]`. NGINX overwrites `X-Real-IP` with the address of the connecting client. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx) for the matching NGINX configuration.
+- Keep Mattermost Server reachable only through the proxy, including for administration, because a client that connects directly can send any value in the trusted header.
+- If another load balancer sits in front of NGINX, use the NGINX `real_ip` module with `set_real_ip_from` limited to that load balancer's addresses. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx).
 
 </Note>
+
+<Warning>
+
+Never add `X-Forwarded-For` to this setting. Mattermost Server uses the first comma-separated value of the header, and the client controls that value when NGINX appends to it with `$proxy_add_x_forwarded_for`. Clients could then choose the IP address that rate limiting and audit logs record.
+
+</Warning>
 
 ### Enable Strict Transport Security (HSTS)
 
@@ -1167,6 +1176,16 @@ You can configure Mattermost enterprise search by going to **System Console \> E
 If indexing is disabled and then re-enabled after an index is created, purge and rebuild the index to ensure complete search results.
 
 </Note>
+
+<Warning>
+
+Before permanently deleting a large number of channels, turn off **Enable Elasticsearch indexing**. Each permanent delete reindexes every member of that channel, and that indexing work can exhaust Mattermost memory on a delete of about 100,000 memberships.
+
+Leave the Elasticsearch or OpenSearch cluster running. Save and restart, run the deletes with [`mmctl channel delete`](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-delete) or `DELETE /api/v4/channels/&#123;channel_id&#125;?permanent=true`, then turn indexing back on and run **Index Now** so changes made while indexing was off are included. The System Console clears search queries and autocomplete when indexing is turned off, because the server will not store those while indexing is off. Turn them back on with indexing.
+
+Documents for those channels can remain in the search index, because indexing is off while they are deleted. Post search only queries channels the user currently belongs to, then loads the posts from the database. Channel search also loads its matches from the database, so a permanently deleted channel is left out. A full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
 
 ### Backend type
 
@@ -3933,6 +3952,12 @@ This setting isn’t available in the System Console and can only be set in `con
 This setting isn’t available in the System Console and can only be set in `config.json`.
 
 </Note>
+
+<Warning>
+
+Before a large bulk permanent channel delete, turn off [Elasticsearch indexing](#enable-elasticsearch-indexing) and leave the Elasticsearch or OpenSearch cluster running. Each delete reindexes every channel member, and that indexing work can exhaust server memory on a delete of about 100,000 memberships. Restore indexing when the deletes finish, then run **Index Now**. Documents for those channels can remain in the search index. Search omits them through current channel membership and database checks, so a full index purge is not required to restore search results. Retention requirements may require a scoped cleanup of those leftover copies.
+
+</Warning>
 
 ### Enable desktop app developer mode
 

@@ -7,7 +7,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 Select your profile picture and select **Profile** to manage the details of your Mattermost profile, including your name, username, nickname, email, and profile picture.
 
-Your Mattermost system admin may [define custom user profile fields](/administration-guide/manage/admin/user-attributes) that you can personalize. Additionally, some of your profile information may be pulled from another source, which means you won't be able to modify it in Mattermost. Contact your Mattermost system admin for assistance.
+Your Mattermost system admin may [define user attributes](/administration-guide/manage/admin/attribute-management), which are extra profile fields such as your department or location. You can set some of them yourself; see [User attributes](#user-attributes). Additionally, some of your profile information may be pulled from another source, which means you won't be able to modify it in Mattermost. Contact your Mattermost system admin for assistance.
 
 Your system admin may also manage profile fields for accounts that sign in with email and password. Empty first and last names can each be entered once and become locked after you save them. Other managed fields remain locked, while your email address remains editable.
 
@@ -49,3 +49,41 @@ Your system admin may also manage profile fields for accounts that sign in with 
 </tr>
 </tbody>
 </table>
+
+## User attributes
+
+<PlanAvailability slug="entry-ent" />
+
+User attributes are listed in **Profile** after **Email**. You see every attribute your system admin has added to user profiles, whether or not it has a value.
+
+Your system admin may use attributes to decide which channels and teams you can join, so contact them if one of your values is wrong.
+
+### Change an attribute value
+
+Select **Edit** next to an attribute to change it, then select **Save**. Some values can't be changed in Mattermost. When you select **Edit** on one of these, Mattermost explains why instead of showing an input:
+
+- **This field can only be changed by an administrator.** Only a system admin can set this attribute.
+- **This field is handled through your login provider.** The value comes from AD/LDAP or SAML when you sign in or when your account is synchronized. Change it in that system instead.
+- Some attributes are managed by a plugin or another integration, and can't be edited here either.
+
+How you set a value depends on the kind of attribute:
+
+- **Text, phone, and URL**: Type the value.
+- **Select**: Choose one value from the list.
+- **Multiselect**: Choose one or more values from the list.
+- **Ranked**: Choose one value from the list. A ranked attribute's values have an order your system admin sets, such as security clearance levels from lowest to highest.
+- **Hierarchical**: Values are arranged in a tree, where a value can sit under another, such as a team under its department. Select the field to open the list, then:
+  - Select the checkbox next to each value that applies to you. Selecting a value doesn't select the values under it.
+  - Select the name of a value to show or hide the values under it, or type to search for a value by name.
+  - A value whose list is hidden shows how many values you've selected under it, such as **2 selected**. A value that sits under more than one value appears under each of them, labeled **Also under** with the other names.
+  - The values you've chosen appear in the field. Select the **X** on a value to remove it.
+
+### Who sees your attributes
+
+Other people see your attributes in your profile popover, which opens when they select your name or profile picture. Your system admin chooses how each attribute appears there:
+
+- Always shown, even when you haven't set a value.
+- Shown only when you've set a value. This is the default.
+- Hidden from the profile popover. You still see the attribute in **Profile**.
+
+For a hierarchical attribute, the profile popover lists only the values you selected, not the values above or below them.

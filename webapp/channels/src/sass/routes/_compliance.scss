@@ -8,7 +8,10 @@
     min-height: 100px;
     max-height: 70vh;
     padding: 5px;
-    border: 1px solid variables.$border-gray;
+
+    // Subtle System Console scroll chrome; matches .job-table__data-retention .job-table__table.
+    border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    border-radius: var(--radius-m);
     margin-top: 10px;
     background-color: variables.$white;
 }
@@ -34,6 +37,5 @@
     }
 }
 
-.compliance-panel {
-    margin-bottom: 3em;
-}
+// Spacing between the Compliance Reports and User Activity Logs panels is
+// owned by the parent .admin-console__content gap, not a margin here.

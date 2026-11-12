@@ -27,6 +27,10 @@ func (a *App) hydratePropertyValues(rctx request.CTX, posts []*model.Post, group
 		if post == nil || post.Metadata == nil {
 			continue
 		}
+		// Hydration was requested for this post, so the response says how it went even when it
+		// went fine; a response without the flag tells the client to keep what it has. A failed
+		// lookup below overwrites this with true.
+		post.Metadata.PropertyValuesUnavailable = model.NewPointer(false)
 		eligible = append(eligible, post)
 	}
 
@@ -152,6 +156,6 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 		if post == nil || post.Metadata == nil {
 			continue
 		}
-		post.Metadata.PropertyValuesUnavailable = true
+		post.Metadata.PropertyValuesUnavailable = model.NewPointer(true)
 	}
 }

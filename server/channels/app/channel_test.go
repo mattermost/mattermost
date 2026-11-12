@@ -505,6 +505,33 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
 
+func TestCreateChannelWithUserMaxChannelsPerTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	count, appErr := th.App.GetNumberOfChannelsOnTeam(th.Context, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	newChannel := func() *model.Channel {
+		return &model.Channel{DisplayName: "Channel", Name: "name" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}
+	}
+
+	t.Run("blocked when the team is at the limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxChannelsPerTeam = int64(count) })
+
+		_, appErr := th.App.CreateChannelWithUser(th.Context, newChannel(), th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.create_channel.max_channel_limit.app_error", appErr.Id)
+	})
+
+	t.Run("no limit when max channels per team is 0", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxChannelsPerTeam = 0 })
+
+		_, appErr := th.App.CreateChannelWithUser(th.Context, newChannel(), th.BasicUser.Id)
+		require.Nil(t, appErr)
+	})
+}
+
 // TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues documents that
 // "required" is enforced only by the api4 handler that builds propertyValues
 // for the public create-channel endpoint, not by this app-layer entry point.

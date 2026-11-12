@@ -3,17 +3,13 @@
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
-import styled from 'styled-components';
 
 import type {LocalizationSettings} from '@mattermost/types/config';
 
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
-import {
-    SectionContent,
-    SectionHeader,
-} from 'components/admin_console/system_properties/controls';
 import ExternalLink from 'components/external_link';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import * as I18n from 'i18n/i18n';
 
@@ -22,13 +18,6 @@ import type {SearchableStrings} from '../types';
 import './localization.scss';
 
 const locales = I18n.getAllLanguages();
-
-const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-    && {
-        overflow: visible;
-        margin-top: 0;
-    }
-`;
 
 const messages = defineMessages({
     langTitle: {
@@ -93,78 +82,69 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
     }, []);
 
     return (
-        <AdminSection>
-            <SectionHeader>
-                <hgroup>
-                    <h1 className='localization-section-title'>
-                        <FormattedMessage {...messages.langTitle}/>
-                    </h1>
-                    <h5 className='localization-section-description'>
-                        <FormattedMessage {...messages.langDescription}/>
-                    </h5>
-                </hgroup>
-            </SectionHeader>
-
-            <SectionContent>
-                <DropdownSetting
-                    id={'DefaultServerLocale'}
-                    label={
-                        <FormattedMessage {...messages.serverLocaleTitle}/>
-                    }
-                    values={availableLanguages}
-                    helpText={
-                        <FormattedMessage {...messages.serverLocaleDescription}/>
-                    }
-                    value={localizationSettings.DefaultServerLocale || availableLanguages[0].value}
-                    disabled={props.disabled}
-                    setByEnv={props.setByEnv}
-                    onChange={handleChange}
-                />
-                <DropdownSetting
-                    id={'DefaultClientLocale'}
-                    label={
-                        <FormattedMessage {...messages.clientLocaleTitle}/>
-                    }
-                    values={availableLanguages}
-                    helpText={
-                        <FormattedMessage {...messages.clientLocaleDescription}/>
-                    }
-                    value={localizationSettings.DefaultClientLocale || availableLanguages[0].value}
-                    disabled={props.disabled}
-                    setByEnv={props.setByEnv}
-                    onChange={handleChange}
-                />
-                <MultiSelectSetting
-                    id={'AvailableLocales'}
-                    label={
-                        <FormattedMessage {...messages.availableLocalesTitle}/>
-                    }
-                    values={availableLanguages}
-                    helpText={
-                        <FormattedMessage
-                            {...messages.availableLocalesDescription}
-                            values={{
-                                link: (msg: React.ReactNode) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://translate.mattermost.com/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
-                            }}
-                        />
-                    }
-                    selected={(localizationSettings.AvailableLocales.split(',')) || []}
-                    disabled={props.disabled}
-                    setByEnv={props.setByEnv}
-                    onChange={(changedId, value) => handleChange(changedId, value.join(','))}
-                    noOptionsMessage={
-                        <FormattedMessage {...messages.availableLocalesNoResults}/>
-                    }
-                />
-            </SectionContent>
-        </AdminSection>
+        <AdminPanel
+            id='LocalizationSettings'
+            title={messages.langTitle}
+            subtitle={messages.langDescription}
+        >
+            <DropdownSetting
+                id={'DefaultServerLocale'}
+                label={
+                    <FormattedMessage {...messages.serverLocaleTitle}/>
+                }
+                values={availableLanguages}
+                helpText={
+                    <FormattedMessage {...messages.serverLocaleDescription}/>
+                }
+                value={localizationSettings.DefaultServerLocale || availableLanguages[0].value}
+                disabled={props.disabled}
+                setByEnv={props.setByEnv}
+                onChange={handleChange}
+            />
+            <DropdownSetting
+                id={'DefaultClientLocale'}
+                label={
+                    <FormattedMessage {...messages.clientLocaleTitle}/>
+                }
+                values={availableLanguages}
+                helpText={
+                    <FormattedMessage {...messages.clientLocaleDescription}/>
+                }
+                value={localizationSettings.DefaultClientLocale || availableLanguages[0].value}
+                disabled={props.disabled}
+                setByEnv={props.setByEnv}
+                onChange={handleChange}
+            />
+            <MultiSelectSetting
+                id={'AvailableLocales'}
+                label={
+                    <FormattedMessage {...messages.availableLocalesTitle}/>
+                }
+                values={availableLanguages}
+                helpText={
+                    <FormattedMessage
+                        {...messages.availableLocalesDescription}
+                        values={{
+                            link: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    location='admin_console'
+                                    href='https://translate.mattermost.com/'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                            strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
+                        }}
+                    />
+                }
+                selected={(localizationSettings.AvailableLocales.split(',')) || []}
+                disabled={props.disabled}
+                setByEnv={props.setByEnv}
+                onChange={(changedId, value) => handleChange(changedId, value.join(','))}
+                noOptionsMessage={
+                    <FormattedMessage {...messages.availableLocalesNoResults}/>
+                }
+            />
+        </AdminPanel>
     );
 }

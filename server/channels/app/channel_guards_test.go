@@ -69,6 +69,10 @@ func (c *captureClusterMock) QueryLogs(rctx request.CTX, page, perPage int, logF
 func (c *captureClusterMock) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
 }
+
+func (c *captureClusterMock) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	return nil
+}
 func (c *captureClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return nil, nil
 }

@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -74,8 +75,8 @@ const InviteSectionInput = ({regenerateTeamInviteId}: Props) => {
                 id='regenerateButton'
                 emphasis='tertiary'
                 onClick={handleRegenerateInviteId}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             >
-                <RefreshIcon/>
                 {formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
             </Button>
         </div>

@@ -2,29 +2,47 @@
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot 1`] = `
 <div>
-  <div
-    class="AdminPanel clearfix "
+  <section
+    aria-labelledby="_r_0_"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_profile"
   >
-    <div
-      class="header"
-    >
-      <div>
-        <h3>
-          Channel Profile
-        </h3>
-        <div
-          class="mt-2"
-        >
-          Summary of the channel, including the channel name.
-        </div>
-      </div>
-    </div>
-    <div
-      class="group-teams-and-channels AdminChannelDetails"
+    <header
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="group-teams-and-channels--body channel-desc-col"
+        class="_admin-panel-header__main_vb1i0_31"
+      >
+        <div
+          class="_admin-panel-header__start_vb1i0_40"
+        >
+          <div
+            class="_admin-panel-header__title-stack_vb1i0_58"
+          >
+            <div
+              class="_admin-panel-header__title-row_vb1i0_67"
+            >
+              <h2
+                class="_admin-panel-header__title_vb1i0_58"
+                id="_r_0_"
+              >
+                Channel Profile
+              </h2>
+            </div>
+            <p
+              class="_admin-panel-header__subtitle_vb1i0_87"
+            >
+              Summary of the channel, including the channel name.
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div
+      class="_admin-panel__body_xr2f9_36"
+    >
+      <div
+        class="AdminChannelDetails channel-desc-col"
       >
         <div
           class="channel-name"
@@ -44,22 +62,30 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
           <br />
           test
         </div>
+      </div>
+    </div>
+    <div
+      class="_admin-panel-footer_blgk5_13 _admin-panel-footer--single_blgk5_45"
+    >
+      <div
+        class="_admin-panel-footer__content_blgk5_21"
+      >
         <div
-          class="AdminChannelDetails_archiveContainer"
+          class="_admin-panel-footer__left_blgk5_30"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+            class="_button_1pij1_13 _button--emphasis-secondary_1pij1_125 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
             type="button"
           >
             <span
-              class="_button__icon-slot_we8pe_35"
+              class="_button__icon-slot_1pij1_59"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-16_1i355_38"
+                class="_icon_1xcik_13 _icon--size-16_1xcik_49"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -77,7 +103,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
               </div>
             </span>
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Archive Channel
             </span>
@@ -85,35 +111,53 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </div>
 `;
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot for a shared channel 1`] = `
 <div>
-  <div
-    class="AdminPanel clearfix "
+  <section
+    aria-labelledby="_r_1_"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_profile"
   >
-    <div
-      class="header"
-    >
-      <div>
-        <h3>
-          Channel Profile
-        </h3>
-        <div
-          class="mt-2"
-        >
-          Summary of the channel, including the channel name.
-        </div>
-      </div>
-    </div>
-    <div
-      class="group-teams-and-channels AdminChannelDetails"
+    <header
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="group-teams-and-channels--body channel-desc-col"
+        class="_admin-panel-header__main_vb1i0_31"
+      >
+        <div
+          class="_admin-panel-header__start_vb1i0_40"
+        >
+          <div
+            class="_admin-panel-header__title-stack_vb1i0_58"
+          >
+            <div
+              class="_admin-panel-header__title-row_vb1i0_67"
+            >
+              <h2
+                class="_admin-panel-header__title_vb1i0_58"
+                id="_r_1_"
+              >
+                Channel Profile
+              </h2>
+            </div>
+            <p
+              class="_admin-panel-header__subtitle_vb1i0_87"
+            >
+              Summary of the channel, including the channel name.
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div
+      class="_admin-panel__body_xr2f9_36"
+    >
+      <div
+        class="AdminChannelDetails channel-desc-col"
       >
         <div
           class="channel-name"
@@ -146,22 +190,30 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
           />
           Shared with trusted organizations
         </div>
+      </div>
+    </div>
+    <div
+      class="_admin-panel-footer_blgk5_13 _admin-panel-footer--single_blgk5_45"
+    >
+      <div
+        class="_admin-panel-footer__content_blgk5_21"
+      >
         <div
-          class="AdminChannelDetails_archiveContainer"
+          class="_admin-panel-footer__left_blgk5_30"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64 _button--destructive_we8pe_176"
+            class="_button_1pij1_13 _button--emphasis-secondary_1pij1_125 _button--size-medium_1pij1_88 _button--destructive_1pij1_200"
             type="button"
           >
             <span
-              class="_button__icon-slot_we8pe_35"
+              class="_button__icon-slot_1pij1_59"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-16_1i355_38"
+                class="_icon_1xcik_13 _icon--size-16_1xcik_49"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -179,7 +231,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
               </div>
             </span>
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               Archive Channel
             </span>
@@ -187,6 +239,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </div>
 `;

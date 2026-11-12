@@ -107,12 +107,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // STEP 3: Toggle on "Enable attribute based channel access"
         // ============================================================
 
-        const abacToggle = systemConsolePage.page.locator('[data-testid="policy-enforce-toggle-button"]');
-        await abacToggle.waitFor({state: 'visible', timeout: 5000});
-
-        if (!(await abacToggle.isChecked())) {
-            await abacToggle.check({force: true});
-        }
+        await systemConsolePage.channelDetail.enablePolicyEnforcement();
         await systemConsolePage.page.waitForTimeout(500);
 
         // ============================================================
@@ -276,7 +271,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
-        const abacToggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
+        const abacToggle = systemConsolePage.channelDetail.policyEnforceSwitch.input;
         const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleWithGroupSync).toBe(false);
@@ -294,8 +289,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // Verify ABAC toggle is now available
-        const abacToggleAfter = page.locator('[data-testid="policy-enforce-toggle-button"]');
-        const abacVisibleAfterDisable = await abacToggleAfter.isVisible({timeout: 5000}).catch(() => false);
+        const abacVisibleAfterDisable = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
 
         expect(abacVisibleAfterDisable).toBe(true);
 

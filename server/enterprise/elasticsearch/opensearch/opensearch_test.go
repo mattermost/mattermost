@@ -692,3 +692,143 @@ func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
 		})
 	})
 }
+
+// TestTestConfigLeavesEngineStateUnchanged checks that TestConfig only probes the cluster: it must
+// not start a stopped engine, nor change what a running engine reports when given a candidate
+// config that points at another cluster.
+func TestTestConfigLeavesEngineStateUnchanged(t *testing.T) {
+	th, impl := setupCJKCluster(t, &common.ClusterRecorder{}, []string{"analysis-nori"})
+
+	require.Nil(t, impl.TestConfig(th.Context, th.App.Config()))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.Nil(t, impl.syncBulkProcessor)
+	require.Zero(t, impl.GetVersion())
+	require.Empty(t, impl.GetFullVersion())
+	require.Empty(t, impl.GetPlugins())
+
+	require.Nil(t, impl.Start(context.Background()))
+	client := impl.client
+
+	otherCluster := httptest.NewServer(infoHandler("3.0.0"))
+	t.Cleanup(otherCluster.Close)
+	candidate := th.App.Config().Clone()
+	*candidate.ElasticsearchSettings.ConnectionURL = otherCluster.URL
+
+	require.Nil(t, impl.TestConfig(th.Context, candidate))
+	require.True(t, impl.IsActive())
+	require.Same(t, client, impl.client)
+	require.Equal(t, 2, impl.GetVersion())
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-nori"}, impl.GetPlugins())
+}
+
+// lifecycleCluster serves a fake cluster for the watcher lifecycle tests. While
+// down is set it fails every request with a status the client doesn't retry,
+// and counts the failed version requests so a test can tell Start() failed.
+func lifecycleCluster(t *testing.T, down *atomic.Bool, failedVersionRequests *atomic.Int32) *httptest.Server {
+	cluster := pluginsHandler(t, &common.ClusterRecorder{}, []string{"analysis-icu"})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			if r.Method == http.MethodGet && r.URL.Path == "/" {
+				failedVersionRequests.Add(1)
+			}
+			return
+		}
+		if r.URL.Path == "/_cluster/health" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprint(w, `{"cluster_name":"test","status":"green"}`)
+			return
+		}
+		cluster(w, r)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// setupWatchedEngine registers a fresh engine with the platform and starts the
+// search engine watcher on it, so tests go through the real Start() path.
+func setupWatchedEngine(t *testing.T, serverURL string, enableIndexing bool) (*api4.TestHelper, *OpensearchInterfaceImpl) {
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", serverURL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterpriseWithServerOptions(t, nil)
+	ps := th.Server.Platform()
+	ps.StopSearchEngine()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = serverURL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = enableIndexing
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: ps}
+	th.App.SearchEngine().RegisterElasticsearchEngine(impl)
+	configListenerID, licenseListenerID := ps.StartSearchEngine()
+	t.Cleanup(func() {
+		ps.StopSearchEngine()
+		ps.RemoveConfigListener(configListenerID)
+		ps.RemoveLicenseListener(licenseListenerID)
+	})
+
+	return th, impl
+}
+
+func hasSyncBulkProcessor(engine *OpensearchInterfaceImpl) bool {
+	engine.mutex.RLock()
+	defer engine.mutex.RUnlock()
+	return engine.syncBulkProcessor != nil
+}
+
+// TestTestConfigThenSavingConfigStartsEngine follows TestConfig, then saving the
+// tested config, through the watcher to a full Start().
+func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, false)
+	require.False(t, impl.IsActive())
+
+	submittedConfig := th.App.Config().Clone()
+	*submittedConfig.ElasticsearchSettings.EnableIndexing = true
+	require.Nil(t, impl.TestConfig(th.Context, submittedConfig))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.False(t, hasSyncBulkProcessor(impl))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-icu"}, impl.GetPlugins())
+}
+
+// TestTestElasticsearchStartsEngineWithoutWaitingForBackoff covers a saved
+// cluster that comes back while the watcher waits out its retry backoff: a
+// successful connection test starts the engine through the watcher right away.
+func TestTestElasticsearchStartsEngineWithoutWaitingForBackoff(t *testing.T) {
+	var down atomic.Bool
+	var failedVersionRequests atomic.Int32
+	down.Store(true)
+	server := lifecycleCluster(t, &down, &failedVersionRequests)
+	th, impl := setupWatchedEngine(t, server.URL, true)
+
+	// Wait for the watcher's first Start() to fail; it then backs off for 15s.
+	require.Eventually(t, func() bool {
+		return failedVersionRequests.Load() >= 1
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Never(t, impl.IsActive, 200*time.Millisecond, 10*time.Millisecond)
+
+	down.Store(false)
+	require.Nil(t, th.App.TestElasticsearch(th.Context, th.App.Config().Clone()))
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && hasSyncBulkProcessor(impl)
+	}, 5*time.Second, 10*time.Millisecond)
+}

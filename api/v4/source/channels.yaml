@@ -118,6 +118,32 @@
                   type: string
                   description: Default sidebar category name for members when joining this channel.
                     Requires `EnableChannelCategorySorting` to be enabled on the server.
+                property_values:
+                  type: array
+                  description: >
+                    Channel attribute values to set when the channel is created
+                    (minimum server version 12.0).
+                    Each `field_id` must be a channel attribute: a field in the
+                    `access_control` property group with `object_type` `channel`
+                    and `target_type` `system`. Returns 400 for an unknown or
+                    repeated `field_id` or an attribute that isn't enabled or
+                    licensed on the server, and 403 for a field the caller isn't
+                    allowed to set.
+                  items:
+                    type: object
+                    required:
+                      - field_id
+                      - value
+                    properties:
+                      field_id:
+                        type: string
+                        description: The ID of the channel attribute field
+                      value:
+                        description: >
+                          The value to set: an option ID for a select or
+                          ranked attribute, an array of option IDs for a
+                          multiselect or hierarchical attribute, or a string
+                          for a text attribute.
         description: Channel object to be created
         required: true
       responses:
@@ -578,6 +604,9 @@
 
         As of server version 5.28, optionally use the `permanent=true` query parameter to permanently delete the channel for compliance reasons. To use this feature `ServiceSettings.EnableAPIChannelDeletion` must be set to `true` in the server's configuration.
         If you permanently delete a channel this action is not recoverable outside of a database backup.
+
+
+        Before permanently deleting a large number of channels (on the order of 100,000 channel memberships), set `ElasticsearchSettings.EnableIndexing` to `false` so live indexing does not reindex every channel member. Leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, set `ElasticsearchSettings.EnableIndexing` back to `true` and run a bulk index. See the [Enable Elasticsearch indexing](https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing) documentation.
 
 
         ##### Permissions

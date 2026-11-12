@@ -40,23 +40,23 @@ exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = 
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Agree
             </span>
           </button>
           <button
-            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Disagree
             </span>
@@ -85,7 +85,7 @@ exports[`components/terms_of_service/TermsOfService should match snapshot on loa
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
@@ -136,36 +136,36 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on ac
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
               aria-hidden="true"
-              class="_button__icon-slot_we8pe_35"
+              class="_button__icon-slot_1pij1_59"
             >
               <span
                 aria-label="Loading"
-                class="_spinner_3elm7_10"
+                class="_spinner_mvrwe_21"
                 role="status"
                 style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Agree
             </span>
           </button>
           <button
-            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Disagree
             </span>
@@ -217,36 +217,36 @@ exports[`components/terms_of_service/TermsOfService should match snapshot, on re
           class="terms-of-service__button-group"
         >
           <button
-            class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             disabled=""
             id="acceptTerms"
             type="submit"
           >
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Agree
             </span>
           </button>
           <button
-            class="_button_we8pe_2 _button--emphasis-quaternary_we8pe_131 _button--size-medium_we8pe_64"
+            class="_button_1pij1_13 _button--emphasis-quaternary_1pij1_155 _button--size-medium_1pij1_88"
             disabled=""
             id="rejectTerms"
             type="reset"
           >
             <span
               aria-hidden="true"
-              class="_button__icon-slot_we8pe_35"
+              class="_button__icon-slot_1pij1_59"
             >
               <span
                 aria-label="Loading"
-                class="_spinner_3elm7_10"
+                class="_spinner_mvrwe_21"
                 role="status"
                 style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
               />
             </span>
             <span
-              class="_button__label_we8pe_31"
+              class="_button__label_1pij1_55"
             >
               I Disagree
             </span>

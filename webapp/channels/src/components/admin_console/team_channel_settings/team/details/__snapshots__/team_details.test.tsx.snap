@@ -37,133 +37,152 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
             Archive Team
           </button>
         </div>
-        <div
-          class="AdminPanel clearfix "
+        <section
+          aria-labelledby="_r_0_"
+          class="_admin-panel_xr2f9_13 AdminPanel clearfix"
           id="team_manage"
         >
-          <div
-            class="header"
-          >
-            <div>
-              <h3>
-                Team Management
-              </h3>
-              <div
-                class="mt-2"
-              >
-                Choose between inviting members manually or syncing members automatically from groups.
-              </div>
-            </div>
-          </div>
-          <div
-            class="group-teams-and-channels"
+          <header
+            class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
           >
             <div
-              class="group-teams-and-channels--body"
+              class="_admin-panel-header__main_vb1i0_31"
             >
               <div
-                data-testid="allowAllToggleSwitch"
+                class="_admin-panel-header__start_vb1i0_40"
               >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="allowAllToggleSwitch"
+                <div
+                  class="_admin-panel-header__title-stack_vb1i0_58"
+                >
+                  <div
+                    class="_admin-panel-header__title-row_vb1i0_67"
+                  >
+                    <h2
+                      class="_admin-panel-header__title_vb1i0_58"
+                      id="_r_0_"
+                    >
+                      Team Management
+                    </h2>
+                  </div>
+                  <p
+                    class="_admin-panel-header__subtitle_vb1i0_87"
+                  >
+                    Choose between inviting members manually or syncing members automatically from groups.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+          <div
+            class="_admin-panel__body_xr2f9_36"
+          >
+            <div
+              data-testid="allowAllToggleSwitch"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="allowAllToggleSwitch"
+              >
+                <span
+                  class="switch__labels"
                 >
                   <span
-                    class="switch__labels"
+                    class="switch__label"
                   >
-                    <span
-                      class="switch__label"
-                    >
-                      Anyone can join this team
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      This team can be discovered allowing anyone with an account to join this team.
-                    </span>
+                    Anyone can join this team
                   </span>
                   <span
-                    class="switch__track"
+                    class="switch__secondary-label"
                   >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="allowAllToggleSwitch-button"
-                      id="allowAllToggleSwitch"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
+                    This team can be discovered allowing anyone with an account to join this team.
                   </span>
-                </label>
-              </div>
-              <div
-                class="section-separator"
-              >
-                <hr
-                  class="separator__hr"
-                />
-              </div>
-              <div
-                data-testid="allowedDomainsToggleSwitch"
-              >
-                <label
-                  class="switch switch--size-medium switch--semi-bold switch--with-secondary"
-                  for="allowedDomainsToggleSwitch"
+                </span>
+                <span
+                  class="switch__track"
                 >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="allowAllToggleSwitch-button"
+                    id="allowAllToggleSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
                   <span
-                    class="switch__labels"
-                  >
-                    <span
-                      class="switch__label"
-                    >
-                      Only specific email domains can join this team
-                    </span>
-                    <span
-                      class="switch__secondary-label"
-                    >
-                      Users can only join the team if their email matches one of the specified domains
-                    </span>
-                  </span>
-                  <span
-                    class="switch__track"
-                  >
-                    <input
-                      aria-checked="false"
-                      class="switch__input"
-                      data-testid="allowedDomainsToggleSwitch-button"
-                      id="allowedDomainsToggleSwitch"
-                      role="switch"
-                      tabindex="0"
-                      type="checkbox"
-                    />
-                    <span
-                      aria-hidden="true"
-                      class="switch__knob"
-                    />
-                  </span>
-                </label>
-              </div>
-              <div
-                class="help-text csvDomains"
-              >
-                Comma Separated Email Domain List
-              </div>
-              <input
-                class="form-control"
-                placeholder="mattermost.com"
-                type="text"
-                value=""
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
+            <div
+              class="section-separator"
+            >
+              <hr
+                class="separator__hr"
               />
             </div>
+            <div
+              data-testid="allowedDomainsToggleSwitch"
+            >
+              <label
+                class="switch switch--size-medium switch--semi-bold switch--with-secondary"
+                for="allowedDomainsToggleSwitch"
+              >
+                <span
+                  class="switch__labels"
+                >
+                  <span
+                    class="switch__label"
+                  >
+                    Only specific email domains can join this team
+                  </span>
+                  <span
+                    class="switch__secondary-label"
+                  >
+                    Users can only join the team if their email matches one of the specified domains
+                  </span>
+                </span>
+                <span
+                  class="switch__track"
+                >
+                  <input
+                    aria-checked="false"
+                    class="switch__input"
+                    data-testid="allowedDomainsToggleSwitch-button"
+                    id="allowedDomainsToggleSwitch"
+                    role="switch"
+                    tabindex="0"
+                    type="checkbox"
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="switch__knob"
+                  />
+                </span>
+              </label>
+            </div>
+            <div
+              class="help-text csvDomains"
+            >
+              Comma Separated Email Domain List
+            </div>
+            <input
+              class="form-control"
+              placeholder="mattermost.com"
+              type="text"
+              value=""
+            />
           </div>
-        </div>
+        </section>
         <div>
           TeamMembers
+          <button
+            data-testid="remove-member"
+          >
+            remove-member
+          </button>
         </div>
       </div>
     </div>
@@ -171,25 +190,25 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
         href="/admin_console/user_management/teams"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Cancel
         </span>
@@ -246,25 +265,25 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
         type="submit"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Save
         </span>
       </button>
       <a
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64"
+        class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
         href="/admin_console/user_management/teams"
         id="cancelButtonSettings"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Cancel
         </span>

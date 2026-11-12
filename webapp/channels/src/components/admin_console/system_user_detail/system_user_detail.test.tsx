@@ -906,8 +906,7 @@ describe('SystemUserDetail', () => {
                 renderWithField(field, 'opt-1');
                 await waitForLoadingToFinish();
 
-                const select = within(cpaField()).getByRole('combobox');
-                await userEvent.selectOptions(select, '');
+                await userEvent.click(screen.getByTestId('user-detail-custom-attribute-combobox-cpa-1-clear'));
 
                 expect(fieldAlert()).toHaveTextContent(REQUIRED);
                 expect(saveButton()).toBeDisabled();
@@ -922,7 +921,7 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
 
                 expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
-                await userEvent.click(within(cpaField()).getByRole('button', {name: 'Remove One'}));
+                await userEvent.click(cpaField().querySelector<HTMLElement>('[data-chip-remove]')!);
 
                 expect(fieldAlert()).toHaveTextContent(REQUIRED);
                 expect(saveButton()).toBeDisabled();
@@ -1332,8 +1331,10 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(fieldContainer()).toHaveTextContent('Alpha');
-                expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
+                const chips = Array.from(fieldContainer().querySelectorAll('[data-chip]'));
+                expect(chips.map((chip) => chip.textContent)).toEqual(['Alpha']);
+                expect(fieldContainer().querySelector('[data-chip-remove]')).toBeNull();
+                expect(within(fieldContainer()).getByRole('combobox')).toBeDisabled();
             });
 
             test('an editable multiselect keeps its remove buttons', async () => {
@@ -1342,7 +1343,9 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(screen.getByRole('button', {name: 'Remove Alpha'})).toBeInTheDocument();
+                const chip = Array.from(fieldContainer().querySelectorAll('[data-chip]')).find((el) => el.textContent === 'Alpha');
+                expect(chip?.querySelector('[data-chip-remove]')).toBeInTheDocument();
+                expect(within(fieldContainer()).getByRole('combobox')).toBeEnabled();
             });
 
             test('G17: opens the menu when the field label is clicked', async () => {
@@ -1519,7 +1522,7 @@ describe('SystemUserDetail', () => {
             const addGammaAndSave = async () => {
                 const picker = within(fieldContainer()).getByRole('combobox');
                 await userEvent.click(picker);
-                await userEvent.click(await screen.findByText('Gamma'));
+                await userEvent.click(await screen.findByRole('option', {name: 'Gamma'}));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
                 return screen.findByTestId('changesList');
             };

@@ -6,6 +6,8 @@ import type {ComponentProps} from 'react';
 
 import * as fileActions from 'mattermost-redux/actions/files';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
@@ -130,5 +132,54 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         expect(spy).toHaveBeenCalledTimes(0);
         await userEvent.click(screen.getByLabelText('Copy code'));
         expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    describe('markdown toggle', () => {
+        beforeEach(() => {
+            localStorage.clear();
+        });
+
+        test('should not show the toggle by default', () => {
+            renderWithContext(<FilePreviewModalMainActions {...defaultProps}/>);
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
+
+        test('should reflect the stored view', () => {
+            renderWithContext(
+                <FilePreviewModalMainActions
+                    {...defaultProps}
+                    showMarkdownToggle={true}
+                />,
+            );
+
+            expect(screen.getByRole('button', {name: 'Preview'})).toHaveAttribute('aria-pressed', 'true');
+        });
+
+        test('should store the selected view', async () => {
+            renderWithContext(
+                <FilePreviewModalMainActions
+                    {...defaultProps}
+                    showMarkdownToggle={true}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Code'}));
+
+            expect(screen.getByRole('button', {name: 'Code'})).toHaveAttribute('aria-pressed', 'true');
+            expect(LocalStorageStore.getMarkdownView('file_preview', '', 'rendered')).toBe('raw');
+        });
+
+        test('should hide the toggle when only the close button is shown', () => {
+            renderWithContext(
+                <FilePreviewModalMainActions
+                    {...defaultProps}
+                    showOnlyClose={true}
+                    showMarkdownToggle={true}
+                />,
+            );
+
+            expect(screen.queryByRole('group', {name: 'Markdown view'})).not.toBeInTheDocument();
+        });
     });
 });

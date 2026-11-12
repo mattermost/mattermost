@@ -53,7 +53,7 @@ function createBot() {
         // * Verify confirmation page
         cy.url().
             should('include', `/${team.name}/integrations/confirm`).
-            should('match', /token=[a-zA-Z0-9]{26}/);
+            should('not.match', /[?&]token=/);
 
         // * Verify confirmation form/token
         cy.get('div.backstage-form').

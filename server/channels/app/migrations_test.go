@@ -12,7 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1256,6 +1258,80 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	})
 }
 
+func TestDoSessionAttributesMinDurationMigration(t *testing.T) {
+	setDurations := func(t *testing.T, th *TestHelper, groupID, name string, ttl, grace int) {
+		t.Helper()
+		field := sessionAttributeFieldByName(t, th, groupID, name)
+		field.Attrs[model.SAAttrTTLSeconds] = ttl
+		field.Attrs[model.SAAttrGracePeriodSeconds] = grace
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(RequestContextWithCallerID(th.Context, model.CallerIDSessionAttributesSystem), groupID, []*model.PropertyField{field})
+		require.NoError(t, err)
+	}
+
+	getDurations := func(t *testing.T, th *TestHelper, groupID, name string) (int, int) {
+		t.Helper()
+		saField, err := model.SAFieldFromPropertyField(sessionAttributeFieldByName(t, th, groupID, name))
+		require.NoError(t, err)
+		return saField.Attrs.TTLSeconds, saField.Attrs.GracePeriodSeconds
+	}
+
+	t.Run("raises sub-minute TTLs and grace periods to one minute and leaves the rest alone", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		_, err := th.Store.System().PermanentDeleteByName(sessionAttributesMinDurationMigrationKey)
+		require.NoError(t, err)
+
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15, 15)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive, 30, 3600)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldSSID, 3600, 30)
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion, 3600, 300)
+
+		require.NoError(t, th.Server.doSessionAttributesMinDurationMigration())
+
+		ttl, grace := getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, ttl)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldVPNActive)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, ttl)
+		require.Equal(t, 3600, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldSSID)
+		require.Equal(t, 3600, ttl)
+		require.Equal(t, model.SessionAttributeMinDurationSeconds, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldOSVersion)
+		require.Equal(t, 3600, ttl)
+		require.Equal(t, 300, grace)
+
+		ttl, grace = getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldHardwareID)
+		require.Equal(t, model.SessionAttributeDefaultTTLIdentity, ttl)
+		require.Equal(t, model.SessionAttributeDefaultGraceIdentity, grace)
+
+		data, sysErr := th.Store.System().GetByName(sessionAttributesMinDurationMigrationKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, "true", data.Value)
+	})
+
+	t.Run("does not run again once marked complete", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		setDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress, 15, 15)
+
+		require.NoError(t, th.Server.doSessionAttributesMinDurationMigration())
+
+		ttl, grace := getDurations(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.Equal(t, 15, ttl)
+		require.Equal(t, 15, grace)
+	})
+}
+
 func TestDoSetupBoardsProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
 		th := Setup(t)
@@ -1507,6 +1583,67 @@ func (s *lockToMasterSpyStore) UnlockFromMaster() {
 func (s *lockToMasterSpyStore) System() store.SystemStore {
 	s.record("system")
 	return s.Store.System()
+}
+
+func TestDoRestrictUnauthenticatedWebappPluginsConfigMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T, migrationDone bool, userCount int64) (*TestHelper, *mocks.SystemStore) {
+		th := SetupWithStoreMock(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.RestrictUnauthenticatedWebappPlugins = true
+		})
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSystemStore := mocks.SystemStore{}
+		if migrationDone {
+			mockSystemStore.On("GetByName", restrictUnauthenticatedWebappPluginsMigrationKey).Return(&model.System{Name: restrictUnauthenticatedWebappPluginsMigrationKey, Value: "true"}, nil)
+		} else {
+			mockSystemStore.On("GetByName", restrictUnauthenticatedWebappPluginsMigrationKey).Return(nil, store.NewErrNotFound("System", restrictUnauthenticatedWebappPluginsMigrationKey))
+			mockSystemStore.On("SaveOrUpdate", &model.System{Name: restrictUnauthenticatedWebappPluginsMigrationKey, Value: "true"}).Return(nil)
+		}
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", model.UserCountOptions{IncludeDeleted: true, IncludeBotAccounts: true}).Return(userCount, nil)
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("User").Return(&mockUserStore)
+
+		// Config listeners triggered by the config update compute the client config.
+		mockUserStore.On("Count", mock.Anything).Return(userCount, nil).Maybe()
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil).Maybe()
+		mockStore.On("Post").Return(&mockPostStore).Maybe()
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Value: "10"}, nil).Maybe()
+		mockStore.On("GetDBSchemaVersion").Return(1, nil).Maybe()
+
+		return th, &mockSystemStore
+	}
+
+	t.Run("new installation keeps the restriction enabled", func(t *testing.T) {
+		th, mockSystemStore := setup(t, false, 0)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.True(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("existing installation disables the restriction", func(t *testing.T) {
+		th, mockSystemStore := setup(t, false, 5)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.False(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("completed migration does not override the admin's choice", func(t *testing.T) {
+		th, mockSystemStore := setup(t, true, 5)
+
+		require.NoError(t, th.App.Srv().doRestrictUnauthenticatedWebappPluginsConfigMigration())
+
+		assert.True(t, *th.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins)
+		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+	})
 }
 
 // Guard, not a reproduction: storetest configures no replicas, so GetReplica already

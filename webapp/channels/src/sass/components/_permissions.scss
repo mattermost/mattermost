@@ -72,7 +72,8 @@
 }
 
 .permissions-tree {
-    padding: 0.8em 1.5rem;
+    // Outer spacing comes from Compass AdminPanel body padding.
+    padding: 0;
 
     &.guest {
         .permission-row {

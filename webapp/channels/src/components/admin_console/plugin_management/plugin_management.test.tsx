@@ -8,7 +8,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -1001,6 +1001,51 @@ describe('components/PluginManagement', () => {
             const row = screen.getByTestId('plugin_0');
             expect(row).toHaveTextContent('Enable');
             expect(row).not.toHaveTextContent('Not included in your license');
+        });
+    });
+
+    describe('server logs links', () => {
+        const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false, fileJson = true) => {
+            const props = {
+                ...defaultProps,
+                config: {...defaultProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin}, LogSettings: {FileJson: fileJson}},
+                consoleAccess: {read: {'reporting.server_logs': canReadLogs}, write: {}},
+                pluginStatuses: {
+                    ...defaultProps.pluginStatuses,
+                    plugin_0: {...defaultProps.pluginStatuses.plugin_0, state: PluginState.PLUGIN_STATE_FAILED_TO_START},
+                    plugin_1: {...defaultProps.pluginStatuses.plugin_1, state: PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING},
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('links each plugin to its entries, including failed ones', () => {
+            renderWithLogs(true);
+
+            for (const id of ['plugin_0', 'plugin_1']) {
+                const row = within(screen.getByTestId(id));
+                expect(row.getAllByRole('link', {name: 'View logs'})).toHaveLength(1);
+                expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=${id}`);
+            }
+        });
+
+        test.each([
+            ['without access to the server logs', false, false, true],
+            ['when system admins are restricted', true, true, true],
+            ['when the server only writes plain text logs', true, false, false],
+        ])('leaves the links out %s', (_, canReadLogs, restrictSystemAdmin, fileJson) => {
+            renderWithLogs(canReadLogs, restrictSystemAdmin, fileJson);
+
+            expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
         });
     });
 });

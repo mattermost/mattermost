@@ -13,6 +13,7 @@ import {
     LockOutlineIcon,
     AccountMultipleOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -59,12 +60,7 @@ const getUpdatesData = async (
         defaultMessage: 'Your workspace is completely up to date!',
     }),
     icon: (
-        <div className='icon'>
-            <ArrowUpBoldCircleOutlineIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<ArrowUpBoldCircleOutlineIcon/>}/>
     ),
     items: await runUpdateChecks(config, formatMessage, options),
 });
@@ -88,12 +84,7 @@ const getConfigurationData = async (
         defaultMessage: 'You\'ve successfully configured SSL and Session Lengths!',
     }),
     icon: (
-        <div className='icon'>
-            <TuneIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<TuneIcon/>}/>
     ),
     items: await runConfigChecks(config, formatMessage, options),
 });
@@ -117,12 +108,7 @@ const getAccessData = async (
         defaultMessage: 'Your web server configuration is passing a live URL test!',
     }),
     icon: (
-        <div className='icon'>
-            <ServerVariantIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<ServerVariantIcon/>}/>
     ),
     items: await runAccessChecks(config, formatMessage),
 });
@@ -146,12 +132,7 @@ const getPerformanceData = async (
         defaultMessage: 'Your search performance suits your workspace usage!',
     }),
     icon: (
-        <div className='icon'>
-            <ChartLineIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<ChartLineIcon/>}/>
     ),
     items: await runPerformanceChecks(config, formatMessage, options),
 });
@@ -174,12 +155,7 @@ const getDataPrivacyData = async (
         defaultMessage: 'You\'ve enabled data retention and compliance features!',
     }),
     icon: (
-        <div className='icon'>
-            <LockOutlineIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<LockOutlineIcon/>}/>
     ),
     items: await runDataPrivacyChecks(config, formatMessage, options),
 });
@@ -202,12 +178,7 @@ const getEaseOfManagementData = async (
         defaultMessage: 'Your user authentication setup is appropriate based on your current usage!',
     }),
     icon: (
-        <div className='icon'>
-            <AccountMultipleOutlineIcon
-                size={20}
-                color={'var(--sys-center-channel-color)'}
-            />
-        </div>
+        <Icon glyph={<AccountMultipleOutlineIcon/>}/>
     ),
     items: await runEaseOfUseChecks(config, formatMessage, options),
 });

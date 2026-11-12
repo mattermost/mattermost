@@ -152,6 +152,10 @@ During an outage, you may see the following log messages:
 
 If you have an search indexing job that's paused, it's likely your Elasticsearch or OpenSearch server has restarted. If you restart that server, you must also restart Mattermost to ensure jobs are completed. If restarting the Mattermost server does not resolve the issue, [customers with a Mattermost subscription can contact Mattermost Support](https://mattermost.com/support/) for assistance.
 
+### Should I turn off indexing before a large bulk permanent channel delete?
+
+Yes. Turn off Elasticsearch indexing before a large bulk permanent deletion of channels, and leave the Elasticsearch or OpenSearch cluster running. Permanently deleting a channel reindexes every member, and that indexing work can exhaust server memory. After the deletes finish, turn indexing back on and run a bulk index. See [Enable Elasticsearch indexing](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing).
+
 ### Do I need to purge first then bulk index each time?
 
 Yes. Every time you choose to remove old data (purge), you must follow it up with a bulk index operation to repopulate them with new data. When you purge (delete) indices, you are removing the existing data from Elasticsearch. After purging, if you want to repopulate the indices with fresh data, you perform a bulk index operation to rebuild the indices efficiently. The bulk API allows for indexing, deleting, or updating multiple documents in a single request, which is faster and more efficient than processing documents one by one.

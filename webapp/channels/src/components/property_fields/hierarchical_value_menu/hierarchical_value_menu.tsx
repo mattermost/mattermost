@@ -259,6 +259,8 @@ export default function HierarchicalValueMenu({
         onMenuOpenChange?.(open);
     }, [onMenuOpenChange]);
 
+    const getPopoverContainer = useCallback(() => document.getElementById(buttonId)?.closest<HTMLElement>('[role="dialog"]') ?? null, [buttonId]);
+
     // The modal root no longer captures clicks (allowTriggerInteraction), so
     // outside clicks must close the menu here. Clicks on the trigger or the
     // portaled paper are ignored — chip remove lives on the trigger.
@@ -478,6 +480,7 @@ export default function HierarchicalValueMenu({
                     onToggle: handleToggle,
                     autoFocusItem: false,
                     allowTriggerInteraction: true,
+                    container: getPopoverContainer,
                 }}
                 menuHeader={
                     <HierarchicalMenuSearch

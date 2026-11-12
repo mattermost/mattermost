@@ -7,6 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {BoardsPropertyField, BoardsPropertyFieldOption} from '@mattermost/types/properties_board';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {resolveOptionChipColors} from 'utils/property_option_colors';
 
 import {isPendingId, ValidationWarningOptionsUnique} from './board_attributes_utils';
 import BoardAttributesValues from './board_attributes_values';
@@ -34,6 +35,74 @@ function makeField(overrides: Partial<BoardsPropertyField> = {}): BoardsProperty
 }
 
 describe('BoardAttributesValues', () => {
+    // The chips read 1.07-1.56:1 in Onyx before this: the background is an opaque
+    // pastel from the palette while the label inherited `var(--center-channel-color)`,
+    // which is near-white in a dark theme. The foreground now comes from the same
+    // resolver as the post chip, derived from the background, so it holds in every
+    // theme.
+    describe('option chip colours', () => {
+        const chipShell = (optionId: string) => screen.getByTestId(`property-option-chip-${optionId}`).closest('span[style]');
+
+        it('sets a derived foreground alongside the background, not a theme variable', () => {
+            const field = makeField({
+                attrs: {
+                    sort_order: 0,
+                    options: [{id: 'opt-1', name: 'Secret', color: 'red'}],
+                },
+            });
+
+            renderWithContext(
+                <BoardAttributesValues
+                    field={field}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(chipShell('opt-1')).toHaveStyle(resolveOptionChipColors('red'));
+            expect(chipShell('opt-1')).toHaveStyle({backgroundColor: '#f3a4a0', color: '#000000'});
+        });
+
+        it('colours the readonly chips of a protected field the same way', () => {
+            const field = makeField({
+                protected: true,
+                attrs: {
+                    sort_order: 0,
+                    options: [{id: 'opt-1', name: 'Secret', color: 'blue'}],
+                },
+            });
+
+            renderWithContext(
+                <BoardAttributesValues
+                    field={field}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(chipShell('opt-1')).toHaveStyle(resolveOptionChipColors('blue'));
+        });
+
+        // An option created in the console carries no colour until one is picked.
+        // `normalizeColor` is the boards-side policy for that, and it must still
+        // run so the chip, the drag preview and the menu's selected state agree.
+        it('falls back to the palette default for an option with no colour', () => {
+            const field = makeField({
+                attrs: {
+                    sort_order: 0,
+                    options: [{id: 'opt-1', name: 'Untitled'}],
+                },
+            });
+
+            renderWithContext(
+                <BoardAttributesValues
+                    field={field}
+                    updateField={jest.fn()}
+                />,
+            );
+
+            expect(chipShell('opt-1')).toHaveStyle(resolveOptionChipColors('default'));
+        });
+    });
+
     it('renders an em-dash placeholder for user-typed fields (no options to manage)', () => {
         const field = makeField({type: 'user', attrs: {sort_order: 0}});
         renderWithContext(

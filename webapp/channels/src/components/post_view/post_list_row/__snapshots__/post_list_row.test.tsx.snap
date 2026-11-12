@@ -15,7 +15,7 @@ exports[`components/post_view/post_list_row should have class hideAnimation for 
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
@@ -40,7 +40,7 @@ exports[`components/post_view/post_list_row should have class hideAnimation for 
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />
@@ -105,7 +105,7 @@ exports[`components/post_view/post_list_row should render more messages loading 
       >
         <span
           aria-label="Loading Icon"
-          class="_spinner_3elm7_10 spinner"
+          class="_spinner_mvrwe_21 spinner"
           role="status"
           style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
         />

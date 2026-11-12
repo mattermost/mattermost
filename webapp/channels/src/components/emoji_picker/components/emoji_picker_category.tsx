@@ -3,8 +3,10 @@
 
 import classNames from 'classnames';
 import React, {memo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
 
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
@@ -20,6 +22,8 @@ export interface Props {
 
 function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onClick}: Props) {
     const intl = useIntl();
+    const categoryLabel = intl.formatMessage(category.label);
+    const CategoryIcon = category.icon;
 
     const handleClick = (event: React.MouseEvent) => {
         event.preventDefault();
@@ -31,25 +35,21 @@ function EmojiPickerCategory({category, categoryRowIndex, selected, enable, onCl
         }
     };
 
-    const className = classNames('emoji-picker__category', {
-        'emoji-picker__category--selected': selected,
-        disable: !enable,
-    });
-
     return (
-        <WithTooltip
-            title={
-                <FormattedMessage {...category.label}/>
-            }
-        >
-            <button
+        <WithTooltip title={categoryLabel}>
+            <IconButton
+                aria-label={categoryLabel}
                 aria-pressed={selected}
-                className={classNames('style--none', className)}
+                active={selected}
+                disabled={!enable}
+                size='small'
+                padding='compact'
+                className={classNames('emoji-picker__category', {
+                    disable: !enable,
+                })}
                 onClick={handleClick}
-                aria-label={intl.formatMessage(category.label)}
-            >
-                <i className={category.iconClassName}/>
-            </button>
+                icon={<Icon glyph={<CategoryIcon/>}/>}
+            />
         </WithTooltip>
     );
 }

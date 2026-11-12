@@ -2,24 +2,34 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {Radio} from '@mattermost/compass-ui/components/radio';
-import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
+import type {
+    ContentFlaggingReviewerSetting,
+    TeamReviewerSetting,
+} from '@mattermost/types/config';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
-import TeamReviewers
-    from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
-import {
-    AdminSection,
-    SectionContent,
-    SectionHeader,
-} from 'components/admin_console/system_properties/controls';
+import TeamReviewers from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';
 
+import '../content_flagging_section_base.scss';
 import './content_reviewers.scss';
+
+const messages = defineMessages({
+    title: {
+        id: 'admin.dataSpillage.reviewerSettings.title',
+        defaultMessage: 'Content Reviewers',
+    },
+    description: {
+        id: 'admin.dataSpillage.reviewerSettings.description',
+        defaultMessage: 'Define who should review content in your environment',
+    },
+});
 
 type Props = {
     id: string;
@@ -28,212 +38,227 @@ type Props = {
     disabled?: boolean;
 };
 
-export default function ContentFlaggingContentReviewers({id, onChange, value, disabled = false}: Props) {
-    const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(value as ContentFlaggingReviewerSetting);
+export default function ContentFlaggingContentReviewers({
+    id,
+    onChange,
+    value,
+    disabled = false,
+}: Props) {
+    const [reviewerSetting, setReviewerSetting] =
+        useState<ContentFlaggingReviewerSetting>(
+            value as ContentFlaggingReviewerSetting,
+        );
 
-    const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const updatedSetting: ContentFlaggingReviewerSetting = {
-            ...reviewerSetting,
-            CommonReviewers: event.target.value === 'true',
-        };
+    const handleSameReviewersForAllTeamsChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const updatedSetting: ContentFlaggingReviewerSetting = {
+                ...reviewerSetting,
+                CommonReviewers: event.target.value === 'true',
+            };
 
-        setReviewerSetting(updatedSetting);
-        onChange(id, updatedSetting);
-    }, [id, onChange, reviewerSetting]);
+            setReviewerSetting(updatedSetting);
+            onChange(id, updatedSetting);
+        },
+        [id, onChange, reviewerSetting],
+    );
 
-    const handleSystemAdminReviewerChange = useCallback((_: string, value: boolean) => {
-        const updatedSetting: ContentFlaggingReviewerSetting = {
-            ...reviewerSetting,
-            SystemAdminsAsReviewers: value,
-        };
+    const handleSystemAdminReviewerChange = useCallback(
+        (_: string, value: boolean) => {
+            const updatedSetting: ContentFlaggingReviewerSetting = {
+                ...reviewerSetting,
+                SystemAdminsAsReviewers: value,
+            };
 
-        setReviewerSetting(updatedSetting);
-        onChange(id, updatedSetting);
-    }, [id, onChange, reviewerSetting]);
+            setReviewerSetting(updatedSetting);
+            onChange(id, updatedSetting);
+        },
+        [id, onChange, reviewerSetting],
+    );
 
-    const handleTeamAdminReviewerChange = useCallback((_: string, value: boolean) => {
-        const updatedSetting: ContentFlaggingReviewerSetting = {
-            ...reviewerSetting,
-            TeamAdminsAsReviewers: value,
-        };
+    const handleTeamAdminReviewerChange = useCallback(
+        (_: string, value: boolean) => {
+            const updatedSetting: ContentFlaggingReviewerSetting = {
+                ...reviewerSetting,
+                TeamAdminsAsReviewers: value,
+            };
 
-        setReviewerSetting(updatedSetting);
-        onChange(id, updatedSetting);
-    }, [id, onChange, reviewerSetting]);
+            setReviewerSetting(updatedSetting);
+            onChange(id, updatedSetting);
+        },
+        [id, onChange, reviewerSetting],
+    );
 
-    const handleCommonReviewersChange = useCallback((selectedUserIds: string[]) => {
-        const updatedSetting: ContentFlaggingReviewerSetting = {
-            ...reviewerSetting,
-            CommonReviewerIds: selectedUserIds,
-        };
+    const handleCommonReviewersChange = useCallback(
+        (selectedUserIds: string[]) => {
+            const updatedSetting: ContentFlaggingReviewerSetting = {
+                ...reviewerSetting,
+                CommonReviewerIds: selectedUserIds,
+            };
 
-        setReviewerSetting(updatedSetting);
-        onChange(id, updatedSetting);
-    }, [id, onChange, reviewerSetting]);
+            setReviewerSetting(updatedSetting);
+            onChange(id, updatedSetting);
+        },
+        [id, onChange, reviewerSetting],
+    );
 
-    const handleTeamReviewerSettingsChange = useCallback((updatedTeamSettings: Record<string, TeamReviewerSetting>) => {
-        const updatedSetting: ContentFlaggingReviewerSetting = {
-            ...reviewerSetting,
-            TeamReviewersSetting: updatedTeamSettings,
-        };
+    const handleTeamReviewerSettingsChange = useCallback(
+        (updatedTeamSettings: Record<string, TeamReviewerSetting>) => {
+            const updatedSetting: ContentFlaggingReviewerSetting = {
+                ...reviewerSetting,
+                TeamReviewersSetting: updatedTeamSettings,
+            };
 
-        setReviewerSetting(updatedSetting);
-        onChange(id, updatedSetting);
-    }, [id, onChange, reviewerSetting]);
+            setReviewerSetting(updatedSetting);
+            onChange(id, updatedSetting);
+        },
+        [id, onChange, reviewerSetting],
+    );
 
     return (
-        <AdminSection>
-            <SectionHeader>
-                <hgroup>
-                    <h1 className='content-flagging-section-title'>
+        <AdminPanel
+            id='content_reviewers'
+            title={messages.title}
+            subtitle={messages.description}
+        >
+            <div className='content-flagging-section-setting-wrapper'>
+                {/* Same reviewers for all teams */}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id='admin.dataSpillage.reviewerSettings.title'
-                            defaultMessage='Content Reviewers'
+                            id='admin.dataSpillage.reviewerSettings.sameReviewersForAllTeams'
+                            defaultMessage='Same reviewers for all teams:'
                         />
-                    </h1>
-                    <h5 className='content-flagging-section-description'>
-                        <FormattedMessage
-                            id='admin.dataSpillage.reviewerSettings.description'
-                            defaultMessage='Define who should review content in your environment'
-                        />
-                    </h5>
-                </hgroup>
-            </SectionHeader>
+                    </div>
 
-            <SectionContent>
-                <div className='content-flagging-section-setting-wrapper'>
-                    {/* Same reviewers for all teams */}
+                    <div className='setting-content'>
+                        <Radio
+                            data-testid='sameReviewersForAllTeams_true'
+                            id='sameReviewersForAllTeams_true'
+                            name='sameReviewersForAllTeams'
+                            value='true'
+                            checked={reviewerSetting.CommonReviewers}
+                            onChange={handleSameReviewersForAllTeamsChange}
+                            disabled={disabled}
+                        >
+                            <FormattedMessage
+                                id='admin.true'
+                                defaultMessage='True'
+                            />
+                        </Radio>
+
+                        <Radio
+                            data-testid='sameReviewersForAllTeams_false'
+                            id='sameReviewersForAllTeams_false'
+                            name='sameReviewersForAllTeams'
+                            value='false'
+                            checked={!reviewerSetting.CommonReviewers}
+                            onChange={handleSameReviewersForAllTeamsChange}
+                            disabled={disabled}
+                        >
+                            <FormattedMessage
+                                id='admin.false'
+                                defaultMessage='False'
+                            />
+                        </Radio>
+                    </div>
+                </div>
+
+                {reviewerSetting.CommonReviewers && (
                     <div className='content-flagging-section-setting'>
                         <div className='setting-title'>
                             <FormattedMessage
-                                id='admin.dataSpillage.reviewerSettings.sameReviewersForAllTeams'
-                                defaultMessage='Same reviewers for all teams:'
+                                id='admin.dataSpillage.reviewerSettings.commonReviewers'
+                                defaultMessage='Reviewers:'
                             />
                         </div>
 
                         <div className='setting-content'>
-                            <Radio
-                                data-testid='sameReviewersForAllTeams_true'
-                                id='sameReviewersForAllTeams_true'
-                                name='sameReviewersForAllTeams'
-                                value='true'
-                                checked={reviewerSetting.CommonReviewers}
-                                onChange={handleSameReviewersForAllTeamsChange}
+                            <UserSelector
+                                isMulti={true}
+                                id='content_reviewers_common_reviewers'
+                                multiSelectInitialValue={
+                                    reviewerSetting.CommonReviewerIds
+                                }
+                                multiSelectOnChange={
+                                    handleCommonReviewersChange
+                                }
                                 disabled={disabled}
-                            >
-                                <FormattedMessage
-                                    id='admin.true'
-                                    defaultMessage='True'
-                                />
-                            </Radio>
-
-                            <Radio
-                                data-testid='sameReviewersForAllTeams_false'
-                                id='sameReviewersForAllTeams_false'
-                                name='sameReviewersForAllTeams'
-                                value='false'
-                                checked={!reviewerSetting.CommonReviewers}
-                                onChange={handleSameReviewersForAllTeamsChange}
-                                disabled={disabled}
-                            >
-                                <FormattedMessage
-                                    id='admin.false'
-                                    defaultMessage='False'
-                                />
-                            </Radio>
+                            />
                         </div>
                     </div>
+                )}
 
-                    {
-                        reviewerSetting.CommonReviewers &&
-                        <div className='content-flagging-section-setting'>
-                            <div className='setting-title'>
-                                <FormattedMessage
-                                    id='admin.dataSpillage.reviewerSettings.commonReviewers'
-                                    defaultMessage='Reviewers:'
-                                />
-                            </div>
-
-                            <div className='setting-content'>
-                                <UserSelector
-                                    isMulti={true}
-                                    id='content_reviewers_common_reviewers'
-                                    multiSelectInitialValue={reviewerSetting.CommonReviewerIds}
-                                    multiSelectOnChange={handleCommonReviewersChange}
-                                    disabled={disabled}
-                                />
-                            </div>
+                {!reviewerSetting.CommonReviewers && (
+                    <div className='content-flagging-section-setting teamSpecificReviewerSection'>
+                        <div className='setting-title'>
+                            <FormattedMessage
+                                id='admin.dataSpillage.reviewerSettings.perTeamReviewers.title'
+                                defaultMessage='Configure data spillage handling per team'
+                            />
                         </div>
-                    }
 
-                    {
-                        !reviewerSetting.CommonReviewers &&
-                        <div className='content-flagging-section-setting teamSpecificReviewerSection'>
-                            <div className='setting-title'>
-                                <FormattedMessage
-                                    id='admin.dataSpillage.reviewerSettings.perTeamReviewers.title'
-                                    defaultMessage='Configure data spillage handling per team'
-                                />
-                            </div>
+                        <TeamReviewers
+                            teamReviewersSetting={
+                                reviewerSetting.TeamReviewersSetting
+                            }
+                            onChange={handleTeamReviewerSettingsChange}
+                            disabled={disabled}
+                        />
+                    </div>
+                )}
 
-                            <TeamReviewers
-                                teamReviewersSetting={reviewerSetting.TeamReviewersSetting}
-                                onChange={handleTeamReviewerSettingsChange}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
+                        <FormattedMessage
+                            id='admin.dataSpillage.reviewerSettings.additionalReviewers'
+                            defaultMessage='Additional reviewers'
+                        />
+                    </div>
+
+                    <div className='setting-content-wrapper'>
+                        <div className='setting-content'>
+                            <CheckboxSetting
+                                id='notifyOnDismissal_reviewers'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins'
+                                        defaultMessage='System Administrators'
+                                    />
+                                }
+                                defaultChecked={
+                                    reviewerSetting.SystemAdminsAsReviewers
+                                }
+                                onChange={handleSystemAdminReviewerChange}
+                                setByEnv={false}
                                 disabled={disabled}
                             />
 
-                        </div>
-                    }
-
-                    <div className='content-flagging-section-setting'>
-                        <div className='setting-title'>
-                            <FormattedMessage
-                                id='admin.dataSpillage.reviewerSettings.additionalReviewers'
-                                defaultMessage='Additional reviewers'
+                            <CheckboxSetting
+                                id='notifyOnDismissal_author'
+                                label={
+                                    <FormattedMessage
+                                        id='admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins'
+                                        defaultMessage='Team Administrators'
+                                    />
+                                }
+                                defaultChecked={
+                                    reviewerSetting.TeamAdminsAsReviewers
+                                }
+                                onChange={handleTeamAdminReviewerChange}
+                                setByEnv={false}
+                                disabled={disabled}
                             />
                         </div>
 
-                        <div className='setting-content-wrapper'>
-                            <div className='setting-content'>
-                                <CheckboxSetting
-                                    id='notifyOnDismissal_reviewers'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins'
-                                            defaultMessage='System Administrators'
-                                        />
-                                    }
-                                    defaultChecked={reviewerSetting.SystemAdminsAsReviewers}
-                                    onChange={handleSystemAdminReviewerChange}
-                                    setByEnv={false}
-                                    disabled={disabled}
-                                />
-
-                                <CheckboxSetting
-                                    id='notifyOnDismissal_author'
-                                    label={
-                                        <FormattedMessage
-                                            id='admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins'
-                                            defaultMessage='Team Administrators'
-                                        />
-                                    }
-                                    defaultChecked={reviewerSetting.TeamAdminsAsReviewers}
-                                    onChange={handleTeamAdminReviewerChange}
-                                    setByEnv={false}
-                                    disabled={disabled}
-                                />
-                            </div>
-
-                            <div className='helpText'>
-                                <FormattedMessage
-                                    id='admin.dataSpillage.reviewerSettings.additionalReviewers.helpText'
-                                    defaultMessage='If enabled, system administrators will be sent quarantined posts for review from every team that they are a part of. Team administrators will only be sent quarantined posts for review from their respective teams.'
-                                />
-                            </div>
+                        <div className='helpText'>
+                            <FormattedMessage
+                                id='admin.dataSpillage.reviewerSettings.additionalReviewers.helpText'
+                                defaultMessage='If enabled, system administrators will be sent quarantined posts for review from every team that they are a part of. Team administrators will only be sent quarantined posts for review from their respective teams.'
+                            />
                         </div>
                     </div>
                 </div>
-            </SectionContent>
-        </AdminSection>
+            </div>
+        </AdminPanel>
     );
 }

@@ -129,8 +129,12 @@ func (s *SqlReactionStore) GetForPostSince(postId string, since int64, excludeRe
 			"COALESCE(DeleteAt, 0) As DeleteAt", "RemoteId").
 		From("Reactions").
 		Where(sq.Eq{"PostId": postId}).
-		Where(sq.Gt{"UpdateAt": since}).
 		OrderBy("CreateAt")
+
+	// UpdateAt is NULL on rows from before the column existed.
+	if since > 0 {
+		query = query.Where(sq.Gt{"UpdateAt": since})
+	}
 
 	if excludeRemoteId != "" {
 		query = query.Where(sq.NotEq{"COALESCE(RemoteId, '')": excludeRemoteId})

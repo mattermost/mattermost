@@ -80,7 +80,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         expect(screen.getAllByRole('radio')).toHaveLength(2);
     });
 
-    test('guest radio-button is disabled and shows the badge guest restricted feature to invite guest when is NOT free trial for cloud', () => {
+    test('restricted badge shows "Upgrade" for post trial', () => {
         const testState = {
             entities: {
                 admin: {
@@ -93,73 +93,13 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                         BuildEnterpriseReady: 'true',
                     },
                     license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                        SkuShortName: CloudProducts.STARTER,
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        is_free_trial: 'false',
-                        trial_end_at: 0,
-                        sku: CloudProducts.STARTER,
-                        product_id: 'cloud-starter-id',
-                    },
-                    products: {
-                        'cloud-starter-id': {
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                },
-                users: {
-                    currentUserId: 'uid',
-                    profiles: {
-                        current_user_id: {roles: 'system_admin'},
-                    },
-                },
-            },
-        };
-        renderWithContext(
-            <InviteAs {...props}/>,
-            testState,
-            {useMockedStore: true},
-        );
-
-        const guestRadioButton = screen.getByDisplayValue('GUEST');
-        expect(guestRadioButton).toBeDisabled();
-
-        expect(screen.getByText('Professional feature - try it out free')).toBeInTheDocument();
-    });
-
-    test('restricted badge shows "Upgrade" for cloud post trial', () => {
-        const testState = {
-            entities: {
-                admin: {
-                    prevTrialLicense: {
                         IsLicensed: 'false',
-                    },
-                },
-                general: {
-                    config: {
-                        BuildEnterpriseReady: 'true',
-                    },
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                        SkuShortName: CloudProducts.STARTER,
                     },
                 },
                 cloud: {
                     subscription: {
                         is_free_trial: 'false',
                         trial_end_at: 100000,
-                        sku: CloudProducts.STARTER,
-                        product_id: 'cloud-starter-id',
-                    },
-                    products: {
-                        'cloud-starter-id': {
-                            sku: CloudProducts.STARTER,
-                        },
                     },
                 },
                 users: {
@@ -449,7 +389,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
     });
 
     test('guest radio-button is disabled when canInviteGuests prop is undefined and defaults to system behavior', () => {
-        // Test with starter plan where guests should be disabled by default
+        // Test with self-hosted starter where guests should be disabled by default
         const testState = {
             entities: {
                 admin: {
@@ -462,22 +402,13 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
                         BuildEnterpriseReady: 'true',
                     },
                     license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                        SkuShortName: CloudProducts.STARTER,
+                        IsLicensed: 'false',
                     },
                 },
                 cloud: {
                     subscription: {
                         is_free_trial: 'false',
                         trial_end_at: 0,
-                        sku: CloudProducts.STARTER,
-                        product_id: 'cloud-starter-id',
-                    },
-                    products: {
-                        'cloud-starter-id': {
-                            sku: CloudProducts.STARTER,
-                        },
                     },
                 },
                 users: {

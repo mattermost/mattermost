@@ -7,11 +7,9 @@ import React, {PureComponent, type JSX} from 'react';
 import {defineMessage, defineMessages, FormattedDate, FormattedMessage, FormattedList, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
-import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
 
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -23,6 +21,7 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
@@ -31,7 +30,7 @@ import SettingPicture from 'components/setting_picture';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors, ZIndex} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import * as Utils from 'utils/utils';
@@ -115,34 +114,6 @@ const holders = defineMessages({
         defaultMessage: 'Position',
     },
 });
-
-export type SelectOption = {
-    value: string;
-    label: string;
-};
-
-const selectStyles: StylesConfig<SelectOption, true> = {
-    valueContainer: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-        flexWrap: 'wrap',
-        whiteSpace: 'normal',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        margin: '2px',
-    }),
-    control: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '2px 6px',
-    }),
-};
 
 export type Props = {
     intl: IntlShape;
@@ -474,6 +445,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             }
         }
 
+        if (attributeField.type === 'select' && Array.isArray(attributeValue)) {
+            attributeValue = attributeValue[0] ?? '';
+        }
+
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
@@ -535,25 +510,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
     };
 
-    updateSelectAttribute = (selectedOption: OnChangeValue<SelectOption, boolean>, action: ActionMeta<SelectOption>, fieldID: string) => {
-        const attributeValues = {...this.state.customAttributeValues};
-
-        if (!selectedOption) {
-            attributeValues[fieldID] = '';
-        } else if (Array.isArray(selectedOption)) {
-            // Handle multi-select
-            attributeValues[fieldID] = selectedOption.
-                filter((option): option is SelectOption =>
-                    Boolean(option && Object.hasOwn(option, 'value'))).
-                map((option) => option.value);
-        } else if ('value' in selectedOption) {
-            // Handle single select
-            attributeValues[fieldID] = selectedOption.value || '';
-        } else {
-            attributeValues[fieldID] = '';
-        }
-
-        this.setState({customAttributeValues: attributeValues});
+    updateComboboxAttribute = (fieldID: string, value: string | string[]) => {
+        this.setState((prevState) => ({customAttributeValues: {...prevState.customAttributeValues, [fieldID]: value}}));
     };
 
     updateAttribute = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1533,43 +1491,21 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             const active = this.props.activeSection === sectionName;
             let max = null;
 
-            const getDisplayValue = (attributeValue: string | string[]) => {
-                if (!attributeValue || (!Array.isArray(attributeValue) && !attributeValue.length)) {
+            // Option ids map to their option names, or stay raw when the option is gone.
+            const getDisplayValue = (attributeValue: string | string[] | undefined): string | string[] => {
+                if (!attributeValue?.length) {
                     return '';
                 }
-
-                if (valueRefersToOptions(attribute)) {
-                    const attribOptions = attribute.attrs.options;
-                    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-                    if (!attribOptions) {
-                        if (optionsOmitted) {
-                            if (Array.isArray(attributeValue)) {
-                                return attributeValue.map((value) => ({label: value, value}));
-                            }
-                            return {label: attributeValue, value: attributeValue};
-                        }
-                        return '';
-                    }
-                    if (Array.isArray(attributeValue)) {
-                        return attributeValue.map((value) => {
-                            const option = attribOptions.find((o) => o.id === value);
-
-                            return {label: option?.name ?? value, value};
-                        });
-                    }
-
-                    // Handle single select
-                    const option = attribOptions.find((o) => o.id === attributeValue);
-                    if (option) {
-                        return {label: option?.name, value: option?.id};
-                    }
-                    if (optionsOmitted) {
-                        return {label: attributeValue, value: attributeValue};
-                    }
-                    return '';
+                if (!valueRefersToOptions(attribute)) {
+                    return attributeValue;
                 }
 
-                return attributeValue as string;
+                const options = attribute.attrs.options;
+                if (!options && !attribute.attrs.options_omitted) {
+                    return '';
+                }
+                const toName = (id: string) => options?.find((o) => o.id === id)?.name ?? id;
+                return Array.isArray(attributeValue) ? attributeValue.map(toName) : toName(attributeValue);
             };
 
             if (active) {
@@ -1674,30 +1610,23 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }
 
                     if (valueRefersToOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
-                        const opts = attribOptions.map((o) => {
-                            return {label: o.name, value: o.id} as SelectOption;
-                        });
+                        const comboboxId = 'customProfileAttribute_' + attribute.id;
 
                         inputs.push(
-                            <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                            <AttributeCombobox
                                 key={sectionName}
-                                id={'customProfileAttribute_' + attribute.id}
-                                inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                                className='react-select inlineSelect'
-                                classNamePrefix='react-select'
-                                options={opts}
-                                isClearable={true}
-                                isSearchable={false}
+                                id={comboboxId}
+                                testId={comboboxId}
+                                label={getUserPropertyFieldLabel(attribute)}
+                                options={attribute.attrs?.options ?? []}
                                 placeholder={formatMessage({
                                     id: 'user.settings.general.select',
                                     defaultMessage: 'Select',
                                 })}
-                                components={{IndicatorSeparator: null}}
-                                styles={selectStyles}
-                                value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
-                                onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
+                                zIndex={ZIndex.MENU}
+                                multiple={attribute.type === 'multiselect'}
+                                value={this.state.customAttributeValues[attribute.id]}
+                                onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
                             />,
                         );
                     } else {
@@ -1715,7 +1644,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                         autoFocus={true}
                                         type={inputType}
                                         onChange={this.updateAttribute}
-                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as string}
+                                        value={getDisplayValue(this.state.customAttributeValues[attribute.id])}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                                         autoCapitalize='off'
                                         onFocus={Utils.moveCursorToEnd}
@@ -1755,21 +1684,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     />
                 );
             }
-            let describe: JSX.Element | string = '';
-            const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
-
-            if (storedValue) {
-                const attributeValue = getDisplayValue(storedValue);
-                if (attributeValue) {
-                    if (typeof attributeValue === 'string') {
-                        describe = attributeValue;
-                    } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
-                        describe = <FormattedList value={attributeValue.map((attrib) => attrib?.label || null)}/>;
-                    } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
-                        describe = attributeValue.label || '';
-                    }
-                }
-            }
+            const displayValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+            let describe: JSX.Element | string = Array.isArray(displayValue) ? <FormattedList value={displayValue}/> : displayValue;
             if (!describe) {
                 describe = (
                     <FormattedMessage

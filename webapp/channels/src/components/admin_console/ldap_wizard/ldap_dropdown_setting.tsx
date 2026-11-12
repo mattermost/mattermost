@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type JSX} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
@@ -49,22 +49,9 @@ const LDAPDropdownSetting = (props: Props) => {
         }
     }
 
-    // used to hide help in case of cloud-starter and open-id selection to show upgrade notice.
-    let hideHelp = false;
-    if (props.setting.isHelpHidden) {
-        if (typeof (props.setting.isHelpHidden) === 'function') {
-            hideHelp = props.setting.isHelpHidden(props.config, props.state, props.license, props.enterpriseReady);
-        } else {
-            hideHelp = props.setting.isHelpHidden;
-        }
-    }
-
     const label = renderLabel(props.setting, props.schema, intl);
 
-    let helpText: string | JSX.Element = '';
-    if (!hideHelp) {
-        helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
-    }
+    const helpText = selectedOptionForHelpText ? renderDropdownOptionHelpText(selectedOptionForHelpText) : renderSettingHelpText(props.setting, props.schema, Boolean(props.disabled));
     return (
         <DropdownSetting
             key={props.schema.id + '_dropdown_' + props.setting.key}

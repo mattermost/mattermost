@@ -88,6 +88,29 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('says board in the messages for a board', () => {
+        const {container} = renderWithContext(
+            <CombinedSystemMessage
+                {...baseProps}
+                channelKind='board'
+            />,
+        );
+
+        expect(container).toHaveTextContent('@AddedUser1 added to the board by @User1.');
+        expect(container).toHaveTextContent('You were added to the board by @User1.');
+        expect(container).toHaveTextContent('@AddedUser2 added to the board by you.');
+        expect(container).not.toHaveTextContent('added to the channel');
+    });
+
+    test('says channel in the messages for a channel', () => {
+        const {container} = renderWithContext(
+            <CombinedSystemMessage {...baseProps}/>,
+        );
+
+        expect(container).toHaveTextContent('@AddedUser1 added to the channel by @User1.');
+        expect(container).not.toHaveTextContent('added to the board');
+    });
+
     test('should call getMissingProfilesByIds and/or getMissingProfilesByUsernames on loadUserProfiles', () => {
         // Test 1: empty allUserIds and allUsernames - should not call either action
         const actions1 = {

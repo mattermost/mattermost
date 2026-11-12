@@ -54,8 +54,7 @@ describe('components/GetLinkModal', () => {
         );
 
         // Click the modal header X button (triggers Modal's onHide)
-        const modalCloseButton = baseElement.querySelector('.close') as HTMLElement;
-        await user.click(modalCloseButton);
+        await user.click(baseElement.querySelector('.modal-header button.close') as HTMLElement);
         expect(newOnHide).toHaveBeenCalledTimes(1);
 
         // Copy link to set copiedLink state to true

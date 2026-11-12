@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {AccountMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -18,7 +17,7 @@ import UserGroupsModal from 'components/user_groups_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {CloudProducts, LicenseSkus, MattermostFeatures, ModalIdentifiers} from 'utils/constants';
+import {LicenseSkus, MattermostFeatures, ModalIdentifiers} from 'utils/constants';
 
 type Props = {
     isCloudLicensed: boolean;
@@ -32,14 +31,12 @@ export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
 
     const license = useSelector(getLicense);
 
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
-    const isCloudStarterFree = props.isCloudLicensed && subscriptionProduct?.sku === CloudProducts.STARTER;
     const isCloudFreeTrial = props.isCloudLicensed && props.isFreeTrialSubscription;
 
     const isSelfHostedStarter = props.isEnterpriseReady && (license.IsLicensed === 'false');
     const isSelfHostedFreeTrial = license.IsTrial === 'true';
 
-    const isStarterFree = isCloudStarterFree || isSelfHostedStarter;
+    const isStarterFree = isSelfHostedStarter;
     const isFreeTrial = isCloudFreeTrial || isSelfHostedFreeTrial;
 
     const isCustomUserGroupsEnabled = useSelector(isCustomGroupsEnabled);

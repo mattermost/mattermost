@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -42,6 +42,10 @@ import type {ValueType} from 'components/dropdown_input';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
+
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 import type {GlobalState} from 'types/store';
 
@@ -108,6 +112,7 @@ function ChannelSettingsConfigurationTab({
 }: Props) {
     const {formatMessage, formatList} = useIntl();
     const dispatch = useDispatch();
+    const channelKind = useChannelKind(channel);
 
     const [formError, setFormError] = useState('');
     const [requireConfirm, setRequireConfirm] = useState(false);
@@ -121,11 +126,11 @@ function ChannelSettingsConfigurationTab({
     }, []);
 
     // Channel banner section
-    const bannerHeading = formatMessage({id: 'channel_banner.label.name', defaultMessage: 'Channel Banner'});
-    const bannerSubHeading = formatMessage({id: 'channel_banner.label.subtext', defaultMessage: 'When enabled, a customized banner will display at the top of the channel.'});
+    const bannerHeading = formatMessage(messages.bannerHeading[channelKind]);
+    const bannerSubHeading = formatMessage(messages.bannerSubHeading[channelKind]);
     const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
-    const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
+    const bannerTextPlaceholder = formatMessage(channelKindMessages.bannerTextPlaceholder[channelKind]);
     const bannerPreviewSettingTitle = formatMessage({id: 'channel_banner.banner_preview.label', defaultMessage: 'Preview'});
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
@@ -370,16 +375,13 @@ function ChannelSettingsConfigurationTab({
             // With attributes on, emptiness is derived below instead: an author
             // clearing the text is on their way to turning the banner off, and a
             // stored error would outlive the condition that raised it.
-            setFormError(formatMessage({
-                id: 'channel_settings.save_changes_panel.banner_text.required_error',
-                defaultMessage: 'Channel banner text cannot be empty when enabled',
-            }));
+            setFormError(formatMessage(messages.bannerTextRequired[channelKind]));
             setCharacterLimitExceeded(true);
         } else {
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [channelAttributesEnabled, formatMessage, resetFormErrors]);
+    }, [channelAttributesEnabled, formatMessage, channelKind, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -396,7 +398,7 @@ function ChannelSettingsConfigurationTab({
 
     // Auto-translation section
     const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
-    const autoTranslationSubHeading = formatMessage({id: 'channel_translation.label.subtext', defaultMessage: 'When enabled, messages in this channel will be translated to members\' own languages. Members can opt-out of this from the channel menu to view the original message instead.'});
+    const autoTranslationSubHeading = formatMessage(messages.autoTranslationSubHeading[channelKind]);
 
     const initialIsChannelAutotranslated = useSelector((state: GlobalState) => isChannelAutotranslatedSelector(state, channel.id));
     const [isChannelAutotranslated, setIsChannelAutotranslated] = useState(initialIsChannelAutotranslated);
@@ -408,10 +410,7 @@ function ChannelSettingsConfigurationTab({
 
     // Join/leave messages section
     const joinLeaveMessagesHeading = formatMessage({id: 'channel_settings.join_leave_messages.label.name', defaultMessage: 'Join/Leave System Messages'});
-    const joinLeaveMessagesSubHeading = formatMessage({
-        id: 'channel_settings.join_leave_messages.label.subtext',
-        defaultMessage: 'When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
-    });
+    const joinLeaveMessagesSubHeading = formatMessage(messages.joinLeaveMessagesSubHeading[channelKind]);
 
     const initialDisableJoinLeaveMessages = Boolean(channel.disable_join_leave_messages);
     const [disableJoinLeaveMessages, setDisableJoinLeaveMessages] = useState(initialDisableJoinLeaveMessages);
@@ -475,18 +474,13 @@ function ChannelSettingsConfigurationTab({
             {count: removeCount},
         );
 
-        const removeSharingModalMessage = formatMessage(
-            {
-                id: 'channel_settings.remove_sharing_confirm.message',
-                defaultMessage: 'This will unshare the channel <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
-            },
-            {
-                count: removeCount,
-                channelName: channelDisplayName,
-                workspaceNames: workspaceNamesFormatted,
-                b: (chunks: React.ReactNode) => <b>{chunks}</b>,
-            },
-        );
+        const removeSharingModalValues = {
+            count: removeCount,
+            channelName: channelDisplayName,
+            workspaceNames: workspaceNamesFormatted,
+            b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+        };
+        const removeSharingModalMessage = formatMessage(messages.removeSharing[channelKind], removeSharingModalValues);
 
         return {
             removeSharingModalTitle,
@@ -497,6 +491,7 @@ function ChannelSettingsConfigurationTab({
         channel.name,
         formatList,
         formatMessage,
+        channelKind,
         savedSharing.remotes,
         workspaceRemotes,
     ]);
@@ -592,10 +587,7 @@ function ChannelSettingsConfigurationTab({
         if (bannerEnabledOnSave && bannerTextInvalid) {
             // Naming the toggle as the way out is only honest while it can be reached.
             const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
-            setFormError(canTurnBannerOff ? formatMessage({
-                id: 'channel_settings.save_changes_panel.banner_text.empty_error',
-                defaultMessage: 'Add banner text, or turn off the channel banner.',
-            }) : formatMessage({
+            setFormError(canTurnBannerOff ? formatMessage(messages.bannerTextEmpty[channelKind]) : formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
             }));
@@ -717,10 +709,7 @@ function ChannelSettingsConfigurationTab({
                 handleServerError(lastError as ServerError);
             }
             if (errorCount > 1) {
-                setFormError(formatMessage({
-                    id: 'channel_settings.sharing_errors',
-                    defaultMessage: 'There have been errors while sharing the channel with some workspaces. Please try again.',
-                }));
+                setFormError(formatMessage(messages.sharingErrors[channelKind]));
             }
 
             if (errorCount === 0) {
@@ -745,6 +734,7 @@ function ChannelSettingsConfigurationTab({
         classificationEnabled,
         dispatch,
         formatMessage,
+        channelKind,
         handleServerError,
         hasAutoTranslationChanges,
         hasBannerChanges,
@@ -886,6 +876,7 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
                         onToggle={handleSharingToggle}
+                        channelKind={channelKind}
                     />
                 </>
             )}
@@ -904,10 +895,7 @@ function ChannelSettingsConfigurationTab({
                         data-testid='channelClassificationToggle-button'
                         tabIndex={0}
                         semiBold={true}
-                        secondaryLabel={formatMessage({
-                            id: 'channel_settings.classification.description',
-                            defaultMessage: 'When enabled, a classification level can be set for the channel with configurable indicators.',
-                        })}
+                        secondaryLabel={formatMessage(messages.classificationDescription[channelKind])}
                     >
                         <FormattedMessage
                             id='channel_settings.classification.title'
@@ -998,12 +986,10 @@ function ChannelSettingsConfigurationTab({
                                                 disabled={bannerLockedByClassification}
                                                 hasError={characterLimitExceeded}
                                                 maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                                channelKind={channelKind}
                                             />
                                             <p className='setting_help'>
-                                                <FormattedMessage
-                                                    id='channel_banner.banner_text.help'
-                                                    defaultMessage='Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.'
-                                                />
+                                                <FormattedMessage {...messages.bannerTextHelp[channelKind]}/>
                                             </p>
                                         </>
                                     ) : (
@@ -1127,5 +1113,110 @@ function ChannelSettingsConfigurationTab({
         </div>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    bannerHeading: {
+        channel: defineMessage({
+            id: 'channel_banner.label.name',
+            defaultMessage: 'Channel Banner',
+        }),
+        board: defineMessage({
+            id: 'channel_banner.label.name.board',
+            defaultMessage: 'Board Banner',
+        }),
+    },
+    bannerSubHeading: {
+        channel: defineMessage({
+            id: 'channel_banner.label.subtext',
+            defaultMessage: 'When enabled, a customized banner will display at the top of the channel.',
+        }),
+        board: defineMessage({
+            id: 'channel_banner.label.subtext.board',
+            defaultMessage: 'When enabled, a customized banner will display at the top of the board.',
+        }),
+    },
+    bannerTextHelp: {
+        channel: defineMessage({
+            id: 'channel_banner.banner_text.help',
+            defaultMessage: 'Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.',
+        }),
+        board: defineMessage({
+            id: 'channel_banner.banner_text.help.board',
+            defaultMessage: 'Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the board. The banner is hidden if there is no text available.',
+        }),
+    },
+    bannerTextRequired: {
+        channel: defineMessage({
+            id: 'channel_settings.save_changes_panel.banner_text.required_error',
+            defaultMessage: 'Channel banner text cannot be empty when enabled',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.save_changes_panel.banner_text.required_error.board',
+            defaultMessage: 'Board banner text cannot be empty when enabled',
+        }),
+    },
+    bannerTextEmpty: {
+        channel: defineMessage({
+            id: 'channel_settings.save_changes_panel.banner_text.empty_error',
+            defaultMessage: 'Add banner text, or turn off the channel banner.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.save_changes_panel.banner_text.empty_error.board',
+            defaultMessage: 'Add banner text, or turn off the board banner.',
+        }),
+    },
+    autoTranslationSubHeading: {
+        channel: defineMessage({
+            id: 'channel_translation.label.subtext',
+            defaultMessage: "When enabled, messages in this channel will be translated to members' own languages. Members can opt-out of this from the channel menu to view the original message instead.",
+        }),
+        board: defineMessage({
+            id: 'channel_translation.label.subtext.board',
+            defaultMessage: "When enabled, messages in this board will be translated to members' own languages. Members can opt-out of this from the board menu to view the original message instead.",
+        }),
+    },
+    joinLeaveMessagesSubHeading: {
+        channel: defineMessage({
+            id: 'channel_settings.join_leave_messages.label.subtext',
+            defaultMessage: 'When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.join_leave_messages.label.subtext.board',
+            defaultMessage: 'When enabled, join and leave system messages are shown in this board for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
+        }),
+    },
+    removeSharing: {
+        channel: defineMessage({
+            id: 'channel_settings.remove_sharing_confirm.message',
+            defaultMessage: 'This will unshare the channel <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.remove_sharing_confirm.message.board',
+            defaultMessage: 'This will unshare the board <b>{channelName}</b> with the <b>{workspaceNames}</b> connected {count, plural, one {workspace} other {workspaces}}. Are you sure you want to unshare?',
+        }),
+    },
+    sharingErrors: {
+        channel: defineMessage({
+            id: 'channel_settings.sharing_errors',
+            defaultMessage: 'There have been errors while sharing the channel with some workspaces. Please try again.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.sharing_errors.board',
+            defaultMessage: 'There have been errors while sharing the board with some workspaces. Please try again.',
+        }),
+    },
+    classificationDescription: {
+        channel: defineMessage({
+            id: 'channel_settings.classification.description',
+            defaultMessage: 'When enabled, a classification level can be set for the channel with configurable indicators.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.classification.description.board',
+            defaultMessage: 'When enabled, a classification level can be set for the board with configurable indicators.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelSettingsConfigurationTab;

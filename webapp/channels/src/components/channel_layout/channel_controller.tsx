@@ -18,6 +18,7 @@ import CenterChannel from 'components/channel_layout/center_channel';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import QueryParamActionController from 'components/query_param_actions/query_param_action_controller';
+import QuoteSelectionButton from 'components/quote_selection_button/quote_selection_button';
 import Sidebar from 'components/sidebar';
 import CRTPostsChannelResetWatcher from 'components/threading/channel_threads/posts_channel_reset_watcher';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
@@ -92,6 +93,7 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                <QuoteSelectionButton/>
                 {enableMarkAllReadShortcut && <MarkAllAsReadToast/>}
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}

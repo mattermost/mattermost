@@ -30,7 +30,6 @@ describe('EnableSectionContent', () => {
 
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
-        expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
         expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
     });
 
@@ -41,7 +40,7 @@ describe('EnableSectionContent', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByRole('switch'));
 
         expect(setFilterToggle).toHaveBeenCalledTimes(1);
         expect(setFilterToggle).toHaveBeenCalledWith(false);
@@ -55,7 +54,7 @@ describe('EnableSectionContent', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByRole('switch'));
 
         expect(setFilterToggle).toHaveBeenCalledWith(true);
     });
@@ -70,7 +69,6 @@ describe('EnableSectionContent', () => {
 
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
-        expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
         expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
     });
 });

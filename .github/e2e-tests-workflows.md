@@ -139,7 +139,7 @@ Per worker, within one from-version:
 
 So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
 
-**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
+**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — claimed pending by its `prepare-run` and resolved by its lane result (`e2e-tests-lane-result.yml`). There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
 
 Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 20, matching the full suite, and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
 
@@ -511,20 +511,26 @@ the aggregate instead of leaving an old all-green snapshot.
 The orchestration summary can pass before workers finish uploading reports.
 Before publishing success, the owned writer checks the exact run/attempt's
 complete, nonempty report group on the same TSIO environment as dispatch.
-Preparation, dispatch and all workers must also succeed. Failed execution or
-missing/unreadable reports stay red even if triage returns SUCCESS; triage runs
-in report-only mode for these cases. The final job assertion uses these same
-gates, a successful triage step with a confirmed status write, and triage's
-effective mode after applying the PR's report-only label.
+Preparation, dispatch and all workers must also succeed. Triage runs in
+`enforce` mode by default (`E2E_TRIAGE_MODE=report-only` turns it off) and gives
+every red lane a verdict. A lane red outside its tests (failed execution, or
+missing/unreadable reports) turns green only when triage's verdict rests on
+TSIO's orchestration (`basis` `orchestration`): every dispatched spec ran and
+passed there. A verdict from the tests or the lane's jobs never clears it. A
+manual re-run of failed jobs keeps the first attempt's TSIO identity, so that
+attempt runs triage in report-only mode and passes only on the raw result. The
+final job assertion uses these same gates, a successful triage step with a
+confirmed status write, and triage's effective mode after applying the PR's
+report-only label.
 
 ### Lane result and the lane list
 
-`e2e-tests-lane-result.yml` is the one place a lane publishes its result. The Cypress and
-Playwright templates call it after `report`, with the lane's identity, `execution_success`
+`e2e-tests-lane-result.yml` is the one place a lane publishes its result. The Cypress,
+Playwright and rolling-upgrades templates call it after `report`, with the lane's identity, `execution_success`
 (preparation, dispatch and every worker succeeded), the summary outcome and the report URL. It
 holds the publication lock, publishes the owned status, triages a red run, refreshes the
-aggregate, posts the webhook, and then asserts the gate. The gate is unchanged: a missing or
-incomplete report is always red, and triage can only clear a failure in `enforce` mode.
+aggregate, posts the webhook, and then asserts the gate. Triage can only clear a failure in
+`enforce` mode, and a missing or incomplete report only on an orchestration-based verdict (see above).
 
 The PR lanes that feed the `e2e-test/triage` aggregate are listed once, in
 `.github/e2e-status-lanes.json`. Every writer checks out `.github` at the workflow's own ref (`github.sha`) into
@@ -538,7 +544,7 @@ refreshes the aggregate only for a context in that list.
 | `e2e-test/{cypress,playwright}-full/enterprise` (PR) | template claim and lane result; skip path | yes |
 | `e2e-test/playwright-full/enterprise/subpath` (PR) | playwright template with `server_deploy: subpath` | yes, when `should_run_subpath` |
 | `e2e-test/{cypress,playwright}-full/fips` (PR) | template claim and lane result; skip path | yes, when `should_run_fips` |
-| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template through TSIO dispatch-begin and summary, with no lock and no owner check | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern |
+| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check, without the model |
 | `…/master`, `…/release`, `…/release-cut` and their `/subpath` variants (`…/master/subpath`) | on-merge and on-release callers | no. Each lane gets its own triage check and writes only its own status |
 
 A suffixed context never equals a listed lane, so it never claims or refreshes the aggregate. A

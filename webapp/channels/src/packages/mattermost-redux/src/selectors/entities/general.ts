@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
+import {POST_ATTRIBUTES_PROPERTY_GROUP_NAME} from '@mattermost/types/properties_post';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -32,6 +33,10 @@ export function isProductRailEnabled(state: GlobalState): boolean {
 
 export function isPostDeliveryTrackingEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostDeliveryTracking === 'true';
+}
+
+export function getPostPropertyGroups(state: GlobalState): string | undefined {
+    return isPostAttributesEnabled(state) ? POST_ATTRIBUTES_PROPERTY_GROUP_NAME : undefined;
 }
 
 // Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels

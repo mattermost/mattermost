@@ -13,9 +13,8 @@ import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/gen
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
-import {isProductRailShown} from 'selectors/views/product_rail';
-
 import * as Menu from 'components/menu';
+import useProductRailShown from 'components/product_rail/use_product_rail_shown';
 
 import {isChannels} from 'utils/products';
 
@@ -32,6 +31,8 @@ import ProductSwitcherSystemConsoleMenuItem from './switch_product_system_consol
 import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menuitem';
 
 import ProductBranding from '../product_branding';
+
+import '../../header_icon_button/header_icon_button.scss';
 
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU = 'switchProductMenu';
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON = 'switchProductMenuButton';
@@ -71,8 +72,8 @@ export function SwitchProductMenu(props: Props) {
     const isChannelsProductActive = isChannels(props.productId);
 
     // The product rail lists Channels and every product, so the menu keeps only the rest. The rail
-    // needs a current team and isn't shown on mobile, so then the menu keeps them too.
-    const productRailShown = useSelector(isProductRailShown);
+    // needs a current team and isn't shown on mobile or backstage pages, so there the menu keeps them too.
+    const productRailShown = useProductRailShown();
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -83,7 +84,7 @@ export function SwitchProductMenu(props: Props) {
             menuButton={{
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
 
-                // HeaderIconButton is the same classname as the HeaderIconButton component
+                // Styled by header_icon_button.scss, imported above
                 class: 'HeaderIconButton globalHeader-leftControls-productMenuButton',
 
                 // The branding sits inside the button so that clicking the product

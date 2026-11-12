@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LogLevelEnum} from '@mattermost/types/admin';
+import type {LogObject} from '@mattermost/types/admin';
+
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
 import PluginState from 'mattermost-redux/constants/plugins';
 import reducer, {convertAnalyticsRowsToStats} from 'mattermost-redux/reducers/entities/admin';
@@ -1025,6 +1028,107 @@ describe('reducers.entities.admin', () => {
 
             const actualState = reducer({dataRetentionCustomPolicies: state} as unknown as ReducerState, action);
             expect(actualState.dataRetentionCustomPolicies).toEqual(expectedState);
+        });
+    });
+
+    describe('logs', () => {
+        function makeLog(msg: string, timestamp: string, extra: Partial<LogObject> = {}): LogObject {
+            return {caller: '', job_id: '', level: LogLevelEnum.INFO, msg, timestamp, worker: '', ...extra};
+        }
+
+        const t1 = '2026-10-28 10:00:01.000 Z';
+        const t2 = '2026-10-28 10:00:02.000 Z';
+        const t3 = '2026-10-28 10:00:03.000 Z';
+
+        function receiveNewLogs(state: Record<string, LogObject[]>, data: Record<string, LogObject[]>) {
+            return reducer(deepFreezeAndThrowOnMutation({logs: state}) as ReducerState, {type: AdminTypes.RECEIVED_NEW_LOGS, data}).logs;
+        }
+
+        it('RECEIVED_LOGS replaces every node', () => {
+            const state = {'node-a': [makeLog('old', t1)], 'node-b': [makeLog('old', t1)]};
+            const data = {'node-a': [makeLog('new', t2)]};
+
+            const actual = reducer({logs: state} as unknown as ReducerState, {type: AdminTypes.RECEIVED_LOGS, data});
+
+            expect(actual.logs).toBe(data);
+        });
+
+        it('RECEIVED_NEW_LOGS appends new entries and drops the repeated ones', () => {
+            const a1 = makeLog('a1', t1);
+            const a2 = makeLog('a2', t2);
+            const a3 = makeLog('a3', t3);
+
+            // Asked for entries from t2 onwards, so a2 comes back again
+            const actual = receiveNewLogs({'node-a': [a1, a2]}, {'node-a': [{...a2}, a3]});
+
+            expect(actual['node-a']).toEqual([a1, a2, a3]);
+            expect(actual['node-a'][1]).toBe(a2);
+        });
+
+        it('RECEIVED_NEW_LOGS keeps an identical entry logged again in the same millisecond', () => {
+            const entry = makeLog('same', t2);
+
+            const actual = receiveNewLogs({'node-a': [entry]}, {'node-a': [{...entry}, {...entry}]});
+
+            expect(actual['node-a']).toEqual([entry, entry]);
+        });
+
+        it('RECEIVED_NEW_LOGS drops everything a node that ignores the date filter sends again', () => {
+            const existing = [makeLog('a1', t1), makeLog('a2', t2)];
+
+            const actual = receiveNewLogs({'node-a': existing}, {'node-a': [...existing.map((log) => ({...log})), makeLog('a3', t3)]});
+
+            expect(actual['node-a']).toEqual([...existing, makeLog('a3', t3)]);
+        });
+
+        it('RECEIVED_NEW_LOGS leaves the other nodes alone', () => {
+            const nodeB = [makeLog('b1', t1)];
+
+            const actual = receiveNewLogs({'node-a': [makeLog('a1', t1)], 'node-b': nodeB}, {'node-a': [makeLog('a2', t2)]});
+
+            expect(actual['node-b']).toBe(nodeB);
+            expect(actual['node-a']).toEqual([makeLog('a1', t1), makeLog('a2', t2)]);
+        });
+
+        it('RECEIVED_NEW_LOGS adds a node it has not seen', () => {
+            const actual = receiveNewLogs({'node-a': []}, {'node-b': [makeLog('b1', t1)]});
+
+            expect(actual).toEqual({'node-a': [], 'node-b': [makeLog('b1', t1)]});
+        });
+
+        it('RECEIVED_NEW_LOGS returns the same state when nothing is new', () => {
+            const state = {'node-a': [makeLog('a1', t1), makeLog('a2', t2)]};
+
+            const actual = receiveNewLogs(state, {'node-a': [makeLog('a2', t2)]});
+
+            expect(actual).toBe(state);
+        });
+
+        it('RECEIVED_NEW_LOGS replaces a failed node entry instead of piling them up', () => {
+            const failed = (timestamp: string) => makeLog('Failed to fetch logs from node', timestamp, {failed_node: true});
+            const a1 = makeLog('a1', t1);
+
+            const stillFailing = receiveNewLogs({'node-a': [a1, failed(t2)]}, {'node-a': [failed(t3)]});
+            expect(stillFailing['node-a']).toEqual([a1, failed(t3)]);
+
+            const recovered = receiveNewLogs({'node-a': [a1, failed(t2)]}, {'node-a': []});
+            expect(recovered['node-a']).toEqual([a1]);
+        });
+
+        it('RECEIVED_NEW_LOGS keeps only the newest 10,000 entries per node', () => {
+            const existing = Array.from({length: 10000}, (_, i) => makeLog(`old ${i}`, t1));
+
+            const actual = receiveNewLogs({'node-a': existing}, {'node-a': [makeLog('new 1', t2), makeLog('new 2', t3)]});
+
+            expect(actual['node-a']).toHaveLength(10000);
+            expect(actual['node-a'][0].msg).toBe('old 2');
+            expect(actual['node-a'].slice(-2).map((log) => log.msg)).toEqual(['new 1', 'new 2']);
+        });
+
+        it('LOGOUT_SUCCESS clears the entries', () => {
+            const actual = reducer({logs: {'node-a': [makeLog('a1', t1)]}} as unknown as ReducerState, {type: UserTypes.LOGOUT_SUCCESS});
+
+            expect(actual.logs).toEqual({});
         });
     });
 });

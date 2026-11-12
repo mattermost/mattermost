@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createMemoryHistory} from 'history';
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -271,6 +272,22 @@ describe('ProductBranding', () => {
         };
 
         renderWithContext(<ProductBranding/>, state);
+
+        expect(screen.queryByText('Acme Chat')).not.toBeInTheDocument();
+    });
+
+    test('should keep the product name on backstage pages, which leave the rail out', () => {
+        const state = {
+            entities: {
+                general: {
+                    ...licensedState.entities.general,
+                    config: {FeatureFlagProductRail: 'true', SiteName: 'Acme Chat'},
+                },
+                teams: {currentTeamId: 'team1'},
+            },
+        };
+
+        renderWithContext(<ProductBranding/>, state, {history: createMemoryHistory({initialEntries: ['/team1/integrations/bots']})});
 
         expect(screen.queryByText('Acme Chat')).not.toBeInTheDocument();
     });

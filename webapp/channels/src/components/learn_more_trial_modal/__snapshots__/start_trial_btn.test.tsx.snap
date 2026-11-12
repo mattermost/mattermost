@@ -3,12 +3,12 @@
 exports[`components/learn_more_trial_modal/start_trial_btn should match snapshot 1`] = `
 <div>
   <button
-    class="_button_we8pe_2 _button--emphasis-secondary_we8pe_101 _button--size-medium_we8pe_64"
+    class="_button_1pij1_13 _button--emphasis-secondary_1pij1_125 _button--size-medium_1pij1_88"
     id="start_trial_btn"
     type="button"
   >
     <span
-      class="_button__label_we8pe_31"
+      class="_button__label_1pij1_55"
     >
       Start trial
     </span>

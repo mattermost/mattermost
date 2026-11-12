@@ -186,8 +186,8 @@ describe('ProductSwitcherCloudTrialMenuItem', () => {
         expect(screen.getByText((content) => content.includes('Your trial is active until'))).toBeInTheDocument();
     });
 
-    test('should show See plans option on non-free trial', () => {
-        renderWithContext(
+    test('should not render on non-free trial', () => {
+        const {container} = renderWithContext(
             <ProductSwitcherCloudTrialMenuItem
                 isUserAdmin={true}
                 isCloudLicensed={true}
@@ -196,7 +196,6 @@ describe('ProductSwitcherCloudTrialMenuItem', () => {
             initialState,
         );
 
-        expect(screen.getByText((content) => content.includes('Interested in a limitless plan'))).toBeInTheDocument();
-        expect(screen.getByText((content) => content.includes('See plans'))).toBeInTheDocument();
+        expect(container).toBeEmptyDOMElement();
     });
 });

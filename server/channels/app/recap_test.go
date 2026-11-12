@@ -662,6 +662,112 @@ func TestProcessRecapChannel(t *testing.T) {
 		assert.Equal(t, []string{post.Id}, recapChannels[0].SourcePostIds)
 	})
 
+	t.Run("superseded post revisions are excluded from the summarization input", func(t *testing.T) {
+		var capturedPrompt strings.Builder
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				for _, message := range req.Messages {
+					capturedPrompt.WriteString(message.Message)
+				}
+				return `{"highlights":["A deterministic highlight"],"action_items":[]}`, nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		post := th.CreatePost(t, channel, func(p *model.Post) { p.Message = "original-revision-content" })
+
+		firstEdit := post.Clone()
+		firstEdit.Message = "second-revision-content"
+		_, _, updateErr := th.App.UpdatePost(th.Context, firstEdit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, updateErr)
+
+		secondEdit := post.Clone()
+		secondEdit.Message = "final-revision-content"
+		_, _, updateErr = th.App.UpdatePost(th.Context, secondEdit, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, updateErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Edited post recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, err)
+		require.True(t, result.Success)
+		assert.Equal(t, 1, result.MessageCount)
+		require.Len(t, bridge.completeCalls, 1)
+
+		assert.Contains(t, capturedPrompt.String(), "final-revision-content")
+		assert.NotContains(t, capturedPrompt.String(), "original-revision-content")
+		assert.NotContains(t, capturedPrompt.String(), "second-revision-content")
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, []string{post.Id}, recapChannels[0].SourcePostIds)
+	})
+
+	t.Run("deleted posts are excluded from the summarization input", func(t *testing.T) {
+		var capturedPrompt strings.Builder
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				for _, message := range req.Messages {
+					capturedPrompt.WriteString(message.Message)
+				}
+				return `{"highlights":["A deterministic highlight"],"action_items":[]}`, nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		deletedPost := th.CreatePost(t, channel, func(p *model.Post) { p.Message = "removed-post-content" })
+		keptPost := th.CreatePost(t, channel, func(p *model.Post) { p.Message = "kept-post-content" })
+
+		_, deleteErr := th.App.DeletePost(th.Context, deletedPost.Id, th.BasicUser.Id)
+		require.Nil(t, deleteErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Deleted post recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, err)
+		require.True(t, result.Success)
+		assert.Equal(t, 1, result.MessageCount)
+
+		assert.Contains(t, capturedPrompt.String(), "kept-post-content")
+		assert.NotContains(t, capturedPrompt.String(), "removed-post-content")
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Equal(t, []string{keptPost.Id}, recapChannels[0].SourcePostIds)
+	})
+
 	t.Run("malformed completion surfaces parse failure", func(t *testing.T) {
 		bridge := &testAgentsBridge{
 			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {

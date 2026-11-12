@@ -61,16 +61,13 @@ const RecapConfiguration = ({
                 disabled={runOnceDisabled}
                 data-testid='run-once-toggle-button'
                 tabIndex={0}
-            />
-            <label
-                htmlFor='run-once-toggle'
-                className='run-once-label'
+                semiBold={true}
             >
                 <FormattedMessage
                     id='recaps.modal.runOnce'
                     defaultMessage='Run once'
                 />
-            </label>
+            </Switch>
         </div>
     );
 

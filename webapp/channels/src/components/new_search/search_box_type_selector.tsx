@@ -8,12 +8,13 @@ import styled from 'styled-components';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {getSearchButtons} from 'selectors/plugins';
+import {getPrimarySearchButtons, getSecondarySearchButtons} from 'selectors/plugins';
 
 import ErrorBoundary from 'plugins/pluggable/error_boundary';
 import {canSearchFiles} from 'utils/file_utils';
 
 import type {GlobalState} from 'types/store';
+import type {SearchButtonsComponent} from 'types/store/plugins';
 
 const SearchTypeSelectorContainer = styled.div`
     margin: 20px 20px 0px 20px;
@@ -57,17 +58,37 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
     const setMessagesSearchType = useCallback(() => setSearchType('messages'), [setSearchType]);
     const setFilesSearchType = useCallback(() => setSearchType('files'), [setSearchType]);
 
-    const searchPluginButtons = useSelector(getSearchButtons);
+    const primaryPluginButtons = useSelector(getPrimarySearchButtons);
+    const secondaryPluginButtons = useSelector(getSecondarySearchButtons);
     const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
+
+    const renderPluginButton = ({component, pluginId}: SearchButtonsComponent) => {
+        const Component = component as React.ComponentType;
+        return (
+            <SearchTypeItem
+                key={pluginId}
+                selected={searchType === pluginId}
+                onClick={() => setSearchType(pluginId)}
+                role='radio'
+                aria-checked={searchType === pluginId}
+            >
+                <ErrorBoundary pluginId={pluginId}>
+                    <Component/>
+                </ErrorBoundary>
+            </SearchTypeItem>
+        );
+    };
 
     return (
         <SearchTypeSelectorContainer
             role='radiogroup'
         >
+            {primaryPluginButtons.map(renderPluginButton)}
             <SearchTypeItem
                 selected={searchType === 'messages'}
                 onClick={setMessagesSearchType}
                 role='radio'
+                aria-checked={searchType === 'messages'}
             >
                 <FormattedMessage
                     id='search_bar.usage.search_type_messages'
@@ -79,6 +100,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     selected={searchType === 'files'}
                     onClick={setFilesSearchType}
                     role='radio'
+                    aria-checked={searchType === 'files'}
                 >
                     <FormattedMessage
                         id='search_bar.usage.search_type_files'
@@ -86,21 +108,7 @@ const SearchTypeSelector = ({searchType, setSearchType}: Props) => {
                     />
                 </SearchTypeItem>
             )}
-            {searchPluginButtons.map(({component, pluginId}: any) => {
-                const Component = component as React.ComponentType;
-                return (
-                    <SearchTypeItem
-                        key={pluginId}
-                        selected={searchType === pluginId}
-                        onClick={() => setSearchType(pluginId)}
-                        role='radio'
-                    >
-                        <ErrorBoundary pluginId={pluginId}>
-                            <Component/>
-                        </ErrorBoundary>
-                    </SearchTypeItem>
-                );
-            })}
+            {secondaryPluginButtons.map(renderPluginButton)}
         </SearchTypeSelectorContainer>
     );
 };

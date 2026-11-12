@@ -4,7 +4,7 @@
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -12,9 +12,12 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 type Actions = {
     patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
@@ -28,6 +31,7 @@ type Props = {
     onExited: () => void;
     channel?: Channel;
     ctrlSend: boolean;
+    channelKind?: ChannelKind;
     actions: Actions;
     intl: IntlShape;
 };
@@ -141,20 +145,9 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
             );
         }
 
-        let channelPurposeModal = (
-            <FormattedMessage
-                id='edit_channel_purpose_modal.body'
-                defaultMessage='Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.'
-            />
-        );
-        if (this.props.channel?.type === 'P') {
-            channelPurposeModal = (
-                <FormattedMessage
-                    id='edit_channel_private_purpose_modal.body'
-                    defaultMessage='This text appears in the "View Info" modal of the private channel.'
-                />
-            );
-        }
+        const {channelKind = 'channel'} = this.props;
+        const purposeMessage = this.props.channel?.type === 'P' ? messages.privateBody[channelKind] : messages.body[channelKind];
+        const channelPurposeModal = <FormattedMessage {...purposeMessage}/>;
 
         const ariaLabelForTitle = formatMessage({id: 'edit_channel_purpose_modal.title1', defaultMessage: 'Edit Purpose'}).toLowerCase();
         return (
@@ -218,5 +211,28 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
+const messages = {
+    body: {
+        channel: defineMessage({
+            id: 'edit_channel_purpose_modal.body',
+            defaultMessage: 'Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_purpose_modal.body.board',
+            defaultMessage: 'Describe how this board should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.',
+        }),
+    },
+    privateBody: {
+        channel: defineMessage({
+            id: 'edit_channel_private_purpose_modal.body',
+            defaultMessage: 'This text appears in the "View Info" modal of the private channel.',
+        }),
+        board: defineMessage({
+            id: 'edit_channel_private_purpose_modal.body.board',
+            defaultMessage: 'This text appears in the "View Info" modal of the private board.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default injectIntl(EditChannelPurposeModal);

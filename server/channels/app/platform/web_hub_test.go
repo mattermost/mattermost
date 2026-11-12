@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"iter"
 	"net"
@@ -395,13 +396,13 @@ func TestHubConnIndex(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("ForChannel", func(t *testing.T) {
-			require.Len(t, connIndex.byChannelID, 1)
+			require.Len(t, connIndex.byChannelKey, 1)
 			ids := make([]string, 0)
-			for c := range connIndex.ForChannel(th.BasicChannel.Id) {
+			for c := range forChannel(connIndex, th.BasicChannel.Id) {
 				ids = append(ids, c.GetConnectionID())
 			}
 			require.ElementsMatch(t, []string{wc1ID, wc2ID, wc3ID}, ids)
-			require.Len(t, slices.Collect(connIndex.ForChannel("notexist")), 0)
+			require.Len(t, slices.Collect(forChannel(connIndex, "notexist")), 0)
 		})
 
 		ch := th.CreateChannel(t, th.BasicTeam)
@@ -416,15 +417,15 @@ func TestHubConnIndex(t *testing.T) {
 
 		t.Run("InvalidateCMCacheForUser", func(t *testing.T) {
 			require.NoError(t, connIndex.InvalidateCMCacheForUser(th.BasicUser2.Id))
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 3)
-			require.Len(t, slices.Collect(connIndex.ForChannel(ch.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 3)
+			require.Len(t, slices.Collect(forChannel(connIndex, ch.Id)), 2)
 		})
 
 		t.Run("Remove", func(t *testing.T) {
 			connIndex.Remove(wc3)
-			require.Len(t, connIndex.byChannelID, 2)
-			require.Len(t, slices.Collect(connIndex.ForChannel(th.BasicChannel.Id)), 2)
+			require.Len(t, connIndex.byChannelKey, 2)
+			require.Len(t, slices.Collect(forChannel(connIndex, th.BasicChannel.Id)), 2)
 		})
 	})
 }
@@ -575,6 +576,135 @@ func TestReliableWebSocketSend(t *testing.T) {
 		Event:    model.ClusterEventPublish,
 		Data:     ev2JSON,
 		SendType: model.ClusterSendReliable,
+	})
+}
+
+// registerResumableWebConn registers a pumped connection with its own connection ID.
+// Closing it leaves it in the hub as inactive, ready to be resumed.
+func registerResumableWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string, deadQueue ...*model.WebSocketEvent) *WebConn {
+	c, _, err := (&websocket.Dialer{}).Dial("ws://"+addr.String()+"/ws", nil)
+	require.NoError(t, err)
+
+	wc := th.Service.NewWebConn(&WebConnConfig{
+		WebSocket:    c,
+		Session:      model.Session{UserId: userID},
+		ConnectionID: model.NewId(),
+	}, th.Suite, &hookRunner{})
+	for _, ev := range deadQueue {
+		wc.addToDeadQueue(ev)
+	}
+	require.NoError(t, th.Service.HubRegister(wc))
+	go wc.Pump()
+	return wc
+}
+
+type wsQueuesCluster struct {
+	testlib.FakeClusterInterface
+	queues map[string]*model.WSQueues
+	err    error
+}
+
+func (c *wsQueuesCluster) GetWSQueues(userID, connectionID string, seqNum int64) (map[string]*model.WSQueues, error) {
+	return c.queues, c.err
+}
+
+func TestCheckWebConn(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	t.Run("single node", func(t *testing.T) {
+		th := Setup(t)
+
+		t.Run("should resume an inactive connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+			wc.Close()
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			require.NotNil(t, res)
+			assert.Equal(t, wc.GetConnectionID(), res.ConnectionID)
+			assert.Empty(t, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report a connection still active on this node", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should not report another user's active connection", func(t *testing.T) {
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report an unknown connection as not found", func(t *testing.T) {
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureConnNotFound, reason)
+			assert.False(t, isRemote)
+		})
+	})
+
+	t.Run("cluster", func(t *testing.T) {
+		cluster := &wsQueuesCluster{}
+		th := SetupWithCluster(t, cluster)
+
+		t.Run("should report a connection active on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": nil,
+				"node2": {Status: model.WSQueuesStatusOldConnStillOpen},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.True(t, isRemote)
+		})
+
+		t.Run("should report message loss on another node", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureMissedEventsEvicted, reason)
+			assert.True(t, isRemote)
+		})
+
+		t.Run("should prefer a connection active on this node over a remote failure", func(t *testing.T) {
+			cluster.queues = map[string]*model.WSQueues{
+				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
+			}
+			cluster.err = nil
+			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			assert.False(t, isRemote)
+		})
+
+		t.Run("should report a cluster error", func(t *testing.T) {
+			cluster.queues = nil
+			cluster.err = errors.New("timed out")
+
+			res, reason, isRemote := th.Service.CheckWebConn(model.NewId(), model.NewId(), 5)
+			assert.Nil(t, res)
+			assert.Equal(t, reconnectFailureClusterLookupFailed, reason)
+			assert.False(t, isRemote)
+		})
 	})
 }
 
@@ -772,7 +902,7 @@ func BenchmarkHubConnIndexIteratorForChannel(b *testing.B) {
 	require.NoError(b, connIndex.Add(wc3))
 
 	for b.Loop() {
-		globalIter = connIndex.ForChannel(th.BasicChannel.Id)
+		globalIter = forChannel(connIndex, th.BasicChannel.Id)
 	}
 }
 
@@ -952,4 +1082,49 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
 	})
+}
+
+func TestConnSet(t *testing.T) {
+	newConns := func(n int) []*WebConn {
+		conns := make([]*WebConn, n)
+		for i := range conns {
+			conns[i] = &WebConn{}
+		}
+		return conns
+	}
+
+	t.Run("stays a slice up to the limit, then becomes a map", func(t *testing.T) {
+		conns := newConns(connSetSmallMax + 1)
+		var s connSet
+		for _, wc := range conns[:connSetSmallMax] {
+			s.add(wc)
+		}
+		s.add(conns[0])
+		require.Nil(t, s.large)
+		require.Equal(t, connSetSmallMax, s.len(), "adding a member twice keeps one")
+		s.add(conns[connSetSmallMax])
+		require.Nil(t, s.small)
+		require.Equal(t, connSetSmallMax+1, s.len())
+		require.ElementsMatch(t, conns[:connSetSmallMax+1], slices.Collect(s.all()))
+	})
+
+	t.Run("removing the visited member while iterating visits every member once", func(t *testing.T) {
+		conns := newConns(10)
+		var s connSet
+		for _, wc := range conns {
+			s.add(wc)
+		}
+		var visited []*WebConn
+		for wc := range s.all() {
+			visited = append(visited, wc)
+			s.remove(wc)
+		}
+		require.ElementsMatch(t, conns, visited)
+		require.Zero(t, s.len())
+	})
+}
+
+// forChannel returns the connections for channelID, decoding it as the hub does.
+func forChannel(connIndex *hubConnectionIndex, channelID string) iter.Seq[*WebConn] {
+	return connIndex.ForChannel(decodeChannelID(channelID))
 }

@@ -16,6 +16,17 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v11.11 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-11-feature-release}
 
+- **11.11.4, released 2026-11-05**
+  - Mattermost v11.11.4 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Jira plugin version [v4.8.3](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.8.3).
+  - Updated API client request path segment handling.
+  - Updated file attachment permission checks.
+  - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
+  - Updated how responses from connected remote clusters are read.
+  - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
+  - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
+  - Mattermost v11.11.4 contains no database or functional changes.
 - **11.11.3, released 2026-10-22**
   - Mattermost v11.11.3 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.7 to 1.26.10.
@@ -226,6 +237,17 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
 
 ## Release v11.10 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-10-feature-release}
 
+- **11.10.5, released 2026-11-05**
+  - Mattermost v11.10.5 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Updated API client request path segment handling.
+  - Updated file attachment permission checks.
+  - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
+  - Updated how responses from connected remote clusters are read.
+  - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
+  - Updated how group WebSocket events are delivered.
+  - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
+  - Mattermost v11.10.5 contains no database or functional changes.
 - **11.10.4, released 2026-10-22**
   - Mattermost v11.10.4 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.7 to 1.26.10.
@@ -875,6 +897,25 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
 
 </Attention>
 
+- **11.7.15, released 2026-11-05**
+  - Mattermost v11.7.15 contains Low to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Added bundled product documentation, served at ``/_documentation`` on servers installed at the root of their domain, and a ``mattermost docs`` command that serves it locally when the server is down. Servers whose Site URL has a subpath should use ``mattermost docs`` only.
+  - Renamed the **Mattermost user guide** item in the **Help** menu to **Mattermost documentation**. It opens the server's bundled documentation on root installs and docs.mattermost.com on subpath installs.
+  - Updated the bot account confirmation page after creating a bot.
+  - Updated API client request path segment handling.
+  - Updated channel membership handling when linked group settings change.
+  - Updated file attachment permission checks.
+  - Updated mmctl download filename handling for support packets and compliance exports.
+  - Updated how the LDAP troubleshooting script invokes ``ldapsearch``.
+  - Updated how outgoing webhook creators and channels are validated.
+  - Updated how responses from connected remote clusters are read.
+  - Updated log path validation so that log and audit file paths inside server-managed directories, such as the plugin and data directories, are rejected or warned about in the same way as paths outside the logging root.
+  - Updated how group WebSocket events are delivered.
+  - Fixed an issue where pre-packaged plugins failed to start in the FIPS Docker image.
+  - Fixed an issue where posts older than ``ServiceSettings.PostEditTimeLimit`` could not be pinned or unpinned.
+  - Fixed an issue where OpenSearch and Elasticsearch post search returned no results when a matching post contained a control character that is invalid in XML, such as a terminal escape code.
+  - Fixed an issue where thread previews were displayed incorrectly in some recent browsers.
+  - Mattermost v11.7.15 contains no database or functional changes.
 - **11.7.14, released 2026-10-22**
   - Mattermost v11.7.14 contains Low to Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.7 to 1.26.10.

@@ -23,11 +23,11 @@ func RenderHTML(markdown string) string {
 	return RenderBlockHTML(Parse(markdown))
 }
 
-func RenderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition) (result string) {
+func RenderBlockHTML(block Block, referenceDefinitions *ReferenceDefinitions) (result string) {
 	return renderBlockHTML(block, referenceDefinitions, false)
 }
 
-func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) string {
+func renderBlockHTML(block Block, referenceDefinitions *ReferenceDefinitions, isTightList bool) string {
 	var resultSb strings.Builder
 
 	switch v := block.(type) {
