@@ -433,8 +433,8 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 		field := fieldMap[v.FieldID]
 		row, rowRead := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}], storedValueMatters(field)
 		// A parent-only field never reads the object's own row, so read it here, only on a break and
-		// once per value. It is not recorded as a write condition: that write must not start failing
-		// on a conflict.
+		// once per value. It is not recorded as a write condition: that write must not fail because
+		// its own row moved.
 		auditRow := func() (*model.PropertyValue, error) {
 			if !rowRead {
 				rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{

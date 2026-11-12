@@ -1889,7 +1889,6 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		require.Len(t, *f.events, 2)
 		assert.Equal(t, "write_once", (*f.events)[0].BoundsRule)
 		assert.Equal(t, "at_or_above self", (*f.events)[1].BoundsRule)
-		// Each event carries its own value's row.
 		for i, row := range []*model.PropertyValue{rowA, rowB} {
 			e := (*f.events)[i]
 			require.NotNil(t, e.Prev)
