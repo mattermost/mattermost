@@ -68,10 +68,14 @@ func PluginID() string {
 
 func ensurePluginMeta() error {
 	pluginMetaOnce.Do(func() {
-		repoRoot, err := findRepoRoot()
-		if err != nil {
-			pluginMetaErr = fmt.Errorf("find repo root: %w", err)
-			return
+		var err error
+		repoRoot := os.Getenv("MM_TEST_PLUGIN_DIR")
+		if repoRoot == "" {
+			repoRoot, err = findRepoRoot()
+			if err != nil {
+				pluginMetaErr = fmt.Errorf("find repo root: %w", err)
+				return
+			}
 		}
 		pluginID, err = getPluginID(repoRoot)
 		if err != nil {

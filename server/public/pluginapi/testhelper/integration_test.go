@@ -4,8 +4,9 @@
 // This package's own test files carry the "integration" build tag so they do not
 // run in the mattermost server's CI, which executes `go test` inside a Docker
 // container with no Docker socket — testcontainers-go panics there. They run in
-// plugin repos (and locally) on hosts with Docker available, via
-// `go test -tags=integration ./...`.
+// their own workflow (.github/workflows/pluginapi-testhelper-ci.yml) and locally,
+// on hosts with Docker available, via `go test -tags=integration`, against the
+// plugin that testdata/plugin/build.sh builds.
 
 //go:build integration
 

@@ -17,13 +17,17 @@
 // # Requirements
 //
 //   - Docker must be running (tests fail if Docker is unavailable; set SKIP_DOCKER_TESTS to skip)
-//   - The plugin bundle must exist at dist/*.tar.gz (handled by `make test` which depends on `make dist`)
+//   - The plugin bundle must exist at dist/*.tar.gz (handled by `make test` which depends on `make dist`).
+//     plugin.json and dist/ are looked up in the working directory and its parents, unless
+//     MM_TEST_PLUGIN_DIR is set.
 //
 // # Environment variables
 //
 //   - MM_TEST_IMAGE: Override the Mattermost Docker image (default: mattermost/mattermost-enterprise-edition:latest).
 //     Examples: "mattermost/mattermost-enterprise-edition:10.5" for a specific release,
 //     "mattermostdevelopment/mattermost-enterprise-edition:master" for bleeding-edge.
+//   - MM_TEST_PLUGIN_DIR: The directory holding plugin.json and dist/*.tar.gz, instead of
+//     searching upwards from the working directory.
 //   - SKIP_DOCKER_TESTS: Set to any value to skip integration tests.
 //   - MM_LICENSE: A license with the Cluster feature, required by SetupCluster (see Clusters).
 //
