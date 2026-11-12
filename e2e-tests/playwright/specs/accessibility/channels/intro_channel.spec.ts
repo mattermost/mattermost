@@ -57,8 +57,12 @@ test('Post actions tab support', async ({pw, axe}) => {
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
 
-    // * Should move focus to Forward after arrow down
+    // * Should move focus to Quote after arrow down
     await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');
+    await expect(channelsPage.postDotMenu.quoteMenuItem).toBeFocused();
+
+    // * Should move focus to Forward after arrow down
+    await channelsPage.postDotMenu.quoteMenuItem.press('ArrowDown');
     await expect(channelsPage.postDotMenu.forwardMenuItem).toBeFocused();
 
     // * Should move focus to Follow message after arrow down
