@@ -29127,6 +29127,14 @@
     "defaultMessage": "Loading…",
     "description": "Shown in an attribute dropdown while options load."
   },
+  "property_fields.attribute_combobox.rank": {
+    "defaultMessage": "Rank {rank}",
+    "description": "Accessible description of a rank attribute field, giving the selected option's rank number."
+  },
+  "property_fields.attribute_combobox.ranked_option": {
+    "defaultMessage": "{name}, Rank {rank}",
+    "description": "Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number."
+  },
   "property_fields.attribute_combobox.selections": {
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."

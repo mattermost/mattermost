@@ -315,8 +315,9 @@ describe('ChannelAttributesForm', () => {
         for (const id of ['l3', 'l2', 'l1']) {
             expect(screen.getByTestId(`channelAttribute-rank-option-${id}`)).not.toHaveTextContent(/Rank/);
         }
+        expect(screen.getByTestId('channelAttribute-rank-option-l3')).toHaveAccessibleName('SECRET, Rank 3');
 
-        await userEvent.click(screen.getByRole('option', {name: 'SECRET'}));
+        await userEvent.click(screen.getByRole('option', {name: 'SECRET, Rank 3'}));
         expect(onChange).toHaveBeenCalledWith('f_rank', 'l3');
     });
 

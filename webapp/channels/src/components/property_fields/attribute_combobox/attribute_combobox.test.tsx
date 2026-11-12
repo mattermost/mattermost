@@ -865,7 +865,7 @@ describe('AttributeCombobox', () => {
             expect(optionIds().at(-1)).toBe('attr-input-listbox-option-zero');
         });
 
-        test('keeps the badge out of the option\'s accessible name', async () => {
+        test('names every ranked option with its rank, coloured or not', async () => {
             renderWithContext(
                 <SingleHarness
                     type='rank'
@@ -875,9 +875,73 @@ describe('AttributeCombobox', () => {
 
             await userEvent.click(screen.getByRole('combobox', {name: 'Department'}));
 
-            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
-            expect(getRow('top').getByTestId(BADGE).closest('[aria-hidden]')).not.toBeNull();
-            expect(screen.getByRole('option', {name: 'Mid'})).toBeInTheDocument();
+            expect(screen.getAllByRole('option').map((o) => o.getAttribute('aria-label'))).toEqual([
+                'Top, Rank 3',
+                'Mid, Rank 2',
+                'Low, Rank 1',
+                'Zero, Rank 0',
+            ]);
+            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top, Rank 3');
+            expect(screen.getByTestId(`${TEST_ID}-option-mid`)).toHaveAccessibleName('Mid, Rank 2');
+        });
+
+        test.each<{options: PropertyFieldOption[]; value: string; description: string}>([
+            {options: RANKS, value: 'top', description: 'Rank 3'},
+            {options: RANKS, value: 'mid', description: 'Rank 2'},
+            {options: RANKS, value: 'zero', description: 'Rank 0'},
+            {options: RANKS_WITH_UNRANKED, value: 'odd', description: ''},
+            {options: RANKS, value: '', description: ''},
+            {options: RANKS, value: 'ghost', description: ''},
+        ])('closed field for value "$value" is described as "$description"', ({options, value, description}) => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={options}
+                    initialValue={value}
+                />,
+            );
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            expect(input).toHaveAccessibleDescription(description);
+            if (!description) {
+                expect(input).not.toHaveAttribute('aria-describedby');
+            }
+        });
+
+        test('updates the closed field\'s rank description on pick and clear', async () => {
+            renderWithContext(
+                <SingleHarness
+                    type='rank'
+                    options={RANKS}
+                    initialValue='top'
+                />,
+            );
+            const input = screen.getByRole('combobox', {name: 'Department'});
+
+            await userEvent.click(input);
+            await userEvent.click(screen.getByRole('option', {name: 'Low, Rank 1'}));
+            expect(input).toHaveAccessibleDescription('Rank 1');
+
+            await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
+            expect(input).not.toHaveAttribute('aria-describedby');
+        });
+
+        test('keeps a caller\'s description alongside the rank', () => {
+            renderWithContext(
+                <>
+                    <AttributeCombobox
+                        type='rank'
+                        label='Department'
+                        options={RANKS}
+                        value='top'
+                        aria-describedby='err'
+                        onChange={jest.fn()}
+                    />
+                    <div id='err'>{'Bad'}</div>
+                </>,
+            );
+
+            expect(screen.getByRole('combobox', {name: 'Department'})).toHaveAccessibleDescription('Bad Rank 3');
         });
 
         test('puts an unranked option last, keeping its slot without a badge', async () => {
@@ -936,7 +1000,7 @@ describe('AttributeCombobox', () => {
             expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
 
             await userEvent.click(input);
-            await userEvent.click(screen.getByRole('option', {name: 'Low'}));
+            await userEvent.click(screen.getByRole('option', {name: 'Low, Rank 1'}));
             expect(onChange).toHaveBeenLastCalledWith('low');
 
             await userEvent.click(screen.getByTestId(`${TEST_ID}-clear`));
@@ -958,6 +1022,7 @@ describe('AttributeCombobox', () => {
             expect(optionIds()).toEqual(['attr-input-listbox-option-low', 'attr-input-listbox-option-top']);
             expect(screen.queryByTestId(BADGE)).not.toBeInTheDocument();
             expect(screen.queryByTestId(PLACEHOLDER)).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
         });
 
         test('a multiselect ignores ranks but keeps colours', async () => {
@@ -977,6 +1042,7 @@ describe('AttributeCombobox', () => {
             expect(getRow('top').queryByTestId(SWATCH)).not.toBeInTheDocument();
             expect(getChips().map((chip) => chip.textContent)).toEqual(['Mid', 'Top']);
             expect(getChips().map(chipHasSwatch)).toEqual([true, false]);
+            expect(screen.getByTestId(`${TEST_ID}-option-top`)).toHaveAccessibleName('Top');
         });
     });
 
