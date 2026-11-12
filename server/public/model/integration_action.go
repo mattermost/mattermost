@@ -546,6 +546,9 @@ type DialogElement struct {
 	MatrixConfig  *DialogMatrixConfig `json:"matrix_config,omitempty"`
 	// Action button configuration (type "action_button")
 	ActionButton *DialogActionButton `json:"action_button,omitempty"`
+	// MaxHeight is a "preview" element's height in pixels: the crop for an image or a PDF's
+	// first page (0 shows it whole), or the scrollable PDF viewer's height (0 uses the default).
+	MaxHeight int `json:"max_height,omitempty"`
 }
 
 // EffectiveDateTimeConfig returns the resolved date/datetime configuration,
@@ -878,6 +881,10 @@ func (e *DialogElement) isValid(seen map[string]bool) error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
 	}
 
+	if e.MaxHeight != 0 && e.Type != "preview" {
+		multiErr = multierror.Append(multiErr, errors.Errorf("max_height can only be used with preview elements, got type %q", e.Type))
+	}
+
 	switch e.Type {
 	case "text":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
@@ -1035,6 +1042,27 @@ func (e *DialogElement) isValid(seen map[string]bool) error {
 			multiErr = multierror.Append(multiErr, errors.Wrap(errors.New("invalid URL"), "invalid action_button URL"))
 		}
 
+	case "preview":
+		// Display-only. Default is a file ID; empty renders nothing until a field refresh supplies one.
+		if e.Default != "" && !IsValidId(e.Default) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("preview element default must be a valid file ID, got %q", e.Default))
+		}
+		if e.SubType != "" && e.SubType != "file" && e.SubType != "first_page" {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid preview subtype %q", e.SubType))
+		}
+		if e.MaxHeight < 0 {
+			multiErr = multierror.Append(multiErr, errors.Errorf("max_height cannot be negative, got %d", e.MaxHeight))
+		}
+		if e.MaxHeight != 0 && e.SubType == "file" {
+			multiErr = multierror.Append(multiErr, errors.New("max_height cannot be used with the file preview subtype"))
+		}
+		if len(e.Options) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("preview elements cannot have options"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("preview elements cannot have a data source"))
+		}
+
 	default:
 		multiErr = multierror.Append(multiErr, errors.Errorf("invalid element type: %q", e.Type))
 	}
@@ -1057,7 +1085,10 @@ func (e *DialogElement) validateCommon() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("min length should be less than max length, got %d > %d", e.MinLength, e.MaxLength))
 	}
 
-	multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
+	// A preview is display-only, so its DisplayName is optional; without one it renders unlabeled.
+	if e.Type != "preview" || e.DisplayName != "" {
+		multiErr = multierror.Append(multiErr, checkMaxLength("DisplayName", e.DisplayName, DialogElementDisplayNameMaxLength))
+	}
 	multiErr = multierror.Append(multiErr, checkMaxLength("Name", e.Name, DialogElementNameMaxLength))
 	multiErr = multierror.Append(multiErr, checkMaxLength("HelpText", e.HelpText, DialogElementHelpTextMaxLength))
 

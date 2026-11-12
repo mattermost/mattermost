@@ -241,7 +241,7 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
         // Work with sanitized copies for safe usage
         leafFields.forEach((originalField) => {
-            if (originalField.type === AppFieldTypes.ACTION_BUTTON) {
+            if (originalField.type === AppFieldTypes.ACTION_BUTTON || originalField.type === AppFieldTypes.PREVIEW) {
                 return;
             }
             const field = createSanitizedField(originalField);

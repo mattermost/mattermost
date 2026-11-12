@@ -6,8 +6,10 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import {
     trimFilename,
     canUploadFiles,
+    canGetPublicLink,
     getFileTypeFromMime,
 } from 'utils/file_utils';
+import {TestHelper} from 'utils/test_helper';
 
 const isMobileMock = jest.mocked(UserAgent.isMobile);
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
@@ -21,6 +23,21 @@ describe('FileUtils.trimFilename', () => {
 
     it('trimFilename: should return trimmed filename', () => {
         expect(trimFilename('abcdefghijklmnopqrstuvwxyz0123456789')).toBe('abcdefghijklmnopqrstuvwxyz012345678...');
+    });
+});
+
+describe('FileUtils.canGetPublicLink', () => {
+    it('is true for a posted file', () => {
+        expect(canGetPublicLink(TestHelper.getFileInfoMock({post_id: 'post_id'}))).toBe(true);
+    });
+
+    it('is true for a channel bookmark file, which has no post', () => {
+        expect(canGetPublicLink(TestHelper.getFileInfoMock({user_id: 'bookmark'}))).toBe(true);
+    });
+
+    it('is false for a file with no post, such as one shown in a dialog preview', () => {
+        expect(canGetPublicLink(TestHelper.getFileInfoMock({post_id: ''}))).toBe(false);
+        expect(canGetPublicLink(TestHelper.getFileInfoMock({}))).toBe(false);
     });
 });
 

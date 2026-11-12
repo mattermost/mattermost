@@ -15,6 +15,10 @@ describe('integration utils', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'textarea', optional: true}), undefined)).toBe(null);
         });
 
+        it('should return null error on non-optional preview element', () => {
+            expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'preview', optional: false}), undefined)).toBe(null);
+        });
+
         it('should return error on required element', () => {
             expect(checkDialogElementForError(TestHelper.getDialogElementMock({type: 'text', optional: false}), undefined)!.id).toBe('interactive_dialog.error.required');
         });

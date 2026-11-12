@@ -7,13 +7,20 @@ import type {AppField} from '@mattermost/types/apps';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 // AppsFormActionButton (rendered for ACTION_BUTTON fields) uses executeDialogAction.
 // Mock it the same way apps_form_action_button.test.tsx does.
 const mockExecuteDialogAction = jest.fn();
 jest.mock('actions/integration_actions', () => ({
     executeDialogAction: (...args: unknown[]) => mockExecuteDialogAction(...args),
+}));
+
+// Records the props PREVIEW fields pass to the lazily loaded preview component.
+const mockAppsFormPreview = jest.fn((props: unknown) => null); // eslint-disable-line @typescript-eslint/no-unused-vars
+jest.mock('components/apps_form/apps_form_preview', () => ({
+    __esModule: true,
+    default: (props: unknown) => mockAppsFormPreview(props),
 }));
 
 import AppsFormField from './apps_form_field';
@@ -144,6 +151,43 @@ describe('components/apps_form/apps_form_field/AppsFormField', () => {
 
             // Should render without crashing
             expect(container).toBeInTheDocument();
+        });
+    });
+
+    describe('Preview field', () => {
+        const previewField: AppField = {
+            name: 'load_plan',
+            type: AppFieldTypes.PREVIEW,
+            label: 'Load Plan',
+            description: 'Click to open',
+            preview_file_id: 'fileid000000000000000000000',
+            preview_max_height: 250,
+        };
+
+        it.each([
+            [undefined, 'inline'],
+            ['first_page', 'first_page'],
+            ['file', 'file'],
+            ['unknown', 'inline'],
+        ])('passes subtype %s to the preview as mode %s', async (subtype, mode) => {
+            mockAppsFormPreview.mockClear();
+
+            renderWithContext(
+                <AppsFormField
+                    {...baseProps}
+                    field={{...previewField, subtype}}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(mockAppsFormPreview).toHaveBeenCalledWith({
+                    fileId: 'fileid000000000000000000000',
+                    maxHeight: 250,
+                    label: 'Load Plan',
+                    description: 'Click to open',
+                    mode,
+                });
+            });
         });
     });
 

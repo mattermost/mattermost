@@ -242,6 +242,10 @@ export type DialogElement = {
         url: string;
         context?: Record<string, string>;
     };
+
+    // Height in pixels for type "preview": crops an image or a "first_page" PDF, or sets the PDF
+    // viewer's height (capped at the window). 0 or unset uses the default; not allowed with subtype "file".
+    max_height?: number;
 };
 
 export type SubmitDialogResponse = {

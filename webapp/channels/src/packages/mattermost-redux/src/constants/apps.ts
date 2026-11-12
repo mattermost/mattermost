@@ -47,6 +47,7 @@ export const AppFieldTypes: {[name: string]: AppFieldType} = {
     CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
+    PREVIEW: 'preview',
 };
 
 // How a collapsible lays its children out. Named here so the renderer and the

@@ -71,10 +71,10 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
     useEffect(() => {
-        if (isFileInfo(fileInfo) && enablePublicLink) {
+        if (isFileInfo(fileInfo) && enablePublicLink && showPublicLink) {
             dispatch(getFilePublicLink(fileInfo.id));
         }
-    }, [fileInfo, enablePublicLink]);
+    }, [fileInfo, enablePublicLink, showPublicLink]);
 
     useEffect(() => {
         if (publicLinkCopied) {

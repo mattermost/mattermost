@@ -5,6 +5,7 @@ import exif2css from 'exif2css';
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {ClientConfig} from '@mattermost/types/config';
+import type {FileInfo} from '@mattermost/types/files';
 
 import Constants from 'utils/constants';
 
@@ -49,6 +50,12 @@ export function isMobileFileUploadsEnabled(config: Partial<ClientConfig>): boole
 
 export function isPublicLinksEnabled(config: Partial<ClientConfig>): boolean {
     return config.EnablePublicLink === 'true';
+}
+
+// The server makes public links only for posted files and channel bookmark files (see
+// getFileLink in api4/file.go); a file with no post, such as a dialog preview's, gets an error.
+export function canGetPublicLink(fileInfo: FileInfo): boolean {
+    return Boolean(fileInfo.post_id) || fileInfo.user_id === 'bookmark';
 }
 
 export function canDownloadFiles(config: Partial<ClientConfig>): boolean {
