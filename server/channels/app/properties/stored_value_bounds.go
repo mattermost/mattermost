@@ -276,20 +276,31 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 	return breaches, nil
 }
 
-// optionRanksChange reports whether saving field over existing changes the rank of an option both
-// hold. Only a rank field that supplies its options can; adding an option or leaving the ranks
-// alone changes no comparison.
-func optionRanksChange(existing, field *model.PropertyField) bool {
+// optionRanksChange reports whether saving field over existing can change how a stored value
+// ranks: an option both hold moves rank, or an option the field deleted comes back, which the
+// option upsert revives at whatever rank arrives. Only a rank field that supplies its options can.
+// An option with an ID never stored for the field changes no comparison, so it is not a reason to
+// recount; the store is asked only about incoming IDs that are not live.
+func (ps *PropertyService) optionRanksChange(existing, field *model.PropertyField) (bool, error) {
 	if existing.Type != model.PropertyFieldTypeRank || field.Type != model.PropertyFieldTypeRank || !model.PropertyFieldSuppliesOptions(field.Attrs) {
-		return false
+		return false, nil
 	}
 	old := buildOptionRankMap(existing)
+	var notLive []string
 	for id, rank := range buildOptionRankMap(field) {
-		if was, ok := old[id]; ok && was != rank {
-			return true
+		was, ok := old[id]
+		if ok && was != rank {
+			return true, nil
+		}
+		if !ok && id != "" {
+			notLive = append(notLive, id)
 		}
 	}
-	return false
+	if len(notLive) == 0 {
+		return false, nil
+	}
+	revived, err := ps.fieldStore.GetDeletedOptionIDs(existing, notLive)
+	return len(revived) > 0, err
 }
 
 // rankChangeBreaches counts the stored values that break a parent rule of a field linked to
@@ -345,7 +356,14 @@ func (ps *PropertyService) refuseRulesBrokenByStoredValues(rctx request.CTX, fie
 	checked := map[string]bool{}
 	for _, field := range fields {
 		existing, ok := existingByID[field.ID]
-		if !ok || field.IsPSAv1() || existing.IsPSAv1() || !optionRanksChange(existing, field) {
+		if !ok || field.IsPSAv1() || existing.IsPSAv1() {
+			continue
+		}
+		changed, err := ps.optionRanksChange(existing, field)
+		if err != nil {
+			return fmt.Errorf("field %s: failed to look up its deleted options: %w", existing.ID, err)
+		}
+		if !changed {
 			continue
 		}
 		breaches, linkedID, err := ps.rankChangeBreaches(rctx, field, buildOptionRankMap(field), incoming, checked)

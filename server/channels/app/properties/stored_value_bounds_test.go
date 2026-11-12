@@ -736,4 +736,48 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
 		assert.Equal(t, original, storedRanks(f))
 	})
+
+	t.Run("reviving a deleted option at a rank that breaks a stored value is refused", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "optmid")
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)[:2]))
+		channel(f, "opthigh")
+
+		err := saveOptions(f, options(1, 2, 3, nil))
+		requireAppErrorID(t, err, ranksID, http.StatusConflict)
+		assert.Equal(t, map[string]int{"optlow": 1, "optmid": 2}, storedRanks(f))
+	})
+
+	t.Run("reviving a deleted option at its old rank with nothing broken saves", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "opthigh")
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)[1:]))
+		channel(f, "optlow")
+
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)))
+		assert.Equal(t, original, storedRanks(f))
+	})
+
+	t.Run("a new option is not a revival, with or without the CPA hook assigning its ID", func(t *testing.T) {
+		f := setup(t, below, nil)
+		// The CPA hook rejects the fixture's readable IDs, so swap to real ones before it is registered.
+		low, mid, high := model.NewId(), model.NewId(), model.NewId()
+		base := []any{
+			map[string]any{"id": low, "name": "LOW", "rank": 1},
+			map[string]any{"id": mid, "name": "MID", "rank": 2},
+			map[string]any{"id": high, "name": "HIGH", "rank": 3},
+		}
+		require.NoError(t, saveOptions(f, base))
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		seedSystem(f, mid)
+		// A breach already stored, so any recount would refuse the save.
+		channel(f, high)
+
+		noID := append(slices.Clone(base), map[string]any{"name": "MAX", "rank": 4})
+		require.NoError(t, saveOptions(f, noID))
+		assert.Len(t, storedRanks(f), 4)
+		chosen := append(slices.Clone(base), map[string]any{"id": model.NewId(), "name": "MAX", "rank": 4}, map[string]any{"id": model.NewId(), "name": "TOP", "rank": 5})
+		require.NoError(t, saveOptions(f, chosen))
+		assert.Len(t, storedRanks(f), 5)
+	})
 }
