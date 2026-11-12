@@ -19,7 +19,7 @@ import {
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {autocompleteUsers} from 'mattermost-redux/actions/users';
-import {Posts, RequestStatus} from 'mattermost-redux/constants';
+import {Posts, Preferences, RequestStatus} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInCurrentTeam,
@@ -33,6 +33,7 @@ import {
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getUnreadScrollPositionPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
@@ -257,7 +258,7 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string): A
 }
 
 export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsync<{atLatestMessage: boolean; atOldestMessage: boolean}> {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         const time = Date.now();
         if (prefetch) {
             dispatch({
@@ -298,7 +299,10 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
             });
         }
 
-        if (data!.next_post_id === '') {
+        // getPostsUnread also loads the newest posts when the unread chunk doesn't reach them
+        const loadedLatestPosts = data!.next_post_id === '' ||
+            getUnreadScrollPositionPreference(getState()) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
+        if (loadedLatestPosts) {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -316,6 +320,7 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
 
 export function loadPostsAround(channelId: string, focusedPostId: string): ActionFuncAsync {
     return async (dispatch) => {
+        const time = Date.now();
         const {data, error} = await dispatch(PostActions.getPostsAround(channelId, focusedPostId, Posts.POST_CHUNK_SIZE / 2));
         if (error) {
             return {
@@ -325,11 +330,21 @@ export function loadPostsAround(channelId: string, focusedPostId: string): Actio
             };
         }
 
-        dispatch({
+        const actions: AnyAction[] = [{
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
             amount: data!.order.length,
-        });
+        }];
+
+        if (data!.next_post_id === '') {
+            actions.push({
+                type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
+                channelId,
+                time,
+            });
+        }
+
+        dispatch(batchActions(actions));
         return {
             atLatestMessage: data!.next_post_id === '',
             atOldestmessage: data!.prev_post_id === '',
@@ -392,6 +407,7 @@ export function loadPosts({
             channelId,
         });
 
+        const time = Date.now();
         const page = 0;
         let result;
         if (type === PostRequestTypes.BEFORE_ID) {
@@ -421,6 +437,14 @@ export function loadPosts({
             data: channelId,
             amount: data!.order.length,
         });
+
+        if (type === PostRequestTypes.AFTER_ID && data!.next_post_id === '') {
+            actions.push({
+                type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
+                channelId,
+                time,
+            });
+        }
 
         dispatch(batchActions(actions));
 
