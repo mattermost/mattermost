@@ -3784,3 +3784,134 @@ func TestLinkGroupTeam_AutoAddOnlyAddsGroupMembers(t *testing.T) {
 	require.Nil(t, appErr)
 	assert.Equal(t, newUser.Id, tm.UserId)
 }
+
+func TestGroupsManagerWithoutChannelsAccess(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	role, appErr := th.App.GetRoleByName(th.Context, model.SystemUserManagerRoleId)
+	require.Nil(t, appErr)
+	role.Permissions = model.AddAncillaryPermissions([]string{
+		model.PermissionSysconsoleReadUserManagementGroups.Id,
+		model.PermissionSysconsoleWriteUserManagementGroups.Id,
+	})
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(t, appErr)
+
+	manager := th.CreateUser(t)
+	th.LinkUserToTeam(t, manager, th.BasicTeam)
+	_, appErr = th.App.UpdateUserRoles(th.Context, manager.Id, model.SystemUserRoleId+" "+model.SystemUserManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	managerClient := th.CreateClient()
+	_, _, err := managerClient.Login(context.Background(), manager.Email, manager.Password)
+	require.NoError(t, err)
+
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        new("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    new(model.NewId()),
+	})
+	require.Nil(t, appErr)
+
+	t.Run("cannot add themselves to a private channel they do not belong to", func(t *testing.T) {
+		_, response, err := managerClient.AddChannelMember(context.Background(), privateChannel.Id, manager.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("cannot add others to a private channel they do not belong to", func(t *testing.T) {
+		_, response, err := managerClient.AddChannelMember(context.Background(), privateChannel.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("cannot remove others from a private channel they do not belong to", func(t *testing.T) {
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+		require.Nil(t, appErr)
+
+		response, err := managerClient.RemoveUserFromChannel(context.Background(), privateChannel.Id, th.BasicUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("can list groups not associated to the channel", func(t *testing.T) {
+		_, response, err := managerClient.GetGroups(context.Background(), model.GroupSearchOpts{NotAssociatedToChannel: privateChannel.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("can list groups with the channel member count", func(t *testing.T) {
+		_, response, err := managerClient.GetGroups(context.Background(), model.GroupSearchOpts{IncludeChannelMemberCount: privateChannel.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("can link and unlink a group to the channel", func(t *testing.T) {
+		_, response, err := managerClient.LinkGroupSyncable(context.Background(), group.Id, privateChannel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{AutoAdd: new(true)})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		response, err = managerClient.UnlinkGroupSyncable(context.Background(), group.Id, privateChannel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+}
+
+func TestLinkGroupChannel_ChannelMember(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	id := model.NewId()
+	group, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           new("name" + id),
+		Source:         model.GroupSourceLdap,
+		Description:    "description_" + id,
+		RemoteId:       new(model.NewId()),
+		AllowReference: true,
+	})
+	require.Nil(t, appErr)
+
+	patch := &model.GroupSyncablePatch{AutoAdd: new(true)}
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	t.Run("can link and unlink a group to their private channel", func(t *testing.T) {
+		_, response, err := th.Client.LinkGroupSyncable(context.Background(), group.Id, th.BasicPrivateChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		response, err = th.Client.UnlinkGroupSyncable(context.Background(), group.Id, th.BasicPrivateChannel.Id, model.GroupSyncableTypeChannel)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+	})
+
+	t.Run("cannot link a group when managing members is moderated off", func(t *testing.T) {
+		manageMembers := model.ChannelModeratedPermissions[2]
+		th.PatchChannelModerationsForMembers(t, th.BasicPrivateChannel.Id, manageMembers, false)
+		defer th.PatchChannelModerationsForMembers(t, th.BasicPrivateChannel.Id, manageMembers, true)
+
+		_, response, err := th.Client.AddChannelMember(context.Background(), th.BasicPrivateChannel.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+
+		_, response, err = th.Client.LinkGroupSyncable(context.Background(), group.Id, th.BasicPrivateChannel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
+}
