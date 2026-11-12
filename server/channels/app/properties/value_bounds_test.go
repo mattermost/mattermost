@@ -1307,14 +1307,13 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 	// setupAll gives each subtest its own group, with each field holding the bounds passed for it.
 	setupAll := func(t *testing.T, channelBounds, userBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		f := fixture{
 			systemField:  create(model.PropertyFieldObjectTypeSystem, nil),
 			channelField: create(model.PropertyFieldObjectTypeChannel, channelBounds),
 			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
 			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
 		}
-		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
 		th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
 		return f
 	}
@@ -1447,16 +1446,10 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		f := setup(t, below)
 		x := channel(f, "optmid")
 		post(f, x, "optmid")
-		// The option check refuses an unknown option first, so call the check with a field that
-		// has lost its option.
-		unranked := *f.channelField
-		unranked.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{map[string]any{"id": "optlow", "name": "LOW", "rank": 1}}}
-		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
-		err := hook.refuseContainedValuesOutOfBounds(rctx,
-			[]*model.PropertyValue{{GroupID: f.channelField.GroupID, FieldID: unranked.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optmid2"`)}},
-			map[string]*model.PropertyField{unranked.ID: &unranked})
+		err := write(f, x, `"optmid2"`)
 		requireAppErrorID(t, err, checkFailedID, http.StatusConflict)
 		require.ErrorIs(t, err, errBoundsCheckFailed)
+		assert.Equal(t, `"optmid"`, stored(f, x))
 	})
 
 	t.Run("a post value that can't be ranked counts as out of bounds", func(t *testing.T) {
