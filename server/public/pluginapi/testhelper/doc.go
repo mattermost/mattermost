@@ -18,8 +18,7 @@
 //
 //   - Docker must be running (tests fail if Docker is unavailable; set SKIP_DOCKER_TESTS to skip)
 //   - The plugin bundle must exist at dist/*.tar.gz (handled by `make test` which depends on `make dist`).
-//     plugin.json and dist/ are looked up in the working directory and its parents, unless
-//     MM_TEST_PLUGIN_DIR is set.
+//     plugin.json and dist/ are looked up in the working directory and its parents.
 //
 // # Environment variables
 //

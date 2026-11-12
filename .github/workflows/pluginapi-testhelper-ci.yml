@@ -1,8 +1,8 @@
 ---
 # Runs the integration tests of server/public/pluginapi/testhelper. They need a Docker
 # socket, which the Server CI test job lacks, and they test a published server image
-# rather than one built from the PR, so they run only when the package or its
-# dependencies (go.mod) change.
+# rather than one built from the PR, so they run only when the package or the
+# server/public go.mod/go.sum change.
 name: Plugin testhelper CI
 on:
   push:
@@ -45,10 +45,6 @@ jobs:
         with:
           go-version-file: server/public/go.mod
           cache-dependency-path: server/public/go.sum
-      - name: Build test plugin
-        run: |
-          pluginapi/testhelper/testdata/plugin/build.sh "$RUNNER_TEMP/plugin"
-          echo "MM_TEST_PLUGIN_DIR=$RUNNER_TEMP/plugin" >> "$GITHUB_ENV"
       - name: Run integration tests
         env:
           MM_TEST_IMAGE: mattermostdevelopment/mattermost-enterprise-edition:master

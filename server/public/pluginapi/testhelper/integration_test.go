@@ -5,8 +5,8 @@
 // run in the mattermost server's CI, which executes `go test` inside a Docker
 // container with no Docker socket — testcontainers-go panics there. They run in
 // their own workflow (.github/workflows/pluginapi-testhelper-ci.yml) and locally,
-// on hosts with Docker available, via `go test -tags=integration`, against the
-// plugin that testdata/plugin/build.sh builds.
+// on hosts with Docker available, via `go test -tags=integration`. TestMain builds
+// the plugin they deploy from testdata/plugin.
 
 //go:build integration
 
