@@ -146,8 +146,9 @@ type FeatureFlags struct {
 	// It does not gate the conversion of stored settings, which runs regardless.
 	PropertyFieldPermissionsV3 bool
 
-	// Gates only adding a bounds rule or a write_once lock to a property field,
-	// and only while PropertyFieldPermissionsV3 is on too.
+	// Gates only adding a bounds rule or a write_once lock to a property field.
+	// Adding also needs PropertyFieldPermissionsV3 on; with it off, adding is
+	// refused whatever this flag says.
 	// Reading bounds, removing them and enforcing stored ones never depend on it,
 	// so turning it off never removes a protection.
 	PropertyFieldBounds bool

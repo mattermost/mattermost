@@ -46,8 +46,7 @@ func (h *BoundsHook) isGroupV3(groupID string) (bool, error) {
 	return group.IsPSAv3(), nil
 }
 
-// check runs the field-level checks. existing is nil for a new field (or an
-// update naming a field the group doesn't hold).
+// check runs the field-level checks. existing is nil for a new field.
 func (h *BoundsHook) check(field, existing *model.PropertyField) error {
 	if err := refuseSetOnCreate(field); err != nil {
 		return err
