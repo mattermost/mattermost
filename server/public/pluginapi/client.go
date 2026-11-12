@@ -12,6 +12,7 @@ type Client struct {
 
 	Audit         AuditService
 	Bot           BotService
+	Cache         CacheService
 	Channel       ChannelService
 	Cluster       ClusterService
 	Configuration ConfigurationService
@@ -44,6 +45,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 
 		Audit:         AuditService{api: api},
 		Bot:           BotService{api: api},
+		Cache:         CacheService{api: api},
 		Channel:       ChannelService{api: api},
 		Cluster:       ClusterService{api: api},
 		Configuration: ConfigurationService{api: api},

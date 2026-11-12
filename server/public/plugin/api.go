@@ -1018,6 +1018,30 @@ type API interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
 
+	// CacheSet stores a value in the cluster-aware cache, unique per plugin. A ttlInSeconds of 0 uses
+	// the server default expiry. The cache is not durable: entries can be evicted or expire at any time,
+	// so callers must be able to rebuild the value from their source of truth.
+	//
+	// With the in-memory cache, the write is replicated to every cluster node on a best-effort basis.
+	// With Redis, all nodes share the same entries.
+	// Keys are limited to 150 characters and values to 256 KiB.
+	//
+	// @tag Cache
+	// Minimum server version: 12.2
+	CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError
+
+	// CacheGet retrieves a value from the cluster-aware cache. Returns nil for missing keys.
+	//
+	// @tag Cache
+	// Minimum server version: 12.2
+	CacheGet(key string) ([]byte, *model.AppError)
+
+	// CacheDelete removes a key from the cluster-aware cache on every node. Returns nil for missing keys.
+	//
+	// @tag Cache
+	// Minimum server version: 12.2
+	CacheDelete(key string) *model.AppError
+
 	// KVGet retrieves a value based on the key, unique per plugin. Returns nil for non-existent keys.
 	//
 	// @tag KeyValueStore

@@ -6708,6 +6708,93 @@ func (s *apiRPCServer) KVSetWithExpiry(args *Z_KVSetWithExpiryArgs, returns *Z_K
 	return nil
 }
 
+type Z_CacheSetArgs struct {
+	A string
+	B []byte
+	C int64
+}
+
+type Z_CacheSetReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError {
+	_args := &Z_CacheSetArgs{key, value, ttlInSeconds}
+	_returns := &Z_CacheSetReturns{}
+	if err := g.client.Call("Plugin.CacheSet", _args, _returns); err != nil {
+		log.Printf("RPC call to CacheSet API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) CacheSet(args *Z_CacheSetArgs, returns *Z_CacheSetReturns) error {
+	if hook, ok := s.impl.(interface {
+		CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError
+	}); ok {
+		returns.A = hook.CacheSet(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CacheSet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CacheGetArgs struct {
+	A string
+}
+
+type Z_CacheGetReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CacheGet(key string) ([]byte, *model.AppError) {
+	_args := &Z_CacheGetArgs{key}
+	_returns := &Z_CacheGetReturns{}
+	if err := g.client.Call("Plugin.CacheGet", _args, _returns); err != nil {
+		log.Printf("RPC call to CacheGet API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CacheGet(args *Z_CacheGetArgs, returns *Z_CacheGetReturns) error {
+	if hook, ok := s.impl.(interface {
+		CacheGet(key string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CacheGet(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CacheGet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CacheDeleteArgs struct {
+	A string
+}
+
+type Z_CacheDeleteReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) CacheDelete(key string) *model.AppError {
+	_args := &Z_CacheDeleteArgs{key}
+	_returns := &Z_CacheDeleteReturns{}
+	if err := g.client.Call("Plugin.CacheDelete", _args, _returns); err != nil {
+		log.Printf("RPC call to CacheDelete API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) CacheDelete(args *Z_CacheDeleteArgs, returns *Z_CacheDeleteReturns) error {
+	if hook, ok := s.impl.(interface {
+		CacheDelete(key string) *model.AppError
+	}); ok {
+		returns.A = hook.CacheDelete(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CacheDelete called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVGetArgs struct {
 	A string
 }

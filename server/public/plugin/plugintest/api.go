@@ -114,6 +114,78 @@ func (_m *API) AddUserToChannel(channelId string, userID string, asUserId string
 	return r0, r1
 }
 
+// CacheDelete provides a mock function with given fields: key
+func (_m *API) CacheDelete(key string) *model.AppError {
+	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CacheDelete")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// CacheGet provides a mock function with given fields: key
+func (_m *API) CacheGet(key string) ([]byte, *model.AppError) {
+	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CacheGet")
+	}
+
+	var r0 []byte
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]byte, *model.AppError)); ok {
+		return rf(key)
+	}
+	if rf, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = rf(key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(key)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// CacheSet provides a mock function with given fields: key, value, ttlInSeconds
+func (_m *API) CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError {
+	ret := _m.Called(key, value, ttlInSeconds)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CacheSet")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []byte, int64) *model.AppError); ok {
+		r0 = rf(key, value, ttlInSeconds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // CheckAccessControlExpression provides a mock function with given fields: actingUserID, resourceType, expression
 func (_m *API) CheckAccessControlExpression(actingUserID string, resourceType string, expression string) ([]model.CELExpressionError, *model.AppError) {
 	ret := _m.Called(actingUserID, resourceType, expression)

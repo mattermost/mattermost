@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -1362,6 +1363,28 @@ func (api *PluginAPI) KVCompareAndDelete(key string, oldValue []byte) (bool, *mo
 
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
 	return api.app.SetPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
+}
+
+func (api *PluginAPI) CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError {
+	if err := api.app.Srv().Platform().PluginCacheSet(api.id, key, value, time.Duration(ttlInSeconds)*time.Second); err != nil {
+		return model.NewAppError("CacheSet", "app.plugin.cache.set.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
+func (api *PluginAPI) CacheGet(key string) ([]byte, *model.AppError) {
+	value, err := api.app.Srv().Platform().PluginCacheGet(api.id, key)
+	if err != nil {
+		return nil, model.NewAppError("CacheGet", "app.plugin.cache.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return value, nil
+}
+
+func (api *PluginAPI) CacheDelete(key string) *model.AppError {
+	if err := api.app.Srv().Platform().PluginCacheDelete(api.id, key); err != nil {
+		return model.NewAppError("CacheDelete", "app.plugin.cache.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
 }
 
 func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
