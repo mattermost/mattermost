@@ -250,6 +250,50 @@ func (h *BoundsHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, v
 	return values, nil
 }
 
+// A delete is a clear, so on a v3 group the delete hooks refuse what the write path refuses to
+// clear. A group that doesn't resolve is an error, as in checkValueWrite.
+
+// PreDeletePropertyValue refuses a by-ID delete of a row of a field that refuses clears.
+func (h *BoundsHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	// Read from master: a replica error or lag must not let a locked value be deleted.
+	master := store.RequestContextWithMaster(rctx)
+	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
+	if err != nil {
+		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
+	}
+	// Nothing to enforce against a value that cannot be found; the delete
+	// itself will fail downstream with the appropriate not-found error.
+	if len(rows) == 0 {
+		return nil
+	}
+	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
+	// letting a null row go would let it race a first write and make a second "first" write possible.
+	return h.refuseLockedFieldClear(master, groupID, rows[0].FieldID)
+}
+
+// PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
+// is a bulk clear that can't be made conditional on each value, so it is refused whether or not
+// any value is set.
+func (h *BoundsHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	return h.refuseLockedFieldClear(store.RequestContextWithMaster(rctx), groupID, fieldID)
+}
+
+func (h *BoundsHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
+}
+
 // fieldGoverned reports whether any bounds or mutability rule applies to field's values. Values of
 // other fields skip every check here, so ordinary writes pay no extra cost.
 func fieldGoverned(field *model.PropertyField) bool {
@@ -446,7 +490,7 @@ func clearRefusal(field *model.PropertyField) error {
 
 // refuseLockedFieldClear returns the field's clearRefusal. Callers pass a master rctx so the
 // field read sees the latest definition.
-func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string) error {
+func (h *BoundsHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string) error {
 	fields, err := h.propertyService.getPropertyFields(rctx, groupID, []string{fieldID})
 	if errors.Is(err, ErrFieldNotFound) {
 		return nil
@@ -461,7 +505,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx reque
 // field that refuses clears, and otherwise tells the delete to leave those fields' rows alone. A
 // first write that lands between this read and the delete keeps its value, the same outcome as
 // the delete having run first.
-func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
+func (h *BoundsHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
 	master := store.RequestContextWithMaster(rctx)
 	// Loads every live field of the group with its options on each call; target-wide deletes are
 	// rare and plugin-only, so there's no cache.
@@ -479,7 +523,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx req
 		return nil
 	}
 
-	values, err := h.getValuesForTarget(master, groupID, targetType, targetID)
+	values, err := h.propertyService.getValuesForTarget(master, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}

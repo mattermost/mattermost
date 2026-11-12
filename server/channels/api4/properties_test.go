@@ -9684,5 +9684,15 @@ func TestBoundsHookCoversEveryV3Group(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 
 		require.Nil(t, write(`"first"`))
+
+		// A delete is a clear, so it is refused the same way.
+		set, appErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{FieldID: created.ID, TargetIDs: []string{th.BasicChannel.Id}, PerPage: 1})
+		require.Nil(t, appErr)
+		require.Len(t, set, 1)
+		appErr = th.App.DeletePropertyValue(th.Context, group.ID, set[0].ID)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Nil(t, write(`"first"`))
 	})
 }

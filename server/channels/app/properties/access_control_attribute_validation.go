@@ -17,7 +17,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var (
@@ -1264,7 +1263,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.propertyService.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -1421,7 +1420,7 @@ func newRequiredAttrDisabledError(field *model.PropertyField) error {
 
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1439,7 +1438,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.C
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
+		values, err := ps.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1506,34 +1505,16 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 // change_policy: a delete is indistinguishable from a clear, which every
 // non-"any" policy already refuses on the upsert path. Without this, deleting a
 // locked value and writing a fresh one would launder it past its policy.
-//
-// A delete naming no group (plugins pass "") is judged by the row's own group.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
-	if groupID != "" && !h.isGroupManaged(groupID) {
-		return nil
-	}
-
-	// Read from master: a replica error or lag must not let a locked value be deleted.
-	master := store.RequestContextWithMaster(rctx)
-	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
-	if err != nil {
-		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
-	}
-	// Nothing to enforce against a value that cannot be found; the delete
-	// itself will fail downstream with the appropriate not-found error.
-	if len(rows) == 0 {
-		return nil
-	}
-	value := rows[0]
-	groupID = value.GroupID
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
 
-	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
-	// letting a null row go would let it race a first write and make a second "first" write possible.
-	if err := h.refuseLockedFieldClear(master, groupID, value.FieldID); err != nil {
-		return err
+	value, err := h.propertyService.getPropertyValue(groupID, id)
+	if err != nil {
+		// Nothing to enforce against a value that cannot be found; the delete
+		// itself will fail downstream with the appropriate not-found error.
+		return nil
 	}
 	// A delete is a clear, so a participant must not be able to use it to strip
 	// a DM/GM marking that they could not have written in the first place.
@@ -1543,52 +1524,11 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
-// PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
-// is a bulk clear that can't be made conditional on each value, so it is refused whether or not
-// any value is set. With no group named it is judged by the field's own group.
-func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
-	master := store.RequestContextWithMaster(rctx)
-	if groupID == "" {
-		fields, err := h.propertyService.getPropertyFields(master, "", []string{fieldID})
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("failed to read field %s before clearing its values: %w", fieldID, err)
-		}
-		groupID = fields[0].GroupID
-	}
-	if !h.isGroupManaged(groupID) {
-		return nil
-	}
-	return h.refuseLockedFieldClear(master, groupID, fieldID)
-}
-
 // PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
-// (e.g. via the plugin API). Locked values are protected for every target type; the
-// required and change_policy checks stay channel-only -- see validateChangePolicy for why.
-// With no group named, every managed group is checked, since the delete reaches all of them.
+// (e.g. via the plugin API). Other target types are untouched -- see
+// validateChangePolicy for why enforcement is scoped to channels.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if groupID != "" {
-		if !h.isGroupManaged(groupID) {
-			return nil
-		}
-		return h.preDeleteValuesForTargetInGroup(rctx, groupID, targetType, targetID)
-	}
-	// Sorted so that which refusal a caller sees doesn't depend on map order.
-	for _, g := range slices.Sorted(maps.Keys(h.managedGroupIDs)) {
-		if err := h.preDeleteValuesForTargetInGroup(rctx, g, targetType, targetID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if err := h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID); err != nil {
-		return err
-	}
-	if targetType != model.PropertyValueTargetTypeChannel {
+	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
 	}
 	// Checked against a synthetic value so a refusal costs no value load; the
@@ -1599,7 +1539,7 @@ func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(r
 	}}); err != nil {
 		return err
 	}
-	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
+	values, err := h.propertyService.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}
