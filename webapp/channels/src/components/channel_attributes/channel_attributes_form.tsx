@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -35,14 +34,6 @@ const NO_OPTIONS: PropertyFieldOption[] = [];
 
 function getOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? NO_OPTIONS;
-}
-
-// Compass's chip toolbar turns Enter into a remove click without stopping it, so
-// the key would otherwise reach GenericModal's confirm handler.
-function stopChipEnter(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Enter' && e.target instanceof Element && e.target.closest('[data-chip]')) {
-        e.stopPropagation();
-    }
 }
 
 const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
@@ -77,7 +68,8 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
         return null;
     }
 
-    const selectPlaceholder = formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'});
+    const selectOptionPlaceholder = formatMessage({id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'});
+    const selectOptionsPlaceholder = formatMessage({id: 'admin.user.selectOptions', defaultMessage: 'Select options'});
     const textPlaceholder = formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'});
     const requiredMessage = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
 
@@ -114,7 +106,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             field={field}
                             value={selected}
                             onChange={onChange}
-                            placeholder={selectPlaceholder}
+                            placeholder={selectOptionPlaceholder}
                             ariaLabel={label}
                             disabled={disabled}
                         />
@@ -135,17 +127,18 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         />
                     );
                 } else {
-                    const type = getAttributeComboboxType(field);
-                    const combobox = (
+                    const comboboxType = getAttributeComboboxType(field);
+                    const placeholder = comboboxType === 'multiselect' ? selectOptionsPlaceholder : selectOptionPlaceholder;
+                    control = (
                         <AttributeCombobox
                             id={comboboxId}
                             testId={`channelAttribute-${field.name}`}
-                            type={type}
+                            type={comboboxType}
                             label={label}
                             options={getOptions(field)}
                             value={selected ?? ''}
                             onChange={(next) => handleOptionsChange(field.id, next)}
-                            placeholder={selectPlaceholder}
+                            placeholder={placeholder}
                             zIndex={ZIndex.MENU}
                             required={required}
                             disabled={disabled}
@@ -154,15 +147,6 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             onBlur={() => markTouched(field.id)}
                         />
                     );
-
-                    control = type === 'multiselect' ? (
-                        <div
-                            role='presentation'
-                            onKeyDown={stopChipEnter}
-                        >
-                            {combobox}
-                        </div>
-                    ) : combobox;
                 }
 
                 // Decorative: the control carries required for assistive technology

@@ -21,8 +21,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/openpgp" //nolint:staticcheck
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -115,7 +115,7 @@ func verifySignature(filename string, sigfilename string, publicKey []byte) erro
 		return NewInvalidSignature()
 	}
 
-	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature)
+	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature, nil)
 	if err != nil {
 		mlog.Debug("Unable to verify the Mattermost file signature", mlog.Err(err))
 		return NewInvalidSignature()

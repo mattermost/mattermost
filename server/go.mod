@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.2
 	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/ProtonMail/go-crypto v1.5.2
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.47.5
 	github.com/aws/aws-sdk-go-v2/config v1.33.13
@@ -49,7 +50,7 @@ require (
 	github.com/mattermost/mattermost-plugin-ai v1.14.2
 	github.com/mattermost/mattermost/server/public v0.6.0
 	github.com/mattermost/morph v1.1.0
-	github.com/mattermost/pdf v0.0.0-20260925085853-316d43e077e6
+	github.com/mattermost/pdf v0.0.0-20261106150958-aad8dd5c3f19
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.5.0
 	github.com/mholt/archives v0.1.5
@@ -91,6 +92,7 @@ require (
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/internal v0.1.0 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/pandatix/go-abnf v0.5.5 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect

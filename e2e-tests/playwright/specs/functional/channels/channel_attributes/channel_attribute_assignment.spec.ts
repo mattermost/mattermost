@@ -432,10 +432,11 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await purgeAttributes(adminClient);
             await assertNoForeignRequiredAttributes(adminClient);
 
-            // Stored lowest first, so an unsorted menu would read LOW, MID, HIGH.
+            // Rank order differs from both the stored order and its reverse.
             const level = await createAttribute(adminClient, attributeName('level', suffix), {
                 type: 'rank',
-                options: ['LOW', 'MID', 'HIGH'],
+                options: ['ALPHA', 'BRAVO', 'CHARLIE'],
+                optionRanks: {ALPHA: 2, BRAVO: 3, CHARLIE: 1},
                 required: true,
             });
             created.push(level);
@@ -454,17 +455,17 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             // * Highest rank first, each uncoloured option with its badge and no rank text
             await modal.expectAttributeOptionOrder(
                 level.name,
-                ['HIGH', 'MID', 'LOW'].map((name) => optionId(level, name)),
+                ['BRAVO', 'ALPHA', 'CHARLIE'].map((name) => optionId(level, name)),
             );
             await expect(listbox.getByTestId('rank-badge')).toHaveText(['3', '2', '1']);
-            await expect(listbox.getByRole('option')).toHaveText([/^3\s*HIGH$/, /^2\s*MID$/, /^1\s*LOW$/]);
+            await expect(listbox.getByRole('option')).toHaveText([/^3\s*BRAVO$/, /^2\s*ALPHA$/, /^1\s*CHARLIE$/]);
             await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(0);
 
-            // # Pick the middle option
-            await modal.selectAttributeOption(level.name, 'MID');
+            // # Pick the middle-ranked option
+            await modal.selectAttributeOption(level.name, 'ALPHA');
 
             // * The closed field shows it with its badge, and Create is enabled
-            await expect(modal.getAttributeCombobox(level.name)).toHaveValue('MID');
+            await expect(modal.getAttributeCombobox(level.name)).toHaveValue('ALPHA');
             await expect(modal.getAttributeRow(level.name).getByTestId('rank-badge')).toHaveText('2');
             await expect(modal.createButton).toBeEnabled();
 
@@ -472,9 +473,9 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await modal.create();
             await expect(modal.container).not.toBeVisible();
 
-            // * The stored value is MID's option id
+            // * The stored value is ALPHA's option id
             const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
-            expect(valueFor(await readChannelValues(adminClient, channel.id), level)).toBe(optionId(level, 'MID'));
+            expect(valueFor(await readChannelValues(adminClient, channel.id), level)).toBe(optionId(level, 'ALPHA'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -534,6 +535,70 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             expect(valueFor(await readChannelValues(adminClient, channel.id), caveats)).toEqual([
                 optionId(caveats, 'ORCON'),
             ]);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a coloured multiselect option shows its swatch on its chip and its menu row.
+     */
+    test('shows a coloured multiselect option swatch on its chip and menu row', async ({pw}) => {
+        await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
+        await pw.skipIfNoLicense();
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
+
+            const caveats = await createAttribute(adminClient, attributeName('swatch_caveats', suffix), {
+                type: 'multiselect',
+                options: ['NOFORN', 'ORCON'],
+                optionColors: {NOFORN: '#1e325c'},
+                required: true,
+            });
+            created.push(caveats);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const modal = await channelsPage.openNewChannelModal();
+
+            // # Pick both values
+            await modal.selectAttributeOption(caveats.name, 'NOFORN');
+            await modal.selectAttributeOption(caveats.name, 'ORCON');
+            const chips = modal.getAttributeChips(caveats.name);
+            await expect(chips).toHaveCount(2);
+
+            // * Only the coloured chip carries a swatch, and the field shows no other
+            const nofornChip = chips.filter({has: page.getByText('NOFORN', {exact: true})});
+            const orconChip = chips.filter({has: page.getByText('ORCON', {exact: true})});
+            await expect(nofornChip.getByTestId('attribute-option-swatch')).toHaveCSS(
+                'background-color',
+                'rgb(30, 50, 92)',
+            );
+            await expect(orconChip.getByTestId('attribute-option-swatch')).toHaveCount(0);
+            await expect(modal.getAttributeRow(caveats.name).getByTestId('attribute-option-swatch')).toHaveCount(1);
+
+            // # Open the menu
+            await modal.openAttributeCombobox(caveats.name);
+
+            // * Only the coloured row carries a swatch
+            await expect(
+                modal
+                    .getAttributeOption(caveats.name, optionId(caveats, 'NOFORN'))
+                    .getByTestId('attribute-option-swatch'),
+            ).toBeVisible();
+            await expect(
+                modal
+                    .getAttributeOption(caveats.name, optionId(caveats, 'ORCON'))
+                    .getByTestId('attribute-option-swatch'),
+            ).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }

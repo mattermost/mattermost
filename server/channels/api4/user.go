@@ -2354,10 +2354,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"cyber-defense": "/cyber-defense-hq",
 	}
 
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
-		return
-	}
 	if err := r.ParseForm(); err != nil {
 		c.Logger.Warn("Failed to parse form data", mlog.Err(err))
 	}
@@ -2406,6 +2402,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+	auditRec.Success()
 
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
 	if campaign != "" {
@@ -2414,10 +2411,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If a cloud preview, redirect to the correct use case URL
-	if c.App.License().IsCloudPreview() && useCase != "" {
+	// If a cloud preview, redirect to the correct use case URL, else to the configured landing path
+	if c.App.License().IsCloudPreview() {
 		if url, ok := useCaseToURL[useCase]; ok {
 			redirectURL += url
+		} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
+			redirectURL += landing
 		}
 	}
 

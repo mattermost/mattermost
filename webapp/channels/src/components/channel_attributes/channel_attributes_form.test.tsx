@@ -10,7 +10,6 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {Client4} from 'mattermost-redux/client';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
-import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
@@ -316,8 +315,9 @@ describe('ChannelAttributesForm', () => {
         for (const id of ['l3', 'l2', 'l1']) {
             expect(screen.getByTestId(`channelAttribute-rank-option-${id}`)).not.toHaveTextContent(/Rank/);
         }
+        expect(screen.getByTestId('channelAttribute-rank-option-l3')).toHaveAccessibleName('SECRET, Rank 3');
 
-        await userEvent.click(screen.getByRole('option', {name: 'SECRET'}));
+        await userEvent.click(screen.getByRole('option', {name: 'SECRET, Rank 3'}));
         expect(onChange).toHaveBeenCalledWith('f_rank', 'l3');
     });
 
@@ -338,7 +338,7 @@ describe('ChannelAttributesForm', () => {
         expect(within(screen.getByTestId('channelAttribute-color-option-opt_b')).getByTestId('attribute-option-visual-placeholder')).toBeInTheDocument();
     });
 
-    test('shows no swatch for a coloured multiselect', async () => {
+    test('shows a swatch for a coloured multiselect in its row and chip', async () => {
         const tags = field({
             id: 'f_tags',
             name: 'tags',
@@ -348,19 +348,21 @@ describe('ChannelAttributesForm', () => {
         renderWithContext(
             <ChannelAttributesForm
                 fields={[tags]}
-                values={{f_tags: ['opt_a']}}
+                values={{f_tags: ['opt_a', 'opt_b']}}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(screen.queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attribute-option-visual-placeholder')).not.toBeInTheDocument();
+        const chips = within(screen.getByRole('toolbar', {name: 'Tags selections'})).getAllByRole('button');
+        expect(chips.map((c) => c.textContent)).toEqual(['NOFORN', 'ORCON']);
+        expect(within(chips[0]).getByTestId('attribute-option-swatch')).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
+        expect(within(chips[1]).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('combobox', {name: 'Tags'}));
 
-        expect(screen.queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_a')).getByTestId('attribute-option-swatch')).toBeInTheDocument();
+        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_b')).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attribute-option-visual-placeholder')).not.toBeInTheDocument();
-        expect(within(screen.getByRole('toolbar', {name: 'Tags selections'})).getAllByRole('button').map((c) => c.textContent)).toEqual(['NOFORN']);
     });
 
     test('marks required comboboxes aria-required and leaves optional ones unmarked', () => {
@@ -611,40 +613,6 @@ describe('ChannelAttributesForm', () => {
 
             expect(keys).toContain('Enter');
             expect(getChips()).toHaveLength(2);
-        });
-
-        // Guards the guard: if Compass starts stopping the key itself, drop both tests.
-        test('control: the same Enter reaches a parent when the form guard is absent', async () => {
-            const user = userEvent.setup();
-            const keys: string[] = [];
-
-            function Bare() {
-                const [value, setValue] = useState<string[]>(['opt_a', 'opt_b']);
-                return (
-                    <AttributeCombobox
-                        id='bare'
-                        label='Caveats'
-                        type='multiselect'
-                        options={caveatOptions}
-                        value={value}
-                        onChange={(next) => setValue(next as string[])}
-                    />
-                );
-            }
-
-            renderWithContext(
-                <div
-                    role='presentation'
-                    onKeyDown={(e) => keys.push(e.key)}
-                >
-                    <Bare/>
-                </div>,
-            );
-
-            await focusFirstChip(user);
-            await user.keyboard('{Enter}');
-
-            expect(keys).toContain('Enter');
         });
     });
 
