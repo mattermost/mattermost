@@ -955,6 +955,26 @@ func TestRefuseLockedDeletes(t *testing.T) {
 		assert.Equal(t, "", stored(parentOnlyChannel, target))
 	})
 
+	t.Run("a soft-deleted row of a locked field is not deleted by ID", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		row := seed(f, channel, target, `"a"`)
+		require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, row.ID))
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, row.ID), writeOnceID, http.StatusForbidden)
+
+		userTarget := model.NewId()
+		userRow := seed(raiseOnlyUser, user, userTarget, `"optmid"`)
+		require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, userRow.ID))
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, userRow.ID), violatedID, http.StatusForbidden)
+	})
+
+	t.Run("a soft-deleted row of a field that allows clears is deleted by ID", func(t *testing.T) {
+		for _, f := range []*model.PropertyField{mutableChannel, parentOnlyChannel} {
+			row := seed(f, channel, model.NewId(), `"optlow"`)
+			require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, row.ID))
+			require.NoError(t, th.service.DeletePropertyValue(rctx, groupID, row.ID))
+		}
+	})
+
 	t.Run("a row that is already gone is left to the store", func(t *testing.T) {
 		err := th.service.DeletePropertyValue(rctx, groupID, model.NewId())
 		require.Error(t, err)

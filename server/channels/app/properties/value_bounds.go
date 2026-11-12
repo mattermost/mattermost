@@ -259,9 +259,10 @@ func (h *BoundsHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id
 	if err != nil || !v3 {
 		return err
 	}
-	// Read from master: a replica error or lag must not let a locked value be deleted.
+	// Read from master: a replica error or lag must not let a locked value be deleted. Soft-deleted
+	// rows are read too: the store's delete re-stamps them, and an update can revive one in between.
 	master := store.RequestContextWithMaster(rctx)
-	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
+	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, IncludeDeleted: true, PerPage: 1})
 	if err != nil {
 		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
 	}
