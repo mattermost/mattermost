@@ -60,10 +60,15 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
              Members
           </h1>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="showInviteModal"
+            type="button"
           >
-             Add Members
+            <span
+              class="_button__label_1pij1_55"
+            >
+               Add Members
+            </span>
           </button>
         </div>
         <div
@@ -84,7 +89,7 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
               >
                 <span
                   aria-label="Loading Icon"
-                  class="_spinner_3elm7_10 spinner"
+                  class="_spinner_mvrwe_21 spinner"
                   role="status"
                   style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />
@@ -177,7 +182,7 @@ exports[`components/ChannelMembersModal should match snapshot with archived chan
               >
                 <span
                   aria-label="Loading Icon"
-                  class="_spinner_3elm7_10 spinner"
+                  class="_spinner_mvrwe_21 spinner"
                   role="status"
                   style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                 />

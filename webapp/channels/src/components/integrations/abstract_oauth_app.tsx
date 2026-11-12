@@ -7,8 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {Radio} from '@mattermost/compass-ui/components/radio';
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -527,15 +527,17 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 type='backstage'
                                 errors={[this.props.serverError, this.state.clientError]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/oauth2-apps`}
+                            <Button
+                                asChild={true}
+                                emphasis='tertiary'
                             >
-                                <FormattedMessage
-                                    id='installed_oauth_apps.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Link>
+                                <Link to={`/${this.props.team.name}/integrations/oauth2-apps`}>
+                                    <FormattedMessage
+                                        id='installed_oauth_apps.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.saving}

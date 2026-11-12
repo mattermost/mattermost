@@ -1,0 +1,6 @@
+-- Postgres cannot remove a value from an enum in place, the only alternative is the
+-- rename-recreate-recast dance 000184's down file performs, and an enum value nothing
+-- references is inert, so removing it buys nothing.
+-- Note that 000184's own down migration recreates permission_level as ('none','sysadmin','member')
+-- and recasts the three columns, so rolling back that far would fail on a row still holding
+-- 'everyone' -- an unsupported rollback distance, recorded rather than handled here.

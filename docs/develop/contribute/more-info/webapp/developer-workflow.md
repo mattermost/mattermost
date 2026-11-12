@@ -37,4 +37,4 @@ This page contains most of the information required for a developer to work with
 
 ### Useful Mattermost commands
 
-During development you may want to reset the database and generate random data for testing your changes. See [the corresponding section of the server developer workflow](/developers/contribute/more-info/server/developer-workflow#useful-mattermost-commands) for how to do that.
+During development you may want to reset the database and generate random data for testing your changes. See [the corresponding section of the server developer workflow](/developers/contribute/more-info/server/developer-workflow#useful-mattermost-and-mmctl-commands) for how to do that.

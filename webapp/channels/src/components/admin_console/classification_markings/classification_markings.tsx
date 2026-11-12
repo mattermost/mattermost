@@ -27,13 +27,13 @@ import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
 
 import {
     AddLevelButton,
-    AddLevelButtonRow,
-    ClassificationLevelsSectionContent,
+    ClassificationLevelsBody,
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
@@ -71,7 +71,7 @@ import type {ClassificationLevel} from './utils/presets';
 import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, DangerText, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminWrapper, DangerText} from '../system_properties/controls';
 
 const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
 
@@ -86,6 +86,7 @@ const msg = defineMessages({
     clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Classification clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
+    levelsAdd: {id: 'admin.classification_markings.levels.add', defaultMessage: 'Add level'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
     informationalNoticeBody: {id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'},
     globalBannerSectionTitle: {id: 'admin.classification_markings.global_banner.section_title', defaultMessage: 'Global Classification Indicators'},
@@ -791,7 +792,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                             setByEnv={false}
                         >
                             <Checkbox
-                                className='checkbox-inline'
                                 data-testid='clearanceAttributeCheckbox'
                                 checked={clearanceEnabled}
                                 onChange={handleClearanceChange}
@@ -825,17 +825,12 @@ export default function ClassificationMarkings({disabled}: Props) {
                 </form>
 
                 {enabled && (
-                    <AdminSection>
-                        <SectionHeader>
-                            <hgroup>
-                                <FormattedMessage
-                                    tagName={SectionHeading}
-                                    {...msg.levelsTitle}
-                                />
-                                <FormattedMessage {...msg.levelsDescription}/>
-                            </hgroup>
-                        </SectionHeader>
-                        <ClassificationLevelsSectionContent>
+                    <AdminPanel
+                        id='classification_levels'
+                        title={msg.levelsTitle}
+                        subtitle={msg.levelsDescription}
+                    >
+                        <ClassificationLevelsBody>
                             <ClassificationLevelsTable
                                 levels={levels}
                                 updateLevel={updateLevel}
@@ -844,18 +839,13 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 disabled={readOnly}
                             />
                             {!readOnly && (
-                                <AddLevelButtonRow>
-                                    <AddLevelButton onClick={addLevel}>
-                                        <PlusIcon size={14}/>
-                                        <FormattedMessage
-                                            id='admin.classification_markings.levels.add'
-                                            defaultMessage='Add level'
-                                        />
-                                    </AddLevelButton>
-                                </AddLevelButtonRow>
+                                <AddLevelButton onClick={addLevel}>
+                                    <PlusIcon size={14}/>
+                                    <FormattedMessage {...msg.levelsAdd}/>
+                                </AddLevelButton>
                             )}
-                        </ClassificationLevelsSectionContent>
-                    </AdminSection>
+                        </ClassificationLevelsBody>
+                    </AdminPanel>
                 )}
 
                 {enabled && (
@@ -882,7 +872,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
                 message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}
                 confirmButtonText={formatMessage({id: 'admin.classification_markings.preset_switch.confirm', defaultMessage: 'Change preset'})}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleConfirmPresetSwitch}
                 onCancel={handleCancelPresetSwitch}
                 onExited={handleCancelPresetSwitch}

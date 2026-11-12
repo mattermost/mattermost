@@ -3,12 +3,14 @@
 exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 <div>
   <button
-    class="btn btn-primary some-class"
+    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 some-class"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
-    <span>
+    <span
+      class="_button__label_1pij1_55"
+    >
       Save
     </span>
   </button>
@@ -18,12 +20,14 @@ exports[`components/SaveButton should match snapshot, extraClasses 1`] = `
 exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
-    <span>
+    <span
+      class="_button__label_1pij1_55"
+    >
       Save
     </span>
   </button>
@@ -33,12 +37,14 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 1`] = `
 exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
     data-testid="saveSetting"
     id="saveSetting"
     type="submit"
   >
-    <span>
+    <span
+      class="_button__label_1pij1_55"
+    >
       Go
     </span>
   </button>
@@ -48,21 +54,26 @@ exports[`components/SaveButton should match snapshot, on defaultMessage 2`] = `
 exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
     data-testid="saveSetting"
     disabled=""
     id="saveSetting"
     type="submit"
   >
     <span
-      class="LoadingSpinner with-text"
-      data-testid="loadingSpinner"
-      id="loadingSpinner"
+      aria-hidden="true"
+      class="_button__icon-slot_1pij1_59"
     >
       <span
-        class="fa fa-spinner fa-fw fa-pulse spinner"
-        title="Loading Icon"
+        aria-label="Loading"
+        class="_spinner_mvrwe_21"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
+    </span>
+    <span
+      class="_button__label_1pij1_55"
+    >
       Saving
     </span>
   </button>
@@ -72,21 +83,26 @@ exports[`components/SaveButton should match snapshot, on savingMessage 1`] = `
 exports[`components/SaveButton should match snapshot, on savingMessage 2`] = `
 <div>
   <button
-    class="btn btn-primary"
+    class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
     data-testid="saveSetting"
     disabled=""
     id="saveSetting"
     type="submit"
   >
     <span
-      class="LoadingSpinner with-text"
-      data-testid="loadingSpinner"
-      id="loadingSpinner"
+      aria-hidden="true"
+      class="_button__icon-slot_1pij1_59"
     >
       <span
-        class="fa fa-spinner fa-fw fa-pulse spinner"
-        title="Loading Icon"
+        aria-label="Loading"
+        class="_spinner_mvrwe_21"
+        role="status"
+        style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
       />
+    </span>
+    <span
+      class="_button__label_1pij1_55"
+    >
       Saving Config...
     </span>
   </button>

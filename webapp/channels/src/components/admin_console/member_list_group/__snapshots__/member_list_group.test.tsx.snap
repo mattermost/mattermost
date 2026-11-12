@@ -13,27 +13,31 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         class="DataGrid_search"
       >
         <div
-          class="DataGrid_searchBar"
+          class="DataGrid_searchControls"
         >
-          <span
-            aria-hidden="true"
-            class="DataGrid_searchIcon"
+          <div
+            class="DataGrid_searchBar"
           >
-            <i
-              class="fa fa-search"
-              title="Search Icon"
+            <span
+              aria-hidden="true"
+              class="DataGrid_searchIcon"
+            >
+              <i
+                class="fa fa-search"
+                title="Search Icon"
+              />
+            </span>
+            <input
+              data-testid="searchInput"
+              placeholder="Search"
+              type="text"
+              value=""
             />
-          </span>
-          <input
-            data-testid="searchInput"
-            placeholder="Search"
-            type="text"
-            value=""
-          />
-          <i
-            class="DataGrid_clearButton fa fa-times-circle hidden"
-            data-testid="clear-search"
-          />
+            <i
+              class="DataGrid_clearButton fa fa-times-circle hidden"
+              data-testid="clear-search"
+            />
+          </div>
         </div>
       </div>
       <div
@@ -54,7 +58,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
           >
             <span
               aria-label="Loading Icon"
-              class="_spinner_3elm7_10 spinner"
+              class="_spinner_mvrwe_21 spinner"
               role="status"
               style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
             />
@@ -76,24 +80,68 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
           </span>
           <button
             aria-label="Previous page"
-            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 ml-2 prev"
             disabled=""
             type="button"
           >
-            <i
-              class="icon icon-chevron-left"
-              title="Previous Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_1d2d4_65"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+              >
+                <div
+                  class="_icon__glyph-area_1xcik_20"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
           </button>
           <button
             aria-label="Next page"
-            class="btn btn-quaternary btn-icon btn-sm next "
+            class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 next"
             type="button"
           >
-            <i
-              class="icon icon-chevron-right"
-              title="Next Icon"
-            />
+            <span
+              aria-hidden="true"
+              class="_icon-button__icon-slot_1d2d4_65"
+            >
+              <div
+                aria-hidden="true"
+                class="_icon_1xcik_13 _icon--size-16_1xcik_49"
+              >
+                <div
+                  class="_icon__glyph-area_1xcik_20"
+                >
+                  <svg
+                    fill="currentColor"
+                    height="18"
+                    version="1.1"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </span>
           </button>
         </div>
       </div>
@@ -115,27 +163,31 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
         class="DataGrid_search"
       >
         <div
-          class="DataGrid_searchBar"
+          class="DataGrid_searchControls"
         >
-          <span
-            aria-hidden="true"
-            class="DataGrid_searchIcon"
+          <div
+            class="DataGrid_searchBar"
           >
-            <i
-              class="fa fa-search"
-              title="Search Icon"
+            <span
+              aria-hidden="true"
+              class="DataGrid_searchIcon"
+            >
+              <i
+                class="fa fa-search"
+                title="Search Icon"
+              />
+            </span>
+            <input
+              data-testid="searchInput"
+              placeholder="Search"
+              type="text"
+              value=""
             />
-          </span>
-          <input
-            data-testid="searchInput"
-            placeholder="Search"
-            type="text"
-            value=""
-          />
-          <i
-            class="DataGrid_clearButton fa fa-times-circle hidden"
-            data-testid="clear-search"
-          />
+            <i
+              class="DataGrid_clearButton fa fa-times-circle hidden"
+              data-testid="clear-search"
+            />
+          </div>
         </div>
       </div>
       <div
@@ -156,7 +208,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
           >
             <span
               aria-label="Loading Icon"
-              class="_spinner_3elm7_10 spinner"
+              class="_spinner_mvrwe_21 spinner"
               role="status"
               style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
             />

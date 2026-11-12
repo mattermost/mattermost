@@ -4,9 +4,6 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {DeepPartial} from '@mattermost/types/utilities';
-
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -48,7 +45,6 @@ describe('FileAttachment', () => {
         delete_at: 0,
         mime_type: '',
         clientId: '',
-        archived: false,
     };
 
     const baseProps = {
@@ -70,30 +66,6 @@ describe('FileAttachment', () => {
     test('should match snapshot, regular file', () => {
         const {container} = renderWithContext(<FileAttachment {...baseProps}/>);
         expect(container).toMatchSnapshot();
-    });
-
-    test('non archived file does not show archived elements', () => {
-        const reduxState: DeepPartial<GlobalState> = {
-            entities: {
-                general: {
-                    config: {},
-                },
-                users: {
-                    currentUserId: 'currentUserId',
-                },
-            },
-        };
-        renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
-
-        expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
-        expect(screen.queryByText(/This file is archived/)).not.toBeInTheDocument();
-    });
-
-    test('non archived file does not show archived elements in compact display mode', () => {
-        renderWithContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
-
-        expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
-        expect(screen.queryByText(/archived/)).not.toBeInTheDocument();
     });
 
     test('should match snapshot, regular image', () => {
@@ -177,38 +149,6 @@ describe('FileAttachment', () => {
         const blur = jest.spyOn(link, 'blur');
         await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
-    });
-
-    describe('archived file', () => {
-        test('shows archived image instead of real image and explanatory text in compact mode', () => {
-            const props = {
-                ...baseProps,
-                fileInfo: {
-                    ...baseProps.fileInfo,
-                    archived: true,
-                },
-                compactDisplay: true,
-            };
-            renderWithContext(<FileAttachment {...props}/>);
-            screen.getByTestId('archived-file-icon');
-            screen.getByText(baseProps.fileInfo.name);
-            screen.getByText(/archived/);
-        });
-
-        test('shows archived image instead of real image and explanatory text in full mode', () => {
-            const props = {
-                ...baseProps,
-                fileInfo: {
-                    ...baseProps.fileInfo,
-                    archived: true,
-                },
-                compactDisplay: false,
-            };
-            renderWithContext(<FileAttachment {...props}/>);
-            screen.getByTestId('archived-file-icon');
-            screen.getByText(baseProps.fileInfo.name);
-            screen.getByText(/This file is archived/);
-        });
     });
 
     test('should match snapshot when file is deleted', () => {

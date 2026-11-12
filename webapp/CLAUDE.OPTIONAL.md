@@ -67,7 +67,7 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Router 5.3**: Client-side routing
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` from `@mattermost/shared/components/tooltip`)
-- **@mattermost/compass-ui**: Published Compass UI components (prefer `Button` from `@mattermost/compass-ui/components/button` over hand-rolled or shared Button)
+- **@mattermost/compass-ui**: Published Compass UI components (prefer `Button` from `@mattermost/compass-ui/components/button` over hand-rolled or shared Button; shared `Button` is removed, `buttonClassNames` remains for class-only cases)
 - **@mattermost/shared**: Shared components and utilities (`WithTooltip`, `Emoji`, etc.) — use where `webapp/AGENTS.md` specifies them
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
 - **Monaco Editor**: Code editor integration

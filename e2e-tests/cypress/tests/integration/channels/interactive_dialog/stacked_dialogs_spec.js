@@ -17,6 +17,7 @@
  * - An action button opens a child dialog on top; the parent stays mounted but hidden
  * - Closing the child shows the parent again; a parent with refresh_on_return re-fetches
  *   its form from source_url and keeps the values the user typed
+ * - Matrix selections for rows the refresh removed are dropped instead of submitted
  * - submit_buttons renders a select's options as separate submit buttons
  *
  * Note on selectors: stacked dialogs stay mounted, but only the visible one carries the
@@ -265,6 +266,53 @@ describe('Interactive Dialog - Stacked dialogs', () => {
 
         // * No dialogs remain
         cy.get('.apps-form-modal').should('not.exist');
+    });
+
+    it('MM-T2580F - Matrix selections for a row removed by the refresh are dropped, not submitted', () => {
+        const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
+
+        // # Restore the demo data so every sortie starts with open tasks
+        cy.request('POST', `${webhookBaseUrl}/dialog/reset`).its('status').should('eq', 200);
+
+        interceptDialogApis();
+        openCargoDialog();
+
+        // # Tick a readiness check in S-103, which this test completes, and one in S-101
+        topDialog().find('[data-testid="readiness_checks"]').within(() => {
+            cy.get('input[aria-label="S-103, Fuel"]').check();
+            cy.get('input[aria-label="S-101, Customs"]').check();
+        });
+
+        // # Complete every task in the S-103 schedule and save it
+        sortieRow('S-103').find('button').click();
+        cy.wait('@executeAction').its('response.statusCode').should('eq', 200);
+        expectTopDialog('S-103 Schedule — KADW');
+        ['#task_0', '#task_1', '#task_2'].forEach((task) => {
+            topDialog().find(task).check();
+        });
+        topDialog().find('#appsModalSubmit').click();
+        cy.wait('@submitDialog').its('request.body.callback_id').should('eq', 'mission_schedule');
+        cy.wait('@refreshDialog').its('response.statusCode').should('eq', 200);
+
+        // * The refreshed matrix no longer has an S-103 row, and the S-101 selection is kept
+        expectTopDialog(CARGO_TITLE);
+        topDialog().find('[data-testid="readiness_checks"]').within(() => {
+            cy.get('tbody th[scope="row"]').should('have.length', 2).and('not.contain', 'S-103');
+            cy.get('input[aria-label="S-101, Customs"]').should('be.checked');
+        });
+
+        // # Submit the Cargo dialog
+        topDialog().find('#appsModalSubmit').click();
+
+        // * The submission carries only the selection that still exists
+        cy.wait('@submitDialog').its('request.body').should((body) => {
+            expect(body.callback_id).to.eq('mission_cargo');
+            expect(body.submission.readiness_checks).to.deep.eq(['S-101:customs']);
+        });
+        expectTopDialog(MISSION_TITLE);
+
+        // # Restore the demo data for the tests that follow
+        cy.request('POST', `${webhookBaseUrl}/dialog/reset`).its('status').should('eq', 200);
     });
 
     it('MM-T2580E - submit_buttons renders one submit button per option and submits its value', () => {

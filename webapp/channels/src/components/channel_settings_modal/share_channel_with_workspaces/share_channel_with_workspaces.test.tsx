@@ -5,6 +5,8 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
+import type {ChannelKind} from 'types/store/plugins';
+
 import type {WorkspaceWithStatus} from './share_channel_with_workspaces';
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
 
@@ -38,7 +40,7 @@ const mockRemotes = [
     },
 ];
 
-function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initialRemotes: WorkspaceWithStatus[]) {
+function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initialRemotes: WorkspaceWithStatus[], channelKind: ChannelKind = 'channel') {
     const Wrapper = () => {
         const [rem, setRemotes] = React.useState<WorkspaceWithStatus[]>(remotes);
         const [enabled, setEnabled] = React.useState(remotes.length > 0);
@@ -49,6 +51,7 @@ function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], initia
                 onRemotesChange={setRemotes}
                 enabled={enabled}
                 onToggle={setEnabled}
+                channelKind={channelKind}
             />
         );
     };
@@ -73,6 +76,28 @@ describe('ShareChannelWithWorkspaces', () => {
             const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
             expect(toggle).not.toBeChecked();
         });
+    });
+
+    it('says board rather than channel for a board', async () => {
+        renderShareChannelWithWorkspaces([], [], 'board');
+
+        expect(screen.getByText('Collaborate with trusted organizations in this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Collaborate with trusted organizations in this channel.')).not.toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+        });
+        await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+
+        expect(screen.getByText('This board is not shared with any connected workspaces yet.')).toBeInTheDocument();
+        expect(screen.queryByText('This channel is not shared with any connected workspaces yet.')).not.toBeInTheDocument();
+    });
+
+    it('says which workspaces a board is shared with', async () => {
+        renderShareChannelWithWorkspaces(mockRemotes, [], 'board');
+
+        expect(await screen.findByText('Workspaces this board is shared with')).toBeInTheDocument();
+        expect(screen.queryByText('Workspaces this channel is shared with')).not.toBeInTheDocument();
     });
 
     it('should render with toggle on when remotes exist', async () => {

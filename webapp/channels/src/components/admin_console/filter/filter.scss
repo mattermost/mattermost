@@ -3,29 +3,14 @@
     display: inline-block;
     padding-left: 8px;
 
-    .Filter_button {
-        width: auto;
-        height: 32px;
-        padding: 0 10px;
-        border: 0;
-        border-radius: 4px;
-        background: var(--sys-center-channel-bg);
-        color: var(--sys-button-bg);
-        font-size: 12px;
-
-        &.Filter__active,
-        &:focus {
-            background: rgba(var(--sys-button-bg-rgb), 0.12);
-        }
-
-        &:hover {
-            background: rgba(var(--sys-button-bg-rgb), 0.06);
-        }
-    }
-
-    .Icon {
-        margin-right: 2px;
-        font-size: 14px;
+    // Held-open state. Compass's :active is momentary, so drive this off
+    // aria-expanded, which is already the source of truth for the popover.
+    // The :hover variant is spelled out because Compass's own hover rule has
+    // the same specificity as the bare one and would otherwise win on order,
+    // and the tint has to clear the 8% resting tertiary to read as a state.
+    .Filter_button[aria-expanded='true'],
+    .Filter_button[aria-expanded='true']:hover {
+        background-color: rgba(var(--link-color-rgb), 0.24);
     }
 
     .Filter_content {

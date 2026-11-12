@@ -55,7 +55,7 @@ function RemoveChannelResourceModal({onConfirm, onCancel, onExited}: Props) {
     return (
         <GenericModal
             confirmButtonText={formatMessage(messages.confirm)}
-            confirmButtonVariant='destructive'
+            destructive={true}
             handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={formatMessage(messages.title)}

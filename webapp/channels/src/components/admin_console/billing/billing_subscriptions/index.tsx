@@ -104,7 +104,6 @@ const BillingSubscriptions = () => {
                         <ContactSalesCard
                             isFreeTrial={isFreeTrial}
                             subscriptionPlan={product?.sku}
-                            onUpgradeMattermostCloud={openPricingModal}
                         />
                     </>}
                 </div>

@@ -44,11 +44,10 @@ describe('Client4', () => {
                 query({target_type: 'system', per_page: '10', cursor_id: 'abc', cursor_create_at: '999'}).
                 reply(200, fields);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system', undefined, {
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system',
                 perPage: 10,
                 cursorId: 'abc',
-                cursorCreateAt: 999,
-            });
+                cursorCreateAt: 999});
 
             expect(result).toEqual(fields);
         });
@@ -59,7 +58,7 @@ describe('Client4', () => {
                 query({target_type: 'channel', target_id: 'ch1'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'channel', 'ch1');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'channel', targetId: 'ch1'});
             expect(result).toEqual([]);
         });
 
@@ -69,8 +68,19 @@ describe('Client4', () => {
                 query({target_type: 'system'}).
                 reply(200, []);
 
-            const result = await client.getPropertyFields('grp', 'user', 'system');
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system'});
             expect(result).toEqual([]);
+        });
+
+        test('searchGlobalAttributes should POST the search body to the access_control listing route', async () => {
+            const search = {term: 'clear', source: 'ldap' as const, resource_type: 'channel' as const};
+            const listing = {rows: []};
+            nock(client.getBaseRoute()).
+                post('/properties/groups/access_control/attributes/search', search).
+                reply(200, listing);
+
+            const result = await client.searchGlobalAttributes(search);
+            expect(result).toEqual(listing);
         });
 
         test('getPropertyFieldOptionsRoute should build correct URL', () => {
@@ -418,6 +428,78 @@ describe('Client4', () => {
             await expect(client.generatePostExposureReport('post123')).rejects.toMatchObject({
                 server_error_id: 'api.data_spillage.error.post_not_in_progress',
                 status_code: 400,
+            });
+        });
+    });
+
+    describe('getSupportPacket', () => {
+        let client: Client4;
+
+        beforeEach(() => {
+            client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+        });
+
+        test('should request the selected contents and return the zip with its filename', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query((query) => {
+                    expect(query).toEqual({basic_server_logs: 'false', plugin_packets: ['com.mattermost.calls', 'com.mattermost.boards']});
+                    return true;
+                }).
+                reply(200, 'zip-bytes', {
+                    'Content-Type': 'application/zip',
+                    'Content-Disposition': 'attachment; filename="mm_support_packet_2026-11-05T12-00.zip"',
+                });
+
+            const result = await client.getSupportPacket({basicServerLogs: false, pluginPackets: ['com.mattermost.calls', 'com.mattermost.boards']});
+
+            expect(result.filename).toEqual('mm_support_packet_2026-11-05T12-00.zip');
+            expect(await result.blob.text()).toEqual('zip-bytes');
+        });
+
+        test('should fall back to a generated filename when the header is absent', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query({basic_server_logs: 'true'}).
+                reply(200, 'zip-bytes', {'Content-Type': 'application/zip'});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(result.filename).toMatch(/^mm_support_packet_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.zip$/);
+        });
+
+        test.each([
+            'application/zip; charset=binary',
+            'Application/Zip',
+            'application/octet-stream',
+        ])('should return the zip unchanged when the Content-Type is %s', async (contentType) => {
+            const zipBytes = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0xff, 0xfe, 0x00, 0x80]);
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(200, zipBytes, {'Content-Type': contentType});
+
+            const result = await client.getSupportPacket({basicServerLogs: true});
+
+            expect(Buffer.from(await result.blob.arrayBuffer())).toEqual(zipBytes);
+        });
+
+        test('should surface server errors as ClientError', async () => {
+            nock(client.getBaseRoute()).
+                get('/system/support_packet').
+                query(true).
+                reply(403, {
+                    id: 'api.no_license',
+                    message: 'License required.',
+                    detailed_error: 'no license',
+                    status_code: 403,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.getSupportPacket({basicServerLogs: true})).rejects.toMatchObject({
+                message: 'License required.',
+                detailed_error: 'no license',
+                status_code: 403,
             });
         });
     });

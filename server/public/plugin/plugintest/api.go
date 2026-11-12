@@ -3528,6 +3528,34 @@ func (_m *API) GetSession(sessionID string) (*model.Session, *model.AppError) {
 	return r0, r1
 }
 
+// GetSharedChannelCursor provides a mock function with given fields: channelID, remoteID
+func (_m *API) GetSharedChannelCursor(channelID string, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	ret := _m.Called(channelID, remoteID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSharedChannelCursor")
+	}
+
+	var r0 model.GetPostsSinceForSyncCursor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (model.GetPostsSinceForSyncCursor, error)); ok {
+		return rf(channelID, remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) model.GetPostsSinceForSyncCursor); ok {
+		r0 = rf(channelID, remoteID)
+	} else {
+		r0 = ret.Get(0).(model.GetPostsSinceForSyncCursor)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, remoteID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSystemInstallDate provides a mock function with no fields
 func (_m *API) GetSystemInstallDate() (int64, *model.AppError) {
 	ret := _m.Called()
@@ -3894,6 +3922,38 @@ func (_m *API) GetTelemetryId() string {
 	}
 
 	return r0
+}
+
+// GetThreadFollowers provides a mock function with given fields: threadID
+func (_m *API) GetThreadFollowers(threadID string) ([]string, *model.AppError) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadFollowers")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]string, *model.AppError)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(threadID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetUnsanitizedConfig provides a mock function with no fields
@@ -4561,6 +4621,38 @@ func (_m *API) KVList(page int, perPage int) ([]string, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
 		r1 = rf(page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// KVListWithOptions provides a mock function with given fields: page, perPage, options
+func (_m *API) KVListWithOptions(page int, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	ret := _m.Called(page, perPage, options)
+
+	if len(ret) == 0 {
+		panic("no return value specified for KVListWithOptions")
+	}
+
+	var r0 []string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(int, int, model.PluginKVListOptions) ([]string, *model.AppError)); ok {
+		return rf(page, perPage, options)
+	}
+	if rf, ok := ret.Get(0).(func(int, int, model.PluginKVListOptions) []string); ok {
+		r0 = rf(page, perPage, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, int, model.PluginKVListOptions) *model.AppError); ok {
+		r1 = rf(page, perPage, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -5862,6 +5954,26 @@ func (_m *API) SetTeamIcon(teamID string, data []byte) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		r0 = rf(teamID, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SetThreadFollowing provides a mock function with given fields: userID, threadID, following
+func (_m *API) SetThreadFollowing(userID string, threadID string, following bool) *model.AppError {
+	ret := _m.Called(userID, threadID, following)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetThreadFollowing")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+		r0 = rf(userID, threadID, following)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

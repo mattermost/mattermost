@@ -59,16 +59,27 @@
 }
 
 .rewrite-menu-footer {
+    display: flex;
+    align-items: center;
     padding: 12px 14px 8px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
-    .btn-quaternary {
-        background: rgba(var(--center-channel-color-rgb), 0.04);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+    // Was the global `.btn + .btn` margin in _buttons.scss, which the Compass
+    // buttons no longer match.
+    gap: 8px;
 
-        &:hover {
+    // Compass quaternary is transparent with a --link-color label; this footer
+    // wants the muted grey treatment. The old `.btn-quaternary` selector no
+    // longer matches, and the label reads --button-fg rather than `color`.
+    &__regenerate {
+        --button-fg: rgba(var(--center-channel-color-rgb), 0.75);
+
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+
+        &:hover:not(:disabled) {
+            --button-fg: var(--center-channel-color);
+
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color);
         }
     }
 }

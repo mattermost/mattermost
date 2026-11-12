@@ -173,40 +173,8 @@
     padding: 0 12px;
     margin: 0 0 8px 0;
 
-    .emoji-picker__category {
-        display: inline-flex;
-        width: 28px;
-        height: 28px;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        text-decoration: none;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.8);
-        }
-
-        &:active {
-            color: var(--button-bg);
-            color: functions.v(center-channel-color);
-        }
-
-        &--selected {
-            border-radius: 4px;
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-            fill: var(--button-bg);
-        }
-
-        &.disable {
-            pointer-events: none;
-        }
-
-        i {
-            font-size: 18px;
-        }
+    .emoji-picker__category.disable {
+        pointer-events: none;
     }
 }
 

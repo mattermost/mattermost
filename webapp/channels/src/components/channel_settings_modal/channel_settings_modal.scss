@@ -217,7 +217,10 @@
         flex-direction: column;
         gap: 16px;
 
-        .btn-danger {
+        // A flex item in a column stretches by default, so the button needs
+        // this to keep its own width. Was `.btn-danger`, which the Compass
+        // button does not carry -- it takes `destructive` as a prop.
+        #channelSettingsArchiveChannelButton {
             align-self: flex-start;
         }
     }

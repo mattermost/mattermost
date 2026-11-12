@@ -56,16 +56,16 @@ func (c *FakeClusterInterface) GetClusterStats(rctx request.CTX) ([]*model.Clust
 	return nil, nil
 }
 
-func (c *FakeClusterInterface) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
-	return []string{}, nil
-}
-
 func (c *FakeClusterInterface) QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string]einterfaces.NodeLogs, *model.AppError) {
 	return make(map[string]einterfaces.NodeLogs), nil
 }
 
 func (c *FakeClusterInterface) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
 	return nil, nil
+}
+
+func (c *FakeClusterInterface) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	return nil
 }
 
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {

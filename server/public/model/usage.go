@@ -3,10 +3,12 @@
 
 package model
 
+// Deprecated: the usage API has been removed.
 type PostsUsage struct {
 	Count int64 `json:"count"`
 }
 
+// Deprecated: the usage API has been removed.
 type StorageUsage struct {
 	Bytes int64 `json:"bytes"`
 }

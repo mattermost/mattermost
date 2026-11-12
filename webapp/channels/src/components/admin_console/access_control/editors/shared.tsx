@@ -5,7 +5,9 @@ import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -17,6 +19,7 @@ import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
 
 import Markdown from 'components/markdown';
 
+import {isWrappedInParens, splitOutsideLiterals} from '../cel_lexer';
 import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
@@ -408,24 +411,52 @@ export function isSimpleCondition(s: string): boolean {
     return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
-export function isMultiselectOrGroup(s: string): boolean {
+function isMultiselectGroupBody(body: string): boolean {
+    return splitOutsideLiterals(body, '||').every((part) => MULTISELECT_GROUP_PART.test(part.trim()));
+}
+
+// A "has any of" group, with or without one pair of enclosing parens.
+export function isMultiselectOrGroup(s: string, {requireParens = false} = {}): boolean {
     const trimmed = s.trim();
-    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+    if (isWrappedInParens(trimmed)) {
+        return isMultiselectGroupBody(trimmed.slice(1, -1));
+    } else if (requireParens) {
         return false;
     }
-    const inner = trimmed.slice(1, -1);
-    return inner.split('||').every((part) => {
-        return MULTISELECT_GROUP_PART.test(part.trim());
-    });
+    return isMultiselectGroupBody(trimmed);
 }
 
 export function isSimpleExpression(expr: string): boolean {
-    if (!expr) {
+    if (!expr.trim()) {
         return true;
     }
-    return expr.split('&&').every((condition) => {
-        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    if (isMultiselectOrGroup(expr)) {
+        return true;
+    }
+
+    // && binds tighter than ||, so alongside other conditions a group must be parenthesized.
+    return splitOutsideLiterals(expr, '&&').every((condition) => {
+        const trimmed = condition.trim();
+        return isSimpleCondition(trimmed) || (isWrappedInParens(trimmed) && isMultiselectGroupBody(trimmed.slice(1, -1)));
     });
+}
+
+// The server parser behind the table editor decides what the table can show;
+// isSimpleExpression is only a text heuristic. Any failure, including a 403,
+// counts as not renderable so a rule nobody can see is never overwritten.
+export async function canTableEditorRender(
+    getVisualAST: (expression: string) => Promise<{error?: unknown}>,
+    expression: string,
+): Promise<boolean> {
+    if (!expression.trim()) {
+        return true;
+    }
+    try {
+        const result = await getVisualAST(expression);
+        return !result.error;
+    } catch {
+        return false;
+    }
 }
 
 // Checks if there are any usable attributes for ABAC policies.
@@ -450,6 +481,15 @@ export function hasUsableAttributes(
 // membership rules, so strip them before they reach the editors.
 export function excludeSessionAttributes(fields: UserPropertyField[]): UserPropertyField[] {
     return fields.filter((field) => !isSessionAttributeField(field));
+}
+
+// Only native fields are hidden, so a custom attribute sharing a name stays. Returns
+// the original array when nothing is hidden to preserve referential stability.
+export function excludeHiddenNativeFields(fields: UserPropertyField[], hiddenNames?: string[]): UserPropertyField[] {
+    if (!hiddenNames?.length) {
+        return fields;
+    }
+    return fields.filter((field) => !(isNativeField(field) && hiddenNames.includes(field.name)));
 }
 
 // CEL namespaces. CPA/user attributes are referenced as user.attributes.<name>;
@@ -505,11 +545,11 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     const button = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<LockOutlineIcon/>}/>}
         >
-            <i className='icon icon-lock-outline'/>
             {label ?? (
                 <FormattedMessage
                     id='admin.access_control.table_editor.test_access_rule'
@@ -594,11 +634,11 @@ export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps)
     return (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             onClick={onClick}
             disabled={disabled}
+            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
         >
-            <i className='icon icon-plus'/>
             <FormattedMessage
                 id='admin.access_control.table_editor.add_attribute'
                 defaultMessage='Add attribute'

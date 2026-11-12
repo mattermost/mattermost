@@ -35,10 +35,6 @@ export function getCloudErrors(state: GlobalState): CloudState['errors'] {
     return state.entities.cloud.errors;
 }
 
-export function getCloudInvoices(state: GlobalState): CloudState['invoices'] {
-    return state.entities.cloud.invoices;
-}
-
 export function getSubscriptionProduct(state: GlobalState): Product | undefined {
     const subscription = getCloudSubscription(state);
     if (!subscription) {

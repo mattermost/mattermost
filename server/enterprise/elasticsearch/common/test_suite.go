@@ -175,6 +175,24 @@ func (c *CommonTestSuite) TestSearchPosts() {
 	c.Len(matches, 0)
 }
 
+func (c *CommonTestSuite) TestSearchPostsWithIllegalXMLCharacters() {
+	term := model.NewId()
+	cleanPost := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, term+" clean")
+	controlCharPost := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, term+" \x1b[31mred\x1b[0m")
+	c.Nil(c.ESImpl.IndexPost(cleanPost, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
+	c.Nil(c.ESImpl.IndexPost(controlCharPost, c.TH.BasicTeam.Id, string(c.TH.BasicChannel.Type)))
+	c.NoError(c.RefreshIndexFn())
+
+	searchParams := []*model.SearchParams{{Terms: term}}
+	ids, matches, err := c.ESImpl.SearchPosts(model.ChannelList{c.TH.BasicChannel}, searchParams, 0, 20)
+	c.Nil(err)
+	c.ElementsMatch([]string{cleanPost.Id, controlCharPost.Id}, ids)
+	CheckMatchesEqual(c.T(), map[string][]string{
+		cleanPost.Id:       {term},
+		controlCharPost.Id: {term},
+	}, matches)
+}
+
 func (c *CommonTestSuite) TestDeletePost() {
 	c.Require().NotNil(c.TH)
 

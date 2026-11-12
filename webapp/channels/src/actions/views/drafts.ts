@@ -9,6 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -186,5 +187,41 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             metadata,
             show: true,
         },
+    };
+}
+
+export function quoteTextInDraft(channelId: string, rootId: string, text: string) {
+    return {
+        type: ActionTypes.QUOTE_TEXT_IN_DRAFT,
+        data: {
+            channelId,
+            rootId,
+            text,
+        },
+    };
+}
+
+export function clearPendingQuote() {
+    return {
+        type: ActionTypes.CLEAR_PENDING_QUOTE,
+    };
+}
+
+/**
+ * Quotes text selected in a post into the message box it belongs to: the channel's message box
+ * for posts in the center channel, or the thread's reply box for posts shown in the RHS or the
+ * Threads view.
+ */
+export function quoteTextFromPost(postId: string, isRHS: boolean, text: string): ActionFunc<boolean> {
+    return (dispatch, getState) => {
+        const post = getPost(getState(), postId);
+        if (!post) {
+            return {data: false};
+        }
+
+        const rootId = isRHS ? (post.root_id || post.id) : '';
+        dispatch(quoteTextInDraft(post.channel_id, rootId, text));
+
+        return {data: true};
     };
 }

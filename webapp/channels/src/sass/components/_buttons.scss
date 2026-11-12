@@ -1,3 +1,7 @@
+// Deprecated for webapp product UI — prefer Compass Button from
+// @mattermost/compass-ui/components/button (use asChild for links).
+// This stylesheet is kept for plugin compatibility (Playbooks, Boards,
+// Calls, and third-party plugins that still render Bootstrap btn* classes).
 @use "utils/variables";
 
 .style--none {

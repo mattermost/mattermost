@@ -357,6 +357,87 @@ describe('posts', () => {
         });
     });
 
+    // Only responses that asked for property value hydration carry the unavailable flag.
+    // Search, getPostsByIds and websocket events never do, so their posts must not drop a
+    // stored failure, while a hydrated response that loaded fine must clear it.
+    describe('preserving the property values unavailable marker', () => {
+        it('should keep a stored true through an unhydrated response and clear it on a hydrated one', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    metadata: {property_values_unavailable: true},
+                },
+            });
+
+            const afterSearch = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {
+                    order: ['post1'],
+                    posts: {
+                        post1: {id: 'post1', message: 'hello', update_at: 1000, metadata: {}},
+                    },
+                },
+            });
+
+            expect(afterSearch.post1.metadata.property_values_unavailable).toBe(true);
+
+            const afterHydrated = reducers.handlePosts(deepFreeze(afterSearch), {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {
+                    order: ['post1'],
+                    posts: {
+                        post1: {id: 'post1', message: 'hello', update_at: 1000, metadata: {property_values_unavailable: false}},
+                    },
+                },
+            });
+
+            expect(afterHydrated.post1.metadata.property_values_unavailable).toBe(false);
+        });
+
+        it('should keep a stored true when a newer unhydrated post replaces it', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    metadata: {property_values_unavailable: true},
+                },
+            });
+            const receivedMetadata = {};
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {id: 'post1', message: 'hello, edited', update_at: 1001, metadata: receivedMetadata},
+            });
+
+            expect(nextState.post1.message).toBe('hello, edited');
+            expect(nextState.post1.metadata.property_values_unavailable).toBe(true);
+
+            // The flag is carried onto a copy, not written into the received post.
+            expect(receivedMetadata).toEqual({});
+        });
+
+        it('should take the flag from a newer hydrated post', () => {
+            const state = deepFreeze({
+                post1: {
+                    id: 'post1',
+                    message: 'hello',
+                    update_at: 1000,
+                    metadata: {property_values_unavailable: true},
+                },
+            });
+
+            const nextState = reducers.handlePosts(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: {id: 'post1', message: 'hello, edited', update_at: 1001, metadata: {property_values_unavailable: false}},
+            });
+
+            expect(nextState.post1.metadata.property_values_unavailable).toBe(false);
+        });
+    });
+
     describe('ephemeral post edits (integration update / UpdateEphemeralPost)', () => {
         it('should preserve create_at and root_id when an edited ephemeral arrives with zero create_at', () => {
             const state = deepFreeze({

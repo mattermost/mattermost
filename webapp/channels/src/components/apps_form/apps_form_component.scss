@@ -276,3 +276,16 @@
         flex-wrap: nowrap;
     }
 }
+
+.apps-form-footer {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--spacing-xs, 8px);
+}
+
+.apps-form-footer__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-xs, 8px);
+}

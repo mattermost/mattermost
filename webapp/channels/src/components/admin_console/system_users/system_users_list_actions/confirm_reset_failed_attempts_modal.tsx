@@ -68,7 +68,7 @@ export default function ConfirmResetFailedAttemptsModal({user, onSuccess, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonVariant='destructive'
+            destructive={true}
             cancelButtonText={cancelGroupMembershipsButton}
             confirmButtonText={createGroupMembershipsButton}
             onConfirm={confirm}

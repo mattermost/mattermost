@@ -1100,6 +1100,36 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 	return stored
 }
 
+// storedFieldPermissions encodes field.Permissions to JSONB for storage. If
+// Permissions is nil, returns nil for database NULL; otherwise marshals to JSON
+// text. lib/pq sends []byte as binary jsonb, whose first byte is a version
+// number — JSON text starting with '{' is version 123 and Postgres rejects it.
+func storedFieldPermissions(field *model.PropertyField) any {
+	if field.Permissions == nil {
+		return nil
+	}
+	return string(model.ToJSON(field.Permissions))
+}
+
+// applyProjectedPermissionColumns overrides the Protected and Permission* columns
+// the SELECT read with the values projected from field.Permissions, so a converted
+// field reports the v2 view of its permissions object rather than whatever its
+// columns held when it was converted -- and a load-modify-save does not look like a
+// legacy-column change. A field with no permissions object is skipped and keeps the
+// columns as stored. Create and Update apply it to the fields they return too.
+func applyProjectedPermissionColumns(fields []*model.PropertyField) {
+	for _, field := range fields {
+		if field == nil || field.Permissions == nil {
+			continue
+		}
+		projected := model.ProjectLegacyPermissions(field)
+		field.Protected = projected.Protected
+		field.PermissionField = projected.PermissionField
+		field.PermissionValues = projected.PermissionValues
+		field.PermissionOptions = projected.PermissionOptions
+	}
+}
+
 // hydratePropertyFieldOptions inlines each field's effective option set into
 // Attrs["options"], in the order the options were last written in. Fields whose
 // type carries no options are left untouched.
@@ -1110,6 +1140,8 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 // options_count/options_omitted instead. Callers that must tell those two apart
 // have to check options_omitted.
 func (s *SqlPropertyFieldStore) hydratePropertyFieldOptions(db sqlxExecutor, fields []*model.PropertyField) error {
+	applyProjectedPermissionColumns(fields)
+
 	var targets []*model.PropertyField
 	var ownerIDs []string
 	for _, field := range fields {

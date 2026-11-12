@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -2622,6 +2624,61 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+	})
+
+	t.Run("should post both the deletion report and the removal notice on the reviewer's thread", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
+
+		groupId, err := th.App.ContentFlaggingGroupId()
+		require.Nil(t, err)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
+		require.Nil(t, appErr)
+		flaggedPostIdFieldId := mappedFields[contentFlaggingPropertyNameFlaggedPostId].ID
+
+		// Both are the first replies on a new thread, so each removal is a fresh chance for them to race.
+		const removals = 30
+		reviewerPostIds := make(map[string]string, removals)
+		for range removals {
+			post := th.CreatePost(t, th.BasicChannel)
+			appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, model.FlagContentRequest{Reason: "spam"})
+			require.Nil(t, appErr)
+
+			require.EventuallyWithT(t, func(c *assert.CollectT) {
+				postIds, postsErr := th.App.getReviewerPostsForFlaggedPost(th.Context, groupId, post.Id, flaggedPostIdFieldId)
+				require.Nil(c, postsErr)
+				require.Len(c, postIds, 1)
+				reviewerPostIds[post.Id] = postIds[0]
+			}, 5*time.Second, 100*time.Millisecond)
+
+			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, &model.FlagContentActionRequest{Comment: "removing"}, th.SystemAdminUser.Id, post)
+			require.Nil(t, appErr)
+		}
+
+		for flaggedPostId, reviewerPostId := range reviewerPostIds {
+			require.EventuallyWithT(t, func(c *assert.CollectT) {
+				thread, threadErr := th.App.GetPostThread(th.Context, reviewerPostId, model.GetPostsOptions{}, th.BasicUser.Id)
+				require.Nil(c, threadErr)
+
+				var removalNotices, reports int
+				for _, p := range thread.Posts {
+					if p.Id == reviewerPostId {
+						continue
+					}
+					if strings.HasPrefix(p.Message, "The quarantined message was removed by") {
+						removalNotices++
+					}
+					if len(p.FileIds) == 1 {
+						fileInfo, fileErr := th.App.GetFileInfo(th.Context, p.FileIds[0])
+						require.Nil(c, fileErr)
+						if fileInfo.Name == "deletion_report_"+flaggedPostId+".md" {
+							reports++
+						}
+					}
+				}
+				assert.Equal(c, 1, removalNotices, "removal notice replies on reviewer post %s", reviewerPostId)
+				assert.Equal(c, 1, reports, "deletion report replies on reviewer post %s", reviewerPostId)
+			}, 5*time.Second, 100*time.Millisecond)
+		}
 	})
 }
 

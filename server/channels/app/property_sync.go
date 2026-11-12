@@ -732,19 +732,22 @@ func (s *PropertySyncer) loadUserValues(rctx request.CTX, userID string) (map[st
 // publishValuesUpdated sends the custom profile attribute event for the
 // written values. UpsertPropertyValues already announces them as
 // property_values_updated; this event is kept for clients that still listen
-// for it. Like every broadcast, it withholds the values of fields whose access
-// mode restricts who may read them.
+// for it. Like every broadcast, it withholds the values not everyone may read.
+// A linked field's template is the definition the syncer already loaded.
 func (s *PropertySyncer) publishValuesUpdated(userID string, values []*model.PropertyValue) {
 	if len(values) == 0 {
 		return
 	}
 	byField := make(map[string]json.RawMessage, len(values))
 	for _, value := range values {
-		var field *model.PropertyField
+		var field, template *model.PropertyField
 		if i := slices.IndexFunc(s.fields, func(sf *syncedField) bool { return sf.field.ID == value.FieldID }); i >= 0 {
 			field = s.fields[i].field
+			if field.LinkSourceID() != "" {
+				template = s.fields[i].definition.field
+			}
 		}
-		byField[value.FieldID] = model.BroadcastValue(field, value.Value)
+		byField[value.FieldID] = model.BroadcastValueWithTemplate(field, template, value.Value)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
 	message.Add("user_id", userID)

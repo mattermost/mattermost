@@ -236,6 +236,7 @@ func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 	}
 	field.Attrs[model.PropertyAttrsProtected] = true
 	field.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSharedOnly
+	field.Permissions = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{ConvertAttrs: true})
 
 	_, err = store.Update(f.groupID, []*model.PropertyField{field}, nil)
 	require.NoError(t, err)
@@ -367,12 +368,11 @@ func TestSharedOnlyValuesOverPropertiesRoute_Graph(t *testing.T) {
 		assert.Equal(t, []string{fruitBasket}, namesOf(t, ids, f.readTargetValue(t, f.ownerClient)))
 	})
 
-	// The distinguishing case for the graph branch: the target holds an option
-	// above the caller's, so the value is clamped down to the caller's own part
-	// of the hierarchy rather than hidden. A flat type would have shown nothing
-	// here.
-	t.Run("a caller below the target's option sees the value clamped to their own", func(t *testing.T) {
-		assert.Equal(t, []string{redFruit}, namesOf(t, ids, f.readTargetValue(t, f.sharerClient)))
+	// Masking never clamps: CoveredBy is true only when the caller holds an
+	// option at-or-above the target's. Holding a descendant does not rewrite
+	// the ancestor into the caller's own option; they see nothing.
+	t.Run("a caller below the target's option does not see it rewritten to their own", func(t *testing.T) {
+		assert.Empty(t, f.readTargetValue(t, f.sharerClient))
 	})
 
 	t.Run("a caller holding nothing sees nothing of the field", func(t *testing.T) {

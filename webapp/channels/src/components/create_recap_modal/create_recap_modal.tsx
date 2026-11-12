@@ -7,8 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {ScheduledRecap, ScheduledRecapInput, ScheduledRecapTimePeriod} from '@mattermost/types/recaps';
 import {ScheduledRecapChannelModes, ScheduledRecapTimePeriods} from '@mattermost/types/recaps';
@@ -241,9 +242,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         };
 
         try {
-            const result = isEditMode && editScheduledRecap ?
-                await dispatch(updateScheduledRecap(editScheduledRecap.id, input)) :
-                await dispatch(createScheduledRecap(input));
+            const result = isEditMode && editScheduledRecap ? await dispatch(updateScheduledRecap(editScheduledRecap.id, input)) : await dispatch(createScheduledRecap(input));
 
             if (result.error) {
                 setError(result.error.message || formatMessage({id: 'recaps.modal.error.scheduleFailed', defaultMessage: 'Failed to save scheduled recap. Please try again.'}));
@@ -408,9 +407,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     const headerText = (
         <div className='create-recap-modal-header'>
             <span>
-                {isEditMode ?
-                    formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'}) :
-                    formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
+                {isEditMode ? formatMessage({id: 'recaps.modal.titleEdit', defaultMessage: 'Edit your recap'}) : formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})
                 }
             </span>
             <div className='create-recap-modal-header-actions'>
@@ -451,8 +448,8 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                         emphasis='tertiary'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
+                        leadingIcon={<Icon glyph={<ChevronLeftIcon/>}/>}
                     >
-                        <ChevronLeftIcon size={16}/>
                         {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
                     </Button>
                 )}
@@ -462,9 +459,9 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
                     title={currentStep === 3 && runOnce && manualLimitBlockMessage ? manualLimitBlockMessage : undefined}
+                    trailingIcon={currentStep < 3 ? <Icon glyph={<ChevronRightIcon/>}/> : undefined}
                 >
                     {confirmButtonText}
-                    {currentStep < 3 && <ChevronRightIcon size={16}/>}
                 </Button>
             </div>
         </div>

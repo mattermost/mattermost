@@ -38,9 +38,25 @@ func (s *SqlDesktopTokensStore) GetUserId(token string, minCreateAt int64) (*str
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("DesktopTokens", token)
+			return nil, store.NewErrNotFound("DesktopTokens", "Token=<redacted>")
 		}
-		return nil, errors.Wrapf(err, "No token for %s", token)
+		return nil, errors.Wrap(err, "failed to get DesktopTokens by token")
+	}
+
+	return &dt.UserId, nil
+}
+
+func (s *SqlDesktopTokensStore) ConsumeToken(token string, minCreateAt int64) (*string, error) {
+	dt := struct{ UserId string }{}
+
+	query := `DELETE FROM DesktopTokens WHERE Token = ? AND CreateAt >= ? RETURNING UserId`
+
+	err := s.GetMaster().Get(&dt, query, token, minCreateAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "failed to consume desktop token %s", token)
 	}
 
 	return &dt.UserId, nil

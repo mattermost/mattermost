@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
@@ -41,13 +40,6 @@ describe('components/select_team/SelectTeam', () => {
             addUserToTeam: jest.fn().mockResolvedValue({data: true}),
         },
         totalTeamsCount: 15,
-        isCloud: false,
-        isFreeTrial: false,
-        usageDeltas: {
-            teams: {
-                active: Number.MAX_VALUE,
-            },
-        } as CloudUsage,
     };
 
     test('should match snapshot', () => {
@@ -176,23 +168,6 @@ describe('components/select_team/SelectTeam', () => {
         await waitFor(() => {
             expect(screen.queryByText('error message')).not.toBeInTheDocument();
         });
-    });
-
-    test('should match snapshot, on create team restricted', () => {
-        const props = {
-            ...baseProps,
-            isCloud: true,
-            isFreeTrial: false,
-            usageDeltas: {
-                teams: {
-                    active: 0,
-                },
-            } as CloudUsage,
-        };
-
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should filter out group-constrained teams from joinable teams list', () => {

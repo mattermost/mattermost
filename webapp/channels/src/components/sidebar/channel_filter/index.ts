@@ -8,7 +8,9 @@ import type {Dispatch} from 'redux';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {setUnreadFilterEnabled} from 'actions/views/channel_sidebar';
+import {setBoardsShownInChannels} from 'actions/views/product_rail';
 import {isUnreadFilterEnabled} from 'selectors/views/channel_sidebar';
+import {areBoardsShownInChannels, getProductRailSection} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -20,6 +22,8 @@ function mapStateToProps(state: GlobalState) {
     return {
         hasMultipleTeams: teams && teams.length > 1,
         unreadFilterEnabled: isUnreadFilterEnabled(state),
+        productRailSection: getProductRailSection(state),
+        boardsShownInChannels: areBoardsShownInChannels(state),
     };
 }
 
@@ -27,6 +31,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             setUnreadFilterEnabled,
+            setBoardsShownInChannels,
         }, dispatch),
     };
 }

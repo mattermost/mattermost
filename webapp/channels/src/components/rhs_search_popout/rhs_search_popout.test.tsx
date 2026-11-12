@@ -48,6 +48,10 @@ jest.mock('actions/views/rhs', () => ({
 
 describe('RhsSearchPopout', () => {
     const team = TestHelper.getTeamMock({id: 'team1', name: 'test-team'});
+
+    // 26 lowercase alphanumeric characters, and not the current team's id.
+    const validSearchTeamId = 'abcdefghijklmnopqrstuvwxyz';
+
     const channel = TestHelper.getChannelMock({
         id: 'channel1',
         name: 'test-channel',
@@ -131,15 +135,16 @@ describe('RhsSearchPopout', () => {
         const channel1 = 'channel1channel1channel1ab';
         const channel2 = 'channel2channel2channel2ab';
 
+        // A 26-character lowercase alphanumeric id is kept, including when it is not the current team.
         renderPopout(
-            `?q=%40user&type=messages&mode=mention&searchTeamId=${team.id}&mentionChannels=${channel1}%2C${channel2}&mentionTypes=direct&mentionDate=today`,
+            `?q=%40user&type=messages&mode=mention&searchTeamId=${validSearchTeamId}&mentionChannels=${channel1}%2C${channel2}&mentionTypes=direct&mentionDate=today`,
             'mention',
         );
 
         await waitFor(() => {
             expect(jest.mocked(updateMentionFilters)).toHaveBeenCalledWith(
                 {channelIds: [channel1, channel2], mentionTypes: ['direct'], date: 'today'},
-                team.id,
+                validSearchTeamId,
             );
         });
     });
@@ -180,9 +185,10 @@ describe('RhsSearchPopout', () => {
     });
 
     test('should resolve searchTeamId from query params with fallback to current team', async () => {
-        renderPopout('?q=test&type=messages&mode=search&searchTeamId=other-team');
+        // A 26-character lowercase alphanumeric id is forwarded unchanged.
+        renderPopout(`?q=test&type=messages&mode=search&searchTeamId=${validSearchTeamId}`);
         await waitFor(() => {
-            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith('other-team');
+            expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(validSearchTeamId);
         });
 
         jest.clearAllMocks();
@@ -196,6 +202,59 @@ describe('RhsSearchPopout', () => {
         await waitFor(() => {
             expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(team.id);
         });
+    });
+
+    // A searchTeamId is kept when it is empty or a 26-character lowercase alphanumeric id.
+    // Any other value is treated as absent: search uses the current team, mentions span every team.
+    const searchTeamIdCases = [
+        {label: 'percent-encoded separators', searchTeamId: '..%2Fusers%2Fabcdefghijklmnopqrstuvwxyz%2Fpromote%23', searchExpected: team.id, mentionExpected: null},
+        {label: 'a hyphenated value', searchTeamId: 'other-team', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 25 character id', searchTeamId: 'abcdefghijklmnopqrstuvwxy', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 27 character id', searchTeamId: 'abcdefghijklmnopqrstuvwxyz1', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 26 character id with an uppercase letter', searchTeamId: 'abcdefghijklmnopqrstuvwxyA', searchExpected: team.id, mentionExpected: null},
+        {label: 'a value containing a slash', searchTeamId: 'abc/def', searchExpected: team.id, mentionExpected: null},
+        {label: 'a value containing a hash', searchTeamId: 'abc%23def', searchExpected: team.id, mentionExpected: null},
+        {label: 'a single dot', searchTeamId: '.', searchExpected: team.id, mentionExpected: null},
+        {label: 'two dots', searchTeamId: '..', searchExpected: team.id, mentionExpected: null},
+        {label: 'a space', searchTeamId: '%20', searchExpected: team.id, mentionExpected: null},
+        {label: 'a tab', searchTeamId: '%09', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 26 character id with surrounding spaces', searchTeamId: '%20abcdefghijklmnopqrstuvwxyz%20', searchExpected: team.id, mentionExpected: null},
+        {label: 'a twice percent-encoded slash', searchTeamId: '%252F', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 26 character id followed by more characters', searchTeamId: 'abcdefghijklmnopqrstuvwxyz/extra', searchExpected: team.id, mentionExpected: null},
+        {label: 'a repeated parameter', searchTeamId: 'notavalue&searchTeamId=abcdefghijklmnopqrstuvwxyz', searchExpected: team.id, mentionExpected: null},
+        {label: 'a fullwidth character', searchTeamId: '%EF%BD%81', searchExpected: team.id, mentionExpected: null},
+        {label: 'a 26 character lowercase id', searchTeamId: validSearchTeamId, searchExpected: validSearchTeamId, mentionExpected: validSearchTeamId},
+        {label: 'an empty value', searchTeamId: '', searchExpected: '', mentionExpected: null},
+    ].flatMap(({label, searchTeamId, searchExpected, mentionExpected}) => ([
+        {label, searchTeamId, mode: 'search' as const, expected: searchExpected as string | null},
+        {label, searchTeamId, mode: 'mention' as const, expected: mentionExpected},
+    ]));
+
+    test.each(searchTeamIdCases)('resolves searchTeamId for $label in $mode mode', async ({searchTeamId, mode, expected}) => {
+        const decoded = new URLSearchParams(`searchTeamId=${searchTeamId}`).get('searchTeamId');
+
+        if (mode === 'search') {
+            renderPopout(`?q=test&type=messages&mode=search&searchTeamId=${searchTeamId}`);
+
+            await waitFor(() => {
+                expect(jest.mocked(updateSearchTeam)).toHaveBeenCalledWith(expected);
+            });
+
+            if (decoded !== expected) {
+                expect(jest.mocked(updateSearchTeam)).not.toHaveBeenCalledWith(decoded);
+            }
+            return;
+        }
+
+        renderPopout(`?q=%40user&type=messages&mode=mention&searchTeamId=${searchTeamId}`, 'mention');
+
+        await waitFor(() => {
+            expect(jest.mocked(updateMentionFilters)).toHaveBeenCalledWith(defaultMentionFilters, expected);
+        });
+
+        if (decoded !== expected) {
+            expect(jest.mocked(updateMentionFilters)).not.toHaveBeenCalledWith(defaultMentionFilters, decoded);
+        }
     });
 
     test('should not dispatch actions when teamId is not yet available', () => {

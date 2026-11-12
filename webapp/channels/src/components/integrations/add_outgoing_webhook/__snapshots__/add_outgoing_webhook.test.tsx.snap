@@ -257,17 +257,25 @@ exports[`components/integrations/AddOutgoingWebhook should match snapshot 1`] = 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/test/integrations/outgoing_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Save
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Save
+            </span>
           </button>
         </div>
       </form>

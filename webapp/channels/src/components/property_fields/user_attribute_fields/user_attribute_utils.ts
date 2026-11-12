@@ -47,6 +47,9 @@ export function canEditUserAttribute(field: UserPropertyField, opts: UserAttribu
     const level = field.permission_values ?? '';
     switch (level) {
     case 'none':
+    case 'creator':
+        // creator is the author of the entity an action concerns; a user attribute
+        // has no such author, so no one is granted the edit through it.
         return false;
     case 'sysadmin':
     case 'admin':
@@ -102,12 +105,16 @@ export function isSameUserAttributeValue(a?: UserAttributeValue, b?: UserAttribu
 }
 
 export function getEmptyUserAttributeValue(field: UserPropertyField): UserAttributeValue {
+    // Number and checkbox fields cannot be user attributes (the access control group refuses
+    // them), so those cases are never reached; they are listed to keep the switch exhaustive.
     switch (field.type) {
     case 'text':
     case 'select':
     case 'rank':
     case 'date':
     case 'user':
+    case 'number':
+    case 'checkbox':
         return '';
     case 'multiselect':
     case 'graph':

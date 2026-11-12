@@ -15,7 +15,6 @@ import type {FilesState} from './files';
 import type {GeneralState} from './general';
 import type {GroupsState} from './groups';
 import type {HealthState} from './health';
-import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
@@ -98,7 +97,6 @@ export type GlobalState = {
         channelCategories: ChannelCategoriesState;
         apps: AppsState;
         cloud: CloudState;
-        hostedCustomer: HostedCustomerState;
         usage: CloudUsage;
         scheduledPosts: ScheduledPostsState;
         sharedChannels?: {

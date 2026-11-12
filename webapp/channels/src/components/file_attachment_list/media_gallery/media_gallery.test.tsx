@@ -35,7 +35,6 @@ function fileInfo(overrides: Partial<FileInfo>): FileInfo {
         height: 600,
         has_preview_image: true,
         clientId: '',
-        archived: false,
         ...overrides,
     };
 }

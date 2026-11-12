@@ -122,7 +122,10 @@ describe('AppsFormActionButton', () => {
         );
 
         expect(screen.getByRole('button', {name: label})).toBeVisible();
-        expect(container.querySelector('span')).toBeNull();
+
+        // The Compass Button always wraps its label in a span, so assert on the
+        // description wrapper itself rather than on the absence of any span.
+        expect(container.querySelector('.apps-form-action-button__description')).toBeNull();
     });
 
     it('invokes executeDialogAction with (url, context, channelId) when clicked', async () => {

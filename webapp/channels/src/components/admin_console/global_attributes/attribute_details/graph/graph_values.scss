@@ -356,9 +356,6 @@
             margin: 0;
         }
 
-        .btn + .btn {
-            margin-left: 0;
-        }
     }
 
     .attribute-options-graph-values__add-top {
@@ -374,7 +371,7 @@
             flex: 1 1 auto;
         }
 
-        .btn {
+        button {
             flex-shrink: 0;
         }
     }

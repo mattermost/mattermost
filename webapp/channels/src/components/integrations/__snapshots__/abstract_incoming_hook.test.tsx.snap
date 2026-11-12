@@ -130,16 +130,16 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -205,17 +205,25 @@ exports[`components/integrations/AbstractIncomingWebhook should call action func
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -354,16 +362,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -429,17 +437,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot 1
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -578,16 +594,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -653,17 +669,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot w
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -802,16 +826,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -886,17 +910,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1035,16 +1067,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -1084,17 +1116,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1233,16 +1273,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -1282,17 +1322,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
           class="backstage-form__footer"
         >
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>
@@ -1431,16 +1479,16 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             class="col-md-5 col-sm-8"
           >
             <label
-              class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138 backstage-form__checkbox"
+              class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149 backstage-form__checkbox"
               for="channelLocked"
             >
               <input
-                class="_checkbox__input_18swc_25"
+                class="_checkbox__input_18sf4_36"
                 id="channelLocked"
                 type="checkbox"
               />
               <span
-                class="_checkbox__box_18swc_44"
+                class="_checkbox__box_18sf4_55"
               />
             </label>
             <div
@@ -1515,17 +1563,25 @@ exports[`components/integrations/AbstractIncomingWebhook should match snapshot, 
             </label>
           </div>
           <a
-            class="btn btn-tertiary"
+            class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88"
             href="/team_name/integrations/incoming_webhooks"
           >
-            Cancel
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Cancel
+            </span>
           </a>
           <button
-            class="btn btn-primary"
+            class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88"
             id="saveWebhook"
             type="submit"
           >
-            Footer
+            <span
+              class="_button__label_1pij1_55"
+            >
+              Footer
+            </span>
           </button>
         </div>
       </form>

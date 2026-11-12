@@ -48,7 +48,7 @@ function SharedChannelsRemoveModal({
                     defaultMessage='Remove'
                 />
             )}
-            confirmButtonVariant='destructive'
+            destructive={true}
             onExited={onExited}
             compassDesign={true}
             bodyPadding={false}

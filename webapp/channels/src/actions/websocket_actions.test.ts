@@ -1248,14 +1248,7 @@ describe('handleCloudSubscriptionChanged', () => {
         const initialState = {
             entities: {
                 cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
+                    subscription: {...baseSubscription},
                 },
                 general: {
                     license: {
@@ -1264,11 +1257,6 @@ describe('handleCloudSubscriptionChanged', () => {
                 },
             },
         } as unknown as GlobalState;
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
 
         const newSubscription = {
             ...baseSubscription,
@@ -1277,7 +1265,6 @@ describe('handleCloudSubscriptionChanged', () => {
         const msg = wsMessage<WebSocketMessages.CloudSubscriptionChanged>({
             event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
-                limits: newLimits,
                 subscription: newSubscription,
             },
         });
@@ -1288,48 +1275,7 @@ describe('handleCloudSubscriptionChanged', () => {
         expect(testStore.getActions()).toEqual([]);
     });
 
-    test('when on cloud, entirely replaces cloud limits in store', () => {
-        const initialState = {
-            entities: {
-                cloud: {
-                    limits: {
-                        messages: {
-                            history: 10000,
-                        },
-                        integrations: {
-                            enabled: 10,
-                        },
-                    },
-                },
-                general: {
-                    license: {
-                        Cloud: 'true',
-                    },
-                },
-            },
-        } as unknown as GlobalState;
-        const newLimits = {
-            messages: {
-                history: 10001,
-            },
-        };
-        const msg = wsMessage<WebSocketMessages.CloudSubscriptionChanged>({
-            event: WebSocketEvents.CloudSubscriptionChanged,
-            data: {
-                limits: newLimits,
-            },
-        });
-
-        const testStore = configureStore(initialState);
-        testStore.dispatch(handleCloudSubscriptionChanged(msg));
-
-        expect(testStore.getActions()).toContainEqual({
-            type: CloudTypes.RECEIVED_CLOUD_LIMITS,
-            data: newLimits,
-        });
-    });
-
-    test('when on cloud, entirely replaces cloud limits in store', () => {
+    test('when on cloud, replaces cloud subscription in store', () => {
         const initialState = {
             entities: {
                 cloud: {

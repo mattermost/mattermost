@@ -120,7 +120,7 @@ describe('Custom emojis', () => {
 
         cy.get('#emojiPicker').should('be.visible').within(() => {
             // # Scroll to start of custom category section
-            cy.get('i.icon-emoticon-custom-outline').as('customSection');
+            cy.findByRole('button', {name: 'Custom'}).as('customSection');
             cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
             cy.get('@customSection').click().wait(TIMEOUTS.FIVE_SEC);
 

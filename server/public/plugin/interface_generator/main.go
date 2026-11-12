@@ -27,6 +27,7 @@ var excludedPluginHooks = []string{
 	"FileWillBeUploaded",
 	"TeamMemberWillBeAdded",
 	"Implemented",
+	"KVListWithOptions",
 	"LoadPluginConfiguration",
 	"InstallPlugin",
 	"LogAuditRec",

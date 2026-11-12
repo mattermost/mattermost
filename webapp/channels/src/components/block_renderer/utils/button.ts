@@ -3,7 +3,6 @@
 
 import type {CSSProperties} from 'react';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {MmButtonStyle} from '@mattermost/types/mm_blocks';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -46,24 +45,17 @@ export function isMmButtonHexColor(style: string | undefined): boolean {
     return Boolean(style && MM_BUTTON_HEX_COLOR.test(style));
 }
 
+/** Base class plus extras for semantic colors Compass Button does not express (good/success/warning). */
 export function mmBlocksButtonClassName(style: string | undefined): string {
-    const base = buttonClassNames({emphasis: style === 'primary' ? 'primary' : 'tertiary'});
-    if (!style || style === 'default') {
-        return base;
-    }
     switch (style) {
-    case 'primary':
-        return base;
-    case 'danger':
-        return `${base} mm-blocks-button--danger`;
     case 'good':
-        return `${base} mm-blocks-button--good`;
+        return 'mm-blocks-button mm-blocks-button--good';
     case 'success':
-        return `${base} mm-blocks-button--success`;
+        return 'mm-blocks-button mm-blocks-button--success';
     case 'warning':
-        return `${base} mm-blocks-button--warning`;
+        return 'mm-blocks-button mm-blocks-button--warning';
     default:
-        return base;
+        return 'mm-blocks-button';
     }
 }
 
@@ -75,8 +67,12 @@ function resolveMmButtonThemeColor(style: string, theme: Theme): string | undefi
     return undefined;
 }
 
+export type MmBlocksButtonCSSProperties = CSSProperties & {
+    '--button-fg'?: string;
+};
+
 /** Inline colors for hex values and theme keys (e.g. `onlineIndicator`), matching legacy `ActionButton`. */
-export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Theme): CSSProperties | undefined {
+export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Theme): MmBlocksButtonCSSProperties | undefined {
     if (!style || isMmButtonSemanticStyle(style)) {
         return undefined;
     }
@@ -90,9 +86,11 @@ export function mmBlocksButtonInlineStyle(style: string | undefined, theme: Them
     return mmBlocksButtonColorStyle(themeColor);
 }
 
-function mmBlocksButtonColorStyle(color: string): CSSProperties {
+function mmBlocksButtonColorStyle(color: string): MmBlocksButtonCSSProperties {
+    // Compass Button paints label/icon via `--button-fg`, not inherited `color`.
     return {
         backgroundColor: changeOpacity(color, 0.08),
         color,
+        '--button-fg': color,
     };
 }

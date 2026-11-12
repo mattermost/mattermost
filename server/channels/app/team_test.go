@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
@@ -717,160 +718,6 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		err = th.App.AddUserToTeamByTeamId(th.Context, th.BasicTeam.Id, ruser)
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
-	})
-}
-
-func TestAdjustTeamsFromProductLimits(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	teams := []*model.Team{
-		{
-			DisplayName: "team-1",
-			Name:        "team-1",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-2",
-			Name:        "team-2",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-		{
-			DisplayName: "team-3",
-			Name:        "team-3",
-			Email:       "foo@foo.com",
-			Type:        model.TeamOpen,
-		},
-	}
-	teamIds := []string{}
-	for _, create := range teams {
-		team, err := th.App.CreateTeam(th.Context, create)
-		require.Nil(t, err)
-		teamIds = append(teamIds, team.Id)
-	}
-	t.Run("Should soft delete teams if there are more teams than the limit", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.NotEqual(t, 0, teamsList[i].DeleteAt)
-			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
-		expectedTeamsList, err := th.App.GetAllTeams()
-
-		var expectedActiveTeams []*model.Team
-		var expectedCloudArchivedTeams []*model.Team
-		for _, team := range expectedTeamsList {
-			if team.DeleteAt == 0 {
-				expectedActiveTeams = append(expectedActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
-			}
-		}
-
-		require.Nil(t, err)
-
-		activeLimit := len(expectedActiveTeams)
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		actualTeamsList, err := th.App.GetAllTeams()
-
-		require.Nil(t, err)
-		var actualActiveTeams []*model.Team
-		var actualCloudArchivedTeams []*model.Team
-		for _, team := range actualTeamsList {
-			if team.DeleteAt == 0 {
-				actualActiveTeams = append(actualActiveTeams, team)
-			}
-			if team.DeleteAt > 0 && team.CloudLimitsArchived {
-				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
-			}
-		}
-
-		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
-		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
-	})
-
-	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		for i := range teamsList {
-			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
-			require.Equal(t, int64(0), teamsList[i].DeleteAt)
-			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
-		}
-	})
-
-	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
-		activeLimit := 1
-		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		cloudLimitsArchived := false
-		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		team, err := th.App.PatchTeam(teamIds[0], patch)
-		require.Nil(t, err)
-		require.Equal(t, false, team.CloudLimitsArchived)
-
-		activeLimit = 10000 // make the limit extremely high so all teams are enabled
-		teamLimits = &model.TeamsLimits{Active: &activeLimit}
-
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
-		require.Nil(t, err)
-
-		teamsList, err := th.App.GetTeams(teamIds)
-
-		require.Nil(t, err)
-
-		// Sort the list of teams based on their creation date
-		slices.SortFunc(teamsList, func(a, b *model.Team) int {
-			return cmp.Compare(a.CreateAt, b.CreateAt)
-		})
-
-		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
-		require.Equal(t, int64(0), teamsList[1].DeleteAt)
-		require.Equal(t, int64(0), teamsList[2].DeleteAt)
 	})
 }
 
@@ -2725,6 +2572,31 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+// MM-70121: a team invitation token is a credential, so the warning logged when an
+// expired one cannot be deleted must not carry its value.
+func TestAddUserToTeamWithTokenDoesNotLogInviteToken(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+	tokenStore := mocks.TokenStore{}
+	tokenStore.On("Delete", mock.AnythingOfType("string")).Return(errors.New("forced delete failure"))
+	th.App.Srv().Store().(*mocks.Store).On("Token").Return(&tokenStore)
+
+	token := model.NewToken(model.TokenTypeTeamInvitation, "")
+	token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
+
+	_, _, appErr := th.App.AddUserToTeamWithToken(th.Context, model.NewId(), token)
+	require.NotNil(t, appErr)
+	require.Equal(t, "api.user.create_user.signup_link_expired.app_error", appErr.Id)
+	require.NoError(t, th.TestLogger.Flush())
+
+	logs := buffer.String()
+	require.Contains(t, logs, "Error deleting expired team invitation token during team join")
+	assert.NotContains(t, logs, token.Token)
 }
 
 func TestSetTeamIconFromFileEXIFOrientation(t *testing.T) {

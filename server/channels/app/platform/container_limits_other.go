@@ -5,15 +5,20 @@
 
 package platform
 
-// ContainerLimits holds effective CPU and memory limits for the current container.
-// Zero values indicate no limit is set (fields will be omitted from YAML output).
-type ContainerLimits struct {
-	CPULimit      float64
-	MemoryLimitMB uint64
+func getCgroupV2Info() (cgroupV2Info, error) {
+	return cgroupV2Info{}, nil
 }
 
 // getContainerLimits returns zero values on non-Linux platforms.
 // Container limit detection via cgroups is only supported on Linux.
-func getContainerLimits() (ContainerLimits, error) {
+func getContainerLimits(cgroupV2Info) (ContainerLimits, error) {
 	return ContainerLimits{}, nil
+}
+
+func getMemoryDiagnostics(cgroupV2Info) (memoryDiagnostics, error) {
+	return memoryDiagnostics{}, nil
+}
+
+func getCPUStats(cgroupV2Info) (cpuStats, error) {
+	return cpuStats{}, nil
 }

@@ -1294,6 +1294,23 @@ func testSearchPropertyValues(t *testing.T, rctx request.CTX, ss store.Store, s 
 			expectedIDs: []string{value1.ID},
 		},
 		{
+			name: "filter by ids",
+			opts: model.PropertyValueSearchOpts{
+				IDs:     []string{value1.ID, value3.ID},
+				PerPage: 10,
+			},
+			expectedIDs: []string{value1.ID, value3.ID},
+		},
+		{
+			name: "filter by ids within a group",
+			opts: model.PropertyValueSearchOpts{
+				GroupID: groupID,
+				IDs:     []string{value1.ID, value3.ID},
+				PerPage: 10,
+			},
+			expectedIDs: []string{value1.ID},
+		},
+		{
 			name: "filter by group_id and target_type including deleted",
 			opts: model.PropertyValueSearchOpts{
 				GroupID:        groupID,
