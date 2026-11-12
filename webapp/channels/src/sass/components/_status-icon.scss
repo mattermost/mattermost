@@ -16,11 +16,18 @@
         bottom: -1px;
     }
 
-    &.user-status-badge--offset-0 {
+    &.user-status-badge--offset-0,
+    &.user-status-badge--offset-inset-2 {
         right: 0;
         bottom: 0;
         width: var(--icon-size-20);
         height: var(--icon-size-20);
+    }
+
+    // 2px inside the avatar's corner (96px avatar)
+    &.user-status-badge--offset-inset-2 {
+        right: 2px;
+        bottom: 2px;
     }
 }
 
