@@ -34,7 +34,7 @@ test.describe('System Console - Graph value picker', () => {
     let testUser: UserProfile;
     let field: UserPropertyField | undefined;
 
-    test.beforeEach(async ({pw}) => {
+    async function setUp(pw: PlaywrightExtended) {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('PropertyFieldGraph', true);
@@ -59,7 +59,7 @@ test.describe('System Console - Graph value picker', () => {
         await adminClient.updateUserCustomProfileAttributesValues(testUser.id, {
             [field.id]: [optionId(field, 'Alpha'), optionId(field, 'Beta')],
         });
-    });
+    }
 
     test.afterEach(async () => {
         if (field) {
@@ -77,6 +77,7 @@ test.describe('System Console - Graph value picker', () => {
      * A graph attribute with two top-level values (Alpha, Beta) exists and the target user holds both.
      */
     test('removes a chip without opening the menu and saves the rest', {tag: '@user_management'}, async ({pw}) => {
+        await setUp(pw);
         const label = field!.name;
 
         // # Log in as admin and open the target user's detail page
