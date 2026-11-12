@@ -7,9 +7,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
+	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -460,18 +463,17 @@ func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
 	})
 }
 
-func newConfigHistoryCmd(perPage int, detailed bool) *cobra.Command {
-	cmd := &cobra.Command{}
-	cmd.Flags().Int("page", 0, "")
-	cmd.Flags().Int("per-page", perPage, "")
-	cmd.Flags().Bool("detailed", detailed, "")
+func newConfigHistoryCmd(t *testing.T, perPage int, detailed bool) *cobra.Command {
+	cmd := newTestCmd(t, ConfigHistoryCmd)
+	require.NoError(t, cmd.Flags().Set("per-page", strconv.Itoa(perPage)))
+	require.NoError(t, cmd.Flags().Set("detailed", strconv.FormatBool(detailed)))
 	return cmd
 }
 
-func newConfigRollbackCmd(confirm, dryRun bool) *cobra.Command {
-	cmd := &cobra.Command{}
-	cmd.Flags().Bool("confirm", confirm, "")
-	cmd.Flags().Bool("dry-run", dryRun, "")
+func newConfigRollbackCmd(t *testing.T, confirm, dryRun bool) *cobra.Command {
+	cmd := newTestCmd(t, ConfigRollbackCmd)
+	require.NoError(t, cmd.Flags().Set("confirm", strconv.FormatBool(confirm)))
+	require.NoError(t, cmd.Flags().Set("dry-run", strconv.FormatBool(dryRun)))
 	return cmd
 }
 
@@ -503,9 +505,7 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 
 	s.RunForSystemAdminAndLocal("List the saved configurations", func(c client.Client) {
-		printer.Clean()
-
-		err := configHistoryCmdF(c, newConfigHistoryCmd(2, false), nil)
+		err := configHistoryCmdF(c, newConfigHistoryCmd(s.T(), 2, false), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Empty(printer.GetErrorLines())
@@ -516,11 +516,10 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 	})
 
 	s.Run("Show the old and new values", func() {
-		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		defer printer.SetFormat(printer.FormatJSON)
 
-		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(1, true), nil)
+		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(s.T(), 1, true), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Contains(printer.GetLines()[0], "(active)")
@@ -528,21 +527,18 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 	})
 
 	s.Run("List the saved configurations without permission", func() {
-		printer.Clean()
-
-		err := configHistoryCmdF(s.th.Client, newConfigHistoryCmd(2, false), nil)
+		err := configHistoryCmdF(s.th.Client, newConfigHistoryCmd(s.T(), 2, false), nil)
 		s.Require().Error(err)
 		s.Require().Empty(printer.GetLines())
 	})
 
 	s.Run("Hide sensitive values", func() {
-		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		defer printer.SetFormat(printer.FormatJSON)
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
 
-		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, true), nil)
+		err := configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(s.T(), 2, true), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Contains(printer.GetLines()[0], "EmailSettings.SMTPPassword: [redacted]")
@@ -550,7 +546,6 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 	})
 
 	s.Run("Mark a saved configuration that can't be read", func() {
-		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		defer printer.SetFormat(printer.FormatJSON)
 		id := model.NewId()
@@ -562,7 +557,7 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmd() {
 			s.Require().NoError(deleteErr)
 		}()
 
-		err = configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(2, false), nil)
+		err = configHistoryCmdF(s.th.SystemAdminClient, newConfigHistoryCmd(s.T(), 2, false), nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().NotContains(printer.GetLines()[0], "(can't be read)")
@@ -575,9 +570,7 @@ func (s *MmctlE2ETestSuite) TestConfigHistoryCmdWithoutDatabaseStore() {
 	s.SetupTestHelper()
 
 	s.RunForSystemAdminAndLocal("List the saved configurations of a memory store", func(c client.Client) {
-		printer.Clean()
-
-		err := configHistoryCmdF(c, newConfigHistoryCmd(2, false), nil)
+		err := configHistoryCmdF(c, newConfigHistoryCmd(s.T(), 2, false), nil)
 		s.Require().ErrorContains(err, "Configuration history is only available when the configuration is stored in the database.")
 		s.Require().Empty(printer.GetLines())
 	})
@@ -587,12 +580,11 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	s.SetupTestHelperWithDatabaseConfigStore()
 
 	s.RunForSystemAdminAndLocal("Roll back to a saved configuration", func(c client.Client) {
-		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Equal("Old Site", *s.storedConfig().TeamSettings.SiteName)
@@ -604,13 +596,12 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("List the settings that would change with --dry-run", func(c client.Client) {
-		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 		activeConfigID := s.latestConfigID()
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(false, true), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), false, true), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("New Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Equal("New Site", *s.storedConfig().TeamSettings.SiteName)
@@ -623,20 +614,19 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.Run("Show the settings that would change and that changed", func() {
-		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		defer printer.SetFormat(printer.FormatJSON)
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 
-		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(false, true), []string{oldConfigID})
+		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), false, true), []string{oldConfigID})
 		s.Require().NoError(err)
-		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
-		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(false, true), []string{oldConfigID})
+		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), false, true), []string{oldConfigID})
 		s.Require().NoError(err)
-		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err = configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal([]any{
 			"Rolling back to saved configuration " + oldConfigID + " would change these settings:\n  TeamSettings.SiteName: \"New Site\" -> \"Old Site\"",
@@ -647,12 +637,11 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("Restore sensitive values", func(c client.Client) {
-		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "old-password" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.SMTPPassword = "new-password" })
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("old-password", *s.th.App.Config().EmailSettings.SMTPPassword)
 		s.Require().Equal("old-password", *s.storedConfig().EmailSettings.SMTPPassword)
@@ -663,7 +652,6 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("Restore database replicas and empty sensitive values", func(c client.Client) {
-		printer.Clean()
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = []string{}
 			cfg.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{}
@@ -680,7 +668,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 			cfg.SqlSettings.ReplicaLagSettings = []*model.ReplicaLagSettings{{DataSource: new("postgres://replica0"), QueryAbsoluteLag: new("select 1")}}
 		})
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
 			s.Require().Empty(*cfg.EmailSettings.SMTPPassword)
@@ -714,12 +702,11 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		}
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { delete(cfg.PluginSettings.Plugins, pluginID) })
 
-		printer.Clean()
 		savePluginSettings("red", "old-token")
 		oldConfigID := s.latestConfigID()
 		savePluginSettings("blue", "new-token")
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal(map[string]any{"color": "red", "token": "old-token"}, s.th.App.Config().PluginSettings.Plugins[pluginID])
 		s.Require().Equal(&configRollbackResult{
@@ -732,7 +719,6 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.Run("Keep the settings of plugins when rolling back to enable plugins", func() {
-		printer.Clean()
 		pluginID := "com.example.uninstalled"
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
 			delete(cfg.PluginSettings.Plugins, pluginID)
@@ -745,7 +731,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
-		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
 			s.Require().True(*cfg.PluginSettings.Enable)
@@ -758,7 +744,6 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.Run("Keep the settings that can't be changed through the API without local mode", func() {
-		printer.Clean()
 		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "./import" })
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.SiteName = "Old Site"
@@ -770,37 +755,32 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 			*cfg.ImportSettings.Directory = "./new-import"
 		})
 
-		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(s.th.SystemAdminClient, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
 			s.Require().Equal("Old Site", *cfg.TeamSettings.SiteName)
 			s.Require().Equal("./new-import", *cfg.ImportSettings.Directory)
 		}
 
-		err = configRollbackCmdF(s.th.LocalClient, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err = configRollbackCmdF(s.th.LocalClient, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("./old-import", *s.th.App.Config().ImportSettings.Directory)
 		s.Require().Equal("./old-import", *s.storedConfig().ImportSettings.Directory)
 	})
 
 	s.RunForSystemAdminAndLocal("Roll back to an unknown configuration", func(c client.Client) {
-		printer.Clean()
-
-		err := configRollbackCmdF(c, newConfigRollbackCmd(false, false), []string{model.NewId()})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), false, false), []string{model.NewId()})
 		s.Require().ErrorContains(err, "No saved configuration has this ID.")
 		s.Require().Empty(printer.GetLines())
 	})
 
 	s.RunForSystemAdminAndLocal("Roll back to an invalid configuration ID", func(c client.Client) {
-		printer.Clean()
-
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{"not-an-id"})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{"not-an-id"})
 		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
 		s.Require().Empty(printer.GetLines())
 	})
 
 	s.Run("Roll back the settings the user may change", func() {
-		printer.Clean()
 		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 		defer s.th.RemovePermissionFromRole(s.T(), model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
 		s.th.AddPermissionToRole(s.T(), model.PermissionSysconsoleWriteEnvironmentRateLimiting.Id, model.SystemUserRoleId)
@@ -817,7 +797,7 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 			cfg.RateLimitSettings.VaryByHeader = "X-New"
 		})
 
-		err := configRollbackCmdF(s.th.Client, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(s.th.Client, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		for _, cfg := range []*model.Config{s.th.App.Config(), s.storedConfig()} {
 			s.Require().Equal("X-Old", cfg.RateLimitSettings.VaryByHeader)
@@ -831,12 +811,11 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmd() {
 	})
 
 	s.Run("Roll back without permission", func() {
-		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 
-		err := configRollbackCmdF(s.th.Client, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(s.th.Client, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().Error(err)
 		s.Require().Equal("New Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Equal("New Site", *s.storedConfig().TeamSettings.SiteName)
@@ -849,12 +828,11 @@ func (s *MmctlE2ETestSuite) TestConfigRollbackCmdWithEnvironmentOverrides() {
 	s.SetupTestHelperWithDatabaseConfigStore()
 
 	s.RunForSystemAdminAndLocal("Roll back with the site URL set by an environment variable", func(c client.Client) {
-		printer.Clean()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "Old Site" })
 		oldConfigID := s.latestConfigID()
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.SiteName = "New Site" })
 
-		err := configRollbackCmdF(c, newConfigRollbackCmd(true, false), []string{oldConfigID})
+		err := configRollbackCmdF(c, newConfigRollbackCmd(s.T(), true, false), []string{oldConfigID})
 		s.Require().NoError(err)
 		s.Require().Equal("Old Site", *s.th.App.Config().TeamSettings.SiteName)
 		s.Require().Equal("http://localhost:8065", *s.th.App.Config().ServiceSettings.SiteURL)

@@ -715,7 +715,9 @@ func configRollbackCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 
 		// The printer writes its lines only when the command ends, so print them before asking.
-		_ = printer.Flush()
+		if err := printer.Flush(); err != nil {
+			return fmt.Errorf("failed to print the settings that would change: %w", err)
+		}
 		if err := getConfirmation(fmt.Sprintf("Are you sure you want to roll back to saved configuration %s?", configID), false); err != nil {
 			return err
 		}

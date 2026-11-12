@@ -975,7 +975,7 @@ func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
 		printer.Clean()
 		expectRestore(true, changes)
 
-		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, true), []string{configID})
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, true), []string{configID})
 		s.Require().NoError(err)
 		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes}}, printer.GetLines())
 	})
@@ -984,7 +984,7 @@ func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
 		printer.Clean()
 		expectRestore(false, changes)
 
-		err := configRollbackCmdF(s.client, newConfigRollbackCmd(true, false), []string{configID})
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{configID})
 		s.Require().NoError(err)
 		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, Changes: changes}}, printer.GetLines())
 	})
@@ -993,7 +993,7 @@ func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
 		printer.Clean()
 		expectRestore(true, changes)
 
-		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, false), []string{configID})
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
 		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
 		s.Require().Empty(printer.GetLines(), "the changes should be printed before asking")
 	})
@@ -1002,7 +1002,7 @@ func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
 		printer.Clean()
 		expectRestore(true, []*model.ConfigChange{})
 
-		err := configRollbackCmdF(s.client, newConfigRollbackCmd(false, false), []string{configID})
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
 		s.Require().NoError(err)
 		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: []*model.ConfigChange{}}}, printer.GetLines())
 	})
@@ -1010,7 +1010,7 @@ func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
 	s.Run("Should fail for an invalid configuration ID", func() {
 		printer.Clean()
 
-		err := configRollbackCmdF(s.client, newConfigRollbackCmd(true, false), []string{"not-an-id"})
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{"not-an-id"})
 		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
 		s.Require().Empty(printer.GetLines())
 	})

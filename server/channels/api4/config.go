@@ -560,7 +560,15 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 		c.SetInvalidURLParam("config_id")
 		return
 	}
-	dryRun, _ := strconv.ParseBool(r.URL.Query().Get("dry_run"))
+	// An invalid value is rejected rather than read as false, which would save the configuration.
+	var dryRun bool
+	if value := r.URL.Query().Get("dry_run"); value != "" {
+		var err error
+		if dryRun, err = strconv.ParseBool(value); err != nil {
+			c.SetInvalidURLParam("dry_run")
+			return
+		}
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventRestoreHistoricalConfig, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

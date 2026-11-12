@@ -1438,6 +1438,15 @@ func TestRestoreHistoricalConfig(t *testing.T) {
 		assert.Equal(t, latest[0].Id, dryRunLatest[0].Id, "a dry run should save nothing")
 	}, "lists the changes without saving them in a dry run")
 
+	t.Run("rejects an invalid dry_run value", func(t *testing.T) {
+		saveNewConfig()
+
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/config/history/"+oldConfigID+"/restore?dry_run=ture", "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(resp))
+		assert.Equal(t, "New Site", *th.App.Config().TeamSettings.SiteName)
+	})
+
 	t.Run("restores only the settings the user may change", func(t *testing.T) {
 		saveNewConfig()
 		th.AddPermissionToRole(t, model.PermissionSysconsoleReadEnvironmentRateLimiting.Id, model.SystemUserRoleId)
