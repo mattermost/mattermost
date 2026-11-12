@@ -736,7 +736,9 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 
 	t.Run("an option sent without a rank is refused as invalid options", func(t *testing.T) {
 		f := setup(t, below, nil)
+		hooks := th.service.hooks
 		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		t.Cleanup(func() { th.service.hooks = hooks })
 		opts := options(1, 2, 3, nil)
 		delete(opts[1].(map[string]any), "rank")
 		err := saveOptions(f, opts)
@@ -775,7 +777,9 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 			map[string]any{"id": high, "name": "HIGH", "rank": 3},
 		}
 		require.NoError(t, saveOptions(f, base))
+		hooks := th.service.hooks
 		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		t.Cleanup(func() { th.service.hooks = hooks })
 		seedSystem(f, mid)
 		// A breach already stored, so any recount would refuse the save.
 		channel(f, high)
