@@ -4,11 +4,12 @@
 import React from 'react';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
+import Permissions from 'mattermost-redux/constants/permissions';
 
 import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import {LicenseSkus} from 'utils/constants';
+import {LicenseSkus, PermissionsScope} from 'utils/constants';
 
 import type {Group, Permission} from './types';
 
@@ -169,6 +170,42 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should only render permissions that have a scope, so they are not dropped on save', () => {
+        renderWithContext(
+            <PermissionsTree
+                {...defaultProps}
+                role={{name: GeneralConstants.SYSTEM_ADMIN_ROLE}}
+                config={{
+                    EnableIncomingWebhooks: 'true',
+                    EnableOutgoingWebhooks: 'true',
+                    EnableOAuthServiceProvider: 'true',
+                    EnableOutgoingOAuthConnections: 'true',
+                    EnableCommands: 'true',
+                    EnableCustomEmoji: 'true',
+                    EnableGuestAccounts: 'true',
+                    EnableCustomGroups: 'true',
+                    ExperimentalSharedChannels: 'true',
+                }}
+                license={{
+                    IsLicensed: 'true',
+                    LDAPGroups: 'true',
+                    SkuShortName: LicenseSkus.EnterpriseAdvanced,
+                }}
+            />,
+        );
+
+        const collectPermissions = (items: Array<string | Group | Permission>): string[] => items.flatMap((item) => {
+            if (typeof item === 'string') {
+                return [item];
+            }
+            return collectPermissions(item.permissions);
+        });
+        const permissions = collectPermissions(PermissionGroup.mock.calls[0][0].permissions);
+
+        expect(permissions).toContain(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        expect(permissions.filter((p) => !PermissionsScope[p])).toEqual([]);
     });
 
     test('should map groups in the correct order', () => {
