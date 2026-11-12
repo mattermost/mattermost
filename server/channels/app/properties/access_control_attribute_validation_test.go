@@ -4362,6 +4362,25 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, g)
 		require.NoError(t, updateErr)
 		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, g.ID).Mutability)
+
+		// The same pair on create, where nothing is stored, also reads never.
+		c := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyAny,
+			model.PropertyFieldAttrEditable:     false,
+		}))
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, c.ID).Mutability)
+
+		// editable true differing from the stored editable, sent with a change_policy that
+		// also differs from the stored one, follows the change_policy.
+		r := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+		}))
+		require.NotEqual(t, true, r.Attrs[model.PropertyFieldAttrEditable])
+		r.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		r.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, r)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{lowerOnly}, stored(t, r.ID).Bounds)
 	})
 
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
