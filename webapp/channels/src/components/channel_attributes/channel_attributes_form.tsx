@@ -14,6 +14,7 @@ import {getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from
 import {AttributeCombobox, getAttributeComboboxType} from 'components/property_fields/attribute_combobox';
 import {asGraphFieldRef, asGraphValueIds} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
+import {propertyFieldMessages} from 'components/property_fields/messages';
 import Input from 'components/widgets/inputs/input/input';
 
 import {ZIndex} from 'utils/constants';
@@ -68,8 +69,8 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
         return null;
     }
 
-    const selectOptionPlaceholder = formatMessage({id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'});
-    const selectOptionsPlaceholder = formatMessage({id: 'admin.user.selectOptions', defaultMessage: 'Select options'});
+    const selectOptionPlaceholder = formatMessage(propertyFieldMessages.selectOption);
+    const selectOptionsPlaceholder = formatMessage(propertyFieldMessages.selectOptions);
     const textPlaceholder = formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'});
     const requiredMessage = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
 
