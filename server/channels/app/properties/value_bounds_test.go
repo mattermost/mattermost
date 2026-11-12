@@ -936,7 +936,7 @@ func TestRefuseLockedDeletes(t *testing.T) {
 	mutableChannel := createDirect(model.PropertyFieldObjectTypeChannel)
 	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
 	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
-	// Registered after the validation hook, so it runs once the hook has judged the delete.
+	// Registered after the bounds hook, so it runs once that hook has judged the delete.
 	injector := &deleteInjectingHook{}
 	th.service.AddHook(injector)
 
