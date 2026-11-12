@@ -1304,16 +1304,19 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 
 	type fixture struct {
 		systemField, channelField, userField, postField *model.PropertyField
+		// createDirect adds a field linked to the template straight to the store, with no bounds.
+		createDirect func(objectType string) *model.PropertyField
 	}
 	// setupAll gives each subtest its own group, with each field holding the bounds passed for it.
 	setupAll := func(t *testing.T, channelBounds, userBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
-		_, create, _ := boundsSetup(t, th, rctx)
+		_, create, createDirect := boundsSetup(t, th, rctx)
 		f := fixture{
 			systemField:  create(model.PropertyFieldObjectTypeSystem, nil),
 			channelField: create(model.PropertyFieldObjectTypeChannel, channelBounds),
 			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
 			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
+			createDirect: createDirect,
 		}
 		// The service is shared, so take the hook back off: a later subtest would otherwise run it too.
 		hooks := th.service.hooks
@@ -1590,6 +1593,44 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		t.Cleanup(func() { th.service.fieldStore = c.PropertyFieldStore })
 		return c
 	}
+
+	// withPostFields gives the fixture's template n more post fields, so n+1 in all.
+	withPostFields := func(f fixture, n int) {
+		t.Helper()
+		for range n {
+			f.createDirect(model.PropertyFieldObjectTypePost)
+		}
+	}
+
+	t.Run("a template with more child fields than one page refuses the write", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		withPostFields(f, 100)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+
+		requireAppErrorID(t, write(f, x, `"opthigh"`), checkFailedID, http.StatusConflict)
+		assert.Equal(t, `"optmid"`, stored(f, x))
+	})
+
+	t.Run("a template with exactly one page of child fields is checked normally", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		withPostFields(f, 99)
+		x := channel(f, "optmid")
+		post(f, x, "optmid")
+
+		requireAppErrorID(t, write(f, x, `"optlow"`), containedID, http.StatusConflict)
+		require.NoError(t, write(f, x, `"opthigh"`))
+	})
+
+	t.Run("a template with more child fields than one page refuses deleting the parent-side field", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		withPostFields(f, 100)
+
+		err := th.service.DeletePropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
+		require.ErrorIs(t, err, errBoundsCheckFailed)
+		_, err = th.service.GetPropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
+		require.NoError(t, err)
+	})
 
 	t.Run("a batch of values of one field looks up its child fields once", func(t *testing.T) {
 		f := setup(t, below)

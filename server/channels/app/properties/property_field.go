@@ -739,6 +739,9 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 	return len(children) > 0, err
 }
 
+// childFieldLimit is how many child fields childFieldsWithParentRule reads for one template.
+const childFieldLimit = 100
+
 // childFieldsWithParentRule returns the fields on field's template, one level
 // below field's object type, that carry a parent rule.
 func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *model.PropertyField) ([]*model.PropertyField, error) {
@@ -752,15 +755,19 @@ func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *mo
 		return nil, nil
 	}
 
-	// Capped at one page: a template with more than 100 child fields could slip past this guard,
-	// and writes then still refuse as broken data. Page with a cursor if that ever matters.
+	// The cap counts every child-type field on the template, ruled or not. A child past it would go
+	// uncounted by the container check and the field-save checks, so more than a page refuses, never
+	// skips. Page with a cursor if a template ever needs more.
 	children, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
 		ObjectTypes:   childTypes,
 		LinkedFieldID: field.LinkSourceID(),
-		PerPage:       100,
+		PerPage:       childFieldLimit + 1,
 	})
 	if err != nil {
 		return nil, err
+	}
+	if len(children) > childFieldLimit {
+		return nil, fmt.Errorf("field %s: more than %d child fields link to template %s: %w", field.ID, childFieldLimit, field.LinkSourceID(), errBoundsCheckFailed)
 	}
 	return slices.DeleteFunc(children, func(c *model.PropertyField) bool {
 		return !slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {

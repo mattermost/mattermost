@@ -421,7 +421,7 @@ func (h *BoundsHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values [
 			var err error
 			children, err = h.propertyService.childFieldsWithParentRule(rctx, field)
 			if err != nil {
-				return fmt.Errorf("field %s: failed to look up the child fields: %w", field.ID, err)
+				return boundsRefusal(fmt.Errorf("field %s: failed to look up the child fields: %w", field.ID, err))
 			}
 			childrenOf[field.ID] = children
 		}

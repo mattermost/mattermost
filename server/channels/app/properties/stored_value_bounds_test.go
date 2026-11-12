@@ -195,13 +195,15 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 
 	type fixture struct {
 		system, channel, post *model.PropertyField
+		// createDirect adds a field linked to the template straight to the store, with no bounds.
+		createDirect func(objectType string) *model.PropertyField
 	}
 	// setup creates the three fields, each with the given bounds; the channel field is created
 	// first and the post field last, so a rule on either finds its parent side.
 	setup := func(t *testing.T, channelBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
-		_, create, _ := boundsSetup(t, th, rctx)
-		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil)}
+		_, create, createDirect := boundsSetup(t, th, rctx)
+		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil), createDirect: createDirect}
 		f.channel = create(model.PropertyFieldObjectTypeChannel, channelBounds)
 		f.post = create(model.PropertyFieldObjectTypePost, postBounds)
 		return f
@@ -268,6 +270,17 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 		seed(f.post, model.PropertyValueTargetTypePost, high, "optmid")
 		require.NoError(t, setBounds(f.post, below))
 		assert.Equal(t, below, storedBounds(f.post))
+	})
+
+	t.Run("a template with more post fields than one page refuses the rule", func(t *testing.T) {
+		f := setup(t, nil, below)
+		for range 100 {
+			f.createDirect(model.PropertyFieldObjectTypePost)
+		}
+		seedSystem(f, "optmid")
+
+		requireAppErrorID(t, setBounds(f.channel, below), checkFailedID, http.StatusConflict)
+		assert.Empty(t, storedBounds(f.channel))
 	})
 
 	t.Run("a deleted post does not count", func(t *testing.T) {
