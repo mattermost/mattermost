@@ -15,7 +15,7 @@ import {getRecentPostsChunkInChannel} from 'mattermost-redux/selectors/entities/
 import {loadLatestPosts, loadPosts, loadPostsAround, loadUnreads, syncPostsInChannel} from 'actions/views/channel';
 import configureStore from 'store';
 
-import {PostRequestTypes} from 'utils/constants';
+import {ActionTypes, PostRequestTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 const channelId = 'channel1';
@@ -110,7 +110,7 @@ describe('syncing a channel after a websocket reconnect', () => {
     }
 
     // Each load ends with the channel's newest posts; onLastResponse runs while its last request is in flight.
-    const loadsReachingNewestPosts = [
+    const pageLoadsReachingNewestPosts = [
         {
             name: 'loading unreads starting from the newest',
             unreadScrollPosition: Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST,
@@ -164,6 +164,10 @@ describe('syncing a channel after a websocket reconnect', () => {
                 await store.dispatch(loadPostsAround(channelId, trim.id));
             },
         },
+    ];
+
+    const loadsReachingNewestPosts = [
+        ...pageLoadsReachingNewestPosts,
         {
             name: 'syncing the channel',
             unreadScrollPosition: Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
@@ -200,6 +204,17 @@ describe('syncing a channel after a websocket reconnect', () => {
             store.dispatch({type: GeneralTypes.WEBSOCKET_FAILURE, timestamp: DISCONNECTED_AT});
             now.mockReturnValue(DISCONNECTED_AT + 50);
         });
+
+        sleepAndWake(store);
+
+        expect(await switchBackToChannel(store)).toEqual(expectedRecentOrder);
+    });
+
+    test.each(pageLoadsReachingNewestPosts)('includes the missed reply when $name while the socket was already down', async ({unreadScrollPosition, load}) => {
+        const store = setupStore(unreadScrollPosition);
+        store.dispatch({type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME, channelId, time: LOADED_AT - 200});
+        store.dispatch({type: GeneralTypes.WEBSOCKET_FAILURE, timestamp: LOADED_AT - 100});
+        await load(store, () => {});
 
         sleepAndWake(store);
 

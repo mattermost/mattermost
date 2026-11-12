@@ -63,7 +63,7 @@ import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/consta
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
-import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ActionFuncAsync, GlobalState, ThunkActionFunc} from 'types/store';
 
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -257,9 +257,16 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string): A
     };
 }
 
+// A load made while the socket is down can't count as caught up, since posts made after it are still missed
+function isSocketDown(state: GlobalState) {
+    const {connected, lastDisconnectAt} = getSocketStatus(state);
+    return !connected && lastDisconnectAt > 0;
+}
+
 export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsync<{atLatestMessage: boolean; atOldestMessage: boolean}> {
     return async (dispatch, getState) => {
         const time = Date.now();
+        const socketDown = isSocketDown(getState());
         if (prefetch) {
             dispatch({
                 type: ActionTypes.PREFETCH_POSTS_FOR_CHANNEL,
@@ -302,7 +309,7 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
 
         // getPostsUnread also loads the newest posts when the unread chunk doesn't reach them
         const loadedLatestPosts = data!.next_post_id === '' || loadRecentPosts;
-        if (loadedLatestPosts) {
+        if (loadedLatestPosts && !socketDown) {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -319,8 +326,9 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
 }
 
 export function loadPostsAround(channelId: string, focusedPostId: string): ActionFuncAsync {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         const time = Date.now();
+        const socketDown = isSocketDown(getState());
         const {data, error} = await dispatch(PostActions.getPostsAround(channelId, focusedPostId, Posts.POST_CHUNK_SIZE / 2));
         if (error) {
             return {
@@ -336,7 +344,7 @@ export function loadPostsAround(channelId: string, focusedPostId: string): Actio
             amount: data!.order.length,
         }];
 
-        if (data!.next_post_id === '') {
+        if (data!.next_post_id === '' && !socketDown) {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -400,7 +408,7 @@ export function loadPosts({
     perPage,
 }: LoadPostsParameters): ThunkActionFunc<Promise<LoadPostsReturnValue>> {
     //type here can be BEFORE_ID or AFTER_ID
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.LOADING_POSTS,
             data: true,
@@ -408,6 +416,7 @@ export function loadPosts({
         });
 
         const time = Date.now();
+        const socketDown = isSocketDown(getState());
         const page = 0;
         let result;
         if (type === PostRequestTypes.BEFORE_ID) {
@@ -438,7 +447,7 @@ export function loadPosts({
             amount: data!.order.length,
         });
 
-        if (type === PostRequestTypes.AFTER_ID && data!.next_post_id === '') {
+        if (type === PostRequestTypes.AFTER_ID && data!.next_post_id === '' && !socketDown) {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
