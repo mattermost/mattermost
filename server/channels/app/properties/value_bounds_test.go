@@ -412,8 +412,9 @@ func TestEnforceMutability(t *testing.T) {
 	create(model.PropertyFieldObjectTypeSystem, nil)
 	parentRuleField := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}})
 	noRuleField := createDirect(model.PropertyFieldObjectTypeChannel)
-	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID)
 	th.service.AddHook(hook)
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }))
 	// Registered after the validation hook, so it sees what the hook recorded.
 	recorder := &recordingHook{}
 	th.service.AddHook(recorder)
@@ -618,8 +619,9 @@ func TestEnforceSelfRules(t *testing.T) {
 	create(model.PropertyFieldObjectTypeSystem, nil)
 	raiseOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}})
 	lowerOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}})
-	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID)
 	th.service.AddHook(hook)
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }))
 	injector := &injectingHook{}
 	th.service.AddHook(injector)
 
@@ -759,10 +761,10 @@ func TestEnforceParentRules(t *testing.T) {
 		return "", errors.New("no such post")
 	}
 	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
-		PropertyFieldBounds: func() bool { return true },
 		PostChannelResolver: resolver,
 	}, groupID)
 	th.service.AddHook(hook)
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }))
 	// Registered after the validation hook, so it sees what the hook recorded.
 	recorder := &recordingHook{}
 	th.service.AddHook(recorder)
@@ -909,7 +911,8 @@ func TestRefuseLockedDeletes(t *testing.T) {
 	parentOnlyUser := create(model.PropertyFieldObjectTypeUser, parentRule)
 	parentOnlyChannel := create(model.PropertyFieldObjectTypeChannel, parentRule)
 	mutableChannel := createDirect(model.PropertyFieldObjectTypeChannel)
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }))
 	// Registered after the validation hook, so it runs once the hook has judged the delete.
 	injector := &deleteInjectingHook{}
 	th.service.AddHook(injector)
@@ -1075,7 +1078,8 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 	groupID, create, _ := boundsSetup(t, th, rctx)
 	// Made before the hook is registered: it would refuse this fixture's name.
 	create(model.PropertyFieldObjectTypeSystem, nil)
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }))
 
 	newField := func(mutability model.PropertyFieldMutability) *model.PropertyField {
 		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
