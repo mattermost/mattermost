@@ -40,6 +40,7 @@ describe('components/global/product_switcher_menu', () => {
         enableCommands: false,
         enableIncomingWebhooks: false,
         enableOAuthServiceProvider: false,
+        enableOutgoingOAuthConnections: false,
         enableOutgoingWebhooks: false,
         canManageSystemBots: false,
         canManageIntegrations: true,
@@ -203,6 +204,15 @@ describe('components/global/product_switcher_menu', () => {
             const props = {
                 ...defaultProps,
                 enableOAuthServiceProvider: true,
+            };
+            const {container} = renderWithContext(<ProductMenuList {...props}/>, adminState);
+            expect(container.querySelector('#integrations')).not.toBeNull();
+        });
+
+        it('when outgoing oauth connections enabled', () => {
+            const props = {
+                ...defaultProps,
+                enableOutgoingOAuthConnections: true,
             };
             const {container} = renderWithContext(<ProductMenuList {...props}/>, adminState);
             expect(container.querySelector('#integrations')).not.toBeNull();

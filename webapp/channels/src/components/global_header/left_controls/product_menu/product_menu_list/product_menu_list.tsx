@@ -47,6 +47,7 @@ export type Props = {
     enableCommands: boolean;
     enableIncomingWebhooks: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     enableOutgoingWebhooks: boolean;
     canManageSystemBots: boolean;
     canManageIntegrations: boolean;
@@ -74,6 +75,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
         enableCommands,
         enableIncomingWebhooks,
         enableOAuthServiceProvider,
+        enableOutgoingOAuthConnections,
         enableOutgoingWebhooks,
         canManageSystemBots,
         canManageIntegrations,
@@ -107,7 +109,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
         });
     };
 
-    const someIntegrationEnabled = enableIncomingWebhooks || enableOutgoingWebhooks || enableCommands || enableOAuthServiceProvider || canManageSystemBots;
+    const someIntegrationEnabled = enableIncomingWebhooks || enableOutgoingWebhooks || enableCommands || enableOAuthServiceProvider || enableOutgoingOAuthConnections || canManageSystemBots;
     const showIntegrations = !isMobile && someIntegrationEnabled && canManageIntegrations;
 
     return (
