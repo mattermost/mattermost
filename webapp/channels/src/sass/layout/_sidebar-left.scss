@@ -1068,6 +1068,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
         }
     }
 
+    // The status badge circle must match whatever the avatar sits on, for every row state
+    .SidebarChannel .SidebarLink {
+        --status-badge-bg: var(--sidebar-bg);
+    }
+
     .SidebarChannel .SidebarLink:focus {
         /* box-shadow: inset 0 0 0 2px orange; */
         outline-style: none;
@@ -1076,11 +1081,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .SidebarChannel .SidebarLink:hover,
     .SidebarChannel .SidebarLink.menuOpen {
         padding-right: 5px;
-        background-color: var(--sidebar-text-hover-bg);
+        --status-badge-bg: var(--sidebar-text-hover-bg);
 
-        .DirectChannel__status-icon {
-            box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.12);
-        }
+        background-color: var(--sidebar-text-hover-bg);
 
         .SidebarMenu_menuButton {
             margin-right: 11px;
@@ -1108,17 +1111,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannel > .active.SidebarLink,
     .SidebarChannel.active .SidebarLink {
-        background: rgba(var(--sidebar-text-rgb), 0.08);
+        --status-badge-bg: color-mix(in srgb, var(--sidebar-text) 8%, var(--sidebar-bg));
 
-        .DirectChannel__profile-picture .DirectChannel__status-icon {
-            box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.24);
-        }
+        background: rgba(var(--sidebar-text-rgb), 0.08);
 
         .SidebarChannelLinkLabel {
             color: var(--sidebar-text);
         }
 
         &.selected {
+            --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
             background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
 
             &:hover {
@@ -1128,6 +1131,8 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarLink.selected {
+        --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
         background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         color: rgba(var(--sidebar-text-rgb), 1);
 
@@ -1186,7 +1191,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             align-items: center;
             justify-content: center;
             border-radius: 100%;
-            background: var(--sidebar-bg);
+            background: var(--status-badge-bg, var(--sidebar-bg));
             font-size: 12px;
         }
     }
