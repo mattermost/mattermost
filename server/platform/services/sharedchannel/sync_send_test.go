@@ -842,60 +842,42 @@ func TestFetchPostsForSync_Repeat(t *testing.T) {
 		}
 		return posts
 	}
-
-	scr := &model.SharedChannelRemote{
-		LastPostCreateAt: 900,
-		LastPostCreateID: model.NewId(),
-		LastPostUpdateAt: 950,
-		LastPostUpdateID: model.NewId(),
-	}
-	startCursor := model.GetPostsSinceForSyncCursor{
-		LastPostCreateAt: scr.LastPostCreateAt,
-		LastPostCreateID: scr.LastPostCreateID,
-		LastPostUpdateAt: scr.LastPostUpdateAt,
-		LastPostUpdateID: scr.LastPostUpdateID,
-	}
+	newPosts := makePosts(3)
+	updatedPosts := makePosts(5)
 
 	tests := []struct {
 		name       string
-		newPosts   int
-		updated    int // -1 when the updated-posts query must not run
+		updated    []*model.Post
+		wantPosts  int
 		wantRepeat bool
 	}{
-		{name: "full updated page", newPosts: 3, updated: 7, wantRepeat: true},
-		{name: "partial updated page", newPosts: 3, updated: 4, wantRepeat: false},
-		{name: "full new page", newPosts: maxPosts, updated: -1, wantRepeat: true},
+		{
+			// The updated-posts query also returns posts created after the cursor.
+			name:       "full updated page that repeats new posts",
+			updated:    append([]*model.Post{newPosts[0], newPosts[1]}, updatedPosts...),
+			wantPosts:  len(newPosts) + len(updatedPosts),
+			wantRepeat: true,
+		},
+		{
+			name:       "partial updated page",
+			updated:    updatedPosts[:4],
+			wantPosts:  len(newPosts) + 4,
+			wantRepeat: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			newPosts := makePosts(tt.newPosts)
-			last := newPosts[len(newPosts)-1]
-			createdCursor := startCursor
-			createdCursor.LastPostCreateAt = last.CreateAt
-			createdCursor.LastPostCreateID = last.Id
+			createdCursor := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1002, LastPostCreateID: newPosts[2].Id}
+			updatedCursor := model.GetPostsSinceForSyncCursor{LastPostCreateAt: 1002, LastPostUpdateAt: 1004}
 
 			mockPostStore := &mocks.PostStore{}
 			mockPostStore.On("GetPostsSinceForSync",
 				mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return o.SinceCreateAt }),
-				startCursor, maxPosts).Return(newPosts, createdCursor, nil)
-
-			wantCursor := createdCursor
-			wantPosts := tt.newPosts
-			if tt.updated >= 0 {
-				updated := makePosts(tt.updated)
-				updatedCursor := startCursor
-				updatedCursor.LastPostUpdateAt = 2000
-				updatedCursor.LastPostUpdateID = model.NewId()
-				mockPostStore.On("GetPostsSinceForSync",
-					mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool {
-						return !o.SinceCreateAt && o.ExcludeAfterCreateCursor
-					}),
-					startCursor, maxPosts-tt.newPosts).Return(updated, updatedCursor, nil)
-				wantCursor.LastPostUpdateAt = updatedCursor.LastPostUpdateAt
-				wantCursor.LastPostUpdateID = updatedCursor.LastPostUpdateID
-				wantPosts += tt.updated
-			}
+				mock.Anything, maxPosts).Return(newPosts, createdCursor, nil)
+			mockPostStore.On("GetPostsSinceForSync",
+				mock.MatchedBy(func(o model.GetPostsSinceForSyncOptions) bool { return !o.SinceCreateAt }),
+				createdCursor, maxPosts-len(newPosts)).Return(tt.updated, updatedCursor, nil)
 
 			mockStore := &mocks.Store{}
 			mockStore.On("Post").Return(mockPostStore)
@@ -915,13 +897,13 @@ func TestFetchPostsForSync_Repeat(t *testing.T) {
 				Return(func(_ request.CTX, p *model.Post, _ *model.PreparePostForClientOpts) *model.Post { return p })
 
 			scs := &Service{server: mockServer, app: mockApp}
-			sd := newSyncData(syncTask{channelID: model.NewId()}, &model.RemoteCluster{RemoteId: model.NewId()}, scr)
+			sd := newSyncData(syncTask{channelID: model.NewId()}, &model.RemoteCluster{RemoteId: model.NewId()}, &model.SharedChannelRemote{})
 
 			require.NoError(t, scs.fetchPostsForSync(sd))
 
-			assert.Len(t, sd.posts, wantPosts)
+			assert.Len(t, sd.posts, tt.wantPosts)
 			assert.Equal(t, tt.wantRepeat, sd.resultRepeat)
-			assert.Equal(t, wantCursor, sd.resultNextCursor)
+			assert.Equal(t, updatedCursor, sd.resultNextCursor)
 			mockPostStore.AssertExpectations(t)
 		})
 	}
