@@ -350,6 +350,12 @@
 
         background: var(--sidebar-bg);
 
+        // With no thread list beside it (the empty and loading states fill the whole view), there is no
+        // sidebar to show through, so the view keeps the center channel's colours.
+        &:not(:has(.ThreadList)) {
+            background: var(--center-channel-bg);
+        }
+
         .ThreadPane,
         .ThreadList + .no-results__holder {
             overflow: hidden;
