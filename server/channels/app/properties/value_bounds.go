@@ -360,7 +360,8 @@ func storedValueMatters(field *model.PropertyField) bool {
 		slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf })
 }
 
-// storedRow reads the object's own live row from the master, or nil when it has none.
+// storedRow reads the object's own live row, or nil when it has none. It reads the master so a
+// write committed a moment ago isn't hidden by a lagging replica.
 func (h *BoundsHook) storedRow(rctx request.CTX, field *model.PropertyField, targetID string) (*model.PropertyValue, error) {
 	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
 		FieldID:   field.ID,
@@ -529,8 +530,6 @@ nextValue:
 			continue
 		}
 
-		// A value beneath written between this read and the container's write can still land out of
-		// bounds; no lock spans the two objects.
 		storedRow, err := h.storedRow(rctx, field, v.TargetID)
 		if err != nil {
 			return err
@@ -547,6 +546,8 @@ nextValue:
 			}
 			continue nextValue
 		}
+		// A value beneath written between these counts and the container's write can still land out of
+		// bounds; no lock spans the two objects.
 		var breaches storedValueBreaches
 		var breachedFieldID string
 		for _, child := range children {
