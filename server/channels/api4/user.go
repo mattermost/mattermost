@@ -2411,13 +2411,11 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If a cloud preview, redirect to the correct use case URL, else to the configured landing path
-	if c.App.License().IsCloudPreview() {
-		if url, ok := useCaseToURL[useCase]; ok {
-			redirectURL += url
-		} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
-			redirectURL += landing
-		}
+	// Preview workspaces minted with a non-trial license aren't IsCloudPreview, so the landing path applies to every CWS login.
+	if url, ok := useCaseToURL[useCase]; ok && c.App.License().IsCloudPreview() {
+		redirectURL += url
+	} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
+		redirectURL += landing
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
