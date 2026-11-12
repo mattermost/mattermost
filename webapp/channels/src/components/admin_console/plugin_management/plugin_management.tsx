@@ -29,6 +29,7 @@ import type {PluginInstallConflict} from './plugin_upload_overwrite_review_modal
 import PluginUploadOverwriteReviewModal from './plugin_upload_overwrite_review_modal';
 
 import BooleanSetting from '../boolean_setting';
+import DropdownSetting from '../dropdown_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
@@ -227,6 +228,11 @@ const messages = defineMessages({
     enableRemoteMarketplaceDesc: {id: 'admin.plugins.settings.enableRemoteMarketplaceDesc', defaultMessage: 'When true, marketplace fetches latest plugins from the configured Marketplace URL.'},
     automaticPrepackagedPlugins: {id: 'admin.plugins.settings.automaticPrepackagedPlugins', defaultMessage: 'Enable Automatic Prepackaged Plugins:'},
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
+    callsVersion: {id: 'admin.plugins.settings.callsVersion', defaultMessage: 'Calls Version:'},
+    callsVersionDesc: {id: 'admin.plugins.settings.callsVersionDesc', defaultMessage: 'Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Switching disconnects users from active calls, and requests made during the switch can fail, so switch during a quiet period. Configure LiveKit in the Calls plugin settings before switching to v2, and make sure your mobile apps support Calls v2.'},
+    callsVersionAuto: {id: 'admin.plugins.settings.callsVersionAuto', defaultMessage: 'Automatic'},
+    callsVersionV1: {id: 'admin.plugins.settings.callsVersionV1', defaultMessage: 'v1 (RTC / RTCD)'},
+    callsVersionV2: {id: 'admin.plugins.settings.callsVersionV2', defaultMessage: 'v2 (LiveKit)'},
     restrictUnauthenticatedWebappPlugins: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPlugins', defaultMessage: 'Restrict Plugins Available Before Login:'},
     restrictUnauthenticatedWebappPluginsDesc: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc', defaultMessage: 'When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
@@ -253,6 +259,11 @@ export const searchableStrings = [
     messages.enableRemoteMarketplaceDesc,
     messages.automaticPrepackagedPlugins,
     messages.automaticPrepackagedPluginsDesc,
+    messages.callsVersion,
+    messages.callsVersionDesc,
+    messages.callsVersionAuto,
+    messages.callsVersionV1,
+    messages.callsVersionV2,
     messages.restrictUnauthenticatedWebappPlugins,
     messages.restrictUnauthenticatedWebappPluginsDesc,
     messages.marketplaceUrl,
@@ -564,6 +575,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     restrictUnauthenticatedWebappPlugins: boolean;
+    callsVersion: '' | 'v1' | 'v2';
     removing: string | null;
     draggingUpload: boolean;
 };
@@ -603,9 +615,23 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
             config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
             config.PluginSettings.RestrictUnauthenticatedWebappPlugins = this.state.restrictUnauthenticatedWebappPlugins;
+            config.PluginSettings.CallsVersion = this.state.callsVersion;
         }
 
         return config;
+    };
+
+    // "Automatic" only represents an unset value, which the server resolves to v1 or v2 at
+    // startup. It is not offered once a version is set, since choosing it would change nothing.
+    getCallsVersionOptions = () => {
+        const options = [
+            {value: 'v1', text: this.props.intl.formatMessage(messages.callsVersionV1)},
+            {value: 'v2', text: this.props.intl.formatMessage(messages.callsVersionV2)},
+        ];
+        if (!this.state.callsVersion) {
+            options.unshift({value: '', text: this.props.intl.formatMessage(messages.callsVersionAuto)});
+        }
+        return options;
     };
 
     getStateFromConfig(config: Props['config']) {
@@ -619,6 +645,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
             restrictUnauthenticatedWebappPlugins: config?.PluginSettings?.RestrictUnauthenticatedWebappPlugins,
+            callsVersion: config?.PluginSettings?.CallsVersion,
         };
 
         return state;
@@ -1350,6 +1377,18 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
                                 />
+                                {this.state.automaticPrepackagedPlugins && (
+                                    <DropdownSetting
+                                        id='callsVersion'
+                                        label={<FormattedMessage {...messages.callsVersion}/>}
+                                        helpText={<FormattedMessage {...messages.callsVersionDesc}/>}
+                                        values={this.getCallsVersionOptions()}
+                                        value={this.state.callsVersion}
+                                        disabled={this.props.isDisabled || !this.state.enable}
+                                        onChange={this.handleChange}
+                                        setByEnv={this.isSetByEnv('PluginSettings.CallsVersion')}
+                                    />
+                                )}
                                 <BooleanSetting
                                     id='restrictUnauthenticatedWebappPlugins'
                                     label={<FormattedMessage {...messages.restrictUnauthenticatedWebappPlugins}/>}

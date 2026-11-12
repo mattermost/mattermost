@@ -17837,6 +17837,11 @@
     "description": "Config validation error shown to system admins for the rate limiting in-memory store size setting; must be a positive number."
   },
   {
+    "id": "model.config.is_valid.plugin_settings.calls_version.app_error",
+    "translation": "Invalid Calls version for plugin settings. Must be empty, \"v1\" or \"v2\".",
+    "description": "Config validation error shown to system admins when the Calls version plugin setting is not empty, v1 or v2."
+  },
+  {
     "id": "model.config.is_valid.rate_sec.app_error",
     "translation": "Invalid per sec for rate limit settings. Must be a positive number.",
     "description": "Config validation error shown to system admins for the rate limiting queries-per-second setting; must be a positive number."

@@ -12951,6 +12951,26 @@
     "defaultMessage": "When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.",
     "description": "Help text for the Enable Automatic Prepackaged Plugins setting in System Console Plugin Management."
   },
+  "admin.plugins.settings.callsVersion": {
+    "defaultMessage": "Calls Version:",
+    "description": "Label for the dropdown in System Console Plugin Management that selects whether the prepackaged Calls plugin version 1 or version 2 is installed; ends with a colon."
+  },
+  "admin.plugins.settings.callsVersionAuto": {
+    "defaultMessage": "Automatic",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management meaning the server picks the version from what is already installed."
+  },
+  "admin.plugins.settings.callsVersionDesc": {
+    "defaultMessage": "Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Switching disconnects users from active calls, and requests made during the switch can fail, so switch during a quiet period. Configure LiveKit in the Calls plugin settings before switching to v2, and make sure your mobile apps support Calls v2.",
+    "description": "Help text for the Calls Version setting in System Console Plugin Management; warns that switching disconnects active calls."
+  },
+  "admin.plugins.settings.callsVersionV1": {
+    "defaultMessage": "v1 (RTC / RTCD)",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management for Calls version 1, which uses the built-in RTC service or RTCD."
+  },
+  "admin.plugins.settings.callsVersionV2": {
+    "defaultMessage": "v2 (LiveKit)",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management for Calls version 2, which uses LiveKit."
+  },
   "admin.plugins.settings.enable": {
     "defaultMessage": "Enable Plugins: ",
     "description": "Setting label in System Console > Plugin Management for the toggle that enables the plugin framework; note the trailing colon and space."

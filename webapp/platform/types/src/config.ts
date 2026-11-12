@@ -1014,6 +1014,7 @@ export type PluginSettings = {
     SignaturePublicKeyFiles: string[];
     ChimeraOAuthProxyURL: string;
     RestrictUnauthenticatedWebappPlugins: boolean;
+    CallsVersion: '' | 'v1' | 'v2';
 };
 
 export type DisplaySettings = {

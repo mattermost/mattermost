@@ -3750,6 +3750,10 @@ type PluginSettings struct {
 	// RestrictUnauthenticatedWebappPlugins limits the webapp plugins exposed to clients without a
 	// session to those whose manifest sets webapp.pre_auth.
 	RestrictUnauthenticatedWebappPlugins *bool `access:"plugins,write_restrictable,cloud_restrictable"`
+	// CallsVersion selects which prepackaged Calls bundle is installed when both are available:
+	// "v1" (RTCD) or "v2" (LiveKit). Empty means auto: resolved once at startup from the
+	// installed Calls plugin, then persisted.
+	CallsVersion *string `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
@@ -3838,6 +3842,21 @@ func (s *PluginSettings) SetDefaults(ls LogSettings, ms MetricsSettings) {
 	if s.RestrictUnauthenticatedWebappPlugins == nil {
 		s.RestrictUnauthenticatedWebappPlugins = new(true)
 	}
+
+	if s.CallsVersion == nil {
+		s.CallsVersion = new("")
+	}
+}
+
+func (s *PluginSettings) isValid() *AppError {
+	if s.CallsVersion != nil {
+		switch *s.CallsVersion {
+		case "", PluginCallsVersionV1, PluginCallsVersionV2:
+		default:
+			return NewAppError("Config.IsValid", "model.config.is_valid.plugin_settings.calls_version.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
 }
 
 // Sanitize cleans up the plugin settings by removing any sensitive information.
@@ -4546,6 +4565,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.MetricsSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.PluginSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

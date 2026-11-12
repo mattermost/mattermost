@@ -13,3 +13,9 @@ const (
 	PluginIdAI            = "mattermost-ai"
 	PluginIdMetrics       = "com.mattermost.mattermost-plugin-metrics"
 )
+
+// Values for PluginSettings.CallsVersion.
+const (
+	PluginCallsVersionV1 = "v1"
+	PluginCallsVersionV2 = "v2"
+)

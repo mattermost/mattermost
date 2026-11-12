@@ -239,6 +239,15 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		// If plugin status remains unchanged, only then run this.
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *oldCfg.PluginSettings.Enable == *newCfg.PluginSettings.Enable {
+			// Switching between prepackaged Calls v1 and v2 reinstalls the selected bundle on
+			// this node. Every node runs this listener, so a cluster switches together.
+			if newVersion := *newCfg.PluginSettings.CallsVersion; newVersion != "" && newVersion != *oldCfg.PluginSettings.CallsVersion {
+				ch.srv.Log().Info("Calls version setting changed", mlog.String("calls_version", newVersion))
+				if err := ch.processPrepackagedPlugins(prepackagedPluginsDir); err != nil {
+					ch.srv.Log().Error("Failed to process prepackaged plugins after Calls version change", mlog.Err(err))
+				}
+			}
+
 			ch.syncPluginsActiveState()
 		}
 
@@ -951,7 +960,6 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	}
 
 	pluginSignaturePathMap := ch.getPluginsFromFilePaths(fileStorePaths)
-	plugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
 
 	// Before processing any prepackaged plugins, take a snapshot of the available manifests
 	// to decide what was synced from the filestore.
@@ -970,23 +978,87 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 		availablePluginsMap[bundleInfo.Manifest.Id] = bundleInfo
 	}
 
+	// Build (verify and extract) every bundle first, so the Calls bundle can be chosen before
+	// anything is installed.
+	builds := make(chan *prepackagedBuild, len(pluginSignaturePathMap))
 	var wg sync.WaitGroup
 	for _, psPath := range pluginSignaturePathMap {
 		wg.Add(1)
 		go func(psPath *pluginSignaturePath) {
 			defer wg.Done()
-			p, err := ch.processPrepackagedPlugin(psPath)
+			b, err := ch.buildPrepackagedPluginFromPath(logger, psPath)
 			if err != nil {
+				logger.Error("Failed to process prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
+				return
+			}
+			builds <- b
+		}(psPath)
+	}
+	wg.Wait()
+	close(builds)
+
+	allBuilds := make([]*prepackagedBuild, 0, len(pluginSignaturePathMap))
+	var callsManifests []*model.Manifest
+	for b := range builds {
+		defer b.cleanup()
+		allBuilds = append(allBuilds, b)
+		if b.plugin.Manifest.Id == model.PluginIdCalls {
+			callsManifests = append(callsManifests, b.plugin.Manifest)
+		}
+	}
+
+	// Calls v1 and v2 share a plugin ID: install only the one chosen by the CallsVersion setting.
+	var chosenCalls *model.Manifest
+	callsStrategy := installPluginLocallyOnlyIfNewOrUpgrade
+	installCalls := true
+	if len(callsManifests) > 0 {
+		var installedCalls *model.Manifest
+		if bundleInfo := availablePluginsMap[model.PluginIdCalls]; bundleInfo != nil {
+			installedCalls = bundleInfo.Manifest
+		}
+
+		wanted := ch.ensureCallsVersion(installedCalls)
+		chosenCalls = selectCallsBundle(wanted, callsManifests, logger)
+
+		if installedCalls != nil && chosenCalls != nil {
+			// A Calls bundle uploaded by an admin lives in the file store; prepackaged ones don't.
+			manual, appErr := ch.srv.fileExists(getBundleStorePath(model.PluginIdCalls))
+			if appErr != nil {
+				logger.Warn("Failed to check for a manually installed Calls plugin", mlog.Err(appErr))
+			}
+			callsStrategy, installCalls = callsInstallStrategy(chosenCalls, installedCalls, manual)
+			if !installCalls {
+				logger.Info("Not switching Calls version: Calls was installed manually", mlog.String("calls_version", wanted))
+			}
+		}
+	}
+
+	plugins := make(chan *plugin.PrepackagedPlugin, len(allBuilds))
+	for _, b := range allBuilds {
+		strategy := installPluginLocallyOnlyIfNewOrUpgrade
+		install := true
+		if b.plugin.Manifest.Id == model.PluginIdCalls {
+			if b.plugin.Manifest != chosenCalls {
+				// Not the selected Calls bundle: neither installed nor listed.
+				continue
+			}
+			strategy, install = callsStrategy, installCalls
+		}
+
+		wg.Add(1)
+		go func(b *prepackagedBuild, strategy pluginInstallationStrategy, install bool) {
+			defer wg.Done()
+			if err := ch.installPrepackagedPlugin(logger, b, strategy, install); err != nil {
 				var appErr *model.AppError
 				if errors.As(err, &appErr) && appErr.Id == "app.plugin.skip_installation.app_error" {
 					return
 				}
-				logger.Error("Failed to install prepackaged plugin", mlog.String("bundle_path", psPath.bundlePath), mlog.Err(err))
+				logger.Error("Failed to install prepackaged plugin", mlog.String("bundle_path", b.path.bundlePath), mlog.Err(err))
 				return
 			}
 
-			plugins <- p
-		}(psPath)
+			plugins <- b.plugin
+		}(b, strategy, install)
 	}
 
 	wg.Wait()
@@ -1009,14 +1081,21 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	return nil
 }
 
-// processPrepackagedPlugin will return the prepackaged plugin metadata and will also
-// install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
-func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	logger := ch.srv.Log().With(
+// prepackagedBuild is a verified and extracted prepackaged plugin bundle, not yet installed.
+type prepackagedBuild struct {
+	path    *pluginSignaturePath
+	plugin  *plugin.PrepackagedPlugin
+	dir     string
+	cleanup func()
+}
+
+// buildPrepackagedPluginFromPath verifies and extracts a prepackaged bundle into a temporary
+// directory removed by the returned build's cleanup.
+func (ch *Channels) buildPrepackagedPluginFromPath(logger *mlog.Logger, pluginPath *pluginSignaturePath) (*prepackagedBuild, error) {
+	logger = logger.With(
 		mlog.String("bundle_path", pluginPath.bundlePath),
 		mlog.String("signature_path", pluginPath.signaturePath),
 	)
-
 	logger.Info("Processing prepackaged plugin")
 
 	fileReader, err := os.Open(pluginPath.bundlePath)
@@ -1029,33 +1108,52 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
-	defer os.RemoveAll(tmpDir)
 
 	plugin, pluginDir, err := ch.buildPrepackagedPlugin(logger, pluginPath, fileReader, tmpDir)
 	if err != nil {
+		os.RemoveAll(tmpDir)
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.bundlePath)
 	}
 
-	logger = logger.With(mlog.String("plugin_id", plugin.Manifest.Id))
+	return &prepackagedBuild{
+		path:    pluginPath,
+		plugin:  plugin,
+		dir:     pluginDir,
+		cleanup: func() { os.RemoveAll(tmpDir) },
+	}, nil
+}
+
+// installPrepackagedPlugin installs a built prepackaged plugin if it had been previously enabled
+// and AutomaticPrepackagedPlugins is true. install is false to skip installation outright.
+func (ch *Channels) installPrepackagedPlugin(logger *mlog.Logger, b *prepackagedBuild, strategy pluginInstallationStrategy, install bool) error {
+	plugin := b.plugin
+	logger = logger.With(
+		mlog.String("bundle_path", b.path.bundlePath),
+		mlog.String("plugin_id", plugin.Manifest.Id),
+	)
+
+	if !install {
+		return nil
+	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		logger.Info("Not installing prepackaged plugin: automatic prepackaged plugins disabled")
-		return plugin, nil
+		return nil
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
 		logger.Info("Not installing prepackaged plugin: not previously enabled")
-		return plugin, nil
+		return nil
 	}
 
-	if _, err := ch.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
-		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.bundlePath)
+	if _, err := ch.installExtractedPlugin(plugin.Manifest, b.dir, strategy); err != nil && err.Id != "app.plugin.skip_installation.app_error" {
+		return errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", b.path.bundlePath)
 	}
 
-	return plugin, nil
+	return nil
 }
 
 var transitionallyPrepackagedPlugins = []string{

@@ -5507,3 +5507,33 @@ func TestElasticsearchSettingsIsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestPluginSettingsCallsVersion(t *testing.T) {
+	t.Run("defaults to empty", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.PluginSettings.CallsVersion)
+		assert.Equal(t, "", *cfg.PluginSettings.CallsVersion)
+		assert.Nil(t, cfg.IsValid())
+	})
+
+	for _, v := range []string{PluginCallsVersionV1, PluginCallsVersionV2} {
+		t.Run("valid "+v, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			cfg.PluginSettings.CallsVersion = &v
+			assert.Nil(t, cfg.IsValid())
+		})
+	}
+
+	t.Run("invalid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.PluginSettings.CallsVersion = newV3()
+		appErr := cfg.IsValid()
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.config.is_valid.plugin_settings.calls_version.app_error", appErr.Id)
+	})
+}
+
+func newV3() *string { v := "v3"; return &v }
