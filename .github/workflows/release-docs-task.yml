@@ -28,10 +28,18 @@ name: Release Docs Task
 #   RELEASE_AGENT_CALENDAR_ICS_URL  (secret or variable) Release Dates calendar, shared with the release agent
 #   ANTHROPIC_API_KEY               (secret)   highlights, the breaking-change review and notices, blog and
 #                                              email drafts, dot release bullets for PRs with no release note
-#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): Jira versions and epics
-#                                              for drafts and release-highlights, the ticket labels that
-#                                              mark security fixes and breaking changes, and the release
-#                                              docs PR's accessibility tickets (listed on Hub only)
+#   RELEASE_AGENT_JIRA_EMAIL        (variable) and RELEASE_AGENT_JIRA_TOKEN (secret): a read-only Jira
+#                                              account, used for every Jira and Confluence read: versions
+#                                              and epics for drafts and release-highlights, the ticket
+#                                              labels that mark security fixes and breaking changes, the
+#                                              release docs PR's accessibility tickets (listed on Hub only),
+#                                              the holidays page, and esr-comms's check for an existing ticket
+#   RELEASE_AGENT_JIRA_WRITE_EMAIL  (variable) and RELEASE_AGENT_JIRA_WRITE_TOKEN (secret): a Jira account
+#                                              that can create tickets, used only to create esr-comms's
+#                                              feature-flag removal ticket when an ESR's support ends. Passed
+#                                              to live esr-comms runs alone; never to a dry run or another
+#                                              task. Unset: the ticket text is posted in Hub for the release
+#                                              manager to file by hand, naming these settings
 #   CHANGELOG_READ_CLIENT_ID        (variable) and CHANGELOG_READ_PRIVATE_KEY (secret): the changelog
 #                                              read app. Every read uses its token (it also reads
 #                                              mattermost/enterprise PRs for the drafts). Without it, a
@@ -240,6 +248,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
           JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
+          # The account that creates tickets: only esr-comms creates one, and only in a live run.
+          # Every other task and every dry run gets an empty value.
+          JIRA_WRITE_EMAIL: ${{ inputs.task == 'esr-comms' && steps.resolve.outputs.mode == 'live' && vars.RELEASE_AGENT_JIRA_WRITE_EMAIL || '' }}
+          JIRA_WRITE_TOKEN: ${{ inputs.task == 'esr-comms' && steps.resolve.outputs.mode == 'live' && secrets.RELEASE_AGENT_JIRA_WRITE_TOKEN || '' }}
           JIRA_FIX_VERSION: ${{ inputs.jira_fix_version }}
           SEVERITY: ${{ inputs.severity }}
           CONFIRMED: ${{ inputs.confirmed }}

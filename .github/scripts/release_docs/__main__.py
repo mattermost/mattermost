@@ -683,8 +683,30 @@ def mobile_esr_pr(item, env: dict, gh, mobile_gh, hub, live: bool, result: Resul
     return publish.apply(mobile_gh or gh, built, target, live)
 
 
+def file_by_hand(hub, env: dict, item, tickets: list, today: date, result: Result) -> str:
+    """Without the Jira write token, the tickets go to the release manager in Hub to file by hand, once."""
+    channel = hublib.release_channel(hub, item.old) if hub else None
+    channel_id = hublib.review_channel_id(env, True, channel)
+    manager = hublib.release_manager(hub, hublib.release_run(hub, channel)) if hub else None
+    text = "\n\n".join(f"**Summary:** {summary}\n**Project:** {jira.PROJECT}, **type:** Task, **label:** "
+                        f"`{esr.JIRA_LABEL}`\n**Description:** {description}" for summary, description in tickets)
+    message = hublib.addressed(manager, f"please file this Jira ticket by hand: {jira.WRITE_SETTINGS} are not set, so "
+                                        f"the release agent can't create it. Set them to have it filed for you.\n\n{text}")
+    posted = report_in_hub(hub, channel_id, f"release-docs:esr-comms:by-hand:{item.old.short}", message, True)
+    if not hub or not channel_id:
+        result.todo(f"{jira.WRITE_SETTINGS} are not set, so the feature-flag removal ticket was not created, and it "
+                    "could not be posted in Hub either: " + (hublib.NO_REVIEW_CHANNEL if hub else "no Hub token "
+                                                             "(RELEASE_AGENT_MM_TOKEN)"))
+    else:
+        result.notes.append(f"{jira.WRITE_SETTINGS} are not set, so the feature-flag removal ticket was posted in Hub "
+                            "for the release manager to file by hand.")
+    return f"{len(tickets)} Jira ticket(s) to file by hand: {posted}"
+
+
 def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: date, live: bool,
-                  mobile_gh=None) -> Result:
+                  mobile_gh=None, jira_writer=None) -> Result:
+    """``jira_client`` reads (it finds an existing ticket); ``jira_writer``, the separate write
+    account, only creates the feature-flag removal ticket, in a live run."""
     result = Result(esr.TASK, raw)
     server_releases = gh.file(SERVER_REPO, release_docs_pr.SERVER_RELEASES, gh.default_branch(SERVER_REPO)) or ""
     all_esrs = esr.esrs(env.get("ESR_VERSIONS", ""), server_releases)
@@ -716,22 +738,31 @@ def run_esr_comms(raw: str, env: dict, gh, hub, jira_client, holidays, today: da
         if not esr.tickets(item, stage):
             continue
         if jira_client is None:
-            result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so no Jira tickets were created")
+            result.todo("RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN are not set, so Jira can't be checked for "
+                        "the ticket and none was created")
             continue
-        made, found = [], []
+        made, found, would, by_hand = [], [], [], []
         for summary, description in esr.tickets(item, stage):
-            key = jira_client.find_by_summary(summary, esr.JIRA_LABEL)
+            key = jira_client.find_by_summary(summary, esr.JIRA_LABEL)  # a read: the read-only client
             if key:
                 found.append((key, summary))
-            elif live:
-                made.append((jira_client.create_issue(summary, description, [esr.JIRA_LABEL]), summary))
+            elif not live:
+                would.append((summary, description))
+            elif jira_writer is not None:
+                made.append((jira_writer.create_issue(summary, description, [esr.JIRA_LABEL]), summary))
             else:
-                made.append(("", summary))
-        lines.append(f"- {label}: {len(made)} Jira ticket(s) {'created' if live else 'would be created'}, "
-                     f"{len(found)} already there (keys are posted in Hub only)")
-        hub_lines += [f"- {'Created' if live else 'Would create'} [{key}]({jira_client.browse_url(key)}): {summary}"
-                      if key else f"- Would create: {summary}" for key, summary in made]
+                by_hand.append((summary, description))
+        lines.append(f"- {label}: {len(made)} Jira ticket(s) created, {len(found)} already there"
+                     + (f", {len(would)} would be created" if would else "")
+                     + (f", {len(by_hand)} to file by hand ({jira.WRITE_SETTINGS} not set)" if by_hand else "")
+                     + " (keys are posted in Hub only)")
+        # The ticket text names no Jira key or private detail, so a dry run shows it here.
+        lines += [f"  - Would create: {summary} (label {esr.JIRA_LABEL}): {description}" for summary, description in would]
+        hub_lines += [f"- Created [{key}]({jira_client.browse_url(key)}): {summary}" for key, summary in made]
+        hub_lines += [f"- Would create: {summary}" for summary, _ in would]
         hub_lines += [f"- Already there: [{key}]({jira_client.browse_url(key)}): {summary}" for key, summary in found]
+        if by_hand:
+            lines.append(f"- {label}: {file_by_hand(hub, env, item, by_hand, today, result)}")
     if hub_lines:
         message = "ESR comms: Jira tickets\n" + "\n".join(hub_lines)
         marker = f"release-docs:esr-comms:{raw}:{today}"
@@ -754,7 +785,9 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
         if task == esr.TASK:
             mobile_gh = GitHub(env.get("READ_TOKEN") or env.get("GITHUB_TOKEN", ""), write_token=env["MOBILE_WRITE_TOKEN"],
                                committer=getattr(gh, "committer", None)) if env.get("MOBILE_WRITE_TOKEN") else None
-            result = run_esr_comms(raw, env, gh, hub, jira_client, holidays, today, live, mobile_gh)
+            # The write account is never used in a dry run, whatever the environment holds.
+            jira_writer = jira.write_from_env(env) if live else None
+            result = run_esr_comms(raw, env, gh, hub, jira_client, holidays, today, live, mobile_gh, jira_writer)
             if holidays_problem and raw == SCHEDULED:
                 result.todo(holidays_problem)
             return Run(result, "ESR comms." if result.text else "Nothing done.")

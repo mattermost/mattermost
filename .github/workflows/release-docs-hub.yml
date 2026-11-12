@@ -22,7 +22,10 @@ name: Release Docs - Hub and Calendar
 #                   next working day): one draft docs PR. Three months before, also a draft PR in
 #                   mattermost/mattermost-mobile making the new ESR the minimum supported server
 #                   (as mattermost-mobile#9954); when support ends, a Jira ticket for removing
-#                   feature flags. The blog and email section is in the drafts task.
+#                   feature flags, created with RELEASE_AGENT_JIRA_WRITE_EMAIL / _TOKEN (live runs only;
+#                   unset, the ticket is posted in Hub to file by hand). Every Jira read uses
+#                   the read-only RELEASE_AGENT_JIRA_EMAIL / _TOKEN. The blog and email section is
+#                   in the drafts task.
 #   feature-review  The working day after Feature Complete until Release Day: the description of
 #                   the release's "Feature Ready Review" occurrence (after its Feature Complete,
 #                   before its Release Day) on the Release Dates calendar.

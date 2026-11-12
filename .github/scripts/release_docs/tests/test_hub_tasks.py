@@ -393,11 +393,52 @@ class EsrTest(unittest.TestCase):
         self.assertEqual([p["head"] for p in gh.pulls[esr.MOBILE_REPO]], ["release-agent/v12.4.0-before/mobile-esr"])
         self.assertEqual(gh.pulls[esr.MOBILE_REPO][0]["base"], "main")
         self.assertEqual(jira.writes, [])  # the mobile ESR prompt is a PR now, not a ticket
-        result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 5, 17), True, gh)
-        self.assertEqual([w[1] for w in jira.writes], ["Remove feature flags enabled up to v11.7 (v11.7 ESR out of support)"])
+        writer = FakeJira()
+        writer.issues = jira.issues  # the same Jira site, a different account
+        result = cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 5, 17), True, gh, writer)
+        self.assertEqual([w[1] for w in writer.writes], ["Remove feature flags enabled up to v11.7 (v11.7 ESR out of support)"])
+        self.assertEqual(jira.writes, [])  # the read account only reads
         self.assertNotIn("MM-9000", result.text)  # keys go to Hub only
         self.assertIn("MM-9000", hub.posts_in("review")[0]["message"])
         self.assertEqual(len(gh.pulls[esr.MOBILE_REPO]), 1)  # no mobile PR when support ends
+        cli.run_esr_comms(cli.SCHEDULED, env, gh, hub, jira, holidays(), date(2027, 5, 17), True, gh, writer)
+        self.assertEqual(len(writer.writes), 1)  # found with the read account, not created twice
+
+    def test_without_the_write_token_the_ticket_goes_to_the_release_manager_in_hub(self):
+        hub, jira = FakeHub([RELEASE_CHANNEL]), FakeJira()
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "REVIEW_CHANNEL_ID": "review", "ESR_STAGE": "ended"}
+        result = cli.run_esr_comms("v11.7", env, esr_github(), hub, jira, holidays(), date(2027, 5, 17), True, None, None)
+        self.assertEqual(jira.writes, [])
+        post, = [p for p in hub.posts_in("review") if "file this Jira ticket by hand" in p["message"]]
+        self.assertIn("RELEASE_AGENT_JIRA_WRITE_EMAIL / RELEASE_AGENT_JIRA_WRITE_TOKEN are not set", post["message"])
+        self.assertIn("**Summary:** Remove feature flags enabled up to v11.7 (v11.7 ESR out of support)", post["message"])
+        self.assertIn(f"**label:** `{esr.JIRA_LABEL}`", post["message"])
+        self.assertIn("1 to file by hand", result.text)
+        self.assertFalse([t for t in result.todos if "JIRA" in t])  # handed over in Hub, not a failure
+        cli.run_esr_comms("v11.7", env, esr_github(), hub, jira, holidays(), date(2027, 5, 17), True, None, None)
+        self.assertEqual(len([p for p in hub.posts_in("review") if "by hand" in p["message"]]), 1)  # posted once
+
+    def test_a_dry_run_never_uses_the_write_token_and_shows_the_ticket(self):
+        hub, jira, writer = FakeHub(), FakeJira(), FakeJira()
+        env = {"ESR_VERSIONS": ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "REVIEW_CHANNEL_ID": "review", "ESR_STAGE": "ended"}
+        result = cli.run_esr_comms("v11.7", env, esr_github(), hub, jira, holidays(), date(2027, 5, 17), False, None, writer)
+        self.assertEqual((jira.writes, writer.writes, hub.writes), ([], [], []))
+        self.assertIn("  - Would create: Remove feature flags enabled up to v11.7 (v11.7 ESR out of support) (label "
+                      f"{esr.JIRA_LABEL}): Server v11.7 ESR went out of support on", result.text)
+
+    def test_only_a_live_esr_comms_run_builds_the_write_client(self):
+        env = {"JIRA_EMAIL": "reader@x", "JIRA_TOKEN": "r", "JIRA_WRITE_EMAIL": "writer@x", "JIRA_WRITE_TOKEN": "w"}
+        self.assertEqual(cli.jira.from_env(env).auth, cli.jira.Jira("", "reader@x", "r").auth)  # reads: the read token
+        self.assertEqual(cli.jira.write_from_env(env).auth, cli.jira.Jira("", "writer@x", "w").auth)
+        self.assertIsNone(cli.jira.from_env({"JIRA_WRITE_EMAIL": "writer@x", "JIRA_WRITE_TOKEN": "w"}))
+        self.assertIsNone(cli.jira.write_from_env({"JIRA_EMAIL": "reader@x", "JIRA_TOKEN": "r"}))
+        for mode, expected in (("dry_run", False), ("live", True)):
+            with mock.patch.object(cli, "load_holidays", return_value=(None, None)), \
+                    mock.patch.object(cli, "run_esr_comms", return_value=Result(esr.TASK, "x")) as run, \
+                    mock.patch.object(cli.jira, "write_from_env", wraps=cli.jira.write_from_env) as build:
+                cli.run_hub_task(esr.TASK, "v11.7", {**env, "MODE": mode}, None, None, None, None)
+            self.assertEqual(build.called, expected)
+            self.assertEqual(run.call_args.args[-1] is not None, expected)
 
     def test_dry_run_writes_nothing(self):
         gh = esr_github()

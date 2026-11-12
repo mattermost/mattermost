@@ -66,11 +66,25 @@ class Jira:
         return f"{self.base_url}/issues/?" + urllib.parse.urlencode({"jql": jql})
 
 
+WRITE_SETTINGS = "RELEASE_AGENT_JIRA_WRITE_EMAIL / RELEASE_AGENT_JIRA_WRITE_TOKEN"
+
+
 def from_env(env: dict):
-    """A client from RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN, or None."""
+    """The read-only client, from RELEASE_AGENT_JIRA_EMAIL / RELEASE_AGENT_JIRA_TOKEN, or None.
+
+    Every Jira and Confluence read uses it; it never creates anything."""
     if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
         return None
     return Jira(env.get("JIRA_URL") or DEFAULT_URL, env["JIRA_EMAIL"], env["JIRA_TOKEN"])
+
+
+def write_from_env(env: dict):
+    """The client that creates tickets, from RELEASE_AGENT_JIRA_WRITE_EMAIL / RELEASE_AGENT_JIRA_WRITE_TOKEN,
+    or None. Only esr-comms's feature-flag removal ticket uses it, and only in a live run: the
+    workflow passes these settings to that task's live runs alone."""
+    if not (env.get("JIRA_WRITE_EMAIL") and env.get("JIRA_WRITE_TOKEN")):
+        return None
+    return Jira(env.get("JIRA_URL") or DEFAULT_URL, env["JIRA_WRITE_EMAIL"], env["JIRA_WRITE_TOKEN"])
 
 
 def epics(base_url: str, email: str, token: str, fix_version: str, opener=urllib.request.urlopen) -> list[dict]:
