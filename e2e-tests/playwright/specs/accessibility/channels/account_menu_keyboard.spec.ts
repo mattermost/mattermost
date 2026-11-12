@@ -19,6 +19,8 @@ test('MM-63451 should be able to navigate the account settings menu with the key
     // # Visit a default channel page
     await channelsPage.goto();
     await channelsPage.toBeVisible();
+    await page.waitForTimeout(100);
+    await page.getByRole('button', {name: 'probe'}).count();
 
     // # Click on the account menu button
     await channelsPage.globalHeader.accountMenuButton.click();
