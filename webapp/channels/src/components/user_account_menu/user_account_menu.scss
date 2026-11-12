@@ -93,6 +93,9 @@
 }
 
 .userAccountMenu_menuButton {
+    // The badge circle must match the header surface the avatar sits on
+    --status-badge-bg: var(--global-header-background);
+
     position: relative;
     display: flex;
     height: auto;
@@ -103,9 +106,6 @@
     border-radius: 4px;
     background: transparent;
     margin-inline-start: 8px;
-
-    // The badge circle must match the header surface the avatar sits on
-    --status-badge-bg: var(--global-header-background);
 
     &:hover, &[aria-expanded="true"] {
         --status-badge-bg: color-mix(in srgb, var(--global-header-text) 8%, var(--global-header-background));

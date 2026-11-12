@@ -28,6 +28,7 @@ type Props = {
     username?: string;
     overwriteIcon?: string;
     overwriteName?: string;
+
     /** @deprecated Compass StatusBadge is used for all surfaces; prop is ignored. */
     newStatusIcon?: boolean;
     statusClass?: string;
