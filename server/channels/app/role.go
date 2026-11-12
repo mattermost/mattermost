@@ -23,13 +23,10 @@ import (
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 	role, err := a.Srv().Store().Role().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetRole", "app.role.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	appErr := a.Srv().mergeChannelHigherScopedPermissions([]*model.Role{role})
@@ -57,13 +54,10 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 func (s *Server) GetRoleByName(rctx request.CTX, name string) (*model.Role, *model.AppError) {
 	role, nErr := s.Store().Role().GetByName(rctx, name)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			return nil, model.NewAppError("GetRoleByName", "app.role.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return nil, model.NewAppError("GetRoleByName", "app.role.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("GetRoleByName", "app.role.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	err := s.mergeChannelHigherScopedPermissions([]*model.Role{role})
@@ -95,13 +89,10 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 func (a *App) DeleteRole(id string) (*model.Role, *model.AppError) {
 	role, err := a.Srv().Store().Role().Delete(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("DeleteRole", "app.role.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("DeleteRole", "app.role.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("DeleteRole", "app.role.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return role, nil
 }
@@ -173,13 +164,10 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	var err error
 	role, err = a.Srv().Store().Role().Save(role)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateRole", "app.role.save.invalid_role.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateRole", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateRole", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return role, nil
@@ -188,13 +176,10 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	savedRole, err := a.Srv().Store().Role().Save(role)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateRole", "app.role.save.invalid_role.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateRole", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UpdateRole", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	builtInChannelRoles := []string{

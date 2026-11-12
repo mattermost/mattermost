@@ -6,17 +6,21 @@ package app
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -482,5 +486,69 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
 		appErr := th.App.sendUpdatedRoleEvent(role)
 		require.NotNil(t, appErr)
+	})
+}
+
+func TestRoleStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleMock := &mocks.RoleStore{}
+	mockStore.On("Role").Return(roleMock)
+
+	notFound := fmt.Errorf("query: %w", store.NewErrNotFound("Role", model.NewId()))
+	invalidInput := fmt.Errorf("query: %w", store.NewErrInvalidInput("Role", "Id", "x"))
+	plain := errors.New("db down")
+
+	type expectation struct {
+		id     string
+		status int
+	}
+	check := func(t *testing.T, appErr *model.AppError, expected expectation) {
+		t.Helper()
+		require.NotNil(t, appErr)
+		assert.Equal(t, expected.id, appErr.Id)
+		assert.Equal(t, expected.status, appErr.StatusCode)
+	}
+
+	t.Run("not found", func(t *testing.T) {
+		roleMock.On("Get", mock.Anything).Return(nil, notFound).Once()
+		_, appErr := th.App.GetRole(model.NewId())
+		check(t, appErr, expectation{"app.role.get.app_error", http.StatusNotFound})
+
+		roleMock.On("Get", mock.Anything).Return(nil, plain).Once()
+		_, appErr = th.App.GetRole(model.NewId())
+		check(t, appErr, expectation{"app.role.get.app_error", http.StatusInternalServerError})
+
+		roleMock.On("GetByName", mock.Anything, mock.Anything).Return(nil, notFound).Once()
+		_, appErr = th.App.GetRoleByName(th.Context, "role")
+		check(t, appErr, expectation{"app.role.get_by_name.app_error", http.StatusNotFound})
+
+		roleMock.On("GetByName", mock.Anything, mock.Anything).Return(nil, plain).Once()
+		_, appErr = th.App.GetRoleByName(th.Context, "role")
+		check(t, appErr, expectation{"app.role.get_by_name.app_error", http.StatusInternalServerError})
+
+		roleMock.On("Delete", mock.Anything).Return(nil, notFound).Once()
+		_, appErr = th.App.DeleteRole(model.NewId())
+		check(t, appErr, expectation{"app.role.get.app_error", http.StatusNotFound})
+
+		roleMock.On("Delete", mock.Anything).Return(nil, plain).Once()
+		_, appErr = th.App.DeleteRole(model.NewId())
+		check(t, appErr, expectation{"app.role.delete.app_error", http.StatusInternalServerError})
+	})
+
+	t.Run("invalid input", func(t *testing.T) {
+		roleMock.On("Save", mock.Anything).Return(nil, invalidInput).Twice()
+		_, appErr := th.App.CreateRole(&model.Role{})
+		check(t, appErr, expectation{"app.role.save.invalid_role.app_error", http.StatusBadRequest})
+		_, appErr = th.App.UpdateRole(&model.Role{})
+		check(t, appErr, expectation{"app.role.save.invalid_role.app_error", http.StatusBadRequest})
+
+		roleMock.On("Save", mock.Anything).Return(nil, plain).Twice()
+		_, appErr = th.App.CreateRole(&model.Role{})
+		check(t, appErr, expectation{"app.role.save.insert.app_error", http.StatusInternalServerError})
+		_, appErr = th.App.UpdateRole(&model.Role{})
+		check(t, appErr, expectation{"app.role.save.insert.app_error", http.StatusInternalServerError})
 	})
 }
