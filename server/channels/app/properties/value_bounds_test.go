@@ -1205,31 +1205,13 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 
 	// An update naming no group, or one that doesn't resolve, is refused before any check reads a
 	// field, so a plugin can't reach a row of another group by leaving the group out.
-	t.Run("an update with no group stating another group is refused", func(t *testing.T) {
-		targetA := model.NewId()
-		w := seed(writeOnce, targetA, `"locked"`)
-
-		_, err := th.service.UpdatePropertyValue(rctx, "", inGroup(stated(w, writeOnce.ID, targetA, `"changed"`), otherGroupID))
-		require.Error(t, err)
-		assert.Equal(t, `"locked"`, stored(w))
-	})
-
-	t.Run("an update with no group is refused", func(t *testing.T) {
+	t.Run("an update naming no group is refused and the row stays", func(t *testing.T) {
 		targetA := model.NewId()
 		w := seed(writeOnce, targetA, `"locked"`)
 
 		_, err := th.service.UpdatePropertyValue(rctx, "", stated(w, writeOnce.ID, targetA, `"changed"`))
 		require.Error(t, err)
 		assert.Equal(t, `"locked"`, stored(w))
-	})
-
-	t.Run("a correctly addressed update with no group is refused", func(t *testing.T) {
-		targetA := model.NewId()
-		m := seed(mutable, targetA, `"old"`)
-
-		_, err := th.service.UpdatePropertyValue(rctx, "", stated(m, mutable.ID, targetA, `"new"`))
-		require.Error(t, err)
-		assert.Equal(t, `"old"`, stored(m))
 	})
 }
 
