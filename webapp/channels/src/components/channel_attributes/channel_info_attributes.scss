@@ -76,7 +76,7 @@
     // Borderless inline chrome matching hierarchical-value-menu--inline so
     // select, multiselect, and graph attributes read as one family in this list.
     // min-height is a floor -- chips wrap and the trigger grows to fit them.
-    // Role is a div (not a button) so chip removes can be real <button>s.
+    // Role is a div (not a button) so AttributeChip removes can be real <button>s.
     &__valueTrigger {
         display: inline-flex;
         width: 100%;

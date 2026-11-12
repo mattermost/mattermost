@@ -1,13 +1,13 @@
 // Self-contained on purpose: Account Settings renders this widget and must not
 // depend on the admin ABAC stylesheets. The chip rules mirror
 // table_editor/selector_menus.scss rather than importing it.
-// The trigger is a Compass-like input (same 1px / 4px / 40px recipe as ranked
-// CPA and Compass Input), not the borderless policy-table cell.
+// The base trigger is the bordered `policy` one; `--input` overrides it with
+// the Compass multiselect look and `--inline` makes it borderless.
 .hierarchical-value-menu {
     width: 100%;
 
-    // Role is a div (not a button) so chip removes can be real <button>s without
-    // nesting interactive controls.
+    // Role is a div (not a button) so chip removes (Compass Chip in `input`,
+    // AttributeChip in `inline`/`policy`) can be real <button>s.
     &__button {
         display: flex;
         width: 100%;
@@ -54,7 +54,8 @@
     }
 
     // Channel-info chrome: match ChannelInfoAttributes__valueTrigger (borderless,
-    // grey wash on hover/open). Form / Account Settings keep the input trigger above.
+    // grey wash on hover/open). Policy keeps the bordered base trigger above;
+    // input is the Compass-style block below.
     &--inline {
         width: auto;
         min-width: 0;
@@ -140,6 +141,94 @@
         }
     }
 
+    // Graph attribute field: mirrors the Compass Combobox multiselect (inset
+    // box-shadow instead of a border, 10px / 16px padding, 8px around chips).
+    &--input {
+        .hierarchical-value-menu__button {
+            padding: var(--spacing-s) var(--spacing-l);
+            border: 0;
+            box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16);
+            transition: box-shadow var(--duration-quick) var(--ease-transition);
+
+            &.hierarchical-value-menu__button--has-chips {
+                padding-block: var(--spacing-xs);
+                padding-inline-start: var(--spacing-xs);
+            }
+
+            &:hover:not(.disabled, [aria-disabled='true'], [aria-expanded='true'], :focus-visible, .hierarchical-value-menu__button--invalid) {
+                box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.24);
+            }
+
+            &[aria-expanded='true'],
+            &:focus-visible {
+                box-shadow:
+                    inset 0 0 0 1px var(--focus-ring-color),
+                    0 0 0 1px var(--focus-ring-color);
+            }
+
+            &.hierarchical-value-menu__button--invalid {
+                box-shadow: inset 0 0 0 1px var(--error-text);
+
+                &[aria-expanded='true'],
+                &:focus-visible {
+                    box-shadow:
+                        inset 0 0 0 1px var(--error-text),
+                        0 0 0 1px var(--error-text);
+                }
+            }
+
+            &.disabled,
+            &[aria-disabled='true'] {
+                background: var(--center-channel-bg);
+                opacity: 0.56;
+            }
+        }
+
+        .hierarchical-value-menu__button-inner {
+            gap: var(--spacing-s);
+        }
+
+        .hierarchical-value-menu__placeholder {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-100);
+            font-weight: var(--font-weight-regular);
+            line-height: var(--line-height-100);
+        }
+
+        // The -1px block margin offsets the chip's 1px transparent border so a
+        // single row of chips keeps the field at 40px.
+        .hierarchical-value-menu__chips {
+            min-width: 0;
+            margin: -1px 0;
+            gap: var(--spacing-xxs);
+        }
+
+        .hierarchical-value-menu__chip {
+            margin: 0;
+        }
+
+        .hierarchical-value-menu__chip--pending .hierarchical-value-menu__chip-value {
+            display: inline-block;
+            width: 64px;
+            height: 12px;
+            border-radius: var(--radius-xs);
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: transparent;
+            vertical-align: middle;
+        }
+
+        .hierarchical-value-menu__chip--unavailable .hierarchical-value-menu__chip-value {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-style: italic;
+        }
+
+        // The global .a11y--focused box-shadow would double up Compass's own
+        // chip focus ring.
+        [data-chip].a11y--focused {
+            box-shadow: none;
+        }
+    }
+
     &__button-inner {
         display: flex;
         width: 100%;
@@ -172,6 +261,27 @@
 
     &__chip {
         margin: 2px;
+    }
+
+    // Rendered by the input variant only; matches the Combobox trailing icon.
+    &__caret {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        margin-inline-end: var(--spacing-xxxs);
+        pointer-events: none;
+        transition: transform var(--duration-quick) var(--ease-transition);
+
+        .hierarchical-value-menu__button[aria-expanded='true'] & {
+            transform: rotate(180deg);
+        }
+
+        svg {
+            width: var(--icon-size-16);
+            height: var(--icon-size-16);
+        }
     }
 
     // Cap the open list at 320px so long option names ellipsize instead of
