@@ -56,6 +56,10 @@ export default defineConfig([
         },
         rules: {
             'no-only-tests/no-only-tests': ['error', {focus: ['only', 'skip']}],
+            'no-restricted-properties': ['error', ...['toMatchSnapshot', 'toMatchInlineSnapshot', 'toThrowErrorMatchingSnapshot', 'toThrowErrorMatchingInlineSnapshot'].map((property) => ({
+                property,
+                message: "Don't use snapshot tests. Assert explicitly on what should be rendered instead.",
+            }))],
         },
     },
     {
