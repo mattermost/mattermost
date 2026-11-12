@@ -360,6 +360,8 @@ export default function UserAttributeField({
                         buttonDataTestId={`cpa-graph-select-${field.id}`}
                         placeholder={intl.formatMessage(messages.selectOptions)}
                         ariaLabel={fieldLabel}
+                        invalid={Boolean(error)}
+                        ariaDescribedBy={describedErrorId}
                     />
                 ),
             };

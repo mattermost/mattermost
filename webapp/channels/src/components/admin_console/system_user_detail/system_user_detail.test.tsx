@@ -1409,6 +1409,37 @@ describe('SystemUserDetail', () => {
                 expect(screen.getByRole('button', {name: 'department'})).toBe(trigger());
             });
 
+            test('G23: marks the picker invalid and links it to the error when a required graph field is cleared', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(
+                    buildGraphField({options: REGIME_1, required: true} as Partial<UserPropertyField['attrs']>),
+                    ['opt-1'],
+                );
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+                expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).not.toHaveAttribute('aria-describedby');
+
+                await userEvent.click(chipRemove(trigger()));
+
+                const alert = within(fieldContainer()).getByRole('alert');
+                expect(alert).toHaveTextContent('This attribute is required.');
+                expect(alert).toHaveAttribute('id', 'cpa-1-error');
+                expect(trigger()).toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).toHaveAttribute('aria-describedby', 'cpa-1-error');
+                expect(trigger()).not.toHaveAttribute('aria-invalid');
+
+                // Closed before the assertions: an open popover aria-hides the alert.
+                await openMenu();
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Alpha'}));
+                await closeMenu();
+
+                expect(within(fieldContainer()).queryByRole('alert')).not.toBeInTheDocument();
+                expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).not.toHaveAttribute('aria-describedby');
+            });
+
             test('G19: says "Value unavailable" on both surfaces when the walk failed', async () => {
                 // The convergence, asserted from both ends. A failed read knows
                 // nothing about these ids, so neither the chip nor the change
