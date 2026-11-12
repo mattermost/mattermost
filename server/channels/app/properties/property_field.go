@@ -739,6 +739,9 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 	return len(children) > 0, err
 }
 
+// childFieldPageSize is the page size of childFieldsWithParentRule's search. It is not a limit: every page is read.
+const childFieldPageSize = 100
+
 // childFieldsWithParentRule returns the fields on field's template, one level
 // below field's object type, that carry a parent rule.
 func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *model.PropertyField) ([]*model.PropertyField, error) {
@@ -752,21 +755,33 @@ func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *mo
 		return nil, nil
 	}
 
-	// Capped at one page: a template with more than 100 child fields could slip past this guard,
-	// and writes then still refuse as broken data. Page with a cursor if that ever matters.
-	children, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
-		ObjectTypes:   childTypes,
-		LinkedFieldID: field.LinkSourceID(),
-		PerPage:       100,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return slices.DeleteFunc(children, func(c *model.PropertyField) bool {
-		return !slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
-			return r.Reference == model.PropertyBoundsReferenceParent
+	// Every page is read: a child that was missed would go unchecked by every caller (the container
+	// check, the field-save checks, the delete and unlink guards).
+	var ruled []*model.PropertyField
+	var cursor model.PropertyFieldSearchCursor
+	for {
+		page, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+			ObjectTypes:   childTypes,
+			LinkedFieldID: field.LinkSourceID(),
+			PerPage:       childFieldPageSize,
+			Cursor:        cursor,
 		})
-	}), nil
+		if err != nil {
+			return nil, err
+		}
+		for _, c := range page {
+			if slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+				return r.Reference == model.PropertyBoundsReferenceParent
+			}) {
+				ruled = append(ruled, c)
+			}
+		}
+		if len(page) < childFieldPageSize {
+			return ruled, nil
+		}
+		last := page[len(page)-1]
+		cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+	}
 }
 
 // enforceSingleParentField refuses a second parent-side field on a template

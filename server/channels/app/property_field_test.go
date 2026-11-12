@@ -870,7 +870,7 @@ func TestPublishPropertyFieldEvent_OptionsWithheld(t *testing.T) {
 
 // TestPublishPropertyFieldEvent_BoundsWithheld covers the bounds and mutability
 // a field broadcast carries: neither, because the event reaches every connected
-// client, v2 and v3 alike, and a v3 client reads the field back for them.
+// client, v2 included, and has no caller to shape the payload for.
 func TestPublishPropertyFieldEvent_BoundsWithheld(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

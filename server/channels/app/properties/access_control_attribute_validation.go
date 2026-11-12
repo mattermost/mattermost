@@ -17,7 +17,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var (
@@ -34,12 +33,6 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 // This avoids a circular dependency between the properties and app packages,
 // the same way PermissionChecker does.
 type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
-
-// PostChannelResolver returns the ID of the channel a post is in, so a parent
-// rule on a post field can find the channel whose value it compares against.
-// This avoids a circular dependency between the properties and app packages,
-// the same way DirectChannelChecker does.
-type PostChannelResolver func(rctx request.CTX, postID string) (string, error)
 
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
@@ -86,11 +79,6 @@ type RequiredAttributeEnforcementProvider func() bool
 // like RequiredAttributeEnforcementProvider.
 type OpenIDAttributeSyncProvider func() bool
 
-// PropertyFieldBoundsProvider reports whether the PropertyFieldBounds flag is
-// on, which lets a field gain a bounds rule or a write_once lock. Backed by a
-// closure over live config, like RequiredAttributeEnforcementProvider.
-type PropertyFieldBoundsProvider func() bool
-
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
 	propertyService              *PropertyService
@@ -98,11 +86,8 @@ type AccessControlAttributeValidationHook struct {
 	permissionChecker            PermissionChecker
 	pluginChecker                PluginChecker
 	directChannelChecker         DirectChannelChecker
-	postChannelResolver          PostChannelResolver
 	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 	openIDAttributeSync          OpenIDAttributeSyncProvider
-	propertyFieldBounds          PropertyFieldBoundsProvider
-	valueAudit                   *PropertyValueAuditHook
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -124,9 +109,6 @@ type AccessControlAttributeValidationHookConfig struct {
 	// DirectChannelChecker reports whether a channel is a DM or GM. Without
 	// it, refuseDirectChannelValueWrite does not run at all.
 	DirectChannelChecker DirectChannelChecker
-	// PostChannelResolver returns the channel a post is in. Without it, a
-	// parent rule on a post field refuses every write.
-	PostChannelResolver PostChannelResolver
 	// RequiredAttributeEnforcement reports whether required-attribute
 	// enforcement is active for channel-object-type fields. A nil provider
 	// defaults to enforced. Applies uniformly to every required channel
@@ -138,13 +120,6 @@ type AccessControlAttributeValidationHookConfig struct {
 	// false, a new or changed openid link is refused; an existing one rides
 	// along untouched.
 	OpenIDAttributeSync OpenIDAttributeSyncProvider
-	// PropertyFieldBounds reports whether a field may gain a bounds rule or a
-	// write_once lock. A nil provider defaults to off.
-	PropertyFieldBounds PropertyFieldBoundsProvider
-	// ValueAudit receives a record for each value write a bounds rule or
-	// mutability refuses, or would refuse without Enterprise Advanced. Without
-	// it nothing is audited.
-	ValueAudit *PropertyValueAuditHook
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -160,11 +135,8 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		permissionChecker:            cfg.PermissionChecker,
 		pluginChecker:                cfg.PluginChecker,
 		directChannelChecker:         cfg.DirectChannelChecker,
-		postChannelResolver:          cfg.PostChannelResolver,
 		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 		openIDAttributeSync:          cfg.OpenIDAttributeSync,
-		propertyFieldBounds:          cfg.PropertyFieldBounds,
-		valueAudit:                   cfg.ValueAudit,
 	}
 }
 
@@ -184,14 +156,6 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 // OpenID Connect claims. A nil provider defaults to enabled.
 func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
 	return h.openIDAttributeSync == nil || h.openIDAttributeSync()
-}
-
-// propertyFieldBoundsEnabled reports whether the PropertyFieldBounds flag is on.
-// A nil provider means off, unlike openIDAttributeSyncEnabled: this flag defaults
-// off and gates new protections, so a hook built without a provider must not
-// quietly let rules in.
-func (h *AccessControlAttributeValidationHook) propertyFieldBoundsEnabled() bool {
-	return h.propertyFieldBounds != nil && h.propertyFieldBounds()
 }
 
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
@@ -256,12 +220,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		}
 	}
 	if err := h.validateSyncSources(field, existing); err != nil {
-		return err
-	}
-	if err := refuseSetOnCreate(field); err != nil {
-		return err
-	}
-	if err := h.validateBoundsChange(field, existing); err != nil {
 		return err
 	}
 
@@ -1166,39 +1124,6 @@ func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rct
 	return nil
 }
 
-// refuseMisaddressedUpdate refuses an update whose ID names a row of another group, field or
-// target than the value states. The store matches rows by ID alone, while every check here reads
-// the stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
-// mutable field, or by stating an unmanaged group that validateValues then skips. An empty
-// groupID is covered too: the store's update drops its group filter then, so it can reach a row
-// of any group. An ID with no row is left to the store, which fails it as not found.
-func (h *AccessControlAttributeValidationHook) refuseMisaddressedUpdate(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
-	// An empty ID list would search the whole group.
-	if len(values) == 0 || (groupID != "" && !h.isGroupManaged(groupID)) {
-		return nil
-	}
-
-	ids := make([]string, 0, len(values))
-	for _, v := range values {
-		ids = append(ids, v.ID)
-	}
-	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{IDs: ids, IncludeDeleted: true, PerPage: len(ids)})
-	if err != nil {
-		return fmt.Errorf("failed to read the rows named by the update: %w", err)
-	}
-	rowByID := make(map[string]*model.PropertyValue, len(rows))
-	for _, row := range rows {
-		rowByID[row.ID] = row
-	}
-	for _, v := range values {
-		row, ok := rowByID[v.ID]
-		if ok && (row.GroupID != v.GroupID || row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
-			return fmt.Errorf("value %s: names a row of another group, field or target: %w", v.ID, ErrInvalidValue)
-		}
-	}
-	return nil
-}
-
 func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
@@ -1305,10 +1230,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	if err := h.validateChangePolicy(rctx, groupID, values, fieldMap); err != nil {
-		return err
-	}
-	return h.enforceBounds(rctx, values, fieldMap)
+	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,
@@ -1341,7 +1263,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.propertyService.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -1491,59 +1413,6 @@ func (h *AccessControlAttributeValidationHook) validateSyncSources(field, existi
 	return nil
 }
 
-// refuseSetOnCreate refuses a field whose mutability is set_on_create, flag on or
-// off: that lock allows a write only from the request that creates the object, and
-// no write path checks that, so a field must not carry a lock that isn't enforced.
-// TODO: remove once writes enforce set_on_create.
-func refuseSetOnCreate(field *model.PropertyField) error {
-	if field.Mutability != model.PropertyFieldMutabilitySetOnCreate {
-		return nil
-	}
-	details := fmt.Sprintf("field %s: set_on_create mutability is not supported yet", field.ID)
-	return model.NewAppError("UpsertPropertyField", "app.property_field.set_on_create_unsupported.app_error", nil, details, http.StatusBadRequest)
-}
-
-// validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once. With the PropertyFieldBounds flag off it is refused whatever
-// the license; with the flag on it is refused unless the server is licensed for
-// Enterprise Advanced. Rules and locks already on the field ride along, and
-// removing them is always allowed. Unstated bounds (nil) and mutability ("") add
-// nothing; the update path fills them in from the stored field. This hook manages
-// only the access_control group, the one v3 group that can carry bounds, so every
-// field that can gain them passes through here.
-func (h *AccessControlAttributeValidationHook) validateBoundsChange(field, existing *model.PropertyField) error {
-	var prevBounds model.PropertyBounds
-	prevMutability := model.PropertyFieldMutabilityMutable
-	if existing != nil {
-		prevBounds = existing.Bounds
-		prevMutability = existing.Mutability.OrMutable()
-	}
-
-	var adding string
-	for _, rule := range field.Bounds {
-		if !slices.Contains(prevBounds, rule) {
-			adding = fmt.Sprintf("add the bounds rule %s %s", rule.Operator, rule.Reference)
-			break
-		}
-	}
-	if adding == "" && field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		adding = fmt.Sprintf("make the field %s", field.Mutability)
-	}
-	if adding == "" {
-		return nil
-	}
-
-	if !h.propertyFieldBoundsEnabled() {
-		details := fmt.Sprintf("field %s: cannot %s while the PropertyFieldBounds feature flag is off", field.ID, adding)
-		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
-	}
-	if !h.propertyService.boundsEnforced() {
-		details := fmt.Sprintf("field %s: cannot %s without an Enterprise Advanced license", field.ID, adding)
-		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_license.app_error", nil, details, http.StatusNotImplemented)
-	}
-	return nil
-}
-
 func newRequiredAttrDisabledError(field *model.PropertyField) error {
 	details := fmt.Sprintf("field %s: cannot mark required while required-attribute enforcement is disabled", field.ID)
 	return model.NewAppError("UpsertPropertyField", "app.property_field.required_disabled.app_error", nil, details, http.StatusBadRequest)
@@ -1551,7 +1420,7 @@ func newRequiredAttrDisabledError(field *model.PropertyField) error {
 
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1569,7 +1438,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.C
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
+		values, err := ps.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1618,20 +1487,14 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyValues(rctx requ
 	return values, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
-	if err := h.refuseMisaddressedUpdate(rctx, groupID, []*model.PropertyValue{value}); err != nil {
-		return nil, err
-	}
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValue(rctx request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
 	return value, nil
 }
 
-func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	if err := h.refuseMisaddressedUpdate(rctx, groupID, values); err != nil {
-		return nil, err
-	}
+func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(rctx, values); err != nil {
 		return nil, err
 	}
@@ -1642,88 +1505,31 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 // change_policy: a delete is indistinguishable from a clear, which every
 // non-"any" policy already refuses on the upsert path. Without this, deleting a
 // locked value and writing a fresh one would launder it past its policy.
-//
-// A delete naming no group (plugins pass "") is judged by the row's own group.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
-	if groupID != "" && !h.isGroupManaged(groupID) {
-		return nil
-	}
-
-	// Read from master: a replica error or lag must not let a locked value be deleted.
-	master := store.RequestContextWithMaster(rctx)
-	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, PerPage: 1})
-	if err != nil {
-		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
-	}
-	// Nothing to enforce against a value that cannot be found; the delete
-	// itself will fail downstream with the appropriate not-found error.
-	if len(rows) == 0 {
-		return nil
-	}
-	value := rows[0]
-	groupID = value.GroupID
 	if !h.isGroupManaged(groupID) {
 		return nil
 	}
 
+	value, err := h.propertyService.getPropertyValue(groupID, id)
+	if err != nil {
+		// Nothing to enforce against a value that cannot be found; the delete
+		// itself will fail downstream with the appropriate not-found error.
+		return nil
+	}
 	// A delete is a clear, so a participant must not be able to use it to strip
 	// a DM/GM marking that they could not have written in the first place.
 	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
 		return dcErr
 	}
-	if err := h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value}); err != nil {
-		return err
-	}
-	// Last, so a bounds_not_enforced audit record only follows a delete nothing else refused.
-	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
-	// letting a null row go would let it race a first write and make a second "first" write possible.
-	return h.refuseLockedFieldClear(master, groupID, value.FieldID, value)
-}
-
-// PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
-// is a bulk clear that can't be made conditional on each value, so it is refused whether or not
-// any value is set. With no group named it is judged by the field's own group.
-func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
-	master := store.RequestContextWithMaster(rctx)
-	if groupID == "" {
-		fields, err := h.propertyService.getPropertyFields(master, "", []string{fieldID})
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil
-		}
-		if err != nil {
-			return fmt.Errorf("failed to read field %s before clearing its values: %w", fieldID, err)
-		}
-		groupID = fields[0].GroupID
-	}
-	if !h.isGroupManaged(groupID) {
-		return nil
-	}
-	return h.refuseLockedFieldClear(master, groupID, fieldID, nil)
+	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
 // PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
-// (e.g. via the plugin API). Locked values are protected for every target type; the
-// required and change_policy checks stay channel-only -- see validateChangePolicy for why.
-// With no group named, every managed group is checked, since the delete reaches all of them.
+// (e.g. via the plugin API). Other target types are untouched -- see
+// validateChangePolicy for why enforcement is scoped to channels.
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if groupID != "" {
-		if !h.isGroupManaged(groupID) {
-			return nil
-		}
-		return h.preDeleteValuesForTargetInGroup(rctx, groupID, targetType, targetID)
-	}
-	// Sorted so that which refusal a caller sees doesn't depend on map order.
-	for _, g := range slices.Sorted(maps.Keys(h.managedGroupIDs)) {
-		if err := h.preDeleteValuesForTargetInGroup(rctx, g, targetType, targetID); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(rctx request.CTX, groupID string, targetType string, targetID string) error {
-	if targetType != model.PropertyValueTargetTypeChannel {
-		return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
+	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
+		return nil
 	}
 	// Checked against a synthetic value so a refusal costs no value load; the
 	// rule only reads TargetType and TargetID.
@@ -1733,15 +1539,11 @@ func (h *AccessControlAttributeValidationHook) preDeleteValuesForTargetInGroup(r
 	}}); err != nil {
 		return err
 	}
-	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
+	values, err := h.propertyService.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}
-	if err := h.refuseGovernedDelete(rctx, groupID, values); err != nil {
-		return err
-	}
-	// Last, so a bounds_not_enforced audit record only follows a delete nothing else refused.
-	return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
+	return h.refuseGovernedDelete(rctx, groupID, values)
 }
 
 // refuseGovernedDelete refuses to delete any set channel value that is required,

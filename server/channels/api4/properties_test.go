@@ -9457,6 +9457,43 @@ func TestPropertyFieldBoundsEndpoints(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
 	})
+
+	t.Run("with permissions v3 off the app path refuses adding a rule or a lock, and still edits and clears one", func(t *testing.T) {
+		kept := create(t, newRankField(model.PropertyBounds{selfRule}))
+
+		setFlags(false, true)
+		defer setFlags(true, true)
+
+		// A plugin reaches the app directly; the REST refusal above never sees it.
+		appField := func(bounds model.PropertyBounds, mutability model.PropertyFieldMutability) *model.PropertyField {
+			f := newRankField(bounds)
+			f.GroupID = group.ID
+			f.ObjectType = model.PropertyFieldObjectTypeUser
+			f.Mutability = mutability
+			return f
+		}
+		_, appErr := th.App.CreatePropertyField(th.Context, appField(model.PropertyBounds{selfRule}, ""), false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+
+		_, appErr = th.App.CreatePropertyField(th.Context, appField(nil, model.PropertyFieldMutabilityWriteOnce), false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+
+		// Only adding is gated: a rename keeps the stored rule, and clearing works.
+		renamed := *kept
+		renamed.Name = celSafeName()
+		renamed.Bounds = nil
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, &renamed, false, "")
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyBounds{selfRule}, updated.Bounds)
+
+		cleared := *updated
+		cleared.Bounds = model.PropertyBounds{}
+		updated, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, &cleared, false, "")
+		require.Nil(t, appErr)
+		require.Empty(t, updated.Bounds)
+	})
 }
 
 func TestPatchPropertyFieldBoundsPermission(t *testing.T) {
@@ -9549,5 +9586,113 @@ func TestPatchPropertyFieldBoundsPermission(t *testing.T) {
 		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
 		require.Nil(t, appErr)
 		require.Empty(t, stored.Mutability)
+	})
+}
+
+// A v3 group other than access_control carries bounds too, so the flag gate and
+// the set_on_create refusal must reach it through the server's registered hooks.
+func TestBoundsHookCoversEveryV3Group(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = false
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_bounds_hook", Version: model.PropertyGroupVersionV3})
+	require.Nil(t, appErr)
+
+	selfRule := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+	newField := func(objectType string, fieldType model.PropertyFieldType) *model.PropertyField {
+		return &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       fieldType,
+			GroupID:    group.ID,
+			ObjectType: objectType,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}
+	}
+
+	t.Run("with the flag off, a rule on create is refused", func(t *testing.T) {
+		field := newField("post", model.PropertyFieldTypeRank)
+		field.Bounds = model.PropertyBounds{selfRule}
+		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+	})
+
+	t.Run("with the flag off, an existing field cannot become write_once", func(t *testing.T) {
+		created, appErr := th.App.CreatePropertyField(th.Context, newField("post", model.PropertyFieldTypeText), false, "")
+		require.Nil(t, appErr)
+
+		created.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+	})
+
+	t.Run("set_on_create is refused", func(t *testing.T) {
+		field := newField("channel", model.PropertyFieldTypeText)
+		field.Mutability = model.PropertyFieldMutabilitySetOnCreate
+		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.set_on_create_unsupported.app_error", appErr.Id)
+	})
+
+	t.Run("with the flag on, a rule on create is stored", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = false })
+
+		field := newField("post", model.PropertyFieldTypeRank)
+		field.Bounds = model.PropertyBounds{selfRule}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyBounds{selfRule}, created.Bounds)
+	})
+
+	t.Run("with the flag on, a write_once value can't be changed", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = false })
+
+		field := newField("channel", model.PropertyFieldTypeText)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		write := func(raw string) *model.AppError {
+			_, writeErr := th.App.UpsertPropertyValue(th.Context, &model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    created.ID,
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Value:      json.RawMessage(raw),
+			})
+			return writeErr
+		}
+		require.Nil(t, write(`"first"`))
+
+		appErr = write(`"second"`)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		require.Nil(t, write(`"first"`))
+
+		// A delete is a clear, so it is refused the same way.
+		set, appErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{FieldID: created.ID, TargetIDs: []string{th.BasicChannel.Id}, PerPage: 1})
+		require.Nil(t, appErr)
+		require.Len(t, set, 1)
+		appErr = th.App.DeletePropertyValue(th.Context, group.ID, set[0].ID)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Nil(t, write(`"first"`))
 	})
 }
