@@ -19,6 +19,12 @@ To do so, you must update the [Datasource](/administration-guide/configure/envir
 
 </Tip>
 
+## New installation
+
+On a new server, run `sudo mattermost setup` (from a tarball, `sudo /opt/mattermost/bin/mattermost setup`). The command writes `/etc/mattermost/mattermost.env` with mode `0600` and points systemd at that file. By default it stores the active configuration in PostgreSQL. A new installation keeps files in `/var/lib/mattermost/data`, plugins in `/var/lib/mattermost/plugins` and `/var/lib/mattermost/client/plugins`, and logs in `/var/log/mattermost`. Setup creates the `mattermost` system user when it does not already exist. It does not start the service. The [Ubuntu](/deployment-guide/server/linux/deploy-ubuntu), [tarball](/deployment-guide/server/linux/deploy-tar), and [RHEL](/deployment-guide/server/linux/deploy-rhel) guides cover the install order. Do not run setup while upgrading a server that is already configured.
+
+Debian and RPM packages are built outside this repository. Those units should load the file with a leading dash, `EnvironmentFile=-/etc/mattermost/mattermost.env`, so an upgrade still starts on a host that has not created the file. The package should create an empty `/etc/mattermost/` directory. Package install scripts must not run `mattermost setup`.
+
 ## How to migrate configuration to the database
 
 These instructions cover migrating the Mattermost configuration to your database and updating your `systemd` configuration to load it from the database.
@@ -36,24 +42,22 @@ The first step is to get your master database connection string. We recommend ac
 
 <Important>
 
-- `SqlSettings.DataSource` must start with `postgres://` or `mysql://`. If it doesn't, add it to the beginning based on the database in use. For example: `postgres://mmuser:really_secure_password@localhost:5432/mattermost?sslmode=disable&connect_timeout=10`
-- If you see `\u0026`, replace it with `&`. For example: `mysql://mmuser:really_secure_password@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s`
+- `SqlSettings.DataSource` must be a `postgres://` URL. For example: `postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable&connect_timeout=10`. `mattermost setup` accepts PostgreSQL only.
+- If you see `\u0026`, replace it with `&`.
 
 </Important>
 
 ### Create an environment file
 
-Create the file `/opt/mattermost/config/mattermost.environment` to set the `MM_CONFIG` environment variable to the database connection string. For example:
+Create `/etc/mattermost/mattermost.env` and set `MM_CONFIG` to the database connection string. The file should be mode `0600` and owned by root. For example:
 
 ``` text
-MM_CONFIG='postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10'
+MM_CONFIG='postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable&connect_timeout=10'
 ```
 
-Run this command to verify the permissions on your Mattermost directory:
+Hosts that already load `/opt/mattermost/config/mattermost.environment` should keep that file. `mattermost setup` stops when the unit's effective `MM_CONFIG` comes from a different file, so it will not replace that path.
 
-``` sh
-sudo chown -R mattermost:mattermost /opt/mattermost
-```
+`mattermost setup` does not change ownership of `/opt/mattermost`. It creates the runtime directories it needs and leaves the rest of the install tree alone. Do not recursively change ownership of `/opt/mattermost`.
 
 ### Enable local mode
 
@@ -72,7 +76,7 @@ sudo systemctl restart mattermost
 You can use the [mmctl config migrate](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-migrate) command to migrate the configuration by running the following command:
 
 ``` sh
-./bin/mmctl config migrate path/to/config.json "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" --local
+./bin/mmctl config migrate path/to/config.json "postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable&connect_timeout=10" --local
 ```
 
 <Important>
@@ -86,7 +90,7 @@ You can use the [mmctl config migrate](/administration-guide/manage/mmctl-comman
 
 When configuration in the database is enabled, any changes to the configuration are recorded to the `Configurations` and `ConfigurationFiles` tables. Furthermore, `ClusterSettings.ReadOnlyConfig` is ignored, enabling full use of the System Console.
 
-If you have configuration settings that must be set on a per-server basis you should add them as environment variables to the `mattermost.environment` file. These must be on their own line, and you must escape them properly.
+If you have configuration settings that must be set on a per-server basis you should add them as environment variables to `/etc/mattermost/mattermost.env` (or to `/opt/mattermost/config/mattermost.environment` when that is the file this host already loads). These must be on their own line, and you must escape them properly. Setting `MM_SQLSETTINGS_DATASOURCE` locks the data source: the System Console shows it as controlled by the environment. `mattermost setup` sets that variable when configuration is stored in the database.
 
 ### Modify the Mattermost `systemd` file
 
@@ -102,10 +106,10 @@ The second line of output will have the location of the running `mattermost.serv
       Loaded: loaded (/etc/systemd/system/mattermost.service; enabled; vendor preset: enabled)
 ```
 
-Edit this file as *root* to add the below text just above the line that begins with `ExecStart`:
+Prefer `sudo systemctl edit mattermost` so a package upgrade does not overwrite the change. Do not edit `/lib/systemd/system/mattermost.service`. If you edit the unit shown above instead, add the below text just above the line that begins with `ExecStart`:
 
 ``` text
-EnvironmentFile=/opt/mattermost/config/mattermost.environment
+EnvironmentFile=/etc/mattermost/mattermost.env
 ```
 
 Here's a complete `mattermost.service` file with the `EnvironmentFile` line added:
@@ -119,7 +123,7 @@ Requires=postgresql.service
 
 [Service]
 Type=notify
-EnvironmentFile=/opt/mattermost/config/mattermost.environment
+EnvironmentFile=/etc/mattermost/mattermost.env
 ExecStart=/opt/mattermost/bin/mattermost
 TimeoutStartSec=3600
 KillMode=mixed
@@ -166,7 +170,13 @@ The Mattermost server keeps active configuration in memory and writes new ones t
 
 ## Rolling back
 
-If you run into issues with your configuration in the database you can roll back to the `config.json` file by commenting out the `MM_CONFIG` line in `/opt/mattermost/config/mattermost.environment` and restarting Mattermost with `systemctl restart mattermost`.
+Commenting out `MM_CONFIG` does not restore your previous configuration. With `MM_CONFIG` unset, Mattermost reads the `config.json` shipped under the install directory, which points at the public sample database. To leave database configuration, migrate the active configuration to a file and point `MM_CONFIG` at that file:
+
+``` sh
+./bin/mmctl config migrate "postgres://mmuser:<mmuser-password>@localhost:5432/mattermost?sslmode=disable" /etc/mattermost/config.json --local
+```
+
+Then set `MM_CONFIG=/etc/mattermost/config.json` in `/etc/mattermost/mattermost.env` and restart Mattermost with `systemctl restart mattermost`.
 
 ## Troubleshooting
 
