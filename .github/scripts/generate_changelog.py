@@ -358,9 +358,30 @@ def merged_prs_since(repo: str, since: str) -> dict:
     return found
 
 
+def release_branch_cut(base_ref: str, repo: str = DOCS_REPO, default_branch: str = "master") -> str | None:
+    """When the previous release's branch was cut: the date of its merge base with master.
+
+    ``base_ref`` is the previous release's tag or branch (``v12.1.0``, ``origin/release-12.1``).
+    Read from GitHub's compare API, since the workflow's shallow clone has no merge base.
+    """
+    match = re.search(r"(\d+)\.(\d+)", base_ref or "")
+    if not match:
+        return None
+    branch = f"release-{match.group(1)}.{match.group(2)}"
+    try:
+        resp = SESSION.get(f"https://api.github.com/repos/{repo}/compare/{default_branch}...{branch}",
+                           params={"per_page": 1}, timeout=API_TIMEOUT)
+        resp.raise_for_status()
+        return resp.json()["merge_base_commit"]["commit"]["committer"]["date"]
+    except (requests.RequestException, KeyError, TypeError, ValueError) as err:
+        print(f"::warning title=Release branch cut not found::{branch}: {type(err).__name__}; docs PRs outside the "
+              "milestone were not checked")
+        return None
+
+
 def outside_docs_prs(prs: dict, sources: set, since: str | None, merged_since=None) -> dict:
-    """Docs PR candidates outside the milestone: PRs in DOCS_REPO merged since the previous release
-    (``since``) that aren't milestone PRs and link one of ``sources``. Marked ``"outside"``."""
+    """Docs PR candidates outside the milestone: PRs in DOCS_REPO merged since the previous release's
+    branch was cut (``since``) that aren't milestone PRs and link one of ``sources``. Marked ``"outside"``."""
     if not since:
         return {}
     found = {}
@@ -2511,13 +2532,14 @@ def main():
     docs_ref = os.environ.get("DOCS_REF", "").strip() or "HEAD"
     pr_details = {}
     # Docs that landed after the code, in a later milestone or none, are found by the PRs merged
-    # since the previous release that link a PR of this one.
+    # since the previous release's branch was cut (when this release's work began) that link a PR of this one.
     previous = os.environ.get("RELEASE_BASE_REF", "").strip()
-    since = changelog_release.git_commit_date(previous) if previous and noted else None
+    since = release_branch_cut(previous) if previous and noted else None
     outside = outside_docs_prs(milestone_prs, noted, since) if since else {}
     if noted:
         print(f"📚 {len(outside)} docs PR(s) outside the milestone link one of its PRs"
-              + (f" (merged since {previous}, {since})" if since else " (not checked: no previous release ref)"))
+              + (f" (merged since the previous release branch was cut, {since})" if since
+                 else " (not checked: the previous release branch's cut is unknown)"))
     docs_links = find_docs_links(
         milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path), pr_details, outside
     ) if noted else {}

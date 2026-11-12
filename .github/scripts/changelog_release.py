@@ -239,12 +239,6 @@ def git_show(ref: str, path: str) -> str | None:
     raise RuntimeError(f"git show {ref}:{path} failed: {(result.stderr or listing.stderr).strip()}")
 
 
-def git_commit_date(ref: str) -> str | None:
-    """When ``ref``'s commit was made, ISO 8601, or None when git can't tell."""
-    result = _git("log", "-1", "--format=%cI", ref)
-    return result.stdout.strip() or None if result.returncode == 0 else None
-
-
 def git_ls(ref: str, path: str) -> list[str]:
     """The files directly under the directory ``path`` (ending in ``/``) at ``ref``. A failing git command raises."""
     result = _git("ls-tree", "--name-only", ref, "--", path)

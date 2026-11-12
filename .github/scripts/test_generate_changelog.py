@@ -429,8 +429,8 @@ class MainTest(unittest.TestCase):
         self.saved_show = gc.changelog_release.git_show
         self.saved_benchmark = gc.changelog_release.benchmark_notes
         gc.changelog_release.benchmark_notes = lambda version: []
-        self.saved_commit_date = gc.changelog_release.git_commit_date
-        gc.changelog_release.git_commit_date = lambda ref: "2026-10-16T10:00:00+00:00"
+        self.saved_cut = gc.release_branch_cut
+        gc.release_branch_cut = lambda ref: "2026-10-16T09:18:58Z"
         self.merged_since = {}
         self.saved_merged = gc.merged_prs_since
         gc.merged_prs_since = lambda repo, since: self.merged_since
@@ -471,7 +471,7 @@ class MainTest(unittest.TestCase):
         gc.changelog_release.derived_notes = self.saved_derived
         gc.changelog_release.git_show = self.saved_show
         gc.changelog_release.benchmark_notes = self.saved_benchmark
-        gc.changelog_release.git_commit_date = self.saved_commit_date
+        gc.release_branch_cut = self.saved_cut
         gc.merged_prs_since = self.saved_merged
         os.environ.clear()
         os.environ.update(self.saved_env)
@@ -1249,6 +1249,38 @@ class OutsideDocsPrsTest(unittest.TestCase):
             gc.SESSION.get = saved
         self.assertEqual(sorted(found), ["mattermost/mattermost#1", "mattermost/mattermost#4"])  # #3 merged before
         self.assertEqual(asked, [1, 2])  # page 2 ends before the previous release: page 3 isn't read
+
+    def test_the_search_starts_at_the_previous_release_branchs_cut(self):
+        asked = []
+
+        class Response:
+            def __init__(self, status, data):
+                self.status, self.data = status, data
+
+            def raise_for_status(self):
+                if self.status >= 400:
+                    raise gc.requests.HTTPError(f"HTTP {self.status}")
+
+            def json(self):
+                return self.data
+
+        def get(url, params, timeout):
+            asked.append(url)
+            if url.endswith("master...release-12.1"):
+                return Response(200, {"merge_base_commit": {"commit": {"committer": {"date": "2026-10-16T09:18:58Z"}}}})
+            return Response(404, {})
+        saved = gc.SESSION.get
+        gc.SESSION.get = get
+        try:
+            # The tag and the branch name the same release; v12.1's cut is when v12.2's work began.
+            self.assertEqual(gc.release_branch_cut("v12.1.0"), "2026-10-16T09:18:58Z")
+            self.assertEqual(gc.release_branch_cut("origin/release-12.1"), "2026-10-16T09:18:58Z")
+            self.assertIsNone(gc.release_branch_cut("v12.0.0"))  # no such branch here: not checked
+            self.assertIsNone(gc.release_branch_cut(""))
+        finally:
+            gc.SESSION.get = saved
+        self.assertEqual(asked, ["https://api.github.com/repos/mattermost/mattermost/compare/master...release-12.1"] * 2
+                         + ["https://api.github.com/repos/mattermost/mattermost/compare/master...release-12.0"])
 
     def test_a_docs_pr_outside_the_milestone_counts_only_by_its_link(self):
         prs = {"mattermost/mattermost#1": {"title": "MM-5 feature", "head_ref": "MM-5-feature", "body": ""},
