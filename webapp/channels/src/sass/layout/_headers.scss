@@ -286,8 +286,10 @@
     align-items: center;
     gap: 2px;
 
+    // Wrapper must match the 24px avatar so the status badge sits on the avatar's corner
     .status-wrapper {
-        padding: 0 2px;
+        height: 24px;
+        margin: 0 2px;
     }
 
     .BotTag {
