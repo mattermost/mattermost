@@ -402,21 +402,28 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 
 // refuseContainedValuesOutOfBounds refuses a request that sets a channel's or the server's value
 // when the objects beneath would end up out of bounds under a child field's parent rule. Only
-// linked channel and system fields are looked at, and each pays one search for the child fields
-// whose parent rule reads from it, even when there are none; unlinked fields and other object types
-// pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
+// linked channel and system fields are looked at, and each pays one search per request for the child
+// fields whose parent rule reads from it, even when there are none; unlinked fields and other object
+// types pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
 // neither is writing the stored value again, so re-saving a form doesn't fail on values the writer
 // didn't touch.
 func (h *BoundsHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	// Per call only: a child field gaining a parent rule must be seen by the next write.
+	childrenOf := map[string][]*model.PropertyField{}
 	for _, v := range values {
 		field, ok := fieldMap[v.FieldID]
 		if !ok || (field.ObjectType != model.PropertyFieldObjectTypeChannel && field.ObjectType != model.PropertyFieldObjectTypeSystem) ||
 			field.LinkSourceID() == "" || v.DeleteAt != 0 || model.IsEmptyPropertyValue(v.Value) {
 			continue
 		}
-		children, err := h.propertyService.childFieldsWithParentRule(rctx, field)
-		if err != nil {
-			return fmt.Errorf("field %s: failed to look up the child fields: %w", field.ID, err)
+		children, seen := childrenOf[field.ID]
+		if !seen {
+			var err error
+			children, err = h.propertyService.childFieldsWithParentRule(rctx, field)
+			if err != nil {
+				return fmt.Errorf("field %s: failed to look up the child fields: %w", field.ID, err)
+			}
+			childrenOf[field.ID] = children
 		}
 		if len(children) == 0 {
 			continue

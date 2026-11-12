@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"slices"
 	"sync"
 	"testing"
 
@@ -1567,6 +1568,74 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		channel(f, "opthigh")
 		require.NoError(t, systemWrite(f, `"optmid"`))
 	})
+
+	// searches counts the field searches whose object types are exactly types, in any order.
+	searches := func(c *fieldSearchRecorder, types ...string) int {
+		n := 0
+		for _, got := range c.objectTypes {
+			if slices.Equal(slices.Sorted(slices.Values(got)), slices.Sorted(slices.Values(types))) {
+				n++
+			}
+		}
+		return n
+	}
+	// record leaves only the bounds hook the subtest just registered: earlier subtests' hooks stay on
+	// the shared service and would each run the same search again.
+	record := func(t *testing.T) *fieldSearchRecorder {
+		t.Helper()
+		last := len(th.service.hooks) - 1
+		kept := slices.DeleteFunc(slices.Clone(th.service.hooks[:last]), func(h PropertyHook) bool {
+			_, ok := h.(*BoundsHook)
+			return ok
+		})
+		th.service.hooks = append(kept, th.service.hooks[last])
+		c := &fieldSearchRecorder{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = c
+		t.Cleanup(func() { th.service.fieldStore = c.PropertyFieldStore })
+		return c
+	}
+
+	t.Run("a batch of values of one field looks up its child fields once", func(t *testing.T) {
+		f := setup(t, below)
+		var batch []*model.PropertyValue
+		for range 3 {
+			x := channel(f, "")
+			post(f, x, "optlow")
+			batch = append(batch, &model.PropertyValue{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optmid"`)})
+		}
+		c := record(t)
+
+		_, err := th.service.UpsertPropertyValues(rctx, batch)
+		require.NoError(t, err)
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypePost))
+	})
+
+	t.Run("a batch of values of several fields looks each one up once", func(t *testing.T) {
+		f := setupAll(t, nil, nil, below)
+		a, b := channel(f, ""), channel(f, "")
+		batch := []*model.PropertyValue{
+			{GroupID: f.systemField.GroupID, FieldID: f.systemField.ID, TargetType: model.PropertyValueTargetTypeSystem, TargetID: model.PropertyValueSystemTargetID, Value: json.RawMessage(`"optmid"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: a, Value: json.RawMessage(`"optmid"`)},
+			{GroupID: f.channelField.GroupID, FieldID: f.channelField.ID, TargetType: channelType, TargetID: b, Value: json.RawMessage(`"optmid"`)},
+		}
+		c := record(t)
+
+		_, err := th.service.UpsertPropertyValues(rctx, batch)
+		require.NoError(t, err)
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser))
+		assert.Equal(t, 1, searches(c, model.PropertyFieldObjectTypePost))
+	})
+}
+
+// fieldSearchRecorder records the object types of each SearchPropertyFields call.
+type fieldSearchRecorder struct {
+	store.PropertyFieldStore
+	objectTypes [][]string
+}
+
+func (c *fieldSearchRecorder) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	c.objectTypes = append(c.objectTypes, opts.ObjectTypes)
+	return c.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 }
 
 func first(values []*model.PropertyValue) *model.PropertyValue {
