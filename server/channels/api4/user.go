@@ -2404,17 +2404,13 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 	auditRec.Success()
 
-	redirectURL := *c.App.Config().ServiceSettings.SiteURL
-	if campaign != "" {
-		if url, ok := campaignToURL[campaign]; ok {
-			redirectURL += url
-		}
-	}
+	campaignURL, hasCampaignURL := campaignToURL[campaign]
+	redirectURL := *c.App.Config().ServiceSettings.SiteURL + campaignURL
 
 	// Preview workspaces minted with a non-trial license aren't IsCloudPreview, so the landing path applies to every CWS login.
 	if url, ok := useCaseToURL[useCase]; ok && c.App.License().IsCloudPreview() {
 		redirectURL += url
-	} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
+	} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; !hasCampaignURL && strings.HasPrefix(landing, "/") {
 		redirectURL += landing
 	}
 

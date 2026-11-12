@@ -6204,6 +6204,7 @@ func TestLoginCookies(t *testing.T) {
 			name             string
 			preview          bool
 			useCase          string
+			campaign         string
 			landing          string
 			expectedLocation string
 		}{
@@ -6215,6 +6216,7 @@ func TestLoginCookies(t *testing.T) {
 			{name: "use case is ignored with a non-trial license", useCase: "mission-ops", landing: "/nato", expectedLocation: siteURL + "/nato"},
 			{name: "relative landing path is ignored with a non-trial license", landing: "nato", expectedLocation: siteURL},
 			{name: "no landing path with a non-trial license", expectedLocation: siteURL},
+			{name: "campaign wins over the landing path", campaign: "focalboard", landing: "/nato", expectedLocation: siteURL + "/boards"},
 		}
 
 		for _, tc := range testCases {
@@ -6243,6 +6245,7 @@ func TestLoginCookies(t *testing.T) {
 				form.Add("login_id", user.Username)
 				form.Add("cws_token", token)
 				form.Add("use_case", tc.useCase)
+				form.Add("utm_campaign", tc.campaign)
 				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
 					http.MethodPost,
 					"/users/login/cws",
