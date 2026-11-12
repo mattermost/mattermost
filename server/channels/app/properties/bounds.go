@@ -12,9 +12,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// PropertyFieldBoundsProvider reports whether the PropertyFieldBounds flag is
-// on, which lets a field gain a bounds rule or a write_once lock. Backed by a
-// closure over live config, like RequiredAttributeEnforcementProvider.
+// PropertyFieldBoundsProvider reports whether both the PropertyFieldBounds and
+// PropertyFieldPermissionsV3 flags are on, which lets a field gain a bounds rule
+// or a write_once lock. With permissions v3 off the REST API serves the group as
+// v2 and hides bounds, so a rule added then could not be seen or removed by an
+// admin. Backed by a closure over live config, like
+// RequiredAttributeEnforcementProvider.
 type PropertyFieldBoundsProvider func() bool
 
 // BoundsHook holds the bounds checks. It is registered for every group and
@@ -117,7 +120,7 @@ func (h *BoundsHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, f
 	return fields, nil
 }
 
-// propertyFieldBoundsEnabled reports whether the PropertyFieldBounds flag is on.
+// propertyFieldBoundsEnabled reports whether adding rules and locks is allowed.
 // A nil provider means off, unlike openIDAttributeSyncEnabled: this flag defaults
 // off and gates new protections, so a hook built without a provider must not
 // quietly let rules in.
@@ -138,10 +141,10 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 }
 
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once, while the PropertyFieldBounds flag is off. Rules and locks
-// already on the field ride along, and removing them is always allowed. Unstated
-// bounds (nil) and mutability ("") add nothing; the update path fills them in from
-// the stored field.
+// becomes write_once, unless the PropertyFieldBounds and PropertyFieldPermissionsV3
+// flags are both on. Rules and locks already on the field ride along, and
+// removing them is always allowed. Unstated bounds (nil) and mutability ("") add
+// nothing; the update path fills them in from the stored field.
 func (h *BoundsHook) validateBoundsChange(field, existing *model.PropertyField) error {
 	if h.propertyFieldBoundsEnabled() {
 		return nil
@@ -156,12 +159,12 @@ func (h *BoundsHook) validateBoundsChange(field, existing *model.PropertyField) 
 
 	for _, rule := range field.Bounds {
 		if !slices.Contains(prevBounds, rule) {
-			details := fmt.Sprintf("field %s: cannot add the bounds rule %s %s while the PropertyFieldBounds feature flag is off", field.ID, rule.Operator, rule.Reference)
+			details := fmt.Sprintf("field %s: cannot add the bounds rule %s %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, rule.Operator, rule.Reference)
 			return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 		}
 	}
 	if field.Mutability == model.PropertyFieldMutabilityWriteOnce && prevMutability != field.Mutability {
-		details := fmt.Sprintf("field %s: cannot make the field %s while the PropertyFieldBounds feature flag is off", field.ID, field.Mutability)
+		details := fmt.Sprintf("field %s: cannot make the field %s unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on", field.ID, field.Mutability)
 		return model.NewAppError("UpsertPropertyField", "app.property_field.bounds_disabled.app_error", nil, details, http.StatusBadRequest)
 	}
 	return nil

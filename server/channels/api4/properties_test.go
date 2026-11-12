@@ -9413,6 +9413,43 @@ func TestPropertyFieldBoundsEndpoints(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "api.property_field.bounds_not_supported.app_error")
 	})
+
+	t.Run("with permissions v3 off the app path refuses adding a rule or a lock, and still edits and clears one", func(t *testing.T) {
+		kept := create(t, newRankField(model.PropertyBounds{selfRule}))
+
+		setFlags(false, true)
+		defer setFlags(true, true)
+
+		// A plugin reaches the app directly; the REST refusal above never sees it.
+		appField := func(bounds model.PropertyBounds, mutability model.PropertyFieldMutability) *model.PropertyField {
+			f := newRankField(bounds)
+			f.GroupID = group.ID
+			f.ObjectType = model.PropertyFieldObjectTypeUser
+			f.Mutability = mutability
+			return f
+		}
+		_, appErr := th.App.CreatePropertyField(th.Context, appField(model.PropertyBounds{selfRule}, ""), false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+
+		_, appErr = th.App.CreatePropertyField(th.Context, appField(nil, model.PropertyFieldMutabilityWriteOnce), false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+
+		// Only adding is gated: a rename keeps the stored rule, and clearing works.
+		renamed := *kept
+		renamed.Name = celSafeName()
+		renamed.Bounds = nil
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, &renamed, false, "")
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyBounds{selfRule}, updated.Bounds)
+
+		cleared := *updated
+		cleared.Bounds = model.PropertyBounds{}
+		updated, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, &cleared, false, "")
+		require.Nil(t, appErr)
+		require.Empty(t, updated.Bounds)
+	})
 }
 
 func TestPatchPropertyFieldBoundsPermission(t *testing.T) {

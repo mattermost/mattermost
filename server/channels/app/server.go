@@ -408,7 +408,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// Registered for every group, acting on v3 groups only, as the access control
 	// hook does. After the CPA hook, so it judges the field as that hook leaves it.
 	s.propertyService.AddHook(properties.NewBoundsHook(s.propertyService, func() bool {
-		return s.Config().FeatureFlags.PropertyFieldBounds
+		ff := s.Config().FeatureFlags
+		return ff.PropertyFieldBounds && ff.PropertyFieldPermissionsV3
 	}))
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
