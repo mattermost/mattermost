@@ -1007,6 +1007,18 @@ func (s *SqlPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField,
 	return s.getExistingOptionIDs(s.GetMaster(), optionOwnerIDs(field), optionIDs)
 }
 
+// GetDeletedOptionIDs returns which of the given option IDs have a soft-deleted
+// row in the field's effective option set, the same owners
+// GetExistingOptionIDs reads.
+//
+// Saving a field upserts its options by (FieldID, ID), so an incoming ID that is
+// deleted here comes back to life at whatever rank it carries. A caller uses this
+// to tell such a revival from a brand-new option. Reads from the master because
+// it gates a write.
+func (s *SqlPropertyFieldStore) GetDeletedOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
+	return s.getDeletedOptionIDs(s.GetMaster(), optionOwnerIDs(field), optionIDs)
+}
+
 // GetLinkedFields returns the live fields linking to any of the given fields,
 // each with its own effective option set inlined. Fields named in excludeIDs are
 // left out, so a caller already holding some of them is not handed the same field
