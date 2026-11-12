@@ -229,6 +229,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	// sending it is warned instead of broken. A raise/lower policy on a field
 	// that isn't a rank is stripped by the validation below; read it first so
 	// that is logged too.
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		readUnlockOverStaleEditable(field, existing)
+	}
 	oldKeys := oldPolicyKeysWritten(field, existing)
 	// Read before validation, which deletes change_policy "any" and nulls.
 	_, statesPolicy := field.Attrs[model.PropertyFieldAttrChangePolicy]
@@ -1335,6 +1338,32 @@ func oldPolicyKeysWritten(field, existing *model.PropertyField) []string {
 		keys = append(keys, model.PropertyFieldAttrEditable)
 	}
 	return keys
+}
+
+// readUnlockOverStaleEditable makes an unlock arrive as one. Every save of a
+// locked field stores editable=false beside change_policy, and a PATCH merges
+// attrs while a plugin sends back what it read, so an unlock carries that
+// editable=false (or the stored change_policy) along; read as sent, it matches
+// the stored policy and is taken for an echo. change_policy "any" drops an
+// editable=false that is the stored one, and editable=true that differs from
+// the stored one, beside the stored change_policy, drops that change_policy.
+func readUnlockOverStaleEditable(field, existing *model.PropertyField) {
+	if existing == nil {
+		return
+	}
+	sameAsStored := func(key string) bool {
+		return reflect.DeepEqual(field.Attrs[key], existing.Attrs[key])
+	}
+	p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	switch {
+	case strings.TrimSpace(p) == model.PropertyFieldChangePolicyAny:
+		if field.Attrs[model.PropertyFieldAttrEditable] == false && sameAsStored(model.PropertyFieldAttrEditable) {
+			delete(field.Attrs, model.PropertyFieldAttrEditable)
+		}
+	case field.Attrs[model.PropertyFieldAttrEditable] == true && !sameAsStored(model.PropertyFieldAttrEditable) &&
+		sameAsStored(model.PropertyFieldAttrChangePolicy):
+		delete(field.Attrs, model.PropertyFieldAttrChangePolicy)
+	}
 }
 
 // dropOldPolicyKeys removes change_policy and editable=false from a field they

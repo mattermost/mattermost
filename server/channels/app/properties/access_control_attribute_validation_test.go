@@ -4187,8 +4187,9 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 			assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
 		}
 
+		// The stored editable=false is still in attrs, as a client sending back what
+		// it read would leave it.
 		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
-		delete(f.Attrs, model.PropertyFieldAttrEditable)
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
 		require.NoError(t, updateErr)
 		f = stored(t, f.ID)
@@ -4300,13 +4301,67 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		require.NoError(t, updateErr)
 		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
 
-		// An old-format client unlocks by sending change_policy any and no editable.
+		// An old-format client unlocks by sending change_policy any.
 		f = stored(t, f.ID)
 		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
-		delete(f.Attrs, model.PropertyFieldAttrEditable)
 		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
 		requireAppErrorID(t, updateErr, "app.property_field.change_policy_unsupported.app_error", http.StatusBadRequest)
 		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
+	})
+
+	t.Run("update: change_policy any unlocks despite the stored editable false", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable)
+	})
+
+	t.Run("update: editable true unlocks despite the stored change_policy", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+
+		f.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.Equal(t, true, f.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	t.Run("update: what isn't an unlock keeps its meaning", func(t *testing.T) {
+		// An echo of editable true beside raise_only stays raise_only.
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+			model.PropertyFieldAttrEditable:     true,
+		}))
+		require.Equal(t, true, f.Attrs[model.PropertyFieldAttrEditable])
+		f.Name = "renamed_" + model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, stored(t, f.ID).Bounds)
+
+		// editable true sent with a new change_policy follows the change_policy.
+		f = stored(t, f.ID)
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		f.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{lowerOnly}, stored(t, f.ID).Bounds)
+
+		// change_policy any beside an editable false the stored field never had reads never.
+		g := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
+		g.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		g.Attrs[model.PropertyFieldAttrEditable] = false
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, g)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, g.ID).Mutability)
 	})
 
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
