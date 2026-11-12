@@ -1587,6 +1587,12 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 			sq.Gt{"Posts.UpdateAt": cursor.LastPostUpdateAt},
 			sq.And{sq.Eq{"Posts.UpdateAt": cursor.LastPostUpdateAt}, sq.Gt{"Posts.Id": cursor.LastPostUpdateID}},
 		})
+		if options.ExcludeAfterCreateCursor {
+			query = query.Where(sq.Or{
+				sq.Lt{"Posts.CreateAt": cursor.LastPostCreateAt},
+				sq.And{sq.Eq{"Posts.CreateAt": cursor.LastPostCreateAt}, sq.LtOrEq{"Posts.Id": cursor.LastPostCreateID}},
+			})
+		}
 	}
 
 	if options.ChannelId != "" {

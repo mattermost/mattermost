@@ -349,19 +349,19 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt, scs.server.Log())
 
-	cache := postsSliceToMap(posts)
-
-	// Fill remaining batch capacity with updated posts.
+	// Fill remaining batch capacity with updated posts. Bounding them by the create cursor from before
+	// this sync leaves out the new posts fetched above, which already carry their latest content.
 	if len(posts) < maxPostsPerSync {
 		options.SinceCreateAt = false
-		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
-		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, maxPostsPerSync-len(posts))
+		options.ExcludeAfterCreateCursor = true
+		var updateCursor model.GetPostsSinceForSyncCursor
+		posts, updateCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, maxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
-		// Count before dropping posts already fetched as new: nextCursor is past the whole page.
+		nextCursor.LastPostUpdateAt = updateCursor.LastPostUpdateAt
+		nextCursor.LastPostUpdateID = updateCursor.LastPostUpdateID
 		count += len(posts)
-		posts = reducePostsSliceInCache(posts, cache)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 

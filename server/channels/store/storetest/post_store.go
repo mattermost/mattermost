@@ -5470,6 +5470,56 @@ func testGetPostsSinceUpdateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
 	})
 
+	t.Run("Exclude posts after the create cursor", func(t *testing.T) {
+		boundChannelID := model.NewId()
+		base := model.GetMillis()
+
+		save := func(id string, createAt, updateAt int64) *model.Post {
+			p, err := ss.Post().Save(rctx, &model.Post{
+				Id:        id,
+				RemoteId:  new(model.NewId()),
+				ChannelId: boundChannelID,
+				UserId:    model.NewId(),
+				Message:   "bound test post",
+				CreateAt:  createAt,
+			})
+			require.NoError(t, err)
+			_, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", updateAt, p.Id)
+			require.NoError(t, err)
+			p.UpdateAt = updateAt
+			return p
+		}
+
+		tiedIDs := []string{model.NewId(), model.NewId()}
+		slices.Sort(tiedIDs)
+
+		edited := save(model.NewId(), base+100, base+500)
+		save(model.NewId(), base+200, base+200)
+		tiedAtCursor := save(tiedIDs[0], base+300, base+300)
+		tiedAfterCursor := save(tiedIDs[1], base+300, base+300)
+		created := save(model.NewId(), base+400, base+400)
+
+		opt := model.GetPostsSinceForSyncOptions{ChannelId: boundChannelID}
+		cursor := model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: base + 250,
+			LastPostCreateAt: base + 300,
+			LastPostCreateID: tiedIDs[0],
+		}
+
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{tiedAtCursor, tiedAfterCursor, created, edited}), getPostIds(posts))
+
+		opt.ExcludeAfterCreateCursor = true
+		posts, cursorOut, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{tiedAtCursor, edited}), getPostIds(posts))
+		require.Equal(t, edited.UpdateAt, cursorOut.LastPostUpdateAt)
+		require.Equal(t, edited.Id, cursorOut.LastPostUpdateID)
+		require.Equal(t, cursor.LastPostCreateAt, cursorOut.LastPostCreateAt)
+		require.Equal(t, cursor.LastPostCreateID, cursorOut.LastPostCreateID)
+	})
+
 	t.Run("UpdateAt collisions", func(t *testing.T) {
 		// this test requires all the UpdateAt timestamps to be the same.
 		result, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ?", model.GetMillis())
