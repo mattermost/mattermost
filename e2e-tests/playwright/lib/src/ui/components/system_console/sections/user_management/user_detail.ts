@@ -232,12 +232,16 @@ class AdminUserCard {
     }
 
     /**
-     * Open the combobox and pick an option by its exact label. The menu closes after the pick.
-     * In a multiselect, picking an already-selected option deselects it.
+     * Open the combobox and pick an option by its exact label. The label text is matched rather
+     * than the accessible name, which for a rank option also carries its rank ("High, Rank 2").
+     * The menu closes after the pick. In a multiselect, picking an already-selected option deselects it.
      */
     async selectCpaOption(labelText: string, optionName: string): Promise<void> {
         const listbox = await this.openCpaCombobox(labelText);
-        await listbox.getByRole('option', {name: optionName, exact: true}).click();
+        await listbox
+            .getByRole('option')
+            .filter({has: this.body.page().getByText(optionName, {exact: true})})
+            .click();
         await expect(this.getCpaCombobox(labelText)).toHaveAttribute('aria-expanded', 'false');
     }
 

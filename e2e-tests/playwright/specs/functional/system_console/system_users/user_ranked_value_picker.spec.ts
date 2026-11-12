@@ -88,9 +88,10 @@ test.describe('System Console - Ranked value combobox', () => {
         const combobox = userCard.getCpaCombobox(label);
         await expect(combobox).toBeVisible({timeout: 30_000});
 
-        // * The closed field shows the assigned value with its rank badge
+        // * The closed field shows the assigned value with its rank badge, and describes its rank
         await expect(combobox).toHaveValue('Secret');
         await expect(userCard.getCpaRankBadge(label)).toHaveText('2');
+        await expect(combobox).toHaveAccessibleDescription('Rank 2');
 
         // # Open the combobox
         const listbox = await userCard.openCpaCombobox(label);
@@ -101,16 +102,21 @@ test.describe('System Console - Ranked value combobox', () => {
         await expect(listbox.getByTestId('rank-badge')).toHaveText(['3', '2', '1']);
         await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(0);
 
+        // * Each option is named with its rank, since the badge is hidden from assistive tech
+        await expect(optionRow('TopSecret, Rank 3')).toBeVisible();
+        await expect(optionRow('Unclassified, Rank 1')).toBeVisible();
+
         // * The assigned value is the selected option
-        await expect(optionRow('Secret')).toHaveAttribute('aria-selected', 'true');
+        await expect(optionRow('Secret, Rank 2')).toHaveAttribute('aria-selected', 'true');
 
         // # Choose TopSecret
-        await optionRow('TopSecret').click();
+        await optionRow('TopSecret, Rank 3').click();
 
-        // * The menu closes and the closed field shows the new value and badge
+        // * The menu closes and the closed field shows the new value and badge, and describes the new rank
         await expect(combobox).toHaveAttribute('aria-expanded', 'false');
         await expect(combobox).toHaveValue('TopSecret');
         await expect(userCard.getCpaRankBadge(label)).toHaveText('3');
+        await expect(combobox).toHaveAccessibleDescription('Rank 3');
 
         // # Save and confirm
         await userDetail.save();

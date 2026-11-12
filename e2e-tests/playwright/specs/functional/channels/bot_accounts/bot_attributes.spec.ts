@@ -66,9 +66,13 @@ async function openBotAttributeListbox(page: Page, fieldId: string) {
     return page.locator(`#${listboxId}`);
 }
 
+// Matches the label text, since a rank option's accessible name also carries its rank.
 async function pickBotAttributeOption(page: Page, fieldId: string, optionName: string) {
     const listbox = await openBotAttributeListbox(page, fieldId);
-    await listbox.getByRole('option', {name: optionName, exact: true}).click();
+    await listbox
+        .getByRole('option')
+        .filter({has: page.getByText(optionName, {exact: true})})
+        .click();
     await expect(botAttributeCombobox(page, fieldId)).toHaveAttribute('aria-expanded', 'false');
 }
 
@@ -547,17 +551,20 @@ test.describe('Bot account attributes @bot_accounts', () => {
             const rank = botAttributeCombobox(page, field.id);
             const badge = page.getByTestId(`bot-attribute-label-${field.id}`).getByTestId('rank-badge');
 
-            // * The rank is a combobox named after the field, showing the assigned value with its badge
+            // * The rank is a combobox named after the field, showing the assigned value with its badge,
+            //   and its rank is announced as the field's description
             await expect(rank).toHaveAccessibleName(RANK_LABEL);
             await expect(rank).toHaveValue('Low');
             await expect(badge).toHaveText('1');
+            await expect(rank).toHaveAccessibleDescription('Rank 1');
 
             // # Open the listbox
             const listbox = await openBotAttributeListbox(page, field.id);
 
-            // * Values are listed highest-rank-first and the assigned value is selected
+            // * Values are listed highest-rank-first, each named with its rank, and the assigned value is selected
             await expect(listbox.getByRole('option')).toHaveText([/^2\s*High$/, /^1\s*Low$/]);
-            await expect(listbox.getByRole('option', {name: 'Low', exact: true})).toHaveAttribute(
+            await expect(listbox.getByRole('option', {name: 'High, Rank 2', exact: true})).toBeVisible();
+            await expect(listbox.getByRole('option', {name: 'Low, Rank 1', exact: true})).toHaveAttribute(
                 'aria-selected',
                 'true',
             );

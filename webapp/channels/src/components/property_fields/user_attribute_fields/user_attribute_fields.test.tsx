@@ -425,6 +425,7 @@ describe('UserAttributeFields', () => {
 
             const root = screen.getByTestId('user-detail-custom-attribute-label-field-1');
             expect(within(root).getByTestId('rank-badge')).toHaveTextContent('1');
+            expect(screen.getByRole('combobox', {name: 'department'})).toHaveAccessibleDescription('Rank 1');
 
             await user.click(screen.getByRole('combobox', {name: 'department'}));
 
@@ -438,6 +439,8 @@ describe('UserAttributeFields', () => {
             expect(top.getByTestId('rank-badge')).toHaveTextContent('3');
             expect(mid.getByTestId('attribute-option-swatch')).toBeInTheDocument();
             expect(mid.queryByTestId('rank-badge')).not.toBeInTheDocument();
+            expect(screen.getByTestId(`${COMBOBOX_ID}-option-top`)).toHaveAccessibleName('Top, Rank 3');
+            expect(screen.getByTestId(`${COMBOBOX_ID}-option-mid`)).toHaveAccessibleName('Mid, Rank 2');
         });
 
         test('emits the picked rank id as a string and an empty string on clear', async () => {
@@ -445,7 +448,7 @@ describe('UserAttributeFields', () => {
             const {onChange} = renderFields({fields: [buildField({type: 'rank'}, {options: RANK_OPTIONS})], values: {'field-1': 'low'}});
 
             await user.click(screen.getByRole('combobox', {name: 'department'}));
-            await user.click(screen.getByRole('option', {name: 'Top'}));
+            await user.click(screen.getByRole('option', {name: 'Top, Rank 3'}));
             expect(onChange).toHaveBeenLastCalledWith('field-1', 'top');
 
             await user.click(screen.getByTestId(`${COMBOBOX_ID}-clear`));
