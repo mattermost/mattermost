@@ -739,7 +739,7 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 	return len(children) > 0, err
 }
 
-// childFieldPageSize is only how many child fields childFieldsWithParentRule reads per search.
+// childFieldPageSize is the page size of childFieldsWithParentRule's search. It is not a limit: every page is read.
 const childFieldPageSize = 100
 
 // childFieldsWithParentRule returns the fields on field's template, one level
