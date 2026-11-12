@@ -1757,7 +1757,6 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		return string(vals[0].Value)
 	}
 
-	// rowOrNil is a target's stored row, nil when it has none.
 	rowOrNil := func(field *model.PropertyField, targetID string) *model.PropertyValue {
 		t.Helper()
 		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: field.GroupID, FieldID: field.ID, TargetIDs: []string{targetID}, PerPage: 10})
@@ -1857,7 +1856,6 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 				require.NotNil(t, got.Current)
 				assert.Equal(t, write.Value, got.Current.Value)
 				got.Current = nil
-				// Prev is the row as it was before the write; none on a first write.
 				if prior == nil {
 					assert.Nil(t, got.Prev)
 				} else {
