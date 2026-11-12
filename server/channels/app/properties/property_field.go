@@ -739,7 +739,7 @@ func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *mode
 	return len(children) > 0, err
 }
 
-// childFieldLimit is how many child fields childFieldsWithParentRule reads for one template.
+// childFieldLimit is the most child fields childFieldsWithParentRule accepts on one template; more fail the call.
 const childFieldLimit = 100
 
 // childFieldsWithParentRule returns the fields on field's template, one level
@@ -756,8 +756,8 @@ func (ps *PropertyService) childFieldsWithParentRule(rctx request.CTX, field *mo
 	}
 
 	// The cap counts every child-type field on the template, ruled or not. A child past it would go
-	// uncounted by the container check and the field-save checks, so more than a page refuses, never
-	// skips. Page with a cursor if a template ever needs more.
+	// unseen by every caller (the container check, the field-save checks, the delete and unlink
+	// guards), so more than a page refuses, never skips. Page with a cursor if a template ever needs more.
 	children, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
 		ObjectTypes:   childTypes,
 		LinkedFieldID: field.LinkSourceID(),
