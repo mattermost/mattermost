@@ -17,6 +17,26 @@ import (
 func TestTokensStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("TokensCleanup", func(t *testing.T) { testTokensCleanup(t, rctx, ss) })
 	t.Run("ConsumeOnce", func(t *testing.T) { testConsumeOnce(t, rctx, ss) })
+	t.Run("LookupsDoNotLeakToken", func(t *testing.T) { testTokensStoreLookupsDoNotLeakToken(t, rctx, ss) })
+}
+
+// Email verification, password recovery and team invitation all resolve through
+// these lookups, and their failures are logged by the web layer. MM-70121.
+func testTokensStoreLookupsDoNotLeakToken(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := model.NewRandomString(model.TokenSize)
+
+	_, err := ss.Token().GetByToken(token)
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "Token=<redacted>")
+	assert.NotContains(t, err.Error(), token)
+
+	_, err = ss.Token().ConsumeOnce(model.TokenTypeVerifyEmail, token)
+	require.Error(t, err)
+	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "Token=<redacted>")
+	assert.NotContains(t, err.Error(), token)
 }
 
 func testTokensCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
