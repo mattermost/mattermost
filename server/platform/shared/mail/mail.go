@@ -179,7 +179,9 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 			InsecureSkipVerify: config.SkipServerCertificateVerification,
 			ServerName:         config.ServerName,
 		}
-		c.StartTLS(tlsconfig)
+		if err := c.StartTLS(tlsconfig); err != nil {
+			return nil, errors.Wrap(err, "unable to start TLS")
+		}
 	}
 
 	if config.EnableSMTPAuth {
@@ -221,12 +223,6 @@ func TestConnection(ctx context.Context, config *SMTPConfig) error {
 			return errors.Wrapf(ctxErr, "unable to connect: %v", err)
 		}
 		return errors.Wrap(err, "unable to connect")
-	}
-	// NewSMTPClient ignores a failed StartTLS, so a handshake that ctx cut short can still return a client.
-	// TODO: MM-71213 remove this check once NewSMTPClient returns the StartTLS error; the error branch above
-	// then reports the deadline.
-	if !stop() {
-		return errors.Wrap(ctx.Err(), "unable to connect")
 	}
 	c.Close()
 	c.Quit()
