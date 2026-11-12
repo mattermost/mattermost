@@ -978,7 +978,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	code := queryParams.Get("code")
 
 	data, err := th.App.Srv().Store().OAuth().GetAuthData(code)
-	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), err)
+	require.Equal(t, store.NewErrNotFound("AuthData", "code=<redacted>"), err)
+	assert.NotContains(t, err.Error(), code)
 	assert.Nil(t, data)
 }
 
