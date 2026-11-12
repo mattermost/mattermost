@@ -4,7 +4,7 @@
 import type {LogObject} from '@mattermost/types/admin';
 
 // "2026-10-20 11:39:58.721 +02:00" isn't ISO 8601, and Safari can't parse it
-function parseLogTimestamp(timestamp: string): number {
+export function parseLogTimestamp(timestamp: string): number {
     return Date.parse(timestamp.replace(' ', 'T').replace(' ', ''));
 }
 
