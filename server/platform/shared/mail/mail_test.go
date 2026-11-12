@@ -1053,16 +1053,11 @@ func TestNewSMTPClientAdvancedDeadlineDuringGreeting(t *testing.T) {
 }
 
 func TestStartTLSError(t *testing.T) {
-	for _, tc := range []struct {
-		name     string
-		reply    string
-		rejected bool
-	}{
-		{name: "STARTTLS refused", reply: "454 TLS not available", rejected: true},
-		{name: "STARTTLS not supported", reply: "502 not implemented", rejected: true},
-		{name: "TLS handshake fails", reply: "220 ready"},
+	for name, reply := range map[string]string{
+		"STARTTLS refused":       "454 TLS not available",
+		"STARTTLS not supported": "502 not implemented",
 	} {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(name, func(t *testing.T) {
 			cfg := fakeSMTPServer(t, func(conn net.Conn) {
 				r := textproto.NewConn(conn)
 				_ = r.PrintfLine("220 localhost ESMTP")
@@ -1076,11 +1071,7 @@ func TestStartTLSError(t *testing.T) {
 						_ = r.PrintfLine("250-localhost")
 						_ = r.PrintfLine("250 STARTTLS")
 					case strings.HasPrefix(line, "STARTTLS"):
-						_ = r.PrintfLine("%s", tc.reply)
-						if !tc.rejected {
-							_ = r.PrintfLine("not a TLS handshake")
-							return
-						}
+						_ = r.PrintfLine("%s", reply)
 					case strings.HasPrefix(line, "MAIL FROM"):
 						t.Errorf("mail transaction started: %s", line)
 						_ = r.PrintfLine("250 OK")
@@ -1095,18 +1086,11 @@ func TestStartTLSError(t *testing.T) {
 			cfg.ConnectionSecurity = StartTLS
 			cfg.FeedbackEmail = "sender@example.com"
 
-			const hint = "check the SMTP Connection Security setting"
-			for _, err := range []error{
-				TestConnection(context.Background(), cfg),
-				SendMailUsingConfig("recipient@example.com", "subject", "body", cfg, false, "", "", "", "", ""),
-			} {
-				require.ErrorContains(t, err, "unable to start TLS")
-				if tc.rejected {
-					assert.ErrorContains(t, err, hint)
-				} else {
-					assert.NotContains(t, err.Error(), hint)
-				}
-			}
+			err := TestConnection(context.Background(), cfg)
+			require.ErrorContains(t, err, "unable to start TLS")
+
+			err = SendMailUsingConfig("recipient@example.com", "subject", "body", cfg, false, "", "", "", "", "")
+			require.ErrorContains(t, err, "unable to start TLS")
 		})
 	}
 }
