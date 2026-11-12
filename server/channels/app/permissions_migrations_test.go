@@ -229,6 +229,58 @@ func TestAIRecapsPermissionsMigrationIsRegistered(t *testing.T) {
 	assert.Len(t, systemAdminRole.Permissions, 3)
 }
 
+func TestRemoveGroupsChannelMemberPermissionsMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getRemoveGroupsChannelMemberPermissionsMigration()
+	require.NoError(t, err)
+
+	writeGroups := model.PermissionSysconsoleWriteUserManagementGroups.Id
+	writeChannels := model.PermissionSysconsoleWriteUserManagementChannels.Id
+	manageSystem := model.PermissionManageSystem.Id
+	publicMembers := model.PermissionManagePublicChannelMembers.Id
+	privateMembers := model.PermissionManagePrivateChannelMembers.Id
+	convertToPrivate := model.PermissionConvertPublicChannelToPrivate.Id
+
+	for name, tc := range map[string]struct {
+		permissions []string
+		expected    []string
+	}{
+		"groups write without channels write loses the member permissions": {
+			permissions: []string{writeGroups, publicMembers, privateMembers, convertToPrivate},
+			expected:    []string{writeGroups, convertToPrivate},
+		},
+		"groups write with only one member permission loses it": {
+			permissions: []string{writeGroups, privateMembers},
+			expected:    []string{writeGroups},
+		},
+		"groups write with channels write keeps the member permissions": {
+			permissions: []string{writeGroups, writeChannels, publicMembers, privateMembers},
+			expected:    []string{writeGroups, writeChannels, publicMembers, privateMembers},
+		},
+		"system admin keeps the member permissions": {
+			permissions: []string{manageSystem, writeGroups, publicMembers, privateMembers},
+			expected:    []string{manageSystem, writeGroups, publicMembers, privateMembers},
+		},
+		"roles without groups write keep the member permissions": {
+			permissions: []string{publicMembers, privateMembers},
+			expected:    []string{publicMembers, privateMembers},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			role := &model.Role{Name: "role", Permissions: tc.permissions}
+			roleMap := map[string]map[string]bool{role.Name: {}}
+			for _, permission := range tc.permissions {
+				roleMap[role.Name][permission] = true
+			}
+
+			assert.ElementsMatch(t, tc.expected, applyPermissionsMap(role, roleMap, migrationMap))
+		})
+	}
+}
+
 // TestPermissionsMigrationPreservesUnknownPermissions is the regression test for
 // MM-68830: a server downgraded from a newer release holds permissions the older
 // binary does not recognize. The permissions migration must not fail fatally, and

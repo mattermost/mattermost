@@ -1366,6 +1366,19 @@ func (a *App) getAddAIRecapsPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
+func (a *App) getRemoveGroupsChannelMemberPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionAnd(
+				permissionExists(model.PermissionSysconsoleWriteUserManagementGroups.Id),
+				permissionNotExists(model.PermissionSysconsoleWriteUserManagementChannels.Id),
+				permissionNotExists(PermissionManageSystem),
+			),
+			Remove: []string{PermissionManagePublicChannelMembers, PermissionManagePrivateChannelMembers},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1431,6 +1444,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
 		{Key: model.MigrationRemoveImportTeamPermission, Migration: a.removeImportTeamPermissionMigration},
 		{Key: model.MigrationKeyAddAIRecapsPermissions, Migration: a.getAddAIRecapsPermissionsMigration},
+		{Key: model.MigrationKeyRemoveGroupsChannelMemberPermissions, Migration: a.getRemoveGroupsChannelMemberPermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
