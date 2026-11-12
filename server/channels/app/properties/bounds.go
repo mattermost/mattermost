@@ -156,9 +156,7 @@ func refuseSetOnCreate(field *model.PropertyField) error {
 // changePolicyWrites is what the change_policy translation in a field write's
 // pre-hooks tells the bounds hook: which fields the request saves in the old
 // format. Such a write carries the existing change_policy feature over, so the
-// flag does not gate the self rules and write_once its translation adds. It is
-// plain data on the request context: the translation writes it, the bounds hook
-// reads it.
+// flag does not gate the self rules and write_once its translation adds.
 type changePolicyWrites struct {
 	oldFormatByField map[string]bool
 }

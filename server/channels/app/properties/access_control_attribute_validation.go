@@ -224,14 +224,14 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	if err := h.validateSyncSources(field, existing); err != nil {
 		return err
 	}
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		readUnlockOverStaleEditable(field, existing)
+	}
 	// change_policy only ever meant something on a channel field, so elsewhere it
 	// is dropped before validation rather than refused: an integration still
 	// sending it is warned instead of broken. A raise/lower policy on a field
 	// that isn't a rank is stripped by the validation below; read it first so
 	// that is logged too.
-	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
-		readUnlockOverStaleEditable(field, existing)
-	}
 	oldKeys := oldPolicyKeysWritten(field, existing)
 	// Read before validation, which deletes change_policy "any" and nulls.
 	_, statesPolicy := field.Attrs[model.PropertyFieldAttrChangePolicy]
@@ -1340,13 +1340,13 @@ func oldPolicyKeysWritten(field, existing *model.PropertyField) []string {
 	return keys
 }
 
-// readUnlockOverStaleEditable makes an unlock arrive as one. Every save of a
-// locked field stores editable=false beside change_policy, and a PATCH merges
-// attrs while a plugin sends back what it read, so an unlock carries that
-// editable=false (or the stored change_policy) along; read as sent, it matches
-// the stored policy and is taken for an echo. change_policy "any" drops an
-// editable=false that is the stored one, and editable=true that differs from
-// the stored one, beside the stored change_policy, drops that change_policy.
+// readUnlockOverStaleEditable strips the stale key an unlock arrives with, so the
+// unlock isn't taken for an echo of the stored lock. Every save of a locked field
+// stores editable=false beside change_policy, and a PATCH merges attrs while a
+// plugin sends back what it read, so an unlock still carries one of them.
+// change_policy "any" drops an editable=false equal to the stored one;
+// editable=true that differs from the stored one, sent beside the stored
+// change_policy, drops that change_policy.
 func readUnlockOverStaleEditable(field, existing *model.PropertyField) {
 	if existing == nil {
 		return
@@ -1390,8 +1390,8 @@ func (ps *PropertyService) warnOldPolicyKeys(rctx request.CTX, field *model.Prop
 	)
 }
 
-// changePolicyBaseline returns the mutability and bounds a save is judged
-// against: the stored field's, or for a channel field locked only by its old
+// changePolicyBaseline returns the mutability and bounds the change_policy
+// translation judges a save against: the stored field's, or for a channel field locked only by its old
 // change_policy (the startup conversion hasn't reached it yet) that policy
 // translated. On create it is mutable with no rules.
 func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMutability, model.PropertyBounds) {
