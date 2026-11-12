@@ -261,7 +261,7 @@ describe('SelectedValueChips', () => {
             expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
         });
 
-        test('removing the last chip from the keyboard focuses the trigger with a plain focus call', async () => {
+        test('removing the last chip from the keyboard focuses the trigger with a focus ring', async () => {
             const {triggerElement} = renderInTrigger(false);
             const focus = jest.spyOn(triggerElement, 'focus');
             await act(async () => {
@@ -271,7 +271,17 @@ describe('SelectedValueChips', () => {
             await userEvent.keyboard('{Enter}');
 
             expect(triggerElement).toHaveFocus();
-            expect(focus).toHaveBeenCalledWith();
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        });
+
+        test('removing the last chip with the mouse focuses the trigger without a focus ring', async () => {
+            const {triggerElement} = renderInTrigger(false);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
+
+            expect(triggerElement).toHaveFocus();
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
         });
 
         test('does not focus the trigger while the menu is open', () => {
