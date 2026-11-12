@@ -97,6 +97,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         );
 
         await userEvent.click(screen.getAllByRole('button')[0]);
+        expect(screen.getByText('Success Message')).toBeInTheDocument();
 
         // Success & showSuccessMessage=false
         renderWithContext(
@@ -123,6 +124,8 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         );
 
         await userEvent.click(screen.getAllByRole('button')[1]);
+        expect(requestActionSuccess).toHaveBeenCalledTimes(2);
+        expect(screen.getAllByText('Success Message')).toHaveLength(1);
     });
 
     test('should render with request error', async () => {
@@ -156,6 +159,7 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         );
 
         await userEvent.click(screen.getAllByRole('button')[0]);
+        expect(screen.getByText('Error Message: __message__ - __detailed_error__')).toBeInTheDocument();
 
         // Error & includeDetailedError=false
         renderWithContext(
@@ -181,5 +185,6 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
         );
 
         await userEvent.click(screen.getAllByRole('button')[1]);
+        expect(screen.getByText('Error Message: __message__')).toBeInTheDocument();
     });
 });

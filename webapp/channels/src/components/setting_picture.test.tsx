@@ -36,15 +36,18 @@ describe('components/SettingItemMin', () => {
         type: 'image/jpeg',
     });
 
-    test('should render with removeSrc state active', async () => {
+    test('should hide the image with removeSrc state active', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        renderWithContext(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
         // Click the remove button to set removeSrc state
         const removeButton = screen.getByTestId('removeSettingPicture');
         await userEvent.click(removeButton);
+
+        expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
     });
 
     test('should match state and call props.updateSection on handleCancel', async () => {

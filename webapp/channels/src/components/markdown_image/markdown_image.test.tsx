@@ -158,6 +158,8 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
 
         fireEvent.load(img!);
+
+        expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 100});
     });
 
     test('should render an image with preview modal if the source is safe', () => {
@@ -281,7 +283,7 @@ describe('components/MarkdownImage', () => {
             width: '50',
         };
 
-        renderWithContext(
+        const {container} = renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -292,6 +294,8 @@ describe('components/MarkdownImage', () => {
         Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
 
         fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
     });
 
     test('should render a alt text if the link is unsafe', () => {

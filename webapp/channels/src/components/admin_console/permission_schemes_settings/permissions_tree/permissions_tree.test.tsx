@@ -112,4 +112,99 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(groups[8].id).toStrictEqual('manage_shared_channels');
         expect(groups[9].id).toStrictEqual('custom_groups');
     });
+
+    describe('should show playbook permissions', () => {
+        describe('for non-enterprise license', () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: licenseSku === '' ? 'false' : 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                renderWithContext(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+
+                const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+                expect(groups[3].id).toStrictEqual('playbook_public');
+                expect(groups[4].id).toStrictEqual('runs');
+            }));
+        });
+
+        describe('for enterprise license', () => {
+            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                renderWithContext(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+
+                const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+                expect(groups[3].id).toStrictEqual('playbook_public');
+                expect(groups[4].id).toStrictEqual('playbook_private');
+                expect(groups[5].id).toStrictEqual('runs');
+            }));
+        });
+    });
+
+    describe('should show auto translation permissions', () => {
+        describe('for non-enterprise-advanced license', () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.E20].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: licenseSku === '' ? 'false' : 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                renderWithContext(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+                const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+                expect(groups[1].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[1].permissions).not.toContain('manage_private_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_private_channel_auto_translation');
+            }));
+        });
+
+        describe('for enterprise-advanced license', () => {
+            [LicenseSkus.Entry, LicenseSkus.EnterpriseAdvanced].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                renderWithContext(
+                    <PermissionsTree
+                        {...props}
+                    />,
+                );
+                const groups = PermissionGroup.mock.calls[0][0].permissions as Array<Group | Permission>;
+                expect(groups[1].permissions).toContain('manage_public_channel_auto_translation');
+                expect(groups[1].permissions).not.toContain('manage_private_channel_auto_translation');
+                expect(groups[2].permissions).not.toContain('manage_public_channel_auto_translation');
+                expect(groups[2].permissions).toContain('manage_private_channel_auto_translation');
+            }));
+        });
+    });
 });

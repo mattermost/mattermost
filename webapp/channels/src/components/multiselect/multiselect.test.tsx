@@ -46,6 +46,10 @@ describe('components/multiselect/multiselect', () => {
         );
 
         await userEvent.click(screen.getByText('Next'));
+
+        expect(screen.getByText('Previous')).toBeInTheDocument();
+        expect(screen.getByText('7')).toBeInTheDocument();
+        expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
 
     test('MultiSelectList should match state on next page', async () => {

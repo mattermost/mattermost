@@ -103,25 +103,6 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(screen.getByText('add them to this private board')).toBeInTheDocument();
     });
 
-    test('should render more than 3 users', async () => {
-        const userIds = ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'];
-        const usernames = ['username_1', 'username_2', 'username_3', 'username_4'];
-        const props: Props = {
-            ...requiredProps,
-            userIds,
-            usernames,
-        };
-
-        renderWithContext(<PostAddChannelMember {...props}/>);
-
-        const user = userEvent.setup();
-        const otherUsersLink = screen.getByText(/others/i).closest('a');
-        if (!otherUsersLink) {
-            throw new Error('Other users link not found');
-        }
-        await user.click(otherUsersLink);
-    });
-
     test('actions should have been called', async () => {
         const actions = {
             removePost: jest.fn(),

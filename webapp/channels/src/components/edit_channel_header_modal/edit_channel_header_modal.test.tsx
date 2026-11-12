@@ -73,6 +73,9 @@ describe('components/EditChannelHeaderModal', () => {
 
         // Click save
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith(baseProps.channel.id, {header: 'New header'});
+        expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
     });
 
     test('error with intl message', async () => {

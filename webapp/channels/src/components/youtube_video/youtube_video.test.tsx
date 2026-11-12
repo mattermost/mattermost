@@ -57,16 +57,6 @@ describe('YoutubeVideo', () => {
         expect(screen.getByRole('heading', {level: 4})).toHaveTextContent('YouTube - Youtube title');
     });
 
-    test('should render for playing state', async () => {
-        renderWithContext(
-            <YoutubeVideo {...baseProps}/>,
-            initialState,
-        );
-
-        // Click the play button to set playing state
-        await userEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
-    });
-
     test('should send the origin as referrer to the embedded player so YouTube does not reject it', async () => {
         renderWithContext(
             <YoutubeVideo {...baseProps}/>,

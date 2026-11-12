@@ -5,7 +5,7 @@ import React from 'react';
 
 import InstalledOAuthApp from 'components/integrations/installed_oauth_app/installed_oauth_app';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('components/integrations/delete_integration_link', () => {
@@ -49,7 +49,7 @@ describe('components/integrations/InstalledOAuthApp', () => {
         fromApp: false,
     };
 
-    test('should render on error', () => {
+    test('should render on error', async () => {
         const onRegenerateSecret = jest.fn().mockResolvedValue({error: {message: 'error'}});
         const props = {...baseProps, team, onRegenerateSecret};
         renderWithContext(
@@ -57,10 +57,17 @@ describe('components/integrations/InstalledOAuthApp', () => {
         );
 
         // Trigger error by clicking regenerate
-        screen.getByText('Regenerate Secret').click();
+        await userEvent.click(screen.getByText('Regenerate Secret'));
 
-        waitFor(() => {
-        });
+        expect(await screen.findByText('error')).toBeInTheDocument();
+    });
+
+    test('should filter out OAuthApp', () => {
+        const props = {...baseProps, team, filter: 'filter'};
+        const {container} = renderWithContext(
+            <InstalledOAuthApp {...props}/>,
+        );
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should call onRegenerateSecret function', async () => {
