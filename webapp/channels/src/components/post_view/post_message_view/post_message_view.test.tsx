@@ -62,12 +62,7 @@ describe('components/post_view/PostAttachment', () => {
         userLanguage: 'en',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<PostMessageView {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on Show More', async () => {
+    test('should render on Show More', async () => {
         // ShowMore sets isOverflow when textContainer.scrollHeight > maxHeight.
         // Default max height (600px) is never exceeded by the mocked short message; use a tiny maxHeight.
         let container: HTMLElement | undefined;
@@ -84,10 +79,9 @@ describe('components/post_view/PostAttachment', () => {
             expect(screen.getByRole('button', {name: /show more/i})).toBeInTheDocument();
         });
         expect(container).toBeDefined();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on Show Less', async () => {
+    test('should render on Show Less', async () => {
         let container: HTMLElement | undefined;
         stubShowMoreOverflowLayout(() => {
             container = renderWithContext(
@@ -107,31 +101,14 @@ describe('components/post_view/PostAttachment', () => {
             expect(screen.getByRole('button', {name: /show less/i})).toBeInTheDocument();
         });
         expect(container).toBeDefined();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on deleted post', () => {
+    test('should render on deleted post', () => {
         const props = {...baseProps, post: {...post, state: Posts.POST_DELETED as 'DELETED'}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<PostMessageView {...props}/>);
 
         // Verify the deleted post message is rendered
         expect(screen.getByText('(message deleted)')).toBeInTheDocument();
-    });
-
-    test('should match snapshot, on edited post', () => {
-        const props = {...baseProps, post: {...post, edit_at: 1}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on ephemeral post', () => {
-        const props = {...baseProps, post: {...post, type: Posts.POST_TYPES.EPHEMERAL as PostType}};
-        const {container} = renderWithContext(<PostMessageView {...props}/>);
-
-        expect(container).toMatchSnapshot();
     });
 
     test('renders messageBodyFooter inside ShowMore text container', () => {

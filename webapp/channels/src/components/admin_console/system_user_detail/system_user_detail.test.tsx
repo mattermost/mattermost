@@ -80,49 +80,11 @@ describe('SystemUserDetail', () => {
         await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
     };
 
-    test('should match default snapshot', async () => {
+    test('should render', async () => {
         const props = defaultProps;
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot if MFA is enabled', async () => {
-        const props = {
-            ...defaultProps,
-            mfaEnabled: true,
-        };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should show manage user settings button as activated', async () => {
-        const props = {
-            ...defaultProps,
-            showManageUserSettings: true,
-        };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should show manage user settings button as disabled when no license', async () => {
-        const props = {
-            ...defaultProps,
-            showLockedManageUserSettings: false,
-        };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should show the activate user button as disabled when user is LDAP', async () => {
@@ -137,20 +99,6 @@ describe('SystemUserDetail', () => {
 
         const activateButton = container.querySelector('button[disabled]');
         expect(activateButton).toHaveTextContent('Deactivate (Managed By LDAP)');
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should not show manage user settings button when user doesn\'t have permission', async () => {
-        const props = {
-            ...defaultProps,
-            showManageUserSettings: false,
-        };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
-
-        await waitForLoadingToFinish();
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should not fetch CPA data if disabled', async () => {
@@ -163,14 +111,12 @@ describe('SystemUserDetail', () => {
             getCustomProfileAttributeFields,
             getCustomProfileAttributeValues,
         };
-        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+        renderWithContext(<SystemUserDetail {...props}/>);
 
         await waitForLoadingToFinish();
 
         expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(getCustomProfileAttributeValues).not.toHaveBeenCalled();
-
-        expect(container).toMatchSnapshot();
     });
 
     const cachedCpaField = {

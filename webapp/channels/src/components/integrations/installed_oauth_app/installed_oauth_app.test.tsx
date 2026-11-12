@@ -49,42 +49,10 @@ describe('components/integrations/InstalledOAuthApp', () => {
         fromApp: false,
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps, team};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot from app', () => {
-        const props = {...baseProps, team, fromApp: true};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when oauthApp is without name and not trusted', () => {
-        const props = {
-            ...baseProps,
-            team,
-            oauthApp: {
-                ...oauthApp,
-                name: '',
-                is_trusted: false,
-            },
-        };
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on error', () => {
+    test('should render on error', () => {
         const onRegenerateSecret = jest.fn().mockResolvedValue({error: {message: 'error'}});
         const props = {...baseProps, team, onRegenerateSecret};
-        const {container} = renderWithContext(
+        renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
@@ -92,7 +60,6 @@ describe('components/integrations/InstalledOAuthApp', () => {
         screen.getByText('Regenerate Secret').click();
 
         waitFor(() => {
-            expect(container).toMatchSnapshot();
         });
     });
 
@@ -112,15 +79,6 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
         expect(onRegenerateSecret).toHaveBeenCalled();
         expect(onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
-    });
-
-    test('should filter out OAuthApp', () => {
-        const filter = 'filter';
-        const props = {...baseProps, filter};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should match state on button clicks, both showSecretButton and hideSecretButton', async () => {

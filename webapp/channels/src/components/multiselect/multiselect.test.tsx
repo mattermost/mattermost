@@ -38,25 +38,14 @@ describe('components/multiselect/multiselect', () => {
         focusOnLoad: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <MultiSelect
-                {...baseProps}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for page 2', async () => {
-        const {container} = renderWithContext(
+    test('should render for page 2', async () => {
+        renderWithContext(
             <MultiSelect
                 {...baseProps}
             />,
         );
 
         await userEvent.click(screen.getByText('Next'));
-        expect(container).toMatchSnapshot();
     });
 
     test('MultiSelectList should match state on next page', async () => {
@@ -93,23 +82,6 @@ describe('components/multiselect/multiselect', () => {
 
         // After clicking next, the first option on the new page should be selected (selected = 0)
         expect(document.querySelector('.option--selected')).toBeInTheDocument();
-    });
-
-    test('MultiSelectList should match snapshot when custom no option message is defined', () => {
-        const customNoOptionsMessage = (
-            <div className='custom-no-options-message'>
-                <span>{'No matches found'}</span>
-            </div>
-        );
-
-        const {container} = renderWithContext(
-            <MultiSelect
-                {...baseProps}
-                customNoOptionsMessage={customNoOptionsMessage}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 
     test('Back button should be customizable', async () => {

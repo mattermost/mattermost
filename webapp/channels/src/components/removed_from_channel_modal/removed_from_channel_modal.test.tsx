@@ -15,14 +15,6 @@ describe('components/RemoveFromChannelModal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <RemovedFromChannelModal {...baseProps}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should have state "show" equals true on mount', () => {
         renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,

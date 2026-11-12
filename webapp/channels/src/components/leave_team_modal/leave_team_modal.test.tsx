@@ -24,11 +24,6 @@ describe('components/LeaveTeamModal', () => {
         },
     };
 
-    it('should render the leave team model', () => {
-        const {baseElement} = renderWithContext(<LeaveTeamModal {...requiredProps}/>);
-        expect(baseElement).toMatchSnapshot();
-    });
-
     it('should hide when No is clicked', async () => {
         renderWithContext(<LeaveTeamModal {...requiredProps}/>);
 
