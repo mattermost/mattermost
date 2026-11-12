@@ -9507,3 +9507,72 @@ func TestPatchPropertyFieldBoundsPermission(t *testing.T) {
 		require.Empty(t, stored.Mutability)
 	})
 }
+
+// A v3 group other than access_control carries bounds too, so the flag gate and
+// the set_on_create refusal must reach it through the server's registered hooks.
+func TestBoundsHookCoversEveryV3Group(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = false
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_bounds_hook", Version: model.PropertyGroupVersionV3})
+	require.Nil(t, appErr)
+
+	selfRule := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
+	newField := func(objectType string, fieldType model.PropertyFieldType) *model.PropertyField {
+		return &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       fieldType,
+			GroupID:    group.ID,
+			ObjectType: objectType,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+			Permissions: &model.Permissions{Restrictions: &model.Restrictions{
+				Value:  model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Option: model.ReadWrite{Read: model.PermissionLevelMember, Write: model.PermissionLevelMember},
+				Field:  model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			}},
+		}
+	}
+
+	t.Run("with the flag off, a rule on create is refused", func(t *testing.T) {
+		field := newField("post", model.PropertyFieldTypeRank)
+		field.Bounds = model.PropertyBounds{selfRule}
+		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+	})
+
+	t.Run("with the flag off, an existing field cannot become write_once", func(t *testing.T) {
+		created, appErr := th.App.CreatePropertyField(th.Context, newField("post", model.PropertyFieldTypeText), false, "")
+		require.Nil(t, appErr)
+
+		created.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.bounds_disabled.app_error", appErr.Id)
+	})
+
+	t.Run("set_on_create is refused", func(t *testing.T) {
+		field := newField("channel", model.PropertyFieldTypeText)
+		field.Mutability = model.PropertyFieldMutabilitySetOnCreate
+		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_field.set_on_create_unsupported.app_error", appErr.Id)
+	})
+
+	t.Run("with the flag on, a rule on create is stored", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = false })
+
+		field := newField("post", model.PropertyFieldTypeRank)
+		field.Bounds = model.PropertyBounds{selfRule}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		require.Equal(t, model.PropertyBounds{selfRule}, created.Bounds)
+	})
+}
