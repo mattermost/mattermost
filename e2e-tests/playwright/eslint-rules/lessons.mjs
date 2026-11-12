@@ -21,7 +21,8 @@ const LOCATOR_METHODS = new Set([
     'getByTitle',
 ]);
 
-const XPATH = /^(xpath=|\/\/|\(\/\/)/;
+const XPATH = /^(xpath=|\/\/|\(\/\/|\.\.)/;
+const XPATH_METHODS = new Set(['locator', 'frameLocator']);
 
 function methodName(node) {
     return node.callee.type === 'MemberExpression' && !node.callee.computed ? node.callee.property.name : null;
@@ -41,14 +42,20 @@ function firstArgText(node) {
     return null;
 }
 
-// True when `node` is evaluated as a condition: an if, ternary, loop or logical operand.
+// True when `node` is evaluated as a condition: an if, ternary, loop or logical operand,
+// optionally compared for equality first.
 const PASS_THROUGH = new Set(['LogicalExpression', 'UnaryExpression', 'AwaitExpression', 'TSNonNullExpression']);
 const CONDITIONAL = new Set(['IfStatement', 'ConditionalExpression', 'WhileStatement', 'DoWhileStatement']);
+const EQUALITY = new Set(['===', '!==', '==', '!=']);
+
+function passesThrough(parent) {
+    return PASS_THROUGH.has(parent.type) || (parent.type === 'BinaryExpression' && EQUALITY.has(parent.operator));
+}
 
 function isInCondition(node) {
     let child = node;
     let parent = node.parent;
-    while (parent && PASS_THROUGH.has(parent.type)) {
+    while (parent && passesThrough(parent)) {
         child = parent;
         parent = parent.parent;
     }
@@ -89,7 +96,7 @@ const noXpath = {
     create(context) {
         return {
             CallExpression(node) {
-                if (methodName(node) !== 'locator') {
+                if (!XPATH_METHODS.has(methodName(node))) {
                     return;
                 }
                 const text = firstArgText(node);
