@@ -21,8 +21,11 @@ const statusLabels = defineMessages({
  * mirroring compass-ui UserAvatar (avatar px -> StatusBadge size, and its right/bottom offset):
  *   12-16px -> xx-small, 20-28px -> x-small (offset 1)
  *   32-50px -> small (offset 2)
- *   56-80px -> medium, drawn at 20px (offset 0)
- *   96-128px -> large (offset 2)
+ *   56-96px -> medium, drawn at 20px (offset 0)
+ *   120-128px -> large (offset 2)
+ *
+ * NOTE: compass-ui UserAvatar currently uses the large badge from 96px; 96px stays on medium here, see
+ * https://github.com/mattermost/compass-design/issues/250.
  */
 const avatarBadgePlacement: Record<TAvatarSizeToken, {size: StatusBadgeSize; offset: 0 | 1 | 2}> = {
     xxs: {size: 'xx-small', offset: 1}, // 16px
@@ -32,7 +35,7 @@ const avatarBadgePlacement: Record<TAvatarSizeToken, {size: StatusBadgeSize; off
     lg: {size: 'small', offset: 2}, // 36px
     xl: {size: 'small', offset: 2}, // 50px
     'xl-custom-GM': {size: 'medium', offset: 0}, // 72px
-    'xl-custom-DM': {size: 'large', offset: 2}, // 96px
+    'xl-custom-DM': {size: 'medium', offset: 0}, // 96px
     xxl: {size: 'large', offset: 2}, // 128px
     inherit: {size: 'small', offset: 1}, // compact posts: one size up from the default for readability
 };
