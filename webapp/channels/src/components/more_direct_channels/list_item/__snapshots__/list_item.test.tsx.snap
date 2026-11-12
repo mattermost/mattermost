@@ -59,21 +59,26 @@ exports[`ListItem should match snapshot when rendering user 1`] = `
         />
       </span>
       <span
-        class="status "
+        aria-label="Online"
+        class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-online_af5ji_72 user-status-badge user-status-badge--offset-2"
+        role="img"
       >
-        <svg
-          aria-label="Online"
-          height="100%"
-          role="img"
-          style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
-          viewBox="0 0 20 20"
-          width="100%"
+        <span
+          class="_status-badge__glyph_af5ji_24"
         >
-          <path
-            class="online--icon"
-            d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm6.19,7.18c0,0.208 -0.075,0.384 -0.224,0.53l-5.782,5.64l-1.087,1.059c-0.149,0.146 -0.33,0.218 -0.543,0.218c-0.213,0 -0.394,-0.072 -0.543,-0.218l-1.086,-1.059l-2.891,-2.82c-0.149,-0.146 -0.224,-0.322 -0.224,-0.53c0,-0.208 0.075,-0.384 0.224,-0.53l1.086,-1.059c0.149,-0.146 0.33,-0.218 0.543,-0.218c0.213,0 0.394,0.072 0.543,0.218l2.348,2.298l5.24,-5.118c0.149,-0.146 0.33,-0.218 0.543,-0.218c0.213,0 0.394,0.072 0.543,0.218l1.086,1.059c0.149,0.146 0.224,0.322 0.224,0.53Z"
-          />
-        </svg>
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,2C6.477,2,2,6.477,2,12s4.477,10,10,10s10-4.477,10-10S17.523,2,12,2z M10.243,16.693L10.243,16.693l-1.415-1.415L6,12.45l1.414-1.414l2.828,2.828L16.607,7.5l1.415,1.415L10.243,16.693z"
+            />
+          </svg>
+        </span>
       </span>
     </span>
     <div
