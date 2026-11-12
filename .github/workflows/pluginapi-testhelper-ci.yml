@@ -1,7 +1,8 @@
 ---
 # Runs the integration tests of server/public/pluginapi/testhelper. They need a Docker
 # socket, which the Server CI test job lacks, and they test a published server image
-# rather than one built from the PR, so they run only when the package changes.
+# rather than one built from the PR, so they run only when the package or its
+# dependencies (go.mod) change.
 name: Plugin testhelper CI
 on:
   push:
@@ -10,10 +11,14 @@ on:
       - release-*
     paths:
       - "server/public/pluginapi/testhelper/**"
+      - "server/public/go.mod"
+      - "server/public/go.sum"
       - ".github/workflows/pluginapi-testhelper-ci.yml"
   pull_request:
     paths:
       - "server/public/pluginapi/testhelper/**"
+      - "server/public/go.mod"
+      - "server/public/go.sum"
       - ".github/workflows/pluginapi-testhelper-ci.yml"
 
 concurrency:

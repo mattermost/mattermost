@@ -27,7 +27,8 @@
 //     Examples: "mattermost/mattermost-enterprise-edition:10.5" for a specific release,
 //     "mattermostdevelopment/mattermost-enterprise-edition:master" for bleeding-edge.
 //   - MM_TEST_PLUGIN_DIR: The directory holding plugin.json and dist/*.tar.gz, instead of
-//     searching upwards from the working directory.
+//     searching upwards from the working directory. A relative path is resolved against
+//     the test's package directory, where `go test` runs it, so prefer an absolute path.
 //   - SKIP_DOCKER_TESTS: Set to any value to skip integration tests.
 //   - MM_LICENSE: A license with the Cluster feature, required by SetupCluster (see Clusters).
 //
