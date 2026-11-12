@@ -142,6 +142,14 @@ Keep the following in mind:
 
 When `ServiceSettings.TrustedProxyIPHeader` is configured, Mattermost takes `ip_address` from that header instead of the connection. An `inCIDR` rule on `ip_address` is only trustworthy when clients can't reach the Mattermost server directly **and** your reverse proxy overwrites the header with the real client address on every inbound request. If the proxy appends to a client-supplied value, or a client can bypass the proxy, the address is attacker-controlled and any network rule built on it can be satisfied at will.
 
+Behind NGINX, set `ServiceSettings.TrustedProxyIPHeader` to `["X-Real-IP"]`, because NGINX overwrites `X-Real-IP` with the address of the connecting client. Keep Mattermost Server reachable only through the proxy. If another load balancer sits in front of NGINX, use the NGINX `real_ip` module with `set_real_ip_from` limited to that load balancer's addresses. See [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx) for the matching configuration.
+
+<Warning>
+
+Never trust `X-Forwarded-For` for this setting. Mattermost Server uses the first comma-separated value of the header, and the client controls that value when NGINX appends to it with `$proxy_add_x_forwarded_for`.
+
+</Warning>
+
 ### VPN detection
 
 `vpn_active` is determined by the **types of network interfaces present on the device**, not by inspecting traffic. Mattermost looks for interfaces the operating system reports as VPN or tunnel adapters, such as `utun` and `ipsec` interfaces on macOS and iOS, and adapters whose type or name identifies them as VPN or tunnel devices on Windows. This has limits:
@@ -195,6 +203,8 @@ Populates the `tls_device_id` session attribute from the `X-Mattermost-Session-A
 <Warning>
 
 Only enable this setting when a reverse proxy you control terminates every connection to Mattermost **and** strips or overwrites `X-Mattermost-Session-Attribute-Device-Id` on inbound requests. If clients can reach the Mattermost server directly, or if your proxy passes the header through unmodified, any client can assert an arbitrary device identity and satisfy policies that gate on `tls_device_id`.
+
+In NGINX, set the header in every proxying location, either to an empty string, which removes any value that a client sends, or to a value derived from the verified client certificate. The [recommended NGINX configuration](/deployment-guide/server/setup-nginx-proxy) doesn't set it, because the setting is off by default. See [SSL client certificate setup](/administration-guide/onboard/ssl-client-certificate) for an example.
 
 </Warning>
 

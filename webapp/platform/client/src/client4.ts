@@ -4872,6 +4872,27 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -4914,13 +4935,16 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+
+            // The media type without parameters such as "; charset=binary", which proxies may add.
+            const mediaType = contentType?.split(';')[0].trim().toLowerCase();
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (mediaType === 'application/zip' || mediaType === 'application/octet-stream' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();

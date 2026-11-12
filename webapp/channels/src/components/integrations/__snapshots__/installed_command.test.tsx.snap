@@ -64,20 +64,20 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
           </code>
           <button
             aria-label="Copy Token"
-            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
             data-testid="copyText"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-12_1i355_30"
+                class="_icon_1xcik_13 _icon--size-12_1xcik_41"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -175,20 +175,20 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
           </code>
           <button
             aria-label="Copy Token"
-            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
             data-testid="copyText"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-12_1i355_30"
+                class="_icon_1xcik_13 _icon--size-12_1xcik_41"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -267,20 +267,20 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
           </code>
           <button
             aria-label="Copy Token"
-            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
             data-testid="copyText"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-12_1i355_30"
+                class="_icon_1xcik_13 _icon--size-12_1xcik_41"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -359,20 +359,20 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
           </code>
           <button
             aria-label="Copy Token"
-            class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 ml-2"
+            class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 ml-2"
             data-testid="copyText"
             type="button"
           >
             <span
               aria-hidden="true"
-              class="_icon-button__icon-slot_ft92e_41"
+              class="_icon-button__icon-slot_1d2d4_65"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-12_1i355_30"
+                class="_icon_1xcik_13 _icon--size-12_1xcik_41"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"

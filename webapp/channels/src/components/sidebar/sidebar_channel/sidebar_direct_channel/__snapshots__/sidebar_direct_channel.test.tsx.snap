@@ -41,20 +41,20 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--style-inverted_ft92e_162 SidebarMenu_menuButton"
+        class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--style-inverted_1d2d4_186 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-12_1i355_30"
+            class="_icon_1xcik_13 _icon--size-12_1xcik_41"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -128,20 +128,20 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--style-inverted_ft92e_162 SidebarMenu_menuButton"
+        class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--style-inverted_1d2d4_186 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-12_1i355_30"
+            class="_icon_1xcik_13 _icon--size-12_1xcik_41"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -215,20 +215,20 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--style-inverted_ft92e_162 SidebarMenu_menuButton"
+        class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--style-inverted_1d2d4_186 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-12_1i355_30"
+            class="_icon_1xcik_13 _icon--size-12_1xcik_41"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -290,20 +290,20 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
         aria-expanded="false"
         aria-haspopup="true"
         aria-label="Channel options for "
-        class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--style-inverted_ft92e_162 SidebarMenu_menuButton"
+        class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--style-inverted_1d2d4_186 SidebarMenu_menuButton"
         id="SidebarChannelMenu-Button-channel_id"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-12_1i355_30"
+            class="_icon_1xcik_13 _icon--size-12_1xcik_41"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"

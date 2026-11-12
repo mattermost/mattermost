@@ -77,11 +77,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -168,12 +168,12 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-tertiary_we8pe_117 _button--size-medium_we8pe_64 app-installed"
+        class="_button_1pij1_13 _button--emphasis-tertiary_1pij1_141 _button--size-medium_1pij1_88 app-installed"
         disabled=""
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Installed
         </span>
@@ -260,11 +260,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -319,11 +319,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -402,11 +402,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -491,11 +491,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -600,11 +600,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -691,11 +691,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Try Again
         </span>
@@ -818,11 +818,11 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         type="button"
       >
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Install
         </span>
@@ -909,23 +909,23 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
       class="more-modal__actions"
     >
       <button
-        class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-medium_we8pe_64 app-install"
+        class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-medium_1pij1_88 app-install"
         disabled=""
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_button__icon-slot_we8pe_35"
+          class="_button__icon-slot_1pij1_59"
         >
           <span
             aria-label="Loading"
-            class="_spinner_3elm7_10"
+            class="_spinner_mvrwe_21"
             role="status"
             style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
           />
         </span>
         <span
-          class="_button__label_we8pe_31"
+          class="_button__label_1pij1_55"
         >
           Installing...
         </span>

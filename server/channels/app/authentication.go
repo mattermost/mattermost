@@ -340,7 +340,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
@@ -446,7 +446,7 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 	return nil
 }
 
-func checkUserNotBot(user *model.User) *model.AppError {
+func checkUserNotBot(user *model.User) error {
 	if user.IsBot {
 		return model.NewAppError("Login", "api.user.login.bot_login_forbidden.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}

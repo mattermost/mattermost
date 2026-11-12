@@ -29,20 +29,20 @@ exports[`components/ChannelHeader should match snapshot with last active display
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -94,19 +94,19 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -126,20 +126,20 @@ exports[`components/ChannelHeader should match snapshot with last active display
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -191,20 +191,20 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -245,19 +245,19 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -277,20 +277,20 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -342,23 +342,23 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -380,7 +380,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -388,21 +388,21 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--active_ft92e_31 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--active_1d2d4_55 channel-header__icon"
                 data-active="true"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -440,19 +440,19 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -472,20 +472,20 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -537,23 +537,23 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -575,7 +575,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -583,20 +583,20 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -634,19 +634,19 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -666,20 +666,20 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -731,23 +731,23 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -769,7 +769,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -777,20 +777,20 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -828,19 +828,19 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -860,20 +860,20 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -925,23 +925,23 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -963,7 +963,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -971,21 +971,21 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--active_ft92e_31 _icon-button--has-count_ft92e_119 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--active_1d2d4_55 _icon-button--has-count_1d2d4_143 channel-header__icon channel-header__icon--wide"
                 data-active="true"
                 id="channelHeaderPinButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1008,7 +1008,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                   </div>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelPinnedPostCountText"
                 >
                   2
@@ -1016,20 +1016,20 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1067,19 +1067,19 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1099,20 +1099,20 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1164,23 +1164,23 @@ exports[`components/ChannelHeader should render archived view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -1202,7 +1202,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -1210,20 +1210,20 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1261,19 +1261,19 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1293,20 +1293,20 @@ exports[`components/ChannelHeader should render archived view 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1358,20 +1358,20 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
             >
               <button
                 aria-label="Unmute"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__mute channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__mute channel-header__icon"
                 id="toggleMute"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1391,23 +1391,23 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </button>
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -1429,7 +1429,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -1437,20 +1437,20 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1488,19 +1488,19 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1520,20 +1520,20 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1585,23 +1585,23 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -1623,7 +1623,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -1631,20 +1631,20 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1682,19 +1682,19 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1714,20 +1714,20 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1779,20 +1779,20 @@ exports[`components/ChannelHeader should render properly when custom status is e
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -1844,19 +1844,19 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1876,20 +1876,20 @@ exports[`components/ChannelHeader should render properly when custom status is e
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -1941,20 +1941,20 @@ exports[`components/ChannelHeader should render properly when custom status is s
             >
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2009,19 +2009,19 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2041,20 +2041,20 @@ exports[`components/ChannelHeader should render properly when custom status is s
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2106,23 +2106,23 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -2144,7 +2144,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -2152,20 +2152,20 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2203,19 +2203,19 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2235,20 +2235,20 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2300,23 +2300,23 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -2338,7 +2338,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -2346,20 +2346,20 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2397,19 +2397,19 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2429,20 +2429,20 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2494,23 +2494,23 @@ exports[`components/ChannelHeader should render properly when populated with cha
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -2532,7 +2532,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -2540,20 +2540,20 @@ exports[`components/ChannelHeader should render properly when populated with cha
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2591,19 +2591,19 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2623,20 +2623,20 @@ exports[`components/ChannelHeader should render properly when populated with cha
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2688,23 +2688,23 @@ exports[`components/ChannelHeader should render properly when there are pending 
             >
               <button
                 aria-label="Members — pending join requests"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -2731,7 +2731,7 @@ exports[`components/ChannelHeader should render properly when there are pending 
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -2739,20 +2739,20 @@ exports[`components/ChannelHeader should render properly when there are pending 
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2790,19 +2790,19 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2822,20 +2822,20 @@ exports[`components/ChannelHeader should render properly when there are pending 
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -2887,23 +2887,23 @@ exports[`components/ChannelHeader should render shared view 1`] = `
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -2925,7 +2925,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -2933,20 +2933,20 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -2984,19 +2984,19 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -3016,20 +3016,20 @@ exports[`components/ChannelHeader should render shared view 1`] = `
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -3081,23 +3081,23 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
             >
               <button
                 aria-label="Members"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 member-rhs__trigger channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 member-rhs__trigger channel-header__icon channel-header__icon--wide"
                 id="member_rhs"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <span
                     class="channel-header__members-icon-wrapper"
                   >
                     <div
                       aria-hidden="true"
-                      class="_icon_1i355_2 _icon--size-12_1i355_30"
+                      class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                     >
                       <div
-                        class="_icon__glyph-area_1i355_9"
+                        class="_icon__glyph-area_1xcik_20"
                       >
                         <svg
                           fill="currentColor"
@@ -3119,7 +3119,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   </span>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelMemberCountText"
                 >
                   2
@@ -3127,20 +3127,20 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               </button>
               <button
                 aria-label="Pinned messages"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 _icon-button--has-count_ft92e_119 channel-header__icon channel-header__icon--wide"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 _icon-button--has-count_1d2d4_143 channel-header__icon channel-header__icon--wide"
                 id="channelHeaderPinButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -3163,7 +3163,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                   </div>
                 </span>
                 <span
-                  class="_icon-button__count_ft92e_59"
+                  class="_icon-button__count_1d2d4_83"
                   id="channelPinnedPostCountText"
                 >
                   2
@@ -3171,20 +3171,20 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               </button>
               <button
                 aria-label="Channel files"
-                class="_icon-button_ft92e_2 _icon-button--size-x-small_ft92e_63 channel-header__icon"
+                class="_icon-button_1d2d4_13 _icon-button--size-x-small_1d2d4_87 channel-header__icon"
                 id="channelHeaderFilesButton"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-12_1i355_30"
+                    class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"
@@ -3222,19 +3222,19 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </div>
       <button
         aria-label="Open in new window"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 PopoutButton channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 PopoutButton channel-header__icon channel-header__icon--small"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"
@@ -3254,20 +3254,20 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
       </button>
       <button
         aria-label="View Info"
-        class="_icon-button_ft92e_2 _icon-button--size-small_ft92e_77 channel-header__icon channel-header__icon--small"
+        class="_icon-button_1d2d4_13 _icon-button--size-small_1d2d4_101 channel-header__icon channel-header__icon--small"
         id="channel-info-btn"
         type="button"
       >
         <span
           aria-hidden="true"
-          class="_icon-button__icon-slot_ft92e_41"
+          class="_icon-button__icon-slot_1d2d4_65"
         >
           <div
             aria-hidden="true"
-            class="_icon_1i355_2 _icon--size-16_1i355_38"
+            class="_icon_1xcik_13 _icon--size-16_1xcik_49"
           >
             <div
-              class="_icon__glyph-area_1i355_9"
+              class="_icon__glyph-area_1xcik_20"
             >
               <svg
                 fill="currentColor"

@@ -4,33 +4,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_f_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_f_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members and guests.
             </p>
@@ -39,7 +39,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -81,29 +81,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_g_"
                   >
                     <input
                       aria-label="Create Posts Guests"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-guests"
                       id="_r_g_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -125,29 +125,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_h_"
                   >
                     <input
                       aria-label="Create Posts Members"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_h_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -199,37 +199,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_i_"
                   >
                     <input
                       aria-label="Channel Mentions Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-guests"
                       disabled=""
                       id="_r_i_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_j_"
                   >
                     <input
                       aria-label="Channel Mentions Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-members"
                       disabled=""
                       id="_r_j_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
@@ -247,33 +247,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_0_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_0_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members and guests.
             </p>
@@ -282,7 +282,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -324,29 +324,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_1_"
                   >
                     <input
                       aria-label="Create Posts Guests"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-guests"
                       id="_r_1_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -368,29 +368,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_2_"
                   >
                     <input
                       aria-label="Create Posts Members"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_2_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -424,33 +424,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_a_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_a_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members and guests.
             </p>
@@ -459,7 +459,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -501,35 +501,35 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_b_"
                   >
                     <input
                       aria-label="Create Posts Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-guests"
                       id="_r_b_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_c_"
                   >
                     <input
                       aria-label="Create Posts Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_c_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
@@ -555,37 +555,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_d_"
                   >
                     <input
                       aria-label="Channel Mentions Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-guests"
                       disabled=""
                       id="_r_d_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_e_"
                   >
                     <input
                       aria-label="Channel Mentions Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-members"
                       disabled=""
                       id="_r_e_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
@@ -619,29 +619,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
             for="_r_3_"
           >
             <input
               aria-label="Create Posts Guests"
               checked=""
-              class="_checkbox__input_18swc_25"
+              class="_checkbox__input_18sf4_36"
               data-testid="create_post-guests"
               id="_r_3_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_18swc_44"
+              class="_checkbox__box_18sf4_55"
             >
               <span
-                class="_checkbox__icon_18swc_69"
+                class="_checkbox__icon_18sf4_80"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -663,29 +663,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
             for="_r_4_"
           >
             <input
               aria-label="Create Posts Members"
               checked=""
-              class="_checkbox__input_18swc_25"
+              class="_checkbox__input_18sf4_36"
               data-testid="create_post-members"
               id="_r_4_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_18swc_44"
+              class="_checkbox__box_18sf4_55"
             >
               <span
-                class="_checkbox__icon_18swc_69"
+                class="_checkbox__icon_18sf4_80"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -731,29 +731,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
         </td>
         <td>
           <label
-            class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+            class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
             for="_r_r_"
           >
             <input
               aria-label="Create Posts Members"
               checked=""
-              class="_checkbox__input_18swc_25"
+              class="_checkbox__input_18sf4_36"
               data-testid="create_post-members"
               id="_r_r_"
               type="checkbox"
             />
             <span
-              class="_checkbox__box_18swc_44"
+              class="_checkbox__box_18sf4_55"
             >
               <span
-                class="_checkbox__icon_18swc_69"
+                class="_checkbox__icon_18sf4_80"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-12_1i355_30"
+                  class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -783,33 +783,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_k_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_k_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members and guests.
             </p>
@@ -818,7 +818,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -860,46 +860,46 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_l_"
                   >
                     <input
                       aria-label="Create Posts Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-guests"
                       id="_r_l_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_m_"
                   >
                     <input
                       aria-label="Create Posts Members"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_m_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -956,37 +956,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_n_"
                   >
                     <input
                       aria-label="Channel Mentions Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-guests"
                       disabled=""
                       id="_r_n_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_o_"
                   >
                     <input
                       aria-label="Channel Mentions Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-members"
                       disabled=""
                       id="_r_o_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
@@ -1004,33 +1004,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_p_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_p_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members.
             </p>
@@ -1039,7 +1039,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -1078,29 +1078,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_q_"
                   >
                     <input
                       aria-label="Create Posts Members"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_q_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -1134,33 +1134,33 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
 <div>
   <section
     aria-labelledby="_r_5_"
-    class="_admin-panel_iwm08_2 AdminPanel clearfix"
+    class="_admin-panel_xr2f9_13 AdminPanel clearfix"
     id="channel_moderation"
   >
     <header
-      class="_admin-panel-header_19tix_2 _admin-panel-header--divided_19tix_7"
+      class="_admin-panel-header_vb1i0_13 _admin-panel-header--divided_vb1i0_18"
     >
       <div
-        class="_admin-panel-header__main_19tix_10"
+        class="_admin-panel-header__main_vb1i0_31"
       >
         <div
-          class="_admin-panel-header__start_19tix_19"
+          class="_admin-panel-header__start_vb1i0_40"
         >
           <div
-            class="_admin-panel-header__title-stack_19tix_37"
+            class="_admin-panel-header__title-stack_vb1i0_58"
           >
             <div
-              class="_admin-panel-header__title-row_19tix_46"
+              class="_admin-panel-header__title-row_vb1i0_67"
             >
               <h2
-                class="_admin-panel-header__title_19tix_37"
+                class="_admin-panel-header__title_vb1i0_58"
                 id="_r_5_"
               >
                 Advanced Access Control
               </h2>
             </div>
             <p
-              class="_admin-panel-header__subtitle_19tix_66"
+              class="_admin-panel-header__subtitle_vb1i0_87"
             >
               Manage the actions available to channel members and guests.
             </p>
@@ -1169,7 +1169,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       </div>
     </header>
     <div
-      class="_admin-panel__body_iwm08_25"
+      class="_admin-panel__body_xr2f9_36"
     >
       <div
         class="channel-moderation"
@@ -1211,29 +1211,29 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_6_"
                   >
                     <input
                       aria-label="Create Posts Guests"
                       checked=""
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-guests"
                       id="_r_6_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     >
                       <span
-                        class="_checkbox__icon_18swc_69"
+                        class="_checkbox__icon_18sf4_80"
                       >
                         <div
                           aria-hidden="true"
-                          class="_icon_1i355_2 _icon--size-12_1i355_30"
+                          class="_icon_1xcik_13 _icon--size-12_1xcik_41"
                         >
                           <div
-                            class="_icon__glyph-area_1i355_9"
+                            class="_icon__glyph-area_1xcik_20"
                           >
                             <svg
                               fill="currentColor"
@@ -1255,18 +1255,18 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_7_"
                   >
                     <input
                       aria-label="Create Posts Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="create_post-members"
                       id="_r_7_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
@@ -1307,37 +1307,37 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_8_"
                   >
                     <input
                       aria-label="Channel Mentions Guests"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-guests"
                       disabled=""
                       id="_r_8_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>
                 <td>
                   <label
-                    class="_checkbox_18swc_10 _checkbox--size-medium_18swc_138"
+                    class="_checkbox_18sf4_21 _checkbox--size-medium_18sf4_149"
                     for="_r_9_"
                   >
                     <input
                       aria-label="Channel Mentions Members"
-                      class="_checkbox__input_18swc_25"
+                      class="_checkbox__input_18sf4_36"
                       data-testid="use_channel_mentions-members"
                       disabled=""
                       id="_r_9_"
                       type="checkbox"
                     />
                     <span
-                      class="_checkbox__box_18swc_44"
+                      class="_checkbox__box_18sf4_55"
                     />
                   </label>
                 </td>

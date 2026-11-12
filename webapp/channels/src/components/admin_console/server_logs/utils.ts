@@ -14,6 +14,13 @@ export type LevelGroup = typeof LEVEL_GROUPS[number];
 // The server rejects longer terms (model.LogFilterSearchMaxLength)
 export const SEARCH_MAX_LENGTH = 256;
 
+// The server's limits on field filters (model.LogFilterFieldMaxValues, LogFilterFieldMaxLength)
+export const FIELD_MAX_VALUES = 20;
+export const FIELD_MAX_LENGTH = 256;
+
+// The field every plugin's log entries carry
+export const PLUGIN_ID_FIELD = 'plugin_id';
+
 const GROUP_LEVELS: Record<LevelGroup, readonly LogLevelEnum[]> = {
     error: [LogLevelEnum.PANIC, LogLevelEnum.FATAL, LogLevelEnum.CRITICAL, LogLevelEnum.ERROR],
     warn: [LogLevelEnum.WARN],

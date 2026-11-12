@@ -52,21 +52,21 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
         class="pluginActionContainer"
       >
         <div
-          class="_section-notice_1x4j7_2"
+          class="_section-notice_kwgux_13"
         >
           <div
-            class="_section-notice__content_1x4j7_11"
+            class="_section-notice__content_kwgux_22"
           >
             <span
               aria-hidden="true"
-              class="_section-notice__icon_1x4j7_18"
+              class="_section-notice__icon_kwgux_29"
             >
               <div
                 aria-hidden="true"
-                class="_icon_1i355_2 _icon--size-20_1i355_46"
+                class="_icon_1xcik_13 _icon--size-20_1xcik_57"
               >
                 <div
-                  class="_icon__glyph-area_1i355_9"
+                  class="_icon__glyph-area_1xcik_20"
                 >
                   <svg
                     fill="currentColor"
@@ -84,29 +84,29 @@ exports[`plugin tab all props are properly passed to the children 1`] = `
               </div>
             </span>
             <div
-              class="_section-notice__body_1x4j7_25"
+              class="_section-notice__body_kwgux_36"
             >
               <h4
-                class="_section-notice__title_1x4j7_34"
+                class="_section-notice__title_kwgux_45"
               >
                 actionTitle
               </h4>
               <div
-                class="_section-notice__description_1x4j7_47"
+                class="_section-notice__description_kwgux_58"
               >
                 <p>
                   actionText
                 </p>
               </div>
               <div
-                class="_section-notice__actions_1x4j7_53"
+                class="_section-notice__actions_kwgux_64"
               >
                 <button
-                  class="_button_we8pe_2 _button--emphasis-primary_we8pe_87 _button--size-small_we8pe_53"
+                  class="_button_1pij1_13 _button--emphasis-primary_1pij1_111 _button--size-small_1pij1_77"
                   type="button"
                 >
                   <span
-                    class="_button__label_we8pe_31"
+                    class="_button__label_1pij1_55"
                   >
                     buttonText
                   </span>

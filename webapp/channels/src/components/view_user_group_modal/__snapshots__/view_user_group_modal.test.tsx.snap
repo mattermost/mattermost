@@ -32,19 +32,19 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
           >
             <button
               aria-label="Back"
-              class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 modal-header-back-button"
+              class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 modal-header-back-button"
               type="button"
             >
               <span
                 aria-hidden="true"
-                class="_icon-button__icon-slot_ft92e_41"
+                class="_icon-button__icon-slot_1d2d4_65"
               >
                 <div
                   aria-hidden="true"
-                  class="_icon_1i355_2 _icon--size-20_1i355_46"
+                  class="_icon_1xcik_13 _icon--size-20_1xcik_57"
                 >
                   <div
-                    class="_icon__glyph-area_1i355_9"
+                    class="_icon__glyph-area_1xcik_20"
                   >
                     <svg
                       fill="currentColor"
@@ -86,19 +86,19 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
             >
               <button
                 aria-label="Close"
-                class="_icon-button_ft92e_2 _icon-button--size-medium_ft92e_91 user-groups-modal__header-close"
+                class="_icon-button_1d2d4_13 _icon-button--size-medium_1d2d4_115 user-groups-modal__header-close"
                 type="button"
               >
                 <span
                   aria-hidden="true"
-                  class="_icon-button__icon-slot_ft92e_41"
+                  class="_icon-button__icon-slot_1d2d4_65"
                 >
                   <div
                     aria-hidden="true"
-                    class="_icon_1i355_2 _icon--size-20_1i355_46"
+                    class="_icon_1xcik_13 _icon--size-20_1xcik_57"
                   >
                     <div
-                      class="_icon__glyph-area_1i355_9"
+                      class="_icon__glyph-area_1xcik_20"
                     >
                       <svg
                         fill="currentColor"

@@ -62,7 +62,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
                     >
                       <span
                         aria-label="Loading Icon"
-                        class="_spinner_3elm7_10 spinner"
+                        class="_spinner_mvrwe_21 spinner"
                         role="status"
                         style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                       />
@@ -197,7 +197,7 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
                   >
                     <span
                       aria-label="Loading Icon"
-                      class="_spinner_3elm7_10 spinner"
+                      class="_spinner_mvrwe_21 spinner"
                       role="status"
                       style="width: 16px; height: 16px; --spinner-stroke-width: 2px;"
                     />

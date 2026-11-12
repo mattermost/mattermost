@@ -124,7 +124,7 @@ type delimiter struct {
 type inlineParser struct {
 	markdown             string
 	ranges               []Range
-	referenceDefinitions []*ReferenceDefinition
+	referenceDefinitions *ReferenceDefinitions
 
 	raw            string
 	position       int
@@ -132,7 +132,7 @@ type inlineParser struct {
 	delimiterStack *list.List
 }
 
-func newInlineParser(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) *inlineParser {
+func newInlineParser(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) *inlineParser {
 	return &inlineParser{
 		markdown:             markdown,
 		ranges:               ranges,
@@ -334,13 +334,7 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage
 }
 
 func (p *inlineParser) referenceDefinition(label string) *ReferenceDefinition {
-	clean := strings.Join(strings.Fields(label), " ")
-	for _, d := range p.referenceDefinitions {
-		if strings.EqualFold(clean, strings.Join(strings.Fields(d.Label()), " ")) {
-			return d
-		}
-	}
-	return nil
+	return p.referenceDefinitions.lookup(label)
 }
 
 func (p *inlineParser) lookForLinkOrImage() {
@@ -607,7 +601,7 @@ func (p *inlineParser) Parse() []Inline {
 	return p.inlines
 }
 
-func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) (inlines []Inline) {
+func ParseInlines(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) (inlines []Inline) {
 	return newInlineParser(markdown, ranges, referenceDefinitions).Parse()
 }
 
