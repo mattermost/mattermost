@@ -109,7 +109,10 @@ rest are enforced by review.
   element wait for the state that decides whether it shows. Lines you edit
   follow this even if they broke it before. _(lint:
   `playwright/no-wait-for-timeout`, `playwright/prefer-web-first-assertions`,
-  `lessons/no-unwaited-is-visible`)_ (#39372)
+  `lessons/no-unwaited-is-visible`; the last catches `isVisible().catch(...)`
+  and `isVisible()` used directly in an if, ternary or loop condition, with
+  `await`, `!`, `&&`/`||` or `===`/`!==`, but not a result stored in a
+  variable first, which review enforces)_ (#39372)
 - **L-008** A fix shows a failing run before and a passing run after. A
   server-log signal alone justifies a report, not a fix. The exception is a
   small product fix whose new unit test fails before and passes after.
@@ -147,6 +150,10 @@ more often now. Files you don't touch are never checked.
   passes.
 - The base is the merge base of `HEAD` and `origin/master`. Set `LESSONS_BASE`
   to compare against another commit; CI sets it to the PR's base.
+- The rules are best-effort pattern checks. They don't see through variables
+  or constants (`const visible = await x.isVisible(); if (visible)`, or
+  `locator(SELECTOR)` where `SELECTOR` is a constant), so those forms still
+  break the lessons and are enforced by review.
 
 ### Adding a lesson
 
