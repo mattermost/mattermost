@@ -5,6 +5,7 @@ import React, {useCallback, useMemo, useRef} from 'react';
 
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
+import type {HierarchicalValueMenuVariant} from './hierarchical_value_menu_parts';
 
 import type {GraphOptionJoin} from '../graph';
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
@@ -21,8 +22,10 @@ export type AssignmentGraphPickerProps = {
 } & Pick<
     HierarchicalValueMenuProps,
 'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
-'className' | 'buttonClassName' | 'variant'
->;
+'className' | 'buttonClassName' | 'invalid' | 'ariaDescribedBy'
+> & {
+    variant?: Exclude<HierarchicalValueMenuVariant, 'policy'>;
+};
 
 function namesForHeldIds(join: GraphOptionJoin, reportFor: string[]): Record<string, string> {
     const names: Record<string, string> = {};

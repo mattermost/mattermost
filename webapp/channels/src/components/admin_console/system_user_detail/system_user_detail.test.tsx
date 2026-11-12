@@ -16,6 +16,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
+import {chipRemove} from 'components/property_fields/hierarchical_value_menu/hierarchical_value_menu_test_helpers';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
@@ -1371,7 +1372,7 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
                 expect(trigger()).toHaveTextContent('Alpha');
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha'})));
 
                 expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
                 expect(trigger()).not.toHaveTextContent('Alpha');
@@ -1388,7 +1389,7 @@ describe('SystemUserDetail', () => {
 
                 // Menu stays open after select, so the trigger (and its chip X)
                 // is aria-hidden behind the popover. The X must still work.
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha', hidden: true}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha', hidden: true})));
 
                 expect(screen.queryByRole('button', {name: 'Remove Alpha', hidden: true})).toBeNull();
                 expect(trigger()).not.toHaveTextContent('Alpha');
@@ -1429,7 +1430,7 @@ describe('SystemUserDetail', () => {
                 // modal reachable with nothing resolved.
                 const removes = await screen.findAllByRole('button', {name: 'Remove value'});
                 expect(removes).toHaveLength(2);
-                await userEvent.click(removes[0]);
+                await userEvent.click(chipRemove(removes[0]));
 
                 // Checked before Save: the confirm modal aria-hides the page
                 // behind it, so the chips stop being reachable by role once it
@@ -1474,7 +1475,7 @@ describe('SystemUserDetail', () => {
                 expect(trigger()).toHaveTextContent('ghost-1');
                 expect(await screen.findByRole('button', {name: 'Remove ghost-1'})).toBeInTheDocument();
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');
@@ -1500,7 +1501,7 @@ describe('SystemUserDetail', () => {
                 await waitFor(() => expect(trigger()).toHaveTextContent('ghost-1'));
                 expect(trigger()).not.toHaveTextContent('Value unavailable');
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove ghost-1'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');

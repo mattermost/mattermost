@@ -120,6 +120,17 @@ describe('AssignmentGraphPicker', () => {
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
+    test('passes invalid and ariaDescribedBy through to the trigger', () => {
+        const {rerenderWith} = renderPicker();
+        expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+        expect(trigger()).not.toHaveAttribute('aria-describedby');
+
+        rerenderWith({invalid: true, ariaDescribedBy: 'field1-error'});
+
+        expect(trigger()).toHaveClass('hierarchical-value-menu__button--invalid');
+        expect(trigger()).toHaveAttribute('aria-describedby', 'field1-error');
+    });
+
     test('P3: prefetches for an omitted field', async () => {
         mockPageAll.mockResolvedValue(REGIME_1);
         renderPicker({field: fieldOf({options_omitted: true, options_count: 1010}), ids: []});

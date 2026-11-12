@@ -98,6 +98,7 @@ export default function PolicyHierarchicalValues({
     return (
         <HierarchicalValueMenu
             {...chrome}
+            variant='policy'
             field={field}
             selectedIds={ids}
             onSelectedIdsChange={handleIdsChange}

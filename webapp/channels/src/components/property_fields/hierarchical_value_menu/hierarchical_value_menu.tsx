@@ -7,6 +7,7 @@ import type {ReactNode} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import * as Menu from 'components/menu';
 
@@ -17,7 +18,7 @@ import {
     hierarchicalMenuStatusKind,
     isGraphFieldWithheld,
 } from './hierarchical_value_menu_parts';
-import type {ChipLabel} from './hierarchical_value_menu_parts';
+import type {ChipLabel, HierarchicalValueMenuVariant} from './hierarchical_value_menu_parts';
 import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
 
 import type {GraphOccurrence, GraphOptionJoin} from '../graph';
@@ -85,9 +86,14 @@ export type HierarchicalValueMenuProps = {
     className?: string;
     buttonClassName?: string;
 
-    // `input` (default): bordered Compass-like trigger for forms / Account Settings.
+    // `input` (default): Compass multiselect-style trigger for forms / Account Settings.
     // `inline`: borderless chip chrome matching ChannelInfoAttributes__valueTrigger.
-    variant?: 'input' | 'inline';
+    // `policy`: legacy bordered trigger with AttributeChip for the policy editor table.
+    variant?: HierarchicalValueMenuVariant;
+
+    // Red field state. The div trigger has role=button, which cannot carry the invalid ARIA state.
+    invalid?: boolean;
+    ariaDescribedBy?: string;
 
     trailingChips?: ReactNode;
 
@@ -106,6 +112,32 @@ type VisibleRow = {
     insideCount: number;
 };
 
+function renderCaret(variant: HierarchicalValueMenuVariant) {
+    switch (variant) {
+    case 'input':
+        return (
+            <Icon
+                className='hierarchical-value-menu__caret'
+                size='12'
+                glyph={<ChevronDownIcon/>}
+            />
+        );
+    case 'policy':
+        return (
+            <ChevronDownIcon
+                size={18}
+                color='rgba(var(--center-channel-color-rgb), 0.5)'
+            />
+        );
+    case 'inline':
+        return null;
+    default: {
+        const unreachable: never = variant;
+        return unreachable;
+    }
+    }
+}
+
 export default function HierarchicalValueMenu({
     field,
     selectedIds,
@@ -123,10 +155,12 @@ export default function HierarchicalValueMenu({
     className,
     buttonClassName,
     variant = 'input',
+    invalid,
+    ariaDescribedBy,
     trailingChips,
     extraMenuItems,
 }: HierarchicalValueMenuProps) {
-    const isInline = variant === 'inline';
+    const hasChips = selectedIds.length > 0 || Boolean(trailingChips);
     const {formatMessage} = useIntl();
 
     const [isOpen, setIsOpen] = useState(false);
@@ -433,42 +467,42 @@ export default function HierarchicalValueMenu({
         menuChildren.push(...extraMenuItems);
     }
 
-    // Chips use real <button> removes; the Menu trigger is a <div> so we never
-    // nest button-in-button (invalid HTML / broken for VoiceOver).
+    // The Menu trigger is a <div>, so chip remove buttons never nest inside a native <button>.
     const triggerChildren = (
         <span className='hierarchical-value-menu__button-inner'>
-            {selectedIds.length === 0 && !trailingChips ? (
-                <span className='hierarchical-value-menu__placeholder'>
-                    {resolvedPlaceholder}
-                </span>
-            ) : (
+            {hasChips ? (
                 <SelectedValueChips
                     selectedIds={selectedIds}
                     labelForId={labelForId}
                     disabled={Boolean(disabled)}
                     onRemove={handleRemoveChip}
                     trailingChips={trailingChips}
+                    variant={variant}
                 />
+            ) : (
+                <span className='hierarchical-value-menu__placeholder'>
+                    {resolvedPlaceholder}
+                </span>
             )}
-            {!isInline && (
-                <ChevronDownIcon
-                    size={18}
-                    color='rgba(var(--center-channel-color-rgb), 0.5)'
-                />
-            )}
+            {renderCaret(variant)}
         </span>
     );
 
     return (
-        <div className={classNames('hierarchical-value-menu', {'hierarchical-value-menu--inline': isInline}, className)}>
+        <div className={classNames('hierarchical-value-menu', `hierarchical-value-menu--${variant}`, className)}>
             <Menu.Container
                 menuButton={{
                     id: buttonId,
                     dataTestId: buttonDataTestId,
                     as: 'div',
-                    class: classNames('hierarchical-value-menu__button', buttonClassName, {disabled}),
+                    class: classNames('hierarchical-value-menu__button', buttonClassName, {
+                        disabled,
+                        'hierarchical-value-menu__button--has-chips': hasChips,
+                        'hierarchical-value-menu__button--invalid': invalid,
+                    }),
                     disabled,
                     'aria-label': resolvedAriaLabel,
+                    'aria-describedby': ariaDescribedBy,
                     children: triggerChildren,
                 }}
                 menu={{

@@ -17,6 +17,7 @@ import {
     baseProps,
     checkboxOf,
     chevronOf,
+    chipRemove,
     closeMenu,
     contentOf,
     deferred,
@@ -49,6 +50,21 @@ jest.mock('../graph/page_all_access_control_field_options', () => ({
 }));
 
 const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
+
+const renderStatefulMenu = (initialIds: string[], overrides: Partial<HierarchicalValueMenuProps> = {}) => {
+    const Host = () => {
+        const [ids, setIds] = React.useState(initialIds);
+        return (
+            <HierarchicalValueMenu
+                {...baseProps()}
+                {...overrides}
+                selectedIds={ids}
+                onSelectedIdsChange={setIds}
+            />
+        );
+    };
+    return renderWithContext(<Host/>);
+};
 
 describe('HierarchicalValueMenu', () => {
     beforeEach(() => {
@@ -888,43 +904,22 @@ describe('HierarchicalValueMenu', () => {
         test('the chip X does not open the menu', async () => {
             renderMenu({selectedIds: ['opt-air'], fallbackLabels: {'opt-air': 'Air Program'}});
 
-            await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program'}));
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
 
             expect(screen.queryByRole('menu')).toBeNull();
             expect(mockPageAll).not.toHaveBeenCalled();
         });
         test('the chip X removes a selected value', async () => {
-            const Host = () => {
-                const [ids, setIds] = React.useState(['opt-air']);
-                return (
-                    <HierarchicalValueMenu
-                        {...baseProps()}
-                        selectedIds={ids}
-                        onSelectedIdsChange={setIds}
-                        fallbackLabels={{'opt-air': 'Air Program'}}
-                    />
-                );
-            };
-            renderWithContext(<Host/>);
+            renderStatefulMenu(['opt-air'], {fallbackLabels: {'opt-air': 'Air Program'}});
 
-            await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program'}));
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
 
             expect(screen.queryByRole('button', {name: 'Remove Air Program'})).toBeNull();
             expect(trigger()).toHaveTextContent(COPY.placeholder);
         });
         test('the chip X removes a value selected in this session while the menu is open', async () => {
             mockPageAll.mockResolvedValue(twoRoots());
-            const Host = () => {
-                const [ids, setIds] = React.useState<string[]>([]);
-                return (
-                    <HierarchicalValueMenu
-                        {...baseProps()}
-                        selectedIds={ids}
-                        onSelectedIdsChange={setIds}
-                    />
-                );
-            };
-            renderWithContext(<Host/>);
+            renderStatefulMenu([]);
 
             await openMenu();
             await userEvent.click(checkboxOf('Air Program'));
@@ -934,11 +929,125 @@ describe('HierarchicalValueMenu', () => {
             // The open modal aria-hides the trigger, which is where the chip
             // lives — same as in the browser. hidden: true is how a pointer
             // still reaches it now that the backdrop no longer captures clicks.
-            await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program', hidden: true}));
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program', hidden: true})));
 
             expect(screen.queryByRole('button', {name: 'Remove Air Program', hidden: true})).toBeNull();
             expect(screen.getByRole('menu')).toBeInTheDocument();
         });
+
+        test('clicking a chip body opens the menu', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu({selectedIds: ['opt-air'], fallbackLabels: {'opt-air': 'Air Program'}});
+
+            await userEvent.click(partOf(trigger(), 'chip-value'));
+
+            expect(await screen.findByRole('menu')).toBeInTheDocument();
+        });
+
+        test('after a chip-body click and Escape the trigger has focus and Enter reopens the menu without removing', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const {props} = renderMenu({selectedIds: ['opt-air'], fallbackLabels: {'opt-air': 'Air Program'}});
+
+            await userEvent.click(partOf(trigger(), 'chip-value'));
+            await screen.findByRole('menu');
+            await closeMenu();
+            await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+
+            expect(trigger()).toHaveFocus();
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(await screen.findByRole('menu')).toBeInTheDocument();
+            expect(props.onSelectedIdsChange).not.toHaveBeenCalled();
+        });
+
+        test('Delete on the only chip shows the placeholder and focuses the trigger', async () => {
+            renderStatefulMenu(['opt-air'], {fallbackLabels: {'opt-air': 'Air Program'}});
+            await act(async () => {
+                screen.getByRole('button', {name: 'Remove Air Program'}).focus();
+            });
+
+            await userEvent.keyboard('{Delete}');
+
+            expect(trigger()).toHaveTextContent(COPY.placeholder);
+            expect(trigger()).toHaveFocus();
+            expect(screen.queryByRole('menu')).toBeNull();
+        });
+
+        test('Delete on the only chip still focuses the trigger when a trailing chip is shown', async () => {
+            renderStatefulMenu(['opt-air'], {
+                fallbackLabels: {'opt-air': 'Air Program'},
+                trailingChips: <span data-testid='trailing'/>,
+            });
+            await act(async () => {
+                screen.getByRole('button', {name: 'Remove Air Program'}).focus();
+            });
+
+            await userEvent.keyboard('{Delete}');
+
+            expect(screen.queryByRole('button', {name: 'Remove Air Program'})).toBeNull();
+            expect(screen.getByTestId('trailing')).toBeInTheDocument();
+            expect(trigger()).toHaveFocus();
+        });
+
+        test('the chip X while the menu is open does not move focus to the trigger', async () => {
+            mockPageAll.mockResolvedValue(twoRoots());
+            renderStatefulMenu([]);
+            await openMenu();
+            await userEvent.click(checkboxOf('Air Program'));
+            const focusedBefore = document.activeElement;
+            expect(focusedBefore).not.toBe(trigger());
+
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program', hidden: true})));
+
+            expect(screen.queryByRole('button', {name: 'Remove Air Program', hidden: true})).toBeNull();
+            expect(trigger()).not.toHaveFocus();
+            expect(document.activeElement).toBe(focusedBefore);
+            expect(screen.getByRole('menu')).toBeInTheDocument();
+        });
+
+        test('Delete on a chip moves focus to the next chip', async () => {
+            renderStatefulMenu(['opt-air', 'opt-rotary'], {fallbackLabels: {'opt-air': 'Air Program', 'opt-rotary': 'Rotary'}});
+            await act(async () => {
+                screen.getByRole('button', {name: 'Remove Air Program'}).focus();
+            });
+
+            await userEvent.keyboard('{Delete}');
+
+            await waitFor(() => expect(screen.getByRole('button', {name: 'Remove Rotary'})).toHaveFocus());
+            expect(screen.queryByRole('menu')).toBeNull();
+        });
+
+        test('invalid adds the invalid class and never aria-invalid', () => {
+            const {rerenderWith} = renderMenu();
+            expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+
+            rerenderWith({invalid: true});
+
+            expect(trigger()).toHaveClass('hierarchical-value-menu__button--invalid');
+            expect(trigger()).not.toHaveAttribute('aria-invalid');
+        });
+
+        test('ariaDescribedBy sets aria-describedby on the trigger and is absent without it', () => {
+            const {rerenderWith} = renderMenu();
+            expect(trigger()).not.toHaveAttribute('aria-describedby');
+
+            rerenderWith({ariaDescribedBy: 'field-1-error'});
+
+            expect(trigger()).toHaveAttribute('aria-describedby', 'field-1-error');
+        });
+
+        test('the has-chips class follows the selection and trailing chips', () => {
+            const {rerenderWith} = renderMenu();
+            expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--has-chips');
+
+            rerenderWith({selectedIds: ['opt-air'], fallbackLabels: {'opt-air': 'Air Program'}});
+            expect(trigger()).toHaveClass('hierarchical-value-menu__button--has-chips');
+
+            rerenderWith({selectedIds: [], trailingChips: <span data-testid='trailing'/>});
+            expect(trigger()).toHaveClass('hierarchical-value-menu__button--has-chips');
+        });
+
         test('a stale selected id keeps its fallback label', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['ghost'], fallbackLabels: {ghost: 'Retired Program'}});
