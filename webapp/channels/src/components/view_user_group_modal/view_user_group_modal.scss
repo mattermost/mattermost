@@ -110,6 +110,11 @@
                     align-items: center;
                     padding: 8px 32px;
 
+                    // The wrapper must match the 24px avatar so the status badge sits on the avatar's corner
+                    .status-wrapper {
+                        height: 24px;
+                    }
+
                     .group-member-name {
                         padding-left: 12px;
                     }

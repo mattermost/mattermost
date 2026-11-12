@@ -334,6 +334,8 @@ const UserListItem = styled.div<{first?: boolean; last?: boolean}>`
     `}
 
     &:hover {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+
         background: rgba(var(--center-channel-color-rgb), 0.08);
     }
 
@@ -364,6 +366,11 @@ const UserButton = styled.button`
     background: unset;
     text-align: unset;
     align-items: center;
+
+    // The wrapper must match the 24px avatar so the status badge sits on the avatar's corner
+    .status-wrapper {
+        height: 24px;
+    }
 `;
 
 // A gap to make space for the DM button to be positioned on
