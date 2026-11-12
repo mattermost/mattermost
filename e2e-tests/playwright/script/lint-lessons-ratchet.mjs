@@ -18,7 +18,7 @@ import {fileURLToPath} from 'node:url';
 
 import {ESLint} from 'eslint';
 
-import {LESSON_RULES, lessonsConfig} from '../eslint-rules/lessons.mjs';
+import {LESSON_RULES, REPORT_ONLY_RULES, lessonsConfig} from '../eslint-rules/lessons.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_REF = process.env.LESSONS_BASE || 'origin/master'; // eslint-disable-line no-process-env
@@ -101,6 +101,7 @@ async function main() {
     const baseCounts = await Promise.all(files.map((entry) => lintBase(eslint, base, entry)));
 
     const failures = [];
+    const reports = [];
     let improved = 0;
     files.forEach((entry, i) => {
         const now = nowByPath.get(path.join(ROOT, entry.file));
@@ -109,7 +110,7 @@ async function main() {
             const before = baseCounts[i][rule] || 0;
             const after = nowCounts[rule] || 0;
             if (after > before) {
-                failures.push(describeFailure(entry.file, rule, before, now));
+                (REPORT_ONLY_RULES.has(rule) ? reports : failures).push(describeFailure(entry.file, rule, before, now));
             } else if (after < before) {
                 improved++;
             }
@@ -117,6 +118,13 @@ async function main() {
     });
 
     const shortBase = base.slice(0, 7);
+    if (reports.length) {
+        process.stdout.write(
+            `lint:lessons: report only, not failing yet: these files break a lesson more often than on ${shortBase}. ` +
+                'Please fix the new ones (for L-001, move them into page objects). See "Lessons from master failures" in AGENTS.md.\n\n' +
+                `${reports.join('\n\n')}\n\n`,
+        );
+    }
     if (failures.length) {
         process.stderr.write(
             `lint:lessons: these files break a lesson more often than on ${shortBase}. Each list shows every hit of ` +
@@ -128,7 +136,7 @@ async function main() {
     }
     const improvedNote = improved ? `, ${improved} rule count(s) went down` : '';
     process.stdout.write(
-        `lint:lessons: ${files.length} changed file(s) checked against ${shortBase}; none got worse${improvedNote}.\n`,
+        `lint:lessons: ${files.length} changed file(s) checked against ${shortBase}; nothing blocking got worse${improvedNote}.\n`,
     );
 }
 

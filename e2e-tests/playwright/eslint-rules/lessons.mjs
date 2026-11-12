@@ -172,4 +172,8 @@ export const lessonsConfig = [
 
 export const LESSON_RULES = lessonsConfig.flatMap((config) => Object.keys(config.rules));
 
+// Rules that `npm run lint:lessons` reports but doesn't fail on yet. L-001 starts here because most open
+// spec work still builds locators in specs; make it blocking once page objects cover the common cases.
+export const REPORT_ONLY_RULES = new Set(['lessons/no-spec-locators']);
+
 export default lessons;

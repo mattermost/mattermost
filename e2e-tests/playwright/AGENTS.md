@@ -69,8 +69,8 @@ rest are enforced by review.
 
 - **L-001** Locators live only in the page and component objects in `lib`. A
   spec never builds one (`page.locator`, `getByRole`, `getByTestId`,
-  `frameLocator`, ...): add or reuse a page-object member. _(lint:
-  `lessons/no-spec-locators` under `specs/`)_ (#39372, review by
+  `frameLocator`, ...): add or reuse a page-object member. _(lint, report
+  only for now: `lessons/no-spec-locators` under `specs/`)_ (#39372, review by
   saturninoabril)
 - **L-002** No XPath. Use `getByRole` with an accessible name, then label or
   text, and `getByTestId` last; CSS class chains only when none of these work.
@@ -146,6 +146,9 @@ more often now. Files you don't touch are never checked.
 
 - When it fails, it lists every hit of that rule in the file, old and new.
   Remove the one you added; you don't have to fix the old ones.
+- Rules in `REPORT_ONLY_RULES` (`eslint-rules/lessons.mjs`) are listed the
+  same way but don't fail yet. L-001 starts there; it becomes blocking once
+  page objects cover the common cases and the team is told.
 - Renaming or moving a file compares it with its old path, so a pure move
   passes.
 - The base is the merge base of `HEAD` and `origin/master`. Set `LESSONS_BASE`
@@ -161,7 +164,8 @@ Add a lesson when a human review rejects the same mistake in two or more PRs,
 or when it caused a master failure. Give it the next id, one rule in a
 sentence or two, and the PRs that taught it. If a lint rule can catch it, add
 it to `lessonsConfig` in `eslint-rules/lessons.mjs` (a new rule in that file,
-or a `playwright/` rule) in the same PR. When a lesson's rule has no
+or a `playwright/` rule) in the same PR. A rule that many open PRs would
+break can start in `REPORT_ONLY_RULES`. When a lesson's rule has no
 violations left anywhere, move it into `eslint.config.mjs` as a plain error.
 The E2E Autofix weekly retrospective opens such PRs from reviewer feedback; a
 human merging the PR is what makes the lesson binding.
