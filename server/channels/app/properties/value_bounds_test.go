@@ -1315,7 +1315,10 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
 			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
 		}
+		// The service is shared, so take the hook back off: a later subtest would otherwise run it too.
+		hooks := th.service.hooks
 		th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
+		t.Cleanup(func() { th.service.hooks = hooks })
 		return f
 	}
 	// setup leaves the channel and user fields without rules and gives the post field postBounds.
@@ -1579,16 +1582,9 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		}
 		return n
 	}
-	// record leaves only the bounds hook the subtest just registered: earlier subtests' hooks stay on
-	// the shared service and would each run the same search again.
+	// record counts the field searches made from here on.
 	record := func(t *testing.T) *fieldSearchRecorder {
 		t.Helper()
-		last := len(th.service.hooks) - 1
-		kept := slices.DeleteFunc(slices.Clone(th.service.hooks[:last]), func(h PropertyHook) bool {
-			_, ok := h.(*BoundsHook)
-			return ok
-		})
-		th.service.hooks = append(kept, th.service.hooks[last])
 		c := &fieldSearchRecorder{PropertyFieldStore: th.service.fieldStore}
 		th.service.fieldStore = c
 		t.Cleanup(func() { th.service.fieldStore = c.PropertyFieldStore })
