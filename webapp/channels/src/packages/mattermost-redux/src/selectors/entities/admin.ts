@@ -21,10 +21,11 @@ export function getPlainLogs(state: GlobalState) {
 // A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
 const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
 
+// Leaves out the entries that mark a scan stopped at its limit, which getScanLimitedLogNodes reports
 export const getAllLogsWithNode = createSelector(
     'getAllLogsWithNode',
     getLogs,
-    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.map((entry) => {
+    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.filter((entry) => !entry.scan_limited).map((entry) => {
         let tagged = entriesWithNode.get(entry);
         if (tagged === undefined) {
             tagged = {...entry, [LogNodeKey]: node};
@@ -45,7 +46,26 @@ export const getLogNodes = createSelector(
 export const getTruncatedLogNodes = createSelector(
     'getTruncatedLogNodes',
     getLogs,
-    (logsByNode) => Object.keys(logsByNode).filter((node) => logsByNode[node].length >= General.LOGS_PAGE_SIZE_DEFAULT),
+    (logsByNode) => Object.keys(logsByNode).filter((node) => (
+        logsByNode[node].filter((entry) => !entry.scan_limited).length >= General.LOGS_PAGE_SIZE_DEFAULT
+    )),
+);
+
+export type ScanLimitedLogNode = {
+    node: string;
+
+    // The timestamp of the oldest line the node's scan read, if it read any
+    scannedBackTo?: string;
+};
+
+// Nodes whose log scan stopped at its time or size limit, so older matching entries may be missing
+export const getScanLimitedLogNodes = createSelector(
+    'getScanLimitedLogNodes',
+    getLogs,
+    (logsByNode) => Object.keys(logsByNode).sort().flatMap((node): ScanLimitedLogNode[] => {
+        const marker = logsByNode[node].find((entry) => entry.scan_limited);
+        return marker ? [{node, scannedBackTo: marker.scanned_back_to || undefined}] : [];
+    }),
 );
 
 export function getAudits(state: GlobalState) {
