@@ -294,7 +294,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, SessionAttributesDisplayNameMDMEnrolled, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, SessionAttributesDisplayNameJailbreakDetected, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
-		sessionAttributeField(groupID, SessionAttributesPropertyFieldBiometricAuthenticated, SessionAttributesDisplayNameBiometricAuthenticated, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldBiometricAuthenticated, SessionAttributesDisplayNameBiometricAuthenticated, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, SessionAttributesDisplayNameOSPlatform, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, StringInterface{
 			PropertyFieldAttributeOptions: []map[string]string{
 				{"name": "macos"},

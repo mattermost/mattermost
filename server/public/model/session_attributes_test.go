@@ -65,6 +65,25 @@ func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
 	}
 }
 
+func TestSessionAttributeSystemFieldsBiometricAuthenticated(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldBiometricAuthenticated {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+
+	saField, err := SAFieldFromPropertyField(field)
+	require.NoError(t, err)
+	assert.Equal(t, []string{SessionAttributePlatformMobile}, saField.Attrs.Platforms)
+	assert.Equal(t, 300, saField.Attrs.TTLSeconds)
+	assert.Equal(t, 300, saField.Attrs.GracePeriodSeconds)
+	assert.True(t, IsValidSessionAttributeValue(field, "true"))
+	assert.True(t, IsValidSessionAttributeValue(field, "false"))
+}
+
 func TestSessionAttributeSystemFieldsOSPlatform(t *testing.T) {
 	var field *PropertyField
 	for _, f := range SessionAttributeSystemFields("group-id") {
