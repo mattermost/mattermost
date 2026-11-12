@@ -69,8 +69,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	broadcastField := *field
 	broadcastField.Permissions = nil
 	// Same reasoning for bounds and mutability: the event reaches v2 clients
-	// too, and there is no caller to shape it for. Nothing in the webapp reads
-	// either yet, so a cached copy without them loses nothing today.
+	// too, and there is no caller to shape it for.
 	broadcastField.Bounds = nil
 	broadcastField.Mutability = ""
 
