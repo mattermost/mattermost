@@ -434,6 +434,21 @@ describe('AppsFormPreview', () => {
         });
     });
 
+    it('shows no file actions on the file card, since a dialog\'s file has no post to make a public link for', async () => {
+        jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(TestHelper.getFileInfoMock({id: fileId, name: 'load-plan.pdf', extension: 'pdf', post_id: ''}));
+
+        renderWithContext(
+            <AppsFormPreview
+                fileId={fileId}
+                mode='file'
+            />,
+            {entities: {general: {config: {EnablePublicLink: 'true'}}}},
+        );
+
+        expect(await screen.findByText('load-plan.pdf')).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'more actions'})).not.toBeInTheDocument();
+    });
+
     it('shows a PDF over 10 MB as a file card, without downloading it', async () => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'big.pdf', extension: 'pdf', size: (10 * 1024 * 1024) + 1});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);

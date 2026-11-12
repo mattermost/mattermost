@@ -190,6 +190,9 @@ const AppsFormPreview: React.FC<Props> = ({fileId, maxHeight, mode = 'inline', l
                         fileInfo={fileInfo}
                         index={0}
                         handleImageClick={openFullPreview}
+
+                        // Its only built-in action is a public link, which the server refuses for a file with no post.
+                        disableActions={true}
                     />
                 </div>
             );

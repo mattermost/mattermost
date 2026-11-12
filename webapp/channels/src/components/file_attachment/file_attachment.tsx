@@ -15,7 +15,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {Constants, FileTypes, ModalIdentifiers} from 'utils/constants';
-import {canGetPublicLink} from 'utils/file_utils';
 import {
     fileSizeToString,
     getFileType,
@@ -192,7 +191,7 @@ export default function FileAttachment(props: Props) {
 
         let divider;
         const defaultItems = [];
-        if (enablePublicLink && canGetPublicLink(fileInfo)) {
+        if (enablePublicLink) {
             defaultItems.push(
                 <Menu.ItemAction
                     data-title='Public Image'

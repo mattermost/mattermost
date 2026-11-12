@@ -551,7 +551,8 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
         let canCopyContent = false;
         let canToggleMarkdown = false;
         if (isFileInfo(fileInfo)) {
-            showPublicLink = canGetPublicLink(fileInfo);
+            // Also check the post: a file just posted by this user keeps its upload info, with no post_id.
+            showPublicLink = Boolean(this.props.post?.id) || canGetPublicLink(fileInfo);
             fileName = fileInfo.name;
             fileUrl = getFileUrl(fileInfo.id);
             fileDownloadUrl = getFileDownloadUrl(fileInfo.id);
