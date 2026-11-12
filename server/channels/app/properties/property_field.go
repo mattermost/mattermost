@@ -1893,6 +1893,7 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 	callerSentPermissions := field.Permissions != nil
 	callerPinnedValues := field.PermissionValues != nil && !callerSentPermissions
 
+	rctx = withChangePolicyWrites(rctx)
 	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
@@ -1994,6 +1995,7 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 // the updated field's own ID. The caller is expected to publish any
 // value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
+	rctx = withChangePolicyWrites(rctx)
 	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
 		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
@@ -2007,6 +2009,7 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 // fields whose dependent property values were cleared as a side effect. The
 // caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	rctx = withChangePolicyWrites(rctx)
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)

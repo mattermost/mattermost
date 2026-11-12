@@ -266,7 +266,7 @@ func TestBoundsHookFlag(t *testing.T) {
 
 	t.Run("a nil provider is off", func(t *testing.T) {
 		hook := NewBoundsHook(th.service, nil, nil, nil)
-		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil)
+		err := hook.validateBoundsChange(rctx, &model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil)
 		requireAppError(t, err, disabledErrID)
 	})
 
@@ -336,4 +336,23 @@ func TestBoundsHookFlag(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, got)
 	})
+}
+
+func TestChangePolicyWritesRecord(t *testing.T) {
+	var none *changePolicyWrites
+	assert.False(t, none.oldFormat("a"), "no record fails closed")
+	none.record("a", true)
+
+	c := &changePolicyWrites{oldFormatByField: map[string]bool{}}
+	c.record("a", true)
+	c.record("b", false)
+	assert.True(t, c.oldFormat("a"))
+	assert.False(t, c.oldFormat("b"))
+	assert.False(t, c.oldFormat("unseen"))
+
+	// A field named twice is old-format only if every entry is.
+	c.record("a", false)
+	assert.False(t, c.oldFormat("a"))
+	c.record("a", true)
+	assert.False(t, c.oldFormat("a"), "a later true never restores it")
 }

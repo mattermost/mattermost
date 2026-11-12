@@ -3096,7 +3096,7 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 
 	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
-	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil, nil))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return false }, nil, nil))
 
 	// optionIDs returns the persisted option IDs in rank order, so a test can
 	// name a rung ("the middle one") without hardcoding a generated ID.

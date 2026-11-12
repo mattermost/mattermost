@@ -255,6 +255,11 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	if err != nil {
 		return err
 	}
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		// Tells the bounds hook, which runs after this one, to let the translated
+		// self rule or write_once through the flag gate.
+		changePolicyWritesFrom(rctx).record(field.ID, oldFormatWrite)
+	}
 	if oldFormatWrite && len(oldKeys) == 0 {
 		// Unlocking with change_policy "any" or editable=true names none of them.
 		oldKeys = []string{model.PropertyFieldAttrChangePolicy}
