@@ -360,6 +360,22 @@ func storedValueMatters(field *model.PropertyField) bool {
 		slices.ContainsFunc(field.Bounds, func(r model.PropertyBoundsRule) bool { return r.Reference == model.PropertyBoundsReferenceSelf })
 }
 
+// storedRow reads the object's own live row from the master, or nil when it has none.
+func (h *BoundsHook) storedRow(rctx request.CTX, field *model.PropertyField, targetID string) (*model.PropertyValue, error) {
+	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
+		FieldID:   field.ID,
+		TargetIDs: []string{targetID},
+		PerPage:   1,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, targetID, err)
+	}
+	if len(rows) == 0 {
+		return nil, nil
+	}
+	return rows[0], nil
+}
+
 // enforceBounds is the one entry point for the bounds and mutability checks on a value write. With
 // Enterprise Advanced the request is refused whole on the first value that breaks a rule. Without
 // it every break is audited and the write goes ahead.
@@ -420,8 +436,9 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 	}
 
 	for _, v := range governed {
+		row := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}]
 		var storedValue json.RawMessage
-		if row := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}]; row != nil && !model.IsEmptyPropertyValue(row.Value) {
+		if row != nil && !model.IsEmptyPropertyValue(row.Value) {
 			storedValue = row.Value
 		}
 		// A soft delete is a clear.
@@ -431,24 +448,17 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 		}
 		next := checked.Value
 		field := fieldMap[v.FieldID]
-		row, rowRead := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}], storedValueMatters(field)
+		rowRead := storedValueMatters(field)
 		// A parent-only field never reads the object's own row, so read it here, only on a break and
 		// once per value. It is not recorded as a write condition: that write must not fail because
 		// its own row moved.
 		auditRow := func() (*model.PropertyValue, error) {
 			if !rowRead {
-				rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
-					FieldID:   field.ID,
-					TargetIDs: []string{v.TargetID},
-					PerPage:   1,
-				})
-				if err != nil {
-					return nil, fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
+				var err error
+				if row, err = h.storedRow(rctx, field, v.TargetID); err != nil {
+					return nil, err
 				}
-				row, rowRead = nil, true
-				if len(rows) > 0 {
-					row = rows[0]
-				}
+				rowRead = true
 			}
 			return row, nil
 		}
@@ -521,20 +531,12 @@ nextValue:
 
 		// A value beneath written between this read and the container's write can still land out of
 		// bounds; no lock spans the two objects.
-		rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
-			FieldID:   field.ID,
-			TargetIDs: []string{v.TargetID},
-			PerPage:   1,
-		})
+		storedRow, err := h.storedRow(rctx, field, v.TargetID)
 		if err != nil {
-			return fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
+			return err
 		}
-		var storedRow *model.PropertyValue
-		if len(rows) > 0 {
-			storedRow = rows[0]
-			if samePropertyValue(storedRow.Value, v.Value) {
-				continue
-			}
+		if storedRow != nil && samePropertyValue(storedRow.Value, v.Value) {
+			continue
 		}
 
 		ranks := buildOptionRankMap(field)
