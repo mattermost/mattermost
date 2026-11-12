@@ -388,14 +388,18 @@ func TestSamePropertyValue(t *testing.T) {
 		a, b string
 		want bool
 	}{
-		"identical":             {`"a"`, `"a"`, true},
-		"different":             {`"a"`, `"b"`, false},
-		"spacing differs":       {`["a","b"]`, `["a", "b"]`, true},
-		"array order counts":    {`["a","b"]`, `["b","a"]`, false},
-		"two empty values":      {`null`, `[]`, true},
-		"empty against a value": {`""`, `"a"`, false},
-		"absent against null":   {``, `null`, true},
-		"a value against none":  {`"a"`, ``, false},
+		"identical":                 {`"a"`, `"a"`, true},
+		"different":                 {`"a"`, `"b"`, false},
+		"spacing differs":           {`["a","b"]`, `["a", "b"]`, true},
+		"array order doesn't count": {`["a","b"]`, `["b","a"]`, true},
+		"a duplicate counts":        {`["a","a"]`, `["a"]`, false},
+		"duplicates count each":     {`["a","a","b"]`, `["a","b","b"]`, false},
+		"a longer array":            {`["a","b"]`, `["a","b","c"]`, false},
+		"an array against a scalar": {`["a"]`, `"a"`, false},
+		"two empty values":          {`null`, `[]`, true},
+		"empty against a value":     {`""`, `"a"`, false},
+		"absent against null":       {``, `null`, true},
+		"a value against none":      {`"a"`, ``, false},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -478,8 +482,35 @@ func TestEnforceMutability(t *testing.T) {
 		require.NoError(t, err)
 		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `[ "`+a+`" , "`+b+`" ]`))
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["`+b+`","`+a+`"]`))
+	})
+
+	t.Run("write-once accepts a multiselect re-saved in another order", func(t *testing.T) {
+		f := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeMultiselect,
+			Name:       "f " + model.NewId(),
+			Mutability: model.PropertyFieldMutabilityWriteOnce,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": "optA", "name": "A"},
+					map[string]any{"id": "optB", "name": "B"},
+				},
+			},
+		})
+		target := model.NewId()
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `["optA","optB"]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["optB","optA"]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["optA"]`))
 		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		// The re-save is an allowed write, so the new order is what's stored.
+		var got []string
+		require.NoError(t, json.Unmarshal([]byte(stored(f, target)), &got))
+		assert.ElementsMatch(t, []string{"optA", "optB"}, got)
 	})
 
 	t.Run("write-once counts a null-valued row as no value", func(t *testing.T) {

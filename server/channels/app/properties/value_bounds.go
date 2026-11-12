@@ -449,8 +449,9 @@ func checkMutability(field *model.PropertyField, stored, next json.RawMessage) e
 }
 
 // samePropertyValue compares decoded JSON: Postgres returns jsonb with its own spacing, so a client
-// echoing a stored value back can differ byte for byte. Array order still counts, and two empty
-// values are the same.
+// echoing a stored value back can differ byte for byte. Two arrays are the same when they hold the
+// same elements the same number of times in any order, since a multiselect or multiuser value is a
+// set of choices. Two empty values are the same.
 func samePropertyValue(a, b json.RawMessage) bool {
 	if model.IsEmptyPropertyValue(a) || model.IsEmptyPropertyValue(b) {
 		return model.IsEmptyPropertyValue(a) && model.IsEmptyPropertyValue(b)
@@ -459,7 +460,24 @@ func samePropertyValue(a, b json.RawMessage) bool {
 	if json.Unmarshal(a, &x) != nil || json.Unmarshal(b, &y) != nil {
 		return false
 	}
+	xs, xok := x.([]any)
+	ys, yok := y.([]any)
+	if xok && yok {
+		return slices.Equal(sortedElements(xs), sortedElements(ys))
+	}
 	return reflect.DeepEqual(x, y)
+}
+
+// sortedElements returns each element's canonical JSON (map keys sorted by Marshal), sorted, leaving
+// the argument untouched.
+func sortedElements(arr []any) []string {
+	out := make([]string, len(arr))
+	for i, e := range arr {
+		b, _ := json.Marshal(e) // decoded JSON always re-encodes
+		out[i] = string(b)
+	}
+	slices.Sort(out)
+	return out
 }
 
 // newMutabilityError returns the refusal for a write a field's mutability forbids, written like
