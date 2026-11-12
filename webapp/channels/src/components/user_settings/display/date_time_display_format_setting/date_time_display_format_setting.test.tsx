@@ -5,6 +5,7 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 
 import {TimestampFormat} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as preferencesActions from 'mattermost-redux/actions/preferences';
@@ -38,11 +39,13 @@ describe('DateTimeDisplayFormatSetting', () => {
     };
 
     const baseProps: ComponentProps<typeof DateTimeDisplayFormatSetting> = {
+        user: {id: userId} as UserProfile,
         active: true,
         areAllSectionsInactive: false,
         updateSection: jest.fn(),
         configTimestampFormat: TimestampFormat.STANDARD,
         configShowTimestampSeconds: false,
+        timestampFormat: TimestampFormat.STANDARD,
         militaryTime: 'false',
         showTimestampSeconds: 'false',
     };
@@ -266,5 +269,48 @@ describe('DateTimeDisplayFormatSetting', () => {
             }),
         ]));
         expect(updateSection).toHaveBeenCalledWith('');
+    });
+
+    test('saving while relative is selected preserves a stored seconds preference', async () => {
+        const savePreferences = jest.spyOn(preferencesActions, 'savePreferences').mockReturnValue({type: 'MOCK_SAVE'} as never);
+        jest.spyOn(preferencesActions, 'deletePreferences').mockReturnValue({type: 'MOCK_DELETE'} as never);
+
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+                timestampFormat={TimestampFormat.RELATIVE}
+                showTimestampSeconds='true'
+            />,
+            baseState,
+        );
+
+        expect(screen.queryByLabelText(/Show seconds in timestamps/i)).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(savePreferences).toHaveBeenCalledWith(userId, expect.arrayContaining([
+            expect.objectContaining({
+                name: Preferences.SHOW_TIMESTAMP_SECONDS,
+                value: 'true',
+            }),
+        ]));
+    });
+
+    test('saves preferences for the target user rather than the current user', async () => {
+        const savePreferences = jest.spyOn(preferencesActions, 'savePreferences').mockReturnValue({type: 'MOCK_SAVE'} as never);
+        jest.spyOn(preferencesActions, 'deletePreferences').mockReturnValue({type: 'MOCK_DELETE'} as never);
+
+        renderWithContext(
+            <DateTimeDisplayFormatSetting
+                {...baseProps}
+                user={{id: 'target_user_id'} as UserProfile}
+            />,
+            baseState,
+        );
+
+        await userEvent.click(screen.getByLabelText(/Relative \(example: 3 hours ago/i));
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        expect(savePreferences).toHaveBeenCalledWith('target_user_id', expect.any(Array));
     });
 });

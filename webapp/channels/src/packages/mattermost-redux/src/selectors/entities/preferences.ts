@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {CollapsedThreads, TimestampFormat} from '@mattermost/types/config';
+import type {ClientConfig} from '@mattermost/types/config';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -138,25 +139,28 @@ function resolveTimestampFormatFromValue(value: string | undefined, configValue:
     return TimestampFormat.STANDARD;
 }
 
+export function getTimestampFormatFromPreferences(preferences: PreferencesType, config: Partial<ClientConfig> | undefined): TimestampFormat {
+    const userPreference = preferences[getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)];
+    return resolveTimestampFormatFromValue(userPreference?.value, config?.DateTimeDisplayFormat as string | undefined);
+}
+
 export const getTimestampFormat: (state: GlobalState) => TimestampFormat = createSelector(
     'getTimestampFormat',
     getConfig,
-    (state) => getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT),
-    (config, userPreference) => {
-        return resolveTimestampFormatFromValue(userPreference?.value, config?.DateTimeDisplayFormat as string | undefined);
-    },
+    getMyPreferences,
+    (config, preferences) => getTimestampFormatFromPreferences(preferences, config),
 );
 
 export function shouldShowThreadDateSeparators(state: GlobalState): boolean {
     return getTimestampFormat(state) === TimestampFormat.STANDARD;
 }
 
-export function getShowTimestampSeconds(state: GlobalState): boolean {
-    if (getTimestampFormat(state) === TimestampFormat.RELATIVE) {
-        return false;
-    }
-
-    const userPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS);
+/**
+ * The stored show-seconds setting (user preference, legacy format value, or admin default),
+ * ignoring whether the current format can display seconds.
+ */
+export function getShowTimestampSecondsSettingFromPreferences(preferences: PreferencesType, config: Partial<ClientConfig> | undefined): boolean {
+    const userPreference = preferences[getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.SHOW_TIMESTAMP_SECONDS)];
     if (userPreference?.value === 'true') {
         return true;
     }
@@ -164,13 +168,23 @@ export function getShowTimestampSeconds(state: GlobalState): boolean {
         return false;
     }
 
-    const legacyFormatPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT);
+    const legacyFormatPreference = preferences[getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)];
     if (legacyFormatPreference?.value === 'time_seconds') {
         return true;
     }
 
-    const config = getConfig(state);
     return config?.ShowTimestampSeconds === 'true';
+}
+
+export function getShowTimestampSecondsFromPreferences(preferences: PreferencesType, config: Partial<ClientConfig> | undefined): boolean {
+    if (getTimestampFormatFromPreferences(preferences, config) === TimestampFormat.RELATIVE) {
+        return false;
+    }
+    return getShowTimestampSecondsSettingFromPreferences(preferences, config);
+}
+
+export function getShowTimestampSeconds(state: GlobalState): boolean {
+    return getShowTimestampSecondsFromPreferences(getMyPreferences(state), getConfig(state));
 }
 
 export function getUseMilitaryTime(state: GlobalState): boolean {

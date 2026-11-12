@@ -3,19 +3,13 @@
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import {TimestampFormat} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {deletePreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {
-    getShowTimestampSeconds,
-    getTimestampFormat,
-    getUseMilitaryTime,
-} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -24,17 +18,20 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 import {Preferences} from 'utils/constants';
 import {getTimestampFormatLabel, getTimestampFormatShortLabel, getTimestampFormatTimeExample, supportsTimestampSeconds} from 'utils/datetime_display_format';
 
-import type {GlobalState} from 'types/store';
-
 import './date_time_display_format_setting.scss';
 
 type Props = {
+    user: UserProfile;
     active: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section?: string) => void;
     configTimestampFormat: TimestampFormat;
     configShowTimestampSeconds: boolean;
+    timestampFormat: TimestampFormat;
     militaryTime: string;
+
+    // The stored show-seconds setting. Unlike what is displayed, it is not forced off for Relative,
+    // so that saving while Relative is selected does not wipe the seconds preference.
     showTimestampSeconds: string;
 };
 
@@ -67,22 +64,24 @@ function getClockDisplayShortLabel(militaryTime: string, intl: ReturnType<typeof
 }
 
 export default function DateTimeDisplayFormatSetting({
+    user,
     active,
     areAllSectionsInactive,
     updateSection,
     configTimestampFormat,
     configShowTimestampSeconds,
+    timestampFormat,
     militaryTime,
     showTimestampSeconds,
 }: Props) {
     const intl = useIntl();
     const dispatch = useDispatch();
-    const userId = useSelector(getCurrentUserId);
-    const configFormat = useSelector((state: GlobalState) => getConfig(state).DateTimeDisplayFormat as TimestampFormat) || configTimestampFormat;
-    const configSeconds = useSelector((state: GlobalState) => getConfig(state).ShowTimestampSeconds === 'true') || configShowTimestampSeconds;
-    const effectiveFormat = useSelector(getTimestampFormat);
-    const effectiveShowSeconds = useSelector(getShowTimestampSeconds);
-    const effectiveMilitaryTime = useSelector(getUseMilitaryTime);
+    const userId = user.id;
+    const configFormat = configTimestampFormat;
+    const configSeconds = configShowTimestampSeconds;
+    const effectiveFormat = timestampFormat;
+    const effectiveShowSeconds = effectiveFormat !== TimestampFormat.RELATIVE && showTimestampSeconds === 'true';
+    const effectiveMilitaryTime = militaryTime === 'true';
 
     const [formatSelection, setFormatSelection] = useState(effectiveFormat);
     const [clockSelection, setClockSelection] = useState(militaryTime);

@@ -1189,6 +1189,9 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     {themeSection}
                     {collapsedReplyThreads}
                     <DateTimeDisplayFormatSetting
+                        user={this.props.user}
+                        adminMode={this.props.adminMode}
+                        userPreferences={this.props.userPreferences}
                         active={isDateAndTimeSectionActive(this.props.activeSection ?? '')}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         updateSection={this.updateSection}
