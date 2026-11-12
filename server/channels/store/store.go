@@ -1234,6 +1234,7 @@ type PropertyFieldStore interface {
 	CountLinkedFields(fieldID string) (int64, error)
 	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
 	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetDeletedOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
 	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
 	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
 	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)

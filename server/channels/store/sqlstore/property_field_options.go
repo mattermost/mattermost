@@ -1359,6 +1359,31 @@ func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, ownerIDs [
 	return ids, nil
 }
 
+// getDeletedOptionIDs returns which of the given option IDs have a soft-deleted
+// row among the options owned by ownerIDs: the counterpart of getExistingOptionIDs.
+func (s *SqlPropertyFieldStore) getDeletedOptionIDs(db sqlxExecutor, ownerIDs []string, optionIDs []string) ([]string, error) {
+	if len(optionIDs) == 0 {
+		return nil, nil
+	}
+
+	ids := []string{}
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": ownerIDs}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.NotEq{"DeleteAt": 0})
+
+		batchIDs := []string{}
+		if err := db.SelectBuilder(&batchIDs, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_deleted_query")
+		}
+		ids = append(ids, batchIDs...)
+	}
+	return ids, nil
+}
+
 // takeOverLinkSourceOptions copies the options a field was deriving into rows of
 // its own. It runs for a field that has just stopped linking to a template: the
 // field's property values point at those option IDs, so it has to keep serving
