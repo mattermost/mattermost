@@ -494,6 +494,8 @@
     word-wrap: break-word;
 
     &:not(.post--editing):not(.post--editing):hover {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 4%, var(--center-channel-bg));
+
         background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
 
         .PostAttachmentOpenGraph .remove-button {
@@ -506,6 +508,8 @@
     }
 
     &.post--editing {
+        --status-badge-bg: color-mix(in srgb, var(--button-bg) 8%, var(--center-channel-bg));
+
         overflow: visible;
         background-color: rgba(var(--button-bg-rgb), 0.08);
 
@@ -2167,6 +2171,8 @@
 }
 
 .app__body .app__content .post.post--highlight {
+    --status-badge-bg: rgb(var(--mention-highlight-bg-mixed-rgb));
+
     animation-delay: 5s;
     animation-duration: 2s;
     animation-fill-mode: forwards;
@@ -2175,6 +2181,8 @@
 }
 
 .post--pinned-or-flagged {
+    --status-badge-bg: rgb(var(--pinned-highlight-bg-mixed-rgb));
+
     background-color: rgb(var(--pinned-highlight-bg-mixed-rgb));
 
     .post-collapse {

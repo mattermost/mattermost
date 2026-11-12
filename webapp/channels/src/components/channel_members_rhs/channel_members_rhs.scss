@@ -51,6 +51,8 @@
         border-radius: 4px;
 
         &:hover {
+            --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.75);
 

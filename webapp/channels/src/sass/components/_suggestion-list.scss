@@ -2,6 +2,8 @@
 
 .app__body {
     .suggestion--selected {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
     }
 }
