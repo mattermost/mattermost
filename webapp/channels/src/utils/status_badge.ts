@@ -21,7 +21,7 @@ const statusLabels = defineMessages({
  * mirroring compass-ui UserAvatar (avatar px -> StatusBadge size, and its right/bottom offset):
  *   12-16px -> xx-small, 20-28px -> x-small (offset 1)
  *   32-50px -> small (offset 2)
- *   56-96px -> medium, drawn at 20px (offset 0)
+ *   56-80px -> medium, drawn at 20px (offset 0); 96px -> medium, 2px inside the corner
  *   120-128px -> large (offset 2)
  *
  * NOTE: compass-ui UserAvatar currently uses the large badge from 96px; 96px stays on medium here, see
