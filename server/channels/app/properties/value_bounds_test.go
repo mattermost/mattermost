@@ -507,7 +507,8 @@ func TestEnforceMutability(t *testing.T) {
 		require.NoError(t, err)
 		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["optA"]`))
 		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
-		// The re-save is an allowed write, so the new order is what's stored.
+		// The refused write left the re-saved value in place. ElementsMatch because the re-save
+		// stored the new order.
 		var got []string
 		require.NoError(t, json.Unmarshal([]byte(stored(f, target)), &got))
 		assert.ElementsMatch(t, []string{"optA", "optB"}, got)
