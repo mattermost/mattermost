@@ -3,11 +3,15 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {useIntl} from 'react-intl';
+
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
 
 import ProfilePopover from 'components/profile_popover';
-import StatusIcon from 'components/status_icon';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
+
+import {getStatusBadgeProps} from 'utils/status_badge';
 
 type Props = {
     size?: TAvatarSizeToken;
@@ -30,6 +34,8 @@ type Props = {
 };
 
 function ProfilePicture(props: Props) {
+    const {formatMessage} = useIntl();
+
     // profileSrc will, if possible, be the original user profile picture even if the icon
     // for the post is overriden, so that the popup shows the user identity
     const profileSrc = typeof props.profileSrc === 'string' && props.profileSrc !== '' ? props.profileSrc : props.src;
@@ -38,7 +44,9 @@ function ProfilePicture(props: Props) {
 
     const hideStatus = props.isBot || props.fromAutoResponder || props.fromWebhook;
 
-    const statusIconClassName = props.statusClass || undefined;
+    // Surfaces that position the badge themselves pass statusClass; otherwise use the legacy `.status` styling
+    const statusBadgeClassName = props.statusClass || 'status';
+    const statusBadgeProps = getStatusBadgeProps(props.status, formatMessage);
 
     if (props.userId) {
         return (
@@ -70,11 +78,12 @@ function ProfilePicture(props: Props) {
                             url={props.src}
                         />
                     </span>
-                    <StatusIcon
-                        button={Boolean(statusIconClassName)}
-                        className={statusIconClassName}
-                        status={props.status}
-                    />
+                    {statusBadgeProps && (
+                        <StatusBadge
+                            className={statusBadgeClassName}
+                            {...statusBadgeProps}
+                        />
+                    )}
                 </>
             </ProfilePopover>
         );
@@ -93,11 +102,12 @@ function ProfilePicture(props: Props) {
                     url={props.src}
                 />
             </span>
-            <StatusIcon
-                button={Boolean(statusIconClassName)}
-                className={statusIconClassName}
-                status={props.status}
-            />
+            {statusBadgeProps && (
+                <StatusBadge
+                    className={statusBadgeClassName}
+                    {...statusBadgeProps}
+                />
+            )}
         </span>
     );
 }

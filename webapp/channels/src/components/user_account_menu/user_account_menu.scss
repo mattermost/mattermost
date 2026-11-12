@@ -120,7 +120,7 @@
     }
 
     // Offline badge colour is hard-coded to the centre channel text colour in compass-ui
-    .status-icon__badge--offline {
+    .userAccountMenu_statusBadge--offline {
         color: rgba(var(--global-header-text-rgb), 0.32);
     }
 

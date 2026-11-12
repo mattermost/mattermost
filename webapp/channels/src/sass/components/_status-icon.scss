@@ -62,11 +62,13 @@
         top: auto;
         right: -3px;
         bottom: -4px;
+        display: inline-flex;
         width: 15px;
         height: 15px;
+        align-items: center;
+        justify-content: center;
         border-radius: 100px;
         margin: 0;
-        background: var(--center-channel-bg);
         line-height: 0;
         visibility: visible;
 

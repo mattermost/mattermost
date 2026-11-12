@@ -4,8 +4,9 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {JSX, ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -13,7 +14,6 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedUserIndicator from 'components/shared_user_indicator';
-import StatusIcon from 'components/status_icon';
 import AgentTag from 'components/widgets/tag/agent_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
@@ -21,6 +21,7 @@ import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import {getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import {SuggestionContainer} from '../suggestion';
@@ -44,6 +45,7 @@ function isGroup(o: unknown): o is Group {
 
 const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item>>((props, ref) => {
     const {id, item} = props;
+    const {formatMessage} = useIntl();
 
     const ids = usePrefixedIds(id, {
         atMention: null,
@@ -133,6 +135,8 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             description = <span>{`${Utils.getFullName(item)} ${item.nickname ? `(${item.nickname})` : ''}`.trim()}</span>;
         }
 
+        const statusBadgeProps = getStatusBadgeProps(item && item.status, formatMessage);
+
         icon = (
             <span className='status-wrapper style--none'>
                 <span className='profile-icon'>
@@ -143,10 +147,14 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                         alt=''
                     />
                 </span>
-                <StatusIcon
-                    id={ids.status}
-                    status={item && item.status}
-                />
+                {statusBadgeProps && (
+                    <span id={ids.status}>
+                        <StatusBadge
+                            className='status'
+                            {...statusBadgeProps}
+                        />
+                    </span>
+                )}
             </span>
         );
 

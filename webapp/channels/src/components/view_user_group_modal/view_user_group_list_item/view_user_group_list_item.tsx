@@ -10,6 +10,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -18,10 +19,10 @@ import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 
-import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {UserStatuses} from 'utils/constants';
+import {getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -56,6 +57,7 @@ const ViewUserGroupListItem = (props: Props) => {
     }, [user.id, groupId, props.decrementMemberCount, props.actions.removeUsersFromGroup]);
 
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, user?.id) || UserStatuses.OFFLINE);
+    const statusBadgeProps = getStatusBadgeProps(status, formatMessage);
 
     return (
         <div
@@ -69,9 +71,12 @@ const ViewUserGroupListItem = (props: Props) => {
                     url={Utils.imageURLForUser(user?.id ?? '')}
                     className={'avatar-post-preview'}
                 />
-                <StatusIcon
-                    status={status}
-                />
+                {statusBadgeProps && (
+                    <StatusBadge
+                        className='status'
+                        {...statusBadgeProps}
+                    />
+                )}
             </span>
             <div className='group-member-name'>
                 {Utils.getFullName(user)}

@@ -5,11 +5,13 @@ import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {UserStatuses} from 'utils/constants';
+import {getStatusBadgeProps} from 'utils/status_badge';
 
 interface Props {
     profilePicture?: string;
@@ -23,6 +25,7 @@ export default function UserAccountMenuButton({
     status,
 }: Props) {
     const {formatMessage} = useIntl();
+    const statusBadgeProps = getStatusBadgeProps(status || UserStatuses.OFFLINE, formatMessage);
 
     return (
         <>
@@ -41,10 +44,12 @@ export default function UserAccountMenuButton({
                 className='userStatusIconWrapper'
                 aria-hidden={true}
             >
-                <StatusIcon
-                    button={true}
-                    status={status || UserStatuses.OFFLINE}
-                />
+                {statusBadgeProps && (
+                    <StatusBadge
+                        className={`userAccountMenu_statusBadge userAccountMenu_statusBadge--${statusBadgeProps.status}`}
+                        {...statusBadgeProps}
+                    />
+                )}
             </div>
             <p
                 id='userAccountMenuButtonDescribedBy'
