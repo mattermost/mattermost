@@ -59,7 +59,7 @@ func compareByRank(field *model.PropertyField, op model.PropertyBoundsOperator, 
 // failure to find them refuses the write: a store error is returned wrapped, and
 // anything missing or ambiguous wraps errBoundsCheckFailed. Messages name IDs,
 // never a value.
-func (h *AccessControlAttributeValidationHook) boundsParent(rctx request.CTX, field *model.PropertyField, targetID string) (parentField *model.PropertyField, parentTargetType, parentTargetID string, err error) {
+func (h *BoundsHook) boundsParent(rctx request.CTX, field *model.PropertyField, targetID string) (parentField *model.PropertyField, parentTargetType, parentTargetID string, err error) {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser:
 		parentTargetType, parentTargetID = model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID
@@ -99,7 +99,7 @@ func (h *AccessControlAttributeValidationHook) boundsParent(rctx request.CTX, fi
 // level that its own level isn't. Nothing up the chain having a value means no
 // limit. The parent's value is read from the store directly, so masking doesn't
 // loosen the rule.
-func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX, field *model.PropertyField, rule model.PropertyBoundsRule, value *model.PropertyValue) error {
+func (h *BoundsHook) checkParentRule(rctx request.CTX, field *model.PropertyField, rule model.PropertyBoundsRule, value *model.PropertyValue) error {
 	if model.IsEmptyPropertyValue(value.Value) {
 		return nil
 	}
@@ -133,6 +133,169 @@ func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX,
 	}
 }
 
+// refuseMisaddressedUpdate refuses an update whose ID names a row of another group, field or
+// target than the value states. The store matches rows by ID alone, while every check here reads
+// the stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
+// mutable field. An ID with no row is left to the store, which fails it as not found.
+func (h *BoundsHook) refuseMisaddressedUpdate(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+	// An empty ID list would search the whole group.
+	if len(values) == 0 {
+		return nil
+	}
+
+	ids := make([]string, 0, len(values))
+	for _, v := range values {
+		ids = append(ids, v.ID)
+	}
+	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{IDs: ids, IncludeDeleted: true, PerPage: len(ids)})
+	if err != nil {
+		return fmt.Errorf("failed to read the rows named by the update: %w", err)
+	}
+	rowByID := make(map[string]*model.PropertyValue, len(rows))
+	for _, row := range rows {
+		rowByID[row.ID] = row
+	}
+	for _, v := range values {
+		row, ok := rowByID[v.ID]
+		if ok && (row.GroupID != v.GroupID || row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
+			return fmt.Errorf("value %s: names a row of another group, field or target: %w", v.ID, ErrInvalidValue)
+		}
+	}
+	return nil
+}
+
+// checkValueWrite is the body of every value pre-hook: on a v3 group it enforces the bounds and
+// mutability rules of the fields the values write to. A group that doesn't resolve is an error, so
+// a write can't skip the checks by naming one. An update's IDs are checked against the stated
+// field and target first, since the checks read the stated field's rules.
+func (h *BoundsHook) checkValueWrite(rctx request.CTX, groupID string, values []*model.PropertyValue, isUpdate bool) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil {
+		return err
+	}
+	if !v3 {
+		return nil
+	}
+	if isUpdate {
+		if err = h.refuseMisaddressedUpdate(rctx, groupID, values); err != nil {
+			return err
+		}
+	}
+
+	ids := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		if _, ok := seen[v.FieldID]; !ok {
+			seen[v.FieldID] = struct{}{}
+			ids = append(ids, v.FieldID)
+		}
+	}
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, ids)
+	if err != nil {
+		return fmt.Errorf("failed to fetch fields for the bounds checks: %w", err)
+	}
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldMap[f.ID] = f
+	}
+	return h.enforceBounds(rctx, values, fieldMap)
+}
+
+func (h *BoundsHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, value.GroupID, []*model.PropertyValue{value}, false); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func (h *BoundsHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, value.GroupID, []*model.PropertyValue{value}, false); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+// The batch hooks take the group from the first value: the service refuses mixed-group batches
+// before any hook runs.
+func (h *BoundsHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	if err := h.checkValueWrite(rctx, values[0].GroupID, values, false); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func (h *BoundsHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	if err := h.checkValueWrite(rctx, values[0].GroupID, values, false); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func (h *BoundsHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, groupID, []*model.PropertyValue{value}, true); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func (h *BoundsHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, groupID, values, true); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+// A delete is a clear, so on a v3 group the delete hooks refuse what the write path refuses to
+// clear. A group that doesn't resolve is an error, as in checkValueWrite.
+
+// PreDeletePropertyValue refuses a by-ID delete of a row of a field that refuses clears.
+func (h *BoundsHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	// Read from master: a replica error or lag must not let a locked value be deleted. Soft-deleted
+	// rows are read too: the store's delete re-stamps them, and an update can revive one in between.
+	master := store.RequestContextWithMaster(rctx)
+	rows, err := h.propertyService.searchPropertyValues(master, groupID, model.PropertyValueSearchOpts{IDs: []string{id}, IncludeDeleted: true, PerPage: 1})
+	if err != nil {
+		return fmt.Errorf("failed to read value %s before deleting it: %w", id, err)
+	}
+	// Nothing to enforce against a value that cannot be found; the delete
+	// itself will fail downstream with the appropriate not-found error.
+	if len(rows) == 0 {
+		return nil
+	}
+	// A null row is refused too: a by-ID delete can't be made conditional on the value, so
+	// letting a null row go would let it race a first write and make a second "first" write possible.
+	return h.refuseLockedFieldClear(master, groupID, rows[0].FieldID)
+}
+
+// PreDeletePropertyValuesForField refuses wiping every value of a field that refuses clears. It
+// is a bulk clear that can't be made conditional on each value, so it is refused whether or not
+// any value is set.
+func (h *BoundsHook) PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	return h.refuseLockedFieldClear(store.RequestContextWithMaster(rctx), groupID, fieldID)
+}
+
+func (h *BoundsHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil || !v3 {
+		return err
+	}
+	return h.refuseLockedTargetDelete(rctx, groupID, targetType, targetID)
+}
+
 // fieldGoverned reports whether any bounds or mutability rule applies to field's values. Values of
 // other fields skip every check here, so ordinary writes pay no extra cost.
 func fieldGoverned(field *model.PropertyField) bool {
@@ -152,7 +315,7 @@ func storedValueMatters(field *model.PropertyField) bool {
 // Stored values are read from master and recorded on the request, so the write lands only if each
 // row is still what the check judged against. That is what stops two simultaneous first writes
 // both passing write-once.
-func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	var governed []*model.PropertyValue
 	seen := make(map[store.PropertyValueKey]struct{})
 	targetsByField := make(map[string][]string)
@@ -244,7 +407,7 @@ func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, v
 // pay nothing. Clearing is never refused (what's beneath only gets a looser limit), and
 // neither is writing the stored value again, so re-saving a form doesn't fail on values the writer
 // didn't touch.
-func (h *AccessControlAttributeValidationHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *BoundsHook) refuseContainedValuesOutOfBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	for _, v := range values {
 		field, ok := fieldMap[v.FieldID]
 		if !ok || (field.ObjectType != model.PropertyFieldObjectTypeChannel && field.ObjectType != model.PropertyFieldObjectTypeSystem) ||
@@ -380,8 +543,9 @@ func checkMutability(field *model.PropertyField, stored, next json.RawMessage) e
 }
 
 // samePropertyValue compares decoded JSON: Postgres returns jsonb with its own spacing, so a client
-// echoing a stored value back can differ byte for byte. Array order still counts, and two empty
-// values are the same.
+// echoing a stored value back can differ byte for byte. Two arrays are the same when they hold the
+// same elements the same number of times in any order, since a multiselect or multiuser value is a
+// set of choices. Two empty values are the same.
 func samePropertyValue(a, b json.RawMessage) bool {
 	if model.IsEmptyPropertyValue(a) || model.IsEmptyPropertyValue(b) {
 		return model.IsEmptyPropertyValue(a) && model.IsEmptyPropertyValue(b)
@@ -390,7 +554,24 @@ func samePropertyValue(a, b json.RawMessage) bool {
 	if json.Unmarshal(a, &x) != nil || json.Unmarshal(b, &y) != nil {
 		return false
 	}
+	xs, xok := x.([]any)
+	ys, yok := y.([]any)
+	if xok && yok {
+		return slices.Equal(sortedElements(xs), sortedElements(ys))
+	}
 	return reflect.DeepEqual(x, y)
+}
+
+// sortedElements returns each element's canonical JSON (map keys sorted by Marshal), sorted, leaving
+// the argument untouched.
+func sortedElements(arr []any) []string {
+	out := make([]string, len(arr))
+	for i, e := range arr {
+		b, _ := json.Marshal(e) // decoded JSON always re-encodes
+		out[i] = string(b)
+	}
+	slices.Sort(out)
+	return out
 }
 
 // newMutabilityError returns the refusal for a write a field's mutability forbids, written like
@@ -422,7 +603,7 @@ func clearRefusal(field *model.PropertyField) error {
 
 // refuseLockedFieldClear returns the field's clearRefusal. Callers pass a master rctx so the
 // field read sees the latest definition.
-func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string) error {
+func (h *BoundsHook) refuseLockedFieldClear(rctx request.CTX, groupID, fieldID string) error {
 	fields, err := h.propertyService.getPropertyFields(rctx, groupID, []string{fieldID})
 	if errors.Is(err, ErrFieldNotFound) {
 		return nil
@@ -437,7 +618,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedFieldClear(rctx reque
 // field that refuses clears, and otherwise tells the delete to leave those fields' rows alone. A
 // first write that lands between this read and the delete keeps its value, the same outcome as
 // the delete having run first.
-func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
+func (h *BoundsHook) refuseLockedTargetDelete(rctx request.CTX, groupID, targetType, targetID string) error {
 	master := store.RequestContextWithMaster(rctx)
 	// Loads every live field of the group with its options on each call; target-wide deletes are
 	// rare and plugin-only, so there's no cache.
@@ -455,7 +636,7 @@ func (h *AccessControlAttributeValidationHook) refuseLockedTargetDelete(rctx req
 		return nil
 	}
 
-	values, err := h.getValuesForTarget(master, groupID, targetType, targetID)
+	values, err := h.propertyService.getValuesForTarget(master, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}

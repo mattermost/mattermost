@@ -406,18 +406,21 @@ func NewServer(options ...Option) (*Server, error) {
 			PermissionChecker:    permChecker,
 			PluginChecker:        pluginChecker,
 			DirectChannelChecker: directChannelChecker,
-			PostChannelResolver:  postChannelResolver,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 			},
 			OpenIDAttributeSync: func() bool {
 				return s.Config().FeatureFlags.OpenIdAttributeSync
 			},
-			PropertyFieldBounds: func() bool {
-				return s.Config().FeatureFlags.PropertyFieldBounds
-			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
+
+	// Registered for every group, acting on v3 groups only, as the access control
+	// hook does. After the CPA hook, so it judges the field as that hook leaves it.
+	s.propertyService.AddHook(properties.NewBoundsHook(s.propertyService, func() bool {
+		ff := s.Config().FeatureFlags
+		return ff.PropertyFieldBounds && ff.PropertyFieldPermissionsV3
+	}, postChannelResolver))
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
 	// The CPA group registers a content-level audit sink here.

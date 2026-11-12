@@ -68,17 +68,17 @@ func TestBoundsParent(t *testing.T) {
 	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
 
 	postChannels := map[string]string{}
-	newHook := func(groupID string, resolver PostChannelResolver) *AccessControlAttributeValidationHook {
-		return NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PostChannelResolver: resolver}, groupID)
+	newHook := func(resolver PostChannelResolver) *BoundsHook {
+		return NewBoundsHook(th.service, func() bool { return true }, resolver)
 	}
 	mapResolver := func(_ request.CTX, postID string) (string, error) { return postChannels[postID], nil }
 
 	t.Run("a channel field's parent is the system field", func(t *testing.T) {
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
 		channel := create(model.PropertyFieldObjectTypeChannel, belowParent)
 
-		parent, targetType, targetID, err := newHook(groupID, nil).boundsParent(rctx, channel, model.NewId())
+		parent, targetType, targetID, err := newHook(nil).boundsParent(rctx, channel, model.NewId())
 		require.NoError(t, err)
 		assert.Equal(t, system.ID, parent.ID)
 		assert.Equal(t, model.PropertyValueTargetTypeSystem, targetType)
@@ -86,11 +86,11 @@ func TestBoundsParent(t *testing.T) {
 	})
 
 	t.Run("a user field's parent is the system field", func(t *testing.T) {
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
 		user := create(model.PropertyFieldObjectTypeUser, belowParent)
 
-		parent, targetType, targetID, err := newHook(groupID, nil).boundsParent(rctx, user, model.NewId())
+		parent, targetType, targetID, err := newHook(nil).boundsParent(rctx, user, model.NewId())
 		require.NoError(t, err)
 		assert.Equal(t, system.ID, parent.ID)
 		assert.Equal(t, model.PropertyValueTargetTypeSystem, targetType)
@@ -98,13 +98,13 @@ func TestBoundsParent(t *testing.T) {
 	})
 
 	t.Run("a post field's parent is the channel field on the post's channel", func(t *testing.T) {
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		channel := create(model.PropertyFieldObjectTypeChannel, nil)
 		post := create(model.PropertyFieldObjectTypePost, belowParent)
 		postID, channelID := model.NewId(), model.NewId()
 		postChannels[postID] = channelID
 
-		parent, targetType, targetID, err := newHook(groupID, mapResolver).boundsParent(rctx, post, postID)
+		parent, targetType, targetID, err := newHook(mapResolver).boundsParent(rctx, post, postID)
 		require.NoError(t, err)
 		assert.Equal(t, channel.ID, parent.ID)
 		assert.Equal(t, model.PropertyValueTargetTypeChannel, targetType)
@@ -112,7 +112,7 @@ func TestBoundsParent(t *testing.T) {
 	})
 
 	t.Run("a post whose channel can't be found refuses", func(t *testing.T) {
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		create(model.PropertyFieldObjectTypeChannel, nil)
 		post := create(model.PropertyFieldObjectTypePost, belowParent)
 
@@ -123,7 +123,7 @@ func TestBoundsParent(t *testing.T) {
 		}
 		for name, resolver := range cases {
 			t.Run(name, func(t *testing.T) {
-				_, _, _, err := newHook(groupID, resolver).boundsParent(rctx, post, model.NewId())
+				_, _, _, err := newHook(resolver).boundsParent(rctx, post, model.NewId())
 				require.ErrorIs(t, err, errBoundsCheckFailed)
 			})
 		}
@@ -136,24 +136,24 @@ func TestBoundsParent(t *testing.T) {
 		// Deleting the matching field is refused while the rule depends on it, so reach the broken state through the store.
 		require.NoError(t, th.service.fieldStore.Delete(groupID, system.ID))
 
-		_, _, _, err := newHook(groupID, nil).boundsParent(rctx, channel, model.NewId())
+		_, _, _, err := newHook(nil).boundsParent(rctx, channel, model.NewId())
 		require.ErrorIs(t, err, errBoundsCheckFailed)
 	})
 
 	t.Run("two matching fields refuse", func(t *testing.T) {
-		groupID, create, createDirect := boundsSetup(t, th, rctx)
+		_, create, createDirect := boundsSetup(t, th, rctx)
 		create(model.PropertyFieldObjectTypeSystem, nil)
 		channel := create(model.PropertyFieldObjectTypeChannel, belowParent)
 		createDirect(model.PropertyFieldObjectTypeSystem)
 
-		_, _, _, err := newHook(groupID, nil).boundsParent(rctx, channel, model.NewId())
+		_, _, _, err := newHook(nil).boundsParent(rctx, channel, model.NewId())
 		require.ErrorIs(t, err, errBoundsCheckFailed)
 	})
 
 	t.Run("a field whose object type has no parent refuses", func(t *testing.T) {
 		system := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypeSystem, Bounds: belowParent}
 
-		_, _, _, err := newHook(model.NewId(), nil).boundsParent(rctx, system, model.PropertyValueSystemTargetID)
+		_, _, _, err := newHook(nil).boundsParent(rctx, system, model.PropertyValueSystemTargetID)
 		require.ErrorIs(t, err, errBoundsCheckFailed)
 	})
 }
@@ -225,12 +225,12 @@ func TestCheckParentRule(t *testing.T) {
 
 	// chain is a system, channel and post field on one template, hooked up with a stub resolver.
 	type chain struct {
-		hook                  *AccessControlAttributeValidationHook
+		hook                  *BoundsHook
 		system, channel, post *model.PropertyField
 		channelID, postID     string
 	}
 	newChain := func(t *testing.T, channelBounds, postBounds model.PropertyBounds) *chain {
-		groupID, create, _ := boundsSetup(t, th, rctx)
+		_, create, _ := boundsSetup(t, th, rctx)
 		c := &chain{
 			system:    create(model.PropertyFieldObjectTypeSystem, nil),
 			channel:   create(model.PropertyFieldObjectTypeChannel, channelBounds),
@@ -239,7 +239,7 @@ func TestCheckParentRule(t *testing.T) {
 			postID:    model.NewId(),
 		}
 		postChannels[c.postID] = c.channelID
-		c.hook = NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PostChannelResolver: resolver}, groupID)
+		c.hook = NewBoundsHook(th.service, func() bool { return true }, resolver)
 		return c
 	}
 	// set stores a value straight through the service; no hooks are registered, so nothing validates it.
@@ -325,14 +325,14 @@ func TestCheckParentRule(t *testing.T) {
 
 	t.Run("broken data refuses", func(t *testing.T) {
 		t.Run("a second matching field above an empty channel", func(t *testing.T) {
-			groupID, create, createDirect := boundsSetup(t, th, rctx)
+			_, create, createDirect := boundsSetup(t, th, rctx)
 			create(model.PropertyFieldObjectTypeSystem, nil)
 			create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{below})
 			post := create(model.PropertyFieldObjectTypePost, model.PropertyBounds{below})
 			createDirect(model.PropertyFieldObjectTypeSystem)
 			channelID, postID := model.NewId(), model.NewId()
 			postChannels[postID] = channelID
-			hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PostChannelResolver: resolver}, groupID)
+			hook := NewBoundsHook(th.service, func() bool { return true }, resolver)
 
 			err := hook.checkParentRule(rctx, post, below, &model.PropertyValue{FieldID: post.ID, TargetID: postID, Value: opt("optlow")})
 			require.ErrorIs(t, err, errBoundsCheckFailed)
@@ -388,14 +388,18 @@ func TestSamePropertyValue(t *testing.T) {
 		a, b string
 		want bool
 	}{
-		"identical":             {`"a"`, `"a"`, true},
-		"different":             {`"a"`, `"b"`, false},
-		"spacing differs":       {`["a","b"]`, `["a", "b"]`, true},
-		"array order counts":    {`["a","b"]`, `["b","a"]`, false},
-		"two empty values":      {`null`, `[]`, true},
-		"empty against a value": {`""`, `"a"`, false},
-		"absent against null":   {``, `null`, true},
-		"a value against none":  {`"a"`, ``, false},
+		"identical":                 {`"a"`, `"a"`, true},
+		"different":                 {`"a"`, `"b"`, false},
+		"spacing differs":           {`["a","b"]`, `["a", "b"]`, true},
+		"array order doesn't count": {`["a","b"]`, `["b","a"]`, true},
+		"a duplicate counts":        {`["a","a"]`, `["a"]`, false},
+		"duplicates count each":     {`["a","a","b"]`, `["a","b","b"]`, false},
+		"a longer array":            {`["a","b"]`, `["a","b","c"]`, false},
+		"an array against a scalar": {`["a"]`, `"a"`, false},
+		"two empty values":          {`null`, `[]`, true},
+		"empty against a value":     {`""`, `"a"`, false},
+		"absent against null":       {``, `null`, true},
+		"a value against none":      {`"a"`, ``, false},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -408,13 +412,12 @@ func TestEnforceMutability(t *testing.T) {
 	th := Setup(t)
 	rctx := th.Context
 	groupID, create, createDirect := boundsSetup(t, th, rctx)
-	// Made before the hook is registered: it would refuse these fixtures' names.
 	create(model.PropertyFieldObjectTypeSystem, nil)
 	parentRuleField := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}})
 	noRuleField := createDirect(model.PropertyFieldObjectTypeChannel)
-	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 	th.service.AddHook(hook)
-	// Registered after the validation hook, so it sees what the hook recorded.
+	// Registered after the bounds hook, so it sees what the hook recorded.
 	recorder := &recordingHook{}
 	th.service.AddHook(recorder)
 	injector := &injectingHook{}
@@ -479,8 +482,36 @@ func TestEnforceMutability(t *testing.T) {
 		require.NoError(t, err)
 		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `[ "`+a+`" , "`+b+`" ]`))
 		require.NoError(t, err)
-		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["`+b+`","`+a+`"]`))
+	})
+
+	t.Run("write-once accepts a multiselect re-saved in another order", func(t *testing.T) {
+		f := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeMultiselect,
+			Name:       "f " + model.NewId(),
+			Mutability: model.PropertyFieldMutabilityWriteOnce,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": "optA", "name": "A"},
+					map[string]any{"id": "optB", "name": "B"},
+				},
+			},
+		})
+		target := model.NewId()
+
+		_, err := th.service.UpsertPropertyValue(rctx, value(f, target, `["optA","optB"]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["optB","optA"]`))
+		require.NoError(t, err)
+		_, err = th.service.UpsertPropertyValue(rctx, value(f, target, `["optA"]`))
 		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		// The refused write left the re-saved value in place. ElementsMatch because the re-save
+		// stored the new order.
+		var got []string
+		require.NoError(t, json.Unmarshal([]byte(stored(f, target)), &got))
+		assert.ElementsMatch(t, []string{"optA", "optB"}, got)
 	})
 
 	t.Run("write-once counts a null-valued row as no value", func(t *testing.T) {
@@ -614,11 +645,10 @@ func TestEnforceSelfRules(t *testing.T) {
 	th := Setup(t)
 	rctx := th.Context
 	groupID, create, _ := boundsSetup(t, th, rctx)
-	// Made before the hook is registered: it would refuse these fixtures' names.
 	create(model.PropertyFieldObjectTypeSystem, nil)
 	raiseOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}})
 	lowerOnly := create(model.PropertyFieldObjectTypeChannel, model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}})
-	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID)
+	hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 	th.service.AddHook(hook)
 	injector := &injectingHook{}
 	th.service.AddHook(injector)
@@ -745,7 +775,6 @@ func TestEnforceParentRules(t *testing.T) {
 	groupID, create, _ := boundsSetup(t, th, rctx)
 	below := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
 	above := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
-	// Made before the hook is registered: it would refuse these fixtures' names.
 	system := create(model.PropertyFieldObjectTypeSystem, nil)
 	channelField := create(model.PropertyFieldObjectTypeChannel, below)
 	userField := create(model.PropertyFieldObjectTypeUser, above)
@@ -758,12 +787,8 @@ func TestEnforceParentRules(t *testing.T) {
 		}
 		return "", errors.New("no such post")
 	}
-	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
-		PropertyFieldBounds: func() bool { return true },
-		PostChannelResolver: resolver,
-	}, groupID)
-	th.service.AddHook(hook)
-	// Registered after the validation hook, so it sees what the hook recorded.
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, resolver))
+	// Registered after the bounds hook, so it sees what the hook recorded.
 	recorder := &recordingHook{}
 	th.service.AddHook(recorder)
 
@@ -909,8 +934,9 @@ func TestRefuseLockedDeletes(t *testing.T) {
 	parentOnlyUser := create(model.PropertyFieldObjectTypeUser, parentRule)
 	parentOnlyChannel := create(model.PropertyFieldObjectTypeChannel, parentRule)
 	mutableChannel := createDirect(model.PropertyFieldObjectTypeChannel)
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
-	// Registered after the validation hook, so it runs once the hook has judged the delete.
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
+	// Registered after the bounds hook, so it runs once that hook has judged the delete.
 	injector := &deleteInjectingHook{}
 	th.service.AddHook(injector)
 
@@ -959,6 +985,26 @@ func TestRefuseLockedDeletes(t *testing.T) {
 		row := seed(parentOnlyChannel, channel, target, `"optlow"`)
 		require.NoError(t, th.service.DeletePropertyValue(rctx, groupID, row.ID))
 		assert.Equal(t, "", stored(parentOnlyChannel, target))
+	})
+
+	t.Run("a soft-deleted row of a locked field is not deleted by ID", func(t *testing.T) {
+		f, target := newWriteOnce(), model.NewId()
+		row := seed(f, channel, target, `"a"`)
+		require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, row.ID))
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, row.ID), writeOnceID, http.StatusForbidden)
+
+		userTarget := model.NewId()
+		userRow := seed(raiseOnlyUser, user, userTarget, `"optmid"`)
+		require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, userRow.ID))
+		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, groupID, userRow.ID), violatedID, http.StatusForbidden)
+	})
+
+	t.Run("a soft-deleted row of a field that allows clears is deleted by ID", func(t *testing.T) {
+		for _, f := range []*model.PropertyField{mutableChannel, parentOnlyChannel} {
+			row := seed(f, channel, model.NewId(), `"optlow"`)
+			require.NoError(t, th.dbStore.PropertyValue().Delete(groupID, row.ID))
+			require.NoError(t, th.service.DeletePropertyValue(rctx, groupID, row.ID))
+		}
 	})
 
 	t.Run("a row that is already gone is left to the store", func(t *testing.T) {
@@ -1026,46 +1072,40 @@ func TestRefuseLockedDeletes(t *testing.T) {
 		assert.Equal(t, "", stored(parentOnlyChannel, target))
 	})
 
-	// Plugins pass "" for the group; the delete is judged by the group of what it deletes.
-	t.Run("a delete naming no group still refuses a write-once row", func(t *testing.T) {
+	// Plugins pass "" for the group. A group that doesn't resolve is refused, so a delete can't skip
+	// the checks by leaving it out.
+	t.Run("a delete naming no group is refused and the rows stay", func(t *testing.T) {
 		f, target := newWriteOnce(), model.NewId()
 		set := seed(f, channel, target, `"a"`)
-		requireAppErrorID(t, th.service.DeletePropertyValue(rctx, "", set.ID), writeOnceID, http.StatusForbidden)
-		assert.Equal(t, `"a"`, stored(f, target))
-	})
-
-	t.Run("a delete naming no group deletes a row of a field with only a parent rule", func(t *testing.T) {
-		target := model.NewId()
 		row := seed(parentOnlyChannel, channel, target, `"optlow"`)
-		require.NoError(t, th.service.DeletePropertyValue(rctx, "", row.ID))
-		assert.Equal(t, "", stored(parentOnlyChannel, target))
+
+		require.Error(t, th.service.DeletePropertyValue(rctx, "", set.ID))
+		require.Error(t, th.service.DeletePropertyValue(rctx, "", row.ID))
+		assert.Equal(t, `"a"`, stored(f, target))
+		assert.Equal(t, `"optlow"`, stored(parentOnlyChannel, target))
 	})
 
-	t.Run("a bulk delete naming no group still refuses a raise-only user's values", func(t *testing.T) {
+	t.Run("a bulk delete naming no group is refused and the rows stay", func(t *testing.T) {
 		target := model.NewId()
 		seed(raiseOnlyUser, user, target, `"optmid"`)
-		err := th.service.DeletePropertyValuesForTarget(rctx, "", user, target)
-		requireAppErrorID(t, err, violatedID, http.StatusForbidden)
+		require.Error(t, th.service.DeletePropertyValuesForTarget(rctx, "", user, target))
 		assert.Equal(t, `"optmid"`, stored(raiseOnlyUser, target))
+
+		f, channelTarget := newWriteOnce(), model.NewId()
+		seed(f, channel, channelTarget, `null`)
+		seed(mutableChannel, channel, channelTarget, `"m"`)
+		require.Error(t, th.service.DeletePropertyValuesForTarget(rctx, "", channel, channelTarget))
+		assert.Equal(t, `null`, stored(f, channelTarget))
+		assert.Equal(t, `"m"`, stored(mutableChannel, channelTarget))
 	})
 
-	t.Run("a bulk delete naming no group keeps a null write-once row and deletes the rest", func(t *testing.T) {
-		f, target := newWriteOnce(), model.NewId()
-		seed(f, channel, target, `null`)
-		seed(mutableChannel, channel, target, `"m"`)
-
-		require.NoError(t, th.service.DeletePropertyValuesForTarget(rctx, "", channel, target))
-		assert.Equal(t, "", stored(mutableChannel, target))
-		assert.Equal(t, `null`, stored(f, target))
-	})
-
-	t.Run("deleting every value of a field naming no group follows the field's lock", func(t *testing.T) {
-		requireAppErrorID(t, th.service.DeletePropertyValuesForField(rctx, "", newWriteOnce().ID), writeOnceID, http.StatusForbidden)
+	t.Run("deleting every value of a field naming no group is refused and the rows stay", func(t *testing.T) {
+		require.Error(t, th.service.DeletePropertyValuesForField(rctx, "", newWriteOnce().ID))
 
 		target := model.NewId()
 		seed(parentOnlyChannel, channel, target, `"optlow"`)
-		require.NoError(t, th.service.DeletePropertyValuesForField(rctx, "", parentOnlyChannel.ID))
-		assert.Equal(t, "", stored(parentOnlyChannel, target))
+		require.Error(t, th.service.DeletePropertyValuesForField(rctx, "", parentOnlyChannel.ID))
+		assert.Equal(t, `"optlow"`, stored(parentOnlyChannel, target))
 	})
 }
 
@@ -1073,9 +1113,8 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 	th := Setup(t)
 	rctx := th.Context
 	groupID, create, _ := boundsSetup(t, th, rctx)
-	// Made before the hook is registered: it would refuse this fixture's name.
 	create(model.PropertyFieldObjectTypeSystem, nil)
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
 
 	newField := func(mutability model.PropertyFieldMutability) *model.PropertyField {
 		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -1149,14 +1188,13 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 		assert.Equal(t, `"new"`, stored(m))
 	})
 
-	const writeOnceID = "app.property_value.write_once.app_error"
 	otherGroupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
 	inGroup := func(v *model.PropertyValue, group string) *model.PropertyValue {
 		v.GroupID = group
 		return v
 	}
 
-	t.Run("an update stating an unmanaged group is refused", func(t *testing.T) {
+	t.Run("an update stating another group is refused", func(t *testing.T) {
 		targetA := model.NewId()
 		w := seed(writeOnce, targetA, `"locked"`)
 
@@ -1165,31 +1203,90 @@ func TestRefuseMisaddressedUpdate(t *testing.T) {
 		assert.Equal(t, `"locked"`, stored(w))
 	})
 
-	t.Run("an update with no group stating an unmanaged group is refused", func(t *testing.T) {
-		targetA := model.NewId()
-		w := seed(writeOnce, targetA, `"locked"`)
-
-		_, err := th.service.UpdatePropertyValue(rctx, "", inGroup(stated(w, writeOnce.ID, targetA, `"changed"`), otherGroupID))
-		require.ErrorIs(t, err, ErrInvalidValue)
-		assert.Equal(t, `"locked"`, stored(w))
-	})
-
-	t.Run("an update with no group still enforces write-once", func(t *testing.T) {
+	// An update naming no group, or one that doesn't resolve, is refused before any check reads a
+	// field, so a plugin can't reach a row of another group by leaving the group out.
+	t.Run("an update naming no group is refused and the row stays", func(t *testing.T) {
 		targetA := model.NewId()
 		w := seed(writeOnce, targetA, `"locked"`)
 
 		_, err := th.service.UpdatePropertyValue(rctx, "", stated(w, writeOnce.ID, targetA, `"changed"`))
-		requireAppErrorID(t, err, writeOnceID, http.StatusForbidden)
+		require.Error(t, err)
 		assert.Equal(t, `"locked"`, stored(w))
 	})
+}
 
-	t.Run("a correctly addressed update with no group is allowed", func(t *testing.T) {
-		targetA := model.NewId()
-		m := seed(mutable, targetA, `"old"`)
+func TestBoundsHookValueGate(t *testing.T) {
+	th := Setup(t)
+	rctx := th.Context
+	hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 
-		_, err := th.service.UpdatePropertyValue(rctx, "", stated(m, mutable.ID, targetA, `"new"`))
-		require.NoError(t, err)
-		assert.Equal(t, `"new"`, stored(m))
+	// run calls every value pre-hook on one value and returns what each gave back.
+	type outcome struct {
+		name string
+		got  *model.PropertyValue
+		err  error
+	}
+	run := func(v *model.PropertyValue) []outcome {
+		var out []outcome
+		add := func(name string, got *model.PropertyValue, err error) {
+			out = append(out, outcome{name, got, err})
+		}
+		batch := []*model.PropertyValue{v}
+		got, err := hook.PreCreatePropertyValue(rctx, v)
+		add("PreCreatePropertyValue", got, err)
+		got, err = hook.PreUpsertPropertyValue(rctx, v)
+		add("PreUpsertPropertyValue", got, err)
+		got, err = hook.PreUpdatePropertyValue(rctx, v.GroupID, v)
+		add("PreUpdatePropertyValue", got, err)
+		var gotBatch []*model.PropertyValue
+		gotBatch, err = hook.PreCreatePropertyValues(rctx, batch)
+		add("PreCreatePropertyValues", first(gotBatch), err)
+		gotBatch, err = hook.PreUpsertPropertyValues(rctx, batch)
+		add("PreUpsertPropertyValues", first(gotBatch), err)
+		gotBatch, err = hook.PreUpdatePropertyValues(rctx, v.GroupID, batch)
+		add("PreUpdatePropertyValues", first(gotBatch), err)
+		return out
+	}
+
+	t.Run("a group that doesn't resolve is refused", func(t *testing.T) {
+		for _, groupID := range []string{"", model.NewId()} {
+			v := &model.PropertyValue{ID: model.NewId(), GroupID: groupID, FieldID: model.NewId(), TargetID: model.NewId(), TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"a"`)}
+			for _, o := range run(v) {
+				require.ErrorContains(t, o.err, "not found", "%s with group %q", o.name, groupID)
+				assert.Nil(t, o.got, o.name)
+			}
+		}
+	})
+
+	t.Run("a value in a v1 or v2 group passes untouched", func(t *testing.T) {
+		for _, version := range []int{model.PropertyGroupVersionV1, model.PropertyGroupVersionV2} {
+			groupID := th.RegisterPropertyGroup(t, version).ID
+			locked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    groupID,
+				ObjectType: model.PropertyFieldObjectTypeChannel,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Type:       model.PropertyFieldTypeText,
+				Name:       "f " + model.NewId(),
+				Mutability: model.PropertyFieldMutabilityWriteOnce,
+			})
+			// A field ID the group doesn't hold fails the hook if it reads any field.
+			for _, fieldID := range []string{locked.ID, model.NewId()} {
+				v := &model.PropertyValue{ID: model.NewId(), GroupID: groupID, FieldID: fieldID, TargetID: model.NewId(), TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"a"`)}
+				for _, o := range run(v) {
+					require.NoError(t, o.err, "%s in a v%d group", o.name, version)
+					assert.Same(t, v, o.got, o.name)
+				}
+			}
+		}
+	})
+
+	t.Run("a value naming a field the v3 group doesn't hold is refused", func(t *testing.T) {
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		v := &model.PropertyValue{ID: model.NewId(), GroupID: groupID, FieldID: model.NewId(), TargetID: model.NewId(), TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"a"`)}
+		for _, o := range run(v) {
+			require.ErrorIs(t, o.err, ErrFieldNotFound, o.name)
+			assert.Nil(t, o.got, o.name)
+		}
 	})
 }
 
@@ -1217,7 +1314,8 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
 			postField:    create(model.PropertyFieldObjectTypePost, postBounds),
 		}
-		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, groupID))
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
+		th.service.AddHook(NewBoundsHook(th.service, func() bool { return true }, nil))
 		return f
 	}
 	// setup leaves the channel and user fields without rules and gives the post field postBounds.
@@ -1353,7 +1451,7 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		// has lost its option.
 		unranked := *f.channelField
 		unranked.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{map[string]any{"id": "optlow", "name": "LOW", "rank": 1}}}
-		hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PropertyFieldBounds: func() bool { return true }}, f.channelField.GroupID)
+		hook := NewBoundsHook(th.service, func() bool { return true }, nil)
 		err := hook.refuseContainedValuesOutOfBounds(rctx,
 			[]*model.PropertyValue{{GroupID: f.channelField.GroupID, FieldID: unranked.ID, TargetType: channelType, TargetID: x, Value: json.RawMessage(`"optmid2"`)}},
 			map[string]*model.PropertyField{unranked.ID: &unranked})
@@ -1476,4 +1574,11 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		channel(f, "opthigh")
 		require.NoError(t, systemWrite(f, `"optmid"`))
 	})
+}
+
+func first(values []*model.PropertyValue) *model.PropertyValue {
+	if len(values) == 0 {
+		return nil
+	}
+	return values[0]
 }

@@ -11142,8 +11142,8 @@
   },
   {
     "id": "app.property_field.bounds_disabled.app_error",
-    "translation": "Bounds and a locking mutability can't be added to a field while the PropertyFieldBounds feature flag is off.",
-    "description": "API error (400) when a property field is given a new bounds rule or made write_once while the PropertyFieldBounds feature flag is off."
+    "translation": "Bounds and a locking mutability can't be added to a field unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on.",
+    "description": "API error (400) when a property field is given a new bounds rule or made write_once unless the PropertyFieldBounds and PropertyFieldPermissionsV3 feature flags are both on."
   },
   {
     "id": "app.property_field.bounds_parent_field.app_error",
