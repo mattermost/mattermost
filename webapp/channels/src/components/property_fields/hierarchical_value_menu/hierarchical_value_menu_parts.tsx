@@ -129,10 +129,6 @@ function closedTriggerOf(element: Element): HTMLElement | null {
     return trigger && trigger.getAttribute('aria-expanded') !== 'true' ? trigger : null;
 }
 
-function focusClosedTrigger(element: Element) {
-    closedTriggerOf(element)?.focus();
-}
-
 function focusTriggerFromChip(event: MouseEvent<HTMLDivElement>) {
     const trigger = closedTriggerOf(event.currentTarget);
     if (trigger) {
@@ -193,7 +189,7 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
                             onRemove={disabled ? undefined : (event) => {
                                 event.stopPropagation();
                                 if (selectedIds.length === 1) {
-                                    focusClosedTrigger(event.currentTarget);
+                                    closedTriggerOf(event.currentTarget)?.focus();
                                 }
                                 onRemove(id);
                             }}

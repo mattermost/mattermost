@@ -6,8 +6,8 @@
 .hierarchical-value-menu {
     width: 100%;
 
-    // Role is a div (not a button) so chip removes (Compass Chip in `input`,
-    // AttributeChip in `inline`/`policy`) can be real <button>s.
+    // Role is a div (not a button) so chip removes can be real <button>s without
+    // nesting interactive controls.
     &__button {
         display: flex;
         width: 100%;
@@ -141,8 +141,7 @@
         }
     }
 
-    // Graph attribute field: mirrors the Compass Combobox multiselect (inset
-    // box-shadow instead of a border, 10px / 16px padding, 8px around chips).
+    // Graph attribute field: mirrors the Compass Combobox multiselect.
     &--input {
         .hierarchical-value-menu__button {
             padding: var(--spacing-s) var(--spacing-l);

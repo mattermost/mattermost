@@ -467,7 +467,8 @@ export default function HierarchicalValueMenu({
         menuChildren.push(...extraMenuItems);
     }
 
-    // The Menu trigger is a <div>, so chip remove buttons never nest inside a native <button>.
+    // Chips use real <button> removes; the Menu trigger is a <div> so we never
+    // nest button-in-button (invalid HTML / broken for VoiceOver).
     const triggerChildren = (
         <span className='hierarchical-value-menu__button-inner'>
             {hasChips ? (

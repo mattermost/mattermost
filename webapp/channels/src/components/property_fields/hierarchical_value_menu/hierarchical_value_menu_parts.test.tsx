@@ -249,7 +249,7 @@ describe('SelectedValueChips', () => {
             return {triggerElement, chip: document.querySelector('[data-chip]') as HTMLElement};
         };
 
-        test('focuses the closed trigger without scrolling it into view', () => {
+        test('focuses the closed trigger without scrolling or a focus ring', () => {
             const {triggerElement, chip} = renderInTrigger(false);
             const focus = jest.spyOn(triggerElement, 'focus');
 
@@ -258,16 +258,7 @@ describe('SelectedValueChips', () => {
             expect(notPrevented).toBe(false);
             expect(triggerElement).toHaveFocus();
             expect(focus).toHaveBeenCalledTimes(1);
-            expect(focus).toHaveBeenCalledWith(expect.objectContaining({preventScroll: true}));
-        });
-
-        test('focuses the closed trigger without asking for a focus ring', () => {
-            const {triggerElement, chip} = renderInTrigger(false);
-            const focus = jest.spyOn(triggerElement, 'focus');
-
-            fireEvent.mouseDown(chip);
-
-            expect(focus).toHaveBeenCalledWith(expect.objectContaining({focusVisible: false}));
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
         });
 
         test('removing the last chip from the keyboard focuses the trigger with a plain focus call', async () => {
