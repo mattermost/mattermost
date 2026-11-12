@@ -189,7 +189,7 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
                             onRemove={disabled ? undefined : (event) => {
                                 event.stopPropagation();
                                 if (selectedIds.length === 1) {
-                                    closedTriggerOf(event.currentTarget)?.focus();
+                                    closedTriggerOf(event.currentTarget)?.focus({preventScroll: true, focusVisible: event.detail === 0});
                                 }
                                 onRemove(id);
                             }}
