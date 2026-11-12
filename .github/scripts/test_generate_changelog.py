@@ -429,6 +429,11 @@ class MainTest(unittest.TestCase):
         self.saved_show = gc.changelog_release.git_show
         self.saved_benchmark = gc.changelog_release.benchmark_notes
         gc.changelog_release.benchmark_notes = lambda version: []
+        self.saved_commit_date = gc.changelog_release.git_commit_date
+        gc.changelog_release.git_commit_date = lambda ref: "2026-10-16T10:00:00+00:00"
+        self.merged_since = {}
+        self.saved_merged = gc.merged_prs_since
+        gc.merged_prs_since = lambda repo, since: self.merged_since
         self.saved_env = dict(os.environ)
         gc.VERSION = gc.MILESTONE_TITLE = "v12.1.0"
         gc.REPOS = ["mattermost/mattermost"]
@@ -466,6 +471,8 @@ class MainTest(unittest.TestCase):
         gc.changelog_release.derived_notes = self.saved_derived
         gc.changelog_release.git_show = self.saved_show
         gc.changelog_release.benchmark_notes = self.saved_benchmark
+        gc.changelog_release.git_commit_date = self.saved_commit_date
+        gc.merged_prs_since = self.saved_merged
         os.environ.clear()
         os.environ.update(self.saved_env)
 
@@ -577,6 +584,28 @@ class MainTest(unittest.TestCase):
         link = self._payload()["readiness"]["doc_links"][0]
         self.assertEqual((link["used_in"], link["linked_elsewhere"]), (["Administration"], []))
         self.assertNotIn("(no bullet links it)", (self.out / "summary.md").read_text())
+
+    def test_a_docs_pr_outside_the_milestone_that_links_the_pr_gives_its_page(self):
+        # Docs that land after the code: #900 is in no milestone and links #1.
+        self.merged_since = {
+            "mattermost/mattermost#900": {"title": "Docs for the feature", "body": "Documents https://github.com/mattermost/mattermost/pull/1."},
+            "mattermost/mattermost#901": {"title": "MM-123 other docs", "body": "Unrelated."},  # a Jira key alone is not enough
+        }
+        self.details[900] = {"head_ref": "docs-feature", "files": [{
+            "filename": "docs/main/administration-guide/manage/admin/feature.mdx", "status": "added",
+            "patch": "+# Feature\n+\n+Use the feature.\n"}]}
+        self.details[901] = {"head_ref": "MM-123-docs", "files": [{
+            "filename": "docs/main/administration-guide/manage/admin/other.mdx", "status": "added", "patch": "+# Other\n"}]}
+        self.prs[0]["head_ref"] = "MM-123-feature"
+        pages = {"docs/main/administration-guide/manage/admin/feature.mdx": "---\ntitle: Feature\n---\n# Feature\n",
+                 "docs/main/administration-guide/manage/admin/other.mdx": "---\ntitle: Other\n---\n# Other\n"}
+        gc.changelog_release.git_show = lambda ref, path: pages.get(path, "FROM golang:1.27.1-bookworm\n")
+        self.site_pages.update(pages)
+        gc.main()
+        link, = self._payload()["readiness"]["doc_links"]
+        self.assertEqual((link["source"], link["url"]),
+                         ("mattermost/mattermost#1", "https://docs.mattermost.com/administration-guide/manage/admin/feature"))
+        self.assertIn("docs PR mattermost/mattermost#900, which links the PR (outside the milestone)", link["basis"])
 
     def test_docs_line_outranks_the_followed_page_and_is_checked(self):
         self.details[1] = {"head_ref": "MM-123-feature", "files": [{
@@ -1172,6 +1201,65 @@ class EndpointPathTest(unittest.TestCase):
         text, unresolved = gc.resolve_endpoint_lines("Removed `GET /posts` (`getPostsUsage`) API endpoint.",
                                                      gc.endpoint_lookup("", ""))
         self.assertEqual((text, unresolved), ("", ["Removed GET /posts (getPostsUsage)"]))
+
+
+class OutsideDocsPrsTest(unittest.TestCase):
+    MERGED = {
+        "mattermost/mattermost#900": {"title": "Docs", "body": "Docs for #39344."},
+        "mattermost/mattermost#901": {"title": "Docs", "body": "Docs for https://github.com/mattermost/mattermost/pull/39474"},
+        "mattermost/mattermost#902": {"title": "MM-71000 docs", "body": "No link."},
+        "mattermost/mattermost#39433": {"title": "In the milestone", "body": "See #39344."},
+    }
+
+    def test_only_merged_prs_outside_the_milestone_that_link_a_pr_count(self):
+        prs = {"mattermost/mattermost#39344": {}, "mattermost/mattermost#39474": {}, "mattermost/mattermost#39433": {}}
+        found = gc.outside_docs_prs(prs, {"mattermost/mattermost#39344", "mattermost/mattermost#39474"}, "2026-10-16T00:00:00Z",
+                                    lambda repo, since: self.MERGED)
+        self.assertEqual(sorted(found), ["mattermost/mattermost#900", "mattermost/mattermost#901"])
+        self.assertTrue(all(info["outside"] for info in found.values()))
+        self.assertEqual(gc.outside_docs_prs(prs, {"mattermost/mattermost#39344"}, None, lambda repo, since: self.MERGED), {})
+
+    def test_the_listing_stops_at_prs_updated_before_the_previous_release(self):
+        def pr(number, merged, updated):
+            return {"number": number, "title": "t", "body": "b", "merged_at": merged, "updated_at": updated}
+        pages = {1: [pr(1, "2026-11-01T00:00:00Z", "2026-11-02T00:00:00Z")] + [pr(2, None, "2026-11-01T00:00:00Z")] * 99,
+                 2: [pr(3, "2026-10-01T00:00:00Z", "2026-11-01T00:00:00Z"), pr(4, "2026-10-20T00:00:00Z", "2026-10-21T00:00:00Z")]
+                    + [pr(5, "2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z")] * 98,
+                 3: [pr(6, "2026-11-05T00:00:00Z", "2026-11-05T00:00:00Z")]}
+        asked = []
+
+        class Response:
+            def __init__(self, items):
+                self.items = items
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return self.items
+
+        def get(url, params, timeout):
+            asked.append(params["page"])
+            return Response(pages[params["page"]])
+        saved = gc.SESSION.get
+        gc.SESSION.get = get
+        try:
+            found = gc.merged_prs_since("mattermost/mattermost", "2026-10-16T00:00:00+00:00")
+        finally:
+            gc.SESSION.get = saved
+        self.assertEqual(sorted(found), ["mattermost/mattermost#1", "mattermost/mattermost#4"])  # #3 merged before
+        self.assertEqual(asked, [1, 2])  # page 2 ends before the previous release: page 3 isn't read
+
+    def test_a_docs_pr_outside_the_milestone_counts_only_by_its_link(self):
+        prs = {"mattermost/mattermost#1": {"title": "MM-5 feature", "head_ref": "MM-5-feature", "body": ""},
+               "mattermost/mattermost#900": {"title": "MM-5 docs", "head_ref": "MM-5-docs", "body": "", "outside": True}}
+        files = {"mattermost/mattermost#900": [{"filename": "docs/main/a.mdx", "status": "added", "patch": "+# A\n"}]}
+        read = {"docs/main/a.mdx": "---\ntitle: A\n---\n# A\n"}.get
+        self.assertEqual(gc.changelog_release.docs_link("mattermost/mattermost#1", prs, lambda s: files.get(s, []), read), {})
+        prs["mattermost/mattermost#900"]["body"] = "Docs for #1."
+        found = gc.changelog_release.docs_link("mattermost/mattermost#1", prs, lambda s: files.get(s, []), read)
+        self.assertEqual(found["url"], "https://docs.mattermost.com/a")
+        self.assertIn("(outside the milestone)", found["basis"])
 
 
 class TidyGeneratedTest(unittest.TestCase):

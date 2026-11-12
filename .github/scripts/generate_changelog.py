@@ -332,20 +332,61 @@ def get_pr_details(repo: str, number: int) -> dict:
     return details
 
 
-def find_docs_links(prs: dict, sources: set, read_file, details_out: dict | None = None) -> dict:
+MAX_MERGED_PAGES = 30  # 3,000 PRs: well past a month of merges
+
+
+def merged_prs_since(repo: str, since: str) -> dict:
+    """The PRs merged into ``repo`` since ``since`` (ISO 8601), as ``{owner/repo#N: {title, body}}``.
+
+    Closed PRs are listed most recently updated first, so the listing stops at the first page
+    that reaches PRs last updated before ``since``: a PR merged since then was updated since then.
+    """
+    found = {}
+    for page in range(1, MAX_MERGED_PAGES + 1):
+        resp = SESSION.get(f"https://api.github.com/repos/{repo}/pulls", params={
+            "state": "closed", "sort": "updated", "direction": "desc", "per_page": 100, "page": page,
+        }, timeout=API_TIMEOUT)
+        resp.raise_for_status()
+        batch = resp.json()
+        for pr in batch:
+            if pr.get("merged_at") and parse_github_time(pr["merged_at"]) >= parse_github_time(since):
+                found[f"{repo}#{pr['number']}"] = {"title": pr.get("title") or "", "body": pr.get("body") or ""}
+        if len(batch) < 100 or parse_github_time(batch[-1]["updated_at"]) < parse_github_time(since):
+            return found
+    print(f"::warning title=Docs PRs not all read::more than {MAX_MERGED_PAGES * 100} PRs were closed in {repo} "
+          f"since {since}; older ones were not checked for links to this release's PRs")
+    return found
+
+
+def outside_docs_prs(prs: dict, sources: set, since: str | None, merged_since=None) -> dict:
+    """Docs PR candidates outside the milestone: PRs in DOCS_REPO merged since the previous release
+    (``since``) that aren't milestone PRs and link one of ``sources``. Marked ``"outside"``."""
+    if not since:
+        return {}
+    found = {}
+    for other, info in (merged_since or merged_prs_since)(DOCS_REPO, since).items():
+        if other not in prs and changelog_release.pr_references(info["body"], DOCS_REPO) & sources:
+            found[other] = {**info, "outside": True}
+    return found
+
+
+def find_docs_links(prs: dict, sources: set, read_file, details_out: dict | None = None,
+                    outside: dict | None = None) -> dict:
     """``changelog_release.docs_link`` for each source PR, fetching PR details in parallel.
 
-    The details fetched are also put in ``details_out``, when given, so the migrations each
-    PR added can be read without fetching them again.
+    ``outside`` holds docs PRs from outside the milestone (see ``outside_docs_prs``); they are
+    matched only by linking a PR. The details fetched are also put in ``details_out``, when
+    given, so the migrations each PR added can be read without fetching them again.
     """
     from concurrent.futures import ThreadPoolExecutor
 
-    keys = sorted(prs)
+    every = {**(outside or {}), **prs}
+    keys = sorted(every)
     with ThreadPoolExecutor(DETAIL_WORKERS) as pool:
         details = dict(zip(keys, pool.map(lambda s: get_pr_details(*_split_source(s)), keys)))
     if details_out is not None:
-        details_out.update(details)
-    info = {source: {**prs[source], "head_ref": details[source]["head_ref"]} for source in keys}
+        details_out.update({source: details[source] for source in prs})
+    info = {source: {**every[source], "head_ref": details[source]["head_ref"]} for source in keys}
     return {
         source: changelog_release.docs_link(source, info, lambda s: details[s]["files"], read_file)
         for source in sorted(sources, key=_source_sort_key)
@@ -2469,8 +2510,16 @@ def main():
     # the checkout is the changelog PR's branch, cut before later docs changes landed.
     docs_ref = os.environ.get("DOCS_REF", "").strip() or "HEAD"
     pr_details = {}
+    # Docs that landed after the code, in a later milestone or none, are found by the PRs merged
+    # since the previous release that link a PR of this one.
+    previous = os.environ.get("RELEASE_BASE_REF", "").strip()
+    since = changelog_release.git_commit_date(previous) if previous and noted else None
+    outside = outside_docs_prs(milestone_prs, noted, since) if since else {}
+    if noted:
+        print(f"📚 {len(outside)} docs PR(s) outside the milestone link one of its PRs"
+              + (f" (merged since {previous}, {since})" if since else " (not checked: no previous release ref)"))
     docs_links = find_docs_links(
-        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path), pr_details
+        milestone_prs, noted, lambda path: changelog_release.git_show(docs_ref, path), pr_details, outside
     ) if noted else {}
     site_cache = {}
 
