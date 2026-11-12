@@ -36,9 +36,10 @@ func isBoundsRefusal(err error) bool {
 }
 
 // boundsEvent starts the audit event for a value that broke rule. written is the value as the
-// writer sent it, with a nil Value for a clear.
-func boundsEvent(written *model.PropertyValue, rule string, affected int64) ValueAuditEvent {
-	return ValueAuditEvent{
+// writer sent it, with a nil Value for a clear. stored is the object's row as read before the
+// write, nil when it has none; it becomes Prev so a lapse overwrite leaves the old value in the log.
+func boundsEvent(written, stored *model.PropertyValue, rule string, affected int64) ValueAuditEvent {
+	e := ValueAuditEvent{
 		TargetType:     written.TargetType,
 		TargetID:       written.TargetID,
 		FieldID:        written.FieldID,
@@ -46,6 +47,10 @@ func boundsEvent(written *model.PropertyValue, rule string, affected int64) Valu
 		BoundsRule:     rule,
 		BoundsAffected: affected,
 	}
+	if stored != nil {
+		e.ValueID, e.Prev = stored.ID, stored
+	}
+	return e
 }
 
 // boundsBreak handles a write that breaks a rule or mutability, err being the refusal. It audits
@@ -426,8 +431,29 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 		}
 		next := checked.Value
 		field := fieldMap[v.FieldID]
+		row, rowRead := stored[store.PropertyValueKey{FieldID: v.FieldID, TargetID: v.TargetID}], storedValueMatters(field)
+		// A parent-only field never reads the object's own row, so read it here, only on a break and
+		// once per value. It is not recorded as a write condition: that write must not start failing
+		// on a conflict.
+		auditRow := func() (*model.PropertyValue, error) {
+			if !rowRead {
+				rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyValueSearchOpts{
+					FieldID:   field.ID,
+					TargetIDs: []string{v.TargetID},
+					PerPage:   1,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
+				}
+				row, rowRead = nil, true
+				if len(rows) > 0 {
+					row = rows[0]
+				}
+			}
+			return row, nil
+		}
 		if err := checkMutability(field, storedValue, next); err != nil {
-			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, string(field.Mutability.OrMutable()), 0), err); refusal != nil {
+			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, row, string(field.Mutability.OrMutable()), 0), err); refusal != nil {
 				return refusal
 			}
 		}
@@ -450,7 +476,11 @@ func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyVal
 			if !isBoundsRefusal(err) {
 				return err
 			}
-			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, string(rule.Operator)+" "+string(rule.Reference), 0), err); refusal != nil {
+			prev, readErr := auditRow()
+			if readErr != nil {
+				return readErr
+			}
+			if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(&checked, prev, string(rule.Operator)+" "+string(rule.Reference), 0), err); refusal != nil {
 				return refusal
 			}
 		}
@@ -499,14 +529,18 @@ nextValue:
 		if err != nil {
 			return fmt.Errorf("field %s: failed to read the stored value of target %s: %w", field.ID, v.TargetID, err)
 		}
-		if len(rows) > 0 && samePropertyValue(rows[0].Value, v.Value) {
-			continue
+		var storedRow *model.PropertyValue
+		if len(rows) > 0 {
+			storedRow = rows[0]
+			if samePropertyValue(storedRow.Value, v.Value) {
+				continue
+			}
 		}
 
 		ranks := buildOptionRankMap(field)
 		newRank, ok := singleOptionRank(field.Type, v.Value, ranks)
 		if !ok {
-			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed)); err != nil {
+			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, storedRow, boundsRuleContainedValues, 0), fmt.Errorf("field %s: target %s: the new value can't be ranked: %w", field.ID, v.TargetID, errBoundsCheckFailed)); err != nil {
 				return err
 			}
 			continue nextValue
@@ -523,7 +557,7 @@ nextValue:
 					if !isBoundsRefusal(err) {
 						return err
 					}
-					if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), fmt.Errorf("field %s: %w", child.ID, err)); refusal != nil {
+					if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, storedRow, boundsRuleContainedValues, 0), fmt.Errorf("field %s: %w", child.ID, err)); refusal != nil {
 						return refusal
 					}
 					continue nextValue
@@ -554,7 +588,7 @@ nextValue:
 				if !isBoundsRefusal(err) {
 					return err
 				}
-				if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, 0), err); refusal != nil {
+				if refusal := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, storedRow, boundsRuleContainedValues, 0), err); refusal != nil {
 					return refusal
 				}
 				continue nextValue
@@ -570,7 +604,7 @@ nextValue:
 				map[string]any{"Count": breaches.Count, "Examples": examples},
 				fmt.Sprintf("field %s: target %s: %d contained values of field %s out of bounds, e.g. %s", field.ID, v.TargetID, breaches.Count, breachedFieldID, examples),
 				http.StatusConflict)
-			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, boundsRuleContainedValues, breaches.Count), err); err != nil {
+			if err := h.boundsBreak(rctx, field.GroupID, boundsEvent(v, storedRow, boundsRuleContainedValues, breaches.Count), err); err != nil {
 				return err
 			}
 		}

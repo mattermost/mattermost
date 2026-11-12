@@ -273,6 +273,8 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 			TargetID:     th.BasicUser.Id,
 			FieldID:      fieldID,
 			Current:      &model.PropertyValue{Value: []byte(`"v"`)},
+			ValueID:      "valueid",
+			Prev:         &model.PropertyValue{Value: []byte(`"old"`)},
 			BoundsRule:   "write_once",
 			BoundsReason: properties.ValueAuditBoundsReasonCheckFailed,
 		})
@@ -283,6 +285,8 @@ func TestBuildCPAValueAuditRecord(t *testing.T) {
 		assert.Equal(t, properties.ValueAuditBoundsReasonCheckFailed, rec.Meta["bounds_reason"])
 		assert.Equal(t, fieldID, rec.Meta["field_id"])
 		assert.Equal(t, `"v"`, rec.Meta["new_value"])
+		assert.Equal(t, `"old"`, rec.Meta["prior_value"])
+		assert.Equal(t, "valueid", rec.Meta["value_id"])
 		assert.NotContains(t, rec.Meta, "basis_tier")
 	})
 

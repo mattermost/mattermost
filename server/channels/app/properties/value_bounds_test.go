@@ -1757,6 +1757,23 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		return string(vals[0].Value)
 	}
 
+	// rowOrNil is a target's stored row, nil when it has none.
+	rowOrNil := func(field *model.PropertyField, targetID string) *model.PropertyValue {
+		t.Helper()
+		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: field.GroupID, FieldID: field.ID, TargetIDs: []string{targetID}, PerPage: 10})
+		require.NoError(t, err)
+		if len(vals) == 0 {
+			return nil
+		}
+		return vals[0]
+	}
+	rowOf := func(field *model.PropertyField, targetID string) *model.PropertyValue {
+		t.Helper()
+		row := rowOrNil(field, targetID)
+		require.NotNil(t, row)
+		return row
+	}
+
 	enterprise := func() *model.License { return model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise) }
 	licenses := []struct {
 		name     string
@@ -1791,6 +1808,13 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 			return pv(f.below, channelType, model.NewId(), opt("opthigh")), "",
 				ValueAuditEvent{BoundsRule: "at_or_below parent", BoundsReason: ValueAuditBoundsReasonViolated}
 		}},
+		{"above the system's value over a stored value", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
+			seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("optmid"))
+			target := model.NewId()
+			seed(f.below, channelType, target, opt("optlow"))
+			return pv(f.below, channelType, target, opt("opthigh")), opt("optlow"),
+				ValueAuditEvent{BoundsRule: "at_or_below parent", BoundsReason: ValueAuditBoundsReasonViolated}
+		}},
 		{"an unrankable parent value", func(f fixture) (*model.PropertyValue, string, ValueAuditEvent) {
 			seed(f.system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, opt("optgone"))
 			return pv(f.below, channelType, model.NewId(), opt("optlow")), "",
@@ -1811,6 +1835,8 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 				write, before, want := c.build(f)
 				fieldByID := map[string]*model.PropertyField{f.locked.ID: f.locked, f.raise.ID: f.raise, f.below.ID: f.below, f.system.ID: f.system}
 				field := fieldByID[write.FieldID]
+				// Read before the write, because a lapse write replaces the row.
+				prior := rowOrNil(field, write.TargetID)
 
 				_, err := th.service.UpsertPropertyValue(rctx, write)
 
@@ -1831,6 +1857,16 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 				require.NotNil(t, got.Current)
 				assert.Equal(t, write.Value, got.Current.Value)
 				got.Current = nil
+				// Prev is the row as it was before the write; none on a first write.
+				if prior == nil {
+					assert.Nil(t, got.Prev)
+				} else {
+					require.NotNil(t, got.Prev)
+					assert.Equal(t, prior.ID, got.Prev.ID)
+					assert.Equal(t, string(prior.Value), string(got.Prev.Value))
+					want.ValueID = prior.ID
+				}
+				got.Prev = nil
 				assert.Equal(t, want, got)
 			})
 		}
@@ -1841,6 +1877,7 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		a, b := model.NewId(), model.NewId()
 		seed(f.locked, channelType, a, `"a"`)
 		seed(f.raise, channelType, b, opt("optmid"))
+		rowA, rowB := rowOf(f.locked, a), rowOf(f.raise, b)
 
 		_, err := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
 			pv(f.locked, channelType, a, `"b"`),
@@ -1852,6 +1889,14 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 		require.Len(t, *f.events, 2)
 		assert.Equal(t, "write_once", (*f.events)[0].BoundsRule)
 		assert.Equal(t, "at_or_above self", (*f.events)[1].BoundsRule)
+		// Each event carries its own value's row.
+		for i, row := range []*model.PropertyValue{rowA, rowB} {
+			e := (*f.events)[i]
+			require.NotNil(t, e.Prev)
+			assert.Equal(t, row.ID, e.ValueID)
+			assert.Equal(t, row.ID, e.Prev.ID)
+			assert.Equal(t, string(row.Value), string(e.Prev.Value))
+		}
 		assert.Zero(t, *f.recorded)
 	})
 
@@ -1901,13 +1946,6 @@ func TestBoundsEnforcementByLicense(t *testing.T) {
 
 	// The deletes of a set locked value, by license: each is refused and audited once with no
 	// provider, and goes ahead and is audited as not enforced during a lapse.
-	rowOf := func(field *model.PropertyField, targetID string) *model.PropertyValue {
-		t.Helper()
-		vals, err := th.dbStore.PropertyValue().SearchPropertyValues(rctx, model.PropertyValueSearchOpts{GroupID: field.GroupID, FieldID: field.ID, TargetIDs: []string{targetID}, PerPage: 10})
-		require.NoError(t, err)
-		require.Len(t, vals, 1)
-		return vals[0]
-	}
 	for _, l := range licenses {
 		wantAction := ValueAuditActionBoundsNotEnforced
 		if l.enforced {
