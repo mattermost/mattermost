@@ -156,6 +156,30 @@ func TestBoundsHookFlag(t *testing.T) {
 		requireAppError(t, updateErr, disabledErrID)
 	})
 
+	t.Run("off: a stale change_policy outside access_control is not a lock to carry over", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
+			f.ObjectType = model.PropertyFieldObjectTypeChannel
+		}))
+		f.Attrs = model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+			model.PropertyFieldAttrEditable:     false,
+		}
+		_, updateErr := th.service.fieldStore.Update(group.ID, []*model.PropertyField{f}, nil)
+		require.NoError(t, updateErr)
+
+		locking := stored(t, f.ID)
+		locking.Mutability = model.PropertyFieldMutabilityWriteOnce
+		_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, locking)
+		requireAppError(t, updateErr, disabledErrID)
+		assert.Equal(t, model.PropertyFieldMutability(""), stored(t, f.ID).Mutability)
+
+		boundsEnabled = true
+		defer func() { boundsEnabled = false }()
+		_, _, updateErr = th.service.UpdatePropertyField(rctx, group.ID, locking)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, f.ID).Mutability)
+	})
+
 	t.Run("on: adding a rule or write_once needs Enterprise Advanced, removing never does", func(t *testing.T) {
 		const licenseErrID = "app.property_field.bounds_license.app_error"
 		requireLicenseError := func(t *testing.T, err error) {
@@ -341,6 +365,7 @@ func TestBoundsHookFlag(t *testing.T) {
 func TestChangePolicyWritesRecord(t *testing.T) {
 	var none *changePolicyWrites
 	assert.False(t, none.oldFormat("a"), "no record fails closed")
+	assert.False(t, none.translated("a"))
 	none.record("a", true)
 
 	c := &changePolicyWrites{oldFormatByField: map[string]bool{}}
@@ -349,6 +374,8 @@ func TestChangePolicyWritesRecord(t *testing.T) {
 	assert.True(t, c.oldFormat("a"))
 	assert.False(t, c.oldFormat("b"))
 	assert.False(t, c.oldFormat("unseen"))
+	assert.True(t, c.translated("b"), "recorded as not old-format is still translated")
+	assert.False(t, c.translated("unseen"))
 
 	// A field named twice is old-format only if every entry is.
 	c.record("a", false)

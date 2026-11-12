@@ -197,8 +197,19 @@ func (c *changePolicyWrites) oldFormat(fieldID string) bool {
 	return c != nil && c.oldFormatByField[fieldID]
 }
 
+// translated reports whether the change_policy translation saw fieldID in this
+// request, so its stored change_policy / editable keys are a lock it honours.
+func (c *changePolicyWrites) translated(fieldID string) bool {
+	if c == nil {
+		return false
+	}
+	_, seen := c.oldFormatByField[fieldID]
+	return seen
+}
+
 // validateBoundsChange refuses a new bounds rule, or a mutability that newly
-// becomes write_once, judged against changePolicyBaseline. Unless the
+// becomes write_once, judged against the stored settings (changePolicyBaseline
+// when the change_policy translation saw the field). Unless the
 // PropertyFieldBounds and PropertyFieldPermissionsV3 flags are both on it is
 // refused whatever the license, except what an old-format write's translation
 // adds (a self rule or write_once): that carries the existing change_policy
@@ -209,8 +220,17 @@ func (c *changePolicyWrites) oldFormat(fieldID string) bool {
 // and mutability ("") add nothing; the update path fills them in from the stored
 // field.
 func (h *BoundsHook) validateBoundsChange(rctx request.CTX, field, existing *model.PropertyField) error {
-	prevMutability, prevBounds := changePolicyBaseline(existing)
-	oldFormat := changePolicyWritesFrom(rctx).oldFormat(field.ID)
+	writes := changePolicyWritesFrom(rctx)
+	// Only the access_control hook translates, so only there does a stored
+	// change_policy count as a lock; elsewhere it was never enforced.
+	prevMutability, prevBounds := model.PropertyFieldMutabilityMutable, model.PropertyBounds(nil)
+	if existing != nil {
+		prevMutability, prevBounds = existing.Mutability.OrMutable(), existing.Bounds
+	}
+	if writes.translated(field.ID) {
+		prevMutability, prevBounds = changePolicyBaseline(existing)
+	}
+	oldFormat := writes.oldFormat(field.ID)
 
 	// adding is the first thing the write adds, which the license check names;
 	// flagGated is the first of those the flag also refuses, so it skips the self
