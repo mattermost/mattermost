@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
+
 import type {TimeRange} from './types';
 import {FIELD_MAX_LENGTH, FIELD_MAX_VALUES, LEVEL_GROUPS, PLUGIN_ID_FIELD, SEARCH_MAX_LENGTH} from './utils';
 import type {LevelGroup} from './utils';
+
+import type {ConsoleAccess} from '../types';
 
 // Only the filters are shared. Live tail and display preferences stay with each browser
 export type UrlFilters = {
@@ -15,6 +22,12 @@ export type UrlFilters = {
 };
 
 const PARAMS = ['search', 'levels', 'node', 'range', 'from', 'to'] as const;
+
+// A level or node left out of the URL falls back to the saved prefs, so every URL the viewer writes says which it
+// shows, and a copied URL opens the same view for another admin. A node is named by the server, so every node is an
+// empty value rather than a name a node could have
+const ALL_LEVELS = 'all';
+const ALL_NODES = '';
 
 // A field filter is one parameter per value, such as field.plugin_id=github. Only the plugin is read, as it's
 // the only field the viewer shows a filter for, so a link can't filter the view in a way the admin can't see or clear
@@ -55,13 +68,14 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
         filters.search = search;
     }
 
-    const levels = params.get('levels')?.split(',').filter(isLevelGroup);
+    const levelsParam = params.get('levels');
+    const levels = levelsParam === ALL_LEVELS ? LEVEL_GROUPS : levelsParam?.split(',').filter(isLevelGroup);
     if (levels?.length) {
         filters.enabledLevels = new Set(levels);
     }
 
     const node = params.get('node');
-    if (node) {
+    if (node !== null) {
         filters.node = node;
     }
 
@@ -85,7 +99,8 @@ export function parseUrlFilters(query: string, presetMinutes: readonly number[])
     return filters;
 }
 
-// Keeps any other parameters, and leaves out filters at their defaults. Null removes every filter
+// Keeps any other parameters. The levels and node are always set, and the other filters are left out at their
+// defaults. Null removes every filter
 export function withUrlFilters(query: string, filters: UrlFilters | null): string {
     const params = new URLSearchParams(query);
     PARAMS.forEach((param) => params.delete(param));
@@ -96,12 +111,9 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
         if (search) {
             params.set('search', search);
         }
-        if (!LEVEL_GROUPS.every((level) => enabledLevels.has(level))) {
-            params.set('levels', LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).join(','));
-        }
-        if (node) {
-            params.set('node', node);
-        }
+        const allLevels = LEVEL_GROUPS.every((level) => enabledLevels.has(level));
+        params.set('levels', allLevels ? ALL_LEVELS : LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).join(','));
+        params.set('node', node || ALL_NODES);
         if (typeof timeRange === 'number') {
             params.set('range', String(timeRange));
         } else if (timeRange) {
@@ -114,4 +126,29 @@ export function withUrlFilters(query: string, filters: UrlFilters | null): strin
     // Commas and colons are allowed in a query string, and keep shared links readable
     const next = params.toString().replace(/%2C/g, ',').replace(/%3A/g, ':');
     return next ? `?${next}` : '';
+}
+
+const SERVER_LOGS_PATH = '/admin_console/reporting/server_logs';
+
+// Opens the viewer on everything one plugin logged. The saved prefs can't hide the info lines before a failure, or a
+// node other than the one that failed
+export function pluginLogsPath(pluginId: string): string {
+    return SERVER_LOGS_PATH + withUrlFilters('', {
+        search: '',
+        enabledLevels: new Set(LEVEL_GROUPS),
+        node: '',
+        timeRange: null,
+        plugins: [pluginId],
+    });
+}
+
+// Whether the admin can open the Server Logs page. The admin definition hides the page with it too, so links to it
+// are shown to the same admins
+export function canViewServerLogs(config: DeepPartial<AdminConfig>, consoleAccess?: ConsoleAccess): boolean {
+    return Boolean(consoleAccess?.read?.[RESOURCE_KEYS.REPORTING.SERVER_LOGS]) && !config.ExperimentalSettings?.RestrictSystemAdmin;
+}
+
+// Plain text logs have no fields to filter on, so a link to one plugin's entries would open the whole log
+export function canViewPluginLogs(config: DeepPartial<AdminConfig>, consoleAccess?: ConsoleAccess): boolean {
+    return canViewServerLogs(config, consoleAccess) && config.LogSettings?.FileJson !== false;
 }
