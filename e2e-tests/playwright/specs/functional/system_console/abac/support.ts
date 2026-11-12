@@ -549,7 +549,6 @@ export async function createBasicPolicy(
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').first();
         await expect(operatorButton).toBeVisible();
-        await operatorButton.click({force: true});
 
         const operatorMap: Record<string, string> = {
             '==': 'is',
@@ -562,6 +561,7 @@ export async function createBasicPolicy(
         const operatorText = operatorMap[options.operator] || options.operator;
         const selectedOperator = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
         if (selectedOperator.toLowerCase() !== operatorText.toLowerCase()) {
+            await operatorButton.click({force: true});
             const operatorOption = page
                 .locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`)
                 .first();
@@ -595,22 +595,19 @@ export async function createBasicPolicy(
         await expect(channelDialog).toBeVisible();
 
         for (const channelName of options.channels) {
-            const searchInput = channelDialog.locator('input[type="text"], input[placeholder*="search" i]').last();
+            const searchInput = channelDialog.locator('input[type="text"]').first();
             await expect(searchInput).toBeVisible();
             await searchInput.fill(channelName);
-            await expect(searchInput).toHaveValue(channelName);
 
-            const channelOption = channelDialog.locator('text=' + channelName).first();
-            await expect(channelOption).toBeVisible();
-            await channelOption.click({force: true});
-            await expect(searchInput).toHaveValue('');
+            const channelRow = channelDialog.locator('.more-modal__row').filter({hasText: channelName});
+            await expect(channelRow).toBeVisible();
+            await channelRow.click();
         }
 
-        const addButton = channelDialog.getByRole('button', {name: /^add$|^save$/i});
-        await addButton.click();
-        await expect(channelDialog).toBeHidden();
+        await channelDialog.getByRole('button', {name: 'Add'}).click();
+        await expect(channelDialog).toBeHidden({timeout: 20000});
         for (const channelName of options.channels) {
-            await expect(page.locator('.ChannelList__nameText').filter({hasText: channelName}).first()).toBeVisible();
+            await expect(page.locator('.ChannelList__nameText').filter({hasText: channelName})).toBeVisible();
         }
     }
 
@@ -722,7 +719,6 @@ export async function createMultiAttributePolicy(
         // Select operator
         const operatorButton = page.getByTestId('operatorSelectorMenuButton').nth(i);
         await expect(operatorButton).toBeVisible();
-        await operatorButton.click({force: true});
 
         // Map operator to display text
         const operatorMap: Record<string, string> = {
@@ -736,6 +732,7 @@ export async function createMultiAttributePolicy(
         const operatorText = operatorMap[rule.operator] || 'is';
         const selectedOperator = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
         if (selectedOperator.toLowerCase() !== operatorText.toLowerCase()) {
+            await operatorButton.click({force: true});
             const operatorOption = page
                 .locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`)
                 .first();

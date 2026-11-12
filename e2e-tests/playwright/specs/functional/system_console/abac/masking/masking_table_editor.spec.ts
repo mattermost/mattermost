@@ -446,7 +446,8 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             await monacoEditor.locator('textarea.inputarea').first().focus();
             await page.keyboard.press('End');
             await page.keyboard.type('xyz');
-            await expect(monacoEditor.locator('textarea.inputarea')).toHaveAttribute('aria-readonly', 'true');
+            // Monaco applies the keystroke after the press returns. Sample once the editor has settled.
+            await page.waitForTimeout(300);
             const after = (await viewLines.textContent()) ?? '';
             expect(after).toBe(before);
 

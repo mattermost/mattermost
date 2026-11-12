@@ -464,22 +464,37 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await addAttributeButton.waitFor({state: 'visible', timeout: 5000});
         await addAttributeButton.click();
 
-        // The attribute dropdown opens automatically after clicking "Add attribute"
-        // Wait for the menu to be visible and select "Office"
-        const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-        await attributeMenu.waitFor({state: 'visible', timeout: 5000});
-
-        const officeOption = attributeMenu.locator('li:has-text("Office")').first();
-        await officeOption.waitFor({state: 'visible', timeout: 5000});
-        await officeOption.click({force: true});
+        // The attribute dropdown opens automatically after clicking "Add attribute".
+        // A missed click leaves the new row on the same field as the first rule, which
+        // saves as `Department == "Engineering" && Department == "Remote"`.
+        const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').last();
+        await expect(attributeButton).toBeVisible();
+        await expect(async () => {
+            const current = (await attributeButton.innerText()).replace(/\s+/g, ' ').trim();
+            if (current.toLowerCase() !== 'office') {
+                const menu = page.locator('[id^="attribute-selector-menu"]');
+                if (!(await menu.isVisible())) {
+                    await attributeButton.click();
+                }
+                await menu
+                    .locator('li')
+                    .filter({hasText: /^Office$/})
+                    .click();
+            }
+            await expect(attributeButton).toContainText('Office');
+        }).toPass({timeout: 15000});
+        await page.keyboard.press('Escape');
 
         // Select operator "==" (is)
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
         await operatorButton.waitFor({state: 'visible', timeout: 5000});
-        await operatorButton.click({force: true});
-
-        const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
-        await operatorOption.click({force: true});
+        const operatorLabel = (await operatorButton.innerText()).replace(/\s+/g, ' ').trim();
+        if (operatorLabel.toLowerCase() !== 'is') {
+            await operatorButton.click({force: true});
+            const operatorOption = page.locator('[id^="operator-selector-menu"] li:has-text("is")').first();
+            await operatorOption.click({force: true});
+        }
+        await expect(operatorButton).toHaveText(/^\s*is\s*$/i);
 
         // Fill value "Remote"
         const valueInput = page.locator('.values-editor__simple-input').last();

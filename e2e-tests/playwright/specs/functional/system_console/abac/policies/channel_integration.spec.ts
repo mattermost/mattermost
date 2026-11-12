@@ -279,11 +279,8 @@ test.describe('ABAC Policies - Channel Integration', () => {
 
         // Reload page to see updated UI
         await page.reload();
-
-        // Verify ABAC toggle is now available
-        const abacVisibleAfterDisable = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
-
-        expect(abacVisibleAfterDisable).toBe(true);
+        await expect(page.getByText(groupSyncChannelName).first()).toBeVisible();
+        await expect(abacToggle).toBeVisible({timeout: 15000});
 
         // Re-enable Group Sync for Step 2
         await adminClient.patchChannel(groupSyncChannel.id, {
