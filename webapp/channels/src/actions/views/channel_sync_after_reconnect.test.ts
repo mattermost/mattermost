@@ -28,14 +28,15 @@ function makePost(id: string, createAt: number, rootId = 'root'): Post {
     return TestHelper.getPostMock({id, channel_id: channelId, user_id: userId, root_id: rootId, create_at: createAt, update_at: createAt});
 }
 
+const oldest = makePost('oldest', 50, '');
 const root = makePost('root', 100, '');
 const older = makePost('older', 200);
 const trim = makePost('trim', 900);
 const missedWhileAsleep = makePost('missed', 1500);
-const liveAfterReconnect = makePost('live', 2200);
+const liveAfterReconnect = makePost('live', 2120);
 
-const serverPosts = [liveAfterReconnect, missedWhileAsleep, trim, older, root];
-const allPostIds = serverPosts.map((p) => p.id);
+const serverPosts = [liveAfterReconnect, missedWhileAsleep, trim, older, root, oldest];
+const expectedRecentOrder = ['live', 'missed', 'trim', 'older', 'root'];
 
 function postList(posts: Post[], {next = '', prev = ''} = {}): PostList {
     return {
@@ -115,11 +116,11 @@ describe('syncing a channel after a websocket reconnect', () => {
             load: async (store: Store, onLastResponse: () => void) => {
                 server().
                     get(`/users/${userId}/channels/${channelId}/posts/unread`).query(true).
-                    reply(200, postList([older, root], {next: trim.id})).
+                    reply(200, postList([older, root], {next: trim.id, prev: oldest.id})).
                     get(`/channels/${channelId}/posts`).query((q) => q.page === '0').
                     reply(200, () => {
                         onLastResponse();
-                        return postList([trim, older, root]);
+                        return postList([trim, older, root], {prev: oldest.id});
                     });
                 now.mockReturnValue(LOADED_AT);
                 await store.dispatch(loadUnreads(channelId));
@@ -131,8 +132,7 @@ describe('syncing a channel after a websocket reconnect', () => {
             load: async (store: Store, onLastResponse: () => void) => {
                 server().
                     get(`/users/${userId}/channels/${channelId}/posts/unread`).query(true).
-                    reply(200, postList([older, root], {next: trim.id}));
-                now.mockReturnValue(LOADED_AT - 500);
+                    reply(200, postList([older, root], {next: trim.id, prev: oldest.id}));
                 await store.dispatch(loadUnreads(channelId));
 
                 server().
@@ -153,14 +153,33 @@ describe('syncing a channel after a websocket reconnect', () => {
                     get(`/channels/${channelId}/posts`).query((q) => q.after === trim.id).
                     reply(200, () => {
                         onLastResponse();
-                        return postList([], {prev: trim.id});
+                        return postList([]);
                     }).
                     get(`/posts/${trim.id}/thread`).query(true).
                     reply(200, postList([trim, root])).
                     get(`/channels/${channelId}/posts`).query((q) => q.before === trim.id).
-                    reply(200, postList([older, root], {next: trim.id, prev: 'even-older'}));
+                    reply(200, postList([older, root], {next: trim.id, prev: oldest.id}));
                 now.mockReturnValue(LOADED_AT);
                 await store.dispatch(loadPostsAround(channelId, trim.id));
+            },
+        },
+        {
+            name: 'syncing the channel',
+            unreadScrollPosition: Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT,
+            load: async (store: Store, onLastResponse: () => void) => {
+                server().
+                    get(`/channels/${channelId}/posts`).query((q) => q.page === '0').
+                    reply(200, postList([older, root], {prev: oldest.id})).
+                    get(`/channels/${channelId}/posts`).query((q) => q.since === String(older.create_at)).
+                    reply(200, () => {
+                        onLastResponse();
+                        return postList([trim]);
+                    });
+                now.mockReturnValue(LOADED_AT - 500);
+                await store.dispatch(loadLatestPosts(channelId));
+
+                now.mockReturnValue(LOADED_AT);
+                await store.dispatch(syncPostsInChannel(channelId, older.create_at));
             },
         },
     ];
@@ -171,7 +190,7 @@ describe('syncing a channel after a websocket reconnect', () => {
 
         sleepAndWake(store);
 
-        expect(await switchBackToChannel(store)).toEqual(allPostIds);
+        expect(await switchBackToChannel(store)).toEqual(expectedRecentOrder);
     });
 
     test.each(loadsReachingNewestPosts)('includes the missed reply when the socket dropped while $name', async ({unreadScrollPosition, load}) => {
@@ -183,7 +202,7 @@ describe('syncing a channel after a websocket reconnect', () => {
 
         sleepAndWake(store);
 
-        expect(await switchBackToChannel(store)).toEqual(allPostIds);
+        expect(await switchBackToChannel(store)).toEqual(expectedRecentOrder);
     });
 
     // None of these loads reach the newest posts, so loading them after reconnecting must not count as
@@ -192,13 +211,14 @@ describe('syncing a channel after a websocket reconnect', () => {
         {
             name: 'opening a permalink to an older post',
             load: async (store: Store) => {
+                // The after page stands in for a full page with more posts following it
                 server().
                     get(`/channels/${channelId}/posts`).query((q) => q.after === older.id).
                     reply(200, postList([trim], {next: missedWhileAsleep.id, prev: older.id})).
                     get(`/posts/${older.id}/thread`).query(true).
                     reply(200, postList([older, root])).
                     get(`/channels/${channelId}/posts`).query((q) => q.before === older.id).
-                    reply(200, postList([root], {next: older.id}));
+                    reply(200, postList([root], {next: older.id, prev: oldest.id}));
                 await store.dispatch(loadPostsAround(channelId, older.id));
             },
         },
@@ -216,7 +236,7 @@ describe('syncing a channel after a websocket reconnect', () => {
             load: async (store: Store) => {
                 server().
                     get(`/channels/${channelId}/posts`).query((q) => q.before === older.id).
-                    reply(200, postList([root], {next: older.id}));
+                    reply(200, postList([root], {next: older.id, prev: oldest.id}));
                 await store.dispatch(loadPosts({channelId, postId: older.id, type: PostRequestTypes.BEFORE_ID, perPage: 30}));
             },
         },
@@ -226,7 +246,7 @@ describe('syncing a channel after a websocket reconnect', () => {
         const store = setupStore();
         server().
             get(`/channels/${channelId}/posts`).query((q) => q.page === '0').
-            reply(200, postList([trim, older, root]));
+            reply(200, postList([trim, older, root], {prev: oldest.id}));
         now.mockReturnValue(LOADED_AT);
         await store.dispatch(loadLatestPosts(channelId));
 
@@ -235,6 +255,6 @@ describe('syncing a channel after a websocket reconnect', () => {
         now.mockReturnValue(RECONNECTED_AT + 50);
         await load(store);
 
-        expect(await switchBackToChannel(store)).toEqual(allPostIds);
+        expect(await switchBackToChannel(store)).toEqual(expectedRecentOrder);
     });
 });
