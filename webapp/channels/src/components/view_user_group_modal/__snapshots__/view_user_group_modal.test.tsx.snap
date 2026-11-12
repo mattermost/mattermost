@@ -177,21 +177,26 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
                     src="/api/v4/users/user-1/image?_=0"
                   />
                   <span
-                    class="status "
+                    aria-label="Offline"
+                    class="_status-badge_af5ji_13 _status-badge--size-x-small_af5ji_38 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-1"
+                    role="img"
                   >
-                    <svg
-                      aria-label="Offline"
-                      class="offline--icon"
-                      height="100%"
-                      role="img"
-                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
-                      viewBox="0 0 20 20"
-                      width="100%"
+                    <span
+                      class="_status-badge__glyph_af5ji_24"
                     >
-                      <path
-                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                      />
-                    </svg>
+                      <svg
+                        fill="currentColor"
+                        height="12"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="12"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+                        />
+                      </svg>
+                    </span>
                   </span>
                 </span>
                 <div
@@ -218,21 +223,26 @@ exports[`component/view_user_group_modal should match snapshot 1`] = `
                     src="/api/v4/users/user-2/image?_=0"
                   />
                   <span
-                    class="status "
+                    aria-label="Offline"
+                    class="_status-badge_af5ji_13 _status-badge--size-x-small_af5ji_38 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-1"
+                    role="img"
                   >
-                    <svg
-                      aria-label="Offline"
-                      class="offline--icon"
-                      height="100%"
-                      role="img"
-                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
-                      viewBox="0 0 20 20"
-                      width="100%"
+                    <span
+                      class="_status-badge__glyph_af5ji_24"
                     >
-                      <path
-                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                      />
-                    </svg>
+                      <svg
+                        fill="currentColor"
+                        height="12"
+                        version="1.1"
+                        viewBox="0 0 24 24"
+                        width="12"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+                        />
+                      </svg>
+                    </span>
                   </span>
                 </span>
                 <div

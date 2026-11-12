@@ -18,34 +18,24 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
     </span>
     <span
       aria-label="Away"
-      class="status"
+      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
       role="img"
     >
       <span
-        aria-hidden="true"
+        class="_status-badge__glyph_af5ji_24"
       >
-        <span
-          aria-label="away"
-          class="_status-badge_pwbsc_2 _status-badge--size-x-small_pwbsc_27 _status-badge--status-away_pwbsc_64"
-          role="img"
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span
-            class="_status-badge__glyph_pwbsc_13"
-          >
-            <svg
-              fill="currentColor"
-              height="12"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
-              />
-            </svg>
-          </span>
-        </span>
+          <path
+            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
+          />
+        </svg>
       </span>
     </span>
   </span>
@@ -70,34 +60,24 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
     </span>
     <span
       aria-label="Away"
-      class="status"
+      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
       role="img"
     >
       <span
-        aria-hidden="true"
+        class="_status-badge__glyph_af5ji_24"
       >
-        <span
-          aria-label="away"
-          class="_status-badge_pwbsc_2 _status-badge--size-x-small_pwbsc_27 _status-badge--status-away_pwbsc_64"
-          role="img"
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span
-            class="_status-badge__glyph_pwbsc_13"
-          >
-            <svg
-              fill="currentColor"
-              height="12"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
-              />
-            </svg>
-          </span>
-        </span>
+          <path
+            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
+          />
+        </svg>
       </span>
     </span>
   </span>
@@ -126,34 +106,24 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
     </span>
     <span
       aria-label="Away"
-      class="status"
+      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
       role="img"
     >
       <span
-        aria-hidden="true"
+        class="_status-badge__glyph_af5ji_24"
       >
-        <span
-          aria-label="away"
-          class="_status-badge_pwbsc_2 _status-badge--size-x-small_pwbsc_27 _status-badge--status-away_pwbsc_64"
-          role="img"
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span
-            class="_status-badge__glyph_pwbsc_13"
-          >
-            <svg
-              fill="currentColor"
-              height="12"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
-              />
-            </svg>
-          </span>
-        </span>
+          <path
+            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
+          />
+        </svg>
       </span>
     </span>
   </button>
@@ -178,34 +148,24 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
     </span>
     <span
       aria-label="Away"
-      class="status"
+      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
       role="img"
     >
       <span
-        aria-hidden="true"
+        class="_status-badge__glyph_af5ji_24"
       >
-        <span
-          aria-label="away"
-          class="_status-badge_pwbsc_2 _status-badge--size-x-small_pwbsc_27 _status-badge--status-away_pwbsc_64"
-          role="img"
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span
-            class="_status-badge__glyph_pwbsc_13"
-          >
-            <svg
-              fill="currentColor"
-              height="12"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
-              />
-            </svg>
-          </span>
-        </span>
+          <path
+            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
+          />
+        </svg>
       </span>
     </span>
   </span>
@@ -230,34 +190,24 @@ exports[`components/ProfilePicture should match snapshot, user specified, overri
     </span>
     <span
       aria-label="Away"
-      class="status"
+      class="_status-badge_af5ji_13 _status-badge--size-x-small_af5ji_38 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-1"
       role="img"
     >
       <span
-        aria-hidden="true"
+        class="_status-badge__glyph_af5ji_24"
       >
-        <span
-          aria-label="away"
-          class="_status-badge_pwbsc_2 _status-badge--size-x-small_pwbsc_27 _status-badge--status-away_pwbsc_64"
-          role="img"
+        <svg
+          fill="currentColor"
+          height="12"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="12"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <span
-            class="_status-badge__glyph_pwbsc_13"
-          >
-            <svg
-              fill="currentColor"
-              height="12"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="12"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
-              />
-            </svg>
-          </span>
-        </span>
+          <path
+            d="M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2 M15.535,16.949L11,12.414V7h2v4.586l3.949,3.949L15.535,16.949z"
+          />
+        </svg>
       </span>
     </span>
   </span>
