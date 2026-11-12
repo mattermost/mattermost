@@ -1135,6 +1135,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
         color: rgba(var(--sidebar-text-rgb), 1);
 
         &:hover {
+            // Must be set here as well: `.SidebarLink:hover` above sets the hover colour at the same specificity
+            --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
             background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         }
     }
