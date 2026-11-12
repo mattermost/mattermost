@@ -732,16 +732,13 @@
         }
 
         .status-wrapper {
+            // Compact posts show the badge inline before the username, vertically centred on the name text
             .user-status-badge {
                 position: relative;
-                top: 1px;
+                top: 6px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
-            }
-
-            svg {
-                top: 1px;
             }
 
             &::after {
