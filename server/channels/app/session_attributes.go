@@ -355,6 +355,10 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 // the cached tls_device_id is ignored: it proves only that some earlier request
 // had it.
 func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]any, *model.AppError) {
+	if !a.sessionAttributesEnabled() {
+		return nil, nil
+	}
+
 	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
@@ -372,7 +376,7 @@ func (a *App) getSessionAttributesForEvaluation(rctx request.CTX) (map[string]an
 		maps.Copy(attrs, serverDerived)
 	}
 
-	if deviceID := ProxyDeviceID(rctx); deviceID != "" && a.sessionAttributesEnabled() && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
+	if deviceID := ProxyDeviceID(rctx); deviceID != "" && *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
 		if attrs == nil {
 			attrs = make(map[string]any, 1)
 		}

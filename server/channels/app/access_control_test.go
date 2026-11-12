@@ -2788,6 +2788,33 @@ func TestBuildAccessControlSubjectForSession(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.NotContains(t, subject.Session, model.SessionAttributesPropertyFieldTLSDDeviceID)
 	})
+
+	t.Run("ignores context attributes when session attributes are disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := WithWebSocketRequestAttributes(th.Context.WithSession(session), "device-a", map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		})
+
+		subject, appErr := th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "device-a", subject.Session[model.SessionAttributesPropertyFieldTLSDDeviceID])
+		assert.Equal(t, "192.0.2.10", subject.Session[model.SessionAttributesPropertyFieldIPAddress])
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SessionAttributes = false })
+		th.ConfigStore.SetReadOnlyFF(true)
+
+		subject, appErr = th.App.BuildAccessControlSubjectForSession(rctx, "")
+		require.Nil(t, appErr)
+		assert.Empty(t, subject.Session)
+	})
 }
 
 // TestFilterResponseToEditingRuleScope locks down the post-processing
