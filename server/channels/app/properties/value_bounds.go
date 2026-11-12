@@ -58,7 +58,7 @@ func compareByRank(field *model.PropertyField, op model.PropertyBoundsOperator, 
 // failure to find them refuses the write: a store error is returned wrapped, and
 // anything missing or ambiguous wraps errBoundsCheckFailed. Messages name IDs,
 // never a value.
-func (h *AccessControlAttributeValidationHook) boundsParent(rctx request.CTX, field *model.PropertyField, targetID string) (parentField *model.PropertyField, parentTargetType, parentTargetID string, err error) {
+func (h *BoundsHook) boundsParent(rctx request.CTX, field *model.PropertyField, targetID string) (parentField *model.PropertyField, parentTargetType, parentTargetID string, err error) {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser:
 		parentTargetType, parentTargetID = model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID
@@ -98,7 +98,7 @@ func (h *AccessControlAttributeValidationHook) boundsParent(rctx request.CTX, fi
 // level that its own level isn't. Nothing up the chain having a value means no
 // limit. The parent's value is read from the store directly, so masking doesn't
 // loosen the rule.
-func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX, field *model.PropertyField, rule model.PropertyBoundsRule, value *model.PropertyValue) error {
+func (h *BoundsHook) checkParentRule(rctx request.CTX, field *model.PropertyField, rule model.PropertyBoundsRule, value *model.PropertyValue) error {
 	if model.IsEmptyPropertyValue(value.Value) {
 		return nil
 	}
@@ -132,6 +132,124 @@ func (h *AccessControlAttributeValidationHook) checkParentRule(rctx request.CTX,
 	}
 }
 
+// refuseMisaddressedUpdate refuses an update whose ID names a row of another group, field or
+// target than the value states. The store matches rows by ID alone, while every check here reads
+// the stated field's rules, so a plugin could otherwise overwrite a write-once value by naming a
+// mutable field. An ID with no row is left to the store, which fails it as not found.
+func (h *BoundsHook) refuseMisaddressedUpdate(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+	// An empty ID list would search the whole group.
+	if len(values) == 0 {
+		return nil
+	}
+
+	ids := make([]string, 0, len(values))
+	for _, v := range values {
+		ids = append(ids, v.ID)
+	}
+	rows, err := h.propertyService.searchPropertyValues(store.RequestContextWithMaster(rctx), groupID, model.PropertyValueSearchOpts{IDs: ids, IncludeDeleted: true, PerPage: len(ids)})
+	if err != nil {
+		return fmt.Errorf("failed to read the rows named by the update: %w", err)
+	}
+	rowByID := make(map[string]*model.PropertyValue, len(rows))
+	for _, row := range rows {
+		rowByID[row.ID] = row
+	}
+	for _, v := range values {
+		row, ok := rowByID[v.ID]
+		if ok && (row.GroupID != v.GroupID || row.FieldID != v.FieldID || row.TargetID != v.TargetID || row.TargetType != v.TargetType) {
+			return fmt.Errorf("value %s: names a row of another group, field or target: %w", v.ID, ErrInvalidValue)
+		}
+	}
+	return nil
+}
+
+// checkValueWrite is the body of every value pre-hook: on a v3 group it enforces the bounds and
+// mutability rules of the fields the values write to. A group that doesn't resolve is an error, so
+// a write can't skip the checks by naming one. An update's IDs are checked against the stated
+// field and target first, since the checks read the stated field's rules.
+func (h *BoundsHook) checkValueWrite(rctx request.CTX, groupID string, values []*model.PropertyValue, isUpdate bool) error {
+	v3, err := h.isGroupV3(groupID)
+	if err != nil {
+		return err
+	}
+	if !v3 {
+		return nil
+	}
+	if isUpdate {
+		if err = h.refuseMisaddressedUpdate(rctx, groupID, values); err != nil {
+			return err
+		}
+	}
+
+	ids := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		if _, ok := seen[v.FieldID]; !ok {
+			seen[v.FieldID] = struct{}{}
+			ids = append(ids, v.FieldID)
+		}
+	}
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, ids)
+	if err != nil {
+		return fmt.Errorf("failed to fetch fields for the bounds checks: %w", err)
+	}
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldMap[f.ID] = f
+	}
+	return h.enforceBounds(rctx, values, fieldMap)
+}
+
+func (h *BoundsHook) PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, value.GroupID, []*model.PropertyValue{value}, false); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func (h *BoundsHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, value.GroupID, []*model.PropertyValue{value}, false); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+// The batch hooks take the group from the first value: the service refuses mixed-group batches
+// before any hook runs.
+func (h *BoundsHook) PreCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	if err := h.checkValueWrite(rctx, values[0].GroupID, values, false); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func (h *BoundsHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+	if err := h.checkValueWrite(rctx, values[0].GroupID, values, false); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func (h *BoundsHook) PreUpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, groupID, []*model.PropertyValue{value}, true); err != nil {
+		return nil, err
+	}
+	return value, nil
+}
+
+func (h *BoundsHook) PreUpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := h.checkValueWrite(rctx, groupID, values, true); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
 // fieldGoverned reports whether any bounds or mutability rule applies to field's values. Values of
 // other fields skip every check here, so ordinary writes pay no extra cost.
 func fieldGoverned(field *model.PropertyField) bool {
@@ -151,7 +269,7 @@ func storedValueMatters(field *model.PropertyField) bool {
 // Stored values are read from master and recorded on the request, so the write lands only if each
 // row is still what the check judged against. That is what stops two simultaneous first writes
 // both passing write-once.
-func (h *AccessControlAttributeValidationHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *BoundsHook) enforceBounds(rctx request.CTX, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	var governed []*model.PropertyValue
 	seen := make(map[store.PropertyValueKey]struct{})
 	targetsByField := make(map[string][]string)

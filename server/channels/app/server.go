@@ -406,7 +406,6 @@ func NewServer(options ...Option) (*Server, error) {
 			PermissionChecker:    permChecker,
 			PluginChecker:        pluginChecker,
 			DirectChannelChecker: directChannelChecker,
-			PostChannelResolver:  postChannelResolver,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 			},

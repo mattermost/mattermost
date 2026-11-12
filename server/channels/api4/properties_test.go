@@ -9656,4 +9656,33 @@ func TestBoundsHookCoversEveryV3Group(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, model.PropertyBounds{selfRule}, created.Bounds)
 	})
+
+	t.Run("with the flag on, a write_once value can't be changed", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = false })
+
+		field := newField("channel", model.PropertyFieldTypeText)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		write := func(raw string) *model.AppError {
+			_, writeErr := th.App.UpsertPropertyValue(th.Context, &model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    created.ID,
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Value:      json.RawMessage(raw),
+			})
+			return writeErr
+		}
+		require.Nil(t, write(`"first"`))
+
+		appErr = write(`"second"`)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		require.Nil(t, write(`"first"`))
+	})
 }
