@@ -290,6 +290,12 @@
         max-height: 400px;
         overflow-x: hidden;
         overflow-y: auto;
+
+        // The search header's bottom padding already separates it from the
+        // first row; MenuList's own top padding would double that gap.
+        &.MuiList-padding {
+            padding-top: 0;
+        }
     }
 
     &__search {
