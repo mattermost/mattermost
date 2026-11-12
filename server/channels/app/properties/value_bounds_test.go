@@ -1306,12 +1306,15 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		systemField, channelField, userField, postField *model.PropertyField
 		// createDirect adds a field linked to the template straight to the store, with no bounds.
 		createDirect func(objectType string) *model.PropertyField
+		// create adds a field through the service with the bounds passed, so one can be made after others.
+		create func(objectType string, bounds model.PropertyBounds) *model.PropertyField
 	}
 	// setupAll gives each subtest its own group, with each field holding the bounds passed for it.
 	setupAll := func(t *testing.T, channelBounds, userBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
 		_, create, createDirect := boundsSetup(t, th, rctx)
 		f := fixture{
+			create:       create,
 			systemField:  create(model.PropertyFieldObjectTypeSystem, nil),
 			channelField: create(model.PropertyFieldObjectTypeChannel, channelBounds),
 			userField:    create(model.PropertyFieldObjectTypeUser, userBounds),
@@ -1602,32 +1605,36 @@ func TestRefuseContainedValuesOutOfBounds(t *testing.T) {
 		}
 	}
 
-	t.Run("a template with more child fields than one page refuses the write", func(t *testing.T) {
-		f := setupAll(t, nil, nil, below)
+	t.Run("a ruled child field past the first page is seen by the container check", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
 		withPostFields(f, 100)
+		f.postField = f.create(model.PropertyFieldObjectTypePost, below)
 		x := channel(f, "optmid")
 		post(f, x, "optmid")
-
-		requireAppErrorID(t, write(f, x, `"opthigh"`), checkFailedID, http.StatusConflict)
-		assert.Equal(t, `"optmid"`, stored(f, x))
-	})
-
-	t.Run("a template with exactly one page of child fields is checked normally", func(t *testing.T) {
-		f := setupAll(t, nil, nil, below)
-		withPostFields(f, 99)
-		x := channel(f, "optmid")
-		post(f, x, "optmid")
+		c := record(t)
 
 		requireAppErrorID(t, write(f, x, `"optlow"`), containedID, http.StatusConflict)
-		require.NoError(t, write(f, x, `"opthigh"`))
+		assert.Equal(t, `"optmid"`, stored(f, x))
+		// Two searches prove a second page was read, even if CreateAt ties put the ruled field on page one.
+		assert.Equal(t, 2, searches(c, model.PropertyFieldObjectTypePost))
 	})
 
-	t.Run("a template with more child fields than one page refuses deleting the parent-side field", func(t *testing.T) {
-		f := setupAll(t, nil, nil, below)
+	t.Run("more than a page of unruled child fields writes and deletes normally", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
 		withPostFields(f, 100)
+		x := channel(f, "optmid")
+
+		require.NoError(t, write(f, x, `"optlow"`))
+		require.NoError(t, th.service.DeletePropertyField(rctx, f.channelField.GroupID, f.channelField.ID))
+	})
+
+	t.Run("the delete guard sees a ruled child field past the first page", func(t *testing.T) {
+		f := setupAll(t, nil, nil, nil)
+		withPostFields(f, 100)
+		f.create(model.PropertyFieldObjectTypePost, below)
 
 		err := th.service.DeletePropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
-		require.ErrorIs(t, err, errBoundsCheckFailed)
+		requireAppErrorID(t, err, "app.property_field.delete.parent_rule_dependents.app_error", http.StatusConflict)
 		_, err = th.service.GetPropertyField(rctx, f.channelField.GroupID, f.channelField.ID)
 		require.NoError(t, err)
 	})

@@ -197,13 +197,15 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 		system, channel, post *model.PropertyField
 		// createDirect adds a field linked to the template straight to the store, with no bounds.
 		createDirect func(objectType string) *model.PropertyField
+		// create adds a field through the service with the bounds passed, so one can be made after others.
+		create func(objectType string, bounds model.PropertyBounds) *model.PropertyField
 	}
 	// setup creates the three fields, each with the given bounds; the channel field is created
 	// first and the post field last, so a rule on either finds its parent side.
 	setup := func(t *testing.T, channelBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
 		_, create, createDirect := boundsSetup(t, th, rctx)
-		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil), createDirect: createDirect}
+		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil), create: create, createDirect: createDirect}
 		f.channel = create(model.PropertyFieldObjectTypeChannel, channelBounds)
 		f.post = create(model.PropertyFieldObjectTypePost, postBounds)
 		return f
@@ -272,14 +274,19 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 		assert.Equal(t, below, storedBounds(f.post))
 	})
 
-	t.Run("a template with more post fields than one page refuses the rule", func(t *testing.T) {
-		f := setup(t, nil, below)
-		for range 100 {
+	t.Run("a ruled post field past the first page of a template's fields is checked", func(t *testing.T) {
+		f := setup(t, nil, nil)
+		for range 101 {
 			f.createDirect(model.PropertyFieldObjectTypePost)
 		}
+		f.post = f.create(model.PropertyFieldObjectTypePost, below)
 		seedSystem(f, "optmid")
+		z := channel(f, "")
+		high := post(f, z, "opthigh")
 
-		requireAppErrorID(t, setBounds(f.channel, below), checkFailedID, http.StatusConflict)
+		err := setBounds(f.channel, below)
+		requireAppErrorID(t, err, breachID, http.StatusConflict)
+		assert.Equal(t, []string{high}, examplesOf(err))
 		assert.Empty(t, storedBounds(f.channel))
 	})
 
