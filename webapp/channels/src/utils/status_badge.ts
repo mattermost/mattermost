@@ -33,7 +33,7 @@ const avatarBadgePlacement: Record<TAvatarSizeToken, {size: StatusBadgeSize; off
     'xl-custom-GM': {size: 'medium', offset: 0}, // 72px
     'xl-custom-DM': {size: 'large', offset: 2}, // 96px
     xxl: {size: 'large', offset: 2}, // 128px
-    inherit: {size: 'x-small', offset: 1},
+    inherit: {size: 'small', offset: 1}, // compact posts: one size up from the default for readability
 };
 
 /**

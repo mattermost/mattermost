@@ -77,10 +77,11 @@ $profilePopoverBorderWidth: 1px;
                 height: 120px;
             }
 
-            // Badge position follows compass-ui UserAvatar for a 120-128px avatar
+            // Badge placement follows compass-ui UserAvatar for a 120px avatar (large badge, 2px outside the corner).
+            // The 120px avatar is left-aligned in the 128px container, hence 8px - 2px on the right.
             .user-popover-status {
                 position: absolute;
-                right: -2px;
+                right: 6px;
                 bottom: -2px;
             }
         }
