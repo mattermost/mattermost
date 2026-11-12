@@ -267,6 +267,7 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
                 status: RequestStatus.STARTED,
             });
         }
+        const loadRecentPosts = getUnreadScrollPositionPreference(getState()) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
         const {data, error} = await dispatch(PostActions.getPostsUnread(channelId));
         if (error) {
             if (prefetch) {
@@ -300,8 +301,7 @@ export function loadUnreads(channelId: string, prefetch = false): ActionFuncAsyn
         }
 
         // getPostsUnread also loads the newest posts when the unread chunk doesn't reach them
-        const loadedLatestPosts = data!.next_post_id === '' ||
-            getUnreadScrollPositionPreference(getState()) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
+        const loadedLatestPosts = data!.next_post_id === '' || loadRecentPosts;
         if (loadedLatestPosts) {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
