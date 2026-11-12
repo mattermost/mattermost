@@ -62,7 +62,10 @@ const StatusIcon = ({
             aria-label={ariaLabel}
         >
             <span aria-hidden={true}>
-                <StatusBadge status={badgeStatus}/>
+                <StatusBadge
+                    className={`status-icon__badge status-icon__badge--${badgeStatus}`}
+                    status={badgeStatus}
+                />
             </span>
         </span>
     );

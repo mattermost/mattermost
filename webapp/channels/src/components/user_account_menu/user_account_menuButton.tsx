@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {CheckCircleIcon, ClockIcon, MinusCircleIcon, RadioboxBlankIcon} from '@mattermost/compass-icons/components';
-
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import StatusIcon from 'components/status_icon';
 import Avatar from 'components/widgets/users/avatar/avatar';
 
 import {UserStatuses} from 'utils/constants';
@@ -24,43 +23,6 @@ export default function UserAccountMenuButton({
     status,
 }: Props) {
     const {formatMessage} = useIntl();
-
-    const statusIcon = useMemo(() => {
-        if (status && status === UserStatuses.ONLINE) {
-            return (
-                <CheckCircleIcon
-                    size='16'
-                    className='userAccountMenu_onlineMenuItem_icon'
-                />
-            );
-        }
-
-        if (status && status === UserStatuses.AWAY) {
-            return (
-                <ClockIcon
-                    size='16'
-                    className='userAccountMenu_awayMenuItem_icon'
-                />
-            );
-        }
-
-        if (status && status === UserStatuses.DND) {
-            return (
-                <MinusCircleIcon
-                    size='16'
-                    className='userAccountMenu_dndMenuItem_icon'
-                />
-            );
-        }
-
-        // Defaults to offline
-        return (
-            <RadioboxBlankIcon
-                size='16'
-                className='userAccountMenu_offlineMenuItem_icon'
-            />
-        );
-    }, [status]);
 
     return (
         <>
@@ -79,7 +41,10 @@ export default function UserAccountMenuButton({
                 className='userStatusIconWrapper'
                 aria-hidden={true}
             >
-                {statusIcon}
+                <StatusIcon
+                    button={true}
+                    status={status || UserStatuses.OFFLINE}
+                />
             </div>
             <p
                 id='userAccountMenuButtonDescribedBy'
