@@ -3,6 +3,7 @@
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {Post, PostList} from '@mattermost/types/posts';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
@@ -53,7 +54,7 @@ type Store = ReturnType<typeof configureStore>;
 function setupStore(unreadScrollPosition = Preferences.UNREAD_SCROLL_POSITION_START_FROM_LEFT) {
     const store = configureStore({
         entities: {
-            general: {config: {CollapsedThreads: 'default_off'}},
+            general: {config: {CollapsedThreads: CollapsedThreads.DEFAULT_OFF}},
             users: {currentUserId: userId, profiles: {[userId]: TestHelper.getUserMock({id: userId})}},
             channels: {currentChannelId: 'town-square'},
             preferences: {
