@@ -35,12 +35,6 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 // the same way PermissionChecker does.
 type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 
-// PostChannelResolver returns the ID of the channel a post is in, so a parent
-// rule on a post field can find the channel whose value it compares against.
-// This avoids a circular dependency between the properties and app packages,
-// the same way DirectChannelChecker does.
-type PostChannelResolver func(rctx request.CTX, postID string) (string, error)
-
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
 // for these groups:

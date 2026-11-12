@@ -421,7 +421,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(properties.NewBoundsHook(s.propertyService, func() bool {
 		ff := s.Config().FeatureFlags
 		return ff.PropertyFieldBounds && ff.PropertyFieldPermissionsV3
-	}))
+	}, postChannelResolver))
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
 	// The CPA group registers a content-level audit sink here.

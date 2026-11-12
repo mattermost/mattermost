@@ -20,6 +20,12 @@ import (
 // RequiredAttributeEnforcementProvider.
 type PropertyFieldBoundsProvider func() bool
 
+// PostChannelResolver returns the ID of the channel a post is in, so a parent
+// rule on a post field can find the channel whose value it compares against.
+// This avoids a circular dependency between the properties and app packages,
+// the same way DirectChannelChecker does.
+type PostChannelResolver func(rctx request.CTX, postID string) (string, error)
+
 // BoundsHook holds the bounds checks. It is registered for every group and
 // decides per call from the group's version, as AccessControlHook does for
 // permissions: it acts only on v3 groups, so a group moved to v3 later is
@@ -28,12 +34,15 @@ type BoundsHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
 	enabled         PropertyFieldBoundsProvider
+	// A nil resolver refuses every write to a post field that carries a parent
+	// rule.
+	postChannelResolver PostChannelResolver
 }
 
 var _ PropertyHook = (*BoundsHook)(nil)
 
-func NewBoundsHook(ps *PropertyService, enabled PropertyFieldBoundsProvider) *BoundsHook {
-	return &BoundsHook{propertyService: ps, enabled: enabled}
+func NewBoundsHook(ps *PropertyService, enabled PropertyFieldBoundsProvider, postChannelResolver PostChannelResolver) *BoundsHook {
+	return &BoundsHook{propertyService: ps, enabled: enabled, postChannelResolver: postChannelResolver}
 }
 
 // isGroupV3 reports whether groupID names a v3 group. A group ID that fails to
