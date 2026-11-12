@@ -137,7 +137,9 @@ function focusTriggerFromChip(event: MouseEvent<HTMLDivElement>) {
     const trigger = closedTriggerOf(event.currentTarget);
     if (trigger) {
         event.preventDefault();
-        trigger.focus({preventScroll: true});
+
+        // Script focus after a text field gets :focus-visible in Chrome; a pointer press must not leave a ring.
+        trigger.focus({preventScroll: true, focusVisible: false});
     }
 }
 
