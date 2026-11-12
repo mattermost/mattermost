@@ -645,7 +645,8 @@
         }
 
         &.post--system {
-            .status {
+            .status,
+            .user-status-badge {
                 visibility: hidden;
             }
 
@@ -731,14 +732,12 @@
         }
 
         .status-wrapper {
-            .status {
+            .user-status-badge {
                 position: relative;
                 top: 1px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
-                width: 13px;
-                height: 13px;
             }
 
             svg {

@@ -11,7 +11,7 @@ import ProfilePopover from 'components/profile_popover';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
-import {getStatusBadgeProps} from 'utils/status_badge';
+import {getStatusBadgeClassName, getStatusBadgeProps} from 'utils/status_badge';
 
 type Props = {
     size?: TAvatarSizeToken;
@@ -44,9 +44,10 @@ function ProfilePicture(props: Props) {
 
     const hideStatus = props.isBot || props.fromAutoResponder || props.fromWebhook;
 
-    // Surfaces that position the badge themselves pass statusClass; otherwise use the legacy `.status` styling
-    const statusBadgeClassName = props.statusClass || 'status';
-    const statusBadgeProps = getStatusBadgeProps(props.status, formatMessage);
+    // Surfaces that position the badge themselves pass statusClass; otherwise place it on the avatar's corner
+    const avatarSize = props.size ?? 'md';
+    const statusBadgeClassName = props.statusClass || getStatusBadgeClassName(avatarSize);
+    const statusBadgeProps = getStatusBadgeProps(props.status, formatMessage, avatarSize);
 
     if (props.userId) {
         return (

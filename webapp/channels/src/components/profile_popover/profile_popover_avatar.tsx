@@ -23,7 +23,7 @@ const ProfilePopoverAvatar = ({
     urlSrc,
 }: Props) => {
     const {formatMessage} = useIntl();
-    const statusBadgeProps = getStatusBadgeProps(hideStatus ? undefined : status, formatMessage);
+    const statusBadgeProps = getStatusBadgeProps(hideStatus ? undefined : status, formatMessage, 'xxl');
 
     return (
         <div className='user-popover-image'>
@@ -36,7 +36,7 @@ const ProfilePopoverAvatar = ({
             />
             {statusBadgeProps && (
                 <StatusBadge
-                    className='status user-popover-status'
+                    className='user-popover-status'
                     {...statusBadgeProps}
                 />
             )}

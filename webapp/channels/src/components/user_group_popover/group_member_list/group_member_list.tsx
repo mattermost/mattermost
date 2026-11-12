@@ -26,7 +26,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import Avatar from 'components/widgets/users/avatar';
 
 import {UserStatuses} from 'utils/constants';
-import {getStatusBadgeProps} from 'utils/status_badge';
+import {getStatusBadgeClassName, getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -157,7 +157,7 @@ const GroupMemberList = (props: Props) => {
 
     const Item = ({index, style}: ListChildComponentProps) => {
         const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index]?.user?.id) || UserStatuses.OFFLINE);
-        const statusBadgeProps = getStatusBadgeProps(status, formatMessage);
+        const statusBadgeProps = getStatusBadgeProps(status, formatMessage, 'sm');
 
         // Remove explicit height provided by VariableSizeList
         style.height = undefined;
@@ -191,7 +191,7 @@ const GroupMemberList = (props: Props) => {
                                 />
                                 {statusBadgeProps && (
                                     <StatusBadge
-                                        className='status'
+                                        className={getStatusBadgeClassName('sm')}
                                         {...statusBadgeProps}
                                     />
                                 )}

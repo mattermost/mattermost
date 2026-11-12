@@ -22,7 +22,7 @@ import {isSyncableSource} from 'mattermost-redux/utils/group_utils';
 import Avatar from 'components/widgets/users/avatar';
 
 import {UserStatuses} from 'utils/constants';
-import {getStatusBadgeProps} from 'utils/status_badge';
+import {getStatusBadgeClassName, getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -57,7 +57,7 @@ const ViewUserGroupListItem = (props: Props) => {
     }, [user.id, groupId, props.decrementMemberCount, props.actions.removeUsersFromGroup]);
 
     const status = useSelector((state: GlobalState) => getStatusForUserId(state, user?.id) || UserStatuses.OFFLINE);
-    const statusBadgeProps = getStatusBadgeProps(status, formatMessage);
+    const statusBadgeProps = getStatusBadgeProps(status, formatMessage, 'sm');
 
     return (
         <div
@@ -73,7 +73,7 @@ const ViewUserGroupListItem = (props: Props) => {
                 />
                 {statusBadgeProps && (
                     <StatusBadge
-                        className='status'
+                        className={getStatusBadgeClassName('sm')}
                         {...statusBadgeProps}
                     />
                 )}

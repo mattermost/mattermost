@@ -77,22 +77,11 @@ $profilePopoverBorderWidth: 1px;
                 height: 120px;
             }
 
+            // Badge position follows compass-ui UserAvatar for a 120-128px avatar
             .user-popover-status {
                 position: absolute;
-                top: auto;
-                right: 8px;
-                bottom: 0;
-                display: flex;
-                width: 24px;
-                height: 24px;
-                padding: 2px;
-                border-radius: 50px;
-                background: rgba(var(--center-channel-bg-rgb), 1);
-
-                svg {
-                    width: 100%;
-                    min-height: 100%;
-                }
+                right: -2px;
+                bottom: -2px;
             }
         }
 

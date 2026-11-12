@@ -21,7 +21,7 @@ import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import {getStatusBadgeProps} from 'utils/status_badge';
+import {getStatusBadgeClassName, getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import {SuggestionContainer} from '../suggestion';
@@ -135,7 +135,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             description = <span>{`${Utils.getFullName(item)} ${item.nickname ? `(${item.nickname})` : ''}`.trim()}</span>;
         }
 
-        const statusBadgeProps = getStatusBadgeProps(item && item.status, formatMessage);
+        const statusBadgeProps = getStatusBadgeProps(item && item.status, formatMessage, 'sm');
 
         icon = (
             <span className='status-wrapper style--none'>
@@ -150,7 +150,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 {statusBadgeProps && (
                     <span id={ids.status}>
                         <StatusBadge
-                            className='status'
+                            className={getStatusBadgeClassName('sm')}
                             {...statusBadgeProps}
                         />
                     </span>

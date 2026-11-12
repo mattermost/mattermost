@@ -25,7 +25,7 @@ export default function UserAccountMenuButton({
     status,
 }: Props) {
     const {formatMessage} = useIntl();
-    const statusBadgeProps = getStatusBadgeProps(status || UserStatuses.OFFLINE, formatMessage);
+    const statusBadgeProps = getStatusBadgeProps(status || UserStatuses.OFFLINE, formatMessage, 'sm');
 
     return (
         <>
