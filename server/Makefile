@@ -159,7 +159,7 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.6
+PLUGIN_PACKAGES += mattermost-plugin-calls-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v5.1.0
@@ -183,6 +183,7 @@ ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.1%2Bf370c05-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0%2Bc234d17-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0%2B23ece5d-fips
+	PLUGIN_PACKAGES += mattermost-plugin-calls-v2.0.0%2Bxxxxxxx-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
