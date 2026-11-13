@@ -144,6 +144,20 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder.style.aspectRatio).toEqual('auto 1200 / 300');
     });
 
+    test('should apply the style prop to both the placeholder and the real image so their size caps match', () => {
+        const style = {width: 'auto', height: 'auto', maxWidth: 204, maxHeight: 120, aspectRatio: '1'};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, style}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder).toHaveStyle({maxWidth: '204px', maxHeight: '120px', width: 'auto', height: 'auto'});
+        expect(placeholder.style.containIntrinsicSize).toEqual('300px 200px');
+        expect(placeholder.style.aspectRatio).toEqual('1');
+
+        const realImage = screen.getByRole('img', {hidden: true});
+        expect(realImage).toHaveStyle({maxWidth: '204px', maxHeight: '120px', width: 'auto', height: 'auto'});
+        expect(realImage.style.aspectRatio).toEqual('1');
+    });
+
     test('should render a mini preview when showLoader is true and preview is set', () => {
         const props = {
             ...baseProps,

@@ -73,14 +73,18 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
         return null;
     }
 
+    const isPerson = block.image_style === 'person';
     const imgClass = classNames('mm-blocks-image__img', {
-        'mm-blocks-image__img--person': block.image_style === 'person',
+        'mm-blocks-image__img--person': isPerson,
     });
 
     const imageConstraintStyle: CSSProperties = {
         width: 'auto',
         height: 'auto',
-        objectFit: block.image_style === 'person' ? 'cover' : 'contain',
+        objectFit: isPerson ? 'cover' : 'contain',
+
+        // Also applied to SizeAwareImage's placeholder, which otherwise takes the image's aspect ratio
+        aspectRatio: isPerson ? '1' : undefined,
     };
     if (caps.maxWidth !== undefined) {
         imageConstraintStyle.maxWidth = caps.maxWidth;

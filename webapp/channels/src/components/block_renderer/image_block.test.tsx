@@ -7,6 +7,8 @@ import type {MmImageBlock} from '@mattermost/types/mm_blocks';
 
 import {openModal} from 'actions/views/modals';
 
+import SizeAwareImage from 'components/size_aware_image';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -141,6 +143,34 @@ describe('ImageBlock', () => {
                     name: 'Alt label',
                 })],
             }),
+        }));
+    });
+
+    it.each([
+        ['default', undefined, 'contain', undefined],
+        ['person', 'person' as const, 'cover', '1'],
+    ])('passes the size caps to SizeAwareImage as a style (%s image)', (_, imageStyle, objectFit, aspectRatio) => {
+        renderWithContext(
+            <ImageBlock
+                block={{
+                    type: 'image',
+                    url: 'https://example.com/photo.png',
+                    size: 'small',
+                    image_style: imageStyle,
+                }}
+                postId='post-1'
+            />,
+        );
+
+        expect(jest.mocked(SizeAwareImage).mock.lastCall?.[0]).toEqual(expect.objectContaining({
+            style: {
+                width: 'auto',
+                height: 'auto',
+                maxWidth: 204,
+                maxHeight: 120,
+                objectFit,
+                aspectRatio,
+            },
         }));
     });
 });

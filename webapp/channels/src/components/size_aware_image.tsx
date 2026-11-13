@@ -426,7 +426,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             // it exactly like the real image. Size containment applies that size before the src is decoded. The
             // mini preview has a fixed size, so it's drawn as a background to keep it from affecting sizing.
             // An explicit width or height is set on the real image as attributes, so the placeholder gets the
-            // same ones to keep the same box.
+            // same ones to keep the same box. The caller's style is applied too since it can cap the image's size.
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
                     {this.renderImageLoaderIfNeeded()}
@@ -442,6 +442,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                             containIntrinsicSize: `${width}px ${height}px`,
                             aspectRatio: `auto ${width} / ${height}`,
                             backgroundImage: miniPreview ? `url("${miniPreview}")` : undefined,
+                            ...this.props.style,
                         }}
                     />
                 </div>,
