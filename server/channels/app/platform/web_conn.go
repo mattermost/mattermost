@@ -414,20 +414,23 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
-	wc.readPump()
-	close(wc.endWritePump)
-	close(wc.pluginPosted)
-	wg.Wait()
-	wc.Platform.HubUnregister(wc)
-	close(wc.pumpFinished)
+	defer func() {
+		close(wc.endWritePump)
+		close(wc.pluginPosted)
+		wg.Wait()
+		wc.Platform.HubUnregister(wc)
+		close(wc.pumpFinished)
 
-	userID := wc.UserId
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
-			return true
-		}, plugin.OnWebSocketDisconnectID)
-	})
+		userID := wc.UserId
+		wc.Platform.Go(func() {
+			wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}()
+
+	wc.readPump()
 }
 
 func (wc *WebConn) readPump() {
