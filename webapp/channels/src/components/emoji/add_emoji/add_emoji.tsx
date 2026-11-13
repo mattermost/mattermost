@@ -52,6 +52,9 @@ interface AddEmojiResponse {
 }
 
 export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmojiState> {
+    // The image selected last, used to ignore preview reads of images selected before it
+    private latestImage: File | null = null;
+
     constructor(props: AddEmojiProps) {
         super(props);
 
@@ -225,6 +228,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
 
     updateImage = (e: ChangeEvent<HTMLInputElement>): void => {
         if (e.target.files == null || e.target.files.length === 0) {
+            this.latestImage = null;
             this.setState({
                 image: null,
                 imageUrl: '',
@@ -235,10 +239,23 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
 
         const image = e.target.files![0];
 
+        // Store the selected file right away so that saving always uploads the image the user
+        // picked last, even if its preview is still being read. The preview is filled in once
+        // the file has been read.
+        this.latestImage = image;
+        this.setState({
+            image,
+            imageUrl: '',
+        });
+
         const reader = new FileReader();
         reader.onload = () => {
+            // Ignore a read that finishes after another image has been selected
+            if (this.latestImage !== image) {
+                return;
+            }
+
             this.setState({
-                image,
                 imageUrl: reader.result,
             });
         };
@@ -345,7 +362,10 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                             <div className='col-md-5 col-sm-8'>
                                 <div>
                                     <div className='add-emoji__upload'>
-                                        <Button emphasis='primary'>
+                                        <Button
+                                            emphasis='primary'
+                                            disabled={this.state.saving}
+                                        >
                                             <FormattedMessage
                                                 id='add_emoji.image.button'
                                                 defaultMessage='Select'
@@ -356,6 +376,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                             type='file'
                                             accept={Constants.ACCEPT_EMOJI_IMAGE}
                                             multiple={false}
+                                            disabled={this.state.saving}
                                             onChange={this.updateImage}
                                         />
                                     </div>
