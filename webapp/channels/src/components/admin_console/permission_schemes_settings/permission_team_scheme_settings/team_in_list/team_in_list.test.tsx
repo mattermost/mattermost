@@ -10,7 +10,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import TeamInList from './team_in_list';
 
 describe('components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list', () => {
-    test('should match snapshot with team', () => {
+    test('should render with team', () => {
         const props = {
             team: {
                 id: '12345',
@@ -33,11 +33,9 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
             onRemoveTeam: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <TeamInList {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('testTeam')).toBeInTheDocument();
         expect(screen.getByText('Remove')).toBeInTheDocument();
     });

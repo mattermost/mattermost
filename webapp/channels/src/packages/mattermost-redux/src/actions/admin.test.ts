@@ -56,6 +56,37 @@ describe('Actions.Admin', () => {
         expect(store.getState().entities.admin.logs).toEqual({default: [{level: 'info', msg: 'Websocket closed'}]});
     });
 
+    it('getLogs drops an aborted request without storing or reporting it', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            query(true).
+            delay(1000).
+            reply(200, {default: [{level: 'info', msg: 'stale'}]});
+
+        const controller = new AbortController();
+        const result = store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}, controller.signal));
+        controller.abort();
+
+        expect((await result).error).toBeTruthy();
+        expect(store.getState().entities.admin.logs).toEqual({});
+        expect(store.getState().errors).toEqual([]);
+    });
+
+    it('getLogs sends field filters', async () => {
+        let body;
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (b) => {
+                body = b;
+                return true;
+            }).
+            query(true).
+            reply(200, {default: []});
+
+        await store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', fields: {plugin_id: ['github', 'mattermost-ai']}}));
+
+        expect(body).toEqual({server_names: [], log_levels: [], date_from: '', date_to: '', search: '', fields: {plugin_id: ['github', 'mattermost-ai']}});
+    });
+
     it('getPlainLogs', async () => {
         nock(Client4.getBaseRoute()).
             get('/logs').

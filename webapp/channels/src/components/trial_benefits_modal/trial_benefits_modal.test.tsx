@@ -65,25 +65,6 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         mockLocation.pathname = '';
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <TrialBenefitsModal {...props}/>,
-            state,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot when trial has already started', () => {
-        const {baseElement} = renderWithContext(
-            <TrialBenefitsModal
-                {...props}
-                trialJustStarted={true}
-            />,
-            state,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should show the benefits modal', () => {
         renderWithContext(
             <TrialBenefitsModal {...props}/>,

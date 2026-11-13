@@ -132,7 +132,8 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 
 // parseDSN parses a PostgreSQL connection string and validates the scheme.
 //
-// Accepts postgres:// or postgresql:// schemes and returns the DSN unmodified.
+// Accepts postgres:// or postgresql:// schemes and returns the postgres driver
+// name along with the DSN unmodified.
 func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
@@ -143,13 +144,10 @@ func parseDSN(dsn string) (string, string, error) {
 	scheme := s[0]
 	switch scheme {
 	case "postgres", "postgresql":
-		// No changes required
-
+		return model.DatabaseDriverPostgres, dsn, nil
 	default:
 		return "", "", errors.Errorf("unsupported scheme %s", scheme)
 	}
-
-	return scheme, dsn, nil
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.

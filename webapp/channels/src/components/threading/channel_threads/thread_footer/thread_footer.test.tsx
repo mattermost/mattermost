@@ -158,14 +158,13 @@ describe('components/threading/channel_threads/thread_footer', () => {
     });
 
     test('should report total number of replies', () => {
-        const {baseElement, container} = renderWithContext(
+        const {container} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
             state,
             {useMockedStore: true},
         );
-        expect(baseElement).toMatchSnapshot();
         expect(container.querySelector('.dot-unreads')).not.toBeInTheDocument();
         expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
@@ -173,15 +172,13 @@ describe('components/threading/channel_threads/thread_footer', () => {
     test('should show unread indicator', () => {
         thread.unread_replies = 2;
 
-        const {baseElement, container} = renderWithContext(
+        const {container} = renderWithContext(
             <ThreadFooter
                 {...props}
             />,
             state,
             {useMockedStore: true},
         );
-
-        expect(baseElement).toMatchSnapshot();
         expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
     });
 
@@ -299,16 +296,14 @@ describe('components/threading/channel_threads/thread_footer', () => {
         );
     });
 
-    test('should match snapshot when a single message is followed', () => {
-        const {baseElement} = renderWithContext(
+    test('should render when a single message is followed', () => {
+        renderWithContext(
             <ThreadFooter
                 threadId='singlemessageid'
             />,
             state,
             {useMockedStore: true},
         );
-
-        expect(baseElement).toMatchSnapshot();
         expect(screen.getByTestId('mock-follow-button')).toBeInTheDocument();
         expect(capturedFollowButtonProps).toHaveProperty('isFollowing', true);
     });

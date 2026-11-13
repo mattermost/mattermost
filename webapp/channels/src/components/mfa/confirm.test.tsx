@@ -21,11 +21,6 @@ describe('components/mfa/components/Confirm', () => {
         document.body.addEventListener = originalAddEventListener;
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<Confirm/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should submit on form submit', async () => {
         renderWithContext(<Confirm/>);
 

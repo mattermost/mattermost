@@ -8,7 +8,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import GuestTag from './guest_tag';
 
 describe('components/widgets/tag/GuestTag', () => {
-    test('should match the snapshot', () => {
+    test('should render', () => {
         renderWithContext(<GuestTag className={'test'}/>);
         screen.getByText('GUEST');
     });

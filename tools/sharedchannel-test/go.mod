@@ -2,7 +2,10 @@ module github.com/mattermost/mattermost/tools/sharedchannel-test
 
 go 1.26.10
 
-require github.com/mattermost/mattermost/server/public v0.4.0
+require (
+	github.com/mattermost/mattermost/server/public v0.4.0
+	github.com/stretchr/testify v1.12.1
+)
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -35,7 +38,6 @@ require (
 	github.com/philhofer/fwd v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russellhaering/goxmldsig v1.6.1 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tinylib/msgp v1.6.5 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

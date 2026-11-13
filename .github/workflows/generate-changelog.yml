@@ -306,6 +306,7 @@ jobs:
           PUBLISH: ${{ steps.pr.outputs.publish }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           CHANGED: ${{ steps.generate.outputs.changed }}
+          BODY_CHANGED: ${{ steps.generate.outputs.body_changed }}
           ADDED_PRS: ${{ steps.generate.outputs.added_prs }}
           ADDED_DERIVED: ${{ steps.generate.outputs.added_derived }}
           CORRECTED: ${{ steps.generate.outputs.corrected }}
@@ -318,7 +319,13 @@ jobs:
             # Already on the PR branch. New commits only, never a force-push, so every
             # edit made in the PR survives.
             if [ "$CHANGED" != "true" ]; then
-              echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              # The text is unchanged, but the body may list notes the model left out.
+              if [ "$BODY_CHANGED" = "true" ]; then
+                gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+                echo "No new release notes in the text — updated the body of changelog PR #$PR_NUMBER"
+              else
+                echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
+              fi
               exit 0
             fi
             git add "$CHANGELOG_FILE"

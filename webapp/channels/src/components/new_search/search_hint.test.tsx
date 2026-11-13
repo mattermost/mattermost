@@ -68,8 +68,8 @@ describe('components/new_search/SearchHint', () => {
 
     test('should be empty on search if is date', () => {
         const props = {...baseProps, isDate: true};
-        const {asFragment} = renderWithContext(<SearchHint {...props}/>);
-        expect(asFragment()).toMatchInlineSnapshot('<DocumentFragment />');
+        const {container} = renderWithContext(<SearchHint {...props}/>);
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should suggest to hit enter to select on search if has selected option', () => {

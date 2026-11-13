@@ -9,7 +9,7 @@ Some plugins authored by Mattermost are licensed under the [Mattermost Source Av
 
 An Enterprise-only plugin is a plugin that requires a valid Mattermost Enterprise E20 license. It is not designed to be used with Team Edition or any other Enterprise license.
 
-1. Add the [LICENSE](LICENSE) file to the root of your plugin repository.
+1. Add the [LICENSE](https://github.com/mattermost/mattermost/blob/master/docs/develop/integrate/plugins/source-available-license/LICENSE) file to the root of your plugin repository.
 2. Add the following section to your README.md directly below the opening paragraph:
 
     ```md
@@ -23,7 +23,7 @@ An Enterprise-only plugin is a plugin that requires a valid Mattermost Enterpris
 A mixed-license plugin includes components that require a valid Mattermost Enterprise E20 license. Not all features are available when used with Team Edition or any other enterprise license.
 
 1. Organize the Enterprise-only, server-side parts of your plugin in a dedicated folder, typically `server/enterprise`.
-2. Add the [LICENSE](LICENSE) file to the `server/enterprise` folder.
+2. Add the [LICENSE](https://github.com/mattermost/mattermost/blob/master/docs/develop/integrate/plugins/source-available-license/LICENSE) file to the `server/enterprise` folder.
 3. Symlink that license in the root of your repository as `LICENSE.enterprise`.
 4. Add the following section to your README.md directly below the opening paragraph:
 

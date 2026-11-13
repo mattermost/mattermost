@@ -244,6 +244,54 @@ describe('TableEditor - User Self-Exclusion', () => {
         // The main functionality we care about is that the button is disabled when the user would be excluded
     });
 
+    describe('test button tooltip precedence', () => {
+        const PARENT_TOOLTIP = 'Testing is unavailable here.';
+        const EXCLUDED_TOOLTIP = 'You cannot test access rules that would exclude you from the channel';
+        const excludedProps = {
+            ...baseProps,
+            isSystemAdmin: false,
+            validateExpressionAgainstRequester: jest.fn().mockResolvedValue({data: {requester_matches: false}}),
+        };
+        const testButton = () => screen.getByRole('button', {name: /test access rule/i});
+        const hoverTooltip = async () => {
+            await waitFor(() => expect(testButton()).toBeDisabled());
+            await userEvent.hover(testButton(), {pointerEventsCheck: 0});
+            return screen.findByRole('tooltip', {}, {timeout: 2000});
+        };
+
+        test('shows the self-exclusion tooltip without a parent tooltip', async () => {
+            renderWithContext(<TableEditor {...excludedProps}/>, {});
+
+            expect(await hoverTooltip()).toHaveTextContent(EXCLUDED_TOOLTIP);
+        });
+
+        test('prefers the parent tooltip over the self-exclusion tooltip', async () => {
+            renderWithContext(
+                <TableEditor
+                    {...excludedProps}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('shows the parent tooltip when the parent disables the button', async () => {
+            renderWithContext(
+                <TableEditor
+                    {...baseProps}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+    });
+
     test('should not disable Test Access Rules button for system admins even if they would be excluded', async () => {
         const mockValidateExpression = jest.fn().mockResolvedValue({
             data: {requester_matches: false}, // System admin would be excluded but shouldn't matter

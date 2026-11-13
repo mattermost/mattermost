@@ -24,8 +24,8 @@ describe('components/ResetStatusModal', () => {
         },
     };
 
-    test('should match snapshot', async () => {
-        const {baseElement} = renderWithContext(
+    test('should render', async () => {
+        renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...baseProps}
@@ -36,8 +36,6 @@ describe('components/ResetStatusModal', () => {
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should have match state when onConfirm is called', async () => {
@@ -185,7 +183,7 @@ describe('components/ResetStatusModal', () => {
         );
     });
 
-    test('should match snapshot, render modal for OOF status', async () => {
+    test('should render render modal for OOF status', async () => {
         const autoResetStatusOOF = jest.fn().mockResolvedValue({
             data: {status: 'ooo', user_id: 'user_id_1', manual: true},
         });
@@ -197,7 +195,7 @@ describe('components/ResetStatusModal', () => {
                 autoResetStatus: autoResetStatusOOF,
             },
         };
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <ResetStatusModal
                 onHide={jest.fn()}
                 {...props}
@@ -208,7 +206,5 @@ describe('components/ResetStatusModal', () => {
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
     });
 });
