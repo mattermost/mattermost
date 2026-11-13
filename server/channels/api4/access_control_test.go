@@ -1781,6 +1781,37 @@ func TestAssignAccessPolicy(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	}, "AssignAccessPolicy with system admin")
+
+	t.Run("assign of a parent saved with an empty scope keeps that scope empty", func(t *testing.T) {
+		// A parent saved with an empty scope keeps that empty scope after a system admin assigns a channel in one team.
+		wirePolicyStore(t, th)
+
+		privateCh := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+		parent := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "parent-" + model.NewId(),
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+				},
+			},
+		}
+		saved, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parent)
+		require.NoError(t, err)
+		require.Empty(t, saved.Scope)
+
+		resp, err := th.SystemAdminClient.AssignAccessControlPolicies(context.Background(), saved.ID, []string{privateCh.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		reloaded, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, saved.ID)
+		require.NoError(t, storeErr)
+		require.Equal(t, "", reloaded.Scope)
+		require.Equal(t, "", reloaded.ScopeID)
+	})
 }
 
 func TestUnassignAccessPolicy(t *testing.T) {
@@ -3337,14 +3368,225 @@ func TestUnassignAccessPolicyTeamAdmin(t *testing.T) {
 	})
 }
 
+type teamParentShape int
+
+const (
+	teamParentEmptyScope teamParentShape = iota
+	teamParentScopeOnLaterSave
+	teamParentScopeOnFirstSave
+)
+
+func (s teamParentShape) label() string {
+	switch s {
+	case teamParentEmptyScope:
+		return "parent saved with an empty scope"
+	case teamParentScopeOnLaterSave:
+		return "parent whose scope was set on a later save"
+	default:
+		return "parent whose first save has team scope"
+	}
+}
+
+type teamParentAction string
+
+const (
+	teamParentPut      teamParentAction = "put"
+	teamParentDelete   teamParentAction = "delete"
+	teamParentActivate teamParentAction = "activate"
+	teamParentAssign   teamParentAction = "assign"
+	teamParentUnassign teamParentAction = "unassign"
+)
+
+type storedTeamParent struct {
+	scope    string
+	scopeID  string
+	rules    []model.AccessControlPolicyRule
+	channels []string
+}
+
+func readStoredTeamParent(t *testing.T, th *TestHelper, policyID string) storedTeamParent {
+	t.Helper()
+	policy, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, policyID)
+	require.NoError(t, err)
+
+	children, _, err := th.App.Srv().Store().AccessControlPolicy().SearchPolicies(th.Context, model.AccessControlPolicySearch{
+		ParentID: policyID,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Limit:    100,
+	})
+	require.NoError(t, err)
+
+	ids := make([]string, 0, len(children))
+	for _, child := range children {
+		ids = append(ids, child.ID)
+	}
+	slices.Sort(ids)
+
+	return storedTeamParent{
+		scope:    policy.Scope,
+		scopeID:  policy.ScopeID,
+		rules:    policy.Rules,
+		channels: ids,
+	}
+}
+
+func saveTeamParentShape(t *testing.T, th *TestHelper, shape teamParentShape) (*model.AccessControlPolicy, *model.AccessControlPolicy) {
+	t.Helper()
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+	policy := newParentPolicy(th.BasicTeam.Id)
+	if shape != teamParentScopeOnFirstSave {
+		policy.Scope = ""
+		policy.ScopeID = ""
+	}
+
+	parent, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+	require.NoError(t, err)
+
+	child := &model.AccessControlPolicy{
+		ID:      channel.Id,
+		Type:    model.AccessControlPolicyTypeChannel,
+		Version: model.AccessControlPolicyVersionV0_3,
+		Props:   map[string]any{},
+	}
+	require.Nil(t, child.Inherit(parent))
+	child, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, child)
+	require.NoError(t, err)
+
+	if shape == teamParentScopeOnLaterSave {
+		parent.Scope = model.AccessControlPolicyScopeTeam
+		parent.ScopeID = th.BasicTeam.Id
+		parent, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parent)
+		require.NoError(t, err)
+	}
+
+	return parent, child
+}
+
+func expectTeamParentAction(mockACS *mocks.AccessControlServiceInterface, action teamParentAction, parent, child *model.AccessControlPolicy, assignChannelID string, success bool) {
+	optional := func(call *mock.Call) {
+		if success {
+			call.Once()
+			return
+		}
+		call.Maybe()
+	}
+
+	switch action {
+	case teamParentPut:
+		var save *mock.Call
+		if success {
+			save = mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+				return p.Scope == model.AccessControlPolicyScopeTeam && p.ScopeID == parent.ScopeID
+			})).Return(parent, nil)
+		} else {
+			save = mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(parent, nil)
+		}
+		optional(save)
+	case teamParentDelete:
+		// GetPolicy runs before the team path and again on delete, so it is not a single call.
+		mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parent.ID).Return(parent, nil).Maybe()
+		optional(mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), parent.ID).Return(nil))
+	case teamParentActivate:
+		optional(mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parent.ID).Return(parent, nil))
+	case teamParentAssign:
+		optional(mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), parent.ID).Return(parent, nil))
+		optional(mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), assignChannelID).
+			Return(nil, model.NewAppError("GetPolicy", "not_found", nil, "", http.StatusNotFound)))
+		optional(mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+			Return(&model.AccessControlPolicy{ID: assignChannelID, Type: model.AccessControlPolicyTypeChannel}, nil))
+	case teamParentUnassign:
+		optional(mockACS.On("GetPolicy", mock.AnythingOfType("*request.Context"), child.ID).Return(child, nil))
+		optional(mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), child.ID).Return(nil))
+	}
+}
+
+// TestTeamAdminParentPolicyActions covers team-admin put, delete, activate, assign, and unassign.
+// A parent is accepted when its first save already records that team's scope. A parent saved with an
+// empty scope is refused, including when a later save records the scope, and the stored parent is unchanged.
+func TestTeamAdminParentPolicyActions(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	actions := []teamParentAction{teamParentPut, teamParentDelete, teamParentActivate, teamParentAssign, teamParentUnassign}
+	shapes := []struct {
+		shape teamParentShape
+		want  int
+	}{
+		{teamParentEmptyScope, http.StatusForbidden},
+		{teamParentScopeOnLaterSave, http.StatusForbidden},
+		{teamParentScopeOnFirstSave, http.StatusOK},
+	}
+
+	for _, shape := range shapes {
+		for _, action := range actions {
+			t.Run(string(action)+" "+shape.shape.label(), func(t *testing.T) {
+				mockACS := setupTeamAdminABAC(t, th)
+				makeTeamAdminAndLogin(t, th, th.TeamAdminUser, th.BasicTeam)
+				defer th.LoginBasic(t)
+
+				parent, child := saveTeamParentShape(t, th, shape.shape)
+				before := readStoredTeamParent(t, th, parent.ID)
+
+				assignChannelID := ""
+				if action == teamParentAssign {
+					extra := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+					assignChannelID = extra.Id
+				}
+				expectTeamParentAction(mockACS, action, parent, child, assignChannelID, shape.want == http.StatusOK)
+
+				var (
+					resp   *http.Response
+					reqErr error
+				)
+				teamID := th.BasicTeam.Id
+				switch action {
+				case teamParentPut:
+					body := *parent
+					resp, reqErr = th.Client.DoAPIPutJSON(context.Background(), "/access_control_policies?team_id="+teamID, &body)
+				case teamParentDelete:
+					resp, reqErr = th.Client.DoAPIDelete(context.Background(), "/access_control_policies/"+parent.ID+"?team_id="+teamID)
+				case teamParentActivate:
+					resp, reqErr = th.Client.DoAPIPutJSON(context.Background(), "/access_control_policies/activate", model.AccessControlPolicyActiveUpdateRequest{
+						TeamID: teamID,
+						Entries: []model.AccessControlPolicyActiveUpdate{
+							{ID: parent.ID, Active: true},
+						},
+					})
+				case teamParentAssign:
+					resp, reqErr = th.Client.DoAPIPostJSON(context.Background(), "/access_control_policies/"+parent.ID+"/assign", map[string]any{
+						"channel_ids": []string{assignChannelID},
+						"team_id":     teamID,
+					})
+				case teamParentUnassign:
+					resp, reqErr = th.Client.DoAPIDeleteJSON(context.Background(), "/access_control_policies/"+parent.ID+"/unassign", map[string]any{
+						"channel_ids": []string{child.ID},
+						"team_id":     teamID,
+					})
+				}
+				require.NotNil(t, resp)
+				defer resp.Body.Close()
+				require.Equal(t, shape.want, resp.StatusCode)
+
+				if shape.want != http.StatusOK {
+					require.Error(t, reqErr)
+					require.Equal(t, before, readStoredTeamParent(t, th, parent.ID))
+					return
+				}
+
+				require.NoError(t, reqErr)
+				mockACS.AssertExpectations(t)
+			})
+		}
+	}
+}
+
 func TestScopeReconciliationCrossTeam(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	// System admin creates a parent policy with channels only from teamA.
-	// After assigning a channel from teamB, scope must be cleared.
-	// After removing the teamB channel, scope should be restored to teamA.
+	// A parent whose first save records teamA keeps that scope when a channel in teamA is added.
+	// Adding a channel from teamB clears the scope. Removing that channel leaves the scope empty.
 
-	t.Run("scope cleared when cross-team channel is added then restored after removal", func(t *testing.T) {
+	t.Run("scope stays empty after a cross-team channel is removed", func(t *testing.T) {
 		// This test exercises ReconcilePolicyTeamScope via the app/store directly —
 		// no HTTP handler is involved, so no ACS mock is needed. Only license + config.
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -3418,7 +3660,7 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		require.Equal(t, "", reloaded.Scope, "scope should be cleared when channels span multiple teams")
 		require.Equal(t, "", reloaded.ScopeID, "scope_id should be cleared when channels span multiple teams")
 
-		// --- Phase 3: Remove chB. Scope should be restored to teamA. ---
+		// Removing the channel in the other team leaves the scope empty.
 		storeErr = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedChildB.ID)
 		require.NoError(t, storeErr)
 
@@ -3427,8 +3669,8 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 
 		reloaded, storeErr = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, savedParent.ID)
 		require.NoError(t, storeErr)
-		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope should be restored to team after cross-team channel removed")
-		require.Equal(t, teamA.Id, reloaded.ScopeID, "scope_id should be restored to teamA after cross-team channel removed")
+		require.Equal(t, "", reloaded.Scope, "scope stays empty after the channel in the other team is removed")
+		require.Equal(t, "", reloaded.ScopeID, "scope id stays empty after the channel in the other team is removed")
 	})
 
 	t.Run("scope is not set when no channels are assigned", func(t *testing.T) {
