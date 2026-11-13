@@ -96,6 +96,13 @@ func TestPluginCommand(t *testing.T) {
 		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
+		enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = false })
+		resp, err = th.App.ExecuteCommand(th.Context, args)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = enableCommands })
+		require.Nil(t, err, "plugin commands must run when custom slash commands are disabled")
+		require.Equal(t, "text", resp.Text)
+
 		err2 := th.App.DisablePlugin(pluginIDs[0])
 		require.Nil(t, err2)
 
