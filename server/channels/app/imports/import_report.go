@@ -49,6 +49,9 @@ const (
 	// UnmatchedUserMembershipSkipped: a membership was skipped because the referenced
 	// destination team or channel did not exist (deleted/renamed between runs).
 	UnmatchedUserMembershipSkipped UnmatchedUserAction = "membership_skipped"
+	// UnmatchedUserLinkedExisting: the export username matched an existing destination
+	// account. That account was left unchanged and team membership was linked to it.
+	UnmatchedUserLinkedExisting UnmatchedUserAction = "linked_existing"
 )
 
 // UnmatchedUser is one entry in the scoped-import report: a user from the export who
@@ -66,13 +69,26 @@ type UnmatchedUser struct {
 
 // unmatchedUsers is a concurrency-safe accumulator; import workers run in parallel.
 type unmatchedUsers struct {
-	mu sync.Mutex
-	s  []UnmatchedUser
+	mu     sync.Mutex
+	s      []UnmatchedUser
+	linked map[string]struct{}
 }
 
+// Add records rec. A linked_existing entry is kept once per username, ignoring
+// letter case, because repeated user lines all resolve to the same account.
 func (u *unmatchedUsers) Add(rec UnmatchedUser) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	if rec.Action == UnmatchedUserLinkedExisting {
+		key := strings.ToLower(rec.Username)
+		if _, seen := u.linked[key]; seen {
+			return
+		}
+		if u.linked == nil {
+			u.linked = make(map[string]struct{})
+		}
+		u.linked[key] = struct{}{}
+	}
 	u.s = append(u.s, rec)
 }
 
@@ -83,6 +99,19 @@ func (u *unmatchedUsers) All() []UnmatchedUser {
 	out := make([]UnmatchedUser, len(u.s))
 	copy(out, u.s)
 	return out
+}
+
+// CountAction returns the number of accumulated entries recorded with action.
+func (u *unmatchedUsers) CountAction(action UnmatchedUserAction) int {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	n := 0
+	for _, rec := range u.s {
+		if rec.Action == action {
+			n++
+		}
+	}
+	return n
 }
 
 // ImportReport is threaded through the import pipeline to carry the UsernameRemap and

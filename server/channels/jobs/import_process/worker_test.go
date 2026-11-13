@@ -456,6 +456,78 @@ func TestMakeWorkerUnmatchedUsersReport(t *testing.T) {
 		require.Contains(t, string(content), "bob,,eng,off-topic,channel_not_found,membership_skipped")
 	})
 
+	t.Run("counts users linked to existing accounts separately from unmatched entries", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "carol", Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "bob", Reason: "username_not_found", Action: imports.UnmatchedUserCreatedInactive,
+		})
+		app.bulkImportReport = report
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"import_file":    zipPath,
+				"local_mode":     "true",
+				"imported_users": "inactive",
+			},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		require.Equal(t, "1", job.Data["unmatched_users_count"])
+		require.Equal(t, "2", job.Data["linked_existing_users_count"])
+		content, err := os.ReadFile(job.Data["unmatched_users_report"])
+		require.NoError(t, err)
+		require.Contains(t, string(content), "alice,,,,username_matched_existing,linked_existing")
+		require.Contains(t, string(content), "bob,,,,username_not_found,created_inactive")
+	})
+
+	t.Run("only linked users records no unmatched count but still writes the report", func(t *testing.T) {
+		jobServer, mockStore := makeTestJobServer(t)
+		expectJobDataUpdate(mockStore)
+
+		app := newFakeImportApp(t)
+		report := &imports.ImportReport{}
+		report.UnmatchedUsers.Add(imports.UnmatchedUser{
+			Username: "alice", Reason: "username_matched_existing", Action: imports.UnmatchedUserLinkedExisting,
+		})
+		app.bulkImportReport = report
+
+		worker := MakeWorker(jobServer, app)
+
+		zipPath := makeImportZip(t, 0)
+		job := &model.Job{
+			Id: model.NewId(),
+			Data: map[string]string{
+				"import_file":    zipPath,
+				"local_mode":     "true",
+				"imported_users": "inactive",
+			},
+		}
+		expectWorkerJobCompletion(mockStore, job)
+
+		worker.DoJob(job)
+
+		_, ok := job.Data["unmatched_users_count"]
+		require.False(t, ok, "linked users must not be counted as unmatched")
+		require.Equal(t, "1", job.Data["linked_existing_users_count"])
+		require.Equal(t, zipPath+".unmatched-users.csv", job.Data["unmatched_users_report"])
+	})
+
 	t.Run("no report file and no job data when all users matched", func(t *testing.T) {
 		jobServer, mockStore := makeTestJobServer(t)
 		expectJobDataUpdate(mockStore)
