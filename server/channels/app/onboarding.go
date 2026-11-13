@@ -35,7 +35,7 @@ func (a *App) markAdminOnboardingComplete(rctx request.CTX) *model.AppError {
 // fragment, or user info would break every link built from the Site URL.
 func isOrigin(siteURL string) bool {
 	u, err := url.ParseRequestURI(siteURL)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || siteURL != u.Scheme+"://"+u.Host {
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || strings.HasSuffix(u.Host, ":") || siteURL != u.Scheme+"://"+u.Host {
 		return false
 	}
 	if port := u.Port(); port != "" {

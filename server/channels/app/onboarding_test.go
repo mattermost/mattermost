@@ -101,6 +101,7 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 			"https://user:secret@mattermost.example.com",
 			" https://mattermost.example.com",
 			"https://:8065",
+			"https://mattermost.example.com:",
 			"https://mattermost.example.com:0",
 			"https://mattermost.example.com:99999",
 		} {
