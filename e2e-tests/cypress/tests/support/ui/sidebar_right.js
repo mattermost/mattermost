@@ -11,7 +11,7 @@ Cypress.Commands.add('uiGetRHS', (options = {visible: true}) => {
 
 Cypress.Commands.add('uiCloseRHS', () => {
     cy.document().then((doc) => {
-        const closeButton = doc.querySelector('[aria-label="Close Sidebar Icon"]');
+        const closeButton = doc.querySelector('#sidebar-right .sidebar--right__close');
         if (closeButton) {
             closeButton.click();
         }

@@ -1,18 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {ArrowDownIcon, ArrowUpIcon, DownloadOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
-import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+import {logEntryKey, logEntryTime, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
+
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
@@ -21,10 +27,11 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {useLatest} from 'hooks/useLatest';
 
+import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
-import type {LogObjectWithAdditionalInfo} from './types';
-import {formatLogValue, newestLogTimes} from './utils';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
+import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
 
 import './log_list.scss';
 
@@ -36,6 +43,12 @@ type TimePreset = {
 type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
+
+    // Nodes that returned a full page, leaving out their older entries, so the total is a lower bound
+    truncatedNodes: string[];
+
+    // Nodes whose search stopped at the server's time or size limit
+    scanLimitedNodes?: ScanLimitedLogNode[];
     onSearchChange: (term: string) => void;
     search: string;
 
@@ -45,6 +58,11 @@ type Props = {
     nodes: string[];
     selectedNode: string;
     onSelectedNodeChange: (node: string) => void;
+
+    // The plugins to offer, and the IDs of those shown. None shown means every entry, from plugins or not
+    plugins: PluginOption[];
+    selectedPlugins: string[];
+    onSelectedPluginsChange: (pluginIds: string[]) => void;
 
     onReload: () => void;
     downloadUrl: string;
@@ -57,12 +75,13 @@ type Props = {
     pollIntervalLabels: Record<number, MessageDescriptor>;
 
     timePresets: readonly TimePreset[];
-    activeTimePreset: number | null;
+    timeRange: TimeRange;
 
     // Where the active time range starts, moved on by the parent with every fetch
     timeRangeStart: number | null;
     onTimePreset: (minutes: number) => void;
-    onClearTimePreset: () => void;
+    onCustomRange: (range: CustomTimeRange) => void;
+    onClearTimeRange: () => void;
 
     // Rendered alongside the other filters so both viewers share one filter row
     logFormatMenu?: React.ReactNode;
@@ -71,13 +90,12 @@ type Props = {
 const PAGE_SIZES = [50, 100, 200, 500] as const;
 const DEFAULT_PAGE_SIZE = 200;
 
-// Filtering runs over every fetched log entry, so keep it off the keystroke path
+// Each search change queries the server, so keep it off the keystroke path
 const SEARCH_DEBOUNCE_MS = 200;
 
 // Rows are focused programmatically by the keyboard navigation below
 const ROW_FOCUS_SELECTOR = '.LogRow__main';
 
-const LEVEL_ORDER = ['error', 'warn', 'info', 'debug'] as const;
 const LEVEL_LABELS = defineMessages({
     error: {id: 'admin.logs.level.error', defaultMessage: 'Error'},
     warn: {id: 'admin.logs.level.warn', defaultMessage: 'Warn'},
@@ -87,14 +105,19 @@ const LEVEL_LABELS = defineMessages({
 
 const messages = defineMessages({
     allTime: {id: 'admin.logs.time.allTime', defaultMessage: 'All time'},
+    customRange: {id: 'admin.logs.time.custom', defaultMessage: 'Custom range…'},
     allLevels: {id: 'admin.logs.allLevels', defaultMessage: 'All levels'},
     liveTail: {id: 'admin.logs.liveTail', defaultMessage: 'Live tail'},
     liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
     allNodes: {id: 'admin.logs.allNodes', defaultMessage: 'All nodes'},
     node: {id: 'admin.logs.node', defaultMessage: 'Node'},
+    allLogs: {id: 'admin.logs.plugin.allLogs', defaultMessage: 'All logs'},
+    plugin: {id: 'admin.logs.plugin', defaultMessage: 'Plugin'},
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
+
+const LIVE_TAIL_UNAVAILABLE_ID = 'serverLogsLiveTailUnavailable';
 
 type StoredPrefs = {
     pageSize: number;
@@ -107,7 +130,7 @@ type StoredPrefs = {
 const DEFAULT_PREFS: StoredPrefs = {
     pageSize: DEFAULT_PAGE_SIZE,
     wrapText: true,
-    enabledLevels: [...LEVEL_ORDER],
+    enabledLevels: [...LEVEL_GROUPS],
     sortAsc: false,
     node: '',
 };
@@ -128,7 +151,7 @@ export function loadPrefs(): StoredPrefs {
     }
 
     const levels = Array.isArray(stored.enabledLevels) ? stored.enabledLevels.filter(
-        (level): level is string => LEVEL_ORDER.includes(level as typeof LEVEL_ORDER[number]),
+        (level): level is string => LEVEL_GROUPS.includes(level as typeof LEVEL_GROUPS[number]),
     ) : [];
 
     return {
@@ -168,7 +191,7 @@ function isNewerThan(log: LogObjectWithAdditionalInfo, times: NodeTimes): boolea
 
 // Older nodes ignore the server's date filter, and a node switch shows before its fetch returns.
 // Returns the same array when nothing is dropped, so a moved cutoff only re-sorts when it matters
-function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null) {
+function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cutoff: number | null, end: number | null) {
     if (!selectedNode && cutoff === null) {
         return logs;
     }
@@ -182,26 +205,20 @@ function scopeLogs(logs: LogObjectWithAdditionalInfo[], selectedNode: string, cu
             return true;
         }
         const time = logEntryTime(log);
-        return Number.isNaN(time) || time >= cutoff;
+        return Number.isNaN(time) || (time >= cutoff && (end === null || time <= end));
     });
     return scoped.length === logs.length ? logs : scoped;
 }
 
-function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<string>, search: string, showNodes: boolean) {
-    let filtered = logs;
-
-    if (!LEVEL_ORDER.every((level) => enabledLevels.has(level))) {
-        filtered = filtered.filter((log) => enabledLevels.has(log.level));
+// Search runs on the server, which leaves only the level groups, also applied before a refetch returns
+function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<string>) {
+    if (LEVEL_GROUPS.every((group) => enabledLevels.has(group))) {
+        return logs;
     }
-
-    if (search) {
-        const lowerSearch = search.toLowerCase();
-        filtered = filtered.filter((log) => (showNodes && log[LogNodeKey]?.toLowerCase().includes(lowerSearch)) || Object.entries(log).some(([key, value]) =>
-            key !== 'level' && key !== 'timestamp' && formatLogValue(value).toLowerCase().includes(lowerSearch),
-        ));
-    }
-
-    return filtered;
+    return logs.filter((log) => {
+        const group = levelGroup(log.level);
+        return group !== undefined && enabledLevels.has(group);
+    });
 }
 
 function savePrefs(prefs: StoredPrefs) {
@@ -212,17 +229,24 @@ function savePrefs(prefs: StoredPrefs) {
     }
 }
 
+const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
+
 export default function LogList({
-    loading, logs, onSearchChange, search,
+    loading, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
+    plugins, selectedPlugins, onSelectedPluginsChange,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
     pollIntervals, pollIntervalLabels,
-    timePresets, activeTimePreset, timeRangeStart, onTimePreset, onClearTimePreset,
+    timePresets, timeRange, timeRangeStart, onTimePreset, onCustomRange, onClearTimeRange,
     logFormatMenu,
 }: Props) {
+    const customRange = typeof timeRange === 'number' ? null : timeRange;
     const intl = useIntl();
+    const timezone = useSelector(getCurrentTimezone);
+    const isMilitaryTime = useSelector(isUseMilitaryTime);
+    const [showCustomRangeModal, setShowCustomRangeModal] = useState(false);
     const initialPrefs = useMemo(() => loadPrefs(), []);
 
     const [page, setPage] = useState(0);
@@ -234,11 +258,12 @@ export default function LogList({
     const [focusedKey, setFocusedKey] = useState<string | null>(null);
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
-    // Kept local so typing repaints the input without waiting for the debounced filtering
+    // Kept local so typing repaints the input without waiting for the debounced query
     const [searchInput, setSearchInput] = useState(search);
 
     const showNodes = nodes.length >= 2;
     const showNodeMenu = showNodes || selectedNode !== '';
+    const showPluginMenu = plugins.length > 0;
 
     const listRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -299,7 +324,13 @@ export default function LogList({
         setTail((prev) => (prev?.highlight && prev.highlight.page !== page ? {...prev, highlight: null} : prev));
     }, [page]);
 
-    const inRangeLogs = useMemo(() => scopeLogs(logs, selectedNode, activeTimePreset === null ? null : timeRangeStart), [logs, selectedNode, activeTimePreset, timeRangeStart]);
+    // A custom range is fixed, so it doesn't wait on the parent's fetch to move its start
+    const inRangeLogs = useMemo(() => {
+        if (customRange) {
+            return scopeLogs(logs, selectedNode, customRange.from, customRange.to);
+        }
+        return scopeLogs(logs, selectedNode, timeRange === null ? null : timeRangeStart, null);
+    }, [logs, selectedNode, timeRange, timeRangeStart, customRange]);
 
     const {scopedLogs, heldLogs} = useMemo(() => {
         if (!tail) {
@@ -316,29 +347,61 @@ export default function LogList({
     const levelCounts = useMemo(() => {
         const counts: Record<string, number> = {error: 0, warn: 0, info: 0, debug: 0};
         for (const log of scopedLogs) {
-            if (log.level in counts) {
-                counts[log.level]++;
+            const group = levelGroup(log.level);
+            if (group) {
+                counts[group]++;
             }
         }
         return counts;
     }, [scopedLogs]);
 
-    const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
+    const allLevelsEnabled = useMemo(() => LEVEL_GROUPS.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
     const processedLogs = useMemo(() => {
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
-        return filterLogs(scopedLogs, enabledLevels, search, showNodes).
+        return filterLogs(scopedLogs, enabledLevels).
             map((log, index) => ({log, index, time: logEntryTime(log)})).
             sort((a, b) => direction * ((a.time - b.time) || (a.index - b.index))).
             map(({log}) => log);
-    }, [scopedLogs, enabledLevels, search, sortAsc, showNodes]);
+    }, [scopedLogs, enabledLevels, sortAsc]);
+
+    // Every page shows the date or none does, so the time column keeps one width while paging.
+    // Today's entries become yesterday's at midnight, so the check runs again then, even when no new ones arrive.
+    // The midnight comes from the same clock reading as the check, so a render just before it can't skip a day.
+    const [dayChanges, setDayChanges] = useState(0);
+    const {showDate, nextDayAt} = useMemo(() => {
+        const now = Date.now();
+        return {showDate: logsNeedDate(processedLogs, timezone, now), nextDayAt: nextDayStart(timezone, now)};
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a timer firing, which moves Date.now()
+    }, [processedLogs, timezone, dayChanges]);
+    useEffect(() => {
+        const recheck = () => setDayChanges((count) => count + 1);
+
+        // Re-armed by dayChanges too, in case the timer fires early and nextDayAt stays the same
+        const timer = setTimeout(recheck, Math.max(0, nextDayAt - Date.now()));
+
+        // The timer can stall while the computer sleeps, so recheck once the page is back if midnight passed
+        const onVisible = () => {
+            if (document.visibilityState === 'visible' && Date.now() >= nextDayAt) {
+                recheck();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
+    }, [nextDayAt, dayChanges]);
+    const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
 
     // Only held entries the current filters would show are worth announcing
-    const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels, search, showNodes).length, [heldLogs, enabledLevels, search, showNodes]);
+    const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels).length, [heldLogs, enabledLevels]);
 
     const matchCount = search ? processedLogs.length : null;
-    const totalCount = scopedLogs.length;
+    const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
+    const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -349,7 +412,13 @@ export default function LogList({
     const {visibleLogs, rowKeys} = useMemo(() => {
         const pageLogs = processedLogs.slice(startIndex, endIndex);
         const keys = getRowKeys(pageLogs);
-        const rows = pageLogs.map((log, i) => rowsByKeyRef.current.get(keys[i]) ?? log);
+        const rows = pageLogs.map((log, i) => {
+            const cached = rowsByKeyRef.current.get(keys[i]);
+
+            // A failed-node entry keeps its key while its time and error change on every poll
+            const unchanged = cached && (log.failed_node !== true || logEntryKey(cached) === logEntryKey(log));
+            return unchanged ? cached : log;
+        });
         rowsByKeyRef.current = new Map(keys.map((key, i) => [key, rows[i]]));
         return {visibleLogs: rows, rowKeys: keys};
     }, [processedLogs, startIndex, endIndex]);
@@ -374,7 +443,7 @@ export default function LogList({
         setPage(0);
         setExpandedKey(null);
         setFocusedKey(null);
-    }, [search, enabledLevels, sortAsc, selectedNode, activeTimePreset]);
+    }, [search, enabledLevels, sortAsc, selectedNode, selectedPlugins, timeRange]);
 
     // Clamp the page when a reload or poll shrinks the dataset
     useEffect(() => {
@@ -397,14 +466,14 @@ export default function LogList({
     }, [setEnabledLevels]);
 
     const enableAllLevels = useCallback(() => {
-        setEnabledLevels(new Set<string>(LEVEL_ORDER));
+        setEnabledLevels(new Set<string>(LEVEL_GROUPS));
     }, [setEnabledLevels]);
 
     // Ctrl/Cmd-click a level pill to show only that level; ctrl/cmd-click it again to restore all.
     const soloLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
             if (prev.size === 1 && prev.has(level)) {
-                return new Set<string>(LEVEL_ORDER);
+                return new Set<string>(LEVEL_GROUPS);
             }
             return new Set([level]);
         });
@@ -492,8 +561,63 @@ export default function LogList({
         }
     }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
-    const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
-    const enabledLevelCount = LEVEL_ORDER.filter((level) => enabledLevels.has(level)).length;
+    const activePresetLabel = timePresets.find((preset) => preset.minutes === timeRange)?.label;
+
+    // The end is never in the future, so a start in this year means the whole range is
+    const yearOf = (time: number) => intl.formatDate(time, {year: 'numeric', timeZone: timezone});
+    const showsYear = customRange !== null && yearOf(customRange.from) !== yearOf(Date.now());
+    const durationValue = customRange ? intl.formatDateTimeRange(customRange.from, customRange.to, {
+        year: showsYear ? 'numeric' : undefined,
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hourCycle: isMilitaryTime ? 'h23' : 'h12',
+        timeZone: timezone,
+    }) : intl.formatMessage(activePresetLabel ?? messages.allTime);
+    const enabledLevelCount = LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).length;
+
+    // The date is only shown when the scan reached back past today
+    const formatScanLimit = (node: string, scannedBackTo?: string) => {
+        const time = scannedBackTo === undefined ? NaN : parseLogTimestamp(scannedBackTo);
+        if (Number.isNaN(time)) {
+            return showNodes ? (
+                <FormattedMessage
+                    id='admin.logs.scanLimited.nodeStopped'
+                    defaultMessage='The search on {node} stopped at its limit.'
+                    values={{node}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.logs.scanLimited.stopped'
+                    defaultMessage='The search stopped at its limit.'
+                />
+            );
+        }
+
+        const dayOf = (t: number) => intl.formatDate(t, {year: 'numeric', month: 'numeric', day: 'numeric', timeZone: timezone});
+        const formatted = intl.formatDate(time, {
+            month: dayOf(time) === dayOf(Date.now()) ? undefined : 'short',
+            day: dayOf(time) === dayOf(Date.now()) ? undefined : 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hourCycle: isMilitaryTime ? 'h23' : 'h12',
+            timeZone: timezone,
+        });
+        return showNodes ? (
+            <FormattedMessage
+                id='admin.logs.scanLimited.nodeBackTo'
+                defaultMessage='Searched {node} back to {time}.'
+                values={{node, time: formatted}}
+            />
+        ) : (
+            <FormattedMessage
+                id='admin.logs.scanLimited.backTo'
+                defaultMessage='Searched back to {time}.'
+                values={{time: formatted}}
+            />
+        );
+    };
 
     // One selector for on/off and the interval, so picking an interval turns polling on
     const setLiveTail = (interval: number | null) => {
@@ -509,12 +633,20 @@ export default function LogList({
         }
     };
 
+    let pluginMenuValue = intl.formatMessage(messages.allLogs);
+    if (selectedPlugins.length === 1) {
+        pluginMenuValue = plugins.find((plugin) => plugin.id === selectedPlugins[0])?.name ?? selectedPlugins[0];
+    } else if (selectedPlugins.length > 1) {
+        pluginMenuValue = intl.formatMessage({id: 'admin.logs.plugin.selected', defaultMessage: '{count} plugins'}, {count: selectedPlugins.length});
+    }
+
     const filters = (
         <div className='LogViewer__filters admin-console__filters-rows'>
             <Input
                 ref={searchInputRef}
                 type='text'
                 name='serverLogsSearch'
+                maxLength={SEARCH_MAX_LENGTH}
                 containerClassName='LogViewer__search'
                 placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs'})}
                 value={searchInput}
@@ -578,6 +710,75 @@ export default function LogList({
                 </Menu.Container>
             )}
 
+            {showPluginMenu && (
+                <Menu.Container
+                    menuButton={{
+                        id: 'serverLogsPluginMenuButton',
+                        class: 'inputWithMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.plugin.menuButtonAriaLabel', defaultMessage: 'Open menu to select which plugins to show logs from'}),
+                        as: 'div',
+                        children: (
+                            <Input
+                                label={intl.formatMessage(messages.plugin)}
+                                name='serverLogsPlugin'
+                                value={pluginMenuValue}
+                                readOnly={true}
+                                inputSuffix={<i className='icon icon-chevron-down'/>}
+                            />
+                        ),
+                    }}
+                    menu={{
+                        id: 'serverLogsPluginMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.plugin.dropdownAriaLabel', defaultMessage: 'Plugin menu'}),
+                        width: '300px',
+                    }}
+                >
+                    <Menu.Item
+                        id='serverLogsPlugin-all'
+                        role='menuitemradio'
+                        aria-checked={selectedPlugins.length === 0}
+                        forceCloseOnSelect={true}
+                        labels={<FormattedMessage {...messages.allLogs}/>}
+                        trailingElements={selectedPlugins.length === 0 && <i className='icon icon-check'/>}
+                        onClick={() => onSelectedPluginsChange([])}
+                    />
+                    <Menu.Separator/>
+                    {plugins.map((plugin) => {
+                        const selected = selectedPlugins.includes(plugin.id);
+                        return (
+                            <Menu.Item
+                                key={plugin.id}
+                                id={`serverLogsPlugin-plugin-${plugin.id}`}
+                                role='menuitemcheckbox'
+                                aria-checked={selected}
+
+                                // The server accepts a limited number of values per field
+                                disabled={!selected && selectedPlugins.length >= FIELD_MAX_VALUES}
+                                leadingElement={
+                                    <i className={selected ? 'icon icon-checkbox-marked' : 'icon icon-checkbox-blank-outline'}/>
+                                }
+                                labels={plugin.name === plugin.id ? <span>{plugin.id}</span> : (
+                                    <>
+                                        <span>{plugin.name}</span>
+                                        <span>{plugin.id}</span>
+                                    </>
+                                )}
+
+                                // Ctrl/Cmd-click narrows to a single plugin; doing it again on that plugin restores all logs
+                                onClick={(event) => {
+                                    if (event.ctrlKey || event.metaKey) {
+                                        const onlyThis = selectedPlugins.length === 1 && selected;
+                                        onSelectedPluginsChange(onlyThis ? [] : [plugin.id]);
+                                    } else {
+                                        onSelectedPluginsChange(selected ? selectedPlugins.filter((id) => id !== plugin.id) : [...selectedPlugins, plugin.id]);
+                                    }
+                                }}
+                            />
+                        );
+                    })}
+                </Menu.Container>
+            )}
+
             <Menu.Container
                 menuButton={{
                     id: 'serverLogsLevelsMenuButton',
@@ -600,7 +801,7 @@ export default function LogList({
                     width: '260px',
                 }}
             >
-                {LEVEL_ORDER.map((level) => (
+                {LEVEL_GROUPS.map((level) => (
                     <Menu.Item
                         key={level}
                         id={`serverLogsLevel-${level}`}
@@ -660,6 +861,14 @@ export default function LogList({
                         />
                     ),
                 }}
+                menuHeader={customRange && (
+                    <p id={LIVE_TAIL_UNAVAILABLE_ID}>
+                        <FormattedMessage
+                            id='admin.logs.liveTail.customRange'
+                            defaultMessage='Not available with a custom time range'
+                        />
+                    </p>
+                )}
                 menu={{
                     id: 'serverLogsLiveTailMenu',
                     'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.dropdownAriaLabel', defaultMessage: 'Live tail menu'}),
@@ -680,6 +889,8 @@ export default function LogList({
                         key={interval}
                         id={`serverLogsLiveTail-${interval}`}
                         role='menuitemradio'
+                        disabled={customRange !== null}
+                        aria-describedby={customRange ? LIVE_TAIL_UNAVAILABLE_ID : undefined}
                         aria-checked={liveTailEnabled && interval === pollInterval}
                         forceCloseOnSelect={true}
                         labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
@@ -692,14 +903,17 @@ export default function LogList({
             <Menu.Container
                 menuButton={{
                     id: 'serverLogsDurationMenuButton',
-                    class: 'inputWithMenu',
+                    class: classNames('inputWithMenu', {
+                        'LogViewer__duration--custom': customRange,
+                        'LogViewer__duration--custom-year': showsYear,
+                    }),
                     'aria-label': intl.formatMessage({id: 'admin.logs.duration.menuButtonAriaLabel', defaultMessage: 'Open menu to select a time range'}),
                     as: 'div',
                     children: (
                         <Input
                             label={intl.formatMessage({id: 'admin.logs.duration', defaultMessage: 'Duration'})}
                             name='serverLogsDuration'
-                            value={intl.formatMessage(activePresetLabel ?? messages.allTime)}
+                            value={durationValue}
                             readOnly={true}
                             inputSuffix={<i className='icon icon-chevron-down'/>}
                         />
@@ -714,25 +928,45 @@ export default function LogList({
                 <Menu.Item
                     id='serverLogsDuration-all'
                     role='menuitemradio'
-                    aria-checked={activeTimePreset === null}
+                    aria-checked={timeRange === null}
                     forceCloseOnSelect={true}
                     labels={<FormattedMessage {...messages.allTime}/>}
-                    trailingElements={activeTimePreset === null && <i className='icon icon-check'/>}
-                    onClick={onClearTimePreset}
+                    trailingElements={timeRange === null && <i className='icon icon-check'/>}
+                    onClick={onClearTimeRange}
                 />
                 {timePresets.map((preset) => (
                     <Menu.Item
                         key={preset.minutes}
                         id={`serverLogsDuration-${preset.minutes}`}
                         role='menuitemradio'
-                        aria-checked={activeTimePreset === preset.minutes}
+                        aria-checked={timeRange === preset.minutes}
                         forceCloseOnSelect={true}
                         labels={<FormattedMessage {...preset.label}/>}
-                        trailingElements={activeTimePreset === preset.minutes && <i className='icon icon-check'/>}
+                        trailingElements={timeRange === preset.minutes && <i className='icon icon-check'/>}
                         onClick={() => onTimePreset(preset.minutes)}
                     />
                 ))}
+                <Menu.Separator/>
+                <Menu.Item
+                    id='serverLogsDuration-custom'
+                    role='menuitemradio'
+                    aria-checked={customRange !== null}
+                    forceCloseOnSelect={true}
+                    labels={<FormattedMessage {...messages.customRange}/>}
+                    trailingElements={customRange !== null && <i className='icon icon-check'/>}
+                    onClick={() => setShowCustomRangeModal(true)}
+                />
             </Menu.Container>
+            {showCustomRangeModal && (
+                <CustomRangeModal
+                    initialRange={customRange}
+                    onConfirm={(range) => {
+                        onCustomRange(range);
+                        setShowCustomRangeModal(false);
+                    }}
+                    onExited={() => setShowCustomRangeModal(false)}
+                />
+            )}
 
             {logFormatMenu}
 
@@ -768,7 +1002,8 @@ export default function LogList({
         </div>
     );
 
-    if (loading && logs.length === 0) {
+    // A search refetches as it's typed, so it keeps the list in place rather than flashing the spinner
+    if (loading && logs.length === 0 && !search) {
         return (
             <div className='LogViewer'>
                 {filters}
@@ -789,9 +1024,52 @@ export default function LogList({
     return (
         <div
             className='LogViewer'
+
+            // Sizes the time column to the longest time this format gives
+            style={{'--log-timestamp-chars': logRowTimeLength(timeFormat)} as React.CSSProperties}
             onKeyDown={handleKeyDown}
         >
             {filters}
+
+            {scanLimited.length > 0 && (
+                <SectionNotice
+                    className='LogViewer__notice'
+                    type='info'
+                    title={
+                        <FormattedMessage
+                            id='admin.logs.scanLimited.title'
+                            defaultMessage='The search stopped before reaching older entries'
+                        />
+                    }
+                    description={
+                        <>
+                            {scanLimited.map(({node, scannedBackTo}) => (
+                                <p
+                                    key={node}
+                                    className='LogViewer__notice-line'
+                                >
+                                    {formatScanLimit(node, scannedBackTo)}
+                                </p>
+                            ))}
+                            <p className='LogViewer__notice-line'>
+                                {showNodes ? (
+                                    <FormattedMessage
+                                        id='admin.logs.scanLimited.descriptionNodes'
+                                        defaultMessage="Older entries weren't searched."
+                                    />
+                                ) : (
+
+                                    // The scan always starts from the newest entry, so a narrower range wouldn't reach further
+                                    <FormattedMessage
+                                        id='admin.logs.scanLimited.description'
+                                        defaultMessage="Older entries weren't searched. Download the log file to search all of it."
+                                    />
+                                )}
+                            </p>
+                        </>
+                    }
+                />
+            )}
 
             <div className='LogViewer__header'>
                 <span className='LogViewer__header-level'>
@@ -840,7 +1118,7 @@ export default function LogList({
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
                 <div className='LogViewer__placeholder'>
-                    {search || !allLevelsEnabled || selectedNode || activeTimePreset !== null ? (
+                    {search || !allLevelsEnabled || selectedNode || selectedPlugins.length > 0 || timeRange !== null ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
                             defaultMessage='No logs match your filters. {clearLink}'
@@ -852,7 +1130,8 @@ export default function LogList({
                                             clearSearch();
                                             enableAllLevels();
                                             onSelectedNodeChange('');
-                                            onClearTimePreset();
+                                            onSelectedPluginsChange([]);
+                                            onClearTimeRange();
                                         }}
                                         type='button'
                                     >
@@ -911,6 +1190,8 @@ export default function LogList({
                             searchTerm={search}
                             wrapText={wrapText}
                             showNode={showNodes}
+                            timezone={timezone}
+                            timeFormat={timeFormat}
                         />
                     ))}
                 </div>
@@ -924,22 +1205,45 @@ export default function LogList({
                             defaultMessage='Refreshing…'
                         />
                     )}
-                    {!loading && matchCount !== null && (
+                    {!loading && matchCount !== null && !truncated && (
                         <FormattedMessage
-                            id='admin.logs.showingMatching'
-                            defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)'
+                            id='admin.logs.showingMatches'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,
                                 matches: matchCount,
-                                total: totalCount,
                             }}
                         />
                     )}
-                    {!loading && matchCount === null && (
+
+                    {/* A node in view returned a full page, so older entries weren't loaded and the total is a lower bound */}
+                    {!loading && matchCount !== null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingMatchesCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                matches: matchCount,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && !truncated && (
                         <FormattedMessage
                             id='admin.logs.showing'
                             defaultMessage='Showing {start, number} - {end, number} of {total, number}'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                total: processedLogs.length,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {total, number}+'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,

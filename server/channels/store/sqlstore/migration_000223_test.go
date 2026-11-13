@@ -51,6 +51,9 @@ func TestMigration000223(t *testing.T) {
 	store, err := New(*settings, logger, nil)
 	require.NoError(t, err)
 	defer store.Close()
+	// The test runs the down migration, which drops PropertyOptions out from
+	// under the AttributeView that 000242 builds on it.
+	defer withoutLegacyAttributeView(t, store)()
 
 	// New() applies all migrations, so 000223 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
@@ -529,7 +532,7 @@ func TestMigration000223(t *testing.T) {
 		t.Helper()
 		var hash string
 		require.NoError(t, store.GetMaster().Get(&hash,
-			`SELECT COALESCE(md5(string_agg(FieldID || ID || COALESCE(Name,'') || SortOrder || DeleteAt, '|' ORDER BY FieldID, ID)), '') FROM PropertyOptions`))
+			`SELECT COALESCE(encode(sha256(convert_to(string_agg(FieldID || ID || COALESCE(Name,'') || SortOrder || DeleteAt, '|' ORDER BY FieldID, ID), 'UTF8')), 'hex'), '') FROM PropertyOptions`))
 		return hash
 	}
 

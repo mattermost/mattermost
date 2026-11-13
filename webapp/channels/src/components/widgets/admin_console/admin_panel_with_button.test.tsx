@@ -42,7 +42,7 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
         expect(button.className).toMatch(/button--emphasis-primary/);
-        expect(button).not.toHaveClass('disabled');
+        expect(button).toBeEnabled();
         expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
 
@@ -61,7 +61,25 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
         const button = screen.getByTestId('test-button-text-default');
         expect(button).toBeInTheDocument();
         expect(button.className).toMatch(/button--emphasis-primary/);
-        expect(button).toHaveClass('disabled');
+
+        // Natively disabled so it is announced as disabled and cannot be clicked.
+        expect(button).toBeDisabled();
+    });
+
+    test('should not call onButtonClick when disabled', async () => {
+        const onButtonClick = jest.fn();
+        renderWithContext(
+            <AdminPanelWithButton
+                {...defaultProps}
+                disabled={true}
+                onButtonClick={onButtonClick}
+            >
+                {'Test'}
+            </AdminPanelWithButton>,
+        );
+
+        await userEvent.click(screen.getByTestId('test-button-text-default'));
+        expect(onButtonClick).not.toHaveBeenCalled();
     });
 
     test('should call onButtonClick when button is clicked', async () => {

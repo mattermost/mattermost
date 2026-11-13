@@ -114,7 +114,8 @@ From Mattermost version v9.9, this value includes any potentially unauthenticate
 - `mattermost_websocket_broadcast_buffer_users_registered`: Number of users registered in a broadcast buffer hub.
 - `mattermost_websocket_broadcasts_total`: The total number of websocket broadcasts sent for any type.
 - `mattermost_websocket_event_total`: Total number of websocket events.
-- `mattermost_websocket_reconnects_total`: Total number of websocket reconnect attempts.
+- `mattermost_websocket_reconnect_failures_total`: Total number of websocket reconnects that could not resume the previous connection, forcing the client to start a new connection and resync. Labeled by `origin_client`, `disconnect_err_code`, `reason`, and `is_remote`. A `reason` of `old_conn_still_open` means the previous connection was still open, `missed_events_evicted` means the events the client missed were no longer buffered, `conn_not_found` means no node had the previous connection, and `cluster_lookup_failed` means the other cluster nodes could not be queried. `is_remote` is `true` when the previous connection was on another cluster node, and `false` otherwise.
+- `mattermost_websocket_reconnects_total`: Total number of websocket reconnect attempts, labeled by `origin_client`, `disconnect_err_code`, and `type`. A `type` of `success` or `lossless` means the previous connection resumed without losing events, and `failure` means it could not be resumed.
 
 ### Logging metrics
 

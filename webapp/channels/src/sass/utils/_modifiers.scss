@@ -89,6 +89,28 @@ $positions: 't'top,
     outline-width: 2px;
 }
 
+// Temporary until a compass-ui release fixes the IconButton transitions (mattermost/compass-design#184).
+// These buttons switched state instantly before the Compass migration, and two things now flash
+// when moving between neighbouring buttons (e.g. Recent mentions -> Saved messages):
+// - Compass fades background/color over --duration-quick on every state change.
+// - Compass rests with a transparent outline, but the global `*:focus { outline: none }` above
+//   resets it to `none` + currentcolor while focused. When focus leaves, the outline comes back
+//   and its colour fades from opaque to transparent, drawing a ring on the button that just
+//   lost focus.
+// So no transition at rest, and the outline transitions only on :focus-visible so the keyboard
+// focus ring still animates in. Remove once Compass no longer does either.
+button[class*="_icon-button_"],
+a[class*="_icon-button_"] {
+    transition: none;
+}
+
+button[class*="_icon-button_"]:focus-visible,
+a[class*="_icon-button_"]:focus-visible {
+    transition:
+        outline-color var(--duration-quick) var(--ease-transition),
+        outline-offset var(--duration-quick) var(--ease-transition);
+}
+
 .pos-relative {
     position: relative;
 }
@@ -105,6 +127,13 @@ $positions: 't'top,
 
 .overflow--visible {
     overflow: visible;
+}
+
+// For surfaces that stay dark in every theme, like the file preview header and footer: gives Compass's inverted
+// IconButton style fixed light colors instead of the sidebar theme colors. Drop it once Compass has a style for these.
+.icon-buttons-on-dark {
+    --sidebar-text: white;
+    --sidebar-text-rgb: 255, 255, 255;
 }
 
 .bg--white {

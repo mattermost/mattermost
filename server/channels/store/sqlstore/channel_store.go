@@ -802,8 +802,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	// Space channels are exempt from the per-team channel limit.
-	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeSpace && maxChannelsPerTeam >= 0 {
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeSpace && maxChannelsPerTeam > 0 {
 		var count int64
 		if err := transaction.Get(&count, "SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type = ? OR Type = ?)", channel.TeamId, model.ChannelTypeOpen, model.ChannelTypePrivate); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
@@ -963,6 +962,10 @@ func (s SqlChannelStore) InvalidateChannel(id string) {
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 }
 
+// pinnedPostsLimit is the number of pinned posts a single channel query returns. It mirrors
+// web.PerPageMaximum, which the store cannot import.
+const pinnedPostsLimit = 200
+
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
@@ -975,13 +978,16 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 			"ChannelId": channelId,
 			"DeleteAt":  0,
 		}).
-		OrderBy("CreateAt ASC")
+		OrderBy("CreateAt DESC", "Id DESC").
+		Limit(uint64(pinnedPostsLimit))
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
-	for _, post := range posts {
+	// The query returns newest-first; PostList.Order stays oldest-first so
+	// filterInaccessiblePosts and the client reverse keep their existing contracts.
+	for _, post := range slices.Backward(posts) {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}

@@ -8,19 +8,24 @@ import {goToLastViewedChannel} from 'actions/views/channel';
 
 import * as Menu from 'components/menu';
 
-interface Props extends Menu.FirstMenuItemProps {}
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
-const CloseChannel = ({...rest}: Props): JSX.Element => {
+import type {ChannelKind} from 'types/store/plugins';
+
+interface Props extends Menu.FirstMenuItemProps {
+
+    /** Names it Close Board for a board. */
+    kind?: ChannelKind;
+}
+
+const CloseChannel = ({kind = 'channel', ...rest}: Props): JSX.Element => {
     return (
         <Menu.Item
             onClick={goToLastViewedChannel}
-            labels={
-                <FormattedMessage
-                    id='center_panel.archived.closeChannel'
-                    defaultMessage='Close Channel'
-                />}
+            labels={<FormattedMessage {...channelKindMessages.closeChannel[kind]}/>}
             {...rest}
         />
     );
 };
+
 export default React.memo(CloseChannel);

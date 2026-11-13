@@ -43,9 +43,7 @@ describe('classification_markings/utils', () => {
             expect(getPropertyFields).toHaveBeenCalledWith(
                 'access_control',
                 'user',
-                'system',
-                '',
-                {cursorId: undefined, cursorCreateAt: undefined},
+                {targetType: 'system', targetId: '', cursorId: undefined, cursorCreateAt: undefined},
             );
         });
 
@@ -61,7 +59,7 @@ describe('classification_markings/utils', () => {
             const fields = await listLiveFields('user');
 
             expect(fields.map((field) => field.id)).toEqual(['u1', 'u2', 'u3']);
-            expect(getPropertyFields.mock.calls.map((call) => call[4])).toEqual([
+            expect(getPropertyFields.mock.calls.map((call) => call[2])).toMatchObject([
                 {cursorId: undefined, cursorCreateAt: undefined},
                 {cursorId: 'u2', cursorCreateAt: 2},
                 {cursorId: 'u3', cursorCreateAt: 3},
@@ -98,7 +96,7 @@ describe('classification_markings/utils', () => {
 
             // * It still advances the cursor: skipping it there would re-request
             // the page it sat on, forever.
-            expect(getPropertyFields.mock.calls[1][4]).toEqual({cursorId: 'tombstone', cursorCreateAt: 2});
+            expect(getPropertyFields.mock.calls[1][2]).toMatchObject({cursorId: 'tombstone', cursorCreateAt: 2});
         });
 
         it('stops at the 500-field cap rather than paging forever when the server never returns an empty page', async () => {

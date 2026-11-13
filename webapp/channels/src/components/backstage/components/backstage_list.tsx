@@ -8,9 +8,8 @@ import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
+import PaginationButtons from 'components/common/pagination_buttons';
 import LoadingScreen from 'components/loading_screen';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/fa_search_icon';
 
 import './backstage_list.scss';
@@ -183,22 +182,14 @@ const BackstageList = (remainingProps: Props) => {
                             total,
                         }}
                     />
-                    <button
-                        type='button'
-                        className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (isFirstPage ? 'disabled' : '')}
-                        onClick={previousPageFn}
-                        aria-label={formatMessage({id: 'backstage_list.previousButton.ariaLabel', defaultMessage: 'Previous'})}
-                    >
-                        <PreviousIcon/>
-                    </button>
-                    <button
-                        type='button'
-                        className={'btn btn-quaternary btn-icon btn-sm next ' + (isLastPage ? 'disabled' : '')}
-                        onClick={nextPageFn}
-                        aria-label={formatMessage({id: 'backstage_list.nextButton.ariaLabel', defaultMessage: 'Next'})}
-                    >
-                        <NextIcon/>
-                    </button>
+                    <PaginationButtons
+                        onPrevious={previousPageFn}
+                        onNext={nextPageFn}
+                        disablePrevious={isFirstPage}
+                        disableNext={isLastPage}
+                        previousButtonClassName='ml-2 prev'
+                        nextButtonClassName='next'
+                    />
                 </div>
             </div>
         </div>

@@ -109,6 +109,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         messageDisplay: '',
         colorizeUsernames: '',
         collapseDisplay: '',
+        collapseCategoryWithUnreads: 'false',
         linkPreviewDisplay: '',
         globalHeaderDisplay: '',
         globalHeaderAllowed: true,
@@ -397,5 +398,35 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should show the collapse category with unread channels setting', () => {
+        renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
+
+        expect(screen.getByText('Collapse category with unread channels')).toBeInTheDocument();
+    });
+
+    test('should save collapse category with unread channels as true', async () => {
+        const savePreferences = jest.fn();
+        const props = {
+            ...requiredProps,
+            activeSection: 'collapse_category_with_unreads',
+            actions: {...requiredProps.actions, savePreferences},
+        };
+        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+
+        const radioOn = container.querySelector('#collapse_category_with_unreadsFormatA') as HTMLInputElement;
+        expect(radioOn).not.toBeChecked();
+
+        await userEvent.click(radioOn);
+        expect(radioOn).toBeChecked();
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+        expect(savePreferences).toHaveBeenCalledWith('user_id', expect.arrayContaining([{
+            user_id: 'user_id',
+            category: 'display_settings',
+            name: 'collapse_category_with_unreads',
+            value: 'true',
+        }]));
     });
 });

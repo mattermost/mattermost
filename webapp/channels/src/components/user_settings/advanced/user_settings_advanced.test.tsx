@@ -146,4 +146,40 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
         expect(screen.getByText('Send Messages on CTRL+ENTER')).toBeInTheDocument();
     });
+
+    describe('dividers around the Performance Debugging section', () => {
+        const getSettingRow = (title: string) => screen.getByRole('heading', {name: title}).closest('[data-testid="section-min"]')!;
+        const isDivider = (element: Element | null) => element?.classList.contains('divider-light') ?? false;
+
+        const renderWithPerformanceDebugging = (enabled: boolean) => renderWithContext(
+            <AdvancedSettingsDisplay {...requiredProps}/>,
+            {entities: {general: {config: {EnableClientPerformanceDebugging: enabled.toString()}}}},
+        );
+
+        test('should separate Performance Debugging from its neighbours with exactly one divider each when enabled', () => {
+            renderWithPerformanceDebugging(true);
+
+            const joinLeaveRow = getSettingRow('Enable Join/Leave Messages');
+            const performanceDebuggingRow = getSettingRow('Performance Debugging');
+            const unreadScrollPositionRow = getSettingRow('Scroll position when viewing an unread channel');
+
+            expect(isDivider(joinLeaveRow.nextElementSibling)).toBe(true);
+            expect(joinLeaveRow.nextElementSibling!.nextElementSibling).toBe(performanceDebuggingRow);
+
+            expect(isDivider(performanceDebuggingRow.nextElementSibling)).toBe(true);
+            expect(performanceDebuggingRow.nextElementSibling!.nextElementSibling).toBe(unreadScrollPositionRow);
+        });
+
+        test('should leave a single divider between Join/Leave and the next setting when disabled', () => {
+            renderWithPerformanceDebugging(false);
+
+            expect(screen.queryByRole('heading', {name: 'Performance Debugging'})).not.toBeInTheDocument();
+
+            const joinLeaveRow = getSettingRow('Enable Join/Leave Messages');
+            const unreadScrollPositionRow = getSettingRow('Scroll position when viewing an unread channel');
+
+            expect(isDivider(joinLeaveRow.nextElementSibling)).toBe(true);
+            expect(joinLeaveRow.nextElementSibling!.nextElementSibling).toBe(unreadScrollPositionRow);
+        });
+    });
 });

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -13,6 +13,10 @@ import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
+
+import type {KindMessages} from 'utils/channel_kind';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 import './channel_access_rules_confirm_modal.scss';
 
@@ -27,6 +31,9 @@ type ChannelAccessRulesConfirmModalProps = {
     autoSyncEnabled?: boolean;
     isStacked?: boolean;
     willShowActivityWarning?: boolean;
+
+    /** The channel's kind, which picks the words: "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
 };
 
 const USERS_PER_PAGE = 50;
@@ -42,6 +49,7 @@ function ChannelAccessRulesConfirmModal({
     autoSyncEnabled = false,
     isStacked = false,
     willShowActivityWarning = false,
+    channelKind = 'channel',
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -151,6 +159,17 @@ function ChannelAccessRulesConfirmModal({
 
     const modalSubtitle = channelName;
 
+    const membershipChangeMessage = (
+        <FormattedMessage
+            {...messages.membershipChange[channelKind]}
+            values={{
+                addCount: usersToAdd.length,
+                removeCount: usersToRemove.length,
+                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+            }}
+        />
+    );
+
     const currentUsers = activeTab === 'allowed' ? filteredAllowedUsers : filteredRestrictedUsers;
     const totalCount = activeTab === 'allowed' ? usersToAdd.length : usersToRemove.length;
 
@@ -231,15 +250,7 @@ function ChannelAccessRulesConfirmModal({
                 // Detailed user list view
                 <div className='ChannelAccessRulesConfirmModal__details'>
                     <div className='ChannelAccessRulesConfirmModal__message'>
-                        <FormattedMessage
-                            id='channel_settings.access_rules.confirm_modal.message'
-                            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
-                            values={{
-                                addCount: usersToAdd.length,
-                                removeCount: usersToRemove.length,
-                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                            }}
-                        />
+                        {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__tabs'>
                         <button
@@ -303,15 +314,7 @@ function ChannelAccessRulesConfirmModal({
                 // Summary view
                 <div className='ChannelAccessRulesConfirmModal__summary'>
                     <div className='ChannelAccessRulesConfirmModal__message'>
-                        <FormattedMessage
-                            id='channel_settings.access_rules.confirm_modal.message'
-                            defaultMessage='Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.'
-                            values={{
-                                addCount: usersToAdd.length,
-                                removeCount: usersToRemove.length,
-                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                            }}
-                        />
+                        {membershipChangeMessage}
                     </div>
                     <div className='ChannelAccessRulesConfirmModal__question'>
                         <FormattedMessage
@@ -336,5 +339,20 @@ function ChannelAccessRulesConfirmModal({
         </GenericModal>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    membershipChange: {
+        channel: defineMessage({
+            id: 'channel_settings.access_rules.confirm_modal.message',
+            defaultMessage: 'Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the channel and remove <strong>{removeCount, number} current channel {removeCount, plural, one {member} other {members}}</strong>.',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.access_rules.confirm_modal.message.board',
+            defaultMessage: 'Applying these access rules will add <strong>{addCount, number} {addCount, plural, one {user} other {users}}</strong> to the board and remove <strong>{removeCount, number} current board {removeCount, plural, one {member} other {members}}</strong>.',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelAccessRulesConfirmModal;

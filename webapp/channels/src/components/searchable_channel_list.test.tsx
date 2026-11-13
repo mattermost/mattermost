@@ -10,10 +10,11 @@ jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
 import type {Channel} from '@mattermost/types/channels';
 
 import {compassIconForName} from 'components/channel_type_icon';
-import {SearchableChannelList} from 'components/searchable_channel_list';
+import ConnectedSearchableChannelList, {SearchableChannelList} from 'components/searchable_channel_list';
 
 import {type MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 import {Filter} from './browse_channels/browse_channels';
 
@@ -301,5 +302,44 @@ describe('components/SearchableChannelList', () => {
             // Default globe icon rendered for the open channel fallback
             expect(screen.getByTestId('default-globe-icon')).toBeInTheDocument();
         });
+    });
+
+    test('names a board row a board', () => {
+        const channels = [
+            {
+                id: 'board1',
+                name: 'roadmap',
+                display_name: 'Roadmap',
+                type: 'P',
+                delete_at: 0,
+                team_id: 'team1',
+                purpose: 'plans',
+                discoverable: true,
+            } as Channel,
+            {
+                id: 'channel1',
+                name: 'town-square',
+                display_name: 'Town Square',
+                type: 'O',
+                delete_at: 0,
+                team_id: 'team1',
+                purpose: 'chat',
+            } as Channel,
+        ];
+
+        const {container} = renderWithContext(
+            <ConnectedSearchableChannelList
+                {...baseProps}
+                channels={channels}
+                loading={false}
+                showDiscoverableFilters={true}
+            />,
+            {...initialState, ...boardChannelsState('board1')},
+        );
+
+        const [boardRow, channelRow] = container.querySelectorAll('.more-modal__row');
+        expect(boardRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Board Information: Membership Indicator: Joined, Member count 0, Purpose: plans');
+        expect(channelRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Channel Information: Membership Indicator: Joined, Member count 0, Purpose: chat');
+        expect(screen.getByTestId('discoverable-indicator')).toHaveAttribute('aria-label', 'Discoverable private board');
     });
 });

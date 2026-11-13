@@ -213,13 +213,15 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		return rtm, true, nil
 	}
 
-	membersCount, err := ts.store.GetActiveMemberCount(tm.TeamId, nil)
-	if err != nil {
-		return nil, false, MemberCountError
-	}
+	if maxUsersPerTeam := *ts.config().TeamSettings.MaxUsersPerTeam; maxUsersPerTeam > 0 {
+		membersCount, nErr := ts.store.GetActiveMemberCount(tm.TeamId, nil)
+		if nErr != nil {
+			return nil, false, MemberCountError
+		}
 
-	if membersCount >= int64(*ts.config().TeamSettings.MaxUsersPerTeam) {
-		return nil, false, MaxMemberCountError
+		if membersCount >= int64(maxUsersPerTeam) {
+			return nil, false, MaxMemberCountError
+		}
 	}
 
 	tm, err = applyPreSaveHooks(preSaveHooks, tm)

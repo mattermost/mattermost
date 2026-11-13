@@ -6,13 +6,15 @@ import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities
 import {getBasePath} from 'selectors/general';
 import store from 'stores/redux_store';
 
-import {PreviousViewedTypes} from 'utils/constants';
+import {MarkdownViews, PreviousViewedTypes} from 'utils/constants';
+import type {MarkdownView} from 'utils/constants';
 
 const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');
 const getPreviousChannelNameKey = (userId: string | null, teamId: string) => ['user_team_prev_channel', userId, teamId].join(':');
 const getPreviousViewedTypeKey = (userId: string | null, teamId: string) => ['user_team_prev_viewed_type', userId, teamId].join(':');
 const getPenultimateViewedTypeKey = (userId: string, teamId: string) => ['user_team_penultimate_viewed_type', userId, teamId].join(':');
 export const getPenultimateChannelNameKey = (userId: string, teamId: string) => ['user_team_penultimate_channel', userId, teamId].join(':');
+const getMarkdownViewKey = (surface: string, userId: string) => [`markdown_${surface}_view`, userId].join(':');
 const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':');
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
@@ -69,6 +71,26 @@ class LocalStorageStoreClass {
 
     setPreviousViewedType(userId: string, teamId: string, channelType: string) {
         this.setItem(getPreviousViewedTypeKey(userId, teamId), channelType);
+    }
+
+    // Each surface that offers the Markdown toggle keeps its own choice, and owns what it falls back to
+    getMarkdownView(surface: string, userId: string, fallback: MarkdownView, state = store.getState()): MarkdownView {
+        let stored;
+        try {
+            stored = this.getItem(getMarkdownViewKey(surface, userId), state);
+        } catch {
+            // Storage can be blocked or disabled; use the surface default
+        }
+        return stored === MarkdownViews.RENDERED || stored === MarkdownViews.RAW ? stored : fallback;
+    }
+
+    setMarkdownView(surface: string, userId: string, view: MarkdownView) {
+        try {
+            this.setItem(getMarkdownViewKey(surface, userId), view);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn('Unable to store the Markdown view preference', error);
+        }
     }
 
     getPenultimateViewedType(userId: string, teamId: string, state = store.getState()) {

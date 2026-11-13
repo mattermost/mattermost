@@ -86,6 +86,65 @@ describe('TextPropertyRenderer', () => {
         expect(textElement).toHaveClass('TextProperty');
     });
 
+    test('should render a numeric zero rather than treating it as unset', () => {
+        const props = {
+            value: {
+                value: 0,
+            } as PropertyValue<number>,
+        };
+
+        renderWithContext(<TextPropertyRenderer {...props}/>);
+
+        expect(screen.getByTestId('text-property')).toHaveTextContent('0');
+    });
+
+    test('should render a boolean false rather than treating it as unset', () => {
+        const props = {
+            value: {
+                value: false,
+            } as PropertyValue<boolean>,
+        };
+
+        renderWithContext(<TextPropertyRenderer {...props}/>);
+
+        expect(screen.getByTestId('text-property')).toHaveTextContent('false');
+    });
+
+    describe('placeholder', () => {
+        const metadata = {placeholder: 'Not set'};
+
+        test.each([
+            ['null', null],
+            ['undefined', undefined],
+            ['an empty string', ''],
+        ])('shows the placeholder for %s', (_label, raw) => {
+            renderWithContext(
+                <TextPropertyRenderer
+                    value={{value: raw} as PropertyValue<unknown>}
+                    metadata={metadata}
+                />,
+            );
+
+            expect(screen.getByTestId('text-property')).toHaveTextContent('Not set');
+        });
+
+        test.each([
+            ['a numeric zero', 0, '0'],
+            ['a boolean false', false, 'false'],
+        ])('shows %s in place of the placeholder', (_label, raw, expected) => {
+            renderWithContext(
+                <TextPropertyRenderer
+                    value={{value: raw} as PropertyValue<unknown>}
+                    metadata={metadata}
+                />,
+            );
+
+            const textElement = screen.getByTestId('text-property');
+            expect(textElement).toHaveTextContent(expected as string);
+            expect(textElement).not.toHaveTextContent('Not set');
+        });
+    });
+
     test('should render special characters', () => {
         const props = {
             value: {

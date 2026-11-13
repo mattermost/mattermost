@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, type JSX} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
@@ -11,11 +11,15 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {openModal} from 'actions/views/modals';
+import {getChannelInfoMenuPluginComponents} from 'selectors/plugins';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
 import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {canSearchFiles} from 'utils/file_utils';
 
@@ -73,22 +77,23 @@ const Badge = styled.div`
 `;
 
 interface MenuItemProps {
-    icon: JSX.Element;
-    text: string;
+    icon: JSX.Element | React.ReactNode;
+    text: React.ReactNode;
     opensSubpanel?: boolean;
-    badge?: string | number | JSX.Element;
+    badge?: React.ReactNode;
     onClick: () => void;
     id?: string;
 }
 
 function MenuItem(props: MenuItemProps) {
     const {icon, text, opensSubpanel, badge, onClick, id} = props;
-    const hasRightSide = (badge !== undefined) || opensSubpanel;
+    const hasBadge = badge != null;
+    const hasRightSide = hasBadge || opensSubpanel;
 
     return (
         <MenuItemButton
             onClick={onClick}
-            aria-label={text}
+            aria-label={typeof text === 'string' ? text : undefined}
             type='button'
             id={id || ''}
         >
@@ -96,7 +101,7 @@ function MenuItem(props: MenuItemProps) {
             <MenuItemText>{text}</MenuItemText>
             {hasRightSide && (
                 <RightSide>
-                    {badge !== undefined && (
+                    {hasBadge && (
                         <Badge>{badge}</Badge>
                     )}
                     {opensSubpanel && (
@@ -107,6 +112,19 @@ function MenuItem(props: MenuItemProps) {
         </MenuItemButton>
     );
 }
+
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'channel_info_rhs.menu.title',
+            defaultMessage: 'Channel Info Actions',
+        }),
+        board: defineMessage({
+            id: 'channel_info_rhs.menu.title.board',
+            defaultMessage: 'Board Info Actions',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 interface MenuProps {
     channel: Channel;
@@ -135,6 +153,7 @@ export default function Menu(props: MenuProps) {
         actions,
     } = props;
 
+    const channelKind = useChannelKind(channel);
     const [loadingStats, setLoadingStats] = useState(true);
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
@@ -143,6 +162,7 @@ export default function Menu(props: MenuProps) {
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
     const showFiles = useSelector((state: GlobalState) => canSearchFiles(getConfig(state)));
+    const pluginItems = useSelector((state: GlobalState) => getChannelInfoMenuPluginComponents(state, channel));
 
     useEffect(() => {
         actions.getChannelStats(channel.id, true).then(() => {
@@ -171,19 +191,13 @@ export default function Menu(props: MenuProps) {
         <MenuContainer
             className={className}
             data-testid='channel_info_rhs-menu'
-            aria-label={formatMessage({
-                id: 'channel_info_rhs.menu.title',
-                defaultMessage: 'Channel Info Actions',
-            })}
+            aria-label={formatMessage(messages.title[channelKind])}
         >
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
-                    text={formatMessage({
-                        id: 'channel_header.channel_settings',
-                        defaultMessage: 'Channel Settings',
-                    })}
+                    text={formatMessage(channelKindMessages.channelSettings[channelKind])}
                     onClick={openChannelSettings}
                 />
             )}
@@ -232,6 +246,17 @@ export default function Menu(props: MenuProps) {
                     onClick={() => actions.showChannelFiles(channel.id)}
                 />
             )}
+            {pluginItems.map((item) => (
+                <MenuItem
+                    key={item.id}
+                    id={`channelInfoRHSPlugin_${item.id}`}
+                    icon={item.icon}
+                    text={item.text}
+                    opensSubpanel={item.opensSubpanel}
+                    badge={item.badge}
+                    onClick={() => item.action(channel.id)}
+                />
+            ))}
         </MenuContainer>
     );
 }

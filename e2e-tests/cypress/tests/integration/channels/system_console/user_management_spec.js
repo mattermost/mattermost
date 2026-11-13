@@ -276,7 +276,7 @@ describe('User Management', () => {
             cy.get('.Input___error').should('be.visible').and('contain', errorMsg);
 
             // # Close the modal.
-            cy.get('button.close').click();
+            cy.get('#resetEmailModal').find('button[aria-label="Close"]').click();
         }
     }
 

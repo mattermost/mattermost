@@ -148,6 +148,46 @@ describe('PluginRegistry — registerChannelTypeOption', () => {
     });
 });
 
+describe('PluginRegistry — registerChannelKind', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getKinds() {
+        return mockCurrentStore.getState().components.ChannelKind;
+    }
+
+    it('stores the plugin, matcher and kind, and returns an id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const id = registry.registerChannelKind({matcher, kind: 'board'});
+
+        expect(typeof id).toBe('string');
+        expect(getKinds()).toEqual([expect.objectContaining({id, pluginId: PLUGIN_ID, matcher, kind: 'board'})]);
+    });
+
+    it('ignores a kind the webapp has no wording for', () => {
+        const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        const registry = new PluginRegistry(PLUGIN_ID);
+        registry.registerChannelKind({matcher: () => true, kind: 'spreadsheet' as 'board'});
+
+        expect(getKinds()).toHaveLength(0);
+        expect(error).toHaveBeenCalledWith(expect.stringContaining("unknown kind 'spreadsheet'"));
+        error.mockRestore();
+    });
+
+    it('removes a plugin\'s kinds when the plugin is removed', () => {
+        new PluginRegistry(PLUGIN_ID).registerChannelKind({matcher: () => true, kind: 'board'});
+        new PluginRegistry('other_plugin').registerChannelKind({matcher: () => true, kind: 'board'});
+
+        mockCurrentStore.dispatch({type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: {id: PLUGIN_ID}});
+
+        expect(getKinds().map((entry: {pluginId: string}) => entry.pluginId)).toEqual(['other_plugin']);
+    });
+});
+
 describe('PluginRegistry — registerChannelIconOverride', () => {
     const PLUGIN_ID = 'test_plugin';
 
@@ -689,6 +729,42 @@ describe('PluginRegistry — registerProduct', () => {
         registry.registerProduct({...baseArgs, baseURL: '/boards', isTeamScoped: false});
 
         expect(getProducts()[0].isTeamScoped).toBe(false);
+    });
+});
+
+describe('PluginRegistry — registerSearchComponents', () => {
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    const baseArgs = {
+        buttonComponent: () => null,
+        suggestionsComponent: () => null,
+        hintsComponent: () => null,
+        action: jest.fn(),
+    };
+
+    test.each([
+        {name: 'defaults priority to 0', args: baseArgs, expected: 0},
+        {name: 'stores the given priority', args: {...baseArgs, priority: 10}, expected: 10},
+    ])('$name', ({args, expected}) => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents(args);
+
+        const [button] = mockCurrentStore.getState().components.SearchButtons;
+        expect(button).toMatchObject({id, pluginId: 'test_plugin', priority: expected});
+    });
+
+    test('unregisterComponent removes the button, suggestions and hints', () => {
+        const registry = new PluginRegistry('test_plugin');
+        const id = registry.registerSearchComponents({...baseArgs, priority: 10});
+
+        registry.unregisterComponent(id);
+
+        const {components} = mockCurrentStore.getState();
+        expect(components.SearchButtons).toHaveLength(0);
+        expect(components.SearchSuggestions).toHaveLength(0);
+        expect(components.SearchHints).toHaveLength(0);
     });
 });
 

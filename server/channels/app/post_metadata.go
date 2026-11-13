@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/oembed"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
 
@@ -38,6 +41,81 @@ type linkMetadataCache struct {
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
+
+const (
+	// maxEmojiNamesPerPost is the number of distinct emoji names a single post contributes to
+	// an emoji lookup. It matches the maximum the emoji-by-names API accepts for one request.
+	maxEmojiNamesPerPost = 200
+
+	// maxChannelMentionsPerPost is the number of distinct channel mentions resolved for a
+	// single post.
+	maxChannelMentionsPerPost = 200
+)
+
+// channelMentionResolver memoizes the team and channel lookups made while sanitizing channel
+// mentions, batching each post's names per team so a request looks up every name at most once
+// however many of its posts mention it. It must not outlive a single request and is not safe
+// for concurrent use.
+type channelMentionResolver struct {
+	store    store.Store
+	teams    map[string]*model.Team
+	channels map[string]map[string]*model.Channel
+}
+
+func newChannelMentionResolver(s store.Store) *channelMentionResolver {
+	return &channelMentionResolver{
+		store:    s,
+		teams:    make(map[string]*model.Team),
+		channels: make(map[string]map[string]*model.Channel),
+	}
+}
+
+// channelsForTeam returns the channels of the named team known to the resolver, keyed by
+// channel name, after fetching any of the given names not looked up yet. Names that do not
+// exist map to nil.
+func (r *channelMentionResolver) channelsForTeam(rctx request.CTX, teamName string, channelNames []string) map[string]*model.Channel {
+	team, ok := r.teams[teamName]
+	if !ok {
+		var err error
+		if team, err = r.store.Team().GetByName(teamName); err != nil {
+			team = nil
+		}
+		r.teams[teamName] = team
+	}
+	if team == nil {
+		return nil
+	}
+
+	known, ok := r.channels[team.Id]
+	if !ok {
+		known = make(map[string]*model.Channel)
+		r.channels[team.Id] = known
+	}
+
+	var missing []string
+	for _, name := range channelNames {
+		if _, ok := known[name]; !ok {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) == 0 {
+		return known
+	}
+
+	// The channel cache stays off so renames and archives are seen on the next read.
+	channels, err := r.store.Channel().GetByNamesIncludeDeleted(team.Id, missing, false)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get mentioned channels", mlog.String("team_id", team.Id), mlog.Err(err))
+	}
+	for _, name := range missing {
+		known[name] = nil
+	}
+	for _, channel := range channels {
+		known[channel.Name] = channel
+	}
+
+	return known
+}
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -372,6 +450,10 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 }
 
 func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, bool, *model.AppError) {
+	return a.sanitizePostMetadataForUser(rctx, post, userID, newChannelMentionResolver(a.Srv().Store()))
+}
+
+func (a *App) sanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string, mentions *channelMentionResolver) (*model.Post, bool, *model.AppError) {
 	isMemberForPreviews := true
 
 	// Sanitize permalink embeds based on permissions (only if present)
@@ -399,11 +481,11 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 
 	// Sanitize channel mentions based on permissions
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
-	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
+	post = a.sanitizeChannelMentionsForUser(rctx, post, userID, mentions)
 
 	// Permalink previews embed the referenced post verbatim, so its channel mentions
 	// need the same treatment as the parent post's.
-	a.sanitizeEmbeddedChannelMentionsForUser(rctx, post, userID)
+	a.sanitizeEmbeddedChannelMentionsForUser(rctx, post, userID, mentions)
 
 	// Strip file attachments denied by ABAC — covers both the post and permalink embeds.
 	if post.Metadata != nil {
@@ -416,7 +498,7 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 // sanitizeChannelMentionsForUser filters channel mentions in post props based on the viewer's
 // permissions. Only channels the user has permission to read will be included in the returned post.
 // This prevents information disclosure of private channel names/metadata.
-func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) *model.Post {
+func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string, mentions *channelMentionResolver) *model.Post {
 	channelMentionsProp := post.GetProp(model.PostPropsChannelMentions)
 	if channelMentionsProp == nil {
 		return post
@@ -427,10 +509,16 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 		return post
 	}
 
-	sanitized := make(map[string]any)
+	// A post contributes a fixed number of mentions to resolve. The names are sorted first so
+	// the set considered for a given post is stable.
+	channelNames := slices.Sorted(maps.Keys(mentionsMap))
+	if len(channelNames) > maxChannelMentionsPerPost {
+		channelNames = channelNames[:maxChannelMentionsPerPost]
+	}
 
-	for channelName, data := range mentionsMap {
-		dataMap, ok := data.(map[string]any)
+	channelNamesByTeam := make(map[string][]string)
+	for _, channelName := range channelNames {
+		dataMap, ok := mentionsMap[channelName].(map[string]any)
 		if !ok {
 			continue
 		}
@@ -443,25 +531,33 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 			continue
 		}
 
-		// Fetch the channel from database (gets fresh data)
-		channel, err := a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
+		channelNamesByTeam[teamName] = append(channelNamesByTeam[teamName], channelName)
+	}
 
-		if err != nil {
-			// Channel not found or error fetching, skip
-			continue
-		}
+	sanitized := make(map[string]any)
 
-		// Resolve the channel mention if the viewer may see the channel's name/link.
-		if a.HasPermissionToResolveChannelMention(rctx, userID, channel) {
-			// User has permission - include in sanitized props with fresh display_name
-			// Reuse team_name from original props to avoid additional DB query
-			// (team renames are extremely rare and don't warrant the performance cost)
-			sanitized[channelName] = map[string]any{
-				"display_name": channel.DisplayName, // Fresh from database (handles channel renames)
-				"team_name":    teamName,            // Reused from props (avoids team lookup)
+	for teamName, teamChannelNames := range channelNamesByTeam {
+		// Fresh from the database, so channel renames are reflected
+		channels := mentions.channelsForTeam(rctx, teamName, teamChannelNames)
+
+		for _, channelName := range teamChannelNames {
+			channel := channels[channelName]
+			if channel == nil {
+				continue
 			}
+
+			// Resolve the channel mention if the viewer may see the channel's name/link.
+			if a.HasPermissionToResolveChannelMention(rctx, userID, channel) {
+				// User has permission - include in sanitized props with fresh display_name
+				// Reuse team_name from original props to avoid additional DB query
+				// (team renames are extremely rare and don't warrant the performance cost)
+				sanitized[channelName] = map[string]any{
+					"display_name": channel.DisplayName, // Fresh from database (handles channel renames)
+					"team_name":    teamName,            // Reused from props (avoids team lookup)
+				}
+			}
+			// Otherwise, omit from props (no information disclosure)
 		}
-		// Otherwise, omit from props (no information disclosure)
 	}
 
 	// Update post props with sanitized mentions
@@ -476,7 +572,7 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 
 // sanitizeEmbeddedChannelMentionsForUser filters the channel mentions of posts embedded as
 // permalink previews, so that a preview cannot disclose channels the viewer may not resolve.
-func (a *App) sanitizeEmbeddedChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) {
+func (a *App) sanitizeEmbeddedChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string, mentions *channelMentionResolver) {
 	if post.Metadata == nil {
 		return
 	}
@@ -499,7 +595,7 @@ func (a *App) sanitizeEmbeddedChannelMentionsForUser(rctx request.CTX, post *mod
 		// embed.Data points into the global link-metadata cache; writing through the
 		// shared *PreviewPost pointer would corrupt it for concurrent requests.
 		previewPostCopy := *previewPost
-		previewPostCopy.Post = a.sanitizeChannelMentionsForUser(rctx, previewPost.Post.Clone(), userID)
+		previewPostCopy.Post = a.sanitizeChannelMentionsForUser(rctx, previewPost.Post.Clone(), userID, mentions)
 		embed.Data = &previewPostCopy
 	}
 }
@@ -616,8 +712,9 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, bool, *model.AppError) {
 	clonedPostList := postList.Clone()
 	allPreviewsHaveMembership := true
+	mentions := newChannelMentionResolver(a.Srv().Store())
 	for postID, post := range clonedPostList.Posts {
-		sanitizedPost, isMember, err := a.SanitizePostMetadataForUser(rctx, post, userID)
+		sanitizedPost, isMember, err := a.sanitizePostMetadataForUser(rctx, post, userID, mentions)
 		if err != nil {
 			return nil, false, err
 		}
@@ -814,7 +911,13 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction, mmBlock
 	for _, reaction := range reactions {
 		names = append(names, reaction.EmojiName)
 	}
-	return model.RemoveDuplicateStrings(names)
+
+	names = model.RemoveDuplicateStrings(names)
+	if len(names) > maxEmojiNamesPerPost {
+		names = names[:maxEmojiNamesPerPost]
+	}
+
+	return names
 }
 
 func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {

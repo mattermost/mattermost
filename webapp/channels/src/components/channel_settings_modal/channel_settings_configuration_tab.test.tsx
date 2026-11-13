@@ -12,6 +12,7 @@ import useChannelClassificationBanner from 'components/common/hooks/useChannelCl
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -184,6 +185,26 @@ describe('ChannelSettingsConfigurationTab', () => {
         // Check that the color picker has the correct value
         expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
         expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
+    });
+
+    it('says board rather than channel for a board', () => {
+        renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                canManageJoinLeaveMessages={true}
+                canManageSharedChannels={true}
+            />,
+            boardChannelsState(mockChannel.id),
+        );
+
+        expect(screen.getByText('Board Banner')).toBeInTheDocument();
+        expect(screen.getByText('When enabled, a customized banner will display at the top of the board.')).toBeInTheDocument();
+        expect(screen.getByText(/join and leave system messages are shown in this board for all users/)).toBeInTheDocument();
+        expect(screen.getByText('Collaborate with trusted organizations in this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Banner')).not.toBeInTheDocument();
+        expect(screen.queryByText('When enabled, a customized banner will display at the top of the channel.')).not.toBeInTheDocument();
+        expect(screen.queryByText(/shown in this channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText('Collaborate with trusted organizations in this channel.')).not.toBeInTheDocument();
     });
 
     it('should show banner settings when toggle is clicked', async () => {
@@ -632,9 +653,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
             await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
 
+            // The menu item's onClick only runs once the menu's exit transition finishes,
+            // which can take longer than the default timeout on a loaded CI runner.
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
-            });
+            }, {timeout: 5000});
 
             expect(await screen.findByRole('button', {name: 'Save'})).toBeInTheDocument();
         });

@@ -67,7 +67,8 @@ export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtende
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+            targetType: TARGET_TYPE,
             perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
         });
         for (const field of fields.filter((f) => f.name === name && f.delete_at === 0)) {
@@ -83,7 +84,8 @@ export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, n
  * if it is missing. Used to inspect the saved graph payload after a UI save.
  */
 export async function getGlobalAttributeFieldByName(adminClient: Client4, name: string) {
-    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+        targetType: TARGET_TYPE,
         perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
     });
     return fields.find((f) => f.name === name && f.delete_at === 0);
@@ -142,7 +144,8 @@ export async function getGlobalAttributeFieldOptions(adminClient: Client4, field
  */
 export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient: Client4, name: string) {
     try {
-        const templates = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+        const templates = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, {
+            targetType: TARGET_TYPE,
             perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
         });
         for (const template of templates.filter((field) => field.name === name && field.delete_at === 0)) {
@@ -237,7 +240,8 @@ export async function fetchLinkedFieldsForTemplate(
 ): Promise<PropertyField[]> {
     const results = await Promise.all(
         ALL_RESOURCE_OBJECT_TYPES.map((objectType) =>
-            adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, undefined, {
+            adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {
+                targetType: TARGET_TYPE,
                 perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
             }),
         ),

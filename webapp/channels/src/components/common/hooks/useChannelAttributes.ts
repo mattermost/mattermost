@@ -68,8 +68,7 @@ export default function useChannelAttributes(): ChannelAttributesState {
         dispatch(fetchPropertyFields(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CHANNEL_OBJECT_TYPE,
-            SYSTEM_TARGET_TYPE,
-            SYSTEM_TARGET_ID,
+            {targetType: SYSTEM_TARGET_TYPE, targetId: SYSTEM_TARGET_ID},
         )).then((result) => {
             if (current) {
                 setStatus(result?.error ? 'failed' : 'loaded');

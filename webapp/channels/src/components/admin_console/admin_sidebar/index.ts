@@ -7,7 +7,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {getPlugins} from 'mattermost-redux/actions/admin';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -33,7 +32,6 @@ function mapStateToProps(state: GlobalState) {
     const isUserFirstAdmin = isFirstAdmin(state);
     const isMobileView = getIsMobileView(state);
     const showTaskList = isUserFirstAdmin && taskListStatus && !isMobileView;
-    const subscriptionProduct = getSubscriptionProduct(state);
 
     return {
         license,
@@ -46,7 +44,6 @@ function mapStateToProps(state: GlobalState) {
         consoleAccess,
         cloud: state.entities.cloud,
         showTaskList,
-        subscriptionProduct,
         isCurrentUserSystemAdmin: isCurrentUserSystemAdmin(state),
     };
 }

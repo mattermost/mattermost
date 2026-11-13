@@ -66,9 +66,17 @@ export {
     installAndEnablePlugin,
     getPluginStatus,
     isPluginActive,
+    buildWebappPluginBundle,
+    ensureTestWebappPlugins,
+    postAuthTestPluginId,
+    preAuthTestPluginId,
+    removeTestWebappPlugins,
+    testWebappPluginMarkerTestId,
+    testWebappPluginRoute,
 } from './server';
 export type {
     EnsureDemoPluginOptions,
+    WebappPluginBundleOptions,
     InbucketEmail,
     LdapUser,
     KeycloakUser,

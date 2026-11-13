@@ -206,6 +206,15 @@ func TestNodeSectionAvailability(t *testing.T) {
 	ok, err := node.SectionErr(model.SectionSAMLProbe)
 	require.True(t, ok)
 	require.Equal(t, nodeErr, err)
+
+	_, ok = node.SectionDiag(model.SectionLDAPProbe)
+	assert.True(t, ok)
+	_, ok = node.SectionDiag(model.SectionSAMLProbe)
+	assert.False(t, ok)
+	_, ok = node.SectionDiag(model.SectionSMTPProbe)
+	assert.True(t, ok, "an absent section entry counts as clean")
+	_, ok = (&NodeSnapshot{CollectErr: ErrNodeNoReply}).SectionDiag(model.SectionLDAPProbe)
+	assert.False(t, ok)
 }
 
 func TestNodeSectionErrUncoveredNodeReportsAbsent(t *testing.T) {

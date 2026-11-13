@@ -85,6 +85,10 @@ test(
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.channelDisplayModeEditButton);
 
+        // # Press Tab to move focus to Collapse category with unread channels button
+        await page.keyboard.press('Tab');
+        await pw.toBeFocusedWithFocusVisible(displaySettings.collapseCategoryWithUnreadsEditButton);
+
         // # Press Tab to move focus to Quick reactions button
         await page.keyboard.press('Tab');
         await pw.toBeFocusedWithFocusVisible(displaySettings.oneClickReactionsEditButton);
@@ -167,6 +171,9 @@ test(
             - text: /.+/
             - heading "Channel Display" [level=4]
             - button "Channel Display Edit": Edit
+            - text: /.+/
+            - heading "Collapse category with unread channels" [level=4]
+            - button "Collapse category with unread channels Edit": Edit
             - text: /.+/
             - heading "Quick reactions on messages" [level=4]
             - button "Quick reactions on messages Edit": Edit

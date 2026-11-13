@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {RequestStatus, Stats} from '../constants';
+import {General, RequestStatus, Stats} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 const NO_GROUPS_RESPONSE = {count: 0, groups: []};
@@ -38,6 +38,53 @@ describe('Actions.Admin', () => {
 
     afterAll(() => {
         TestHelper.tearDown();
+    });
+
+    it('getLogs', async () => {
+        let body;
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (b) => {
+                body = b;
+                return true;
+            }).
+            query({page: 0, logs_per_page: General.LOGS_PAGE_SIZE_DEFAULT}).
+            reply(200, {default: [{level: 'info', msg: 'Websocket closed'}]});
+
+        await store.dispatch(Actions.getLogs({serverNames: ['default'], logLevels: [], dateFrom: '', dateTo: '', search: 'websocket'}));
+
+        expect(body).toEqual({server_names: ['default'], log_levels: [], date_from: '', date_to: '', search: 'websocket'});
+        expect(store.getState().entities.admin.logs).toEqual({default: [{level: 'info', msg: 'Websocket closed'}]});
+    });
+
+    it('getLogs drops an aborted request without storing or reporting it', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/logs/query').
+            query(true).
+            delay(1000).
+            reply(200, {default: [{level: 'info', msg: 'stale'}]});
+
+        const controller = new AbortController();
+        const result = store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: ''}, controller.signal));
+        controller.abort();
+
+        expect((await result).error).toBeTruthy();
+        expect(store.getState().entities.admin.logs).toEqual({});
+        expect(store.getState().errors).toEqual([]);
+    });
+
+    it('getLogs sends field filters', async () => {
+        let body;
+        nock(Client4.getBaseRoute()).
+            post('/logs/query', (b) => {
+                body = b;
+                return true;
+            }).
+            query(true).
+            reply(200, {default: []});
+
+        await store.dispatch(Actions.getLogs({serverNames: [], logLevels: [], dateFrom: '', dateTo: '', fields: {plugin_id: ['github', 'mattermost-ai']}}));
+
+        expect(body).toEqual({server_names: [], log_levels: [], date_from: '', date_to: '', search: '', fields: {plugin_id: ['github', 'mattermost-ai']}});
     });
 
     it('getPlainLogs', async () => {
@@ -65,9 +112,11 @@ describe('Actions.Admin', () => {
         const entry = (msg: string) => ({caller: '', job_id: '', level: 'info', msg, timestamp: '2026-10-28 10:00:01.000 Z', worker: ''});
         nock(Client4.getBaseRoute()).
             post('/logs/query').
+            query({page: 0, logs_per_page: General.LOGS_PAGE_SIZE_DEFAULT}).
             reply(200, {'node-a': [entry('a1')]});
         nock(Client4.getBaseRoute()).
             post('/logs/query').
+            query({page: 0, logs_per_page: General.LOGS_PAGE_SIZE_DEFAULT}).
             reply(200, {'node-a': [entry('a1'), entry('a2')], 'node-b': [entry('b1')]});
 
         const filter = {serverNames: [], logLevels: [], dateFrom: '', dateTo: ''};

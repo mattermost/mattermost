@@ -17,6 +17,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import Scrollbars from 'components/common/scrollbars';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import AddTeamButton from 'components/team_sidebar/components/add_team_button';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -251,18 +252,9 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
 
         const joinableTeams = [];
 
-        const plusIcon = (
-            <i
-                className='icon icon-plus'
-                role={'img'}
-                aria-label={intl.formatMessage({id: 'sidebar.team_menu.button.plusIcon', defaultMessage: 'Plus Icon'})}
-            />
-        );
-
         if (this.props.moreTeamsToJoin && !this.props.experimentalPrimaryTeam) {
             joinableTeams.push(
-                <TeamButton
-                    btnClass='team-btn__add'
+                <AddTeamButton
                     key='more_teams'
                     url='/select_team'
                     tip={
@@ -271,12 +263,11 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                             defaultMessage='Other teams you can join'
                         />
                     }
-                    content={plusIcon}
-                    switchTeam={this.props.actions.switchTeam}
-                    displayName={intl.formatMessage({
+                    label={intl.formatMessage({
                         id: 'team_sidebar.join',
                         defaultMessage: 'Other teams you can join',
                     })}
+                    switchTeam={this.props.actions.switchTeam}
                 />,
             );
         } else {
@@ -285,8 +276,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                     permissions={[Permissions.CREATE_TEAM]}
                     key='more_teams'
                 >
-                    <TeamButton
-                        btnClass='team-btn__add'
+                    <AddTeamButton
                         url='/create_team'
                         tip={
                             <FormattedMessage
@@ -294,12 +284,11 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                                 defaultMessage='Create a Team'
                             />
                         }
-                        content={plusIcon}
-                        switchTeam={this.props.actions.switchTeam}
-                        displayName={intl.formatMessage({
+                        label={intl.formatMessage({
                             id: 'navbar_dropdown.create',
                             defaultMessage: 'Create a Team',
                         })}
+                        switchTeam={this.props.actions.switchTeam}
                     />
                 </SystemPermissionGate>,
             );

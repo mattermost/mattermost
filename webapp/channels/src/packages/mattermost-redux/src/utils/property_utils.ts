@@ -101,20 +101,37 @@ export function isPropertyValueSet(raw: unknown): boolean {
     return !(Array.isArray(raw) && raw.length === 0);
 }
 
-function getFieldOptions(field: PropertyField): PropertyFieldOption[] {
+// A field's option list, or an empty one. attrs is loosely typed, so every
+// caller would otherwise repeat the same cast; an absent list and an empty list
+// are not distinguishable on the wire, so both read as empty here.
+export function getPropertyFieldOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-// The server normalises rank fields to a contiguous 1..N, so the positional
-// fallback only covers option lists cached before that ran.
+// Only a stored rank counts. The server refuses a rank field whose options lack
+// one and fails closed when a change-policy check meets one, so no position is
+// invented here either; such options can only come from a stale cache.
+function getStoredRank(option: PropertyFieldOption): number | undefined {
+    return typeof option.rank === 'number' ? option.rank : undefined;
+}
+
 export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
-    const options = getFieldOptions(field);
-    const index = options.findIndex((option) => option.id === optionId);
-    if (index < 0) {
-        return undefined;
-    }
-    const {rank} = options[index];
-    return typeof rank === 'number' ? rank : index + 1;
+    const option = getPropertyFieldOptions(field).find((candidate) => candidate.id === optionId);
+    return option ? getStoredRank(option) : undefined;
+}
+
+// Highest rank first; unranked options last. Equal ranks keep their stored order.
+export function sortOptionsByRank<T extends PropertyFieldOption>(options: readonly T[]): T[] {
+    const rankOf = (option: T) => getStoredRank(option) ?? -Infinity;
+
+    return [...options].sort((a, b) => {
+        const rankA = rankOf(a);
+        const rankB = rankOf(b);
+        if (rankA === rankB) {
+            return 0;
+        }
+        return rankB > rankA ? 1 : -1;
+    });
 }
 
 /**
@@ -157,10 +174,12 @@ export function canMoveToOption(field: PropertyField, currentValue: unknown, opt
 // heading ("Classification"), not the slug.
 const CLASSIFICATION_FIELD_NAME = 'classification';
 
-function formatPropertyFieldLabel(name: string): string {
+// Title-cases an internal name so it reads as a heading. Also used directly by
+// the Manage Attributes page, which renders a field's slug as a page heading.
+export function formatPropertyFieldLabel(name: string): string {
     const trimmed = name.trim();
     if (!trimmed) {
-        return name;
+        return trimmed;
     }
     return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }

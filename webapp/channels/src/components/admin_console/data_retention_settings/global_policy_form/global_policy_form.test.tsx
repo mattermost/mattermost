@@ -32,7 +32,9 @@ describe('components/PluginManagement', () => {
         const {container} = renderWithContext(<GlobalPolicyForm {...props}/>);
 
         expect(screen.getByText('Global Retention Policy')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Global retention policy'})).toBeInTheDocument();
         expect(screen.getByText('Applies to all teams and channels, but does not apply to custom retention policies.')).toBeInTheDocument();
+        expect(container.querySelector('#global_policy.AdminPanel')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 });

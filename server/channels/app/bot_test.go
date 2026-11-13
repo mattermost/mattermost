@@ -4,16 +4,20 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -1420,5 +1424,497 @@ func TestIsBotExemptFromDMRestrictions(t *testing.T) {
 		exempt, appErr = th.App.IsBotExemptFromDMRestrictions(rctx, systemBot.UserId)
 		require.Nil(t, appErr)
 		assert.True(t, exempt)
+	})
+}
+
+// TestBotStoreErrorClassification covers the store-error branches rewritten to
+// errors.AsType. A typed error is recognized through wrapping, an earlier type
+// wins when an error matches more than one, a store *AppError is returned as-is,
+// and any other error falls through to the generic one.
+func TestBotStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	requireMapped := func(t *testing.T, got *model.AppError, id string, status int, cause error) {
+		t.Helper()
+		require.NotNil(t, got)
+		assert.Equal(t, id, got.Id)
+		assert.Equal(t, status, got.StatusCode)
+		assert.ErrorIs(t, got, cause)
+	}
+
+	var userBinding, botBinding, channelBinding *mock.Call
+	bind := func(userStore *storemocks.UserStore, botStore *storemocks.BotStore, channelStore *storemocks.ChannelStore) {
+		t.Helper()
+		if userBinding != nil {
+			userBinding.Unset()
+			userBinding = nil
+		}
+		if botBinding != nil {
+			botBinding.Unset()
+			botBinding = nil
+		}
+		if channelBinding != nil {
+			channelBinding.Unset()
+			channelBinding = nil
+		}
+		if userStore != nil {
+			userBinding = mockStore.On("User").Return(userStore)
+		}
+		if botStore != nil {
+			botBinding = mockStore.On("Bot").Return(botStore)
+		}
+		if channelStore != nil {
+			channelBinding = mockStore.On("Channel").Return(channelStore)
+		}
+	}
+
+	useUserService := func(t *testing.T, userStore store.UserStore) {
+		t.Helper()
+		srv := th.App.Srv()
+		original := srv.userService
+		t.Cleanup(func() {
+			srv.userService = original
+		})
+		us, err := users.New(users.ServiceConfig{
+			UserStore:    userStore,
+			SessionStore: &storemocks.SessionStore{},
+			OAuthStore:   &storemocks.OAuthStore{},
+			ConfigFn:     srv.Platform().Config,
+			LicenseFn:    srv.License,
+		})
+		require.NoError(t, err)
+		srv.userService = us
+	}
+
+	expectUserCache := func(userStore *storemocks.UserStore, channelStore *storemocks.ChannelStore) {
+		userStore.On("InvalidateProfilesInChannelCacheByUser", mock.Anything).Return().Maybe()
+		userStore.On("InvalidateProfileCacheForUser", mock.Anything).Return().Maybe()
+		channelStore.On("InvalidateAllChannelMembersForUser", mock.Anything).Return().Maybe()
+	}
+
+	storeAppErr := func() *model.AppError {
+		return model.NewAppError("store", "custom.bot.app_error", nil, "", http.StatusTeapot)
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+	notFound := func(id string) error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("Bot", id))
+	}
+	newBot := func() *model.Bot {
+		return &model.Bot{
+			Username:    "validbot",
+			Description: "a bot",
+			OwnerId:     model.NewId(),
+		}
+	}
+	savedUser := func(id string) *model.User {
+		return &model.User{Id: id, Username: "validbot"}
+	}
+
+	t.Run("CreateBot user save", func(t *testing.T) {
+		inv := store.NewErrInvalidInput("User", "username", "validbot")
+		sent := storeAppErr().Wrap(inv)
+		userStore := &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bind(userStore, nil, nil)
+		bot, got := th.App.CreateBot(th.Context, newBot())
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		for _, tc := range []struct {
+			field string
+			id    string
+		}{
+			{field: "email", id: "app.user.save.email_exists.app_error"},
+			{field: "username", id: "app.user.save.username_exists.app_error"},
+			{field: "nickname", id: "app.user.save.existing.app_error"},
+		} {
+			cause := fmt.Errorf("save: %w", store.NewErrInvalidInput("User", tc.field, "x"))
+			userStore = &storemocks.UserStore{}
+			userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+			bind(userStore, nil, nil)
+			_, got = th.App.CreateBot(th.Context, newBot())
+			requireMapped(t, got, tc.id, http.StatusBadRequest, cause)
+		}
+
+		cause := plain()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+		bind(userStore, nil, nil)
+		_, got = th.App.CreateBot(th.Context, newBot())
+		requireMapped(t, got, "app.user.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("CreateBot bot save", func(t *testing.T) {
+		userID := model.NewId()
+		sent := storeAppErr()
+		userStore := &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return(savedUser(userID), nil).Once()
+		userStore.On("PermanentDelete", mock.Anything, userID).Return(nil).Once()
+		botStore := &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return((*model.Bot)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bind(userStore, botStore, nil)
+		bot, got := th.App.CreateBot(th.Context, newBot())
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return(savedUser(userID), nil).Once()
+		userStore.On("PermanentDelete", mock.Anything, userID).Return(nil).Once()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return((*model.Bot)(nil), cause).Once()
+		bind(userStore, botStore, nil)
+		_, got = th.App.CreateBot(th.Context, newBot())
+		requireMapped(t, got, "app.bot.createbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("CreateBot owner lookup", func(t *testing.T) {
+		userID := model.NewId()
+		saved := &model.Bot{UserId: userID, Username: "validbot"}
+		cause := notFound(model.NewId())
+		userStore := &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return(savedUser(userID), nil).Once()
+		userStore.On("Get", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+		botStore := &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return(saved, nil).Once()
+		bind(userStore, botStore, nil)
+		bot, got := th.App.CreateBot(th.Context, newBot())
+		require.Nil(t, got)
+		require.Same(t, saved, bot)
+
+		cause = plain()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return(savedUser(userID), nil).Once()
+		userStore.On("Get", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return(saved, nil).Once()
+		bind(userStore, botStore, nil)
+		bot, got = th.App.CreateBot(th.Context, newBot())
+		require.Nil(t, bot)
+		requireMapped(t, got, "app.user.get.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetOrCreateSystemOwnedBot user save", func(t *testing.T) {
+		admin := &model.User{Id: model.NewId(), Username: "admin"}
+		prepare := func(userStore *storemocks.UserStore) {
+			t.Helper()
+			userStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{admin}, nil).Once()
+			userStore.On("GetByUsername", "validbot").Return((*model.User)(nil), store.NewErrNotFound("User", "validbot")).Once()
+			bind(userStore, nil, nil)
+			useUserService(t, userStore)
+		}
+
+		sent := storeAppErr().Wrap(store.NewErrInvalidInput("User", "username", "validbot"))
+		userStore := &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), fmt.Errorf("save: %w", sent)).Once()
+		prepare(userStore)
+		bot, got := th.App.GetOrCreateSystemOwnedBot(th.Context, "validbot", "Valid Bot")
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		for _, tc := range []struct {
+			field string
+			id    string
+		}{
+			{field: "email", id: "app.user.save.email_exists.app_error"},
+			{field: "username", id: "app.user.save.username_exists.app_error"},
+			{field: "nickname", id: "app.user.save.existing.app_error"},
+		} {
+			cause := fmt.Errorf("save: %w", store.NewErrInvalidInput("User", tc.field, "x"))
+			userStore = &storemocks.UserStore{}
+			userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+			prepare(userStore)
+			_, got = th.App.GetOrCreateSystemOwnedBot(th.Context, "validbot", "Valid Bot")
+			requireMapped(t, got, tc.id, http.StatusBadRequest, cause)
+		}
+
+		cause := plain()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Save", mock.Anything, mock.Anything).Return((*model.User)(nil), cause).Once()
+		prepare(userStore)
+		_, got = th.App.GetOrCreateSystemOwnedBot(th.Context, "validbot", "Valid Bot")
+		requireMapped(t, got, "app.user.save.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetOrCreateSystemOwnedBot bot save", func(t *testing.T) {
+		admin := &model.User{Id: model.NewId(), Username: "admin"}
+		userID := model.NewId()
+		prepare := func(userStore *storemocks.UserStore, botStore *storemocks.BotStore) {
+			t.Helper()
+			userStore.On("GetAllProfiles", mock.Anything).Return([]*model.User{admin}, nil).Once()
+			userStore.On("GetByUsername", "validbot").Return((*model.User)(nil), store.NewErrNotFound("User", "validbot")).Once()
+			userStore.On("Save", mock.Anything, mock.Anything).Return(savedUser(userID), nil).Once()
+			userStore.On("PermanentDelete", mock.Anything, userID).Return(nil).Once()
+			bind(userStore, botStore, nil)
+			useUserService(t, userStore)
+		}
+
+		sent := storeAppErr()
+		userStore := &storemocks.UserStore{}
+		botStore := &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return(&model.Bot{UserId: userID}, fmt.Errorf("save: %w", sent)).Once()
+		prepare(userStore, botStore)
+		bot, got := th.App.GetOrCreateSystemOwnedBot(th.Context, "validbot", "Valid Bot")
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		userStore = &storemocks.UserStore{}
+		botStore = &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return(&model.Bot{UserId: userID}, cause).Once()
+		prepare(userStore, botStore)
+		_, got = th.App.GetOrCreateSystemOwnedBot(th.Context, "validbot", "Valid Bot")
+		requireMapped(t, got, "app.bot.createbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	patchable := func(id string) *model.Bot {
+		return &model.Bot{UserId: id, Username: "validbot", Description: "a bot", OwnerId: model.NewId()}
+	}
+	patch := &model.BotPatch{Username: new("validbot2")}
+
+	t.Run("PatchBot user get", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := notFound(botUserID)
+		botStore := &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+		userStore := &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, botUserID).Return((*model.User)(nil), cause).Once()
+		bind(userStore, botStore, nil)
+		bot, got := th.App.PatchBot(th.Context, botUserID, patch)
+		require.Nil(t, bot)
+		requireMapped(t, got, MissingAccountError, http.StatusNotFound, cause)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, botUserID).Return((*model.User)(nil), cause).Once()
+		bind(userStore, botStore, nil)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.user.get.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("PatchBot user update", func(t *testing.T) {
+		botUserID := model.NewId()
+		prepare := func(updateErr error) {
+			t.Helper()
+			botStore := &storemocks.BotStore{}
+			botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+			userStore := &storemocks.UserStore{}
+			userStore.On("Get", mock.Anything, botUserID).Return(savedUser(botUserID), nil).Once()
+			userStore.On("Update", mock.Anything, mock.Anything, true).Return((*model.UserUpdate)(nil), updateErr).Once()
+			bind(userStore, botStore, nil)
+		}
+
+		sent := storeAppErr().Wrap(store.NewErrConflict("Username", errors.New("dup"), "validbot2"))
+		prepare(fmt.Errorf("update: %w", sent))
+		bot, got := th.App.PatchBot(th.Context, botUserID, patch)
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		cause := fmt.Errorf("update: %w", store.NewErrInvalidInput("User", "username", "validbot2"))
+		prepare(cause)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.user.update.find.app_error", http.StatusBadRequest, cause)
+
+		cause = fmt.Errorf("update: %w", store.NewErrConflict("Username", errors.New("dup"), "validbot2"))
+		prepare(cause)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.user.save.username_exists.app_error", http.StatusBadRequest, cause)
+
+		cause = fmt.Errorf("update: %w", store.NewErrConflict("Email", errors.New("dup"), "validbot2@localhost"))
+		prepare(cause)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.user.save.email_exists.app_error", http.StatusBadRequest, cause)
+
+		cause = plain()
+		prepare(cause)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.user.update.finding.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("PatchBot bot update", func(t *testing.T) {
+		botUserID := model.NewId()
+		updated := savedUser(botUserID)
+		prepare := func(updateErr error) {
+			t.Helper()
+			botStore := &storemocks.BotStore{}
+			botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+			botStore.On("Update", mock.Anything).Return((*model.Bot)(nil), updateErr).Once()
+			userStore := &storemocks.UserStore{}
+			userStore.On("Get", mock.Anything, botUserID).Return(savedUser(botUserID), nil).Once()
+			userStore.On("Update", mock.Anything, mock.Anything, true).Return(&model.UserUpdate{Old: updated, New: updated}, nil).Once()
+			channelStore := &storemocks.ChannelStore{}
+			expectUserCache(userStore, channelStore)
+			bind(userStore, botStore, channelStore)
+		}
+
+		nf := store.NewErrNotFound("Bot", botUserID)
+		sent := storeAppErr().Wrap(nf)
+		prepare(fmt.Errorf("update: %w", sent))
+		bot, got := th.App.PatchBot(th.Context, botUserID, patch)
+		require.Nil(t, bot)
+		requireMapped(t, got, "store.sql_bot.get.missing.app_error", http.StatusNotFound, nf)
+		assert.Equal(t, "SqlBotStore.Get", got.Where)
+		require.NotSame(t, sent, got)
+
+		sent = storeAppErr()
+		prepare(fmt.Errorf("update: %w", sent))
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		prepare(cause)
+		_, got = th.App.PatchBot(th.Context, botUserID, patch)
+		requireMapped(t, got, "app.bot.patchbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("GetBot", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := notFound(botUserID)
+		botStore := &storemocks.BotStore{}
+		botStore.On("Get", botUserID, false).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		bot, got := th.App.GetBot(th.Context, botUserID, false)
+		require.Nil(t, bot)
+		requireMapped(t, got, "store.sql_bot.get.missing.app_error", http.StatusNotFound, cause)
+		assert.Equal(t, "SqlBotStore.Get", got.Where)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Get", botUserID, false).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		_, got = th.App.GetBot(th.Context, botUserID, false)
+		requireMapped(t, got, "app.bot.getbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("UpdateBotActive bot get", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := notFound(botUserID)
+		botStore := &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		bot, got := th.App.UpdateBotActive(th.Context, botUserID, true)
+		require.Nil(t, bot)
+		requireMapped(t, got, "store.sql_bot.get.missing.app_error", http.StatusNotFound, cause)
+		assert.Equal(t, "SqlBotStore.Get", got.Where)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		_, got = th.App.UpdateBotActive(th.Context, botUserID, true)
+		requireMapped(t, got, "app.bot.getbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("UpdateBotActive user get", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := notFound(botUserID)
+		botStore := &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+		userStore := &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, botUserID).Return((*model.User)(nil), cause).Once()
+		bind(userStore, botStore, nil)
+		bot, got := th.App.UpdateBotActive(th.Context, botUserID, true)
+		require.Nil(t, bot)
+		requireMapped(t, got, MissingAccountError, http.StatusNotFound, cause)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+		userStore = &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, botUserID).Return((*model.User)(nil), cause).Once()
+		bind(userStore, botStore, nil)
+		_, got = th.App.UpdateBotActive(th.Context, botUserID, true)
+		requireMapped(t, got, "app.user.get.app_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("PermanentDeleteBot", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := fmt.Errorf("delete: %w", store.NewErrInvalidInput("Bot", "UserId", botUserID))
+		botStore := &storemocks.BotStore{}
+		botStore.On("PermanentDelete", botUserID).Return(cause).Once()
+		bind(nil, botStore, nil)
+		got := th.App.PermanentDeleteBot(th.Context, botUserID)
+		requireMapped(t, got, "app.bot.permenent_delete.bad_id", http.StatusBadRequest, cause)
+		assert.Equal(t, "PermanentDeleteBot", got.Where)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("PermanentDelete", botUserID).Return(cause).Once()
+		bind(nil, botStore, nil)
+		got = th.App.PermanentDeleteBot(th.Context, botUserID)
+		requireMapped(t, got, "app.bot.permanent_delete.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("UpdateBotOwner get", func(t *testing.T) {
+		botUserID := model.NewId()
+		cause := notFound(botUserID)
+		botStore := &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		bot, got := th.App.UpdateBotOwner(th.Context, botUserID, model.NewId())
+		require.Nil(t, bot)
+		requireMapped(t, got, "store.sql_bot.get.missing.app_error", http.StatusNotFound, cause)
+		assert.Equal(t, "SqlBotStore.Get", got.Where)
+
+		cause = plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Get", botUserID, true).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		_, got = th.App.UpdateBotOwner(th.Context, botUserID, model.NewId())
+		requireMapped(t, got, "app.bot.getbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("UpdateBotOwner update", func(t *testing.T) {
+		botUserID := model.NewId()
+		prepare := func(updateErr error) {
+			t.Helper()
+			botStore := &storemocks.BotStore{}
+			botStore.On("Get", botUserID, true).Return(patchable(botUserID), nil).Once()
+			botStore.On("Update", mock.Anything).Return((*model.Bot)(nil), updateErr).Once()
+			bind(nil, botStore, nil)
+		}
+
+		nf := store.NewErrNotFound("Bot", botUserID)
+		sent := storeAppErr().Wrap(nf)
+		prepare(fmt.Errorf("update: %w", sent))
+		bot, got := th.App.UpdateBotOwner(th.Context, botUserID, model.NewId())
+		require.Nil(t, bot)
+		requireMapped(t, got, "store.sql_bot.get.missing.app_error", http.StatusNotFound, nf)
+		assert.Equal(t, "SqlBotStore.Get", got.Where)
+		require.NotSame(t, sent, got)
+
+		sent = storeAppErr()
+		prepare(fmt.Errorf("update: %w", sent))
+		_, got = th.App.UpdateBotOwner(th.Context, botUserID, model.NewId())
+		require.Same(t, sent, got)
+
+		cause := plain()
+		prepare(cause)
+		_, got = th.App.UpdateBotOwner(th.Context, botUserID, model.NewId())
+		requireMapped(t, got, "app.bot.patchbot.internal_error", http.StatusInternalServerError, cause)
+	})
+
+	t.Run("ConvertUserToBot", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Username: "validbot"}
+		sent := storeAppErr()
+		botStore := &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return((*model.Bot)(nil), fmt.Errorf("save: %w", sent)).Once()
+		bind(nil, botStore, nil)
+		bot, got := th.App.ConvertUserToBot(th.Context, user)
+		require.Nil(t, bot)
+		require.Same(t, sent, got)
+
+		cause := plain()
+		botStore = &storemocks.BotStore{}
+		botStore.On("Save", mock.Anything).Return((*model.Bot)(nil), cause).Once()
+		bind(nil, botStore, nil)
+		_, got = th.App.ConvertUserToBot(th.Context, user)
+		requireMapped(t, got, "app.bot.createbot.internal_error", http.StatusInternalServerError, cause)
 	})
 }

@@ -286,7 +286,7 @@ describe('ClassificationAttribute', () => {
         // scopes the linked-field lookup lists (that call passes no target id,
         // unlike the by-name channel lookup), so the template's channel field
         // really does come back and really is being excluded below.
-        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.anything());
+        expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system'}));
 
         const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
         expect(rows).toHaveLength(1);
@@ -360,7 +360,7 @@ describe('ClassificationAttribute', () => {
         // has failed -- waiting on the page alone would make the "no read-only rows"
         // assertion below a statement about the state the page starts in.
         await waitFor(() => {
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system'}));
         });
         await act(async () => {});
 

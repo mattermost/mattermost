@@ -47,6 +47,38 @@ func (_m *PolicyAdministrationPointInterface) CheckExpression(rctx request.CTX, 
 	return r0, r1
 }
 
+// CheckMembershipExpression provides a mock function with given fields: rctx, expression
+func (_m *PolicyAdministrationPointInterface) CheckMembershipExpression(rctx request.CTX, expression string) ([]model.CELExpressionError, *model.AppError) {
+	ret := _m.Called(rctx, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckMembershipExpression")
+	}
+
+	var r0 []model.CELExpressionError
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]model.CELExpressionError, *model.AppError)); ok {
+		return rf(rctx, expression)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []model.CELExpressionError); ok {
+		r0 = rf(rctx, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.CELExpressionError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DeletePolicy provides a mock function with given fields: rctx, id
 func (_m *PolicyAdministrationPointInterface) DeletePolicy(rctx request.CTX, id string) *model.AppError {
 	ret := _m.Called(rctx, id)

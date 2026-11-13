@@ -19,39 +19,7 @@ import {
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
 
-// Raw fetch wrapper — returns status + body so tests can assert on both success and rejection
-// without doFetch swallowing the error.
-async function addTeamMemberRaw(
-    token: string | null,
-    baseRoute: string,
-    teamId: string,
-    userId: string,
-): Promise<{status: number; body: any}> {
-    const res = await fetch(`${baseRoute}/teams/${teamId}/members`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
-        body: JSON.stringify({team_id: teamId, user_id: userId}),
-    });
-    let body: any = {};
-    try {
-        body = await res.json();
-    } catch {
-        // empty body is fine
-    }
-    return {status: res.status, body};
-}
-
-// Log in via raw REST to obtain the user's OWN session token, so a self-join can be
-// attempted with the requesting user's session rather than the admin's (which would
-// bypass the attribute gate). The token is returned in the response 'Token' header.
-async function loginRaw(baseRoute: string, loginId: string, password: string): Promise<string> {
-    const res = await fetch(`${baseRoute}/users/login`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({login_id: loginId, password}),
-    });
-    return res.headers.get('Token') ?? '';
-}
+import {addTeamMemberRaw, loginRaw} from './helpers';
 
 test.describe('ABAC - Join enforcement gate (API level)', {tag: ['@abac', '@team_membership']}, () => {
     test.setTimeout(120000);

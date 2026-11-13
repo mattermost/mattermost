@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {
     canMoveToOption,
+    formatPropertyFieldLabel,
     getOptionRank,
     getPropertyFieldChangePolicy,
     getPropertyFieldLabel,
+    getPropertyFieldOptions,
     getPropertyFieldSyncSources,
-    isPropertyFieldSynced,
-    isPropertyFieldSyncedForAuthService,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
     isPropertyFieldSourceManaged,
+    isPropertyFieldSynced,
+    isPropertyFieldSyncedForAuthService,
     isPropertyValueSet,
     isPSAv1PropertyField,
+    sortOptionsByRank,
 } from './property_utils';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -203,6 +206,38 @@ describe('getPropertyFieldLabel', () => {
     });
 });
 
+// Also the Manage Attributes page heading, which renders a field's slug directly.
+describe('formatPropertyFieldLabel', () => {
+    test('title-cases the first letter so internal names read as headings', () => {
+        expect(formatPropertyFieldLabel('classification')).toBe('Classification');
+        expect(formatPropertyFieldLabel('  department')).toBe('Department');
+    });
+
+    test('leaves an already-capitalized display name unchanged', () => {
+        expect(formatPropertyFieldLabel('Test Attribute')).toBe('Test Attribute');
+    });
+
+    test('returns an empty string when the name is blank', () => {
+        expect(formatPropertyFieldLabel('   ')).toBe('');
+        expect(formatPropertyFieldLabel('')).toBe('');
+    });
+});
+
+describe('getPropertyFieldOptions', () => {
+    test('returns the field\'s options', () => {
+        const options = [{id: 'a', name: 'A'}];
+        expect(getPropertyFieldOptions(makeField({attrs: {options}}))).toBe(options);
+    });
+
+    // An absent list and an empty one are not distinguishable on the wire, so
+    // both read as empty rather than as undefined.
+    test('returns an empty array when the field declares no options', () => {
+        expect(getPropertyFieldOptions(makeField())).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {}}))).toEqual([]);
+        expect(getPropertyFieldOptions(makeField({attrs: {options: []}}))).toEqual([]);
+    });
+});
+
 function makeRankField(policy?: string): PropertyField {
     return makeField({
         type: 'rank',
@@ -257,14 +292,75 @@ describe('getOptionRank', () => {
         expect(getOptionRank(makeRankField(), 'mid')).toBe(2);
     });
 
-    test('falls back to position for options cached before the server normalised them', () => {
-        const field = makeField({type: 'rank', attrs: {options: [{id: 'a', name: 'A'}, {id: 'b', name: 'B'}]}});
-        expect(getOptionRank(field, 'a')).toBe(1);
+    test('returns undefined for an option without a stored rank', () => {
+        const field = makeField({type: 'rank', attrs: {options: [{id: 'a', name: 'A'}, {id: 'b', name: 'B', rank: 2}]}});
+        expect(getOptionRank(field, 'a')).toBeUndefined();
         expect(getOptionRank(field, 'b')).toBe(2);
     });
 
     test('returns undefined for an option that is no longer on the field', () => {
         expect(getOptionRank(makeRankField(), 'gone')).toBeUndefined();
+    });
+});
+
+describe('sortOptionsByRank', () => {
+    const ids = (options: PropertyFieldOption[]) => options.map((o) => o.id);
+
+    test('puts the highest rank first', () => {
+        const options: PropertyFieldOption[] = [
+            {id: 'low', name: 'Low', rank: 1},
+            {id: 'top', name: 'Top', rank: 3},
+            {id: 'mid', name: 'Mid', rank: 2},
+        ];
+
+        expect(ids(sortOptionsByRank(options))).toEqual(['top', 'mid', 'low']);
+    });
+
+    test('puts unranked options last, keeping their stored order', () => {
+        const options: PropertyFieldOption[] = [
+            {id: 'u1', name: 'U1'},
+            {id: 'low', name: 'Low', rank: 1},
+            {id: 'u2', name: 'U2'},
+            {id: 'top', name: 'Top', rank: 3},
+        ];
+
+        expect(ids(sortOptionsByRank(options))).toEqual(['top', 'low', 'u1', 'u2']);
+    });
+
+    test('treats rank 0 as ranked: below positive ranks, above unranked', () => {
+        const options: PropertyFieldOption[] = [
+            {id: 'u', name: 'U'},
+            {id: 'zero', name: 'Zero', rank: 0},
+            {id: 'one', name: 'One', rank: 1},
+        ];
+
+        expect(ids(sortOptionsByRank(options))).toEqual(['one', 'zero', 'u']);
+    });
+
+    test('keeps the stored order of equal ranks', () => {
+        const options: PropertyFieldOption[] = [
+            {id: 'a', name: 'A', rank: 2},
+            {id: 'b', name: 'B', rank: 2},
+            {id: 'c', name: 'C', rank: 5},
+        ];
+
+        expect(ids(sortOptionsByRank(options))).toEqual(['c', 'a', 'b']);
+    });
+
+    test('returns a new array and leaves the input untouched', () => {
+        const options: PropertyFieldOption[] = [
+            {id: 'low', name: 'Low', rank: 1},
+            {id: 'top', name: 'Top', rank: 3},
+        ];
+
+        const sorted = sortOptionsByRank(options);
+
+        expect(sorted).not.toBe(options);
+        expect(ids(options)).toEqual(['low', 'top']);
+    });
+
+    test('returns an empty array for no options', () => {
+        expect(sortOptionsByRank([])).toEqual([]);
     });
 });
 
@@ -296,5 +392,23 @@ describe('canMoveToOption', () => {
 
     test('fails closed when the stored option is gone', () => {
         expect(canMoveToOption(makeRankField('raise_only'), 'deleted-option', 'high')).toBe(false);
+    });
+
+    test('fails closed when either option has no stored rank', () => {
+        const field = makeField({
+            type: 'rank',
+            attrs: {
+                change_policy: 'raise_only',
+                options: [
+                    {id: 'low', name: 'LOW', rank: 1},
+                    {id: 'odd', name: 'ODD'},
+                    {id: 'high', name: 'HIGH', rank: 3},
+                ],
+            },
+        });
+
+        expect(canMoveToOption(field, 'low', 'odd')).toBe(false);
+        expect(canMoveToOption(field, 'odd', 'high')).toBe(false);
+        expect(canMoveToOption(field, 'low', 'high')).toBe(true);
     });
 });

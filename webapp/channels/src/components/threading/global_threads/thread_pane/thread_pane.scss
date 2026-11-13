@@ -13,7 +13,7 @@
         justify-content: space-between;
         padding: 12px 16px;
         border-bottom: var(--border-default);
-        gap: 4px;
+        gap: var(--spacing-xxxs, 4px);
         grid-area: header;
 
         --button-separator-height: 24px;
@@ -81,10 +81,6 @@
         .btn[aria-expanded="true"] {
             border-radius: 4px;
             box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
-        }
-
-        .PopoutButton {
-            margin-left: 4px;
         }
     }
 

@@ -16,6 +16,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
+import {chipRemove} from 'components/property_fields/hierarchical_value_menu/hierarchical_value_menu_test_helpers';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
@@ -906,8 +907,7 @@ describe('SystemUserDetail', () => {
                 renderWithField(field, 'opt-1');
                 await waitForLoadingToFinish();
 
-                const select = within(cpaField()).getByRole('combobox');
-                await userEvent.selectOptions(select, '');
+                await userEvent.click(screen.getByTestId('user-detail-custom-attribute-combobox-cpa-1-clear'));
 
                 expect(fieldAlert()).toHaveTextContent(REQUIRED);
                 expect(saveButton()).toBeDisabled();
@@ -922,7 +922,7 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
 
                 expect(within(cpaField()).queryByRole('alert')).not.toBeInTheDocument();
-                await userEvent.click(within(cpaField()).getByRole('button', {name: 'Remove One'}));
+                await userEvent.click(cpaField().querySelector<HTMLElement>('[data-chip-remove]')!);
 
                 expect(fieldAlert()).toHaveTextContent(REQUIRED);
                 expect(saveButton()).toBeDisabled();
@@ -1332,8 +1332,10 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(fieldContainer()).toHaveTextContent('Alpha');
-                expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
+                const chips = Array.from(fieldContainer().querySelectorAll('[data-chip]'));
+                expect(chips.map((chip) => chip.textContent)).toEqual(['Alpha']);
+                expect(fieldContainer().querySelector('[data-chip-remove]')).toBeNull();
+                expect(within(fieldContainer()).getByRole('combobox')).toBeDisabled();
             });
 
             test('an editable multiselect keeps its remove buttons', async () => {
@@ -1342,7 +1344,9 @@ describe('SystemUserDetail', () => {
 
                 await waitForLoadingToFinish();
 
-                expect(screen.getByRole('button', {name: 'Remove Alpha'})).toBeInTheDocument();
+                const chip = Array.from(fieldContainer().querySelectorAll('[data-chip]')).find((el) => el.textContent === 'Alpha');
+                expect(chip?.querySelector('[data-chip-remove]')).toBeInTheDocument();
+                expect(within(fieldContainer()).getByRole('combobox')).toBeEnabled();
             });
 
             test('G17: opens the menu when the field label is clicked', async () => {
@@ -1368,7 +1372,7 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
                 expect(trigger()).toHaveTextContent('Alpha');
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha'})));
 
                 expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
                 expect(trigger()).not.toHaveTextContent('Alpha');
@@ -1385,7 +1389,7 @@ describe('SystemUserDetail', () => {
 
                 // Menu stays open after select, so the trigger (and its chip X)
                 // is aria-hidden behind the popover. The X must still work.
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha', hidden: true}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha', hidden: true})));
 
                 expect(screen.queryByRole('button', {name: 'Remove Alpha', hidden: true})).toBeNull();
                 expect(trigger()).not.toHaveTextContent('Alpha');
@@ -1403,6 +1407,37 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
 
                 expect(screen.getByRole('button', {name: 'department'})).toBe(trigger());
+            });
+
+            test('G23: marks the picker invalid and links it to the error when a required graph field is cleared', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(
+                    buildGraphField({options: REGIME_1, required: true} as Partial<UserPropertyField['attrs']>),
+                    ['opt-1'],
+                );
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+                expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).not.toHaveAttribute('aria-describedby');
+
+                await userEvent.click(chipRemove(trigger()));
+
+                const alert = within(fieldContainer()).getByRole('alert');
+                expect(alert).toHaveTextContent('This attribute is required.');
+                expect(alert).toHaveAttribute('id', 'cpa-1-error');
+                expect(trigger()).toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).toHaveAttribute('aria-describedby', 'cpa-1-error');
+                expect(trigger()).not.toHaveAttribute('aria-invalid');
+
+                // Closed before the assertions: an open popover aria-hides the alert.
+                await openMenu();
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Alpha'}));
+                await closeMenu();
+
+                expect(within(fieldContainer()).queryByRole('alert')).not.toBeInTheDocument();
+                expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+                expect(trigger()).not.toHaveAttribute('aria-describedby');
             });
 
             test('G19: says "Value unavailable" on both surfaces when the walk failed', async () => {
@@ -1426,7 +1461,7 @@ describe('SystemUserDetail', () => {
                 // modal reachable with nothing resolved.
                 const removes = await screen.findAllByRole('button', {name: 'Remove value'});
                 expect(removes).toHaveLength(2);
-                await userEvent.click(removes[0]);
+                await userEvent.click(chipRemove(removes[0]));
 
                 // Checked before Save: the confirm modal aria-hides the page
                 // behind it, so the chips stop being reachable by role once it
@@ -1471,7 +1506,7 @@ describe('SystemUserDetail', () => {
                 expect(trigger()).toHaveTextContent('ghost-1');
                 expect(await screen.findByRole('button', {name: 'Remove ghost-1'})).toBeInTheDocument();
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');
@@ -1497,7 +1532,7 @@ describe('SystemUserDetail', () => {
                 await waitFor(() => expect(trigger()).toHaveTextContent('ghost-1'));
                 expect(trigger()).not.toHaveTextContent('Value unavailable');
 
-                await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
+                await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove ghost-1'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');
@@ -1519,7 +1554,7 @@ describe('SystemUserDetail', () => {
             const addGammaAndSave = async () => {
                 const picker = within(fieldContainer()).getByRole('combobox');
                 await userEvent.click(picker);
-                await userEvent.click(await screen.findByText('Gamma'));
+                await userEvent.click(await screen.findByRole('option', {name: 'Gamma'}));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
                 return screen.findByTestId('changesList');
             };

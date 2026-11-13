@@ -433,6 +433,38 @@ describe('PerformanceReporter.sendReport content-type', () => {
     });
 });
 
+describe('PerformanceReporter INP labels', () => {
+    function reportINP(attribution?: {interactionType?: string}) {
+        const {reporter} = newTestReporter();
+        const internals = reporter as unknown as {
+            handleWebVital: (metric: unknown) => void;
+            histogramMeasures: Array<{metric: string; value: number; labels?: Record<string, string>}>;
+        };
+
+        internals.handleWebVital({name: 'INP', value: 200, attribution});
+
+        return internals.histogramMeasures;
+    }
+
+    test('should label INP with the interaction type when it is available', () => {
+        const measures = reportINP({interactionType: 'pointer'});
+
+        expect(measures).toHaveLength(1);
+        expect(measures[0]).toMatchObject({metric: 'INP', value: 200, labels: {interaction: 'pointer'}});
+    });
+
+    test.each([
+        ['attribution is missing', undefined],
+        ['interactionType is undefined', {}],
+    ])('should not add labels to INP when %s', (_, attribution) => {
+        const measures = reportINP(attribution);
+
+        expect(measures).toHaveLength(1);
+        expect(measures[0].metric).toBe('INP');
+        expect(measures[0].labels).toBeUndefined();
+    });
+});
+
 class TestPerformanceReporter extends PerformanceReporter {
     public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;

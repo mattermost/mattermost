@@ -25,6 +25,20 @@ describe('ChannelActivityWarningModal', () => {
         expect(screen.getByText(/I acknowledge this change will expose/)).toBeInTheDocument();
     });
 
+    test('says board rather than channel for a board', () => {
+        renderWithContext(
+            <ChannelActivityWarningModal
+                {...defaultProps}
+                channelKind='board'
+            />,
+        );
+
+        expect(screen.getByText('Exposing board history')).toBeInTheDocument();
+        expect(screen.getByText('I acknowledge this change will expose all historical board messages to more users')).toBeInTheDocument();
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+        expect(screen.queryByText(/historical channel messages/)).not.toBeInTheDocument();
+    });
+
     test('should not render modal when isOpen is false', () => {
         renderWithContext(
             <ChannelActivityWarningModal

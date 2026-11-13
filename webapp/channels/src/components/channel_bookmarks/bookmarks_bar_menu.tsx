@@ -4,6 +4,7 @@
 import {dropTargetForElements} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
 import {
@@ -11,14 +12,23 @@ import {
     PaperclipIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import {getChannelBookmarksMenuPluginComponents} from 'selectors/plugins';
+
 import * as Menu from 'components/menu';
+
+import type {GlobalState} from 'types/store';
 
 import {useBookmarkAddActions} from './channel_bookmarks_menu';
 import OverflowBookmarkItem from './overflow_bookmark_item';
 import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
+
+const BookmarksBarIconMenuTrigger = Menu.createMenuIconButtonTrigger({
+    size: 'x-small',
+});
 
 interface BookmarksBarMenuProps {
     channelId: string;
@@ -54,6 +64,7 @@ function BookmarksBarMenu({
     const {formatMessage} = useIntl();
     const triggerRef = useRef<HTMLDivElement>(null);
     const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(channelId);
+    const pluginItems = useSelector((state: GlobalState) => getChannelBookmarksMenuPluginComponents(state, channelId));
 
     const hasOverflow = overflowItems.length > 0;
 
@@ -104,35 +115,24 @@ function BookmarksBarMenu({
         return null;
     }
 
-    // Button content
-    let buttonContent;
-    let buttonClass = 'channelBookmarksBarMenuButton';
-
-    if (hasOverflow) {
-        buttonContent = (
-            <>
-                <PlusIcon size={16}/>
-                <OverflowCount>{overflowItems.length}</OverflowCount>
-            </>
-        );
-    } else if (hasBookmarks) {
-        buttonContent = <PlusIcon size={18}/>;
-    } else {
-        buttonClass += ' withLabel';
-        buttonContent = (
-            <ButtonContent>
-                <PlusIcon size={16}/>
-                <span>
-                    {formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'})}
-                </span>
-            </ButtonContent>
-        );
-    }
-
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
     const limitReachedLabel = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add more than {limit} bookmarks'}, {limit: MAX_BOOKMARKS_PER_CHANNEL});
+
+    // Icon-only / overflow use Compass IconButton; the empty-state control keeps a
+    // labeled chip because it is not icon-only.
+    const useIconButtonTrigger = hasOverflow || hasBookmarks;
+    const buttonContent = useIconButtonTrigger ? (
+        <Icon glyph={<PlusIcon/>}/>
+    ) : (
+        <ButtonContent>
+            <PlusIcon size={16}/>
+            <span>
+                {addBookmarkLabel}
+            </span>
+        </ButtonContent>
+    );
 
     // Build menu items as a flat array to avoid Fragment children warning from MUI
     const menuItems: React.ReactNode[] = [];
@@ -200,6 +200,28 @@ function BookmarksBarMenu({
                 />,
             );
         }
+        pluginItems.forEach((item) => {
+            const pluginLabels = limitReached ? (
+                <>
+                    <span>{item.text}</span>
+                    <span>{limitReachedLabel}</span>
+                </>
+            ) : <span>{item.text}</span>;
+            menuItems.push(
+                <Menu.Item
+                    key={`channelBookmarksPlugin_${item.id}`}
+                    id={`channelBookmarksPlugin_${item.id}`}
+                    onClick={() => {
+                        if (!limitReached) {
+                            item.action(channelId);
+                        }
+                    }}
+                    disabled={limitReached}
+                    leadingElement={item.icon}
+                    labels={pluginLabels}
+                />,
+            );
+        });
     }
 
     let overflowLabel = '';
@@ -218,7 +240,9 @@ function BookmarksBarMenu({
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 menuButton={{
                     id: 'channelBookmarksBarMenuButton',
-                    class: buttonClass,
+                    class: useIconButtonTrigger ? undefined : 'channelBookmarksBarMenuButton withLabel',
+                    as: useIconButtonTrigger ? BookmarksBarIconMenuTrigger : undefined,
+                    count: hasOverflow ? overflowItems.length : undefined,
                     children: buttonContent,
                     'aria-label': overflowLabel || addBookmarkLabel,
                 }}
@@ -252,10 +276,5 @@ const ButtonContent = styled.div`
     display: flex;
     align-items: center;
     gap: 4px;
-`;
-
-const OverflowCount = styled.span`
-    font-variant-numeric: tabular-nums;
-    min-width: 1em;
 `;
 

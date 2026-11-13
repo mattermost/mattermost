@@ -5,7 +5,7 @@ import React from 'react';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {renderWithContext, screen, act, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, act, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import PermissionTeamSchemeSettings from './permission_team_scheme_settings';
 
@@ -354,36 +354,43 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(channelAdminPanel).not.toHaveClass('closed');
         expect(teamAdminPanel).not.toHaveClass('closed');
 
+        // Compass AdminPanel toggles via the expand/collapse header control, not the title text.
+        const togglePanel = async (panel: Element | null) => {
+            const collapseButton = within(panel as HTMLElement).queryByRole('button', {name: 'Collapse section'});
+            const expandButton = within(panel as HTMLElement).queryByRole('button', {name: 'Expand section'});
+            await userEvent.click((collapseButton ?? expandButton)!);
+        };
+
         // Toggle guests closed
-        await userEvent.click(screen.getByText('Guests'));
+        await togglePanel(guestsPanel);
         expect(guestsPanel).toHaveClass('closed');
 
         // Toggle guests open
-        await userEvent.click(screen.getByText('Guests'));
+        await togglePanel(guestsPanel);
         expect(guestsPanel).not.toHaveClass('closed');
 
         // Toggle all_users closed
-        await userEvent.click(screen.getByText('All Members'));
+        await togglePanel(allUsersPanel);
         expect(allUsersPanel).toHaveClass('closed');
 
         // Toggle all_users open
-        await userEvent.click(screen.getByText('All Members'));
+        await togglePanel(allUsersPanel);
         expect(allUsersPanel).not.toHaveClass('closed');
 
         // Toggle channel_admin closed
-        await userEvent.click(screen.getByText('Channel Administrators'));
+        await togglePanel(channelAdminPanel);
         expect(channelAdminPanel).toHaveClass('closed');
 
         // Toggle channel_admin open
-        await userEvent.click(screen.getByText('Channel Administrators'));
+        await togglePanel(channelAdminPanel);
         expect(channelAdminPanel).not.toHaveClass('closed');
 
         // Toggle team_admin closed
-        await userEvent.click(screen.getByText('Team Administrators'));
+        await togglePanel(teamAdminPanel);
         expect(teamAdminPanel).toHaveClass('closed');
 
         // Toggle team_admin open
-        await userEvent.click(screen.getByText('Team Administrators'));
+        await togglePanel(teamAdminPanel);
         expect(teamAdminPanel).not.toHaveClass('closed');
     });
 

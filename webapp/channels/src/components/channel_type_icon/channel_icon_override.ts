@@ -4,6 +4,7 @@
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import type {Channel} from '@mattermost/types/channels';
 
+import {findMatchingRegistration} from 'utils/channel_matchers';
 import {getChannelIconClassName} from 'utils/channel_utils';
 import {createPluginErrorLog} from 'utils/plugin_error_log';
 
@@ -33,17 +34,8 @@ export function getChannelIconOverrideForChannel(
     if (!channel) {
         return null;
     }
-    const overrides = state.plugins.components.ChannelIconOverride ?? [];
-    for (const entry of overrides) {
-        try {
-            if (entry.matcher(state, channel) === true) {
-                return entry.iconName;
-            }
-        } catch (err) {
-            matcherErrorLog.logOnce(entry.pluginId, err);
-        }
-    }
-    return null;
+    const override = findMatchingRegistration(state, channel, state.plugins.components.ChannelIconOverride, matcherErrorLog);
+    return override?.iconName ?? null;
 }
 
 /**

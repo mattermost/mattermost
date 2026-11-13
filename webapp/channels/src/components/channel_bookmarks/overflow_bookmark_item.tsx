@@ -120,6 +120,7 @@ function OverflowBookmarkItem({
                     bookmark={bookmark}
                     open={openBookmark}
                     buttonClassName='channelBookmarksDotMenuButton--overflow'
+                    isInOverflowMenu={true}
                     onBeforeAction={handleNavigate}
                     onMenuKeyDown={handleDotMenuKeyDown}
                 />
