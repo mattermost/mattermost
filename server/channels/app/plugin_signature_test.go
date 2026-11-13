@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/dsa" //nolint:staticcheck // DSA keys are generated only to verify they are rejected
+	"crypto/fips140"
 	"crypto/rand"
 	"os"
 	"path/filepath"
@@ -301,7 +302,7 @@ func TestVerifyBinarySignatureRejectsWeakKeys(t *testing.T) {
 	})
 
 	t.Run("DSA is rejected", func(t *testing.T) {
-		if model.FIPSEnabled {
+		if fips140.Enabled() {
 			t.Skip("skipping under FIPS: crypto/dsa refuses to generate keys in FIPS 140 mode")
 		}
 
