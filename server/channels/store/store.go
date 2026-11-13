@@ -1234,6 +1234,7 @@ type PropertyFieldStore interface {
 	CountLinkedFields(fieldID string) (int64, error)
 	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
 	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetDeletedOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
 	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
 	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
 	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
@@ -1269,6 +1270,20 @@ type PropertyFieldStore interface {
 type PropertyValueKey struct {
 	FieldID  string
 	TargetID string
+}
+
+// PostValueScope narrows a count of property values to those on live posts.
+type PostValueScope struct {
+	// ChannelID keeps only posts in this channel; empty keeps every channel.
+	ChannelID string
+	// ChannelFieldID names a channel field whose value the post's channel must
+	// hold (ChannelValue) or must not hold (ChannelValue empty); empty skips
+	// the check.
+	ChannelFieldID string
+	// ChannelValue is the JSON string value ChannelFieldID must equal on the
+	// post's channel; empty keeps the posts whose channel holds no non-empty
+	// value of ChannelFieldID.
+	ChannelValue string
 }
 
 type PropertyValueStore interface {
@@ -1308,6 +1323,13 @@ type PropertyValueStore interface {
 	// template together with the fields linking to it to cover every value
 	// that points at the template's options.
 	GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error)
+	// CountValuesOutsideOptions counts the live, non-empty values of a field
+	// that name an option outside optionIDs: a string value whose text is not
+	// listed, an array with an element that is not listed, or any other
+	// non-empty value. It returns that count and the target IDs of up to
+	// examples of them, lowest first. A nil scope counts every value of the
+	// field; a scope counts only values on live posts that match it.
+	CountValuesOutsideOptions(groupID, fieldID string, optionIDs []string, scope *PostValueScope, examples int) (int64, []string, error)
 }
 
 type AccessControlPolicyStore interface {

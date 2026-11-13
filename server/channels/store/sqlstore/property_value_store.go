@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -497,6 +498,87 @@ func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs 
 	}
 
 	return ids, nil
+}
+
+// nonEmptyValueSQL is true for a value that is not empty: the same set
+// model.IsEmptyPropertyValue treats as empty (null, "" and []) is excluded.
+const nonEmptyValueSQL = `(%[1]s.Value IS NOT NULL AND jsonb_typeof(%[1]s.Value) <> 'null' AND %[1]s.Value NOT IN ('""'::jsonb, '[]'::jsonb))`
+
+func (s *SqlPropertyValueStore) CountValuesOutsideOptions(groupID, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+	if fieldID == "" {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "fieldID", fieldID)
+	}
+	if examples < 0 {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "examples", examples)
+	}
+	if scope != nil && scope.ChannelValue != "" && scope.ChannelFieldID == "" {
+		return 0, nil, store.NewErrInvalidInput("PropertyValue", "scope", "channel value without a channel field")
+	}
+
+	// A nil slice would reach the database as NULL, and ANY/ALL over NULL
+	// matches nothing.
+	allowed := pq.Array(append([]string{}, optionIDs...))
+
+	// A string value is outside the set when its text is not listed; an array
+	// when one element is not (a null element is not listed either); anything
+	// else that is not empty, such as a number or an object, names no option.
+	outside := sq.Expr(`CASE jsonb_typeof(pv.Value)
+		WHEN 'string' THEN NOT ((pv.Value #>> '{}') = ANY(?::text[]))
+		WHEN 'array' THEN EXISTS (
+			SELECT 1 FROM jsonb_array_elements_text(pv.Value) AS elem
+			WHERE elem IS NULL OR elem <> ALL(?::text[])
+		)
+		ELSE TRUE
+	END`, allowed, allowed)
+
+	build := func(columns string) sq.SelectBuilder {
+		builder := s.getQueryBuilder().
+			Select(columns).
+			From("PropertyValues pv").
+			Where(sq.Eq{"pv.FieldID": fieldID, "pv.DeleteAt": 0}).
+			Where(fmt.Sprintf(nonEmptyValueSQL, "pv")).
+			Where(outside)
+
+		if groupID != "" {
+			builder = builder.Where(sq.Eq{"pv.GroupID": groupID})
+		}
+
+		if scope != nil {
+			builder = builder.
+				InnerJoin("Posts p ON p.Id = pv.TargetID AND p.DeleteAt = 0")
+			if scope.ChannelID != "" {
+				builder = builder.Where(sq.Eq{"p.ChannelId": scope.ChannelID})
+			}
+			if scope.ChannelFieldID != "" {
+				holds := "SELECT 1 FROM PropertyValues cv WHERE cv.GroupID = pv.GroupID AND cv.TargetID = p.ChannelId AND cv.FieldID = ? AND cv.DeleteAt = 0 AND "
+				if scope.ChannelValue != "" {
+					builder = builder.Where("EXISTS ("+holds+"cv.Value = to_jsonb(?::text))", scope.ChannelFieldID, scope.ChannelValue)
+				} else {
+					builder = builder.Where("NOT EXISTS ("+holds+fmt.Sprintf(nonEmptyValueSQL, "cv")+")", scope.ChannelFieldID)
+				}
+			}
+		}
+
+		return builder
+	}
+
+	// Read from master: the caller decides whether to refuse a change based on
+	// this, so a lagging replica must not hide a value that was just written.
+	var count int64
+	if err := s.GetMaster().GetBuilder(&count, build("COUNT(*)")); err != nil {
+		return 0, nil, errors.Wrap(err, "property_value_count_values_outside_options_count")
+	}
+
+	targets := []string{}
+	if count == 0 || examples == 0 {
+		return count, targets, nil
+	}
+
+	if err := s.GetMaster().SelectBuilder(&targets, build("pv.TargetID").OrderBy("pv.TargetID").Limit(uint64(examples))); err != nil {
+		return 0, nil, errors.Wrap(err, "property_value_count_values_outside_options_examples")
+	}
+
+	return count, targets, nil
 }
 
 func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {

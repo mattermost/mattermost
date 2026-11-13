@@ -11232,6 +11232,27 @@ func (s *RetryLayerPropertyFieldStore) Get(rctx request.CTX, groupID string, id 
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetDeletedOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetDeletedOptionIDs(field, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
 
 	tries := 0
@@ -11898,6 +11919,27 @@ func (s *RetryLayerPropertyGroupStore) SetVersion(name string, version int) erro
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyValueStore) CountValuesOutsideOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.PropertyValueStore.CountValuesOutsideOptions(groupID, fieldID, optionIDs, scope, examples)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

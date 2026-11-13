@@ -9009,6 +9009,22 @@ func (s *TimerLayerPropertyFieldStore) Get(rctx request.CTX, groupID string, id 
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) GetDeletedOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.GetDeletedOptionIDs(field, optionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.GetDeletedOptionIDs", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error) {
 	start := time.Now()
 
@@ -9519,6 +9535,22 @@ func (s *TimerLayerPropertyGroupStore) SetVersion(name string, version int) erro
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.SetVersion", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerPropertyValueStore) CountValuesOutsideOptions(groupID string, fieldID string, optionIDs []string, scope *store.PostValueScope, examples int) (int64, []string, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.PropertyValueStore.CountValuesOutsideOptions(groupID, fieldID, optionIDs, scope, examples)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.CountValuesOutsideOptions", success, elapsed)
+	}
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*model.PropertyValue, error) {
