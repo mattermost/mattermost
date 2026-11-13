@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -39,6 +40,14 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
+}
+
+// Close releases what the plugin registered through this API. The plugin
+// environment calls it once the plugin's process and RPC connection are gone.
+func (api *PluginAPI) Close() error {
+	api.app.ch.unregisterPluginCommands(api.id)
+	entities.RemoveOwner(api.id)
+	return nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
