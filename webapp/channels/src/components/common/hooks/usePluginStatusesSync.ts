@@ -16,11 +16,17 @@ import type {GlobalState} from 'types/store';
 
 const DEBOUNCE_DELAY_MS = 500;
 
+type Options = {
+
+    /** Fetch once on mount, for pages that don't load the statuses themselves. */
+    fetchOnMount?: boolean;
+};
+
 /**
  * Refetches the cluster-wide plugin statuses whenever the server signals that they changed,
  * and returns the current statuses from the store.
  */
-export default function usePluginStatusesSync() {
+export default function usePluginStatusesSync({fetchOnMount = false}: Options = {}) {
     const dispatch = useDispatch();
     const wsClient = useWebSocketClient();
     const pluginStatuses = useSelector((state: GlobalState) => state.entities.admin.pluginStatuses);
@@ -36,6 +42,12 @@ export default function usePluginStatusesSync() {
     }, [debouncedRefetch]);
 
     useWebSocket({handler: handleWebSocketMessage});
+
+    useEffect(() => {
+        if (fetchOnMount) {
+            dispatch(getPluginStatuses());
+        }
+    }, [dispatch, fetchOnMount]);
 
     useEffect(() => {
         wsClient.addReconnectListener(debouncedRefetch);

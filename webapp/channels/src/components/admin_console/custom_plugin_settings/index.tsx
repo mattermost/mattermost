@@ -254,6 +254,6 @@ const ConnectedCustomPluginSettings = connect(makeMapStateToProps)(CustomPluginS
 // Wrap the legacy class-based settings component so it can subscribe to plugin status changes
 // and refetch on demand while the page is mounted.
 export default function CustomPluginSettingsWithStatusesSync(props: React.ComponentProps<typeof ConnectedCustomPluginSettings>) {
-    usePluginStatusesSync();
+    usePluginStatusesSync({fetchOnMount: true});
     return <ConnectedCustomPluginSettings {...props}/>;
 }
