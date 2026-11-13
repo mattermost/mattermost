@@ -301,6 +301,10 @@ func TestVerifyBinarySignatureRejectsWeakKeys(t *testing.T) {
 	})
 
 	t.Run("DSA is rejected", func(t *testing.T) {
+		if model.FIPSEnabled {
+			t.Skip("skipping under FIPS: crypto/dsa refuses to generate keys in FIPS 140 mode")
+		}
+
 		var dsaKey dsa.PrivateKey
 		require.NoError(t, dsa.GenerateParameters(&dsaKey.Parameters, rand.Reader, dsa.L2048N256))
 		require.NoError(t, dsa.GenerateKey(&dsaKey, rand.Reader))
