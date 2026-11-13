@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -100,25 +101,27 @@ func TestLRU(t *testing.T) {
 }
 
 func TestLRUExpire(t *testing.T) {
-	l := NewLRU(&CacheOptions{
-		Size:                   128,
-		DefaultExpiry:          1 * time.Second,
-		InvalidateClusterEvent: "",
+	synctest.Test(t, func(t *testing.T) {
+		l := NewLRU(&CacheOptions{
+			Size:                   128,
+			DefaultExpiry:          1 * time.Second,
+			InvalidateClusterEvent: "",
+		})
+
+		l.SetWithDefaultExpiry("1", 1)
+		l.SetWithExpiry("3", 3, 0*time.Second)
+
+		time.Sleep(time.Second * 2)
+
+		var r1 int
+		err := l.Get("1", &r1)
+		require.Equal(t, err, ErrKeyNotFound, "should not exist")
+
+		var r2 int
+		err2 := l.Get("3", &r2)
+		require.NoError(t, err2, "should exist")
+		require.Equal(t, 3, r2)
 	})
-
-	l.SetWithDefaultExpiry("1", 1)
-	l.SetWithExpiry("3", 3, 0*time.Second)
-
-	time.Sleep(time.Second * 2)
-
-	var r1 int
-	err := l.Get("1", &r1)
-	require.Equal(t, err, ErrKeyNotFound, "should not exist")
-
-	var r2 int
-	err2 := l.Get("3", &r2)
-	require.NoError(t, err2, "should exist")
-	require.Equal(t, 3, r2)
 }
 
 func TestLRUMarshalUnMarshal(t *testing.T) {
