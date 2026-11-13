@@ -57,6 +57,7 @@ REQUIRED_QUERY = {
     "version_go_prs": ("repo", "author", "created_since"),
     "changelog_labels": ("repos", "labels"),
     "holidays_page": ("month", "heading", "min_dates"),
+    "blog_published": ("post_url", "category_url"),
     "e2e_results": ("match_any",),
     "release_tags": ("repos",),
     "changelog_pr": ("state", "repo", "branch", "base_branch", "live_url"),

@@ -24,8 +24,8 @@ class RulesFileTest(unittest.TestCase):
 
     def test_template_matches_the_playbook(self):
         template = rules.load_yaml(rules.TEMPLATE_PATH)
-        self.assertEqual([len(c["items"]) for c in template["checklists"]], [2, 16, 6, 2, 4, 1, 2, 13])
-        self.assertEqual(len(self.titles), 46)
+        self.assertEqual([len(c["items"]) for c in template["checklists"]], [2, 16, 6, 2, 4, 1, 2, 14])
+        self.assertEqual(len(self.titles), 47)
 
     def test_due_days_and_playbook_sections(self):
         sections = [(item["title"], checklist["title"]) for checklist in rules.load_yaml(rules.TEMPLATE_PATH)["checklists"]
@@ -43,6 +43,7 @@ class RulesFileTest(unittest.TestCase):
             "changelog-migrations": ("feature_complete+1", "(T-16) Feature Complete"),
             "changelog-review": ("feature_complete+1", "(T-15) RC-1 Cut & QA Qualification Starts"),
             "changelog-merged": ("release_day", "(T-0) Self-Hosted Release"),
+            "blog-published": ("release_day", "(T-0) Self-Hosted Release"),
             "cherry-picks": ("final_build", "(T-16) Feature Complete"),
             "e2e-results": ("feature_complete+1", "(T-15) RC-1 Cut & QA Qualification Starts"),
             "final-tags": ("final_build", "(T-5) Final Release Cut"),

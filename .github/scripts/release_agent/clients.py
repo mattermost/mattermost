@@ -103,6 +103,18 @@ def fetch_text(url: str, service: str, timeout: int = 30) -> str:
         raise ServiceError(service, None) from None
 
 
+def fetch_url(url: str, service: str, timeout: int = 30) -> tuple[str, str]:
+    """(the URL the page was served from after redirects, its text). An HTTP error, such as a 404,
+    raises ServiceError with its status."""
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url), timeout=timeout) as response:
+            return response.geturl(), response.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as err:
+        raise ServiceError(service, err.code) from None
+    except (urllib.error.URLError, TimeoutError):
+        raise ServiceError(service, None) from None
+
+
 class GitHub:
     def __init__(self, token: str, http: Http | None = None):
         self.http = http or Http("GitHub", "https://api.github.com", {

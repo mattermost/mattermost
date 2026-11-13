@@ -46,6 +46,7 @@ class Services:
     ls_remote: object  # () -> `git ls-remote` output
     confluence: object = None
     fetch_page: object = None  # (url) -> page text, for the live docs page; no token
+    fetch_web: object = None  # (url) -> (served URL, text) of a public mattermost.com page; no token
 
 
 def resolve_mode(requested: str, variable: str) -> str:
@@ -138,7 +139,7 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         has_branch=release.key in branches, rc_numbers=rc_numbers, github=services.github, dev_leads=settings.dev_leads,
         jira=services.jira, hub=services.hub, testing_alerts_channel=settings.testing_alerts_channel,
         confluence=services.confluence, primary=primary, branches=branches, tags=tags,
-        fetch_page=services.fetch_page,
+        fetch_page=services.fetch_page, fetch_web=services.fetch_web,
     )
     for rule in rules["rules"]:
         due = release_calendar.resolve_due(rule["due"], release, holidays)

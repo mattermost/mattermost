@@ -98,14 +98,15 @@
             "release_tags",
             "version_go_prs",
             "changelog_labels",
-            "holidays_page"
+            "holidays_page",
+            "blog_published"
           ]
         },
         "source": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"enum": ["jira", "github", "hub", "confluence", "docs"]}
+          "items": {"enum": ["jira", "github", "hub", "confluence", "docs", "web"]}
         },
         "query": {
           "type": "object",
@@ -137,7 +138,8 @@
             "none_missing",
             "state_reached",
             "described_or_none",
-            "next_year_listed"
+            "next_year_listed",
+            "published"
           ]
         },
         "on_fail": {"enum": ["needs_attention", "log_only", "report"]}

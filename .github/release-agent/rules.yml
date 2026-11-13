@@ -328,6 +328,21 @@ rules:
     pass_when: state_reached
     on_fail: needs_attention
 
+  # The release's blog post, on public pages (no token): its own URL is served, or the releases
+  # category lists a post whose title names vX.Y (12.2, not 12.20 or 12.2.1). A page that can't
+  # be read is "couldn't check", never a pass.
+  - task: blog-published
+    title: Release blog post published
+    playbook_item: Check that the blog post was published…
+    due: release_day
+    type: blog_published
+    source: [web]
+    query:
+      post_url: "https://mattermost.com/blog/mattermost-v{major}-{minor}-is-now-available/"
+      category_url: "https://mattermost.com/blog/category/releases/"
+    pass_when: published
+    on_fail: needs_attention
+
   # No playbook item. generate-changelog.yml adds these labels itself; this is a backstop
   # listing the merged PRs the changelog workflow hasn't labelled yet.
   - task: changelog-labels

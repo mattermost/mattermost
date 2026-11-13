@@ -67,3 +67,4 @@ checklists:
       - title: Update the GitHub server release description/text - keep the text simple (free of markdown and line breaks).
       - title: Publish ESR update comms as needed - instructions.
       - title: Update the Release Highlights deck using the "release-highlights" Claude Cowork skill.
+      - title: Check that the blog post was published at https://mattermost.com/blog/category/releases/.

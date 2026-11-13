@@ -47,7 +47,15 @@ def services(jira=None, confluence=None):
                 checklist_run("run123", "Release: v12.3", "c123", template_items())]
     return agent.Services(github=github, jira=jira or FakeJira(), hub=hub, playbooks=hub,
                           fetch_calendar=lambda: fixture("release-dates.ics"), ls_remote=lambda: LS_REMOTE,
-                          confluence=confluence or FakeConfluence())
+                          confluence=confluence or FakeConfluence(), fetch_web=unpublished_blog)
+
+
+def unpublished_blog(url):
+    """mattermost.com before the release's blog post: its URL is a 404, the category lists older posts."""
+    from release_agent.clients import ServiceError
+    if "/category/" in url:
+        return url, '<a href="https://mattermost.com/blog/mattermost-v12-1-is-now-available/">Mattermost v12.1 is now available</a>'
+    raise ServiceError("mattermost.com", 404)
 
 
 def settings(mode="live", release=""):
@@ -90,6 +98,7 @@ class LiveRunTest(unittest.TestCase):
             "changelog-migrations": "ok",
             "changelog-review": "ok",
             "changelog-merged": "not_due",
+            "blog-published": "not_due",
             "final-tags": "not_due",
             "version-go-prs": "skipped",
             "changelog-labels": "ok",
@@ -116,6 +125,16 @@ class LiveRunTest(unittest.TestCase):
         self.assertEqual(len(replies), 6)
         self.assertTrue(all(r["root_id"] in {p["id"] for p in status} for r in replies))
         self.assertIn("Ticked **Ensure that new NOTICE.txt for any new libraries", "\n".join(r["message"] for r in replies))
+
+    def test_a_published_blog_post_is_ticked_with_a_proof_reply_linking_it(self):
+        svc = services()
+        post = "https://mattermost.com/blog/mattermost-v12-2-is-now-available/"
+        svc.fetch_web = lambda url: (url, "<html></html>")
+        run(svc, today=date(2026, 11, 16))
+        self.assertIn(("run122", "Check that the blog post was published at https://mattermost.com/blog/category/releases/."),
+                      set(svc.hub.closed))
+        reply = next(p["message"] for p in svc.hub.created if p["root_id"] and "blog post" in p["message"])
+        self.assertIn(f"[proof]({post})", reply)
 
     def test_private_details_stay_on_hub(self):
         public = json.dumps(self.body) + step_summary(self.body)
@@ -194,7 +213,7 @@ class LiveRunTest(unittest.TestCase):
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 34)
+        self.assertEqual(self.body["totals"]["checks_run"], 36)
         self.assertEqual(self.body["totals"]["ticked"], 6)
         self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)

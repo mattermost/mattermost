@@ -26,14 +26,15 @@ def release():
 
 def context(github=None, jira=None, hub=None, has_branch=True, rc_numbers=(1, 2), today=date(2026, 11, 4),
             confluence=None, primary=True, page_id="123", rel=None, branches=(), tags=(), fetch_page=None,
-            dev_leads=DEV_LEADS_ROUTES):
+            dev_leads=DEV_LEADS_ROUTES, fetch_web=None):
     rel = rel or release()
     values = {**template_vars(rel, NAMING, list(rc_numbers)), "holidays_page_id": page_id, "next_year": today.year + 1}
     return checks.Context(release=rel, today=today, vars=values,
                           has_branch=has_branch, rc_numbers=list(rc_numbers), github=github or FakeGitHub(),
                           jira=jira or FakeJira(), hub=hub or FakeHub(), testing_alerts_channel="alerts",
                           confluence=confluence or FakeConfluence(), primary=primary,
-                          branches=set(branches), tags=set(tags), fetch_page=fetch_page, dev_leads=dev_leads)
+                          branches=set(branches), tags=set(tags), fetch_page=fetch_page, dev_leads=dev_leads,
+                          fetch_web=fetch_web)
 
 
 def pr(number, title="A change", login="dev", state="closed", merged_at="2026-10-20T10:00:00Z",
@@ -879,6 +880,86 @@ class ChangelogLabelsTest(unittest.TestCase):
 
     def test_none_missing(self):
         self.assertEqual(checks.changelog_labels(context(), RULES["changelog-labels"]).status, checks.PASS)
+
+
+POST_URL = "https://mattermost.com/blog/mattermost-v12-2-is-now-available/"
+CATEGORY_URL = "https://mattermost.com/blog/category/releases/"
+
+
+def blog(post=404, category="", served=None):
+    """mattermost.com: the post's URL answers ``post`` (an HTTP status, 200 served from ``served``),
+    and the releases category page is ``category`` (an HTTP status raises)."""
+    from release_agent.clients import ServiceError
+    asked = []
+
+    def fetch(url):
+        asked.append(url)
+        if url == CATEGORY_URL:
+            if isinstance(category, int):
+                raise ServiceError("mattermost.com", category)
+            return url, category
+        if post != 200:
+            raise ServiceError("mattermost.com", post)
+        return served or url, "<html>the post</html>"
+    fetch.asked = asked
+    return fetch
+
+
+def card(title, href="https://mattermost.com/blog/some-post/"):
+    return f'<article><h2 class="entry-title"><a href="{href}" rel="bookmark">{title}</a></h2></article>'
+
+
+class BlogPublishedTest(unittest.TestCase):
+    def check(self, fetch, today=date(2026, 11, 16)):
+        from release_agent import agent
+        return agent.evaluate(context(fetch_web=fetch, today=today), RULES["blog-published"], date(2026, 11, 16), today)
+
+    def test_the_rule_matches_the_playbook_item_and_is_due_on_release_day(self):
+        rule = RULES["blog-published"]
+        self.assertEqual((rule["playbook_item"], rule["due"], rule["source"]),
+                         ("Check that the blog post was published…", "release_day", ["web"]))
+        self.assertEqual(context().query(rule)["post_url"], POST_URL)
+
+    def test_passes_when_the_posts_url_is_served(self):
+        fetch = blog(post=200)
+        outcome = self.check(fetch)
+        self.assertEqual((outcome.state, outcome.result.summary), ("ok", "Blog post for v12.2 is published"))
+        self.assertEqual(outcome.result.proof_url, POST_URL)  # the proof reply links the post
+        self.assertEqual(fetch.asked, [POST_URL])
+
+    def test_a_redirect_to_another_page_is_not_the_post(self):
+        outcome = self.check(blog(post=200, served="https://mattermost.com/blog/", category=card("Mattermost v12.1 is now available")))
+        self.assertEqual(outcome.state, "needs_attention")
+
+    def test_passes_when_the_category_lists_a_post_naming_the_release(self):
+        href = "https://mattermost.com/blog/v12-2-release/"
+        page = card("Something else") + card("<span>Mattermost&nbsp;v12.2:</span> faster search", href)
+        outcome = self.check(blog(post=404, category=page))
+        self.assertEqual(outcome.state, "ok")
+        self.assertEqual(outcome.result.summary, "Blog post for v12.2 is published: Mattermost v12.2: faster search")
+        self.assertEqual(outcome.result.proof_url, href)
+
+    def test_12_20_and_a_dot_release_dont_name_12_2(self):
+        page = (card("Mattermost v12.20 is now available") + card("Mattermost v12.2.1 security update")
+                + card("Mattermost 112.2 notes") + card("Categories: v12.2", href="https://mattermost.com/blog/category/v12-2/"))
+        outcome = self.check(blog(post=404, category=page))
+        self.assertEqual(outcome.state, "needs_attention")
+        self.assertTrue(checks._names_version("Mattermost 12.2 is here", 12, 2))
+        self.assertFalse(checks._names_version("Mattermost 12.20 is here", 12, 2))
+
+    def test_not_live_on_release_day_needs_attention_with_the_category_link(self):
+        outcome = self.check(blog(post=404, category=card("Mattermost v12.1 is now available")))
+        self.assertEqual((outcome.state, outcome.result.summary), ("needs_attention", "Blog post for v12.2 not published yet"))
+        self.assertEqual([item.url for item in outcome.result.items], [CATEGORY_URL])
+        self.assertEqual(self.check(blog(post=404, category=""), today=date(2026, 11, 13)).state, "not_due")
+
+    def test_a_fetch_error_is_couldnt_check_never_a_pass(self):
+        for fetch in (blog(post=404, category=503), blog(post=500, category=""), blog(post=None, category="")):
+            outcome = self.check(fetch)
+            self.assertEqual(outcome.state, "error")
+            self.assertIn("mattermost.com request failed", outcome.error)
+        # The post's own URL can't be read, but the category lists it: that is evidence enough.
+        self.assertEqual(self.check(blog(post=500, category=card("Mattermost v12.2 is now available"))).state, "ok")
 
 
 if __name__ == "__main__":

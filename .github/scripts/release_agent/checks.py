@@ -6,9 +6,11 @@ titles, owners and links go in ``items``, which are posted to Hub. Items in a pr
 are shown publicly as "(private repo)".
 """
 
+import html
 import json
 import re
 import sys
+import urllib.parse
 from calendar import month_name
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
@@ -71,6 +73,7 @@ class Context:
     branches: set = field(default_factory=set)  # (major, minor) of each release-X.Y branch
     tags: set = field(default_factory=set)  # (major, minor) of each vX.Y.0 tag
     fetch_page: object = None  # (url) -> page text of a public page
+    fetch_web: object = None  # (url) -> (served URL, text) of a public page; HTTP errors raise ServiceError
     dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS: [{teams, username, name}]
 
     def query(self, rule: dict) -> dict:
@@ -926,6 +929,46 @@ def changelog_labels(ctx: Context, rule: dict) -> Result:
     return Result(PASS, "Every merged milestone PR has a changelog label")
 
 
+_LINK_RE = re.compile(r"<a\b[^>]*\bhref=\"([^\"]+)\"[^>]*>(.*?)</a>", re.IGNORECASE | re.DOTALL)
+
+
+def _names_version(title: str, major: int, minor: int) -> bool:
+    """Whether ``title`` names vX.Y itself: 12.2, not 12.20 or the dot release 12.2.1."""
+    return re.search(rf"(?<![\d.]){major}\.{minor}(?!\d|\.\d)", title) is not None
+
+
+def _same_page(a: str, b: str) -> bool:
+    return a.split("#")[0].split("?")[0].rstrip("/").lower() == b.split("#")[0].split("?")[0].rstrip("/").lower()
+
+
+def blog_published(ctx: Context, rule: dict) -> Result:
+    """The release's blog post is published: its URL is served (not a 404 or a redirect to another
+    page), or the releases category lists a post whose title names vX.Y. A page that can't be
+    read is an error ("couldn't check"), never a pass."""
+    from .clients import ServiceError
+    query = ctx.query(rule)
+    release = ctx.release
+    post_url, category_url = query["post_url"], query["category_url"]
+    failure = None
+    try:
+        served, _ = ctx.fetch_web(post_url)
+        if _same_page(served, post_url):
+            return Result(PASS, f"Blog post for {release.short_version} is published", [], post_url)
+    except ServiceError as err:
+        if err.status != 404:
+            failure = err
+    _, page = ctx.fetch_web(category_url)  # an error here is "couldn't check"
+    for href, text in _LINK_RE.findall(page or ""):
+        title = html.unescape(re.sub(r"<[^>]+>", " ", text))
+        if "/blog/" in href and "/category/" not in href and _names_version(title, release.major, release.minor):
+            url = urllib.parse.urljoin(category_url, href)
+            return Result(PASS, f"Blog post for {release.short_version} is published: {' '.join(title.split())}", [], url)
+    if failure is not None:
+        raise failure  # the post's own URL couldn't be read, and the category doesn't list it
+    return Result(FAIL, f"Blog post for {release.short_version} not published yet",
+                  [Item("Releases on the blog", "", category_url, note="where the post is listed once published")])
+
+
 CHECKS = {
     "open_release_items": (open_release_items, "report_only"),
     "cherry_picks_to_label": (cherry_picks_to_label, "none_missing"),
@@ -941,5 +984,6 @@ CHECKS = {
     "changelog_migrations": (changelog_migrations, "described_or_none"),
     "changelog_labels": (changelog_labels, "none_missing"),
     "holidays_page": (holidays_page, "next_year_listed"),
+    "blog_published": (blog_published, "published"),
 }
 
