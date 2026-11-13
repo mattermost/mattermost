@@ -81,7 +81,7 @@ Desktop App users can stop reporting attributes by clearing **Settings \> Advanc
   - `user.session.vpn_active == "false"` denies browser sessions, because they never report `vpn_active`.
   - `user.session.hardware_id != ""` denies every mobile and browser session, and any desktop session on a platform without native collection.
 - **Values are case-sensitive.** `user.session.ssid == "corp-wifi"` never matches a network named `Corp-WiFi`. This matters most for free-text attributes such as `ssid` and `client_fqdn`.
-- **Boolean values are strings.** `vpn_active`, `mdm_enrolled`, and `jailbreak_detected` are reported as the strings `"true"` and `"false"`, so compare them as strings: `user.session.mdm_enrolled == "true"`.
+- **Boolean values are strings.** `vpn_active`, `mdm_enrolled`, `jailbreak_detected`, and `biometric_authenticated` are reported as the strings `"true"` and `"false"`, so compare them as strings: `user.session.mdm_enrolled == "true"`.
 - **Disabling an attribute breaks rules that use it.** Mattermost blocks saving a policy that references a disabled or unknown attribute, but disabling an attribute that an existing policy already uses doesn't invalidate that policy. The policy then denies everyone.
 - **Client-reported values are self-attested.** Treat them as posture signals rather than proof. See [Can users spoof session attributes?](#can-users-spoof-session-attributes).
 
@@ -180,6 +180,7 @@ The **Session Attributes** list in the System Console shows each attribute's nam
 | `ssid` | Name of the Wi-Fi network the device is connected to. Empty when the device isn't on Wi-Fi. | Desktop, mobile | Windows: WLAN API. iOS and Android: platform Wi-Fi APIs, which require the user to grant location access. Not collected on macOS desktop. | 15s / 15s |
 | `mdm_enrolled` | Whether the device is enrolled in mobile device management. `true` or `false`. | Desktop, mobile | Windows: presence of MDM enrollment registry entries. iOS: managed app configuration. Android: managed profile or managed app restrictions. Always reports `false` on macOS desktop. | 60s / 60s |
 | `jailbreak_detected` | Whether the mobile device appears to be jailbroken or rooted. `true` or `false`. | Mobile | Root and jailbreak heuristics provided by the mobile OS integration. | 60s / 60s |
+| `biometric_authenticated` | Whether the user has passed biometric authentication (with PIN or passcode fallback) for the server within the re-prompt window. `true` or `false`. Requires Mattermost mobile app v2.47 or later. | Mobile | Reported by the Mattermost mobile app per server using platform biometric APIs. | 300s / 300s |
 | `os_platform` | The device's operating system family. One of `macos`, `windows`, `linux`, `ios`, or `android`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |
 | `os_version` | The device's operating system version, such as `15.3.1` or `10.0.22631`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |
 | `client_version` | The version of the Mattermost Desktop App or mobile app, such as `6.3.0`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |

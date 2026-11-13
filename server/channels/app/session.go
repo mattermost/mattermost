@@ -66,7 +66,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 		session.AddProp(model.SessionPropType, model.SessionTypeCloudKey)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_session.error", nil, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
@@ -81,7 +81,11 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 		session.AddProp(model.SessionPropType, model.SessionTypeRemoteclusterToken)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+	detail := "The provided token is invalid"
+	if appErr == nil {
+		detail += ", remote_id=" + remoteId
+	}
+	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_session.error", nil, detail, http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
@@ -94,7 +98,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	// If we don't have the session we are going to create one with the token eventually.
 	if session, _ = a.ch.srv.platform.GetSession(rctx, token); session != nil {
 		if session.Token != token {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "session token is different from the one in DB, session_id="+session.Id, http.StatusUnauthorized)
 		}
 
 		if !session.IsExpired() {
@@ -108,12 +112,12 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	if session == nil || session.Id == "" {
 		session, appErr = a.createSessionForUserAccessToken(rctx, token)
 		if appErr != nil {
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token}, "", appErr.StatusCode).Wrap(appErr)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "", appErr.StatusCode).Wrap(appErr)
 		}
 	}
 
 	if session.Id == "" || session.IsExpired() {
-		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
+		return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "session is either nil or expired, session_id="+session.Id, http.StatusUnauthorized)
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
@@ -135,7 +139,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 					rctx.Logger().Warn("Error while revoking session", mlog.Err(err))
 				}
 			})
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "idle timeout", http.StatusUnauthorized)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "idle timeout, session_id="+session.Id, http.StatusUnauthorized)
 		}
 	}
 
@@ -673,7 +677,7 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 	}
 
 	if !token.IsActive {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	user, nErr := a.Srv().Store().User().Get(rctx, token.UserId)
@@ -681,14 +685,14 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createSessionForUserAccessToken", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+			return nil, model.NewAppError("createSessionForUserAccessToken", MissingAccountError, nil, "token_id="+token.Id+", user_id="+token.UserId, http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, "token_id="+token.Id+", user_id="+token.UserId, http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	if token.IsExpired() {
@@ -697,7 +701,7 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		auditRec.AddMeta("user_id", token.UserId)
 		auditRec.AddMeta("expires_at", token.ExpiresAt)
 		a.LogAuditRec(rctx, auditRec, nil)
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token, token_id="+token.Id+", user_id="+token.UserId, http.StatusUnauthorized)
 	}
 
 	if user.DeleteAt != 0 {

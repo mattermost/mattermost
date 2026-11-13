@@ -37,7 +37,7 @@ export default class ServerLogs {
     readonly list: Locator;
     readonly rows: Locator;
     readonly reloadButton: Locator;
-    readonly truncationNotice: Locator;
+    readonly footerInfo: Locator;
     readonly newEntriesButton: Locator;
 
     // Plain text viewer
@@ -62,7 +62,7 @@ export default class ServerLogs {
         this.list = container.getByRole('list', {name: 'Server log entries'});
         this.rows = this.list.getByRole('listitem');
         this.reloadButton = container.getByRole('button', {name: 'Reload'});
-        this.truncationNotice = container.getByText(/^Only the latest [\d,]+ entries/);
+        this.footerInfo = container.locator('.LogViewer__footer-info');
         this.newEntriesButton = container.getByRole('button', {name: /new entr(y|ies)$/});
 
         this.lineNumbersButton = container.getByRole('button', {name: 'Lines'});

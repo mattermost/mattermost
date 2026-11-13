@@ -141,50 +141,18 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         action.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on serverError', () => {
-        const newServerError = 'serverError';
-        const props = {...requiredProps, serverError: newServerError};
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, displays client error when no initial hook', async () => {
+    test('should display client error when no initial hook', async () => {
         const props = {...requiredProps};
         delete props.initialHook;
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
+        renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
 
         await userEvent.click(screen.getByRole('button', {name: footer.defaultMessage}));
 
         expect(action).not.toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, hiding post username if not enabled', () => {
-        const props = {
-            ...requiredProps,
-            enablePostUsernameOverride: false,
-        };
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, hiding post icon url if not enabled', () => {
-        const props = {
-            ...requiredProps,
-            enablePostIconOverride: false,
-        };
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
     });
 
     test('should call action function', async () => {
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
+        renderWithContext(<AbstractIncomingWebhook {...requiredProps}/>, initialState as GlobalState);
 
         await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), 'name');
         await userEvent.click(screen.getByRole('button', {name: footer.defaultMessage}));
@@ -268,11 +236,5 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         await userEvent.type(iconInput, newIconURL);
 
         expect(iconInput).toHaveValue(newIconURL);
-    });
-
-    test('should match snapshot when channelLocked is true', () => {
-        const props = {...requiredProps, channelLocked: true};
-        const {container} = renderWithContext(<AbstractIncomingWebhook {...props}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
     });
 });

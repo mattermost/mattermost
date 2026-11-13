@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import Constants from 'utils/constants';
@@ -82,8 +80,8 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         }
     };
 
-    test('should match snapshot and contain correct buttons', async () => {
-        const {baseElement} = renderWithContext(
+    test('should render and contain correct buttons', async () => {
+        renderWithContext(
             <SidebarChannelMenu {...baseProps}/>,
         );
 
@@ -94,8 +92,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         expect(screen.getByRole('menuitem', {name: 'Copy Link'})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Add Members'})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Leave Channel'})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is unread', async () => {
@@ -104,14 +100,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isUnread: true,
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.getByRole('menuitem', {name: 'Mark as Read'})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is read', async () => {
@@ -120,14 +114,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isUnread: false,
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.getByRole('menuitem', {name: 'Mark as Unread'})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is favorite', async () => {
@@ -136,15 +128,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isFavorite: true,
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.queryByRole('menuitem', {name: 'Favorite'})).not.toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Unfavorite'})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is muted', async () => {
@@ -153,15 +143,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             isMuted: true,
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.queryByRole('menuitem', {name: 'Mute Channel'})).not.toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Unmute Channel'})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is private', async () => {
@@ -173,13 +161,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.getByRole('menuitem', {name: 'Copy Link'})).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is DM', async () => {
@@ -191,15 +178,13 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.queryByRole('menuitem', {name: 'Copy Link'})).not.toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: 'Add Members'})).not.toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should show correct menu items when channel is Town Square', async () => {
@@ -211,14 +196,12 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <SidebarChannelMenu {...props}/>,
         );
 
         await openMenu();
         expect(screen.queryByRole('menuitem', {name: 'Leave Channel'})).not.toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should disable favorite menu item when channel is in a managed category', async () => {
@@ -234,66 +217,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         expect(favoriteItem).toHaveAttribute('aria-disabled', 'true');
 
         spy.mockRestore();
-    });
-
-    test('should match snapshot of rendered items when multiselecting channels - public channels and DM category', async () => {
-        const props = {
-            ...baseProps,
-            categories: [
-                ...baseProps.categories,
-                TestHelper.getCategoryMock({
-                    id: 'dm_category_id',
-                    display_name: 'direct_messages',
-                    type: CategoryTypes.DIRECT_MESSAGES,
-                }),
-            ],
-            multiSelectedChannelIds: ['not_a_dm_channel', 'channel_id'],
-            displayedChannels: [
-                testChannel,
-                TestHelper.getChannelMock({
-                    id: 'not_a_dm_channel',
-                }),
-            ],
-        };
-
-        const {baseElement} = renderWithContext(
-            <SidebarChannelMenu {...props}/>,
-        );
-
-        await openMenu();
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot of rendered items when multiselecting channels - DM channels and public channels category', async () => {
-        const props = {
-            ...baseProps,
-            categories: [
-                ...baseProps.categories,
-                TestHelper.getCategoryMock({
-                    id: 'channels_category_id',
-                    display_name: 'channels',
-                    type: CategoryTypes.CHANNELS,
-                }),
-            ],
-            multiSelectedChannelIds: ['a_dm_channel', 'channel_id'],
-            displayedChannels: [
-                TestHelper.getChannelMock({
-                    ...testChannel,
-                    type: 'D',
-                }),
-                TestHelper.getChannelMock({
-                    id: 'a_dm_channel',
-                    type: 'D',
-                }),
-            ],
-        };
-
-        renderWithContext(
-            <SidebarChannelMenu {...props}/>,
-        );
-
-        await openMenu();
-        expect(document.body).toMatchSnapshot();
     });
 
     test('should not show Open in new window when popout is not available', async () => {

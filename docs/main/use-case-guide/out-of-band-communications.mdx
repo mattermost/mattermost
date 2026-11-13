@@ -1,0 +1,45 @@
+---
+title: "Out-of-Band Communications"
+sidebar_position: 9
+---
+Mattermost provides a failover collaboration and communications system when network and infrastructure outages occur. It is trusted by the world’s largest defense, intel and critical infrastructure environments for ensuring automated resilience during disruptions. Deploy sovereign, encrypted collaboration that operates completely outside your compromised infrastructure.
+
+When infrastructure failures disrupt primary systems, organizations must maintain the ability to coordinate securely and act decisively. Traditional communication tools often become liabilities under these conditions, prone to compromise, unavailable during outages, or unable to support secure workflows. The operational and financial consequences of downtime can be catastrophic, underscoring the need for an independent collaboration environment.
+
+Mattermost provides a secure, mission-resilient out-of-band (OOB) collaboration platform that operates outside your primary infrastructure. Whether deployed as a self-hosted Kubernetes instance, Linux server in your local data center, or in sovereign hosting environments, the platform ensures real-time coordination remains available during network outages, security incidents, or critical decision windows. Built for security-conscious teams across commercial, government, and regulated industries, Mattermost supports integrated incident workflows and enterprise-level access control to enable business continuity, even under duress.
+
+![Secure and sovereign out-of-band incident response communication operates independently from compromised enterprise infrastructure.](/images/secure-out-of-band.webp)
+
+Mattermost supports the following mission-critical OOB collaboration requirements:
+
+## Always-Available Backup Communications
+
+Out-of-band collaboration provides a persistent, independent channel for coordinating during crises, separate from compromised or degraded primary systems.
+
+**Benefits**
+
+- **Preserve communication during infrastructure failures** with secure, dedicated OOB deployments using Kubernetes Or Linux on the infrastructure of your choice: Public cloud, organization data center, or fully air-gapped. [Explore deployment options](/deployment-guide/server/deploy-server#deployment-options).
+- **Meet regulatory compliance requirements** with a solution that adapts to your organization's security posture and regulatory requirements, incl. GDPR, FedRAMP, ISO 27001, and more.
+- **Ensure data sovereignty** with flexible hosting options including EU-resident infrastructure, on-premises deployments, and air-gapped environments that maintain full control over sensitive communications.
+- **Maintain continuity across platforms** with [multi-device access](/deployment-guide/deployment-guide-index), including web, desktop, and mobile experiences, even when primary tools are offline.
+- **Enforce strict access controls** using [role-based permissions](/administration-guide/onboard/advanced-permissions) and [audit logging](/administration-guide/manage/logging#audit-logging) to limit risk exposure during high-stakes operations.
+
+## Business Continuity at Scale
+
+Outages and downtime threaten both productivity and revenue. In large enterprises, the cost of outages can be measured in hundreds of thousands of dollars per minute, while government operations face national security implications.
+
+**Benefits**
+
+- **Scale communication globally** with Mattermost's [high availability and horizontal scalability architecture](/deployment-guide/scale/scaling-for-enterprise), supporting tens of thousands of users across enterprise, field, government, or classified environments.
+- **Accelerate outage recovery** using [Collaborative Playbooks](/end-user-guide/workflow-automation/workflow-automation-index) that automate response steps and ensure team accountability during time-critical events, reducing mean time to recovery (MTTR) by up to 50%.
+- **Demonstrate ROI through measurable outcomes** with built-in metrics tracking incident response times, team coordination efficiency, and compliance audit trails.
+
+## Get Started
+
+Whether protecting national security, managing global infrastructure, ensuring regulatory compliance, or recovering from outages, Mattermost ensures your teams remain connected, coordinated, and compliant, no matter the crisis. Experience out-of-band communications with pre-configured alerts, channels, and playbooks in a live sandbox environment or a [live demo](https://mattermost.com/request-demo/), or talk to an expert to build your out-of-band communications environment.
+
+<CardGrid columns={3} cards={[
+  {title: 'Try now', to: '/deployment-guide/quick-start-evaluation/docker-preview', description: 'Are you a developer? Run the Docker preview on your own machine.'},
+  {title: 'Talk to an expert', to: 'https://mattermost.com/contact-sales/?utm_source=docs&utm_medium=referral&utm_campaign=oobirdocs&utm_content=oobirdocs', description: 'Have questions? Get answers from our team.'},
+  {title: 'Start 1-hour live sandbox', to: 'https://mattermost.com/sign-up/?use_case=Out-of-Band%20Incident%20Response&utm_source=docs&utm_medium=referral&utm_campaign=oobirdocs&utm_content=oobirdocs', description: "Can't wait? Explore Mattermost in a hosted sandbox."},
+]} />

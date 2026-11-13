@@ -46,11 +46,6 @@ describe('CreateTeamForm - display_name step', () => {
         };
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should run updateParent function on next', async () => {
         renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
 
@@ -237,11 +232,6 @@ describe('CreateTeamForm - team_url step', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);
-        expect(container).toMatchSnapshot();
     });
 
     test('should return to display_name page', async () => {

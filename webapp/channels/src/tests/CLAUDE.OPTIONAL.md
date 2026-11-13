@@ -41,13 +41,13 @@ describe('MyComponent', () => {
 For components that trigger async effects on mount (e.g., data fetching), render normally and use `waitFor` to assert the effect completed before making assertions:
 
 ```typescript
-const {container} = renderWithContext(<MyComponent actions={actions} />);
+renderWithContext(<MyComponent actions={actions} />);
 
 await waitFor(() => {
     expect(actions.getData).toHaveBeenCalled();
 });
 
-expect(container).toMatchSnapshot();
+expect(screen.getByText('Loaded data')).toBeVisible();
 ```
 
 ## Adding Helpers

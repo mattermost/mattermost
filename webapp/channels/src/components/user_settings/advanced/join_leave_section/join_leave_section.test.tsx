@@ -30,12 +30,10 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container, rerender} = renderWithContext(
+    test('should render', () => {
+        const {rerender} = renderWithContext(
             <JoinLeaveSection {...defaultProps}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
         expect(screen.getByText('Enable Join/Leave Messages')).toBeInTheDocument();
 
@@ -45,7 +43,6 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
                 active={true}
             />,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
     });
 

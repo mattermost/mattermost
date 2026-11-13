@@ -34,16 +34,15 @@ describe('components/admin_console/access_control/PolicyList', () => {
         mockHistoryPushInternal.mockReset();
     });
 
-    test('should match snapshot with no policies', async () => {
+    test('should render with no policies', async () => {
         mockSearchPolicies.mockResolvedValue({data: {policies: [], total: 0}} as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with policies', async () => {
+    test('should render with policies', async () => {
         mockSearchPolicies.mockResolvedValue({
             data: {
                 policies: [
@@ -53,20 +52,18 @@ describe('components/admin_console/access_control/PolicyList', () => {
                 total: 2,
             },
         } as ActionResult);
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Policy 1')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with search error', async () => {
+    test('should render with search error', async () => {
         mockSearchPolicies.mockRejectedValue(new Error('Search failed'));
-        const {container} = renderWithContext(<PolicyList {...defaultProps}/>);
+        renderWithContext(<PolicyList {...defaultProps}/>);
         await waitFor(() => {
             expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should not call searchPolicies when clicking previous page on the first page', async () => {

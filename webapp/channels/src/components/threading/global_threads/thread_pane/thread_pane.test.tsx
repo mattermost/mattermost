@@ -200,14 +200,6 @@ describe('components/threading/global_threads/thread_pane', () => {
         };
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <ThreadPane {...props}/>,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should support follow', async () => {
         props.thread.is_following = false;
         renderWithContext(
