@@ -147,13 +147,14 @@ func TestSharedChannelPostSyncSelfReferential(t *testing.T) {
 		recorder, channel := setup(t)
 
 		var posts []*model.Post
-		for i := range 3 {
+		for i := range 4 {
 			post := createPost(t, channel, fmt.Sprintf("post %d", i))
 			posts = append(posts, post)
 			waitForSyncs(t, func() bool { return recorder.sendCount(post.Id) > 0 }, "post was not synced")
 		}
 
-		for i, post := range posts {
+		// The last post only marks that every earlier sync has finished; tasks run one at a time.
+		for i, post := range posts[:len(posts)-1] {
 			assert.Equal(t, 1, recorder.sendCount(post.Id), "post %d", i)
 		}
 	})
@@ -168,14 +169,24 @@ func TestSharedChannelPostSyncSelfReferential(t *testing.T) {
 		waitForSyncs(t, func() bool { return recorder.sendCount(older[len(older)-1].Id) > 0 }, "older posts were not synced")
 
 		// New posts come first, so their UpdateAt sorts before the edits and the updated-posts
-		// page fills up with posts the same sync already fetched as new.
+		// page fills up with posts the same sync already fetched as new. Writing to the store
+		// skips the change events, so one sync sees all of it.
 		for i := range 3 {
-			createPost(t, channel, fmt.Sprintf("new %d", i))
+			_, err := ss.Post().Save(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf("new %d", i),
+			})
+			require.NoError(t, err)
 		}
 		for i, post := range older {
-			_, _, appErr := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{Message: model.NewPointer(fmt.Sprintf("edited %d", i))}, nil)
-			require.Nil(t, appErr)
+			edited := post.Clone()
+			edited.Message = fmt.Sprintf("edited %d", i)
+			edited.EditAt = model.GetMillis()
+			_, err := ss.Post().Overwrite(th.Context, edited)
+			require.NoError(t, err)
 		}
+		service.NotifyChannelChanged(channel.Id)
 
 		waitForSyncs(t, func() bool {
 			for i, post := range older {
