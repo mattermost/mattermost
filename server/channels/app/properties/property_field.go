@@ -1955,6 +1955,49 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
+// pinStoredObjectTypes sets each field's ObjectType to the stored one before
+// the pre-update hooks run: they run ahead of the pin in
+// updatePropertyFieldsIfUnchanged, and the store never writes ObjectType, so a
+// hook would otherwise judge a type the write discards. Only a non-empty type
+// is replaced, and only by a non-empty one: the version check, which runs
+// after the hooks, tells PSAv1 from PSAv2 by whether ObjectType is empty, so
+// its verdict must not move. A call naming a field that is not stored is left
+// unpinned, since the update path refuses it anyway and must report it as it
+// always has.
+func (ps *PropertyService) pinStoredObjectTypes(rctx request.CTX, groupID string, fields []*model.PropertyField) error {
+	ids := make([]string, 0, len(fields))
+	for _, f := range fields {
+		if f != nil && f.ObjectType != "" {
+			ids = append(ids, f.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	stored, err := ps.fieldStore.GetMany(store.RequestContextWithMaster(rctx), groupID, ids)
+	if _, ok := errors.AsType[*store.ErrResultsMismatch](err); ok {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to get stored fields to pin their object type: %w", err)
+	}
+
+	storedByID := make(map[string]*model.PropertyField, len(stored))
+	for _, sf := range stored {
+		storedByID[sf.ID] = sf
+	}
+	for _, f := range fields {
+		if f == nil || f.ObjectType == "" {
+			continue
+		}
+		if sf, ok := storedByID[f.ID]; ok && sf.ObjectType != "" {
+			f.ObjectType = sf.ObjectType
+		}
+	}
+	return nil
+}
+
 // UpdatePropertyField updates a single field. It returns the updated field and
 // the IDs of fields whose dependent property values were cleared as a side
 // effect (e.g. by TypeChangeValueCleanupHook on a type change). Hooks may
@@ -1962,6 +2005,10 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 // the updated field's own ID. The caller is expected to publish any
 // value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
+	if err := ps.pinStoredObjectTypes(rctx, groupID, []*model.PropertyField{field}); err != nil {
+		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
+	}
+
 	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
 		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
@@ -1975,6 +2022,10 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 // fields whose dependent property values were cleared as a side effect. The
 // caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	if err = ps.pinStoredObjectTypes(rctx, groupID, fields); err != nil {
+		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+	}
+
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
