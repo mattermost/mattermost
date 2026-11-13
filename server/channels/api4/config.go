@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -38,6 +40,9 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history", api.APISessionRequired(getConfigHistory)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}", api.APISessionRequired(getHistoricalConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}/restore", api.APISessionRequired(restoreHistoricalConfig)).Methods(http.MethodPost)
 }
 
 func init() {
@@ -136,59 +141,20 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
 
-	cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
-		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
-			return writeFilter(c, structField)
-		},
-	})
-	if err != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	// Do not allow plugin uploads to be toggled through the API
-	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
-
-	// Do not allow certificates to be changed through the API
-	// This shallow-copies the slice header. So be careful if there are concurrent
-	// modifications to the slice.
-	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
-
-	// Do not allow import directory to be changed through the API
-	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
-
-	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
-	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
-		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
-	}
-
-	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License().IsCloud() {
-		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
-		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
-		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
-			return
+	// Preserve the existing configs of plugins that getConfig doesn't show, such as those that
+	// aren't installed, or all of them when plugins are disabled, unless they are present.
+	shownCfg := appCfg.Clone()
+	c.App.SanitizedConfig(shownCfg)
+	for id, storedSettings := range appCfg.PluginSettings.Plugins {
+		_, shown := shownCfg.PluginSettings.Plugins[id]
+		if _, present := cfg.PluginSettings.Plugins[id]; !present && !shown {
+			cfg.PluginSettings.Plugins[id] = storedSettings
 		}
 	}
 
-	// if ES autocomplete was enabled, we need to make sure that index has been checked.
-	// we need to stop enabling ES autocomplete otherwise.
-	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
-		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
-			c.Err = model.NewAppError("updateConfig", "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
-			return
-		}
-	}
-
-	c.App.HandleMessageExportConfig(cfg, appCfg)
-
-	if appErr := cfg.IsValid(); appErr != nil {
+	cfg, appErr := mergeConfigUpdate(c, "updateConfig", appCfg, cfg)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -199,13 +165,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If the config for default server locale has changed, reinitialize the server's translations.
-	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
-		s := newCfg.LocalizationSettings
-		if err = i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
+	if appErr = reinitTranslations("updateConfig", oldCfg, newCfg); appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	diffs, err := config.Diff(oldCfg, newCfg)
@@ -248,6 +210,78 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// mergeConfigUpdate returns appCfg updated with the settings from cfg that the session may change
+// through the API. It rejects a configuration that clears the Site URL, enables Elasticsearch
+// autocomplete before its index is ready, or isn't valid.
+func mergeConfigUpdate(c *Context, where string, appCfg, cfg *model.Config) (*model.Config, *model.AppError) {
+	cfg, err := config.Merge(appCfg, cfg, &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return writeFilter(c, structField)
+		},
+	})
+	if err != nil {
+		return nil, model.NewAppError(where, "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Checked after the merge, which keeps the current Site URL for a user who may not change it,
+	// such as one who can't read it either and so sent none.
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
+		return nil, model.NewAppError(where, "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Do not allow plugin uploads to be toggled through the API
+	*cfg.PluginSettings.EnableUploads = *appCfg.PluginSettings.EnableUploads
+
+	// Do not allow certificates to be changed through the API
+	// This shallow-copies the slice header. So be careful if there are concurrent
+	// modifications to the slice.
+	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
+	// Do not allow import directory to be changed through the API
+	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
+
+	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
+	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
+		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
+	}
+
+	// There are some settings that cannot be changed in a cloud env
+	if c.App.Channels().License().IsCloud() {
+		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
+		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
+		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
+			return nil, model.NewAppError(where, "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+		}
+	}
+
+	// if ES autocomplete was enabled, we need to make sure that index has been checked.
+	// we need to stop enabling ES autocomplete otherwise.
+	if !*appCfg.ElasticsearchSettings.EnableAutocomplete && *cfg.ElasticsearchSettings.EnableAutocomplete {
+		if !c.App.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
+			return nil, model.NewAppError(where, "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	c.App.HandleMessageExportConfig(cfg, appCfg)
+
+	if appErr := cfg.IsValid(); appErr != nil {
+		return nil, appErr
+	}
+
+	return cfg, nil
+}
+
+// reinitTranslations reinitializes the server's translations if the default server locale changed.
+func reinitTranslations(where string, oldCfg, newCfg *model.Config) *model.AppError {
+	if oldCfg.LocalizationSettings.DefaultServerLocale != newCfg.LocalizationSettings.DefaultServerLocale {
+		s := newCfg.LocalizationSettings
+		if err := i18n.InitTranslations(*s.DefaultServerLocale, *s.DefaultClientLocale); err != nil {
+			return model.NewAppError(where, "api.config.update_config.translations.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return nil
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -406,6 +440,248 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getConfigHistory lists the saved configurations, newest first, each with the settings
+// that changed from the configuration saved before it. Only settings the session may
+// read are compared, and sensitive values are masked even in local mode.
+func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetConfigHistory, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
+	history, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	readableConfig := newReadableConfigFilter(c)
+	sanitize := c.App.ConfigSanitizer()
+	entries := make([]*model.ConfigHistoryEntry, len(history))
+	var newer *model.Config
+	for i, saved := range history {
+		entries[i] = saved.ConfigHistoryEntry
+		if saved.LoadErr != nil {
+			// Listed without its changes, or those of the configuration saved after it.
+			c.Logger.Warn("Failed to load a saved configuration", mlog.String("config_id", saved.Id), mlog.Err(saved.LoadErr))
+			newer = nil
+			continue
+		}
+
+		cfg, appErr := readableConfig(saved.Config)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if newer != nil {
+			diffs, err := config.SanitizedDiff(cfg, newer, sanitize)
+			if err != nil {
+				c.Err = model.NewAppError("getConfigHistory", "api.config.get_config_history.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				return
+			}
+			entries[i-1].Changes = diffs.ToConfigChanges()
+		}
+		newer = cfg
+	}
+
+	if len(entries) > c.Params.PerPage {
+		entries = entries[:c.Params.PerPage]
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(entries); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// getHistoricalConfig returns a saved configuration filtered the way getConfig filters the
+// active one. Like localGetConfig, local mode returns it unfiltered and unsanitized.
+func getHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	configID := mux.Vars(r)["config_id"]
+	if !model.IsValidId(configID) {
+		c.SetInvalidURLParam("config_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGetHistoricalConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
+
+	cfg, appErr := c.App.GetHistoricalConfig(configID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.AppContext.Session().IsUnrestricted() {
+		c.App.SanitizedConfig(cfg)
+	}
+	cfg, appErr = newReadableConfigFilter(c)(cfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(cfg); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// restoreHistoricalConfig replaces the active configuration with a saved one and returns the
+// settings it changed, listed as getConfigHistory lists them. Like updateConfig, it changes only
+// the settings the session may change through the API, while local mode, like localUpdateConfig,
+// restores all of them. With dry_run, it returns the settings it would change without saving.
+func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleWritePermissions) {
+		c.SetPermissionError(model.SysconsoleWritePermissions...)
+		return
+	}
+
+	configID := mux.Vars(r)["config_id"]
+	if !model.IsValidId(configID) {
+		c.SetInvalidURLParam("config_id")
+		return
+	}
+	// An invalid value is rejected rather than read as false, which would save the configuration.
+	var dryRun bool
+	if value := r.URL.Query().Get("dry_run"); value != "" {
+		var err error
+		if dryRun, err = strconv.ParseBool(value); err != nil {
+			c.SetInvalidURLParam("dry_run")
+			return
+		}
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRestoreHistoricalConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
+	model.AddEventParameterToAuditRec(auditRec, "dry_run", dryRun)
+
+	cfg, appErr := c.App.GetHistoricalConfig(configID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	appCfg := c.App.Config()
+	if c.AppContext.Session().IsUnrestricted() {
+		c.App.HandleMessageExportConfig(cfg, appCfg)
+		appErr = cfg.IsValid()
+	} else {
+		cfg, appErr = mergeConfigUpdate(c, "restoreHistoricalConfig", appCfg, cfg)
+	}
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	oldCfg, newCfg := appCfg, cfg
+	if !dryRun {
+		oldCfg, newCfg, appErr = c.App.SaveConfig(cfg, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if appErr = reinitTranslations("restoreHistoricalConfig", oldCfg, newCfg); appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		diffs, err := config.Diff(oldCfg, newCfg)
+		if err != nil {
+			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		auditRec.AddEventPriorState(&diffs)
+	}
+
+	readableConfig := newReadableConfigFilter(c)
+	oldCfg, appErr = readableConfig(oldCfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	newCfg, appErr = readableConfig(newCfg)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	diffs, err := config.SanitizedDiff(oldCfg, newCfg, c.App.ConfigSanitizer())
+	if err != nil {
+		c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.restore_historical_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	auditRec.Success()
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(diffs.ToConfigChanges()); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// newReadableConfigFilter returns a function that copies a config with only the settings the
+// session may read, using the same filters as getConfig. It does not sanitize. readFilter's
+// answer depends only on a field's type and tags, so it is cached across calls: a config has
+// over a thousand settings, and each answer can take several permission checks.
+func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, *model.AppError) {
+	type fieldKey struct {
+		typ reflect.Type
+		tag reflect.StructTag
+	}
+	readable := map[fieldKey]bool{}
+	mergeConfig := &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			key := fieldKey{structField.Type, structField.Tag}
+			allowed, ok := readable[key]
+			if !ok {
+				allowed = readFilter(c, structField)
+				readable[key] = allowed
+			}
+			return allowed
+		},
+	}
+	filterCloudRestricted := !c.AppContext.Session().IsUnrestricted() && c.App.Channels().License().IsCloud()
+
+	return func(cfg *model.Config) (*model.Config, *model.AppError) {
+		filtered, err := config.Merge(&model.Config{}, cfg, mergeConfig)
+		if err != nil {
+			return nil, model.NewAppError("readableConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if !filterCloudRestricted {
+			return filtered, nil
+		}
+
+		js, err := filtered.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			return nil, model.NewAppError("readableConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		var cloudFiltered *model.Config
+		if err := json.Unmarshal(js, &cloudFiltered); err != nil {
+			return nil, model.NewAppError("readableConfig", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		return cloudFiltered, nil
 	}
 }
 

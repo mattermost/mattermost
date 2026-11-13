@@ -84,11 +84,17 @@ func SetMainHelper(mh *testlib.MainHelper) {
 func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option,
 ) *TestHelper {
+	backingStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
+	require.NoError(tb, err, "failed to initialize memory store")
+
+	return setupTestHelperWithBackingStore(tb, backingStore, dbStore, sqlSettings, searchEngine, enterprise, includeCache, updateConfig, options)
+}
+
+func setupTestHelperWithBackingStore(tb testing.TB, backingStore config.BackingStore, dbStore store.Store, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+	updateConfig func(*model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
-
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
 		SqlSettings: model.SafeDereference(sqlSettings),
@@ -135,17 +141,17 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
-	err = memoryStore.Set(memoryConfig)
+	err = backingStore.Set(memoryConfig)
 	require.NoError(tb, err)
 	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
 		var signaturePublicKey []byte
 		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
 		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
-		err = memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+		err = backingStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
 		require.NoError(tb, err)
 	}
 
-	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
+	configStore, err := config.NewStoreFromBacking(backingStore, nil, false)
 	require.NoError(tb, err)
 
 	options = append(options, app.ConfigStore(configStore))
@@ -343,6 +349,27 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 	dbStore, dbSettings, searchEngine := setupStores(tb)
 	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
+	th.InitLogin(tb)
+
+	return th
+}
+
+// SetupWithDatabaseConfigStore is like Setup, but stores the configuration in the test
+// database instead of in memory, for tests of what only a database store provides, such
+// as the configuration history.
+func SetupWithDatabaseConfigStore(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	backingStore, err := config.NewDatabaseStore(*dbSettings.DataSource)
+	require.NoError(tb, err, "failed to initialize database store")
+	th := setupTestHelperWithBackingStore(tb, backingStore, dbStore, dbSettings, searchEngine, false, true, nil, nil)
 	th.InitLogin(tb)
 
 	return th

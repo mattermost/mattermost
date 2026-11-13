@@ -960,6 +960,62 @@ func TestCloudRestricted(t *testing.T) {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestConfigRollbackCmd() {
+	configID := model.NewId()
+	changes := []*model.ConfigChange{{Path: "TeamSettings.SiteName", OldValue: "New Site", NewValue: "Old Site"}}
+	expectRestore := func(dryRun bool, changes []*model.ConfigChange) {
+		s.client.
+			EXPECT().
+			RestoreHistoricalConfig(context.TODO(), configID, dryRun).
+			Return(changes, &model.Response{}, nil).
+			Times(1)
+	}
+
+	s.Run("Should only list the changes with --dry-run", func() {
+		printer.Clean()
+		expectRestore(true, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, true), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes}}, printer.GetLines())
+	})
+
+	s.Run("Should roll back without listing the changes first with --confirm", func() {
+		printer.Clean()
+		expectRestore(false, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, Changes: changes}}, printer.GetLines())
+	})
+
+	s.Run("Should list the changes and ask for confirmation without --confirm", func() {
+		printer.Clean()
+		expectRestore(true, changes)
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
+		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
+		s.Require().Empty(printer.GetLines(), "the changes should be printed before asking")
+	})
+
+	s.Run("Should not ask for confirmation when no settings would change", func() {
+		printer.Clean()
+		expectRestore(true, []*model.ConfigChange{})
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), false, false), []string{configID})
+		s.Require().NoError(err)
+		s.Require().Equal([]any{&configRollbackResult{ConfigId: configID, DryRun: true, Changes: []*model.ConfigChange{}}}, printer.GetLines())
+	})
+
+	s.Run("Should fail for an invalid configuration ID", func() {
+		printer.Clean()
+
+		err := configRollbackCmdF(s.client, newConfigRollbackCmd(s.T(), true, false), []string{"not-an-id"})
+		s.Require().EqualError(err, "invalid configuration ID: not-an-id")
+		s.Require().Empty(printer.GetLines())
+	})
+}
+
 func TestSetConfigValue(t *testing.T) {
 	tests := map[string]struct {
 		path           string
