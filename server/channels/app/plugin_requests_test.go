@@ -362,7 +362,6 @@ func TestServePluginRequest(t *testing.T) {
 			}
 		}
 		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
-		assert.Contains(t, logOutput, "<redacted>")
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {

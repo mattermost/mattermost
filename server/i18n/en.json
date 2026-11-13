@@ -2521,9 +2521,9 @@
     "description": "Generic API validation error for a bad request parameter; {{.Name}} is the parameter's name."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}",
-    "description": "API authentication error for an invalid or expired session token; {{.Token}} is the token value and {{.Error}} is the underlying error detail. Mostly seen by developers/admins."
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid or expired session.",
+    "description": "API authentication error returned when a session or access token cannot be validated (unknown, expired, idle, or revoked). Mostly seen by developers/admins."
   },
   {
     "id": "api.context.invalid_url_param.app_error",
