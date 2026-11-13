@@ -110,7 +110,8 @@ var AllJobTypes = [...]string{
 	JobTypeNotifyExpiringAccessTokens,
 }
 
-// CreatableJobTypes contains the job types that can be created through the jobs API.
+// CreatableJobTypes contains the job types that can be created through the jobs API. Jobs of
+// other types are run by the server itself and aren't included when listing jobs without a type.
 var CreatableJobTypes = [...]string{
 	JobTypeDataRetention,
 	JobTypeMessageExport,

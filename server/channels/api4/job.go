@@ -219,7 +219,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		validJobTypes = append(validJobTypes, jobType)
 	} else {
-		for _, jType := range model.AllJobTypes {
+		for _, jType := range model.CreatableJobTypes {
 			if hasPermission, _ := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType); hasPermission {
 				validJobTypes = append(validJobTypes, jType)
 			}

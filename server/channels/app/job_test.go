@@ -789,9 +789,9 @@ func TestJobPermissionsCoverAllJobTypes(t *testing.T) {
 		perms, ok := jobPermissions[jobType]
 		if assert.Truef(t, ok, "job type %q has no entry in jobPermissions", jobType) {
 			assert.NotNilf(t, perms.read, "job type %q has no read permission", jobType)
-			assert.NotNilf(t, perms.manage, "job type %q has no manage permission", jobType)
 			creatable := slices.Contains(model.CreatableJobTypes[:], jobType)
 			assert.Equalf(t, creatable, perms.create != nil, "job type %q: create permission must be set if and only if it is in model.CreatableJobTypes", jobType)
+			assert.Equalf(t, creatable, perms.manage != nil, "job type %q: manage permission must be set if and only if it is in model.CreatableJobTypes", jobType)
 		}
 	}
 	assert.Len(t, jobPermissions, len(model.AllJobTypes), "jobPermissions contains job types missing from model.AllJobTypes")

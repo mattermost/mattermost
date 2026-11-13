@@ -62,7 +62,7 @@ func TestCreateNotifyExpiringAccessTokensJob(t *testing.T) {
 
 	job := &model.Job{Type: model.JobTypeNotifyExpiringAccessTokens}
 
-	t.Run("forbidden without manage_jobs permission", func(t *testing.T) {
+	t.Run("forbidden without manage_system permission", func(t *testing.T) {
 		_, resp, err := th.SystemManagerClient.CreateJob(context.Background(), job)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -187,11 +187,8 @@ func TestGetJobs(t *testing.T) {
 	t.Run("Get job by status", func(t *testing.T) {
 		received, _, err := th.SystemAdminClient.GetJobs(context.Background(), "", model.JobStatusPending, 0, 3)
 		require.NoError(t, err)
-		require.NotEmpty(t, received)
+		require.Len(t, received, 1, "received wrong number of jobs")
 		require.Equal(t, jobs[3].Id, received[0].Id, "should've received the ldap sync job")
-		for _, job := range received {
-			assert.Equal(t, model.JobStatusPending, job.Status)
-		}
 	})
 
 	t.Run("Get job by type and status", func(t *testing.T) {
@@ -897,11 +894,11 @@ func TestInternalJobTypes(t *testing.T) {
 	th := Setup(t)
 	th.LoginSystemManager(t)
 
-	saveJob := func(t *testing.T) *model.Job {
+	saveJob := func(t *testing.T, jobType string) *model.Job {
 		t.Helper()
 		job, err := th.App.Srv().Store().Job().Save(&model.Job{
 			Id:       model.NewId(),
-			Type:     model.JobTypeRecap,
+			Type:     jobType,
 			Status:   model.JobStatusPending,
 			CreateAt: model.GetMillis(),
 		})
@@ -918,7 +915,7 @@ func TestInternalJobTypes(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		job := saveJob(t)
+		job := saveJob(t, model.JobTypeRecap)
 
 		received, _, err := client.GetJob(context.Background(), job.Id)
 		require.NoError(t, err)
@@ -930,18 +927,27 @@ func TestInternalJobTypes(t *testing.T) {
 
 		received2, _, err = client.GetJobs(context.Background(), "", "", 0, 200)
 		require.NoError(t, err)
-		assert.True(t, containsJob(received2, job.Id), "job should be listed without a type filter")
+		assert.False(t, containsJob(received2, job.Id), "job should not be listed without a type filter")
+
+		resp, err := client.UpdateJobStatus(context.Background(), job.Id, model.JobStatusCanceled, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
 		_, err = client.CancelJob(context.Background(), job.Id)
 		require.NoError(t, err)
 
-		_, resp, err := client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeRecap})
+		_, resp, err = client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeRecap})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		inviteJob := saveJob(t, model.JobTypeResendInvitationEmail)
+		resp, err = client.CancelJob(context.Background(), inviteJob.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("system manager", func(t *testing.T) {
-		job := saveJob(t)
+		job := saveJob(t, model.JobTypeRecap)
 
 		_, resp, err := th.SystemManagerClient.GetJob(context.Background(), job.Id)
 		require.Error(t, err)

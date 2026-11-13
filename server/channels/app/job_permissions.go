@@ -10,9 +10,10 @@ import (
 
 // jobTypePermissions holds the permissions required to read, manage, and create jobs of a type.
 type jobTypePermissions struct {
-	read   *model.Permission
+	read *model.Permission
+	// manage and create are nil for job types that the server runs itself. Jobs of these types
+	// can't be created through the API and their status can't be updated.
 	manage *model.Permission
-	// create is nil if jobs of this type can't be created through the API.
 	create *model.Permission
 }
 
@@ -22,20 +23,13 @@ var (
 		manage: model.PermissionManageJobs,
 		create: model.PermissionManageJobs,
 	}
-	readableJobPermissions = jobTypePermissions{
-		read:   model.PermissionReadJobs,
-		manage: model.PermissionManageSystem,
-	}
 	systemJobPermissions = jobTypePermissions{
-		read:   model.PermissionManageSystem,
-		manage: model.PermissionManageSystem,
-	}
-	// The SessionHasPermissionTo*Job methods additionally allow channel and team admins for these job types.
-	accessControlJobPermissions = jobTypePermissions{
 		read:   model.PermissionManageSystem,
 		manage: model.PermissionManageSystem,
 		create: model.PermissionManageSystem,
 	}
+	readableInternalJobPermissions = jobTypePermissions{read: model.PermissionReadJobs}
+	internalJobPermissions         = jobTypePermissions{read: model.PermissionManageSystem}
 )
 
 // jobPermissions maps every job type in model.AllJobTypes to its permissions.
@@ -65,44 +59,46 @@ var jobPermissions = map[string]jobTypePermissions{
 		manage: model.PermissionManageLdapSyncJob,
 		create: model.PermissionCreateLdapSyncJob,
 	},
-	model.JobTypeAccessControlSync:     accessControlJobPermissions,
-	model.JobTypeAccessControlTeamSync: accessControlJobPermissions,
+	// The SessionHasPermissionTo*Job methods additionally allow channel and team admins for these job types.
+	model.JobTypeAccessControlSync:     systemJobPermissions,
+	model.JobTypeAccessControlTeamSync: systemJobPermissions,
 
-	model.JobTypeMigrations:                 generalJobPermissions,
-	model.JobTypePlugins:                    generalJobPermissions,
-	model.JobTypeProductNotices:             generalJobPermissions,
-	model.JobTypeExpiryNotify:               generalJobPermissions,
-	model.JobTypeActiveUsers:                generalJobPermissions,
-	model.JobTypeImportProcess:              generalJobPermissions,
-	model.JobTypeImportDelete:               generalJobPermissions,
-	model.JobTypeExportProcess:              generalJobPermissions,
-	model.JobTypeExportDelete:               generalJobPermissions,
-	model.JobTypeCloud:                      generalJobPermissions,
-	model.JobTypeExtractContent:             generalJobPermissions,
-	model.JobTypeCleanupExpiredAccessTokens: generalJobPermissions,
-	model.JobTypeNotifyExpiringAccessTokens: generalJobPermissions,
+	model.JobTypeCleanupExpiredAccessTokens: systemJobPermissions,
+	model.JobTypeNotifyExpiringAccessTokens: systemJobPermissions,
 
-	model.JobTypeMobileSessionMetadata:       readableJobPermissions,
-	model.JobTypePostPersistentNotifications: readableJobPermissions,
-	model.JobTypeDeleteExpiredPosts:          readableJobPermissions,
+	model.JobTypeMigrations:     generalJobPermissions,
+	model.JobTypePlugins:        generalJobPermissions,
+	model.JobTypeProductNotices: generalJobPermissions,
+	model.JobTypeExpiryNotify:   generalJobPermissions,
+	model.JobTypeActiveUsers:    generalJobPermissions,
+	model.JobTypeImportProcess:  generalJobPermissions,
+	model.JobTypeImportDelete:   generalJobPermissions,
+	model.JobTypeExportProcess:  generalJobPermissions,
+	model.JobTypeExportDelete:   generalJobPermissions,
+	model.JobTypeCloud:          generalJobPermissions,
+	model.JobTypeExtractContent: generalJobPermissions,
 
-	model.JobTypeCLIMessageExport:              systemJobPermissions,
-	model.JobTypeResendInvitationEmail:         systemJobPermissions,
-	model.JobTypeLastAccessiblePost:            systemJobPermissions,
-	model.JobTypeUpgradeNotifyAdmin:            systemJobPermissions,
-	model.JobTypeTrialNotifyAdmin:              systemJobPermissions,
-	model.JobTypeInstallPluginNotifyAdmin:      systemJobPermissions,
-	model.JobTypeS3PathMigration:               systemJobPermissions,
-	model.JobTypeCleanupDesktopTokens:          systemJobPermissions,
-	model.JobTypeDeleteEmptyDraftsMigration:    systemJobPermissions,
-	model.JobTypeRefreshMaterializedViews:      systemJobPermissions,
-	model.JobTypeDeleteOrphanDraftsMigration:   systemJobPermissions,
-	model.JobTypeExportUsersToCSV:              systemJobPermissions,
-	model.JobTypeDeleteDmsPreferencesMigration: systemJobPermissions,
-	model.JobTypePushProxyAuth:                 systemJobPermissions,
-	model.JobTypeRecap:                         systemJobPermissions,
-	model.JobTypeScheduledRecap:                systemJobPermissions,
-	model.JobTypeAutoTranslationRecovery:       systemJobPermissions,
+	model.JobTypeMobileSessionMetadata:       readableInternalJobPermissions,
+	model.JobTypePostPersistentNotifications: readableInternalJobPermissions,
+	model.JobTypeDeleteExpiredPosts:          readableInternalJobPermissions,
+
+	model.JobTypeCLIMessageExport:              internalJobPermissions,
+	model.JobTypeResendInvitationEmail:         internalJobPermissions,
+	model.JobTypeLastAccessiblePost:            internalJobPermissions,
+	model.JobTypeUpgradeNotifyAdmin:            internalJobPermissions,
+	model.JobTypeTrialNotifyAdmin:              internalJobPermissions,
+	model.JobTypeInstallPluginNotifyAdmin:      internalJobPermissions,
+	model.JobTypeS3PathMigration:               internalJobPermissions,
+	model.JobTypeCleanupDesktopTokens:          internalJobPermissions,
+	model.JobTypeDeleteEmptyDraftsMigration:    internalJobPermissions,
+	model.JobTypeRefreshMaterializedViews:      internalJobPermissions,
+	model.JobTypeDeleteOrphanDraftsMigration:   internalJobPermissions,
+	model.JobTypeExportUsersToCSV:              internalJobPermissions,
+	model.JobTypeDeleteDmsPreferencesMigration: internalJobPermissions,
+	model.JobTypePushProxyAuth:                 internalJobPermissions,
+	model.JobTypeRecap:                         internalJobPermissions,
+	model.JobTypeScheduledRecap:                internalJobPermissions,
+	model.JobTypeAutoTranslationRecovery:       internalJobPermissions,
 }
 
 // SessionHasPermissionToCreateJob returns whether the session may create the job and the permission
@@ -166,14 +162,18 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 }
 
 // SessionHasPermissionToCancelJob returns whether the session may cancel the job and the permission
-// that was checked. Cancelling requires the create permission, or the manage permission for job types
-// that can't be created through the API. The permission is nil for unknown job types.
+// that was checked. Cancelling requires the create permission, or manage_system for job types that
+// the server runs itself. The permission is nil for job types that can't be cancelled.
 func (a *App) SessionHasPermissionToCancelJob(session model.Session, job *model.Job) (bool, *model.Permission) {
 	if hasPermission, permission := a.SessionHasPermissionToCreateJob(session, job); permission != nil {
 		return hasPermission, permission
 	}
+	// Cancelling a resend invitation email job through the API would leave its Systems table entry behind.
+	if _, ok := jobPermissions[job.Type]; !ok || job.Type == model.JobTypeResendInvitationEmail {
+		return false, nil
+	}
 
-	return a.SessionHasPermissionToManageJob(session, job)
+	return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 }
 
 // SessionHasPermissionToReadJob returns whether the session may read jobs of the type and the permission
