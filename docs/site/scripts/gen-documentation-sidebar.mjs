@@ -25,14 +25,12 @@ const SRC = join(REPO_ROOT, 'main');
 function agentsDocItems(specs) {
   const items = [];
   for (const spec of specs) {
-    const {id, label, type} = typeof spec === 'string' ? {id: spec} : spec;
+    const {id, label} = typeof spec === 'string' ? {id: spec} : spec;
     if (!existsSync(join(SRC, `${id}.md`)) && !existsSync(join(SRC, `${id}.mdx`))) {
       console.warn(`[sidebar] WARN: ${id} was not staged from the Agents plugin docs (submodule too old?) — skipping it in the sidebar.`);
       continue;
     }
-    const item = label ? {doc: id, label} : {doc: id};
-    if (type) item.type = type;
-    items.push(item);
+    items.push(label ? {doc: id, label} : {doc: id});
   }
   return items;
 }
@@ -2065,7 +2063,7 @@ function promoteDocToCategory(items, docId, children) {
         items: children.map((child) => {
           const id = typeof child === 'string' ? child : child.doc;
           const label = (typeof child === 'string' ? null : child.label) || docLabelById(id);
-          return {type: (typeof child === 'string' ? null : child.type) || 'doc', id, label};
+          return {type: 'doc', id, label};
         }),
       };
       return true;
@@ -2127,7 +2125,7 @@ function buildEndUserGuideSidebar(autoCat) {
       {id: 'agents/docs/summaries_and_search', label: 'Summaries and AI search'},
       {id: 'agents/docs/meeting_summaries', label: 'Meeting summaries'},
       {id: 'agents/docs/skills', label: 'Skills'},
-      {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code', type: 'ref'},
+      {id: 'agents/docs/mcp_server', label: 'Use Mattermost from Claude, Cursor, or VS Code'},
     ]),
     'end-user-guide/collaborate/agents-context-management',
   ]);
