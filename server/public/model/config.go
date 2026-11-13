@@ -1808,7 +1808,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.EnableWebhookDebugging == nil {
-		s.EnableWebhookDebugging = new(true)
+		s.EnableWebhookDebugging = new(false)
 	}
 
 	if s.EnableDiagnostics == nil {
