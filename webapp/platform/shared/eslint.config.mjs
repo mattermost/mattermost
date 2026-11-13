@@ -15,7 +15,7 @@ export default [
         },
     },
     {
-        files: ['**/*.test.js', '**/*.test.jsx', '**/*.test.ts', '**/*.test.tsx'],
+        files: ['**/*.{test,spec}.{js,jsx,ts,tsx}'],
         plugins: {
             'no-only-tests': noOnlyTestsPlugin,
         },

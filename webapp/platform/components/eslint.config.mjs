@@ -6,7 +6,7 @@ import eslintPlugin from '@mattermost/eslint-plugin';
 export default [
     ...eslintPlugin.configs.base,
     {
-        files: ['**/*.test.js', '**/*.test.jsx', '**/*.test.ts', '**/*.test.tsx'],
+        files: ['**/*.{test,spec}.{js,jsx,ts,tsx}'],
         rules: {
             'no-restricted-properties': ['error', ...['toMatchSnapshot', 'toMatchInlineSnapshot', 'toThrowErrorMatchingSnapshot', 'toThrowErrorMatchingInlineSnapshot'].map((property) => ({
                 property,
