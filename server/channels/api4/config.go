@@ -429,6 +429,10 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				}
 				continue
 			}
+			if tagValue == model.ConfigAccessTagManageSystemWrite && accessType == FilterTypeWrite &&
+				!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+				return false
+			}
 		}
 
 		// another iteration for permissions checks of other tag values
@@ -441,6 +445,9 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				continue
 			}
 			if tagValue == model.ConfigAccessTagCloudRestrictable {
+				continue
+			}
+			if tagValue == model.ConfigAccessTagManageSystemWrite {
 				continue
 			}
 			if tagValue == model.ConfigAccessTagAnySysConsoleRead && accessType == FilterTypeRead &&
