@@ -1,0 +1,1 @@
+ALTER TABLE Jobs DROP COLUMN IF EXISTS ConcurrencyKey;

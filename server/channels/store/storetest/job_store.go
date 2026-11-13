@@ -36,6 +36,9 @@ func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobGetByTypeAndData", func(t *testing.T) { testJobGetByTypeAndData(t, rctx, ss) })
 	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, rctx, ss) })
 	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, rctx, ss) })
+	t.Run("JobConcurrencyKey", func(t *testing.T) { testJobConcurrencyKey(t, rctx, ss) })
+	t.Run("JobClaimWithConcurrencyKey", func(t *testing.T) { testJobClaimWithConcurrencyKey(t, rctx, ss) })
+	t.Run("JobRefreshLastActivityAt", func(t *testing.T) { testJobRefreshLastActivityAt(t, rctx, ss) })
 }
 
 func testJobSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1035,4 +1038,233 @@ func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, jobs, 0)
 	})
+}
+
+func saveKeyedJob(t *testing.T, ss store.Store, key string, status string, lastActivityAt int64) *model.Job {
+	t.Helper()
+	job := &model.Job{
+		Id:             model.NewId(),
+		Type:           model.JobTypeDataRetention,
+		Status:         status,
+		CreateAt:       model.GetMillis(),
+		LastActivityAt: lastActivityAt,
+		ConcurrencyKey: key,
+	}
+	_, err := ss.Job().Save(job)
+	require.NoError(t, err)
+	t.Cleanup(func() { _, _ = ss.Job().Delete(job.Id) })
+	return job
+}
+
+func testJobConcurrencyKey(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("a second pending job with the same key is not saved", func(t *testing.T) {
+		key := model.NewId()
+		first := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		second := &model.Job{Id: model.NewId(), Type: model.JobTypeDataRetention, Status: model.JobStatusPending, ConcurrencyKey: key}
+		_, err := ss.Job().Save(second)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+
+		_, err = ss.Job().Get(rctx, second.Id)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+
+		pending, err := ss.Job().GetPendingByConcurrencyKey(key)
+		require.NoError(t, err)
+		assert.Equal(t, first.Id, pending.Id)
+		assert.Equal(t, key, pending.ConcurrencyKey)
+	})
+
+	t.Run("a pending job can be saved while one with the same key is running", func(t *testing.T) {
+		key := model.NewId()
+		saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+		saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+	})
+
+	t.Run("a second running job with the same key is not saved", func(t *testing.T) {
+		key := model.NewId()
+		saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+
+		_, err := ss.Job().Save(&model.Job{Id: model.NewId(), Type: model.JobTypeDataRetention, Status: model.JobStatusCancelRequested, ConcurrencyKey: key})
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+	})
+
+	t.Run("jobs without a key never conflict", func(t *testing.T) {
+		for _, status := range []string{model.JobStatusPending, model.JobStatusPending, model.JobStatusInProgress, model.JobStatusInProgress} {
+			job := saveKeyedJob(t, ss, "", status, 0)
+			received, err := ss.Job().Get(rctx, job.Id)
+			require.NoError(t, err)
+			assert.Empty(t, received.ConcurrencyKey)
+		}
+	})
+
+	t.Run("returning a job to pending conflicts with another pending job", func(t *testing.T) {
+		key := model.NewId()
+		running := saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+		saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		_, err := ss.Job().UpdateStatus(running.Id, model.JobStatusPending)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+
+		running.Status = model.JobStatusPending
+		_, err = ss.Job().UpdateOptimistically(running, model.JobStatusInProgress)
+		require.ErrorAs(t, err, &conflictErr)
+
+		received, err := ss.Job().Get(rctx, running.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusInProgress, received.Status)
+	})
+
+	t.Run("a conflicting optimistic claim is not applied", func(t *testing.T) {
+		key := model.NewId()
+		saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, err := ss.Job().UpdateStatusOptimistically(pending.Id, model.JobStatusPending, model.JobStatusInProgress)
+		require.NoError(t, err)
+		assert.Nil(t, claimed)
+	})
+}
+
+func testJobClaimWithConcurrencyKey(t *testing.T, rctx request.CTX, ss store.Store) {
+	staleBefore := func() int64 { return model.GetMillis() - 10*60*1000 }
+
+	t.Run("claims a pending job when none is running", func(t *testing.T) {
+		key := model.NewId()
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, reaped, err := ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		require.NotNil(t, claimed)
+		assert.Equal(t, pending.Id, claimed.Id)
+		assert.Equal(t, model.JobStatusInProgress, claimed.Status)
+		assert.NotZero(t, claimed.StartAt)
+		assert.Equal(t, key, claimed.ConcurrencyKey)
+		assert.Empty(t, reaped)
+
+		claimed, _, err = ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		assert.Nil(t, claimed)
+	})
+
+	t.Run("does not claim while another job with the same key is running", func(t *testing.T) {
+		key := model.NewId()
+		running := saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, reaped, err := ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		assert.Nil(t, claimed)
+		assert.Empty(t, reaped)
+
+		received, err := ss.Job().Get(rctx, pending.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusPending, received.Status)
+		received, err = ss.Job().Get(rctx, running.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusInProgress, received.Status)
+	})
+
+	t.Run("does not claim while a cancellation is pending for the same key", func(t *testing.T) {
+		key := model.NewId()
+		saveKeyedJob(t, ss, key, model.JobStatusCancelRequested, model.GetMillis())
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, _, err := ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		assert.Nil(t, claimed)
+	})
+
+	t.Run("takes over a stale running job", func(t *testing.T) {
+		key := model.NewId()
+		staleActivity := model.GetMillis() - 60*60*1000
+		stale := saveKeyedJob(t, ss, key, model.JobStatusInProgress, staleActivity)
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, reaped, err := ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		require.NotNil(t, claimed)
+		assert.Equal(t, pending.Id, claimed.Id)
+		require.Len(t, reaped, 1)
+		assert.Equal(t, stale.Id, reaped[0].Id)
+		assert.Equal(t, model.JobStatusError, reaped[0].Status)
+		assert.Equal(t, staleActivity, reaped[0].LastActivityAt)
+		assert.NotEmpty(t, reaped[0].Data["error"])
+
+		received, err := ss.Job().Get(rctx, stale.Id)
+		require.NoError(t, err)
+		assert.Equal(t, model.JobStatusError, received.Status)
+	})
+
+	t.Run("does not take over a fresh running job or jobs with other keys", func(t *testing.T) {
+		key := model.NewId()
+		fresh := saveKeyedJob(t, ss, key, model.JobStatusInProgress, model.GetMillis())
+		otherStale := saveKeyedJob(t, ss, model.NewId(), model.JobStatusInProgress, 1)
+		unkeyedStale := saveKeyedJob(t, ss, "", model.JobStatusInProgress, 1)
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		claimed, reaped, err := ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+		require.NoError(t, err)
+		assert.Nil(t, claimed)
+		assert.Empty(t, reaped)
+
+		for _, id := range []string{fresh.Id, otherStale.Id, unkeyedStale.Id} {
+			received, err := ss.Job().Get(rctx, id)
+			require.NoError(t, err)
+			assert.Equal(t, model.JobStatusInProgress, received.Status)
+		}
+	})
+
+	t.Run("concurrent claims of the same job claim it once", func(t *testing.T) {
+		key := model.NewId()
+		pending := saveKeyedJob(t, ss, key, model.JobStatusPending, 0)
+
+		var wg sync.WaitGroup
+		results := make([]*model.Job, 4)
+		errs := make([]error, 4)
+		for i := range results {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				results[i], _, errs[i] = ss.Job().ClaimWithConcurrencyKey(pending.Id, key, staleBefore())
+			}()
+		}
+		wg.Wait()
+
+		claimed := 0
+		for i := range results {
+			require.NoError(t, errs[i])
+			if results[i] != nil {
+				claimed++
+			}
+		}
+		assert.Equal(t, 1, claimed)
+	})
+}
+
+func testJobRefreshLastActivityAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	old := model.GetMillis() - 60*60*1000
+	running := saveKeyedJob(t, ss, model.NewId(), model.JobStatusInProgress, old)
+	canceling := saveKeyedJob(t, ss, model.NewId(), model.JobStatusCancelRequested, old)
+	finished := saveKeyedJob(t, ss, "", model.JobStatusSuccess, old)
+
+	ids, err := ss.Job().RefreshLastActivityAt([]string{running.Id, canceling.Id, finished.Id, model.NewId()})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{running.Id, canceling.Id}, ids)
+
+	for _, id := range []string{running.Id, canceling.Id} {
+		received, err := ss.Job().Get(rctx, id)
+		require.NoError(t, err)
+		assert.Greater(t, received.LastActivityAt, old)
+	}
+	received, err := ss.Job().Get(rctx, finished.Id)
+	require.NoError(t, err)
+	assert.Equal(t, old, received.LastActivityAt)
+
+	ids, err = ss.Job().RefreshLastActivityAt(nil)
+	require.NoError(t, err)
+	assert.Empty(t, ids)
 }

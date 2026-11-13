@@ -21,7 +21,14 @@ import (
 
 const (
 	jobsCleanupDelay = 100 * time.Millisecond
+
+	jobsConcurrencyRunningIndex = "idx_jobs_concurrency_running"
+	jobsConcurrencyPendingIndex = "idx_jobs_concurrency_pending"
+
+	staleJobError = "Job was taken over after its node stopped reporting activity."
 )
+
+var jobRunningStatuses = []string{model.JobStatusInProgress, model.JobStatusCancelRequested}
 
 type SqlJobStore struct {
 	*SqlStore
@@ -43,6 +50,7 @@ func newSqlJobStore(sqlStore *SqlStore) store.JobStore {
 			"Status",
 			"Progress",
 			"Data",
+			"COALESCE(ConcurrencyKey, '') AS ConcurrencyKey",
 		},
 	}
 
@@ -61,21 +69,56 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	if jss.IsBinaryParamEnabled() {
 		jsonData = AppendBinaryFlag(jsonData)
 	}
-	query := jss.getQueryBuilder().
-		Insert("Jobs").
-		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
-		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData)
+	query := jss.insertJobQuery(job, jsonData)
+	if job.ConcurrencyKey != "" {
+		query = query.Suffix("ON CONFLICT (ConcurrencyKey) WHERE Status = ? DO NOTHING", model.JobStatusPending)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
 
-	if _, err = jss.GetMaster().Exec(queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Job")
+	result, err := jss.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return nil, wrapJobConflict(err, job.Id, "failed to save Job")
+	}
+
+	if job.ConcurrencyKey != "" {
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get rows affected")
+		}
+		if rows == 0 {
+			return nil, store.NewErrConflict("Job", nil, "concurrency_key="+job.ConcurrencyKey)
+		}
 	}
 
 	return job, nil
+}
+
+func (jss SqlJobStore) insertJobQuery(job *model.Job, jsonData []byte) sq.InsertBuilder {
+	return jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data", "ConcurrencyKey").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData, sql.NullString{String: job.ConcurrencyKey, Valid: job.ConcurrencyKey != ""})
+}
+
+// isJobConcurrencyConflict reports whether err is a unique violation of one of the
+// partial indexes that allow at most one pending and one running job per ConcurrencyKey.
+func isJobConcurrencyConflict(err error) bool {
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || pqErr.Code != "23505" {
+		return false
+	}
+	return pqErr.Constraint == jobsConcurrencyRunningIndex || pqErr.Constraint == jobsConcurrencyPendingIndex
+}
+
+func wrapJobConflict(err error, jobID string, msg string) error {
+	if isJobConcurrencyConflict(err) {
+		return store.NewErrConflict("Job", err, "id="+jobID)
+	}
+	return errors.Wrap(err, msg)
 }
 
 func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
@@ -116,10 +159,7 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 		return nil, nil
 	}
 
-	query, args, err = jss.getQueryBuilder().
-		Insert("Jobs").
-		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
-		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	query, args, err = jss.insertJobQuery(job, jsonData).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
@@ -188,10 +228,7 @@ func (jss SqlJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]str
 		return nil, nil
 	}
 
-	query, args, err = jss.getQueryBuilder().
-		Insert("Jobs").
-		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
-		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	query, args, err = jss.insertJobQuery(job, jsonData).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
@@ -236,7 +273,7 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 
 	var jobs []*model.Job
 	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Job with id=%s", job.Id)
+		return nil, wrapJobConflict(err, job.Id, fmt.Sprintf("failed to update Job with id=%s", job.Id))
 	}
 
 	if len(jobs) != 1 {
@@ -256,7 +293,7 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error
 
 	var jobs []*model.Job
 	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
+		return nil, wrapJobConflict(err, id, fmt.Sprintf("failed to update Job with id=%s", id))
 	}
 
 	if len(jobs) != 1 {
@@ -286,6 +323,9 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("Job", id)
 		}
+		if isJobConcurrencyConflict(err) {
+			return nil, nil
+		}
 		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
 	}
 
@@ -296,6 +336,109 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	}
 
 	return job[0], nil
+}
+
+// ClaimWithConcurrencyKey moves the pending job to in_progress unless another job with the same
+// concurrency key is already running. In the same transaction, running jobs with that key whose
+// LastActivityAt is older than staleBefore are first moved to error, so that a job orphaned by a
+// node that died does not block the key forever. It returns the claimed job, or nil when the job
+// was not claimed, together with any jobs that were taken over.
+func (jss SqlJobStore) ClaimWithConcurrencyKey(id string, concurrencyKey string, staleBefore int64) (claimed *model.Job, reaped []*model.Job, err error) {
+	if concurrencyKey == "" {
+		return nil, nil, errors.New("concurrency key cannot be empty")
+	}
+
+	tx, err := jss.GetMaster().Begin()
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	now := model.GetMillis()
+
+	reapQuery := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("Status", model.JobStatusError).
+		Set("Data", sq.Expr("COALESCE(CASE WHEN jsonb_typeof(Data) = 'object' THEN Data END, '{}'::jsonb) || jsonb_build_object('error', ?::text)", staleJobError)).
+		Where(sq.Eq{"ConcurrencyKey": concurrencyKey, "Status": jobRunningStatuses}).
+		Where(sq.Lt{"LastActivityAt": staleBefore}).
+		Where(sq.NotEq{"Id": id}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
+
+	reaped = []*model.Job{}
+	if err = tx.SelectBuilder(&reaped, reapQuery); err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to take over stale jobs with concurrency_key=%s", concurrencyKey)
+	}
+
+	claimQuery := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("Status", model.JobStatusInProgress).
+		Set("StartAt", now).
+		Set("LastActivityAt", now).
+		Where(sq.Eq{"Id": id, "Status": model.JobStatusPending}).
+		Where(sq.Expr("NOT EXISTS (SELECT 1 FROM Jobs Running WHERE Running.ConcurrencyKey = ? AND Running.Status IN (?, ?))", concurrencyKey, model.JobStatusInProgress, model.JobStatusCancelRequested)).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
+
+	var jobs []*model.Job
+	if err = tx.SelectBuilder(&jobs, claimQuery); err != nil {
+		if isJobConcurrencyConflict(err) {
+			return nil, nil, nil
+		}
+		return nil, nil, errors.Wrapf(err, "failed to claim Job with id=%s", id)
+	}
+
+	if err = tx.Commit(); err != nil {
+		if isJobConcurrencyConflict(err) {
+			return nil, nil, nil
+		}
+		return nil, nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	if len(jobs) != 1 {
+		return nil, reaped, nil
+	}
+
+	return jobs[0], reaped, nil
+}
+
+// RefreshLastActivityAt sets LastActivityAt to now for those of the given jobs that are still
+// running, and returns their ids.
+func (jss SqlJobStore) RefreshLastActivityAt(ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return []string{}, nil
+	}
+
+	builder := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("LastActivityAt", model.GetMillis()).
+		Where(sq.Eq{"Id": ids, "Status": jobRunningStatuses}).
+		Suffix("RETURNING Id")
+
+	running := []string{}
+	if err := jss.GetMaster().SelectBuilder(&running, builder); err != nil {
+		return nil, errors.Wrap(err, "failed to refresh LastActivityAt of running Jobs")
+	}
+
+	return running, nil
+}
+
+// GetPendingByConcurrencyKey returns the pending job holding the given concurrency key.
+func (jss SqlJobStore) GetPendingByConcurrencyKey(concurrencyKey string) (*model.Job, error) {
+	query, args, err := jss.jobQuery.
+		Where(sq.Eq{"ConcurrencyKey": concurrencyKey, "Status": model.JobStatusPending}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "job_tosql")
+	}
+
+	var job model.Job
+	if err = jss.GetMaster().Get(&job, query, args...); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("Job", "concurrency_key="+concurrencyKey)
+		}
+		return nil, errors.Wrapf(err, "failed to get pending Job with concurrency_key=%s", concurrencyKey)
+	}
+
+	return &job, nil
 }
 
 func (jss SqlJobStore) Get(rctx request.CTX, id string) (*model.Job, error) {

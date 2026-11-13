@@ -479,3 +479,11 @@ channels/db/migrations/postgres/000241_move_access_control_group_to_v3.down.sql
 channels/db/migrations/postgres/000241_move_access_control_group_to_v3.up.sql
 channels/db/migrations/postgres/000242_create_legacy_attribute_view.down.sql
 channels/db/migrations/postgres/000242_create_legacy_attribute_view.up.sql
+channels/db/migrations/postgres/000243_add_concurrencykey_to_jobs.down.sql
+channels/db/migrations/postgres/000243_add_concurrencykey_to_jobs.up.sql
+channels/db/migrations/postgres/000244_backfill_jobs_concurrencykey.down.sql
+channels/db/migrations/postgres/000244_backfill_jobs_concurrencykey.up.sql
+channels/db/migrations/postgres/000245_create_jobs_concurrency_running_index.down.sql
+channels/db/migrations/postgres/000245_create_jobs_concurrency_running_index.up.sql
+channels/db/migrations/postgres/000246_create_jobs_concurrency_pending_index.down.sql
+channels/db/migrations/postgres/000246_create_jobs_concurrency_pending_index.up.sql

@@ -7595,6 +7595,27 @@ func (s *RetryLayerHealthFindingStore) Upsert(findings []*model.HealthFinding) e
 
 }
 
+func (s *RetryLayerJobStore) ClaimWithConcurrencyKey(id string, concurrencyKey string, staleBefore int64) (*model.Job, []*model.Job, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.JobStore.ClaimWithConcurrencyKey(id, concurrencyKey, staleBefore)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 
 	tries := 0
@@ -7852,6 +7873,48 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 	tries := 0
 	for {
 		result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetPendingByConcurrencyKey(concurrencyKey string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetPendingByConcurrencyKey(concurrencyKey)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerJobStore) RefreshLastActivityAt(ids []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.RefreshLastActivityAt(ids)
 		if err == nil {
 			return result, nil
 		}

@@ -21,10 +21,14 @@ type JobServer struct {
 	logger        mlog.LoggerIFace
 	publish       func(*model.WebSocketEvent)
 
+	claimed claimedJobs
+
 	// mut is used to protect the following fields from concurrent access.
-	mut        sync.Mutex
-	workers    *Workers
-	schedulers *Schedulers
+	mut              sync.Mutex
+	workers          *Workers
+	schedulers       *Schedulers
+	heartbeatStop    chan struct{}
+	heartbeatStopped chan struct{}
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface, logger mlog.LoggerIFace, publish func(*model.WebSocketEvent)) *JobServer {
@@ -87,6 +91,7 @@ func (srv *JobServer) StartWorkers() error {
 		return ErrWorkersRunning
 	}
 	srv.workers.Start()
+	srv.startHeartbeat()
 	return nil
 }
 
@@ -111,6 +116,7 @@ func (srv *JobServer) StopWorkers() error {
 		return ErrWorkersNotRunning
 	}
 	srv.workers.Stop()
+	srv.stopHeartbeat()
 	return nil
 }
 
