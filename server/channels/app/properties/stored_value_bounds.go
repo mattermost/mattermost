@@ -4,8 +4,10 @@
 package properties
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"strings"
@@ -31,6 +33,32 @@ func (b *storedValueBreaches) add(count int64, examples []string) {
 	if len(b.Examples) > storedValueExamples {
 		b.Examples = b.Examples[:storedValueExamples]
 	}
+}
+
+// heldField is a field whose stored values were counted in a refusal. A template and the fields
+// linked to it can share a name, so name carries the object type too.
+type heldField struct{ name, id string }
+
+// heldFields are the fields counted in one refusal, so the message can tell the admin which to change.
+type heldFields []heldField
+
+func (h *heldFields) add(count int64, f *model.PropertyField) {
+	if count > 0 {
+		*h = append(*h, heldField{f.Name + " (" + f.ObjectType + ")", f.ID})
+	}
+}
+
+// join sorts first: GetLinkedFields has no ORDER BY, and the message should not change between runs.
+// Names and IDs come out in the same order, so the n-th name is the n-th ID's field.
+func (h heldFields) join() (names, ids string) {
+	slices.SortFunc(h, func(a, b heldField) int {
+		return cmp.Or(strings.Compare(a.name, b.name), strings.Compare(a.id, b.id))
+	})
+	ns, is := make([]string, len(h)), make([]string, len(h))
+	for i, f := range h {
+		ns[i], is[i] = f.name, f.id
+	}
+	return strings.Join(ns, ", "), strings.Join(is, ", ")
 }
 
 // allowedByRule returns the option IDs in ranks that pass op against refRank.
@@ -274,6 +302,131 @@ func (ps *PropertyService) deletedOptionBreaches(existing *model.PropertyField) 
 	}
 	breaches.add(count, examples)
 	return breaches, nil
+}
+
+// refuseDeletingHeldOptions refuses deleting options of owner while a write-once or set-on-create
+// value of owner, or of a live field linked to it, holds one of them: the lock refuses the move to
+// another option, so the value would be left naming nothing. Every option in the request is judged
+// together, and a field is judged by its own mutability. A linked field in incoming is judged by
+// its copy there; owner is passed as it will be stored. Without Enterprise Advanced nothing is
+// checked, because mutability isn't enforced then. A value written between this check and the
+// delete can still land on the option; there are no locks across objects.
+//
+// It also refuses while a value of a mutable field with a raise-only or lower-only rule holds one
+// of them: that value can no longer be ranked, so every later change to it would be refused.
+//
+// Last, it refuses while the system's or a channel's value of owner, or of a field linked to it,
+// holds an option and a child field's parent rule compares against that value: every capped write
+// below it would then be refused as broken data. When several apply, the write-once or
+// set-on-create refusal wins, then the raise-only or lower-only one, then this one.
+func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller string, owner *model.PropertyField, optionIDs []string, incoming map[string]*model.PropertyField) error {
+	if !ps.boundsEnforced() || len(optionIDs) == 0 {
+		return nil
+	}
+
+	linked, err := ps.fieldStore.GetLinkedFields([]string{owner.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("field %s: failed to look up the fields linked to it: %w", owner.ID, err)
+	}
+	var locked, self, held storedValueBreaches
+	var lockedIn, selfIn, heldIn heldFields
+	for _, field := range append([]*model.PropertyField{owner}, linked...) {
+		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
+			// A field this call unlinks takes over its own copy of owner's options before the
+			// drop is applied, so its values keep naming an option it still has.
+			if inc.LinkSourceID() != owner.ID {
+				continue
+			}
+			field = inc
+		}
+		if field.IsPSAv1() {
+			continue
+		}
+		if field.ObjectType == model.PropertyFieldObjectTypeSystem || field.ObjectType == model.PropertyFieldObjectTypeChannel {
+			read, err := ps.parentRuleReadsField(rctx, field, incoming)
+			if err != nil {
+				return fmt.Errorf("field %s: failed to look up the child fields of field %s: %w", owner.ID, field.ID, err)
+			}
+			if read {
+				count, examples, err := ps.valueStore.CountValuesHoldingOptions(field.GroupID, field.ID, optionIDs, nil, storedValueExamples)
+				if err != nil {
+					return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
+				}
+				heldIn.add(count, field)
+				held.add(count, examples)
+			}
+		}
+		if !storedValueMatters(field) {
+			continue
+		}
+		var scope *store.PostValueScope
+		if field.ObjectType == model.PropertyFieldObjectTypePost {
+			// Values on deleted posts are not live: nobody can open or correct them.
+			scope = &store.PostValueScope{}
+		}
+		count, examples, err := ps.valueStore.CountValuesHoldingOptions(field.GroupID, field.ID, optionIDs, scope, storedValueExamples)
+		if err != nil {
+			return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
+		}
+		// A locked field is counted once, as locked, whatever rules it carries.
+		if field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
+			selfIn.add(count, field)
+			self.add(count, examples)
+			continue
+		}
+		lockedIn.add(count, field)
+		locked.add(count, examples)
+	}
+	if locked.Count > 0 {
+		examples := strings.Join(locked.Examples, ", ")
+		names, ids := lockedIn.join()
+		return model.NewAppError(caller, "app.property_field.option_delete_locked_values.app_error",
+			map[string]any{"Count": locked.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, ids, examples),
+			http.StatusConflict)
+	}
+	if self.Count > 0 {
+		examples := strings.Join(self.Examples, ", ")
+		names, ids := selfIn.join()
+		return model.NewAppError(caller, "app.property_field.option_delete_self_rule_values.app_error",
+			map[string]any{"Count": self.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are raise-only or lower-only, e.g. %s", owner.ID, self.Count, ids, examples),
+			http.StatusConflict)
+	}
+	if held.Count > 0 {
+		examples := strings.Join(held.Examples, ", ")
+		names, ids := heldIn.join()
+		return model.NewAppError(caller, "app.property_field.option_delete_container_values.app_error",
+			map[string]any{"Count": held.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are compared against by a parent rule, e.g. %s", owner.ID, held.Count, ids, examples),
+			http.StatusConflict)
+	}
+	return nil
+}
+
+// parentRuleReadsField reports whether a child field's parent rule compares against field's
+// values. Stored children are judged by their copy in incoming when they have one, and a field in
+// incoming that is one object type below field on the same template counts if it carries the rule.
+func (ps *PropertyService) parentRuleReadsField(rctx request.CTX, field *model.PropertyField, incoming map[string]*model.PropertyField) (bool, error) {
+	hasRule := func(c *model.PropertyField) bool {
+		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+			return r.Reference == model.PropertyBoundsReferenceParent
+		})
+	}
+	children, err := ps.childFieldsWithParentRule(rctx, field)
+	if err != nil {
+		return false, err
+	}
+	if slices.ContainsFunc(children, func(c *model.PropertyField) bool {
+		inc, ok := incoming[c.ID]
+		return !ok || hasRule(inc)
+	}) {
+		return true, nil
+	}
+	return field.LinkSourceID() != "" && slices.ContainsFunc(slices.Collect(maps.Values(incoming)), func(c *model.PropertyField) bool {
+		return model.PropertyFieldParentObjectType(c.ObjectType) == field.ObjectType &&
+			c.LinkSourceID() == field.LinkSourceID() && hasRule(c)
+	}), nil
 }
 
 // optionRanksChange reports whether saving field over existing can change how a stored value
