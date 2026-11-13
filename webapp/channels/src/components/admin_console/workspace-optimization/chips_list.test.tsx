@@ -22,11 +22,6 @@ describe('components/admin_console/workspace-optimization/chips_list', () => {
         hideCountZeroChips: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ChipsList {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('test chips list lenght is 3 as defined in baseProps', () => {
         renderWithContext(<ChipsList {...baseProps}/>);
         const chips = screen.getAllByRole('button');

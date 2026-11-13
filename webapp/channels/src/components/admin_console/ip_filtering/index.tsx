@@ -316,7 +316,7 @@ const IPFiltering = () => {
     return (
         <div className='IPFiltering wrapper--fixed'>
             <AdminHeader>
-                {formatMessage({id: 'admin.ip_filtering.ip_filtering', defaultMessage: 'IP Filtering'})}
+                <span>{formatMessage({id: 'admin.ip_filtering.ip_filtering', defaultMessage: 'IP Filtering'})}</span>
             </AdminHeader>
             <div className='MainPanel admin-console__wrapper'>
                 <>

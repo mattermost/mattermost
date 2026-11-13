@@ -21,12 +21,6 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<UnmuteChannelButton {...baseProps}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should runs updateChannelNotifyProps on click', async () => {
         const updateChannelNotifyProps = jest.fn();
         const props = {

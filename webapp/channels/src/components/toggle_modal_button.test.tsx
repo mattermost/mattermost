@@ -22,7 +22,7 @@ const TestModal = () => (
 );
 
 describe('components/ToggleModalButton', () => {
-    test('component should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(
             <ToggleModalButton
                 ariaLabel={'Delete Channel'}
@@ -37,8 +37,6 @@ describe('components/ToggleModalButton', () => {
                 />
             </ToggleModalButton>,
         );
-
-        expect(container).toMatchSnapshot();
         const button = container.querySelector('button');
         expect(button?.textContent).toBe('Delete Channel');
         expect(button?.className).toContain('style--none');

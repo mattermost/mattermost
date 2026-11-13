@@ -74,9 +74,10 @@ test('MM-T5598 invites a custom group to a channel', {tag: '@channels'}, async (
     await channelsPage.centerView.postCreate.writeMessage(`/invite @${groupName} `);
     await channelsPage.centerView.postCreate.sendMessage();
 
-    // * Verify the group's member was added to the channel
-    await channelsPage.centerView.waitUntilLastPostContains('added to the channel');
-    await channelsPage.centerView.waitUntilLastPostContains(member.username);
+    // * Verify the group's member was added to the channel. The system message and the ephemeral
+    // * "already in the channel" reply for the inviter arrive in either order, so don't rely on the last post.
+    const addedPost = await channelsPage.centerView.getPostByText('added to the channel');
+    await expect(addedPost.container).toContainText(member.username);
 });
 
 /**

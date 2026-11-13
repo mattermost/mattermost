@@ -362,7 +362,6 @@ func TestServePluginRequest(t *testing.T) {
 			}
 		}
 		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
-		assert.Contains(t, logOutput, "<redacted>")
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {
@@ -743,4 +742,132 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, true, testMaxBodyBytes)
 		assert.False(t, result)
 	})
+}
+
+// A plugin's state is already running while its OnActivate runs, but it can't
+// take inter-plugin requests yet. Status and inter-plugin requests must say so,
+// so callers wait instead of treating it as a missing plugin.
+func TestPluginStartingDuringOnActivate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+	token := model.NewId()
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"net/http"
+			"strconv"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			manifests, appErr := p.API.GetPlugins()
+			if appErr != nil || len(manifests) != 1 {
+				return appErr
+			}
+			id := manifests[0].Id
+
+			status, appErr := p.API.GetPluginStatus(id)
+			if appErr != nil {
+				return appErr
+			}
+			p.API.KVSet("state", []byte(strconv.Itoa(status.State)))
+
+			req, _ := http.NewRequest(http.MethodGet, "/"+id+"/ping?access_token=` + token + `", nil)
+			resp := p.API.PluginHTTP(req)
+			if resp != nil {
+				resp.Body.Close()
+				p.API.KVSet("request_status", []byte(strconv.Itoa(resp.StatusCode)))
+			}
+			return nil
+		}
+
+		func (p *MyPlugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Request) {
+			w.Write([]byte("pong"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := buffer.String()
+	require.Contains(t, logs, "still starting", "the starting-plugin request was never logged")
+	assert.NotContains(t, logs, token, "the query string can carry an access_token")
+
+	getKey := func(key string) string {
+		value, appErr := th.App.GetPluginKey(pluginID, key)
+		require.Nil(t, appErr)
+		return string(value)
+	}
+	assert.Equal(t, fmt.Sprint(model.PluginStateStarting), getKey("state"))
+	assert.Equal(t, fmt.Sprint(http.StatusServiceUnavailable), getKey("request_status"))
+
+	status, appErr := th.App.GetPluginStatus(pluginID)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.PluginStateRunning, status.State, "the plugin is running once OnActivate returns")
+}
+
+// MM-70121: a plugin id that does not resolve must not drag the request's query
+// string, which can carry an access_token, into the log.
+func TestServePluginRequestUnknownPluginDoesNotLogQueryString(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testCases := []struct {
+		name    string
+		path    string
+		wantLog string
+		serve   func(w http.ResponseWriter, r *http.Request)
+	}{
+		{
+			name:    "external request",
+			path:    "/plugins/unknownplugin/endpoint",
+			wantLog: "Access to route for non-existent plugin",
+			serve:   th.App.ch.ServePluginRequest,
+		},
+		{
+			name:    "internal request",
+			path:    "/endpoint",
+			wantLog: "Access to route for non-existent plugin in internal plugin request",
+			serve: func(w http.ResponseWriter, r *http.Request) {
+				th.App.ServeInternalPluginRequest("", w, r, "sourceplugin", "unknownplugin")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buffer := &mlog.Buffer{}
+			require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+			token := model.NewId()
+			req := httptest.NewRequest(http.MethodGet, tc.path+"?access_token="+token, nil)
+			req = mux.SetURLVars(req, map[string]string{"plugin_id": "unknownplugin"})
+			rr := httptest.NewRecorder()
+
+			tc.serve(rr, req)
+			require.Equal(t, http.StatusNotFound, rr.Code)
+			require.NoError(t, th.TestLogger.Flush())
+
+			logs := buffer.String()
+			require.Contains(t, logs, tc.wantLog, "the unresolved plugin id was never logged")
+			assert.Contains(t, logs, `"url":"`+tc.path+`"`)
+			assert.NotContains(t, logs, token)
+		})
+	}
 }

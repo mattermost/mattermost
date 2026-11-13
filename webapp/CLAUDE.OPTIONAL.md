@@ -20,7 +20,7 @@ This is the Mattermost web app codebase, a React-based frontend application for 
 | Dev server (webpack-dev-server) | `make dev` or `npm run dev-server --workspace=channels` |
 | Build all workspaces | `make dist` or `npm run build` |
 | Build Channels only | `npm run build --workspace=channels` |
-| Tests | `make test` or `npm run test --workspace=channels` (use `test:watch`, `test:updatesnapshot` as needed) |
+| Tests | `make test` or `npm run test --workspace=channels` (use `test:watch` as needed) |
 | Lint / Style | `make check-style`, `make fix-style`, `npm run check --workspace=channels`, `npm run fix --workspace=channels` |
 | Type check | `make check-types` |
 | Clean artifacts | `make clean` or `npm run clean --workspaces --if-present` |

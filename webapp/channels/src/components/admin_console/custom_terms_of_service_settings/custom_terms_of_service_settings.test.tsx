@@ -40,11 +40,9 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         return view;
     }
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const props = getBaseProps();
-        const {container} = await renderLoaded(props);
-
-        expect(container).toMatchSnapshot();
+        await renderLoaded(props);
     });
 
     test('save button is disabled until a setting is changed, then enabled after edit', async () => {

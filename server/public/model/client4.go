@@ -745,13 +745,13 @@ func (c *Client4) integrityRoute() clientRoute {
 
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
+	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
 
 // DoAPIPost makes a POST request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPost(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
 // DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
@@ -761,13 +761,13 @@ func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*htt
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
 }
 
 // DoAPIPut makes a PUT request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPut(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
 // DoAPIPutJSON marshals the provided data to JSON and makes a PUT request to the specified URL.
@@ -777,7 +777,7 @@ func (c *Client4) DoAPIPutJSON(ctx context.Context, url string, data any) (*http
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
 }
 
 // DoAPIPatchJSON marshals the provided data to JSON and makes a PATCH request to the specified URL.
@@ -787,13 +787,13 @@ func (c *Client4) DoAPIPatchJSON(ctx context.Context, url string, data any) (*ht
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
 }
 
 // DoAPIDelete makes a DELETE request to the specified URL.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
+	return c.DoAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
 }
 
 // DoAPIDeleteJSON marshals the provided data to JSON and makes a DELETE request to the specified URL.
@@ -803,13 +803,13 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*h
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
 }
 
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method string, route clientRoute, data string, headers map[string]string) (*http.Response, error) {
@@ -820,12 +820,16 @@ func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method strin
 	return c.DoAPIRequestWithHeaders(ctx, method, routePath, data, headers)
 }
 
-func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequest makes an HTTP request with the specified method to a fully-qualified URL, with optional string data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) doAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequestBytes makes an HTTP request with the specified method to a fully-qualified URL, with optional byte data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) doAPIGet(ctx context.Context, route clientRoute, etag string) (*http.Response, error) {
@@ -928,10 +932,10 @@ func (c *Client4) doAPIDeleteJSON(ctx context.Context, route clientRoute, data a
 	return c.DoAPIDeleteJSON(ctx, routePath, data)
 }
 
-// doAPIRequestReader makes an HTTP request using an io.Reader for the request body and custom headers.
+// DoAPIRequestReader makes an HTTP request to a fully-qualified URL using an io.Reader for the request body, with an optional content type and custom headers.
 // This is the most flexible DoAPI method, supporting streaming data and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
-func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
+func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -973,7 +977,7 @@ func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentTy
 }
 
 func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1004,7 +1008,7 @@ func (c *Client4) doAPIRequestReaderRoute(ctx context.Context, method string, ro
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
 }
 
 // Authentication Section
@@ -5709,7 +5713,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 		return "", nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5730,7 +5734,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 		return nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5741,7 +5745,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8499,11 +8503,23 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 }
 
 func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, false, channelId...)
+}
+
+// CheckMembershipExpression is CheckExpression for a membership rule: it also
+// rejects what the membership sync can't evaluate.
+func (c *Client4) CheckMembershipExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, true, channelId...)
+}
+
+func (c *Client4) checkExpression(ctx context.Context, expression string, membership bool, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		Membership bool   `json:"membership,omitempty"`
 	}{
 		Expression: expression,
+		Membership: membership,
 	}
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]

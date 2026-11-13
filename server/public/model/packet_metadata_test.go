@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/goccy/go-yaml"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,9 +24,22 @@ func TestPacketMetadataValidate(t *testing.T) {
 				GeneratedAt:   1720097114454,
 				ServerVersion: "5.33.3",
 				ServerID:      NewId(),
+				PacketID:      NewId(),
 				LicenseID:     NewId(),
 				CustomerID:    NewId(),
 				Extras:        map[string]any{"key": "value"},
+			},
+			expectErr: false,
+		},
+		"Valid Metadata without packet id": {
+			metadata: PacketMetadata{
+				Version:       1,
+				Type:          SupportPacketType,
+				GeneratedAt:   1720097114454,
+				ServerVersion: "5.33.3",
+				ServerID:      NewId(),
+				LicenseID:     NewId(),
+				CustomerID:    NewId(),
 			},
 			expectErr: false,
 		},
@@ -100,6 +114,17 @@ func TestPacketMetadataValidate(t *testing.T) {
 			},
 			expectErr: true,
 		},
+		"Invalid Packet ID": {
+			metadata: PacketMetadata{
+				Version:       1,
+				Type:          SupportPacketType,
+				GeneratedAt:   1720097114454,
+				ServerVersion: "5.33.3",
+				ServerID:      NewId(),
+				PacketID:      "invalid-packet-id",
+			},
+			expectErr: true,
+		},
 	}
 
 	for name, tt := range tests {
@@ -121,10 +146,19 @@ type: support-packet
 generated_at: 1622569200
 server_version: 5.33.3
 server_id: 8fqk9rti13fmpxdd5934a3xsxh
+packet_id: q7xj1d4mrtgc8nrb6owhyyzf3e
 license_id: 3g3pqn8in3brzjkozcn1kdidgr
 customer_id: 74cmws7gf3ykpj31car7zahsny
 extras:
   key: value
+`
+
+	withoutPacketID := `
+version: 1
+type: support-packet
+generated_at: 1622569200
+server_version: 5.33.3
+server_id: 8fqk9rti13fmpxdd5934a3xsxh
 `
 
 	invalidVersion := `
@@ -148,11 +182,17 @@ customer_id: 74cmws7gf3ykpj31car7zahsny
 `
 
 	tests := map[string]struct {
-		yamlData  string
-		expectErr bool
+		yamlData         string
+		expectErr        bool
+		expectedPacketID string
 	}{
 		"Valid Metadata YAML": {
-			yamlData:  valid,
+			yamlData:         valid,
+			expectErr:        false,
+			expectedPacketID: "q7xj1d4mrtgc8nrb6owhyyzf3e",
+		},
+		"Valid Metadata YAML without packet id": {
+			yamlData:  withoutPacketID,
 			expectErr: false,
 		},
 		"Invalid Version in YAML": {
@@ -179,7 +219,22 @@ customer_id: 74cmws7gf3ykpj31car7zahsny
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, md)
+				assert.Equal(t, tt.expectedPacketID, md.PacketID)
 			}
 		})
 	}
+}
+
+func TestGeneratePacketMetadata(t *testing.T) {
+	serverID := NewId()
+
+	md1, err := GeneratePacketMetadata(SupportPacketType, serverID, nil, nil)
+	require.NoError(t, err)
+	assert.True(t, IsValidId(md1.PacketID))
+
+	md2, err := GeneratePacketMetadata(SupportPacketType, serverID, nil, nil)
+	require.NoError(t, err)
+	assert.True(t, IsValidId(md2.PacketID))
+
+	assert.NotEqual(t, md1.PacketID, md2.PacketID)
 }

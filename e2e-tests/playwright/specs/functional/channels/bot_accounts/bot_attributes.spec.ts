@@ -50,6 +50,32 @@ async function dismissWebpackOverlay(page: Page) {
         .catch(() => null);
 }
 
+function botAttributeCombobox(page: Page, fieldId: string) {
+    return page.getByTestId(`bot-attribute-label-${fieldId}`).getByRole('combobox');
+}
+
+// Focus alone doesn't open the menu, so click and wait for it; the listbox is portaled to the page.
+async function openBotAttributeListbox(page: Page, fieldId: string) {
+    const combobox = botAttributeCombobox(page, fieldId);
+    await combobox.click();
+    await expect(combobox).toHaveAttribute('aria-expanded', 'true');
+    const listboxId = await combobox.getAttribute('aria-controls');
+    if (!listboxId) {
+        throw new Error(`Bot attribute combobox ${fieldId} has no aria-controls`);
+    }
+    return page.locator(`#${listboxId}`);
+}
+
+// Matches the label text, since a rank option's accessible name also carries its rank.
+async function pickBotAttributeOption(page: Page, fieldId: string, optionName: string) {
+    const listbox = await openBotAttributeListbox(page, fieldId);
+    await listbox
+        .getByRole('option')
+        .filter({has: page.getByText(optionName, {exact: true})})
+        .click();
+    await expect(botAttributeCombobox(page, fieldId)).toHaveAttribute('aria-expanded', 'false');
+}
+
 async function openBotEdit(page: Page, teamName: string, username: string) {
     await page.goto(`/${teamName}/integrations/bots`);
     await dismissWebpackOverlay(page);
@@ -177,7 +203,7 @@ test.describe('Bot account attributes @bot_accounts', () => {
         // # Add the select attribute and pick an option
         await addButton.click();
         await page.getByTestId(`botAttributesAdd-${selectField.id}`).click();
-        await page.getByTestId(`bot-attribute-label-${selectField.id}`).locator('select').selectOption({label: GOLD});
+        await pickBotAttributeOption(page, selectField.id, GOLD);
 
         // * Added fields are no longer offered in the add menu
         await addButton.click();
@@ -224,13 +250,13 @@ test.describe('Bot account attributes @bot_accounts', () => {
 
         // * Existing values are pre-filled
         const textInput = page.getByTestId(`bot-attribute-label-${textField.id}`).locator('input');
-        const select = page.getByTestId(`bot-attribute-label-${selectField.id}`).locator('select');
+        const select = botAttributeCombobox(page, selectField.id);
         await expect(textInput).toHaveValue(initialValue);
-        await expect(select).toHaveValue(optionId(selectField, GOLD));
+        await expect(select).toHaveValue(GOLD);
 
         // # Change both values and save
         await textInput.fill(updatedValue);
-        await select.selectOption({label: SILVER});
+        await pickBotAttributeOption(page, selectField.id, SILVER);
         await saveBotEdit(page, team.name);
 
         // * The save returns to the bots list, which still lists the bot
@@ -284,10 +310,7 @@ test.describe('Bot account attributes @bot_accounts', () => {
 
             // # Add the select attribute, pick an option, and save
             await page.getByTestId(`botAttributesAdd-${selectField.id}`).click();
-            await page
-                .getByTestId(`bot-attribute-label-${selectField.id}`)
-                .locator('select')
-                .selectOption({label: GOLD});
+            await pickBotAttributeOption(page, selectField.id, GOLD);
             await saveBotEdit(page, team.name);
 
             // * The owner's changes were saved and the admin-managed field was left unset
@@ -398,5 +421,183 @@ test.describe('Bot account attributes @bot_accounts', () => {
         await expect(channelsPage.userProfilePopover.container).toContainText(`@${bot.username}`);
         await verifyAttributeInPopover(channelsPage, TEXT_LABEL, textValue);
         await verifyAttributeInPopover(channelsPage, SELECT_LABEL, SILVER);
+    });
+
+    /**
+     * @objective Verify Enter on a closed select attribute neither submits the Add Bot form nor opens the Add attribute menu, and Create still saves the picked value.
+     */
+    test(
+        'Enter on a closed select attribute does not create the bot or open the add menu',
+        {tag: '@bot_accounts'},
+        async ({pw}) => {
+            test.setTimeout(120000);
+            const {adminUser, adminClient, team} = await pw.initSetup();
+            const username = botUsername('benter');
+            const displayName = `Enter bot ${suffix}`;
+            const addPath = `/${team.name}/integrations/bots/add`;
+
+            // # Log in as admin and record every create-bot request the page sends
+            const {channelsPage, page} = await pw.testBrowser.login(adminUser);
+            const createBotRequests: string[] = [];
+            page.on('request', (request) => {
+                if (request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/bots')) {
+                    createBotRequests.push(request.url());
+                }
+            });
+
+            // # Open the Add Bot page, enter a username and add the select attribute
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+            await page.goto(addPath);
+            await dismissWebpackOverlay(page);
+            await page.locator('#username').fill(username);
+            const addButton = page.getByTestId('botAttributesAddButton');
+            const addMenu = page.getByRole('menu', {name: 'Add attribute'});
+            await expect(addButton).toBeEnabled();
+            await addButton.click();
+            await page.getByTestId(`botAttributesAdd-${selectField.id}`).click();
+            await expect(addMenu).toBeHidden();
+            const combobox = botAttributeCombobox(page, selectField.id);
+
+            // * The select is a combobox named after the field
+            await expect(combobox).toHaveAccessibleName(SELECT_LABEL);
+            await expect(combobox).toHaveAttribute('id', `bot-attribute-combobox-${selectField.id}`);
+
+            // # Focus the empty select and press Enter
+            await combobox.focus();
+            await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+            await combobox.press('Enter');
+
+            // * The page stays on Add Bot, sends no create request, and the Add attribute menu stays closed
+            // Unguarded Enter opens this menu today; the no-create checks only bite once its trigger is type="button".
+            await expect(page).toHavePath(addPath);
+            expect(createBotRequests).toHaveLength(0);
+            await expect(addButton).toHaveAttribute('aria-expanded', 'false');
+            await expect(addMenu).toBeHidden();
+            await expect(combobox).toBeFocused();
+
+            // # Pick Gold, then press Enter on the closed select again
+            await pickBotAttributeOption(page, selectField.id, GOLD);
+            await expect(combobox).toBeFocused();
+            await combobox.press('Enter');
+
+            // * Still on Add Bot with Gold kept, no create request, no add menu, and no such user on the server
+            await expect(page).toHavePath(addPath);
+            await expect(combobox).toHaveValue(GOLD);
+            await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+            expect(createBotRequests).toHaveLength(0);
+            await expect(addButton).toHaveAttribute('aria-expanded', 'false');
+            await expect(addMenu).toBeHidden();
+            await expect(combobox).toBeFocused();
+            await expect(adminClient.getUserByUsername(username)).rejects.toMatchObject({status_code: 404});
+
+            // # Set a display name, then click Create
+            await page.locator('#displayName').fill(displayName);
+            await page.locator('#saveBot').click();
+
+            // * The form submits once and the bot has the display name and the select value
+            await page.waitForURL(/\/integrations\/confirm\?type=bots/);
+            expect(createBotRequests).toHaveLength(1);
+            const botUserId = new URL(page.url()).searchParams.get('id');
+            expect(botUserId).toBeTruthy();
+            expect((await adminClient.getBot(botUserId as string)).display_name).toBe(displayName);
+            await expect
+                .poll(() => adminClient.getUserCustomProfileAttributesValues(botUserId as string))
+                .toMatchObject({[selectField.id]: optionId(selectField, GOLD)});
+        },
+    );
+
+    test.describe('rank attribute', () => {
+        const RANK_LABEL = `Bot Level ${suffix}`;
+        let rankField: UserPropertyField | undefined;
+
+        test.beforeAll(async () => {
+            const {adminClient} = await getAdminClient();
+            rankField = await adminClient.createCustomProfileAttributeField({
+                name: `bot_level_${suffix}`,
+                type: 'rank',
+                attrs: {
+                    sort_order: 3,
+                    visibility: 'always',
+                    display_name: RANK_LABEL,
+                    options: [
+                        {name: 'Low', rank: 1},
+                        {name: 'High', rank: 2},
+                    ],
+                },
+            } as any);
+        });
+
+        test.afterAll(async () => {
+            if (!rankField) {
+                return;
+            }
+            const {adminClient} = await getAdminClient();
+            await deleteCustomProfileAttributes(adminClient, {[rankField.id]: rankField});
+        });
+
+        /**
+         * @objective Verify a rank attribute on a bot edits like the other dropdown attributes: it shows the assigned value with its badge, and both picking another value and clearing it persist.
+         */
+        test('edits and clears a rank attribute on a bot', {tag: '@bot_accounts'}, async ({pw}) => {
+            test.setTimeout(120000);
+            const field = rankField!;
+            const {adminUser, adminClient, team} = await pw.initSetup();
+
+            // # Seed a bot with the lowest rank and open its edit page
+            const bot = await seedBot(adminClient, {[field.id]: optionId(field, 'Low')});
+            const {page} = await pw.testBrowser.login(adminUser);
+            await openBotEdit(page, team.name, bot.username);
+            const rank = botAttributeCombobox(page, field.id);
+            const badge = page.getByTestId(`bot-attribute-label-${field.id}`).getByTestId('rank-badge');
+
+            // * The rank is a combobox named after the field, showing the assigned value with its badge,
+            //   and its rank is announced as the field's description
+            await expect(rank).toHaveAccessibleName(RANK_LABEL);
+            await expect(rank).toHaveValue('Low');
+            await expect(badge).toHaveText('1');
+            await expect(rank).toHaveAccessibleDescription('Rank 1');
+
+            // # Open the listbox
+            const listbox = await openBotAttributeListbox(page, field.id);
+
+            // * Values are listed highest-rank-first, each named with its rank, and the assigned value is selected
+            await expect(listbox.getByRole('option')).toHaveText([/^2\s*High$/, /^1\s*Low$/]);
+            await expect(listbox.getByRole('option', {name: 'High, Rank 2', exact: true})).toBeVisible();
+            await expect(listbox.getByRole('option', {name: 'Low, Rank 1', exact: true})).toHaveAttribute(
+                'aria-selected',
+                'true',
+            );
+
+            // # Close the listbox
+            await rank.press('Escape');
+            await expect(rank).toHaveAttribute('aria-expanded', 'false');
+
+            // # Pick the higher rank and save
+            await pickBotAttributeOption(page, field.id, 'High');
+            await expect(badge).toHaveText('2');
+            await saveBotEdit(page, team.name);
+
+            // * The new value was saved
+            await expect
+                .poll(() => adminClient.getUserCustomProfileAttributesValues(bot.user_id))
+                .toMatchObject({[field.id]: optionId(field, 'High')});
+
+            // # Reopen the bot and clear the rank
+            await openBotEdit(page, team.name, bot.username);
+            await expect(rank).toHaveValue('High');
+            await page.getByTestId(`bot-attribute-combobox-${field.id}-clear`).click();
+
+            // * The input is empty
+            await expect(rank).toHaveValue('');
+
+            // # Save the bot
+            await saveBotEdit(page, team.name);
+
+            // * The value was cleared
+            await expect
+                .poll(async () => (await adminClient.getUserCustomProfileAttributesValues(bot.user_id))[field.id] ?? '')
+                .toBe('');
+        });
     });
 });

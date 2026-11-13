@@ -18,13 +18,10 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 
 	scheme, err := a.Srv().Store().Scheme().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }
@@ -36,13 +33,10 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 
 	scheme, err := a.Srv().Store().Scheme().GetByName(name)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }
@@ -93,16 +87,12 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 
 	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateScheme", "app.scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("CreateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }
@@ -128,16 +118,12 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 
 	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
+		} else if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("UpdateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }
@@ -149,13 +135,10 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 
 	scheme, err := a.Srv().Store().Scheme().Delete(schemeId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("DeleteScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }

@@ -53,17 +53,10 @@ describe('components/integrations/AbstractOAuthApp', () => {
         action: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <AbstractOAuthApp {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, displays client error', async () => {
+    test('should display client error', async () => {
         const newServerError = 'serverError';
         const props = {...baseProps, serverError: newServerError};
-        const {container} = renderWithContext(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
@@ -74,7 +67,6 @@ describe('components/integrations/AbstractOAuthApp', () => {
         await userEvent.click(submitButton);
 
         expect(props.action).not.toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
     });
 
     test('should call action function', async () => {

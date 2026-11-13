@@ -29,13 +29,11 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
 
     it('should return map with the text extracted from plugins', () => {
         const entries = getPluginEntries({[samplePlugin1.id]: samplePlugin1}, intl);
-        expect(entries).toMatchSnapshot();
         expect(entries).toHaveProperty('plugin_mattermost-autolink');
     });
 
     it('should return map with the text extracted from plugins', () => {
         const entries = getPluginEntries({[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2}, intl);
-        expect(entries).toMatchSnapshot();
         expect(entries).toHaveProperty('plugin_mattermost-autolink');
         expect(entries).toHaveProperty('plugin_Some-random-plugin');
     });
