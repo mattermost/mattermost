@@ -177,6 +177,17 @@ export default function HierarchicalValueMenu({
         onOptionsLoaded,
     });
 
+    // Measure trigger width on mount so it's available for the first open.
+    useEffect(() => {
+        if (!matchesTriggerWidth) {
+            return;
+        }
+        const trigger = document.getElementById(buttonId);
+        if (trigger && triggerWidth === null) {
+            setTriggerWidth(trigger.offsetWidth);
+        }
+    }, [matchesTriggerWidth, buttonId, triggerWidth]);
+
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const rowRefs = useRef(new Map<string, HTMLLIElement>());
     const statusRowRef = useRef<HTMLLIElement | null>(null);
@@ -293,12 +304,9 @@ export default function HierarchicalValueMenu({
     );
 
     const handleToggle = useCallback((open: boolean) => {
-        if (open && matchesTriggerWidth) {
-            setTriggerWidth(document.getElementById(buttonId)?.offsetWidth || null);
-        }
         setIsOpen(open);
         onMenuOpenChange?.(open);
-    }, [matchesTriggerWidth, buttonId, onMenuOpenChange]);
+    }, [onMenuOpenChange]);
 
     const menuWidth = matchesTriggerWidth && triggerWidth ? `${triggerWidth}px` : undefined;
 
