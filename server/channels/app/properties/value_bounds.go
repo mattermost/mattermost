@@ -190,7 +190,7 @@ func (h *BoundsHook) checkValueWrite(rctx request.CTX, groupID string, values []
 			ids = append(ids, v.FieldID)
 		}
 	}
-	fields, err := h.propertyService.getPropertyFields(rctx, groupID, ids)
+	fields, err := h.propertyService.getPropertyFields(store.RequestContextWithMaster(rctx), groupID, ids)
 	if err != nil {
 		return fmt.Errorf("failed to fetch fields for the bounds checks: %w", err)
 	}
