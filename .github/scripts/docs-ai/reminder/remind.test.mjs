@@ -5,6 +5,7 @@ import {
   mergedSince,
   parseLookbackDays,
   postReminder,
+  rateLimitDelay,
   reminderBody,
   reminderMarker,
   remind,
@@ -23,7 +24,10 @@ function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}, postErro
     const comment = path.match(/\/issues\/(\d+)\/comments/);
     if (comment && method === 'POST') {
       const queued = postErrors[comment[1]];
-      if (queued?.length) throw new Error(queued.shift());
+      if (queued?.length) {
+        const next = queued.shift();
+        throw typeof next === 'string' ? new Error(next) : Object.assign(new Error(next.message), next);
+      }
       posted.push({pr: Number(comment[1]), body: body.body});
       return {id: posted.length};
     }
@@ -175,7 +179,33 @@ test('remind keeps going past a PR whose comment cannot be posted and reports it
     items: [pr(1), pr(2), pr(3)],
     postErrors: {2: [RATE_LIMITED, RATE_LIMITED, RATE_LIMITED, RATE_LIMITED]},
   });
-  const result = await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
+  const sleeps = [];
+  const sleep = async (ms) => sleeps.push(ms);
+  const result = await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep, log: () => {}});
   assert.deepEqual(result, {posted: [1, 3], failed: [2]});
+  // pacing, three retries, a final wait before moving on, pacing
+  assert.deepEqual(sleeps, [1000, 60_000, 120_000, 240_000, 480_000, 1000]);
   assert.deepEqual(posted.map((p) => p.pr), [1, 3]);
+});
+
+test('rateLimitDelay honours Retry-After, then x-ratelimit-reset, then the one-minute fallback', () => {
+  const now = 1_700_000_000_000;
+  assert.equal(rateLimitDelay({headers: {'retry-after': '30'}}, 0, now), 30_000);
+  assert.equal(
+    rateLimitDelay({headers: {'x-ratelimit-remaining': '0', 'x-ratelimit-reset': String(now / 1000 + 120)}}, 0, now),
+    121_000,
+  );
+  assert.equal(rateLimitDelay({headers: {}}, 0, now), 60_000);
+  assert.equal(rateLimitDelay({headers: {}}, 2, now), 240_000);
+});
+
+test('postReminder waits for the Retry-After a rate-limited response names', async () => {
+  const sleeps = [];
+  const {request, posted} = fakeGitHub({
+    items: [],
+    postErrors: {1: [{message: 'GitHub POST x -> 429: slow down', status: 429, headers: {'retry-after': '7'}}]},
+  });
+  await postReminder(REPO, 1, 'hi', {request, sleep: async (ms) => sleeps.push(ms), log: () => {}});
+  assert.deepEqual(sleeps, [7000]);
+  assert.equal(posted.length, 1);
 });

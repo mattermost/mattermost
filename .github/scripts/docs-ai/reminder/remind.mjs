@@ -122,7 +122,28 @@ export function reminderBody({marker, mentions = [], docsPr}) {
   return `${lines.join('\n')}\n`;
 }
 
-export const isRateLimited = (e) => /-> (403|429):/.test(e?.message ?? '') && /rate limit/i.test(e.message);
+export function isRateLimited(e) {
+  const status = e?.status ?? Number(/-> (\d{3}):/.exec(e?.message ?? '')?.[1]);
+  if (status !== 403 && status !== 429) return false;
+  const headers = e?.headers ?? {};
+  return 'retry-after' in headers || headers['x-ratelimit-remaining'] === '0' || /rate limit/i.test(e.message);
+}
+
+/**
+ * How long to wait after a rate-limited response: Retry-After when set, else
+ * until x-ratelimit-reset when the quota is spent, else GitHub's one-minute
+ * fallback, doubled per attempt.
+ */
+export function rateLimitDelay(e, attempt, now = Date.now()) {
+  const headers = e?.headers ?? {};
+  const retryAfter = Number(headers['retry-after']);
+  if (headers['retry-after'] != null && Number.isFinite(retryAfter) && retryAfter >= 0) return retryAfter * 1000;
+  const reset = Number(headers['x-ratelimit-reset']);
+  if (headers['x-ratelimit-remaining'] === '0' && Number.isFinite(reset)) {
+    return Math.max(0, reset * 1000 - now) + 1000;
+  }
+  return RATE_LIMIT_BACKOFF_MS * 2 ** attempt;
+}
 
 /** Post one comment, backing off and retrying while GitHub answers with a rate limit. */
 export async function postReminder(repo, number, body, {request = gh, sleep = wait, retries = POST_RETRIES, log = console.error} = {}) {
@@ -131,7 +152,7 @@ export async function postReminder(repo, number, body, {request = gh, sleep = wa
       return await createComment(repo, number, body, {request});
     } catch (e) {
       if (!isRateLimited(e) || attempt >= retries) throw e;
-      const delay = RATE_LIMIT_BACKOFF_MS * 2 ** attempt;
+      const delay = rateLimitDelay(e, attempt);
       log(`[reminder] #${number}: rate limited, retrying in ${delay / 1000}s`);
       await sleep(delay);
     }
@@ -174,6 +195,8 @@ export async function remind({
       } catch (e) {
         log(`[reminder] #${pr.number}: could not post reminder: ${e.message}`);
         failed.push(pr.number);
+        // Let the limit lift before the next PR's requests.
+        if (isRateLimited(e)) await sleep(rateLimitDelay(e, POST_RETRIES));
         continue;
       }
       log(`[reminder] #${pr.number}: reminded ${who}`);

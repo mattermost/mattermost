@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {addLabel, issueLabels, removeLabel, upsertStickyComment} from './github.mjs';
+import {addLabel, gh, issueLabels, removeLabel, upsertStickyComment} from './github.mjs';
 
 const MARKER = '<!-- docs-ai-review:v1 -->';
 const REPO = 'mattermost/mattermost';
@@ -171,4 +171,16 @@ test('any other failure to remove a label still throws', async () => {
   };
 
   await assert.rejects(() => removeLabel(REPO, PR, 'Docs/Needed', {request}), /403/);
+});
+
+test('gh errors carry the response status and headers', async (t) => {
+  t.mock.method(globalThis, 'fetch', async () =>
+    new Response('slow down', {status: 429, headers: {'retry-after': '5'}}),
+  );
+  await assert.rejects(gh('/x'), (e) => {
+    assert.match(e.message, /-> 429: slow down/);
+    assert.equal(e.status, 429);
+    assert.equal(e.headers['retry-after'], '5');
+    return true;
+  });
 });
