@@ -192,10 +192,9 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             await page.getByRole('button', {name: 'Save'}).last().click();
             await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
 
-            // # Reopen the policy from the list
+            // # Reopen the policy from the list, searching for it since it may not be on the first page
             await page.goto('/admin_console/system_attributes/membership_policies');
-            const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
+            const policyRow = await systemConsolePage.membershipPolicies.searchPolicy(policyName);
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();

@@ -9907,6 +9907,26 @@
     "defaultMessage": "Showing page {page, number} · {count, plural, one {# line} other {# lines}}",
     "description": "Status line in the plain text log viewer on the System Console Server Logs page; shows the current page and how many log lines it holds."
   },
+  "admin.logs.plugin": {
+    "defaultMessage": "Plugin",
+    "description": "Label of the plugin filter on the System Console Server Logs page, where admins pick plugins to show only the log entries those plugins wrote."
+  },
+  "admin.logs.plugin.allLogs": {
+    "defaultMessage": "All logs",
+    "description": "Default value of the plugin filter on the System Console Server Logs page, when no plugin is picked. Every log entry is shown, including the server's own entries that come from no plugin, so do not translate it as \"all plugins\"."
+  },
+  "admin.logs.plugin.dropdownAriaLabel": {
+    "defaultMessage": "Plugin menu",
+    "description": "Accessible name read by screen readers for the open plugin filter menu on the System Console Server Logs page."
+  },
+  "admin.logs.plugin.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to select which plugins to show logs from",
+    "description": "Accessible name read by screen readers for the button that opens the plugin filter menu on the System Console Server Logs page."
+  },
+  "admin.logs.plugin.selected": {
+    "defaultMessage": "{count} plugins",
+    "description": "Value of the plugin filter on the System Console Server Logs page when several plugins are picked. {count} is the number of plugins picked, always 2 or more."
+  },
   "admin.logs.pollInterval.10s": {
     "defaultMessage": "Every 10 seconds",
     "description": "Option in the live tail selector on the System Console Server Logs page; fetches new entries every 10 seconds."
@@ -9939,6 +9959,34 @@
     "defaultMessage": "rows per page",
     "description": "Text after the page size dropdown on the System Console Server Logs page; reads together with \"Show\", e.g. \"Show [50] rows per page\"."
   },
+  "admin.logs.scanLimited.backTo": {
+    "defaultMessage": "Searched back to {time}.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. {time} is the time of the oldest entry it read, e.g. \"2:02 PM\"."
+  },
+  "admin.logs.scanLimited.description": {
+    "defaultMessage": "Older entries weren't searched. Download the log file to search all of it.",
+    "description": "Last line of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. \"Download\" refers to the page's Download button, which saves the full log file."
+  },
+  "admin.logs.scanLimited.descriptionNodes": {
+    "defaultMessage": "Older entries weren't searched.",
+    "description": "Last line of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when logs from several nodes are listed. A node is a server in the cluster."
+  },
+  "admin.logs.scanLimited.nodeBackTo": {
+    "defaultMessage": "Searched {node} back to {time}.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. {node} is the name of a server in the cluster and {time} the time of the oldest entry it read, e.g. \"2:02 PM\"."
+  },
+  "admin.logs.scanLimited.nodeStopped": {
+    "defaultMessage": "The search on {node} stopped at its limit.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when the time it reached is unknown. {node} is the name of a server in the cluster."
+  },
+  "admin.logs.scanLimited.stopped": {
+    "defaultMessage": "The search stopped at its limit.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when the time it reached is unknown."
+  },
+  "admin.logs.scanLimited.title": {
+    "defaultMessage": "The search stopped before reaching older entries",
+    "description": "Title of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing."
+  },
   "admin.logs.scrollToBottom": {
     "defaultMessage": "Scroll to bottom",
     "description": "Accessible label for the button that scrolls the log list to the bottom on the System Console Server Logs page."
@@ -9959,9 +10007,17 @@
     "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
     "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
   },
+  "admin.logs.showingCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}+",
+    "description": "Pagination summary on the System Console Server Logs page when a node returned the maximum number of entries, so the total is a lower bound, e.g. \"Showing 1 - 50 of 10,000+\"."
+  },
   "admin.logs.showingMatches": {
     "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters",
     "description": "Pagination summary on the System Console Server Logs page when a search is applied; shows the range and the number of matching entries."
+  },
+  "admin.logs.showingMatchesCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters",
+    "description": "Pagination summary on the System Console Server Logs page when a search is applied and a node returned the maximum number of entries, so the number of matching entries is a lower bound, e.g. \"Showing 1 - 50 of 10,000+ entries matching your filters\"."
   },
   "admin.logs.sortNewestFirst": {
     "defaultMessage": "Sort newest first",
@@ -9998,22 +10054,6 @@
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
-  },
-  "admin.logs.truncated.description": {
-    "defaultMessage": "Older entries aren't loaded or counted. Download the log file to see them.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a server returned the maximum number of log entries. \"Download\" refers to the page's Download button, which saves the full log file."
-  },
-  "admin.logs.truncated.descriptionNodes": {
-    "defaultMessage": "Older entries aren't loaded or counted.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. A node is a server in the cluster."
-  },
-  "admin.logs.truncated.title": {
-    "defaultMessage": "Only the latest {limit, number} entries are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when the server returned the maximum number of log entries. {limit} is that maximum, e.g. 10,000."
-  },
-  "admin.logs.truncated.titleNodes": {
-    "defaultMessage": "Only the latest {limit, number} entries from each node are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. {limit} is that maximum, e.g. 10,000. A node is a server in the cluster."
   },
   "admin.logs.viewInAdmin": {
     "defaultMessage": "View in admin console",
@@ -10711,6 +10751,10 @@
     "defaultMessage": "Please add an expression to the policy",
     "description": "Validation error on the permission policy edit page when no attribute expression has been defined."
   },
+  "admin.permission_policies.edit.error.hidden_native_bot": {
+    "defaultMessage": "Remove {attributes} from the rules. Bot accounts policies can't use {count, plural, one {this attribute} other {these attributes}}.",
+    "description": "Validation error that blocks saving a Bot accounts permission policy whose rules reference attributes bots don't have (such as Email); {attributes} is a localized list of attribute labels and {count} is how many there are."
+  },
   "admin.permission_policies.edit.error.load": {
     "defaultMessage": "Failed to load policy",
     "description": "Error shown when the permission policy edit page fails to load the policy from the server."
@@ -10750,6 +10794,22 @@
   "admin.permission_policies.edit.notice.button": {
     "defaultMessage": "Configure user attributes",
     "description": "Button in the notice on the permission policy edit page that navigates to the user attributes configuration page."
+  },
+  "admin.permission_policies.edit.notice.hidden_native_bot.text": {
+    "defaultMessage": "{count, plural, one {{attributes} can't be used in Bot accounts policies. Remove it from the rules to save this policy.} other {{attributes} can't be used in Bot accounts policies. Remove them from the rules to save this policy.}}",
+    "description": "Warning text (markdown) for a Bot accounts policy whose rules reference attributes that can't be used in Bot accounts policies (such as Email); {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."
+  },
+  "admin.permission_policies.edit.notice.hidden_native_bot.title": {
+    "defaultMessage": "Some attributes aren't available for bots",
+    "description": "Warning title on the permission policy editor when a Bot accounts policy's rules reference attributes bots don't have, such as Email, Email verified or Bot account."
+  },
+  "admin.permission_policies.edit.notice.synced_bot.text": {
+    "defaultMessage": "{attributes} {count, plural, one {is} other {are}} synced from LDAP or SAML, and bots can't hold synced values. This policy will deny every bot.",
+    "description": "Warning text (markdown) for a Bot accounts policy that references synced attributes; {attributes} is a localized list of attribute labels (each in backticks) and {count} is how many there are."
+  },
+  "admin.permission_policies.edit.notice.synced_bot.title": {
+    "defaultMessage": "Bots can't hold synced attributes",
+    "description": "Warning title on the permission policy editor when a Bot accounts policy references attributes synced from LDAP or SAML, which bots cannot have."
   },
   "admin.permission_policies.edit.notice.text": {
     "defaultMessage": "You haven't configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server.",
@@ -10803,6 +10863,14 @@
     "defaultMessage": "There are errors in the form above: {serverError}",
     "description": "Error banner at the bottom of the permission policy edit form; {serverError} is the server's error message text."
   },
+  "admin.permission_policies.edit.simulate_disabled_tooltip": {
+    "defaultMessage": "Rule simulation isn't enabled on this server.",
+    "description": "Tooltip on the disabled 'Simulate rules' button in the permission policy table and advanced (CEL) editors when the server has policy simulation turned off."
+  },
+  "admin.permission_policies.edit.simulate_no_permissions_tooltip": {
+    "defaultMessage": "Add a permission to this policy to simulate it.",
+    "description": "Tooltip on the disabled 'Simulate rules' button in the permission policy table and advanced (CEL) editors while the policy has no permissions selected; simulation needs at least one."
+  },
   "admin.permission_policies.edit.switch_to_advanced": {
     "defaultMessage": "Switch to Advanced Mode",
     "description": "Button on the permission policy edit page that switches the rule editor from the simple table to the advanced CEL expression mode."
@@ -10810,6 +10878,14 @@
   "admin.permission_policies.edit.switch_to_simple": {
     "defaultMessage": "Switch to Simple Mode",
     "description": "Button on the permission policy edit page that switches the rule editor from advanced CEL mode back to the simple table mode."
+  },
+  "admin.permission_policies.edit.table_empty_bot": {
+    "defaultMessage": "Select a bot attribute and values to create a rule",
+    "description": "Message shown in the empty access-rule table editor on the permission policy edit page for Bot accounts policies, before any rule rows are added."
+  },
+  "admin.permission_policies.edit.table_help_text_bot": {
+    "defaultMessage": "Each row is a single condition that must be met for a bot to comply with the policy. All rules are combined with logical AND operator (`&&`).",
+    "description": "Help text (markdown) under the access-rule table editor for Bot accounts policies; '&&' inside backticks is a code literal for the logical AND operator."
   },
   "admin.permission_policies.edit.title": {
     "defaultMessage": "Attribute-Based Permission Policy",
@@ -10819,9 +10895,17 @@
     "defaultMessage": "Select attributes and values that users must have for this policy",
     "description": "Subtitle above the attribute rule editor on the permission policy edit page."
   },
+  "admin.permission_policies.edit.who.attributes_subtitle_bot": {
+    "defaultMessage": "Select attributes and values that bots must have for this policy",
+    "description": "Subtitle of the attribute rules card when the Bot accounts scope is selected."
+  },
   "admin.permission_policies.edit.who.attributes_title": {
     "defaultMessage": "User attribute requirements",
     "description": "Heading of the user attribute requirements subsection on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.who.attributes_title_bot": {
+    "defaultMessage": "Bot attribute requirements",
+    "description": "Title of the attribute rules card when the Bot accounts scope is selected."
   },
   "admin.permission_policies.edit.who.role_label": {
     "defaultMessage": "Select a role from the predefined list of system roles",
@@ -10834,6 +10918,10 @@
   "admin.permission_policies.edit.who.subtitle": {
     "defaultMessage": "Define rules based on user attributes and values",
     "description": "Subtitle of the 'who this policy applies to' section on the permission policy edit page."
+  },
+  "admin.permission_policies.edit.who.subtitle_bot": {
+    "defaultMessage": "Define rules based on bot attributes and values",
+    "description": "Subtitle of the 'Who this policy applies to' card when the Bot accounts scope is selected."
   },
   "admin.permission_policies.edit.who.title": {
     "defaultMessage": "Who this policy applies to",
@@ -10889,7 +10977,7 @@
   },
   "admin.permission_policies.role": {
     "defaultMessage": "Role",
-    "description": "Column header in the Permission Policies table showing the system role (guests, members, admins) each policy applies to."
+    "description": "Column header in the Permission Policies table showing the system role (guests, members, admins, bot accounts) each policy applies to."
   },
   "admin.permission_policies.role.select": {
     "defaultMessage": "Select a role",
@@ -10903,6 +10991,14 @@
     "defaultMessage": "System administrators",
     "description": "Option label in the role dropdown of the permission policy editor targeting system administrators."
   },
+  "admin.permission_policies.role.system_bot.description": {
+    "defaultMessage": "Applies only to bot accounts",
+    "description": "Description under the 'Bot accounts' option in the role dropdown of the permission policy editor."
+  },
+  "admin.permission_policies.role.system_bot.label": {
+    "defaultMessage": "Bot accounts",
+    "description": "Option label in the role dropdown of the permission policy editor, and role label in the Permission Policies list, for policies that apply only to bot accounts."
+  },
   "admin.permission_policies.role.system_guest.description": {
     "defaultMessage": "Applies only to guest users",
     "description": "Description under the 'Guest users' option in the role dropdown of the permission policy editor."
@@ -10912,8 +11008,8 @@
     "description": "Option label in the role dropdown of the permission policy editor targeting guest users."
   },
   "admin.permission_policies.role.system_user.description": {
-    "defaultMessage": "Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.",
-    "description": "Description under the regular-members option in the role dropdown of the permission policy editor, explaining the admin fallback behavior."
+    "defaultMessage": "Applies to regular members, including bot accounts. System administrators and bot accounts fall back to this rule if no role specific policy with the same permission exists",
+    "description": "Description under the 'Members' option in the role dropdown of the permission policy editor, explaining that system administrators and bot accounts fall back to Members policies when no policy for their own role covers the same permissions."
   },
   "admin.permission_policies.role.system_user.label": {
     "defaultMessage": "Members",
@@ -12838,6 +12934,10 @@
   "admin.plugin.version_title": {
     "defaultMessage": "Version",
     "description": "Column header/label in Plugin Management showing a plugin's version number; compact space."
+  },
+  "admin.plugin.viewLogs": {
+    "defaultMessage": "View logs",
+    "description": "Link and button on the System Console plugin pages (Plugin Management and each plugin's settings page) that open the Server Logs page showing only the log entries that plugin wrote."
   },
   "admin.plugins.pluginManagement": {
     "defaultMessage": "Plugin Management",
@@ -17455,10 +17555,6 @@
     "defaultMessage": "Something went wrong. Try again",
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
-  "admin.user.selectOptions": {
-    "defaultMessage": "Select options",
-    "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
-  },
   "admin.userDetail.saveChangesModal.authDataChange": {
     "defaultMessage": "Auth Data: {oldAuthData} → {newAuthData}",
     "description": "List item in the save-confirmation modal on the admin user configuration page showing an Auth Data change; {oldAuthData} and {newAuthData} are the before/after values, → is an arrow between them."
@@ -17642,10 +17738,6 @@
   "admin.userManagement.userDetail.saml": {
     "defaultMessage": "SAML: {propertyName}",
     "description": "Chip label showing a custom profile attribute is synced from SAML; {propertyName} is the linked SAML attribute name. Shown on the admin user configuration page."
-  },
-  "admin.userManagement.userDetail.selectOption": {
-    "defaultMessage": "Select an option",
-    "description": "Placeholder for the empty choice in a single-select custom profile attribute dropdown on the admin user configuration page."
   },
   "admin.userManagement.userDetail.separator": {
     "defaultMessage": ", ",
@@ -19466,10 +19558,6 @@
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
-  },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -28647,6 +28735,10 @@
     "defaultMessage": "Quarantine for Review",
     "description": "Menu item in the message actions menu (content moderation feature) that flags the message for review by moderators; 'Quarantine' is a verb."
   },
+  "post_info.quote": {
+    "defaultMessage": "Quote",
+    "description": "Menu item in the message actions menu that inserts the message's text, formatted as a Markdown quote, into the message box so the user can respond to it; 'Quote' is a verb."
+  },
   "post_info.reply": {
     "defaultMessage": "Reply",
     "description": "Menu item in the message actions menu that opens the thread to reply; 'Reply' is a verb."
@@ -29131,6 +29223,14 @@
     "defaultMessage": "Loading…",
     "description": "Shown in an attribute dropdown while options load."
   },
+  "property_fields.attribute_combobox.rank": {
+    "defaultMessage": "Rank {rank}",
+    "description": "Accessible description of a rank attribute field, giving the selected option's rank number."
+  },
+  "property_fields.attribute_combobox.ranked_option": {
+    "defaultMessage": "{name}, Rank {rank}",
+    "description": "Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number."
+  },
   "property_fields.attribute_combobox.selections": {
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
@@ -29190,6 +29290,14 @@
   "property_fields.hierarchical_value_menu.withheld": {
     "defaultMessage": "The values for this attribute are not available to you here.",
     "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
+  },
+  "property_fields.select_option": {
+    "defaultMessage": "Select an option",
+    "description": "Placeholder for an empty single-value attribute input (select or rank), shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
+  },
+  "property_fields.select_options": {
+    "defaultMessage": "Select options",
+    "description": "Placeholder for an empty multi-value attribute input, shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
   },
   "property_fields.user_attribute_fields.remove": {
     "defaultMessage": "Remove {name}",

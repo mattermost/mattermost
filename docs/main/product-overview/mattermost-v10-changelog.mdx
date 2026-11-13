@@ -211,7 +211,7 @@ If you upgrade from a release earlier than v10.10, please read the other [Import
   - Fixed an issue where users removed from a private team could still enumerate public channels in that team via the channel search API.
   - Fixed an issue with permalink embeds arriving from websocket messages.
   - Fixed a memory allocation issue by updating ``mscfb`` and ``msoleps`` dependencies.
-  - ``/api/v4/access_control_policies/&#123;policy_id&#125;/activate`` has been deprecated.
+  - ``/api/v4/access_control_policies/{policy_id}/activate`` has been deprecated.
   - Fixed an issue with memory use during integration actions.
   - Updated the POST `/api/v4/teams` team creation API to omit the `invite_id` value in the response when the requesting user does not have permission to invite members to the new team.
   - ``ImportSettings.Directory`` can no longer be modified through the REST API. Infrastructure operators can still modify this setting via configuration file, environment variables, or mmctl in local mode.
@@ -1158,7 +1158,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Added new ``AmazonS3StorageClass`` and ``ExportAmazonS3StorageClass``, both default to ``""`` to preserve the current behavior. Administrators may configure this storage class to the storage class required by their S3 solution.
 
 ### API Changes
- - Added a new query string to exclude threads that are not part of the team ``GET api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/teams/&#123;team_id:[A-Za-z0-9]+&#125;/threads``.
+ - Added a new query string to exclude threads that are not part of the team ``GET api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/threads``.
 
 ### Websocket Event Changes
  - Added a new ``server_hostname`` field to the websocket ``HELLO`` event.
