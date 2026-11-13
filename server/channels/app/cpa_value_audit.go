@@ -25,7 +25,11 @@ func (a *App) buildCPAValueAuditRecord(rctx request.CTX, e properties.ValueAudit
 	callerID, _ := CallerIDFromRequestContext(rctx)
 	scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
 
-	rec := a.MakeAuditRecord(rctx, model.AuditEventCPAValueChange, model.AuditStatusSuccess)
+	status := model.AuditStatusSuccess
+	if e.Action == properties.ValueAuditActionBoundsRefused {
+		status = model.AuditStatusFail
+	}
+	rec := a.MakeAuditRecord(rctx, model.AuditEventCPAValueChange, status)
 	rec.AddMeta("caller_id", callerID)
 	rec.AddMeta("acting_as_scope", scope)
 	rec.AddMeta("group", model.AccessControlPropertyGroupName)
@@ -49,7 +53,19 @@ func (a *App) buildCPAValueAuditRecord(rctx request.CTX, e properties.ValueAudit
 		if e.Current != nil && len(e.Current.Value) > 0 {
 			rec.AddMeta("new_value", string(e.Current.Value))
 		}
-		a.addCPAValueAuditBasis(rctx, rec, e, callerID)
+		switch e.Action {
+		case properties.ValueAuditActionBoundsRefused, properties.ValueAuditActionBoundsNotEnforced:
+			// The basis names what allowed a write; these records are about a
+			// rule refusing one, and a write that goes ahead carries its own
+			// success record with the basis.
+			rec.AddMeta("bounds_rule", e.BoundsRule)
+			rec.AddMeta("bounds_reason", e.BoundsReason)
+			if e.BoundsAffected > 0 {
+				rec.AddMeta("bounds_affected", e.BoundsAffected)
+			}
+		default:
+			a.addCPAValueAuditBasis(rctx, rec, e, callerID)
+		}
 	}
 
 	return rec

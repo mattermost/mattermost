@@ -288,6 +288,7 @@ func NewServer(options ...Option) (*Server, error) {
 		RequestOptionsExtractor: func(rctx request.CTX) model.PropertyRequestOptions {
 			return model.PropertyRequestOptionsFromContext(rctx.Context())
 		},
+		License: func() *model.License { return s.License() },
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")
@@ -340,7 +341,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// License check hook — must run before other hooks so unlicensed
 	// operations are rejected early.
-	licenseCheckHook := properties.NewLicenseCheckHook(func() *model.License {
+	licenseCheckHook := properties.NewLicenseCheckHook(s.propertyService, func() *model.License {
 		return s.License()
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
@@ -401,6 +402,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return post.ChannelId, nil
 	}
 
+	// Generic property value audit hook — groups opt in with RegisterGroup.
+	// The CPA group registers a content-level audit sink here. Built ahead of
+	// the bounds hook, which audits the bounds breaks it finds through it;
+	// it is added after, so its write records follow the validation.
+	valueAuditHook := properties.NewPropertyValueAuditHook()
+	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
+
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
 		properties.AccessControlAttributeValidationHookConfig{
 			PermissionChecker:    permChecker,
@@ -420,12 +428,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(properties.NewBoundsHook(s.propertyService, func() bool {
 		ff := s.Config().FeatureFlags
 		return ff.PropertyFieldBounds && ff.PropertyFieldPermissionsV3
-	}, postChannelResolver))
-
-	// Generic property value audit hook — groups opt in with RegisterGroup.
-	// The CPA group registers a content-level audit sink here.
-	valueAuditHook := properties.NewPropertyValueAuditHook()
-	valueAuditHook.RegisterGroup(cpaGroup.ID, app.auditCPAValueChange)
+	}, postChannelResolver, valueAuditHook))
 	s.propertyService.AddHook(valueAuditHook)
 
 	// Field limit hook — enforces per-object-type and global field limits.

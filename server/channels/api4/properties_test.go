@@ -9350,7 +9350,7 @@ func TestPropertyFieldBoundsEndpoints(t *testing.T) {
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 		cfg.FeatureFlags.PropertyFieldBounds = true
 	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -9503,7 +9503,7 @@ func TestPatchPropertyFieldBoundsPermission(t *testing.T) {
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 		cfg.FeatureFlags.PropertyFieldBounds = true
 	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_bounds_permission", Version: model.PropertyGroupVersionV3})
 	require.Nil(t, appErr)
@@ -9598,7 +9598,7 @@ func TestBoundsHookCoversEveryV3Group(t *testing.T) {
 		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
 		cfg.FeatureFlags.PropertyFieldBounds = false
 	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v3_bounds_hook", Version: model.PropertyGroupVersionV3})
 	require.Nil(t, appErr)

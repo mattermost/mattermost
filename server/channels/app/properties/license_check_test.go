@@ -19,7 +19,7 @@ func TestLicenseCheckHook(t *testing.T) {
 	require.NoError(t, err)
 
 	var currentLicense *model.License
-	hook := NewLicenseCheckHook(func() *model.License {
+	hook := NewLicenseCheckHook(th.service, func() *model.License {
 		return currentLicense
 	}, group.ID)
 	th.service.AddHook(hook)
@@ -121,6 +121,107 @@ func TestLicenseCheckHook(t *testing.T) {
 		created, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, createErr)
 		assert.NotEmpty(t, created.ID)
+	})
+
+	t.Run("calls naming no group are judged by the group they reach", func(t *testing.T) {
+		currentLicense = enterpriseLicense
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unnamed_group_unmanaged", Version: model.PropertyGroupVersionV2})
+		require.NoError(t, groupErr)
+
+		managedField := th.CreatePropertyFieldDirect(t, makeField())
+		unmanagedField := makeField()
+		unmanagedField.GroupID = otherGroup.ID
+		unmanagedField = th.CreatePropertyFieldDirect(t, unmanagedField)
+
+		seed := func(field *model.PropertyField, targetID string) *model.PropertyValue {
+			v, seedErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+				GroupID:    field.GroupID,
+				FieldID:    field.ID,
+				TargetID:   targetID,
+				TargetType: "user",
+				Value:      json.RawMessage(`"x"`),
+			})
+			require.NoError(t, seedErr)
+			return v
+		}
+		managedTarget, unmanagedTarget := model.NewId(), model.NewId()
+		managedValue := seed(managedField, managedTarget)
+		unmanagedValue := seed(unmanagedField, unmanagedTarget)
+
+		stated := func(v *model.PropertyValue) *model.PropertyValue {
+			return &model.PropertyValue{GroupID: v.GroupID, FieldID: v.FieldID, TargetID: v.TargetID, TargetType: v.TargetType, Value: v.Value}
+		}
+		cases := []struct {
+			name               string
+			managed, unmanaged func() error
+		}{
+			{"update value",
+				func() error { _, e := hook.PreUpdatePropertyValue(th.Context, "", stated(managedValue)); return e },
+				func() error { _, e := hook.PreUpdatePropertyValue(th.Context, "", stated(unmanagedValue)); return e }},
+			{"update values",
+				func() error {
+					_, e := hook.PreUpdatePropertyValues(th.Context, "", []*model.PropertyValue{stated(managedValue)})
+					return e
+				},
+				func() error {
+					_, e := hook.PreUpdatePropertyValues(th.Context, "", []*model.PropertyValue{stated(unmanagedValue)})
+					return e
+				}},
+			{"delete value",
+				func() error { return hook.PreDeletePropertyValue(th.Context, "", managedValue.ID) },
+				func() error { return hook.PreDeletePropertyValue(th.Context, "", unmanagedValue.ID) }},
+			{"delete values for field",
+				func() error { return hook.PreDeletePropertyValuesForField(th.Context, "", managedField.ID) },
+				func() error { return hook.PreDeletePropertyValuesForField(th.Context, "", unmanagedField.ID) }},
+			{"delete values for target",
+				func() error { return hook.PreDeletePropertyValuesForTarget(th.Context, "", "user", managedTarget) },
+				func() error { return hook.PreDeletePropertyValuesForTarget(th.Context, "", "user", unmanagedTarget) }},
+			{"delete field",
+				func() error { return hook.PreDeletePropertyField(th.Context, "", managedField.ID) },
+				func() error { return hook.PreDeletePropertyField(th.Context, "", unmanagedField.ID) }},
+		}
+		for _, c := range cases {
+			currentLicense = nil
+			err := c.managed()
+			require.Error(t, err, c.name)
+			assert.Contains(t, err.Error(), "license_error", c.name)
+			assert.NoError(t, c.unmanaged(), c.name)
+
+			currentLicense = enterpriseLicense
+			assert.NoError(t, c.managed(), c.name)
+		}
+
+		// A target-wide delete reaches every managed group, so a target with no
+		// value in one is nothing to refuse.
+		currentLicense = nil
+		assert.NoError(t, hook.PreDeletePropertyValuesForTarget(th.Context, "", "user", model.NewId()))
+
+		// Not-found answers are the delete's to give, not this hook's.
+		assert.NoError(t, hook.PreDeletePropertyValue(th.Context, "", model.NewId()))
+		assert.NoError(t, hook.PreDeletePropertyValuesForField(th.Context, "", model.NewId()))
+		assert.NoError(t, hook.PreDeletePropertyField(th.Context, "", model.NewId()))
+	})
+
+	t.Run("a batch is judged by every value, not the first", func(t *testing.T) {
+		currentLicense = nil
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "batch_group_unmanaged", Version: model.PropertyGroupVersionV2})
+		require.NoError(t, groupErr)
+		batch := []*model.PropertyValue{{GroupID: otherGroup.ID}, {GroupID: group.ID}}
+
+		_, createErr := hook.PreCreatePropertyValues(th.Context, batch)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "license_error")
+
+		_, upsertErr := hook.PreUpsertPropertyValues(th.Context, batch)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "license_error")
+
+		_, updateErr := hook.PreUpdatePropertyValues(th.Context, "", batch)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "license_error")
+
+		_, createErr = hook.PreCreatePropertyValues(th.Context, batch[:1])
+		assert.NoError(t, createErr)
 	})
 
 	countCalls := []struct {
