@@ -30,7 +30,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         };
     });
 
-    test('should match snapshot with public links disabled', () => {
+    test('should render with public links disabled', () => {
         const props = {
             ...defaultProps,
             enablePublicLink: false,
@@ -43,7 +43,7 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         expect(screen.queryByLabelText('Get a public link')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot with public links enabled', () => {
+    test('should render with public links enabled', () => {
         const props = {
             ...defaultProps,
             enablePublicLink: true,

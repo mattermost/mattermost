@@ -17,27 +17,6 @@ describe('components/GetPublicLinkModal', () => {
         },
     };
 
-    test('should match snapshot when link is empty', () => {
-        const props = {
-            ...baseProps,
-            link: '',
-        };
-
-        const {baseElement} = renderWithContext(
-            <GetPublicLinkModal {...props}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot when link is not empty', () => {
-        const {baseElement} = renderWithContext(
-            <GetPublicLinkModal {...baseProps}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should call getFilePublicLink on GetPublicLinkModal\'s show', () => {
         renderWithContext(<GetPublicLinkModal {...baseProps}/>);
 

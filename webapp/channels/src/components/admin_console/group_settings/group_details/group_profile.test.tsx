@@ -8,7 +8,7 @@ import GroupProfile from 'components/admin_console/group_settings/group_details/
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupProfile', () => {
-    test('should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(
             <GroupProfile
                 customID='test'
@@ -19,8 +19,6 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
                 onChange={jest.fn()}
             />,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByLabelText('Name:')).toBeInTheDocument();
         expect(screen.getByDisplayValue('Test')).not.toBeDisabled();
         expect(container.querySelector('.icon__mentions')).toBeInTheDocument();

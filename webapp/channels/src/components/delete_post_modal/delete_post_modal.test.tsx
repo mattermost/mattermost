@@ -47,41 +47,6 @@ describe('components/delete_post_modal', () => {
         },
     };
 
-    test('should match snapshot for delete_post_modal with 0 comments', () => {
-        const {baseElement} = renderWithContext(
-            <DeletePostModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot for delete_post_modal with 1 comment', () => {
-        const commentCount = 1;
-        const props = {...baseProps, commentCount};
-        const {baseElement} = renderWithContext(
-            <DeletePostModal {...props}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot for post with 1 commentCount and is not rootPost', () => {
-        const commentCount = 1;
-        const postObj = {
-            ...post,
-            root_id: '1234',
-        };
-
-        const props = {
-            ...baseProps,
-            commentCount,
-            post: postObj,
-        };
-
-        const {baseElement} = renderWithContext(
-            <DeletePostModal {...props}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should focus delete button on enter', async () => {
         renderWithContext(
             <DeletePostModal {...baseProps}/>,

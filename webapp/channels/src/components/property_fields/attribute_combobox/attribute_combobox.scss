@@ -1,0 +1,5 @@
+// The global placeholder rules in sass/components/_inputs.scss set opacity: 0.5,
+// which compounds with the colour Compass sets on its own placeholder.
+.AttributeCombobox input::placeholder {
+    opacity: 1;
+}

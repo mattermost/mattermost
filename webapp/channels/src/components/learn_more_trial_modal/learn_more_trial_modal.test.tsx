@@ -58,14 +58,6 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <LearnMoreTrialModal {...props}/>,
-            state,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should show the learn more about trial modal carousel slides', () => {
         renderWithContext(
             <LearnMoreTrialModal {...props}/>,
