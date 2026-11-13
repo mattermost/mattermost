@@ -171,7 +171,7 @@ func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 }
 
 func (ch *Channels) dropPluginEntities(id string) {
-	entities.RemovePlugin(id)
+	entities.RemoveOwner(id)
 }
 
 func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {

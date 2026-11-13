@@ -24,7 +24,7 @@
       parameters:
         - name: type_id
           in: query
-          description: Entity type id (for example `mm.time`)
+          description: Entity type id (for example `mm:time`)
           required: false
           schema:
             type: string

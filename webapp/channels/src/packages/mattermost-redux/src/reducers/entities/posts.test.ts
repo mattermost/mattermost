@@ -530,7 +530,7 @@ describe('posts', () => {
                     id: 'post1',
                     message: 'ask the MLT',
                     metadata: {
-                        entities: [{id: '4:7', start: 4, end: 7, value: 'MLT', type_ids: ['plugin.acronym'], matcher_id: ''}],
+                        entities: [{id: '4:7', start: 4, end: 7, value: 'MLT', type_ids: ['plugin:acronym'], matcher_id: ''}],
                     },
                 },
             });

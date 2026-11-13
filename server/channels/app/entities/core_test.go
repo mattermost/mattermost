@@ -17,7 +17,7 @@ func TestCoreTimeIsDetectedAndDescribed(t *testing.T) {
 	var timeHit bool
 	for _, entity := range found {
 		for _, typeID := range entity.TypeIDs {
-			if typeID == coreTimeTypeID {
+			if typeID == CoreTimeTypeID {
 				timeHit = true
 				card, err := CoreLookup(context.Background(), typeID, entity.Value)
 				require.NoError(t, err)
@@ -35,7 +35,7 @@ func TestCoreTimeRejectsDateOnly(t *testing.T) {
 	found, _ := Detect("see ticket 2024-06-01 in the queue")
 	for _, entity := range found {
 		for _, typeID := range entity.TypeIDs {
-			require.NotEqual(t, coreTimeTypeID, typeID)
+			require.NotEqual(t, CoreTimeTypeID, typeID)
 		}
 	}
 }
@@ -61,13 +61,13 @@ func TestCoreTimeClockZoneFormats(t *testing.T) {
 			var hit string
 			for _, entity := range found {
 				for _, typeID := range entity.TypeIDs {
-					if typeID == coreTimeTypeID {
+					if typeID == CoreTimeTypeID {
 						hit = entity.Value
 					}
 				}
 			}
 			require.Equal(t, tc.value, hit)
-			card, err := CoreLookup(context.Background(), coreTimeTypeID, hit)
+			card, err := CoreLookup(context.Background(), CoreTimeTypeID, hit)
 			require.NoError(t, err)
 			instant := time.UnixMilli(card.Instant).UTC()
 			require.Equal(t, tc.hourUTC, instant.Hour())
@@ -79,7 +79,7 @@ func TestCoreTimeRejectsBareClock(t *testing.T) {
 	found, _ := Detect("see you at 16:30 in the lobby")
 	for _, entity := range found {
 		for _, typeID := range entity.TypeIDs {
-			require.NotEqual(t, coreTimeTypeID, typeID)
+			require.NotEqual(t, CoreTimeTypeID, typeID)
 		}
 	}
 }

@@ -17,9 +17,7 @@ import (
 )
 
 const (
-	coreTimeTypeID         = "mm.time"
-	coreTimeRFC3339ID      = "mm.time.rfc3339"
-	coreTimeClockZoneID    = "mm.time.clock_zone"
+	CoreTimeTypeID         = CoreOwner + refSeparator + "time"
 	coreTimeRFC3339Pattern = `[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,9})?(?:[Zz]|[+-][0-9]{2}:[0-9]{2})`
 	// Clock + required zone keeps bare times and issue ids from matching.
 	// Accepts 16:30 CET, 16.30 CET, 4:30pm CET, 4.30 p.m. CET, 4pm CET.
@@ -57,45 +55,21 @@ func init() {
 }
 
 func ensureCore() {
-	reg.mu.Lock()
-	defer reg.mu.Unlock()
-	reg.types[coreTimeTypeID] = entityType{
-		id:          coreTimeTypeID,
-		displayName: "Time",
-		owner:       coreOwner,
-	}
-	ensureCoreMatcher(coreTimeRFC3339ID, coreTimeRFC3339Pattern)
-	ensureCoreMatcher(coreTimeClockZoneID, coreTimeClockZonePattern)
-	reg.matcherIndex = map[string]int{}
-	for i, stored := range reg.matchers {
-		reg.matcherIndex[stored.id] = i
-	}
-	reg.rememberGeneration()
+	must(AddType(CoreOwner, &model.EntityType{Name: "time", DisplayName: "Time"}))
+	must(AddMatcher(CoreOwner, &model.EntityMatcher{Name: "time.rfc3339", Type: "time", Pattern: coreTimeRFC3339Pattern, Boundary: "token"}))
+	must(AddMatcher(CoreOwner, &model.EntityMatcher{Name: "time.clock_zone", Type: "time", Pattern: coreTimeClockZonePattern, Boundary: "token"}))
 }
 
-func ensureCoreMatcher(id, pattern string) {
-	for _, stored := range reg.matchers {
-		if stored.id == id {
-			return
-		}
+func must(err error) {
+	if err != nil {
+		panic(err)
 	}
-	reg.matchers = append(reg.matchers, storedMatcher{
-		owner: coreOwner,
-		matcher: matcher{
-			id:          id,
-			typeID:      coreTimeTypeID,
-			pattern:     regexp.MustCompile(pattern),
-			boundary:    "token",
-			pluginID:    coreOwner,
-			displayName: "Time",
-		},
-	})
 }
 
 // CoreLookup describes a value using a built-in type.
 func CoreLookup(_ context.Context, typeID, value string) (*model.EntityCard, error) {
 	switch typeID {
-	case coreTimeTypeID:
+	case CoreTimeTypeID:
 		return coreTimeCard(value)
 	default:
 		return nil, fmt.Errorf("unsupported entity")
@@ -123,7 +97,7 @@ func coreTimeCard(value string) (*model.EntityCard, error) {
 		return nil, err
 	}
 	return &model.EntityCard{
-		TypeID:  coreTimeTypeID,
+		TypeID:  CoreTimeTypeID,
 		Value:   value,
 		Title:   "Timestamp",
 		Instant: utc.UnixMilli(),

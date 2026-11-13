@@ -177,7 +177,7 @@ func entityCardFallback(typeID, value string) *model.EntityCard {
 }
 
 func localizeEntityCard(rctx request.CTX, card *model.EntityCard) {
-	if card == nil || rctx.GetT() == nil || card.TypeID != "mm.time" {
+	if card == nil || rctx.GetT() == nil || card.TypeID != entities.CoreTimeTypeID {
 		return
 	}
 	card.Title = rctx.T("app.entities.core.timestamp_title")
@@ -207,7 +207,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	if env == nil || remote == nil {
 		return nil
 	}
-	hooks, err := env.HooksForPlugin(remote.PluginID)
+	hooks, err := env.HooksForPlugin(remote.Provider.Owner)
 	if err != nil {
 		return nil
 	}
@@ -216,7 +216,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	if remote.Cache != model.EntityCacheShared {
 		lookupUser = userID
 	}
-	key, cacheable := entities.CardCacheKey(remote.ProviderID, remote.Cache, typeID, value, userID, postID, createAt)
+	key, cacheable := entities.CardCacheKey(remote.Provider.String(), remote.Cache, typeID, value, userID, postID, createAt)
 	cardCache := a.Srv().entityCardCache
 	if cacheable && cardCache != nil {
 		var cached model.EntityCard
@@ -226,7 +226,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 			return &cached
 		}
 	}
-	slot, _ := providerLookupSlot.LoadOrStore(remote.ProviderID, make(chan struct{}, entityProviderLookupCap))
+	slot, _ := providerLookupSlot.LoadOrStore(remote.Provider.String(), make(chan struct{}, entityProviderLookupCap))
 	slots := slot.(chan struct{})
 	select {
 	case slots <- struct{}{}:
@@ -241,12 +241,12 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	go func() {
 		defer func() { <-slots }()
 		card, lookupErr := hooks.EntityLookup(&plugin.Context{}, &model.EntityLookupRequest{
-			ProviderID: remote.ProviderID,
-			TypeID:     typeID,
-			Value:      value,
-			UserID:     lookupUser,
-			PostID:     postID,
-			CreateAt:   createAt,
+			Provider: remote.Provider.Name,
+			Type:     entities.LocalRef(remote.Provider.Owner, typeID),
+			Value:    value,
+			UserID:   lookupUser,
+			PostID:   postID,
+			CreateAt: createAt,
 		})
 		done <- lookupResult{card: card, err: lookupErr}
 	}()
@@ -264,6 +264,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 	}
 	card.TypeID = typeID
 	card.Value = value
+	qualifyEntityCardLinks(remote.Provider.Owner, card)
 	model.NormalizeEntityCard(card)
 	if cacheable && cardCache != nil {
 		if err := cardCache.SetWithExpiry(key, card, remote.CacheTTL); err != nil {
@@ -271,6 +272,22 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 		}
 	}
 	return card
+}
+
+// qualifyEntityCardLinks writes each related type as a wire id. A provider
+// may name one of its own types by its bare name.
+func qualifyEntityCardLinks(owner string, card *model.EntityCard) {
+	for i := range card.Related {
+		if card.Related[i].TypeID == "" {
+			continue
+		}
+		ref, ok := entities.ResolveRef(owner, card.Related[i].TypeID)
+		if !ok {
+			card.Related[i].TypeID = ""
+			continue
+		}
+		card.Related[i].TypeID = ref.String()
+	}
 }
 
 func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) *model.AppError {
@@ -293,21 +310,21 @@ func (a *App) RegisterPluginEntityMatcher(pluginID string, m *model.EntityMatche
 	return nil
 }
 
-func (a *App) UnregisterPluginEntityMatcher(pluginID, id string) *model.AppError {
+func (a *App) UnregisterPluginEntityMatcher(pluginID, name string) *model.AppError {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("UnregisterPluginEntityMatcher", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
-	if err := entities.UnregisterMatcher(pluginID, id); err != nil {
+	if err := entities.UnregisterMatcher(pluginID, name); err != nil {
 		return model.NewAppError("UnregisterPluginEntityMatcher", "api.context.invalid_body_param.app_error", map[string]any{"Name": "matcher"}, err.Error(), http.StatusBadRequest)
 	}
 	return nil
 }
 
-func (a *App) RegisterPluginEntityTerms(pluginID, typeID string, terms []model.EntityTerm) *model.AppError {
+func (a *App) RegisterPluginEntityTerms(pluginID, typeName string, terms []model.EntityTerm) *model.AppError {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityTerms", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
-	if _, _, err := entities.ReplaceTerms(pluginID, typeID, terms); err != nil {
+	if _, _, err := entities.ReplaceTerms(pluginID, typeName, terms); err != nil {
 		return model.NewAppError("RegisterPluginEntityTerms", "api.context.invalid_body_param.app_error", map[string]any{"Name": "terms"}, err.Error(), http.StatusBadRequest)
 	}
 	return nil

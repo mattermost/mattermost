@@ -12,39 +12,39 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const securityPlugin = "com.example.security"
+const securityOwner = "com.example.security"
 
 func installSecurityPatterns(t *testing.T) {
 	t.Helper()
-	t.Cleanup(func() { RemovePlugin(securityPlugin) })
-	require.NoError(t, AddType(securityPlugin, &model.EntityType{ID: securityPlugin + ".vuln", DisplayName: "Vulnerability"}))
-	require.NoError(t, AddMatcher(securityPlugin, &model.EntityMatcher{
-		ID:      securityPlugin + ".vuln.cve",
-		TypeID:  securityPlugin + ".vuln",
+	t.Cleanup(func() { RemoveOwner(securityOwner) })
+	require.NoError(t, AddType(securityOwner, &model.EntityType{Name: "vuln", DisplayName: "Vulnerability"}))
+	require.NoError(t, AddMatcher(securityOwner, &model.EntityMatcher{
+		Name:    "vuln.cve",
+		Type:    "vuln",
 		Pattern: `CVE-[0-9]{4}-[0-9]{4,7}`,
 		URL:     "https://nvd.nist.gov/vuln/detail/{value}",
 	}))
-	require.NoError(t, AddType(securityPlugin, &model.EntityType{ID: securityPlugin + ".ip", DisplayName: "IP address"}))
-	require.NoError(t, AddMatcher(securityPlugin, &model.EntityMatcher{
-		ID:      securityPlugin + ".ip.v4",
-		TypeID:  securityPlugin + ".ip",
+	require.NoError(t, AddType(securityOwner, &model.EntityType{Name: "ip", DisplayName: "IP address"}))
+	require.NoError(t, AddMatcher(securityOwner, &model.EntityMatcher{
+		Name:    "ip.v4",
+		Type:    "ip",
 		Pattern: `(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}`,
 	}))
-	require.NoError(t, AddType(securityPlugin, &model.EntityType{ID: securityPlugin + ".attack", DisplayName: "ATT&CK"}))
-	require.NoError(t, AddMatcher(securityPlugin, &model.EntityMatcher{
-		ID:      securityPlugin + ".attack.technique",
-		TypeID:  securityPlugin + ".attack",
+	require.NoError(t, AddType(securityOwner, &model.EntityType{Name: "attack", DisplayName: "ATT&CK"}))
+	require.NoError(t, AddMatcher(securityOwner, &model.EntityMatcher{
+		Name:    "attack.technique",
+		Type:    "attack",
 		Pattern: `T[0-9]{4}(?:\.[0-9]{3})?`,
 	}))
 }
 
 func TestTimestampWithSecondsIsNotHiddenByEmoji(t *testing.T) {
-	const pluginID = "com.example.clock"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".time", DisplayName: "Time"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".time.iso",
-		TypeID:   pluginID + ".time",
+	const owner = "com.example.clock"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "time", DisplayName: "Time"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:     "time.iso",
+		Type:     "time",
 		Pattern:  `\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:\d{2})`,
 		Boundary: "field",
 	}))
@@ -67,7 +67,7 @@ func TestTimestampWithSecondsIsNotHiddenByEmoji(t *testing.T) {
 	}
 }
 
-func TestDetectsNothingWithoutPlugins(t *testing.T) {
+func TestDetectsNothingWithoutRegistrations(t *testing.T) {
 	entities, _ := Detect("see CVE-2024-12345 and 141.98.9.137 and T1190")
 	require.Empty(t, entities)
 }
@@ -77,12 +77,12 @@ func TestDetectCVEAndIP(t *testing.T) {
 	entities, _ := Detect("see CVE-2024-12345 and 141.98.9.137 today")
 	require.Len(t, entities, 2)
 
-	require.Equal(t, securityPlugin+".vuln", entities[0].TypeIDs[0])
+	require.Equal(t, securityOwner+":vuln", entities[0].TypeIDs[0])
 	require.Equal(t, "CVE-2024-12345", entities[0].Value)
 	require.Equal(t, "https://nvd.nist.gov/vuln/detail/CVE-2024-12345", entities[0].URL)
 	require.Equal(t, entities[0].Value, "see CVE-2024-12345 and 141.98.9.137 today"[entities[0].Start:entities[0].End])
 
-	require.Equal(t, securityPlugin+".ip", entities[1].TypeIDs[0])
+	require.Equal(t, securityOwner+":ip", entities[1].TypeIDs[0])
 	require.Equal(t, "141.98.9.137", entities[1].Value)
 	require.Empty(t, entities[1].URL)
 }
@@ -131,17 +131,17 @@ func TestDetectAttackTechnique(t *testing.T) {
 	entities, _ := Detect("exploited via T1190 and T1134.001, not T1190-old or XT1190")
 	require.Len(t, entities, 2)
 	require.Equal(t, "T1190", entities[0].Value)
-	require.Equal(t, securityPlugin+".attack", entities[0].TypeIDs[0])
+	require.Equal(t, securityOwner+":attack", entities[0].TypeIDs[0])
 	require.Equal(t, "T1134.001", entities[1].Value)
 }
 
 func TestApplyTermsKeepsPatternsAndSkipsCode(t *testing.T) {
 	installSecurityPatterns(t)
-	const pluginID = "com.example.glossary"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".acronym", DisplayName: "Acronym"}))
+	const owner = "com.example.glossary"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
 	before := PatternGeneration()
-	_, _, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	_, _, err := ReplaceTerms(owner, owner+":acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
@@ -164,15 +164,15 @@ func TestApplyTermsKeepsPatternsAndSkipsCode(t *testing.T) {
 }
 
 func TestApplyTermsFillsTitleOnTheSameSpan(t *testing.T) {
-	const pluginID = "com.example.glossary"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".acronym", DisplayName: "Acronym"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".acronym.scan",
-		TypeID:  pluginID + ".acronym",
+	const owner = "com.example.glossary"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "acronym.scan",
+		Type:    "acronym",
 		Pattern: `MLT`,
 	}))
-	_, _, err := ReplaceTerms(pluginID, pluginID+".acronym", []model.EntityTerm{{
+	_, _, err := ReplaceTerms(owner, owner+":acronym", []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Mattermost leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
@@ -188,7 +188,7 @@ func TestApplyTermsFillsTitleOnTheSameSpan(t *testing.T) {
 	require.Len(t, found, 1)
 	require.Equal(t, "Mattermost leadership team", found[0].Title)
 	require.Equal(t, "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz", found[0].URL)
-	require.Equal(t, []string{pluginID + ".acronym"}, found[0].TypeIDs)
+	require.Equal(t, []string{owner + ":acronym"}, found[0].TypeIDs)
 }
 
 func indexOf(s, sub string) int {
@@ -201,12 +201,12 @@ func indexOf(s, sub string) int {
 }
 
 func TestJiraLinkUsesTheNamedGroup(t *testing.T) {
-	const pluginID = "com.example.links"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".jira", DisplayName: "Jira"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".jira.scan",
-		TypeID:   pluginID + ".jira",
+	const owner = "com.example.links"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "jira", DisplayName: "Jira"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:     "jira.scan",
+		Type:     "jira",
 		Pattern:  `(MM)-(?P<jira_id>\d+)`,
 		URL:      "https://jira.example.com/browse/{value}",
 		Boundary: "autolink",
@@ -226,19 +226,19 @@ func TestJiraLinkUsesTheNamedGroup(t *testing.T) {
 	require.Empty(t, Present(found, ReadContext{AuthorIsBot: true}))
 
 	before := PatternGeneration()
-	require.NoError(t, UnregisterMatcher(pluginID, pluginID+".jira.scan"))
+	require.NoError(t, UnregisterMatcher(owner, "jira.scan"))
 	require.NotEqual(t, before, PatternGeneration())
 	again, _ := Detect(message)
 	require.Empty(t, again)
 }
 
 func TestStrictBoundaryRejectsADottedTail(t *testing.T) {
-	const pluginID = "com.example.strict"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".ip", DisplayName: "IP address"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:       pluginID + ".ip.v4",
-		TypeID:   pluginID + ".ip",
+	const owner = "com.example.strict"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "ip", DisplayName: "IP address"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:     "ip.v4",
+		Type:     "ip",
 		Pattern:  `(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}`,
 		Boundary: "strict",
 	}))
@@ -249,12 +249,12 @@ func TestStrictBoundaryRejectsADottedTail(t *testing.T) {
 }
 
 func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
-	const pluginID = "com.example.freq"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".freq", DisplayName: "Frequency"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:         pluginID + ".freq.mhz",
-		TypeID:     pluginID + ".freq",
+	const owner = "com.example.freq"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "freq", DisplayName: "Frequency"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:       "freq.mhz",
+		Type:       "freq",
 		Pattern:    `FREQ:[ \t]*([0-9]+(?:\.[0-9]+)?)`,
 		ValueGroup: 1,
 	}))
@@ -262,19 +262,19 @@ func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
 	found, _ := Detect("use FREQ: 243.0 now")
 	require.Len(t, found, 1)
 	require.Equal(t, "243.0", found[0].Value)
-	_, _, err := Prepare(t.Context(), pluginID+".freq", found[0].Value)
+	_, _, err := Prepare(t.Context(), owner+":freq", found[0].Value)
 	require.NoError(t, err)
-	_, _, err = Prepare(t.Context(), pluginID+".freq", "nope")
+	_, _, err = Prepare(t.Context(), owner+":freq", "nope")
 	require.Error(t, err)
 }
 
 func TestValueGroupSkipsWhenTheGroupDidNotParticipate(t *testing.T) {
-	const pluginID = "com.example.alt"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:         pluginID + ".mark.alt",
-		TypeID:     pluginID + ".mark",
+	const owner = "com.example.alt"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:       "mark.alt",
+		Type:       "mark",
 		Pattern:    `(?:FOO:([0-9]+)|BAR)`,
 		ValueGroup: 1,
 	}))
@@ -290,12 +290,12 @@ func TestImpossibleRFC3339IsNotPublished(t *testing.T) {
 }
 
 func TestDetectCapsAtMaxEntities(t *testing.T) {
-	const pluginID = "com.example.budget"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".mark.scan",
-		TypeID:  pluginID + ".mark",
+	const owner = "com.example.budget"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "mark.scan",
+		Type:    "mark",
 		Pattern: `MARK-[0-9]{4}`,
 	}))
 
@@ -308,18 +308,18 @@ func TestDetectCapsAtMaxEntities(t *testing.T) {
 }
 
 func TestScopedMatcherDoesNotHideAGlobalOne(t *testing.T) {
-	const pluginID = "com.example.scope"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".wide", DisplayName: "Wide"}))
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".narrow", DisplayName: "Narrow"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".wide.scan",
-		TypeID:  pluginID + ".wide",
+	const owner = "com.example.scope"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "wide", DisplayName: "Wide"}))
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "narrow", DisplayName: "Narrow"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "wide.scan",
+		Type:    "wide",
 		Pattern: `MARK-[0-9]{4}`,
 	}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".narrow.scan",
-		TypeID:  pluginID + ".narrow",
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "narrow.scan",
+		Type:    "narrow",
 		Pattern: `SEE MARK-[0-9]{4}`,
 		Scope:   []string{"team/town-square"},
 	}))
@@ -334,32 +334,32 @@ func TestScopedMatcherDoesNotHideAGlobalOne(t *testing.T) {
 }
 
 func TestRemovedMatcherIsNotPresented(t *testing.T) {
-	const pluginID = "com.example.gone"
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".mark.scan",
-		TypeID:  pluginID + ".mark",
+	const owner = "com.example.gone"
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "mark.scan",
+		Type:    "mark",
 		Pattern: `MARK-[0-9]{4}`,
 	}))
 	found, _ := Detect("see MARK-2048 today")
 	require.Len(t, found, 1)
-	RemovePlugin(pluginID)
+	RemoveOwner(owner)
 	require.Empty(t, Present(found, ReadContext{}))
 }
 
 func TestRenamedTypeUpdatesTheTermDisplayName(t *testing.T) {
-	const pluginID = "com.example.loaded"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	typeID := pluginID + ".acronym"
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Acronym"}))
-	_, _, err := ReplaceTerms(pluginID, typeID, []model.EntityTerm{{
+	const owner = "com.example.loaded"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	typeID := owner + ":acronym"
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
+	_, _, err := ReplaceTerms(owner, typeID, []model.EntityTerm{{
 		Value: "MLT",
 		Title: "Leadership team",
 		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
 	}})
 	require.NoError(t, err)
 	before := TermEpoch()
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: typeID, DisplayName: "Abbreviation"}))
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "acronym", DisplayName: "Abbreviation"}))
 	require.NotEqual(t, before, TermEpoch())
 	shown := ApplyTerms("ask the MLT", nil, nil)
 	require.Len(t, shown, 1)
@@ -368,23 +368,23 @@ func TestRenamedTypeUpdatesTheTermDisplayName(t *testing.T) {
 }
 
 func TestMatcherChangesThePatternGeneration(t *testing.T) {
-	const pluginID = "com.example.generation"
-	t.Cleanup(func() { RemovePlugin(pluginID) })
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Mark"}))
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".mark.scan",
-		TypeID:  pluginID + ".mark",
+	const owner = "com.example.generation"
+	t.Cleanup(func() { RemoveOwner(owner) })
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "mark.scan",
+		Type:    "mark",
 		Pattern: `MARK-[0-9]{4}`,
 	}))
 	before := PatternGeneration()
-	require.NoError(t, AddMatcher(pluginID, &model.EntityMatcher{
-		ID:      pluginID + ".mark.scan",
-		TypeID:  pluginID + ".mark",
+	require.NoError(t, AddMatcher(owner, &model.EntityMatcher{
+		Name:    "mark.scan",
+		Type:    "mark",
 		Pattern: `MARK-[0-9]{5}`,
 	}))
 	require.NotEqual(t, before, PatternGeneration())
 	renamed := PatternGeneration()
-	require.NoError(t, AddType(pluginID, &model.EntityType{ID: pluginID + ".mark", DisplayName: "Marker"}))
+	require.NoError(t, AddType(owner, &model.EntityType{Name: "mark", DisplayName: "Marker"}))
 	require.NotEqual(t, renamed, PatternGeneration())
 }
 

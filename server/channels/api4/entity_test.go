@@ -27,7 +27,7 @@ func TestGetEntityCardRequiresSession(t *testing.T) {
 	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	client := th.CreateClient()
-	resp, err := client.DoAPIGet(context.Background(), "/entities/card?type_id=mm.time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
+	resp, err := client.DoAPIGet(context.Background(), "/entities/card?type_id=mm:time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, model.BuildResponse(resp))
 }
@@ -42,7 +42,7 @@ func TestGetEntityCardFeatureOff(t *testing.T) {
 		cfg.FeatureFlags.Entities = false
 	})
 
-	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id=mm.time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
+	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id=mm:time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, model.BuildResponse(resp))
 }
@@ -51,14 +51,14 @@ func TestGetEntityCardHappyPath(t *testing.T) {
 	th := SetupConfig(t, enableEntities).InitBasic(t)
 
 	value := "2024-06-01T15:04:05Z"
-	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id=mm.time&value="+url.QueryEscape(value), "")
+	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id=mm:time&value="+url.QueryEscape(value), "")
 	require.NoError(t, err)
 	CheckOKStatus(t, model.BuildResponse(resp))
 	defer resp.Body.Close()
 
 	var card model.EntityCard
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&card))
-	require.Equal(t, "mm.time", card.TypeID)
+	require.Equal(t, "mm:time", card.TypeID)
 	require.Equal(t, value, card.Value)
 	require.NotZero(t, card.Instant)
 }
@@ -77,11 +77,11 @@ func TestGetEntityCardFromPostRequiresReadAccess(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	resp, err := other.DoAPIGet(context.Background(), "/entities/card?post_id="+privatePost.Id+"&type_id=mm.time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
+	resp, err := other.DoAPIGet(context.Background(), "/entities/card?post_id="+privatePost.Id+"&type_id=mm:time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
 	require.Error(t, err)
 	require.True(t, resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusNotFound)
 
-	resp, err = th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+post.Id+"&type_id=mm.time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
+	resp, err = th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+post.Id+"&type_id=mm:time&value="+url.QueryEscape("2024-06-01T15:04:05Z"), "")
 	require.Error(t, err)
 	CheckNotFoundStatus(t, model.BuildResponse(resp))
 }
@@ -101,14 +101,14 @@ func TestGetEntityCardForOccurrence(t *testing.T) {
 	require.NotEmpty(t, got.Metadata.Entities)
 
 	entity := got.Metadata.Entities[0]
-	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+created.Id+"&id="+url.QueryEscape(entity.ID)+"&type_id=mm.time", "")
+	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+created.Id+"&id="+url.QueryEscape(entity.ID)+"&type_id=mm:time", "")
 	require.NoError(t, err)
 	CheckOKStatus(t, model.BuildResponse(resp))
 	defer resp.Body.Close()
 
 	var card model.EntityCard
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&card))
-	require.Equal(t, "mm.time", card.TypeID)
+	require.Equal(t, "mm:time", card.TypeID)
 	require.Equal(t, entity.Value, card.Value)
 }
 

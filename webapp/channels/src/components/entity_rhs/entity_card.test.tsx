@@ -27,7 +27,7 @@ jest.mock('components/external_link', () => ({
 
 describe('EntityCardView', () => {
     const baseCard: EntityCard = {
-        type_id: 'mm.time',
+        type_id: 'mm:time',
         value: '2024-06-01T15:04:05Z',
         title: 'Timestamp',
         instant: Date.parse('2024-06-01T15:04:05Z'),

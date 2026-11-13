@@ -11,7 +11,7 @@ const messages = defineMessages({
 });
 
 const labels: Record<string, typeof messages[keyof typeof messages]> = {
-    'mm.time': messages.time,
+    'mm:time': messages.time,
 };
 
 export function entityLabel(typeId: string, formatMessage: IntlShape['formatMessage']) {

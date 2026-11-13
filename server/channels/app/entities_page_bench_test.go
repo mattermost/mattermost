@@ -49,7 +49,7 @@ func entityBenchApp(pattern cache.Cache) *App {
 func installEntityBenchMatchers(tb testing.TB) {
 	tb.Helper()
 	const pluginID = "com.example.bench"
-	tb.Cleanup(func() { entities.RemovePlugin(pluginID) })
+	tb.Cleanup(func() { entities.RemoveOwner(pluginID) })
 	specs := []struct {
 		id, typeID, name, pattern string
 	}{
@@ -60,12 +60,12 @@ func installEntityBenchMatchers(tb testing.TB) {
 		{"dtg", "dtg", "Time", `\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:\d{2})`},
 	}
 	for _, spec := range specs {
-		if err := entities.AddType(pluginID, &model.EntityType{ID: pluginID + "." + spec.typeID, DisplayName: spec.name}); err != nil {
+		if err := entities.AddType(pluginID, &model.EntityType{Name: spec.typeID, DisplayName: spec.name}); err != nil {
 			tb.Fatal(err)
 		}
 		if err := entities.AddMatcher(pluginID, &model.EntityMatcher{
-			ID:      pluginID + "." + spec.id,
-			TypeID:  pluginID + "." + spec.typeID,
+			Name:    spec.id,
+			Type:    spec.typeID,
 			Pattern: spec.pattern,
 		}); err != nil {
 			tb.Fatal(err)
@@ -228,7 +228,7 @@ func TestEntityPageRescansAStaleGeneration(t *testing.T) {
 	hash := entities.MessageHash(post.Message)
 	require.NoError(t, store.SetWithExpiry(patternCacheKey(post.Id, hash), model.EntityPatternCache{
 		Generation: "stale",
-		Patterns:   []*model.PostEntity{{ID: "0:4", Start: 0, End: 4, Value: "kept", TypeIDs: []string{"com.example.bench.vuln"}}},
+		Patterns:   []*model.PostEntity{{ID: "0:4", Start: 0, End: 4, Value: "kept", TypeIDs: []string{"com.example.bench:vuln"}}},
 	}, entityPatternTTL))
 	entityScanCount.Store(0)
 
