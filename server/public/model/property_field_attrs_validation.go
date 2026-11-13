@@ -126,6 +126,98 @@ func GetPropertyFieldChangePolicy(field *PropertyField) string {
 	return PropertyFieldChangePolicyAny
 }
 
+// PropertyFieldSettingsFromChangePolicy returns the mutability and bounds an old
+// change_policy means. Only the self rules are replaced; every other rule in
+// bounds is kept. Mutable comes back as the explicit constant and the bounds as
+// non-nil, because the update path reads "" and nil as "not stated" and refills
+// them from the stored field, which would silently keep the old lock.
+func PropertyFieldSettingsFromChangePolicy(policy string, bounds PropertyBounds) (PropertyFieldMutability, PropertyBounds, error) {
+	if !IsValidPropertyFieldChangePolicy(policy) {
+		return "", nil, fmt.Errorf("unknown change_policy %q", policy)
+	}
+
+	out := PropertyBounds{}
+	for _, r := range bounds {
+		if r.Reference != PropertyBoundsReferenceSelf {
+			out = append(out, r)
+		}
+	}
+
+	mutability := PropertyFieldMutabilityMutable
+	switch policy {
+	case PropertyFieldChangePolicyNever:
+		mutability = PropertyFieldMutabilityWriteOnce
+	case PropertyFieldChangePolicyRaiseOnly:
+		out = append(out, PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrAbove, Reference: PropertyBoundsReferenceSelf})
+	case PropertyFieldChangePolicyLowerOnly:
+		out = append(out, PropertyBoundsRule{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceSelf})
+	}
+	return mutability, out, nil
+}
+
+func selfBoundsOperators(bounds PropertyBounds) (above, below bool) {
+	for _, r := range bounds {
+		if r.Reference != PropertyBoundsReferenceSelf {
+			continue
+		}
+		switch r.Operator {
+		case PropertyBoundsOperatorAtOrAbove:
+			above = true
+		case PropertyBoundsOperatorAtOrBelow:
+			below = true
+		}
+	}
+	return above, below
+}
+
+// PropertyFieldChangePolicyFromSettings returns the change_policy that describes
+// the given mutability and bounds, for readers and servers of the old format.
+// Both self rules read as "never": the old format has no other way to say
+// "frozen", and a field must never look less locked than it is. Parent rules
+// don't show in the old format.
+func PropertyFieldChangePolicyFromSettings(mutability PropertyFieldMutability, bounds PropertyBounds) string {
+	above, below := selfBoundsOperators(bounds)
+	switch {
+	case mutability.OrMutable() != PropertyFieldMutabilityMutable, above && below:
+		return PropertyFieldChangePolicyNever
+	case above:
+		return PropertyFieldChangePolicyRaiseOnly
+	case below:
+		return PropertyFieldChangePolicyLowerOnly
+	}
+	return PropertyFieldChangePolicyAny
+}
+
+// SetPropertyFieldChangePolicyAttrs writes the old keys for policy into attrs in
+// place, creating the map when nil, and returns it. "never" writes editable=false
+// beside change_policy so readers predating change_policy still lock. An explicit
+// editable=true is left alone: it reads the same as absent, and other groups set
+// it for their own use.
+func SetPropertyFieldChangePolicyAttrs(attrs StringInterface, policy string) StringInterface {
+	if attrs == nil {
+		attrs = StringInterface{}
+	}
+	if editable, ok := attrs[PropertyFieldAttrEditable].(bool); ok && !editable {
+		delete(attrs, PropertyFieldAttrEditable)
+	}
+	if policy == PropertyFieldChangePolicyAny {
+		delete(attrs, PropertyFieldAttrChangePolicy)
+		return attrs
+	}
+	attrs[PropertyFieldAttrChangePolicy] = policy
+	if policy == PropertyFieldChangePolicyNever {
+		attrs[PropertyFieldAttrEditable] = false
+	}
+	return attrs
+}
+
+// PropertyFieldChangePolicyDescribes reports whether the old format can express
+// these settings exactly. It can't for set_on_create or for both self rules.
+func PropertyFieldChangePolicyDescribes(mutability PropertyFieldMutability, bounds PropertyBounds) bool {
+	above, below := selfBoundsOperators(bounds)
+	return mutability.OrMutable() != PropertyFieldMutabilitySetOnCreate && !(above && below)
+}
+
 // IsPropertyFieldRequired reports whether a value must be supplied when the
 // target resource is created. Only an explicit boolean true counts: a field
 // carrying a stringly "true" is a misconfiguration and must not read as

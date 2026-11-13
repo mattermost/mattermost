@@ -888,6 +888,34 @@ func TestPropertyPermissionsBackfill_Idempotent(t *testing.T) {
 	require.Equal(t, firstUpdateAt, unchanged.UpdateAt, "second run must not re-write the field row")
 }
 
+func TestChangePolicyConversion_Idempotent(t *testing.T) {
+	th := Setup(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Past the hooks: an upgraded database holds change_policy and no mutability.
+	seeded, storeErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "locked_" + model.NewId()[:8],
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+	})
+	require.NoError(t, storeErr)
+
+	require.NoError(t, th.Server.doSetupChangePolicyConversion(th.Context))
+	stored, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, storeErr)
+	require.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored.Mutability)
+
+	require.NoError(t, th.Server.doSetupChangePolicyConversion(th.Context))
+	again, storeErr := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, storeErr)
+	require.Equal(t, stored.UpdateAt, again.UpdateAt, "second run must not re-write the field row")
+}
+
 func TestPropertyPermissionsBackfillStoredColumns(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1664,4 +1692,36 @@ func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
 	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
 	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
 	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
+}
+
+func TestChangePolicyRemoval_RunsOnce(t *testing.T) {
+	th := Setup(t)
+	group, regErr := th.Server.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV2})
+	require.NoError(t, regErr)
+	seed := func() *model.PropertyField {
+		field, err := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID: group.ID, Name: "f" + model.NewId()[:8], Type: model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel, TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever},
+		})
+		require.NoError(t, err)
+		return field
+	}
+	_, err := th.Store.System().PermanentDeleteByName(changePolicyRemovalKey)
+	require.NoError(t, err)
+	first := seed()
+
+	require.NoError(t, th.Server.doSetupChangePolicyRemoval(th.Context))
+	got, err := th.Store.PropertyField().Get(th.Context, group.ID, first.ID)
+	require.NoError(t, err)
+	require.NotContains(t, got.Attrs, model.PropertyFieldAttrChangePolicy)
+	data, err := th.Store.System().GetByName(changePolicyRemovalKey)
+	require.NoError(t, err)
+	require.Equal(t, "true", data.Value)
+
+	second := seed()
+	require.NoError(t, th.Server.doSetupChangePolicyRemoval(th.Context))
+	got, err = th.Store.PropertyField().Get(th.Context, group.ID, second.ID)
+	require.NoError(t, err)
+	require.Equal(t, model.PropertyFieldChangePolicyNever, got.Attrs[model.PropertyFieldAttrChangePolicy], "a second call must not read fields")
 }
