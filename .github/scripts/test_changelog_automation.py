@@ -3,6 +3,7 @@ import re
 import unittest
 import urllib.parse
 from datetime import date
+from pathlib import Path
 
 import changelog_automation as ca
 
@@ -602,7 +603,9 @@ class LabelTest(unittest.TestCase):
         self.assertIn("- 2 PR(s) in mattermost/enterprise couldn't be labelled (listed in the Hub digest).", summary)
         self.assertIn("- mattermost/mattermost: 2 Changelog/Done, 1 Changelog/Not Needed", summary)
         self.assertNotIn("enterprise#", summary)
+        self.assertNotIn("permissions", summary)  # a per-PR failure, not a missing installation
         digest = ca.digest_message(VERSION, 50, {**REPORT, "labels": result})
+        self.assertNotIn("Pull requests: write", digest)
         self.assertIn("- mattermost/enterprise#9: Changelog/Done", digest)
         self.assertIn("- mattermost/enterprise#10: Changelog/Not Needed", digest)
 
@@ -671,12 +674,53 @@ class ReconcileTest(unittest.TestCase):
         self.assertEqual(api.labels[SRC], ["Changelog/Not Needed"])
         self.assertIn("mattermost/mattermost: 1, mattermost/enterprise: 0", summary)
 
+    def test_the_label_swap_uses_the_labels_token_and_reads_the_entry_with_the_repo_token(self):
+        repo_api, label_api = FakeApi(), self.labelled_by("changelog-app[bot]")
+        base = "/repos/mattermost/mattermost"
+        repo_api.routes[("GET", f"{base}/pulls")] = [{**pr(), "merged_at": "2026-11-16T10:00:00Z"}]
+        repo_api.routes[("GET", f"{base}/contents/{ca.urllib.parse.quote(FILE)}")] = {
+            "encoding": "base64", "content": base64.b64encode(MERGED.encode()).decode()}
+        repo_api.routes[("GET", f"{base}/pulls/50/comments")] = []
+        ca.merge_labels(repo_api, VERSION, [REPORT], "changelog-app[bot]", label_api)
+        self.assertEqual(label_api.labels[SRC], ["Changelog/Not Needed"])
+        self.assertFalse([c for c in repo_api.calls if "/issues/" in c[1]])  # no label call with the repo token
+        self.assertFalse([c for c in label_api.calls if "/contents/" in c[1] or c[1].endswith("/pulls")])
+
     def test_reconciled_only_once_the_pr_is_merged(self):
         api = self.labelled_by("changelog-app[bot]")
         api.routes[("GET", "/repos/mattermost/mattermost/pulls")] = [{"number": 49, "merged_at": None}]
         self.assertEqual(ca.merge_labels(api, VERSION, [REPORT], "changelog-app[bot]"),
                          "Changelog labels are reconciled once the changelog PR is merged.")
         self.assertEqual(api.labels[SRC], ["Changelog/Done"])
+
+
+class LabelTokenWorkflowTest(unittest.TestCase):
+    """generate-changelog.yml: only the labelling steps' token reaches mattermost/enterprise."""
+
+    def setUp(self):
+        path = Path(__file__).resolve().parents[1] / "workflows" / "generate-changelog.yml"
+        self.text = path.read_text(encoding="utf-8")
+
+    def steps(self, step_id):
+        return re.findall(rf"id: {step_id}\n(?:\s+[^\n]*\n)*?\s+owner: mattermost\n((?:\s+[\w-]+: [^\n]*\n)*)", self.text)
+
+    def test_labels_token_is_for_both_repos_with_pull_requests_write_only(self):
+        tokens = self.steps("labelToken")
+        self.assertEqual(len(tokens), 2)  # the auto run's labelling and the T-0 swap
+        for token in tokens:
+            self.assertIn("repositories: mattermost,enterprise", token)
+            self.assertIn("permission-pull-requests: write", token)
+
+    def test_every_other_write_token_is_limited_to_mattermost(self):
+        tokens = self.steps("writeToken")
+        self.assertEqual(len(tokens), 2)
+        for token in tokens:
+            self.assertIn("repositories: mattermost\n", token)
+            self.assertNotIn("enterprise", token)
+        self.assertEqual(self.text.count("enterprise\n          permission-pull-requests"), 2)
+        label_step = self.text[self.text.index("- name: Set changelog labels on the source PRs"):]
+        self.assertIn("GH_TOKEN: ${{ steps.labelToken.outputs.token }}", label_step[:400])
+        self.assertIn("LABEL_TOKEN: ${{ steps.labelToken.outputs.token }}", self.text)
 
 
 if __name__ == "__main__":

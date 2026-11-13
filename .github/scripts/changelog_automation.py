@@ -605,8 +605,7 @@ def digest_message(version: str, pr_number: int, report: dict) -> str:
         lines += [f"- {w['source']}: {w['reason']}" for w in weak]
     failed = (report.get("labels") or {}).get("failed", [])
     if failed:
-        lines += ["", (f"**Changelog labels the workflow couldn't add** ({len(failed)}); add them by hand or give the "
-                       "changelog write app Pull requests: write on the repo:")]
+        lines += ["", f"**Changelog labels the workflow couldn't add** ({len(failed)}); add them by hand:"]
         lines += [f"- {f['source']}: {f['label']}" for f in failed]
     metrics = report.get("metrics", {})
     if metrics.get("suggestions_made"):
@@ -724,8 +723,7 @@ def labels_summary(result: dict) -> str:
     for repo in LABEL_REPOS:
         failed = sum(1 for f in result["failed"] if f["source"].startswith(repo + "#"))
         if failed:
-            where = "listed in the Hub digest" if repo != REPO else "listed in the Hub digest; check the write app's permissions"
-            lines.append(f"- {failed} PR(s) in {repo} couldn't be labelled ({where}).")
+            lines.append(f"- {failed} PR(s) in {repo} couldn't be labelled (listed in the Hub digest).")
     return "\n".join(lines)
 
 
@@ -894,12 +892,20 @@ def cmd_merge(env: dict) -> int:
     api = Api(env["GH_TOKEN"])
     outcome = run_merge(api, version, report, env.get("AUTO_MERGE", "").strip().lower() == "true")
     _summary(merge_summary(version, outcome))
-    _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", "")))
+    label_api = Api(env["LABEL_TOKEN"]) if env.get("LABEL_TOKEN") else None
+    if label_api is None:
+        _summary("Changelog labels not reconciled: no labels token for the source repos.")
+    else:
+        _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", ""), label_api))
     return 0
 
 
-def merge_labels(api, version: str, reports: list[dict], actor: str) -> str:
-    """Reconcile the changelog labels against the merged entry; the summary line."""
+def merge_labels(api, version: str, reports: list[dict], actor: str, label_api=None) -> str:
+    """Reconcile the changelog labels against the merged entry; the summary line.
+
+    ``api`` reads the changelog PR and its file in this repo; ``label_api`` (a token for both
+    source repos with Pull requests: write only) reads and changes the source PRs' labels."""
+    label_api = label_api or api
     if not actor:
         return "Changelog labels not reconciled: the write app's bot login is unknown."
     pr = merged_changelog_pr(api, version)
@@ -908,7 +914,7 @@ def merge_labels(api, version: str, reports: list[dict], actor: str) -> str:
     if not reports:
         return "Changelog labels not reconciled: no generator report was found, so the bullets each PR got are unknown."
     content = file_text(api, REPO, changelog_release.changelog_path(version), pr["head"]["sha"])
-    result = reconcile_labels(api, reports, bot_suggestions(api, REPO, pr["number"]), content, version, actor)
+    result = reconcile_labels(label_api, reports, bot_suggestions(api, REPO, pr["number"]), content, version, actor)
     return reconcile_summary(result)
 
 
