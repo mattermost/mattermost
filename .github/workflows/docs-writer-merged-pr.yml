@@ -281,6 +281,7 @@ jobs:
             NUM=$(echo "$EXISTING" | jq -r .number)
             URL=$(echo "$EXISTING" | jq -r .url)
             gh pr edit "$NUM" --title "$TITLE" --body-file .docs-ai/writer/pr-body.md
+            echo "opened=true" >> "$GITHUB_OUTPUT"
           else
             URL=$(gh pr create \
               --base master \
@@ -288,6 +289,7 @@ jobs:
               --title "$TITLE" \
               --body-file .docs-ai/writer/pr-body.md \
               --draft)
+            echo "opened=true" >> "$GITHUB_OUTPUT"
             NUM=$(gh pr view "$BRANCH" --json number --jq .number)
             if [ -n "$REVIEWER" ]; then
               gh pr edit "$NUM" --add-reviewer "$REVIEWER" || true
@@ -313,13 +315,15 @@ jobs:
 
       # Without this a failed draft is invisible: Docs/Needed stays on and nobody is told.
       # Skipped once the draft PR exists; a later step failing is not a failed draft.
+      # Merge events fall back to the event PR so a failure before "Resolve source PR" is reported.
       - name: Tell the source PR the draft failed
         if: >-
-          failure() && steps.gate.outputs.run == 'true' && steps.pr.outputs.pr_number != '' &&
-          steps.open-pr.outcome != 'success'
+          failure() && steps.gate.outputs.run == 'true' &&
+          (steps.pr.outputs.pr_number != '' || github.event_name == 'pull_request') &&
+          steps.open-pr.outputs.opened != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number || github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -329,7 +333,7 @@ jobs:
             echo "Failure notice already posted on #${PR_NUMBER}."
             exit 0
           fi
-          gh pr comment "$PR_NUMBER" --body-file - <<EOF
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
           ${MARKER}
           The automated documentation draft for this PR could not be generated ([workflow run](${RUN_URL})).
 
