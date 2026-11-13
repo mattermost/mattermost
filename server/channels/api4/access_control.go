@@ -367,7 +367,20 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
+	// Parent imports are set through the assign/unassign endpoints, so a channel or
+	// team admin deleting here can't remove a policy that still has them. A missing
+	// policy is returned as-is.
+	stored, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if !hasSystemPermission && len(stored.Imports) > 0 {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	appErr = c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
 	if appErr != nil {
 		c.Err = appErr
 		return
