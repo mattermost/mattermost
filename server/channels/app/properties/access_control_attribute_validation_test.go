@@ -4537,6 +4537,50 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		}
 	})
 
+	t.Run("update: a submitted object type the store won't write doesn't steer the translation", func(t *testing.T) {
+		// The store never writes ObjectType on update, so the hooks must judge the
+		// stored one: a faked channel type would lock a user field past the flag
+		// gate, and a faked user type would strip a channel field's old keys.
+		updates := map[string]func(f *model.PropertyField) error{
+			"single": func(f *model.PropertyField) error {
+				_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+				return updateErr
+			},
+			"batch": func(f *model.PropertyField) error {
+				_, _, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{f})
+				return updateErr
+			},
+		}
+		for name, update := range updates {
+			t.Run(name+": a user field sent as a channel field with change_policy never isn't locked", func(t *testing.T) {
+				f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeUser, nil))
+				f.ObjectType = model.PropertyFieldObjectTypeChannel
+				f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyNever
+				require.NoError(t, update(f))
+
+				f = stored(t, f.ID)
+				assert.Equal(t, model.PropertyFieldObjectTypeUser, f.ObjectType)
+				assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+				assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+				assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable)
+			})
+
+			t.Run(name+": a locked channel field sent as a user field keeps its old keys", func(t *testing.T) {
+				f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+				require.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+				f.ObjectType = model.PropertyFieldObjectTypeUser
+				f.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityAlways
+				require.NoError(t, update(f))
+
+				f = stored(t, f.ID)
+				assert.Equal(t, model.PropertyFieldVisibilityAlways, f.Attrs[model.PropertyFieldAttrVisibility])
+				assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+				assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+				assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+			})
+		}
+	})
+
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
 		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, nil))
 		f.Mutability = model.PropertyFieldMutabilitySetOnCreate
