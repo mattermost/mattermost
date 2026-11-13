@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {AlertOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -49,10 +49,13 @@ import {externalSourceMessages} from './attribute_details/external_source';
 import type {AttributeTypeId} from './attribute_type';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
-import {attributeDetailsRoute} from './constants';
+import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from './constants';
+import {duplicateAttribute} from './duplicate_attribute';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import {useGlobalAttributeDuplicatePrompt} from './global_attribute_duplicate_modal';
 import type {NameConflict} from './name_conflict';
 import {nameConflictText} from './name_conflict';
+import useAllowedResourceTypes from './use_allowed_resource_types';
 import useGlobalAttributesListing from './use_global_attributes_listing';
 import {useOwnersLabel} from './use_owners_label';
 import {deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
@@ -294,16 +297,18 @@ type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     disabled: boolean;
-    onDeleteError: (message: string | null) => void;
-    onDeleted: () => void;
-    onDeleteModalExited: () => void;
+    onActionError: (message: string | null) => void;
+    onChanged: () => void;
+    onModalExited: () => void;
 };
 
-function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDeleteError, onDeleted, onDeleteModalExited}: ActionsCellProps) {
-    const {field, owners} = row;
+function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onActionError, onChanged, onModalExited}: ActionsCellProps) {
+    const {field, owners, applies_to: appliesTo} = row;
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
+    const promptDuplicate = useGlobalAttributeDuplicatePrompt();
+    const allowedResourceTypes = useAllowedResourceTypes();
     const menuId = `global-attribute-actions-${field.id}`;
 
     // A plugin-owned field is server-protected only while its plugin is installed,
@@ -332,6 +337,15 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     const isViewOnly = disabled || isPluginOwned;
     const isDeleteDisabled = disabled || isPluginManaged || isOwnerManaged;
 
+    // Duplicate is template-only: it recreates a Managed-here definition (and
+    // optionally linked resources) without plugin ownership or sync links. A
+    // field type this page has no descriptor for would be recreated as Text.
+    const canDuplicate = !disabled &&
+        !isPluginOwned &&
+        field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE &&
+        getAttributeTypeDescriptor(field).fieldType === field.type;
+    const duplicating = useRef(false);
+
     let orphanInfo: {ownerPluginIds: string[]} | {sourcePluginId?: string} | undefined;
     if (isOwned) {
         orphanInfo = {ownerPluginIds: owners.map((owner) => owner.id)};
@@ -340,21 +354,65 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
     }
 
     const handleConfirmed = useCallback(async () => {
-        onDeleteError(null);
+        onActionError(null);
 
         try {
             await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
             syncUserAttributeFieldDelete(dispatch, field.object_type, field.id);
         } catch (error) {
-            onDeleteError(formatMessage(
+            onActionError(formatMessage(
                 (error as ClientError)?.status_code === 409 ? actionsLabels.deleteErrorHasDependents : actionsLabels.deleteErrorGeneric,
             ));
             return;
         }
 
-        onDeleted();
-    }, [dispatch, field.id, field.object_type, formatMessage, onDeleteError, onDeleted]);
+        onChanged();
+    }, [dispatch, field.id, field.object_type, formatMessage, onActionError, onChanged]);
+
+    // Two overlapping runs would pick the same free name, and the second would
+    // fail on the server even though the first succeeded.
+    const runDuplicate = useCallback(async (resourceTypes: ResourceObjectType[]) => {
+        if (duplicating.current) {
+            return;
+        }
+        duplicating.current = true;
+        onActionError(null);
+
+        try {
+            const result = await duplicateAttribute(dispatch, field, resourceTypes, allowedResourceTypes, formatMessage);
+            if (!result.ok) {
+                onActionError(formatMessage(result.partial ? actionsLabels.duplicateErrorPartial : actionsLabels.duplicateErrorGeneric));
+
+                // Part of the copy is still on the server; list it rather than leave it for a reload.
+                if (result.partial) {
+                    onChanged();
+                }
+                return;
+            }
+
+            // The copy is usually renamed next, and active filters could hide its new row.
+            getHistory().push(attributeDetailsRoute(result.field.id));
+        } finally {
+            duplicating.current = false;
+        }
+    }, [allowedResourceTypes, dispatch, field, formatMessage, onActionError, onChanged]);
+
+    const handleDuplicate = useCallback(() => {
+        // Only offer resources this server can actually create linked fields for.
+        const resources = appliesTo.filter((type): type is ResourceObjectType => (
+            allowedResourceTypes.includes(type)
+        ));
+
+        if (resources.length === 0) {
+            // No modal will return focus, so a failure may move it to the banner at once.
+            onModalExited();
+            runDuplicate([]);
+            return;
+        }
+
+        promptDuplicate(getDisplayName(field), resources, runDuplicate, onModalExited);
+    }, [allowedResourceTypes, appliesTo, field, onModalExited, promptDuplicate, runDuplicate]);
 
     // Classification's definition lives on Classification Markings; this row only
     // offers the open-in-new link there. Row click still opens the attribute page
@@ -405,6 +463,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
                 labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
+            {canDuplicate && (
+                <Menu.Item
+                    id={`${menuId}-duplicate`}
+                    leadingElement={<ContentCopyIcon size={18}/>}
+                    onClick={handleDuplicate}
+                    labels={<FormattedMessage {...actionsLabels.duplicate}/>}
+                />
+            )}
             <Menu.Item
                 id={`${menuId}-delete`}
                 disabled={isDeleteDisabled}
@@ -414,7 +480,7 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                     getDisplayName(field),
                     handleConfirmed,
                     orphanInfo,
-                    onDeleteModalExited,
+                    onModalExited,
                 )}
                 labels={(
                     <>
@@ -446,8 +512,8 @@ type GlobalAttributesTableProps = {
 };
 
 export default function GlobalAttributesTable({searchQuery = '', source, resourceType, onClearFilters, disabled = false}: GlobalAttributesTableProps) {
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-    const [deleteModalExited, setDeleteModalExited] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [actionModalExited, setActionModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
 
     const classificationAttributePageReachable = useClassificationAttributePageReachable();
@@ -482,9 +548,9 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
     const pluginInventoryLoadedRef = useRef(pluginInventoryLoaded);
     pluginInventoryLoadedRef.current = pluginInventoryLoaded;
 
-    const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
+    const handleActionModalExited = useCallback(() => setActionModalExited(true), []);
 
-    // The banner sits above the table, so a delete triggered from a row further
+    // The banner sits above the table, so a delete or duplicate triggered from a row further
     // down can land off-screen. Two things make the timing here load-bearing:
     //
     // GenericModal passes restoreFocus, so on close react-bootstrap returns focus
@@ -496,13 +562,13 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
     // delete request may finish either side of the modal's fade. So the error and
     // the exit arrive in either order; act only once both have landed.
     useEffect(() => {
-        if (!deleteError || !deleteModalExited) {
+        if (!actionError || !actionModalExited) {
             return;
         }
 
         // Disarmed so the next delete waits for its own modal to close rather
         // than acting on this attempt's stale exit.
-        setDeleteModalExited(false);
+        setActionModalExited(false);
 
         // Focus without its own scroll, then scroll deliberately: the banner ends
         // up owning focus for keyboard and screen reader users -- who would
@@ -510,7 +576,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
         // and the browser never scrolls anywhere we did not ask it to.
         bannerRef.current?.focus?.({preventScroll: true});
         bannerRef.current?.closest('.admin-console__wrapper')?.scrollTo?.({top: 0});
-    }, [deleteError, deleteModalExited]);
+    }, [actionError, actionModalExited]);
 
     const handleRowClick = useCallback((fieldId: string) => {
         const row = rows.find((candidate) => candidate.id === fieldId);
@@ -591,15 +657,15 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                         isMobileView={isMobileView}
                         pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                         disabled={disabled}
-                        onDeleteError={setDeleteError}
-                        onDeleted={refetch}
-                        onDeleteModalExited={handleDeleteModalExited}
+                        onActionError={setActionError}
+                        onChanged={refetch}
+                        onModalExited={handleActionModalExited}
                     />
                 </div>
             ),
             enableHiding: false,
         }),
-    ], [isMobileView, handleDeleteModalExited, refetch, disabled]);
+    ], [isMobileView, handleActionModalExited, refetch, disabled]);
 
     const table = useReactTable<ListingTableRow>({
         data: rows,
@@ -675,16 +741,16 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                 ref={bannerRef}
                 role='alert'
 
-                // Focused programmatically when a delete fails, so it takes focus
+                // Focused programmatically when a row action fails, so it takes focus
                 // without becoming a stop in the normal tab order.
                 tabIndex={-1}
             >
-                {deleteError && (
+                {actionError && (
                     <AlertBanner
                         id='global-attributes-delete-error'
                         mode='danger'
-                        message={deleteError}
-                        onDismiss={() => setDeleteError(null)}
+                        message={actionError}
+                        onDismiss={() => setActionError(null)}
                     />
                 )}
             </div>
@@ -753,6 +819,7 @@ export const actionsLabels = defineMessages({
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
     view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
+    duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     pluginManaged: {id: 'admin.global_attributes.table.actions.plugin_managed', defaultMessage: 'Plugin-managed'},
     ownerManaged: {id: 'admin.global_attributes.table.actions.owner_managed', defaultMessage: 'Managed by {owners}'},
@@ -763,6 +830,14 @@ export const actionsLabels = defineMessages({
     deleteErrorGeneric: {
         id: 'admin.global_attributes.confirm.delete.error.generic',
         defaultMessage: 'An error occurred while deleting this attribute. Please try again.',
+    },
+    duplicateErrorGeneric: {
+        id: 'admin.global_attributes.confirm.duplicate.error.generic',
+        defaultMessage: 'An error occurred while duplicating this attribute. Please try again.',
+    },
+    duplicateErrorPartial: {
+        id: 'admin.global_attributes.confirm.duplicate.error.partial',
+        defaultMessage: 'The attribute was only partly duplicated. Review or delete the copy before trying again.',
     },
     classificationLink: {
         id: 'admin.global_attributes.table.actions.classification_link',
