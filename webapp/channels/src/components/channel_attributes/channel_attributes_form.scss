@@ -1,5 +1,8 @@
 .channel-attributes-form {
     padding-top: 24px;
+
+    // Keeps the last combobox's focus ring from being clipped by the modal body's overflow.
+    padding-bottom: 2px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     margin-top: 24px;
 
@@ -29,8 +32,14 @@
             margin-bottom: 0;
         }
 
-        .DropdownInput.Input_container {
-            margin-top: 0;
+        // Keeps the name level with the input once an error sits under it.
+        // 10px = (40px Compass medium control - 20px label line) / 2.
+        &--error {
+            align-items: flex-start;
+
+            .channel-attributes-form__label {
+                padding-top: 10px;
+            }
         }
     }
 
@@ -60,6 +69,26 @@
         // box inside the fieldset's. Same override the purpose textarea needs.
         .Input_wrapper input.form-control {
             border: none !important;
+        }
+    }
+
+    // Same look as Input's own error, whose styles only apply inside .Input_container.
+    &__error {
+        display: flex;
+        margin-top: 5px;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+
+        i {
+            height: 14px;
+            align-self: baseline;
+            margin-right: 7px;
+            font-size: 14px;
+
+            &::before {
+                margin: 0;
+            }
         }
     }
 }

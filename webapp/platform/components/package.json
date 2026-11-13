@@ -12,7 +12,6 @@
     "fix": "eslint ./src eslint.config.mjs --quiet --fix",
     "run": "concurrently --raw \"rollup -c --watch\" \"tsc -b --watch --preserveWatchOutput\"",
     "test": "cross-env TZ=Etc/UTC jest",
-    "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
     "test-ci": "cross-env TZ=Etc/UTC jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
     "clean": "rm -rf dist node_modules .rollup.cache"
   },

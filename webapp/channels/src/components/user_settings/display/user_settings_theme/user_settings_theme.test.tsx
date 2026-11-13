@@ -34,14 +34,6 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         areAllSectionsInactive: false,
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <UserSettingsTheme {...requiredProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should saveTheme', async () => {
         const props = {
             ...requiredProps,

@@ -72,7 +72,7 @@ describe('components/AboutBuildModal', () => {
         };
     });
 
-    test('should match snapshot for enterprise edition', () => {
+    test('should render for enterprise edition', () => {
         renderAboutBuildModal({config, license, socketStatus});
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
@@ -88,7 +88,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should match snapshot for team edition', () => {
+    test('should render for team edition', () => {
         const teamConfig = {
             ...config,
             BuildEnterpriseReady: 'false',
@@ -110,7 +110,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should match snapshot for cloud edition', () => {
+    test('should render for cloud edition', () => {
         if (license !== null) {
             license.Cloud = 'true';
         }

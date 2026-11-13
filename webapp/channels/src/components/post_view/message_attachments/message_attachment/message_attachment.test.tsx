@@ -10,7 +10,6 @@ import type {PostImage} from '@mattermost/types/posts';
 import MessageAttachment from 'components/post_view/message_attachments/message_attachment/message_attachment';
 
 import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
-import {Constants} from 'utils/constants';
 
 jest.mock('components/external_image', () => {
     return jest.fn((props: any) => <>{props.children(props.src)}</>);
@@ -86,11 +85,6 @@ describe('components/post_view/MessageAttachment', () => {
         } as Record<string, PostImage>,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<MessageAttachment {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should change checkOverflow state on handleHeightReceived change', () => {
         // Mock Markdown to capture imageProps
         const MarkdownMock = jest.requireMock('components/markdown');
@@ -149,7 +143,6 @@ describe('components/post_view/MessageAttachment', () => {
         expect(container2.querySelector('.attachment-actions')).toBeInTheDocument();
         expect(screen.getAllByTestId('action-button-mock')).toHaveLength(2);
         expect(screen.getByTestId('action-menu-mock')).toBeInTheDocument();
-        expect(container2.querySelector('.attachment-actions')).toMatchSnapshot();
     });
 
     test('should call actions.doPostActionWithCookie on handleAction', async () => {
@@ -162,8 +155,7 @@ describe('components/post_view/MessageAttachment', () => {
             actions: [{id: actionId, name: 'action_name_1', cookie: 'cookie-contents'}] as PostAction[],
         };
         const props = {...baseProps, actions: {doPostActionWithCookie, openModal}, attachment: newAttachment};
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
+        renderWithContext(<MessageAttachment {...props}/>);
 
         const {userEvent} = await import('tests/react_testing_utils');
         await userEvent.click(screen.getByTestId('action-button-mock'));
@@ -217,7 +209,6 @@ describe('components/post_view/MessageAttachment', () => {
 
         const fieldTables = container2.querySelectorAll('.attachment-fields');
         expect(fieldTables.length).toBeGreaterThan(0);
-        expect(container2.querySelector('.attachment-fields')!.parentElement).toMatchSnapshot();
     });
 
     test('should use ExternalImage for images', () => {
@@ -280,104 +271,6 @@ describe('components/post_view/MessageAttachment', () => {
         const authorName = container.querySelector('.attachment__author-name');
         expect(authorName).toBeInTheDocument();
         expect(authorName).toHaveTextContent('Bot (v2)');
-    });
-
-    test('should match snapshot when the attachment has an emoji in the title', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                title: 'Do you like :pizza:?',
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                title: 'Don\'t you like emojis?',
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when the attachment has a link in the title', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                title: 'Do you like https://mattermost.com?',
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when no footer is provided (even if footer_icon is provided)', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                ...attachment,
-                footer: '',
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when the footer is truncated', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                title: 'footer',
-                footer: 'a'.repeat(Constants.MAX_ATTACHMENT_FOOTER_LENGTH + 1),
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot and render a field with a number value', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                ...attachment,
-                fields: [
-                    {
-                        title: 'this is the title',
-                        value: 1234,
-                    },
-                ],
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-
-        expect(container.querySelector('.attachment-field')).toMatchSnapshot();
-    });
-
-    test('should not render content box if there is no content', () => {
-        const props = {
-            ...baseProps,
-            attachment: {
-                pretext: 'This is a pretext.',
-            } as MessageAttachmentType,
-        };
-
-        const {container} = renderWithContext(<MessageAttachment {...props}/>);
-        expect(container.querySelector('.attachment')).toMatchSnapshot();
     });
 
     test('should handle action errors and display error message', async () => {

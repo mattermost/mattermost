@@ -24,7 +24,7 @@ function ActionsMenuTestWrapper(props: Omit<React.ComponentProps<typeof ActionsM
 }
 
 describe('ActionsMenu', () => {
-    test('should match snapshot, return empty ("") on Center', async () => {
+    test('should return empty ("") on Center', async () => {
         const user1 = TestHelper.getUserMock({id: 'user1', roles: 'system_admin system_user'});
         const post1 = TestHelper.getPostMock({id: 'post1', type: ''});
 

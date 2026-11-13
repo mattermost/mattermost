@@ -492,20 +492,23 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
-	wc.readPump()
-	close(wc.endWritePump)
-	close(wc.pluginPosted)
-	wg.Wait()
-	wc.Platform.HubUnregister(wc)
-	close(wc.pumpFinished)
+	defer func() {
+		close(wc.endWritePump)
+		close(wc.pluginPosted)
+		wg.Wait()
+		wc.Platform.HubUnregister(wc)
+		close(wc.pumpFinished)
 
-	userID := wc.UserId
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
-			return true
-		}, plugin.OnWebSocketDisconnectID)
-	})
+		userID := wc.UserId
+		wc.Platform.Go(func() {
+			wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}()
+
+	wc.readPump()
 }
 
 func (wc *WebConn) readPump() {
@@ -898,6 +901,17 @@ func (wc *WebConn) InvalidateCache() {
 	wc.SetSessionExpiresAt(0)
 }
 
+func (wc *WebConn) sessionLogFields(err error) []mlog.Field {
+	fields := []mlog.Field{
+		mlog.String("user_id", wc.UserId),
+		mlog.String("connection_id", wc.GetConnectionID()),
+	}
+	if session := wc.GetSession(); session != nil {
+		fields = append(fields, mlog.String("session_id", session.Id))
+	}
+	return append(fields, mlog.Err(err))
+}
+
 // IsBasicAuthenticated returns whether the given WebConn has a valid session.
 func (wc *WebConn) IsBasicAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
@@ -911,7 +925,7 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 
 			wc.SetSessionToken("")
@@ -1299,7 +1313,7 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 			return false
 		}
