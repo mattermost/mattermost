@@ -24,7 +24,7 @@ import './style.scss';
 type Props = {
     channelId: string;
     disabled?: boolean;
-    onSelect: (schedulingInfo: SchedulingInfo) => void;
+    onSelect: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     repeatDisabledReason?: RepeatDisabledReason;
 };
 
@@ -45,8 +45,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
     }, [onSelect]);
 
     const handleSelectCustomTime = useCallback((schedulingInfo: SchedulingInfo) => {
-        onSelect(schedulingInfo);
-        return Promise.resolve({});
+        return onSelect(schedulingInfo);
     }, [onSelect]);
 
     const handleChooseCustomTime = useCallback(() => {

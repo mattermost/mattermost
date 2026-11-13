@@ -18,6 +18,11 @@ import type {GlobalState} from 'types/store';
 
 import {SendPostOptions} from './index';
 
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    ...jest.requireActual('mattermost-redux/actions/preferences'),
+    savePreferences: jest.fn(() => ({type: 'MOCK_SAVE_PREFERENCES'})),
+}));
+
 const userTimezone = 'America/New_York';
 
 // A Wednesday, so that "Tomorrow at 9:00 AM" is always the first preset option
@@ -190,6 +195,40 @@ describe('SendPostOptions', () => {
             expect(menuModal()).toBeNull();
             expect(screen.getByRole('heading', {name: 'Schedule message'})).toBeVisible();
             expect(onSelect).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('custom time modal', () => {
+        async function confirmCustomTime() {
+            renderComponent(stateForView(WindowSizes.DESKTOP_VIEW));
+
+            openMenu();
+            fireEvent.click(screen.getByText('Choose a custom time'));
+            runPendingTimers();
+
+            await act(async () => {
+                fireEvent.click(screen.getByRole('button', {name: 'Schedule'}));
+            });
+        }
+
+        it('keeps the modal open and shows the error when scheduling fails', async () => {
+            onSelect.mockResolvedValue({error: 'Invalid scheduled at time.'});
+
+            await confirmCustomTime();
+
+            expect(onSelect).toHaveBeenCalledTimes(1);
+            expect(screen.getByText('Invalid scheduled at time.')).toBeVisible();
+            expect(screen.getByRole('heading', {name: 'Schedule message'})).toBeVisible();
+        });
+
+        it('closes the modal when scheduling succeeds', async () => {
+            onSelect.mockResolvedValue({});
+
+            await confirmCustomTime();
+            runPendingTimers();
+
+            expect(onSelect).toHaveBeenCalledTimes(1);
+            expect(screen.queryByRole('heading', {name: 'Schedule message'})).not.toBeInTheDocument();
         });
     });
 

@@ -5,6 +5,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -269,6 +270,63 @@ describe('useSubmit', () => {
         expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
+    });
+
+    it('should return the server error when scheduling a post fails', async () => {
+        (onSubmit as jest.Mock).mockImplementationOnce(() => () => Promise.resolve({
+            error: {message: 'Invalid scheduled at time.'},
+        }));
+        const {result} = renderHookWithContext(() => useSubmit(
+            mockDraft,
+            mockPostError,
+            'channel_id',
+            'root_id',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+        ), getBaseState());
+
+        const [handleSubmit] = result.current;
+
+        const response = await handleSubmit(mockDraft, {scheduled_at: 1000});
+
+        expect(response).toEqual({error: 'Invalid scheduled at time.'});
+    });
+
+    it('should not return an error when scheduling a post succeeds', async () => {
+        const {result} = renderHookWithContext(() => useSubmit(
+            mockDraft,
+            mockPostError,
+            'channel_id',
+            'root_id',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+            'post_id',
+        ), getBaseState());
+
+        const [handleSubmit] = result.current;
+
+        const response = await handleSubmit(mockDraft, {scheduled_at: 1000});
+
+        expect(response?.error).toBeUndefined();
     });
 });
 

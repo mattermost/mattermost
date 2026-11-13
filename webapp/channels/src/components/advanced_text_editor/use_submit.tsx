@@ -41,6 +41,8 @@ import {isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
 
+type SubmitResult = {error?: string};
+
 function getStatusFromSlashCommand(message: string) {
     const tokens = message.split(' ');
     const command = tokens[0] || '';
@@ -149,10 +151,10 @@ const useSubmit = (
         }
     }, [dispatch, postFileIds, postId]);
 
-    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions) => {
+    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions): Promise<SubmitResult> => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         if (postError && !createPostOptions?.ignorePostError) {
@@ -161,25 +163,25 @@ const useSubmit = (
                 setErrorClass(null);
             }, Constants.ANIMATION_TIMEOUT);
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         if (isPostDraftEmpty(draft)) {
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         if (!schedulingInfo) {
             if (isRootDeleted) {
                 showPostDeletedModal();
                 isDraftSubmitting.current = false;
-                return;
+                return {};
             }
         }
 
         if (serverError && !isErrorInvalidSlashCommand(serverError)) {
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         const fasterThanHumanWillClick = 150;
@@ -233,7 +235,7 @@ const useSubmit = (
                 setServerError(err as any);
             }
             isDraftSubmitting.current = false;
-            return;
+            return {error: (err as ServerError).message};
         }
 
         if (!rootId && !schedulingInfo && !isInEditMode) {
@@ -250,6 +252,7 @@ const useSubmit = (
         }
 
         isDraftSubmitting.current = false;
+        return {};
     }, [
         dispatch,
         draft,
@@ -295,13 +298,13 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
+    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions): Promise<SubmitResult> => {
         if (!channel) {
-            return;
+            return {};
         }
 
         if (isDraftSubmitting.current) {
-            return;
+            return {};
         }
 
         const submittingDraft = setUpdatedFileIds(submittingDraftParam);
@@ -336,13 +339,13 @@ const useSubmit = (
         const onConfirm = () => doSubmit(submittingDraft, schedulingInfo);
         if (!isInEditMode && prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         if (!isInEditMode && memberNotifyCount > 0) {
             showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, onConfirm);
             isDraftSubmitting.current = false;
-            return;
+            return {};
         }
 
         if (!isInEditMode && !skipCommands && !schedulingInfo) {
@@ -361,7 +364,7 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return;
+                return {};
             }
 
             if (submittingDraft.message.trimEnd() === '/header') {
@@ -378,7 +381,7 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return;
+                return {};
             }
 
             if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
@@ -395,11 +398,11 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return;
+                return {};
             }
         }
 
-        await doSubmit(submittingDraft, schedulingInfo, options);
+        return doSubmit(submittingDraft, schedulingInfo, options);
     }, [
         doSubmit,
         draft,

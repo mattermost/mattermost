@@ -231,8 +231,7 @@ function DraftRow({
     );
 
     const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
-        await handleOnSend(item as PostDraft, schedulingInfo);
-        return Promise.resolve({});
+        return handleOnSend(item as PostDraft, schedulingInfo);
     }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {

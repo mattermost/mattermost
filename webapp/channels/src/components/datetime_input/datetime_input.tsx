@@ -29,9 +29,10 @@ function momentToLocalDate(m: Moment): Date {
 
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
     const diff = value.minute() % roundedTo;
-    if (diff === 0) {
+    const hasPartialMinute = value.seconds() > 0 || value.milliseconds() > 0;
+    if (diff === 0 && !hasPartialMinute) {
         // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
+        return moment(value);
     }
     const remainder = roundedTo - diff;
     return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);

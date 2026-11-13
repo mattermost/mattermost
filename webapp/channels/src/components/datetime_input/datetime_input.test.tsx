@@ -130,6 +130,33 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(baseProps.handleChange).toHaveBeenCalled();
         });
 
+        test('should select a future time when picking today partway through an interval minute', async () => {
+            const now = moment.tz('2025-06-08T10:00:30.000Z', 'UTC');
+            fakeNow(now.toISOString());
+            mockGetCurrentMomentForTimezone.mockImplementation(() => now.clone());
+            mockIsBeforeTime.mockReturnValue(false);
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-09T09:00:00Z', 'UTC')}
+                        handleChange={handleChange}
+                        timePickerInterval={15}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                expect(handleChange).toHaveBeenCalledTimes(1);
+                expect(handleChange.mock.calls[0][0].toISOString()).toBe('2025-06-08T10:15:00.000Z');
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         test('should handle day selection for future date', async () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
 
@@ -378,6 +405,41 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(handleChange).toHaveBeenCalledTimes(1);
             const roundedTime = handleChange.mock.calls[0][0];
             expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
+        });
+    });
+
+    describe('getRoundedTime', () => {
+        it('should return the same minute when already on an interval boundary', () => {
+            const rounded = getRoundedTime(moment.utc('2025-06-08T14:30:00.000Z'), 15);
+
+            expect(rounded.toISOString()).toBe('2025-06-08T14:30:00.000Z');
+        });
+
+        it('should round up to the next interval when between boundaries', () => {
+            const rounded = getRoundedTime(moment.utc('2025-06-08T14:17:42.500Z'), 15);
+
+            expect(rounded.toISOString()).toBe('2025-06-08T14:30:00.000Z');
+        });
+
+        it.each([
+            ['seconds', '2025-06-08T14:30:20.000Z'],
+            ['milliseconds', '2025-06-08T14:30:00.250Z'],
+        ])('should advance to the next interval when on a boundary minute with %s elapsed', (_name, value) => {
+            const rounded = getRoundedTime(moment.utc(value), 15);
+
+            expect(rounded.toISOString()).toBe('2025-06-08T14:45:00.000Z');
+        });
+
+        it('should advance a minute when the interval is one minute and seconds have elapsed', () => {
+            const rounded = getRoundedTime(moment.utc('2025-06-08T14:07:30.000Z'), 1);
+
+            expect(rounded.toISOString()).toBe('2025-06-08T14:08:00.000Z');
+        });
+
+        it('should never return a time before the given time', () => {
+            const value = moment.utc('2025-06-08T14:45:59.999Z');
+
+            expect(getRoundedTime(value, 15).isAfter(value)).toBe(true);
         });
     });
 
