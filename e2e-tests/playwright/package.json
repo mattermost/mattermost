@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@mattermost/eslint-plugin": "file:../../webapp/platform/eslint-plugin",
+    "@percy/cli": "1.32.12",
     "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
     "@types/pg": "8.23.1",

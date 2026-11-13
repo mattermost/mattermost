@@ -48,7 +48,6 @@
     "@expo/devcert": "1.2.2",
     "@mattermost/client": "file:../../../webapp/platform/client",
     "@mattermost/types": "file:../../../webapp/platform/types",
-    "@percy/cli": "1.32.12",
     "@percy/playwright": "1.1.2",
     "@testcontainers/postgresql": "12.2.1",
     "async-wait-until": "2.0.31",
@@ -72,8 +71,5 @@
   },
   "peerDependencies": {
     "@playwright/test": ">=1.59.0"
-  },
-  "overrides": {
-    "pdfjs-dist": "4.10.38"
   }
 }
