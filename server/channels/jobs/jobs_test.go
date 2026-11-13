@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1024,4 +1026,18 @@ func TestPublishJobStatus(t *testing.T) {
 		require.Nil(t, jobServer.RequestCancellation(ctx, "job_id"))
 		assertPublishedJob(t, captured, model.JobStatusCancelRequested)
 	})
+}
+
+func TestCreateJobRequiresARegisteredType(t *testing.T) {
+	jobServer, mockStore := makeTeamEditionJobServer(t)
+	mockStore.JobStore.On("Save", mock.AnythingOfType("*model.Job")).Return(func(job *model.Job) *model.Job { return job }, nil).Once()
+
+	_, appErr := jobServer.CreateJob(request.TestContext(t), model.JobTypeHealthCheck, nil)
+	expectErrorId(t, "model.job.is_valid.type.app_error", appErr)
+
+	// A type registered with only a scheduler runs outside the framework's workers.
+	jobServer.RegisterJobType(model.JobTypeHealthCheck, nil, NewPeriodicScheduler(jobServer, model.JobTypeHealthCheck, time.Hour, func(*model.Config) bool { return true }))
+	job, appErr := jobServer.CreateJob(request.TestContext(t), model.JobTypeHealthCheck, nil)
+	require.Nil(t, appErr)
+	require.Equal(t, model.JobTypeHealthCheck, job.Type)
 }

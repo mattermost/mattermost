@@ -19,7 +19,7 @@
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `manage_system` — `access_control_sync`, `health_check`
 
         When `job_type` is set, you must have the permission that matches that type (same mapping as above).
 
@@ -128,7 +128,7 @@
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `manage_system` — `access_control_sync`, `health_check`
       operationId: GetJob
       parameters:
         - name: job_id
@@ -240,7 +240,7 @@
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `manage_system` — `access_control_sync`
+        - `manage_system` — `access_control_sync`, `health_check`
 
         When `job_type` is `access_control_sync` and query parameter `team_id` is set to a valid team GUID, team admins with `manage_team_access_rules` on that team may list jobs scoped to that team without `manage_system`. When `team_id` is set, results include only jobs whose stored data matches that team for the requested type.
       operationId: GetJobsByType
