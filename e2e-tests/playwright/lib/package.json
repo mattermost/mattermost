@@ -72,5 +72,8 @@
   },
   "peerDependencies": {
     "@playwright/test": ">=1.59.0"
+  },
+  "overrides": {
+    "pdfjs-dist": "4.10.38"
   }
 }
