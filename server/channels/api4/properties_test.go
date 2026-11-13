@@ -8387,6 +8387,50 @@ func TestPatchPropertyValuesChangePolicy(t *testing.T) {
 	})
 }
 
+func TestPatchPropertyValuesWriteOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.PropertyFieldPermissionsV3 = true
+		cfg.FeatureFlags.PropertyFieldBounds = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "attr_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		Mutability:        model.PropertyFieldMutabilityWriteOnce,
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	patch := func(raw string) (*model.Response, error) {
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(raw)}}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		return resp, err
+	}
+
+	th.LoginBasic(t)
+
+	resp, err := patch(`"first"`)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	resp, err = patch(`"second"`)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "app.property_value.write_once.app_error")
+}
+
 // End-to-end proof of the DM/GM rule against the REAL access_control group,
 // which is the only group the attribute validation hook is registered for.
 // TestPatchPropertyValuesChannelTargetAccess is the sibling suite on a
@@ -9611,5 +9655,44 @@ func TestBoundsHookCoversEveryV3Group(t *testing.T) {
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 		require.Equal(t, model.PropertyBounds{selfRule}, created.Bounds)
+	})
+
+	t.Run("with the flag on, a write_once value can't be changed", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldBounds = false })
+
+		field := newField("channel", model.PropertyFieldTypeText)
+		field.Mutability = model.PropertyFieldMutabilityWriteOnce
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		write := func(raw string) *model.AppError {
+			_, writeErr := th.App.UpsertPropertyValue(th.Context, &model.PropertyValue{
+				GroupID:    group.ID,
+				FieldID:    created.ID,
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+				Value:      json.RawMessage(raw),
+			})
+			return writeErr
+		}
+		require.Nil(t, write(`"first"`))
+
+		appErr = write(`"second"`)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		require.Nil(t, write(`"first"`))
+
+		// A delete is a clear, so it is refused the same way.
+		set, appErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{FieldID: created.ID, TargetIDs: []string{th.BasicChannel.Id}, PerPage: 1})
+		require.Nil(t, appErr)
+		require.Len(t, set, 1)
+		appErr = th.App.DeletePropertyValue(th.Context, group.ID, set[0].ID)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property_value.write_once.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Nil(t, write(`"first"`))
 	})
 }

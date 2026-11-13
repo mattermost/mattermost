@@ -259,7 +259,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	// Actions above), so it snaps back to enforced the moment the switch
 	// flips off again. Non-channel fields (post, user) are never gated by
 	// this flag, matching the value-enforcement side in validateValues.
-	if field.ObjectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
+	// An update is judged by its stored ObjectType: the store never writes a
+	// submitted one, so a fake type would otherwise skip the gate.
+	objectType := field.ObjectType
+	if existing != nil {
+		objectType = existing.ObjectType
+	}
+	if objectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
 		model.IsPropertyFieldRequired(field) && !prevRequired {
 		return newRequiredAttrDisabledError(field)
 	}
@@ -1263,7 +1269,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.propertyService.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -1420,7 +1426,7 @@ func newRequiredAttrDisabledError(field *model.PropertyField) error {
 
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (ps *PropertyService) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1438,7 +1444,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.C
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
+		values, err := ps.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1539,7 +1545,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	}}); err != nil {
 		return err
 	}
-	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
+	values, err := h.propertyService.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}

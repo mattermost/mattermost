@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -4475,5 +4476,556 @@ func TestPropertyFieldBoundsGroupVersionAndUnstated(t *testing.T) {
 		var appErr *model.AppError
 		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "model.property_field.is_valid.app_error", appErr.Id)
+	})
+}
+
+func TestUpdatePropertyFieldPreHooksSeeStoredObjectType(t *testing.T) {
+	th := Setup(t)
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+
+	var seen []string
+	th.service.AddHook(&testHook{
+		preUpdateFieldFn: func(_ string, f *model.PropertyField) (*model.PropertyField, error) {
+			seen = append(seen, f.ObjectType)
+			return f, nil
+		},
+		preUpdateFieldsFn: func(_ string, fs []*model.PropertyField) ([]*model.PropertyField, error) {
+			for _, f := range fs {
+				seen = append(seen, f.ObjectType)
+			}
+			return fs, nil
+		},
+	})
+
+	newChannelField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Field " + model.NewId(),
+		})
+	}
+	submitted := func(f *model.PropertyField, objectType string) *model.PropertyField {
+		c := *f
+		c.ObjectType = objectType
+		return &c
+	}
+
+	t.Run("a submitted type is replaced by the stored one before the hooks run", func(t *testing.T) {
+		a, b := newChannelField(t), newChannelField(t)
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, submitted(a, model.PropertyFieldObjectTypeUser))
+		require.NoError(t, err)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeChannel}, seen)
+
+		seen = nil
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{
+			submitted(a, model.PropertyFieldObjectTypeUser),
+			submitted(b, model.PropertyFieldObjectTypeSystem),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeChannel}, seen)
+	})
+
+	t.Run("an empty type reaches the hooks and the version check still refuses it", func(t *testing.T) {
+		a := newChannelField(t)
+		requireMismatch := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
+		}
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, submitted(a, ""))
+		requireMismatch(t, err)
+		assert.Equal(t, []string{""}, seen)
+
+		seen = nil
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{submitted(a, "")})
+		requireMismatch(t, err)
+		assert.Equal(t, []string{""}, seen)
+	})
+
+	t.Run("a type submitted for a stored v1 field is left for the version check to refuse", func(t *testing.T) {
+		v1 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
+		legacy := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    v1,
+			TargetType: "user",
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Legacy " + model.NewId(),
+		})
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, v1, submitted(legacy, model.PropertyFieldObjectTypeUser))
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeUser}, seen)
+	})
+
+	t.Run("a field that is not stored fails as it did before the pin", func(t *testing.T) {
+		a := newChannelField(t)
+		missing := submitted(a, model.PropertyFieldObjectTypeChannel)
+		missing.ID = model.NewId()
+		requireMissing := func(t *testing.T, err error) {
+			t.Helper()
+			var mismatch *store.ErrResultsMismatch
+			require.ErrorAs(t, err, &mismatch)
+			assert.Contains(t, err.Error(), "failed to get existing fields for update")
+		}
+
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, missing)
+		requireMissing(t, err)
+
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{
+			submitted(a, model.PropertyFieldObjectTypeUser), missing,
+		})
+		requireMissing(t, err)
+	})
+}
+
+func TestPropertyFieldBoundsParentField(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
+	aboveParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceParent}}
+	selfOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
+
+	// Each case gets its own group and template so matching fields never leak between them.
+	setup := func(t *testing.T) (groupID string, template *model.PropertyField, create func(objectType string, bounds model.PropertyBounds) (*model.PropertyField, error)) {
+		t.Helper()
+		groupID = th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+		template = th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeRank,
+			Name:       "Classification " + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "LOW", "rank": 1},
+					map[string]any{"id": model.NewId(), "name": "HIGH", "rank": 2},
+				},
+			},
+			Permissions: openPermissions(),
+		})
+		create = func(objectType string, bounds model.PropertyBounds) (*model.PropertyField, error) {
+			return th.service.CreatePropertyField(rctx, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    objectType,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Name:          objectType + " " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Bounds:        bounds,
+			})
+		}
+		return
+	}
+
+	requireParentRefused := func(t *testing.T, err error, found string) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.bounds_parent_field.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "found "+found)
+	}
+
+	t.Run("a channel field needs exactly one system field on its template", func(t *testing.T) {
+		groupID, template, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+		require.NoError(t, err)
+
+		// Saving a second system field is refused, so build the broken state directly.
+		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       groupID,
+			ObjectType:    model.PropertyFieldObjectTypeSystem,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Type:          model.PropertyFieldTypeRank,
+			Name:          "system " + model.NewId(),
+			LinkedFieldID: &template.ID,
+			Permissions:   openPermissions(),
+		})
+		_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+		requireParentRefused(t, err, "more than one")
+	})
+
+	t.Run("a second parent-side field is refused while a child field's parent rule depends on the first", func(t *testing.T) {
+		requireTaken := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.bounds_parent_field_taken.app_error", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("system field with a user child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeUser, aboveParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("channel field with a post child", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+			requireTaken(t, err)
+		})
+
+		t.Run("children with no parent rule leave a second field allowed", func(t *testing.T) {
+			_, _, create := setup(t)
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+		})
+
+		t.Run("the first parent-side field repairs a child that has none", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			// Save refuses this child, so build it directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeChannel,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "channel " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Bounds:        belowParent,
+				Permissions:   openPermissions(),
+			})
+
+			_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("deleting a parent-side field is refused while a child field's parent rule depends on it", func(t *testing.T) {
+		requireDependents := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.delete.parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			requireDependents(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+			_, err = th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+		})
+
+		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			channel.Bounds = model.PropertyBounds{}
+			_, _, err = th.service.UpdatePropertyField(rctx, groupID, channel)
+			require.NoError(t, err)
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+
+		t.Run("channel field with a post child", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+			require.NoError(t, err)
+
+			requireDependents(t, th.service.DeletePropertyField(rctx, groupID, channel.ID))
+		})
+
+		t.Run("one of two parent-side fields may go", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+			// Saving a second system field is refused, so build the broken state directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeSystem,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "system " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Permissions:   openPermissions(),
+			})
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+
+		t.Run("children with no parent rule", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			require.NoError(t, th.service.DeletePropertyField(rctx, groupID, system.ID))
+		})
+	})
+
+	t.Run("unlinking a parent-side field is refused while a child field's parent rule depends on it", func(t *testing.T) {
+		unlink := func(groupID string, field *model.PropertyField) error {
+			field.LinkedFieldID = model.NewPointer("")
+			_, _, err := th.service.UpdatePropertyField(rctx, groupID, field)
+			return err
+		}
+
+		t.Run("system field with a channel child", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			err = unlink(groupID, system)
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+			stored, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, stored.LinkSourceID())
+		})
+
+		t.Run("a child gaining a parent rule in the same call", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+
+			channel.Bounds = belowParent
+			system.LinkedFieldID = model.NewPointer("")
+			_, _, _, err = th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{channel, system})
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+			assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+			storedSystem, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, storedSystem.LinkSourceID())
+			storedChannel, err := th.service.GetPropertyField(rctx, groupID, channel.ID)
+			require.NoError(t, err)
+			assert.Empty(t, storedChannel.Bounds)
+		})
+
+		t.Run("a child gaining a parent rule under a fake ObjectType in the same call", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+
+			// The system field comes first, so its unlink check runs before the channel field's own checks.
+			system.LinkedFieldID = model.NewPointer("")
+			channel.Bounds = belowParent
+			channel.ObjectType = model.PropertyFieldObjectTypePost
+			_, _, _, err = th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{system, channel})
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+
+			storedSystem, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, storedSystem.LinkSourceID())
+		})
+
+		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+
+			channel.Bounds = model.PropertyBounds{}
+			_, _, err = th.service.UpdatePropertyField(rctx, groupID, channel)
+			require.NoError(t, err)
+
+			require.NoError(t, unlink(groupID, system))
+		})
+
+		t.Run("children with no parent rule", func(t *testing.T) {
+			groupID, _, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+			require.NoError(t, err)
+
+			require.NoError(t, unlink(groupID, system))
+		})
+
+		t.Run("one of two parent-side fields may go", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			_, err = create(model.PropertyFieldObjectTypeChannel, belowParent)
+			require.NoError(t, err)
+			// Saving a second system field is refused, so build the broken state directly.
+			th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       groupID,
+				ObjectType:    model.PropertyFieldObjectTypeSystem,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				Type:          model.PropertyFieldTypeRank,
+				Name:          "system " + model.NewId(),
+				LinkedFieldID: &template.ID,
+				Permissions:   openPermissions(),
+			})
+
+			require.NoError(t, unlink(groupID, system))
+		})
+	})
+
+	t.Run("at_or_above parent is checked the same way", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, aboveParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, aboveParent)
+		require.NoError(t, err)
+	})
+
+	t.Run("a post field needs a channel field, not a system field", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+		requireParentRefused(t, err, "none")
+
+		_, err = create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypePost, belowParent)
+		require.NoError(t, err)
+	})
+
+	t.Run("a field with both parent rules saves", func(t *testing.T) {
+		_, _, create := setup(t)
+		_, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		_, err = create(model.PropertyFieldObjectTypeChannel, append(slices.Clone(belowParent), aboveParent...))
+		require.NoError(t, err)
+	})
+
+	t.Run("a field with no parent rule is never checked", func(t *testing.T) {
+		_, _, create := setup(t)
+
+		_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		_, err = create(model.PropertyFieldObjectTypeChannel, selfOnly)
+		require.NoError(t, err)
+	})
+
+	t.Run("an update re-checks a field that keeps its parent rule", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+		channel, err := create(model.PropertyFieldObjectTypeChannel, belowParent)
+		require.NoError(t, err)
+
+		// Deleting the matching field is refused while the rule depends on it, so reach the broken state through the store.
+		require.NoError(t, th.service.fieldStore.Delete(groupID, system.ID))
+
+		// A deleted matching field no longer counts, so a rename that keeps the rule is refused.
+		stored, err := th.service.fieldStore.Get(th.Context, groupID, channel.ID)
+		require.NoError(t, err)
+		stored.Name = "renamed " + model.NewId()
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
+		requireParentRefused(t, err, "none")
+
+		// The same rename passes once it also drops the rule.
+		stored.Bounds = model.PropertyBounds{}
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
+		require.NoError(t, err)
+	})
+
+	t.Run("an update judges the stored ObjectType, not the submitted one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		// The only parent-side field a post field would read; a user field's parent side, system, has none.
+		_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		user, err := create(model.PropertyFieldObjectTypeUser, nil)
+		require.NoError(t, err)
+
+		user.Bounds = belowParent
+		user.ObjectType = model.PropertyFieldObjectTypePost
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, user)
+		requireParentRefused(t, err, "none")
+	})
+
+	t.Run("an update that changes ObjectType returns the stored one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		system.ObjectType = model.PropertyFieldObjectTypeUser
+		updated, _, err := th.service.UpdatePropertyField(rctx, groupID, system)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldObjectTypeSystem, updated.ObjectType)
+	})
+
+	t.Run("an update with an empty ObjectType is still refused by the version check", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		system.ObjectType = ""
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, system)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
 	})
 }

@@ -61,14 +61,22 @@ func (ps *PropertyService) createPropertyValue(rctx request.CTX, value *model.Pr
 	if err := ps.rejectTemplateValues(rctx, []*model.PropertyValue{value}); err != nil {
 		return nil, err
 	}
-	return ps.valueStore.Create(value)
+	created, err := ps.valueStore.Create(value)
+	if err != nil {
+		return nil, asValueWriteConflict(err)
+	}
+	return created, nil
 }
 
 func (ps *PropertyService) createPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
-	return ps.valueStore.CreateMany(values)
+	created, err := ps.valueStore.CreateMany(values)
+	if err != nil {
+		return nil, asValueWriteConflict(err)
+	}
+	return created, nil
 }
 
 func (ps *PropertyService) getPropertyValue(groupID, id string) (*model.PropertyValue, error) {
@@ -99,7 +107,17 @@ func (ps *PropertyService) updatePropertyValues(rctx request.CTX, groupID string
 	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
-	return ps.valueStore.Update(groupID, values)
+	var updated []*model.PropertyValue
+	var err error
+	if read := valueWriteConditionsFrom(rctx).conditionalReads(); read != nil {
+		updated, err = ps.valueStore.UpdateIfUnchanged(groupID, values, read)
+	} else {
+		updated, err = ps.valueStore.Update(groupID, values)
+	}
+	if err != nil {
+		return nil, asValueWriteConflict(err)
+	}
+	return updated, nil
 }
 
 func (ps *PropertyService) upsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -115,14 +133,27 @@ func (ps *PropertyService) upsertPropertyValues(rctx request.CTX, values []*mode
 	if err := ps.rejectTemplateValues(rctx, values); err != nil {
 		return nil, err
 	}
-	return ps.valueStore.Upsert(values)
+	var upserted []*model.PropertyValue
+	var err error
+	if read := valueWriteConditionsFrom(rctx).conditionalReads(); read != nil {
+		upserted, err = ps.valueStore.UpsertIfUnchanged(values, read)
+	} else {
+		upserted, err = ps.valueStore.Upsert(values)
+	}
+	if err != nil {
+		return nil, asValueWriteConflict(err)
+	}
+	return upserted, nil
 }
 
 func (ps *PropertyService) deletePropertyValue(groupID, id string) error {
 	return ps.valueStore.Delete(groupID, id)
 }
 
-func (ps *PropertyService) deletePropertyValuesForTarget(groupID string, targetType string, targetID string) error {
+func (ps *PropertyService) deletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	if c := valueWriteConditionsFrom(rctx); c != nil && len(c.keepFieldIDs) > 0 {
+		return ps.valueStore.DeleteForTargetExceptFields(groupID, targetType, targetID, c.keepFieldIDs)
+	}
 	return ps.valueStore.DeleteForTarget(groupID, targetType, targetID)
 }
 
@@ -133,6 +164,7 @@ func (ps *PropertyService) deletePropertyValuesForField(groupID, fieldID string)
 // Public methods
 
 func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	if value == nil {
 		return nil, fmt.Errorf("CreatePropertyValue: value cannot be nil")
 	}
@@ -151,6 +183,7 @@ func (ps *PropertyService) CreatePropertyValue(rctx request.CTX, value *model.Pr
 }
 
 func (ps *PropertyService) CreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -215,6 +248,7 @@ func (ps *PropertyService) SearchPropertyValues(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	processed, err := ps.runPreUpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValue: %w", err)
@@ -229,6 +263,7 @@ func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string,
 }
 
 func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -260,6 +295,7 @@ func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string
 }
 
 func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	if value == nil {
 		return nil, fmt.Errorf("UpsertPropertyValue: value cannot be nil")
 	}
@@ -278,6 +314,7 @@ func (ps *PropertyService) UpsertPropertyValue(rctx request.CTX, value *model.Pr
 }
 
 func (ps *PropertyService) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	rctx, _ = withValueWriteConditions(rctx)
 	if len(values) == 0 {
 		return values, nil
 	}
@@ -330,11 +367,12 @@ func (ps *PropertyService) DeletePropertyValue(rctx request.CTX, groupID, id str
 }
 
 func (ps *PropertyService) DeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	rctx, _ = withValueWriteConditions(rctx)
 	if err := ps.runPreDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		return fmt.Errorf("DeletePropertyValuesForTarget: %w", err)
 	}
 
-	if err := ps.deletePropertyValuesForTarget(groupID, targetType, targetID); err != nil {
+	if err := ps.deletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		return err
 	}
 	ps.runPostDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID)

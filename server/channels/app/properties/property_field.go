@@ -259,6 +259,14 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		}
 	}
 
+	if err := ps.enforceParentField(rctx, "CreatePropertyField", field); err != nil {
+		return nil, err
+	}
+
+	if err := ps.enforceSingleParentField(rctx, field); err != nil {
+		return nil, err
+	}
+
 	if err := ps.defaultPropertyFieldPermissions(field, source); err != nil {
 		return nil, err
 	}
@@ -643,6 +651,142 @@ func (ps *PropertyService) linkedTemplate(rctx request.CTX, field *model.Propert
 	return template, nil
 }
 
+// parentMatchingFields returns up to two fields on field's parent object type
+// that link to the same template as field, so a caller can tell none, one and
+// more than one apart. It returns nil when field isn't linked or has no parent type.
+func (ps *PropertyService) parentMatchingFields(rctx request.CTX, field *model.PropertyField) ([]*model.PropertyField, error) {
+	parentType := model.PropertyFieldParentObjectType(field.ObjectType)
+	if parentType == "" || field.LinkSourceID() == "" {
+		return nil, nil
+	}
+	return ps.templateFieldsOfType(rctx, field, parentType, 2)
+}
+
+// templateFieldsOfType returns up to perPage fields of objectType linked to the
+// same template as field.
+func (ps *PropertyService) templateFieldsOfType(rctx request.CTX, field *model.PropertyField, objectType string, perPage int) ([]*model.PropertyField, error) {
+	// Master: a field created a moment ago must count, or two saves in a row could each miss the other.
+	return ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{objectType},
+		LinkedFieldID: field.LinkSourceID(),
+		PerPage:       perPage,
+	})
+}
+
+// isOnlyDependedParentField reports whether field is the only field of its
+// object type on its template while a child field's parent rule reads from it.
+// Deleting or unlinking it would leave every write to the child refusing as
+// broken data; with another such field present, one is still left. Child fields
+// are read from the store and from incoming, the fields of the update call in
+// flight (nil when there is none). Store errors are returned unwrapped.
+func (ps *PropertyService) isOnlyDependedParentField(rctx request.CTX, field *model.PropertyField, incoming map[string]*model.PropertyField) (bool, error) {
+	depended := field.LinkSourceID() != "" && slices.ContainsFunc(slices.Collect(maps.Values(incoming)), func(c *model.PropertyField) bool {
+		return model.PropertyFieldParentObjectType(c.ObjectType) == field.ObjectType &&
+			c.LinkSourceID() == field.LinkSourceID() &&
+			slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+				return r.Reference == model.PropertyBoundsReferenceParent
+			})
+	})
+	if !depended {
+		var err error
+		if depended, err = ps.childFieldHasParentRule(rctx, field); err != nil || !depended {
+			return false, err
+		}
+	}
+	matches, err := ps.templateFieldsOfType(rctx, field, field.ObjectType, 2)
+	if err != nil {
+		return false, err
+	}
+	return len(matches) == 1, nil
+}
+
+// enforceParentField refuses a field carrying a parent rule unless its parent's
+// side has exactly one field linked to the same template, since that field is
+// where the rule finds the parent's value. A field that isn't linked or has no
+// parent type is left to PropertyField.IsValid.
+func (ps *PropertyService) enforceParentField(rctx request.CTX, caller string, field *model.PropertyField) error {
+	i := slices.IndexFunc(field.Bounds, func(r model.PropertyBoundsRule) bool {
+		return r.Reference == model.PropertyBoundsReferenceParent
+	})
+	parentType := model.PropertyFieldParentObjectType(field.ObjectType)
+	if i < 0 || parentType == "" || field.LinkSourceID() == "" {
+		return nil
+	}
+
+	matches, err := ps.parentMatchingFields(rctx, field)
+	if err != nil {
+		return fmt.Errorf("%s: failed to look up the parent's field: %w", caller, err)
+	}
+	if len(matches) == 1 {
+		return nil
+	}
+
+	found := "none"
+	if len(matches) > 1 {
+		found = "more than one"
+	}
+	return model.NewAppError(caller, "app.property_field.bounds_parent_field.app_error", map[string]any{"ObjectType": parentType},
+		fmt.Sprintf("field %s: bounds[%d] (%s %s) needs exactly one %s field linked to template %s, found %s",
+			field.ID, i, field.Bounds[i].Operator, field.Bounds[i].Reference, parentType, field.LinkSourceID(), found),
+		http.StatusBadRequest)
+}
+
+// childFieldHasParentRule reports whether a field on field's template, one
+// level below field's object type, carries a parent rule, so field is the
+// parent-side field that rule reads from.
+func (ps *PropertyService) childFieldHasParentRule(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	var childTypes []string
+	for _, t := range []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeUser} {
+		if model.PropertyFieldParentObjectType(t) == field.ObjectType {
+			childTypes = append(childTypes, t)
+		}
+	}
+	if field.LinkSourceID() == "" || len(childTypes) == 0 {
+		return false, nil
+	}
+
+	// Capped at one page: a template with more than 100 child fields could slip past this guard,
+	// and writes then still refuse as broken data. Page with a cursor if that ever matters.
+	children, err := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), field.GroupID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   childTypes,
+		LinkedFieldID: field.LinkSourceID(),
+		PerPage:       100,
+	})
+	if err != nil {
+		return false, err
+	}
+	return slices.ContainsFunc(children, func(c *model.PropertyField) bool {
+		return slices.ContainsFunc(c.Bounds, func(r model.PropertyBoundsRule) bool {
+			return r.Reference == model.PropertyBoundsReferenceParent
+		})
+	}), nil
+}
+
+// enforceSingleParentField refuses a second parent-side field on a template
+// while a child field's parent rule reads from the first. A second one would turn
+// every write to the child field into a broken-data refusal, with nothing at
+// this save to warn the admin.
+func (ps *PropertyService) enforceSingleParentField(rctx request.CTX, field *model.PropertyField) error {
+	depended, err := ps.childFieldHasParentRule(rctx, field)
+	if err != nil {
+		return fmt.Errorf("CreatePropertyField: failed to look up child fields: %w", err)
+	}
+	if !depended {
+		return nil
+	}
+
+	existing, err := ps.templateFieldsOfType(rctx, field, field.ObjectType, 1)
+	if err != nil {
+		return fmt.Errorf("CreatePropertyField: failed to look up the existing %s field: %w", field.ObjectType, err)
+	}
+	if len(existing) == 0 {
+		return nil
+	}
+	return model.NewAppError("CreatePropertyField", "app.property_field.bounds_parent_field_taken.app_error", map[string]any{"ObjectType": field.ObjectType},
+		fmt.Sprintf("a %s field is already linked to template %s and a child field's parent rule depends on it", field.ObjectType, field.LinkSourceID()),
+		http.StatusBadRequest)
+}
+
 // legacyViewTemplate is linkedTemplate for projecting field's legacy view. A
 // template that does not exist projects as no template, which is how the read
 // path projects it too, so a field left pointing at a missing template can
@@ -780,6 +924,17 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 	for _, field := range fields {
 		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
 			return nil, nil, nil, err
+		}
+	}
+
+	// The store never writes ObjectType, so every check below and the response
+	// must judge the stored one, for the whole batch before any field's checks
+	// read the others through incoming. An empty one is left alone: it marks a
+	// v1 caller, which the version check above refused in a v2/v3 group and a
+	// v1 group still judges as PSAv1.
+	for _, field := range fields {
+		if existing, ok := existingByID[field.ID]; ok && field.ObjectType != "" {
+			field.ObjectType = existing.ObjectType
 		}
 	}
 
@@ -949,6 +1104,26 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 					http.StatusConflict,
 				)
 			}
+
+			// Unlinking is refused for the same reason deleting is: the field is
+			// the only one a child field's parent rule reads from. Child fields are
+			// read from the store as well as from this call, so a call that gives a
+			// child a parent rule while unlinking its parent-side field is refused,
+			// and so is one that removes the child's rule while unlinking; remove
+			// the rule first.
+			onlyDepended, dErr := ps.isOnlyDependedParentField(rctx, existing, incoming)
+			if dErr != nil {
+				return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: failed to look up child fields: %w", dErr)
+			}
+			if onlyDepended {
+				return nil, nil, nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.unlink_parent_rule_dependents.app_error",
+					map[string]any{"FieldID": field.ID, "TemplateID": existing.LinkSourceID()},
+					fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be unlinked", field.ID, existing.ObjectType, existing.LinkSourceID()),
+					http.StatusConflict,
+				)
+			}
 		}
 
 		// Checked before the PSAv1 skip below: whether a linked field's type may
@@ -1032,14 +1207,13 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 			return nil, nil, nil, err
 		}
 
-		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
-		// can shift the uniqueness domain. The DB unique index catches same-level
+		// Any change to Name or identity fields (TargetType/TargetID) can shift
+		// the uniqueness domain. The DB unique index catches same-level
 		// collisions, but cross-level hierarchy conflicts (system ↔ team ↔ channel)
 		// are only caught here.
 		if existing.Name != field.Name ||
 			existing.TargetType != field.TargetType ||
-			existing.TargetID != field.TargetID ||
-			existing.ObjectType != field.ObjectType {
+			existing.TargetID != field.TargetID {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
@@ -1072,6 +1246,15 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		}
 		if field.Mutability == "" {
 			field.Mutability = existing.Mutability
+		}
+	}
+
+	// Judged on the rules about to be stored, and on every save, so a field whose
+	// parent's side no longer has exactly one matching field refuses even an
+	// unrelated edit until the rule is removed.
+	for _, field := range fields {
+		if err := ps.enforceParentField(rctx, "UpdatePropertyFields", field); err != nil {
+			return nil, nil, nil, err
 		}
 	}
 
@@ -1644,6 +1827,23 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 		}
 	}
 
+	// Nor the only parent-side field a child field's parent rule compares
+	// against: every write to the child would then refuse as broken data.
+	// Deleting one of several is allowed, since it leaves exactly one.
+	onlyDepended, err := ps.isOnlyDependedParentField(rctx, field, nil)
+	if err != nil {
+		return fmt.Errorf("DeletePropertyField: failed to look up child fields: %w", err)
+	}
+	if onlyDepended {
+		return model.NewAppError(
+			"DeletePropertyField",
+			"app.property_field.delete.parent_rule_dependents.app_error",
+			map[string]any{"FieldID": id, "TemplateID": field.LinkSourceID()},
+			fmt.Sprintf("field %q is the only %s field on template %q and a child field's parent rule depends on it, so it cannot be deleted", id, field.ObjectType, field.LinkSourceID()),
+			http.StatusConflict,
+		)
+	}
+
 	if err := ps.valueStore.DeleteForField(groupID, id); err != nil {
 		return err
 	}
@@ -1755,6 +1955,49 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 	return ps.runPostGetPropertyFields(rctx, fields)
 }
 
+// pinStoredObjectTypes sets each field's ObjectType to the stored one before
+// the pre-update hooks run: they run ahead of the pin in
+// updatePropertyFieldsIfUnchanged, and the store never writes ObjectType, so a
+// hook would otherwise judge a type the write discards. Only a non-empty type
+// is replaced, and only by a non-empty one: the version check, which runs
+// after the hooks, tells PSAv1 from PSAv2 by whether ObjectType is empty, so
+// its verdict must not move. A call naming a field that is not stored is left
+// unpinned, since the update path refuses it anyway and must report it as it
+// always has.
+func (ps *PropertyService) pinStoredObjectTypes(rctx request.CTX, groupID string, fields []*model.PropertyField) error {
+	ids := make([]string, 0, len(fields))
+	for _, f := range fields {
+		if f != nil && f.ObjectType != "" {
+			ids = append(ids, f.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	stored, err := ps.fieldStore.GetMany(store.RequestContextWithMaster(rctx), groupID, ids)
+	if _, ok := errors.AsType[*store.ErrResultsMismatch](err); ok {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to get stored fields to pin their object type: %w", err)
+	}
+
+	storedByID := make(map[string]*model.PropertyField, len(stored))
+	for _, sf := range stored {
+		storedByID[sf.ID] = sf
+	}
+	for _, f := range fields {
+		if f == nil || f.ObjectType == "" {
+			continue
+		}
+		if sf, ok := storedByID[f.ID]; ok && sf.ObjectType != "" {
+			f.ObjectType = sf.ObjectType
+		}
+	}
+	return nil
+}
+
 // UpdatePropertyField updates a single field. It returns the updated field and
 // the IDs of fields whose dependent property values were cleared as a side
 // effect (e.g. by TypeChangeValueCleanupHook on a type change). Hooks may
@@ -1762,6 +2005,10 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 // the updated field's own ID. The caller is expected to publish any
 // value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
+	if err := ps.pinStoredObjectTypes(rctx, groupID, []*model.PropertyField{field}); err != nil {
+		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
+	}
+
 	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
 		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
@@ -1775,6 +2022,10 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 // fields whose dependent property values were cleared as a side effect. The
 // caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+	if err = ps.pinStoredObjectTypes(rctx, groupID, fields); err != nil {
+		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+	}
+
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)

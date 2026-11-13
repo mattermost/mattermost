@@ -391,6 +391,16 @@ func NewServer(options ...Option) (*Server, error) {
 		return channel.IsGroupOrDirect(), nil
 	}
 
+	postChannelResolver := func(rctx request.CTX, postID string) (string, error) {
+		// Read the row directly: GetSinglePost answers for the writer's session
+		// (burn-on-read, cloud limits), and bounds compare against the real data.
+		post, postErr := s.Store().Post().GetSingle(rctx, postID, false)
+		if postErr != nil {
+			return "", postErr
+		}
+		return post.ChannelId, nil
+	}
+
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
 		properties.AccessControlAttributeValidationHookConfig{
 			PermissionChecker:    permChecker,
@@ -410,7 +420,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.propertyService.AddHook(properties.NewBoundsHook(s.propertyService, func() bool {
 		ff := s.Config().FeatureFlags
 		return ff.PropertyFieldBounds && ff.PropertyFieldPermissionsV3
-	}))
+	}, postChannelResolver))
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
 	// The CPA group registers a content-level audit sink here.

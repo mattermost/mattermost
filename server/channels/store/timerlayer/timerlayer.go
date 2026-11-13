@@ -7,6 +7,7 @@
 package timerlayer
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -9600,6 +9601,22 @@ func (s *TimerLayerPropertyValueStore) DeleteForTarget(groupID string, targetTyp
 	return err
 }
 
+func (s *TimerLayerPropertyValueStore) DeleteForTargetExceptFields(groupID string, targetType string, targetID string, keepFieldIDs []string) error {
+	start := time.Now()
+
+	err := s.PropertyValueStore.DeleteForTargetExceptFields(groupID, targetType, targetID, keepFieldIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.DeleteForTargetExceptFields", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPropertyValueStore) Get(groupID string, id string) (*model.PropertyValue, error) {
 	start := time.Now()
 
@@ -9680,6 +9697,22 @@ func (s *TimerLayerPropertyValueStore) Update(groupID string, values []*model.Pr
 	return result, err
 }
 
+func (s *TimerLayerPropertyValueStore) UpdateIfUnchanged(groupID string, values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.UpdateIfUnchanged(groupID, values, read)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.UpdateIfUnchanged", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
@@ -9692,6 +9725,22 @@ func (s *TimerLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.Upsert", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyValueStore) UpsertIfUnchanged(values []*model.PropertyValue, read map[store.PropertyValueKey]json.RawMessage) ([]*model.PropertyValue, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.UpsertIfUnchanged(values, read)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.UpsertIfUnchanged", success, elapsed)
 	}
 	return result, err
 }
