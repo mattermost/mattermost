@@ -393,7 +393,7 @@ func (c *Context) RequireUsername() *Context {
 		return c
 	}
 
-	if !model.IsValidUsername(c.Params.Username) {
+	if !model.IsValidUsernameAllowRemote(c.Params.Username) {
 		c.SetInvalidParam("username")
 	}
 
