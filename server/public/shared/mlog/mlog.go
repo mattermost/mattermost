@@ -71,14 +71,8 @@ func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
 }
 
 func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
-	logger, err := logr.New()
-	if err != nil {
-		return errors.Wrap(err, "failed to create logger")
-	}
-	defer logger.Shutdown()
-
-	err = logrcfg.ConfigureTargets(logger, lc, nil)
-	if err != nil {
+	// Structural checks only. Creating the targets would open their outputs.
+	if err := lc.CheckTargets(); err != nil {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}
 

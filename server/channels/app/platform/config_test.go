@@ -4,13 +4,26 @@
 package platform
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
+	"io"
+	"math/big"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -414,6 +427,273 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
 	})
+}
+
+func TestSaveConfigAdvancedLoggingCert(t *testing.T) {
+	certPEM, keyPEM := newSaveConfigCertPEM(t)
+	tlsPort := listenTLS(t, certPEM, keyPEM)
+	certPath := filepath.Join(t.TempDir(), "cert.pem")
+	require.NoError(t, os.WriteFile(certPath, certPEM, 0600))
+	inline := base64.StdEncoding.EncodeToString(certPEM)
+	// Decodes, and is not a PEM certificate. The text is not a filesystem path.
+	decodedNotPEM := base64.StdEncoding.EncodeToString([]byte("not a certificate"))
+	closed := closedSaveConfigPort(t)
+
+	root := filepath.Join(t.TempDir(), "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+
+	// setup returns a minimal service whose active config has no advanced logging cert.
+	// SaveConfig only needs a config store here.
+	setup := func(t *testing.T) *PlatformService {
+		t.Helper()
+
+		configStore := config.NewTestMemoryStore()
+		configStore.SetReadOnlyFF(false)
+
+		ps := &PlatformService{configStore: configStore}
+		ps.SetLogRootPathOverride(root)
+
+		cfg := configStore.Get().Clone()
+		*cfg.LogSettings.EnableFile = true
+		*cfg.LogSettings.FileLocation = root
+		cfg.LogSettings.AdvancedLoggingJSON = nil
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = nil
+		cfg.FeatureFlags.EnforceLogPathRoot = false
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr, "the baseline config must be accepted")
+		return ps
+	}
+
+	tests := []struct {
+		name        string
+		audit       bool
+		target      string
+		cert        string
+		port        int
+		insecure    bool
+		keep        bool
+		wantErr     bool
+		install     bool
+		installTLS  bool
+		installName string
+		installCert string
+		fileFree    bool
+	}{
+		{name: "log settings tcp new cert path", target: "tcp", cert: certPath, port: closed, wantErr: true},
+		{name: "audit settings tcp new cert path", audit: true, target: "tcp", cert: certPath, port: closed, wantErr: true},
+		{name: "log settings syslog new cert path", target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true},
+		{name: "audit settings syslog new cert path", audit: true, target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true},
+		{name: "log settings syslog empty cert", target: "syslog", cert: "", port: closed, insecure: true},
+		{name: "audit settings syslog empty cert", audit: true, target: "syslog", cert: "", port: closed, insecure: true},
+		{name: "log settings tcp empty cert", target: "tcp", cert: "", port: closed, insecure: true},
+		{name: "audit settings tcp empty cert", audit: true, target: "tcp", cert: "", port: closed, insecure: true},
+		{name: "log settings syslog inline cert", target: "syslog", cert: inline, port: closed, insecure: true},
+		{name: "audit settings syslog inline cert", audit: true, target: "syslog", cert: inline, port: closed, insecure: true},
+		{name: "log settings tcp inline cert", target: "tcp", cert: inline, port: closed, insecure: true},
+		{name: "audit settings tcp inline cert", audit: true, target: "tcp", cert: inline, port: closed, insecure: true},
+		{name: "log settings syslog unchanged cert path", target: "syslog", cert: certPath, port: tlsPort, insecure: true, keep: true},
+		{name: "audit settings syslog unchanged cert path", audit: true, target: "syslog", cert: certPath, port: tlsPort, insecure: true, keep: true},
+		{name: "log settings tcp unchanged cert path", target: "tcp", cert: certPath, port: closed, keep: true},
+		{name: "audit settings tcp unchanged cert path", audit: true, target: "tcp", cert: certPath, port: closed, keep: true},
+		// The stored target has tls off. The save uses the same name and cert with tls on.
+		{name: "log settings tcp tls enabled on stored value", target: "tcp", cert: certPath, port: closed, wantErr: true, install: true},
+		{name: "audit settings tcp tls enabled on stored value", audit: true, target: "tcp", cert: certPath, port: closed, wantErr: true, install: true},
+		{name: "log settings syslog tls enabled on stored value", target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true, install: true},
+		{name: "audit settings syslog tls enabled on stored value", audit: true, target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true, install: true},
+		// The stored cert is on another target name. The save turns tls on under the name "t".
+		{name: "log settings tcp value stored on another target", target: "tcp", cert: certPath, port: closed, wantErr: true, install: true, installName: "stored"},
+		{name: "audit settings tcp value stored on another target", audit: true, target: "tcp", cert: certPath, port: closed, wantErr: true, install: true, installName: "stored"},
+		{name: "log settings syslog value stored on another target", target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true, install: true, installName: "stored"},
+		{name: "audit settings syslog value stored on another target", audit: true, target: "syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true, install: true, installName: "stored"},
+		{name: "log settings type Syslog new cert path", target: "Syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true},
+		{name: "audit settings type Syslog new cert path", audit: true, target: "Syslog", cert: certPath, port: tlsPort, insecure: true, wantErr: true},
+		{name: "log settings type TCP new cert path", target: "TCP", cert: certPath, port: closed, wantErr: true},
+		{name: "audit settings type TCP new cert path", audit: true, target: "TCP", cert: certPath, port: closed, wantErr: true},
+		{name: "log settings tcp decoded text is not a certificate", target: "tcp", cert: decodedNotPEM, port: closed, wantErr: true, fileFree: true},
+		{name: "audit settings tcp decoded text is not a certificate", audit: true, target: "tcp", cert: decodedNotPEM, port: closed, wantErr: true, fileFree: true},
+		{name: "log settings syslog decoded text is not a certificate", target: "syslog", cert: decodedNotPEM, port: closed, insecure: true, wantErr: true, fileFree: true},
+		{name: "audit settings syslog decoded text is not a certificate", audit: true, target: "syslog", cert: decodedNotPEM, port: closed, insecure: true, wantErr: true, fileFree: true},
+		// The saved text extends the stored text. Equality is on the whole string.
+		{name: "log settings tcp cert text differs by a suffix", target: "tcp", cert: certPath + "x", port: closed, wantErr: true, install: true, installTLS: true, installCert: certPath},
+		{name: "audit settings tcp cert text differs by a suffix", audit: true, target: "tcp", cert: certPath + "x", port: closed, wantErr: true, install: true, installTLS: true, installCert: certPath},
+		// Spaces around the stored text are not the same string.
+		{name: "log settings tcp cert text differs by surrounding spaces", target: "tcp", cert: " " + certPath + " ", port: closed, wantErr: true, install: true, installTLS: true, installCert: certPath},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if strings.EqualFold(tc.target, "syslog") && (runtime.GOOS == "windows" || runtime.GOOS == "plan9") {
+				t.Skip("syslog target is unavailable on this platform")
+			}
+
+			ps := setup(t)
+			raw := saveConfigTargetJSON(t, tc.target, tc.audit, map[string]any{
+				"host":     "127.0.0.1",
+				"port":     tc.port,
+				"tls":      true,
+				"cert":     tc.cert,
+				"insecure": tc.insecure,
+			})
+
+			save := func() *model.AppError {
+				t.Helper()
+				cfg := ps.Config().Clone()
+				if tc.audit {
+					cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = raw
+				} else {
+					cfg.LogSettings.AdvancedLoggingJSON = raw
+				}
+				_, _, appErr := ps.SaveConfig(cfg, false)
+				return appErr
+			}
+
+			if tc.install {
+				// The target is already the active config, as it would be when loaded from disk.
+				instName := tc.installName
+				if instName == "" {
+					instName = "t"
+				}
+				instCert := tc.installCert
+				if instCert == "" {
+					instCert = tc.cert
+				}
+				installedRaw := saveConfigNamedTargetJSON(t, instName, tc.target, tc.audit, map[string]any{
+					"host":     "127.0.0.1",
+					"port":     tc.port,
+					"tls":      tc.installTLS,
+					"cert":     instCert,
+					"insecure": tc.insecure,
+				})
+				installed := ps.Config().Clone()
+				if tc.audit {
+					installed.ExperimentalAuditSettings.AdvancedLoggingJSON = installedRaw
+				} else {
+					installed.LogSettings.AdvancedLoggingJSON = installedRaw
+				}
+				_, _, err := ps.configStore.Set(installed)
+				require.NoError(t, err)
+			}
+
+			if tc.keep {
+				// The cert value is already the active config, as it would be when loaded from disk.
+				installed := ps.Config().Clone()
+				if tc.audit {
+					installed.ExperimentalAuditSettings.AdvancedLoggingJSON = raw
+				} else {
+					installed.LogSettings.AdvancedLoggingJSON = raw
+				}
+				_, _, err := ps.configStore.Set(installed)
+				require.NoError(t, err)
+
+				require.Nil(t, save(), "an unchanged value is kept")
+				return
+			}
+			if tc.wantErr {
+				appErr := save()
+				require.NotNil(t, appErr, "a new non-inline cert value is rejected")
+				if tc.fileFree {
+					require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+					require.NotContains(t, appErr.Error(), tc.cert)
+					require.NotContains(t, appErr.Error(), "no such file")
+					require.NotContains(t, appErr.Error(), "cannot be read")
+				}
+				return
+			}
+			require.Nil(t, save(), "an inline value is accepted")
+		})
+	}
+}
+
+type saveConfigLevel struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func saveConfigLevels(audit bool) []saveConfigLevel {
+	if audit {
+		return []saveConfigLevel{{ID: 100, Name: "audit-api"}}
+	}
+	return []saveConfigLevel{{ID: 2, Name: "error"}}
+}
+
+func saveConfigTargetJSON(t *testing.T, targetType string, audit bool, options map[string]any) json.RawMessage {
+	t.Helper()
+	return saveConfigNamedTargetJSON(t, "t", targetType, audit, options)
+}
+
+func saveConfigNamedTargetJSON(t *testing.T, name, targetType string, audit bool, options map[string]any) json.RawMessage {
+	t.Helper()
+
+	raw, err := json.Marshal(map[string]any{
+		name: map[string]any{
+			"type":    targetType,
+			"format":  "json",
+			"levels":  saveConfigLevels(audit),
+			"options": options,
+		},
+	})
+	require.NoError(t, err)
+	return raw
+}
+
+func closedSaveConfigPort(t *testing.T) int {
+	t.Helper()
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := listener.Addr().(*net.TCPAddr).Port
+	require.NoError(t, listener.Close())
+	return port
+}
+
+func listenTLS(t *testing.T, certPEM, keyPEM []byte) int {
+	t.Helper()
+
+	pair, err := tls.X509KeyPair(certPEM, keyPEM)
+	require.NoError(t, err)
+	listener, err := tls.Listen("tcp", "127.0.0.1:0", &tls.Config{Certificates: []tls.Certificate{pair}})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = listener.Close() })
+
+	go func() {
+		for {
+			conn, accErr := listener.Accept()
+			if accErr != nil {
+				return
+			}
+			go func(c net.Conn) {
+				defer c.Close()
+				_, _ = io.Copy(io.Discard, c)
+			}(conn)
+		}
+	}()
+
+	return listener.Addr().(*net.TCPAddr).Port
+}
+
+func newSaveConfigCertPEM(t *testing.T) (certPEM, keyPEM []byte) {
+	t.Helper()
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(time.Hour),
+		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyBytes, err := x509.MarshalECPrivateKey(key)
+	require.NoError(t, err)
+	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+	return certPEM, keyPEM
 }
 
 func TestSetAuditLoggingActiveFunc(t *testing.T) {
