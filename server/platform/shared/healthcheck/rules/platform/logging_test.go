@@ -92,6 +92,63 @@ func TestLoggingRules(t *testing.T) {
 	}
 }
 
+func TestLogWebhookPayloads(t *testing.T) {
+	t.Parallel()
+
+	webhookDebugging := func(enabled bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.LogSettings.EnableWebhookDebugging = new(enabled)
+		}
+	}
+	consoleLog := func(enabled bool, level string) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.LogSettings.EnableConsole = new(enabled)
+			cfg.LogSettings.ConsoleLevel = new(level)
+		}
+	}
+	quietConsole := consoleLog(true, "INFO")
+	payloadsLogged := firing("health.rule.log_webhook_payloads.message", nil)
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
+	}{
+		{"config section absent", &healthcheck.Snapshot{}, configUnknown},
+		{"defaults", configSnapshot(nil), resolved},
+		{"webhook debugging on with default log levels", configSnapshot(webhookDebugging(true)), payloadsLogged},
+		{"webhook debugging off with debug logging", configSnapshot(all(webhookDebugging(false), fileLog(true, "DEBUG"), consoleLog(true, "DEBUG"))), resolved},
+		{"webhook debugging on at info level", configSnapshot(all(webhookDebugging(true), fileLog(true, "INFO"), quietConsole)), resolved},
+		{"webhook debugging on with file at debug", configSnapshot(all(webhookDebugging(true), fileLog(true, "DEBUG"), quietConsole)), payloadsLogged},
+		{"webhook debugging on with file at trace", configSnapshot(all(webhookDebugging(true), fileLog(true, "trace"), quietConsole)), payloadsLogged},
+		{"webhook debugging on with console at debug", configSnapshot(all(webhookDebugging(true), fileLog(true, "INFO"), consoleLog(true, "debug"))), payloadsLogged},
+		{"webhook debugging on with disabled debug targets", configSnapshot(all(webhookDebugging(true), fileLog(false, "DEBUG"), consoleLog(false, "DEBUG"))), resolved},
+		{"webhook debugging flag unreadable at info level", configSnapshot(all(quietConsole, func(cfg *model.Config) { cfg.LogSettings.EnableWebhookDebugging = nil })), resolved},
+		{"webhook debugging flag unreadable with file at debug", configSnapshot(all(fileLog(true, "DEBUG"), func(cfg *model.Config) { cfg.LogSettings.EnableWebhookDebugging = nil })), configUnknown},
+		{
+			name: "file level unreadable without a debug target",
+			snapshot: configSnapshot(all(webhookDebugging(true), quietConsole, func(cfg *model.Config) {
+				cfg.LogSettings.FileLevel = nil
+			})),
+			want: configUnknown,
+		},
+		{
+			name: "file level unreadable with console at debug",
+			snapshot: configSnapshot(all(webhookDebugging(true), consoleLog(true, "DEBUG"), func(cfg *model.Config) {
+				cfg.LogSettings.FileLevel = nil
+			})),
+			want: payloadsLogged,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.want, logWebhookPayloads.Eval(tc.snapshot))
+		})
+	}
+}
+
 func TestMetricsOff(t *testing.T) {
 	t.Parallel()
 

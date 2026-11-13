@@ -15232,6 +15232,21 @@
     "description": "Health dashboard finding title when the server does not write a log file."
   },
   {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging is true and a log target writes debug entries, so failed incoming webhook requests are logged with their full payload. Payloads can contain message text and other user-authored content, which is then kept by log files, log collectors, and Support Packets.",
+    "description": "Health dashboard finding detail when webhook debugging logs incoming webhook payloads; 'LogSettings.EnableWebhookDebugging' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "If you are not troubleshooting an incoming webhook, set LogSettings.EnableWebhookDebugging to false.",
+    "description": "Health dashboard fix-it step for webhook payload logging; 'LogSettings.EnableWebhookDebugging' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Incoming webhook payloads written to logs",
+    "description": "Health dashboard finding title when failed incoming webhook requests are logged with their payload, which can include message content."
+  },
+  {
     "id": "health.rule.max_notifications_per_channel.message",
     "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
     "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."

@@ -9503,9 +9503,9 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingFailedRequestsDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. Set {boldedLogLevel} to \"DEBUG\" to also log failed incoming webhook requests, such as the webhook ID and error ID. This setting does not log the request payload.",
-    "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
+  "admin.log.enableWebhookDebuggingPayloadDescription": {
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their full payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting a webhook.",
+    "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
     "defaultMessage": "Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 100 MB and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001. Changing this setting requires a server restart before taking effect.",

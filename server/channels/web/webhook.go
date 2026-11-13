@@ -4,6 +4,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"mime"
@@ -27,16 +28,27 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	errCtx := map[string]any{"hook_id": id}
 	contentType := r.Header.Get("Content-Type")
+	var incomingWebhookPayload *model.IncomingWebhookRequest
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging && c.Err != nil {
-			c.Logger.Debug("Incoming webhook received",
+			fields := []mlog.Field{
 				mlog.String("webhook_id", id),
 				mlog.String("content_type", contentType),
 				mlog.Int("payload_size", r.ContentLength),
 				mlog.String("error_id", innermostErrorID(c.Err)),
 				mlog.Int("status_code", c.Err.StatusCode),
-			)
+			}
+			if incomingWebhookPayload != nil {
+				payload, err := json.Marshal(incomingWebhookPayload)
+				if err != nil {
+					fields = append(fields, mlog.NamedErr("encoding_err", err))
+				} else {
+					fields = append(fields, mlog.String("payload", payload))
+				}
+			}
+
+			c.Logger.Debug("Incoming webhook received", fields...)
 		}
 	}()
 
@@ -48,7 +60,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var appErr *model.AppError
 	var mediaType string
-	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	// Content-Type header is optional so could be empty
 	if contentType != "" {
 		var mimeErr error
@@ -74,6 +85,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		incomingWebhookPayload = &model.IncomingWebhookRequest{}
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 

@@ -96,6 +96,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"NODE_FD_EXHAUSTION",
 		"LOG_DEBUG_PROD",
 		"LOG_FILE_OFF",
+		"LOG_WEBHOOK_PAYLOADS",
 		"METRICS_OFF",
 		"PLUGINS_OFF",
 		"PLUGIN_HEALTH_OFF",

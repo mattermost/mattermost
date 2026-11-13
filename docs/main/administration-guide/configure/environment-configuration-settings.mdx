@@ -2940,15 +2940,15 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to log an additional debug entry for failed incoming webhook requests to console and/or file logs. The entry contains request metadata, such as the webhook ID and error ID. This setting doesn’t log the request payload.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> The additional debug entry is logged for failed incoming webhook requests.</li><li><strong>false</strong>: The additional debug entry isn’t logged. Failed requests can still appear in the general request error logs.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
+<td><p>Configure Mattermost to log failed incoming webhook requests, including their full payload, to console and/or file logs for debugging.</p><ul><li><strong>true</strong>: Failed incoming webhook requests are logged with request metadata, such as the webhook ID and error ID, and the request payload.</li><li><strong>false</strong>: <strong>(Default)</strong> Failed incoming webhook requests aren’t logged by this setting. They can still appear in the general request error logs, without the payload.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` to also log failed incoming webhook requests, such as the webhook ID and error ID. This setting doesn't log the request payload.
+Entries are written at the `DEBUG` level, so they only appear in logs whose level is set to `DEBUG`, such as the [file log level](#file-log-level). The console log level defaults to `DEBUG`. Webhook payloads can contain message text and other user-authored content, which then ends up in log files, log collectors, and Support Packets. Enable this setting only while troubleshooting an incoming webhook, and turn it off afterwards.
 
 </Note>
 
