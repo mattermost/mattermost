@@ -3628,6 +3628,45 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 		require.Nil(t, appErr)
 	})
 
+	t.Run("redemption does not create a user when guest accounts are disabled", func(t *testing.T) {
+		// Invitation is created while guest accounts and guest magic link are both enabled.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id + " " + channel2.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+		})
+
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
+		// Redemption returns an error and no user.
+		require.NotNil(t, err)
+		require.Nil(t, user)
+
+		// Invited email does not belong to a user.
+		_, getUserErr := th.App.GetUserByEmail(email)
+		require.NotNil(t, getUserErr)
+	})
+
 	t.Run("invalid token returns error", func(t *testing.T) {
 		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, "invalid-token-123")
 		require.NotNil(t, err, "Should fail on invalid token")
