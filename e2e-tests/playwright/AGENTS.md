@@ -61,126 +61,47 @@ license.
 
 ## Lessons from master failures
 
-Each lesson below caused a real master E2E failure or a rejected fix. It binds
-humans and agents alike, including the E2E Autofix automation, which cites the
-ids in its PRs. Lessons marked _(lint)_ are also checked by
-`npm run lint:lessons` on the files a change touches (see "Lint ratchet"); the
-rest are enforced by review.
+These rules bind humans and agents; PRs cite their ids. Rules marked _(lint)_
+are also checked by `npm run lint:lessons` on the files you change. Where each
+lesson came from, how the check works, and how lessons are added or retired:
+`docs/lessons.md`.
 
-- **L-001** Locators live only in the page and component objects in `lib`. A
-  spec never builds one (`page.locator`, `getByRole`, `getByTestId`,
-  `frameLocator`, ...): add or reuse a page-object member. _(lint, report
-  only for now: `lessons/no-spec-locators` under `specs/`)_ (#39372, review by
-  saturninoabril)
-- **L-002** No XPath. Use `getByRole` with an accessible name, then label or
-  text, and `getByTestId` last; CSS class chains only when none of these work.
-  _(lint: `lessons/no-xpath`; CSS chains by review)_ (#39372, review by
-  saturninoabril)
-- **L-003** When the cause is in the product, fix or report the product. Never
-  work around it in the test, not even until the product is fixed. The usual
-  workaround is `force: true`: if an element won't take a click, find what
-  intercepts it. _(lint: `playwright/no-force-option`)_ (#39372: matthewbirtch's
-  review traced a forced click to a global `label span { pointer-events: none }`
-  in `_mobile.scss`)
-- **L-004** When several specs share a defect, fix it once in a shared helper
-  in `lib` and use it in every spec that has it, failing yet or not. (#38986)
+- **L-001** Specs never build locators (`page.locator`, `getByRole`,
+  `getByTestId`, ...): add or reuse a member of a page or component object in
+  `lib`. _(lint, report-only for now)_
+- **L-002** No XPath. In page objects prefer `getByRole` with an accessible
+  name, then label or text, then `getByTestId`; CSS class chains only when
+  nothing else works. _(lint)_
+- **L-003** Fix or report a product bug; never work around it in the test, for
+  example with `force: true`. Find what intercepts the click. _(lint)_
+- **L-004** Fix a defect that several specs share once, in a shared helper in
+  `lib`, and use it in every spec that has it.
 - **L-005** A product fix that needs new goroutines, timeouts, locks or APIs is
-  not a small fix to bundle with a test change. Report it to the owning PR.
-  (#39376: the reviewer reverted the added timeouts)
-- **L-006** Each test restores only the settings in
-  `getOnPremServerConfigPatch()` (`lib/src/server/default_config.ts`, applied
-  by `resetConfigWith`). Every other setting a spec changes through
-  `/api/v4/config`, and every piece of data it leaves behind, reaches later
-  specs on the same server. `MM_*` environment variables are different: the
-  fixture resets them before each spec file (`ensureDefaultServerEnv`, see
-  above), so they never belong in the patch. When a setting leaks, add it to
-  that patch, and add every other setting earlier specs change that the patch
-  misses, not only the one that failed today. Data has no reset: a spec that
-  depends on what exists (teams, policies, user counts) creates or reads that
-  state itself. Leaks fixed so far: `CollapsedThreads` (#39377),
-  `PrivacySettings.ShowFullName`/`ShowEmailAddress` (#39497), open-invite teams
-  (#39864). In review: `ElasticsearchSettings.Enable*` (#39871), leftover ABAC
-  policies (#39875).
-- **L-007** No `waitForTimeout`. `isVisible()` doesn't wait and ignores its
-  `timeout`, so never swallow it (`isVisible().catch(...)`), assert on it
-  (`expect(await locator.isVisible()).toBe(...)`) or branch on it
-  (`if (await locator.isVisible())`). Use web-first assertions
-  (`toBeVisible()`, `toBeHidden()`, `toHaveText()`), and for an optional
-  element wait for the state that decides whether it shows. Lines you edit
-  follow this even if they broke it before. _(lint:
-  `playwright/no-wait-for-timeout`, `playwright/prefer-web-first-assertions`,
-  `lessons/no-unwaited-is-visible`; the last catches `isVisible().catch(...)`
-  and `isVisible()` used directly in an if, ternary or loop condition, with
-  `await`, `!`, `&&`/`||` or `===`/`!==`, but not a result stored in a
-  variable first, which review enforces)_ (#39372)
+  not small: report it to the owning PR instead of bundling it with a test
+  change.
+- **L-006** Each test restores only `getOnPremServerConfigPatch()`
+  (`lib/src/server/default_config.ts`). A config setting a spec changes that
+  isn't in it leaks into later specs: add it there, with every other setting
+  earlier specs change that it misses. `MM_*` env is reset per spec file
+  (`ensureDefaultServerEnv`) and never belongs in the patch. Data (teams,
+  policies, users) has no reset: a spec creates or reads the state it needs.
+- **L-007** No `waitForTimeout`. `isVisible()` doesn't wait: don't `.catch()`
+  it, assert on its result or branch on it. Use web-first assertions
+  (`toBeVisible()`, `toBeHidden()`); for an optional element, wait for the
+  state that decides whether it shows. _(lint, except a result stored in a
+  variable first)_
 - **L-008** A fix shows a failing run before and a passing run after. A
-  server-log signal alone justifies a report, not a fix. The exception is a
-  small product fix whose new unit test fails before and passes after.
-  (#39376)
+  server-log signal alone earns a report, not a fix, unless it is a small
+  product fix whose new unit test fails before and passes after.
 - **L-009** A server that silently degrades (a fallback, a swallowed error) is
-  a product bug to report, not a wait to add to the test. (Counter-example:
-  #39445 made the search specs wait for an engine answer because search
-  silently falls back to Postgres on engine errors.)
+  a product bug to report, not something for the test to wait out.
 
-### Playwright rules
+Playwright rules, enforced by review:
 
-Enforced by review:
-
-- Call `check()` and `uncheck()` directly, with no read-then-act guard
-  (`if (!(await x.isChecked()))`).
-- `waitForResponse`: create the promise before the action and await both
-  together (`Promise.all([page.waitForResponse(...), action])`).
-- Bodies of `expect.poll` and `expect(...).toPass` must be idempotent: no
-  posting, creating or patching inside them.
+- Call `check()` and `uncheck()` directly, with no read-then-act guard.
+- `waitForResponse`: create the promise before the action and await both with
+  `Promise.all`.
+- `expect.poll` and `toPass` bodies are idempotent: no creating, posting or
+  patching inside them.
 - No non-null assertions (`!`) on results; assert they exist with `expect`.
 - No `.first()` or `.nth()` unless order is what the test checks.
-
-### Lint ratchet
-
-The _(lint)_ rules live in `eslint-rules/lessons.mjs`. Many existing files
-break them, so they are not part of `npm run lint`. Instead,
-`npm run lint:lessons` (`script/lint-lessons-ratchet.mjs`, also run by
-`npm run check` and in CI) lints every `.ts` file your change touches twice,
-as it is now and as it was on the base, and fails if any lesson rule fires
-more often now. Files you don't touch are never checked.
-
-- When it fails, it lists every hit of that rule in the file, old and new.
-  Remove the one you added; you don't have to fix the old ones.
-- Rules in `REPORT_ONLY_RULES` (`eslint-rules/lessons.mjs`) are listed the
-  same way but don't fail yet. L-001 starts there; it becomes blocking once
-  page objects cover the common cases and the team is told.
-- Renaming or moving a file compares it with its old path, so a pure move
-  passes.
-- The base is the merge base of `HEAD` and `origin/master`. Set `LESSONS_BASE`
-  to compare against another commit; CI sets it to the PR's base.
-- The rules are best-effort pattern checks. They don't see through variables
-  or constants (`const visible = await x.isVisible(); if (visible)`, or
-  `locator(SELECTOR)` where `SELECTOR` is a constant), so those forms still
-  break the lessons and are enforced by review.
-
-### Adding a lesson
-
-Add a lesson when a human review rejects the same mistake in two or more PRs,
-or when it caused a master failure. Give it the next id, one rule in a
-sentence or two, and the PRs that taught it. If a lint rule can catch it, add
-it to `lessonsConfig` in `eslint-rules/lessons.mjs` (a new rule in that file,
-or a `playwright/` rule) in the same PR. A rule that many open PRs would
-break can start in `REPORT_ONLY_RULES`. When a lesson's rule has no
-violations left anywhere, move it into `eslint.config.mjs` as a plain error.
-The E2E Autofix weekly retrospective opens such PRs from reviewer feedback; a
-human merging the PR is what makes the lesson binding.
-
-### Updating or retiring a lesson
-
-A lesson with no recent violations is working: keep it. Change one only when
-its premise changed:
-
-- **Update** it when a file, helper or setting it names was renamed or moved.
-- **Retire** it when what it guards against can no longer happen: the helper,
-  API or behaviour is gone, or a lint rule or type now makes the mistake
-  impossible and the lesson says nothing the rule's message doesn't.
-- **Merge** two lessons that say the same thing into the older id.
-
-Delete a retired lesson in the same PR that explains why, and never reuse its
-id, because PRs cite them. Keep this list short enough to read before every
-change: past 15 lessons, merge or retire before adding.

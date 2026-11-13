@@ -3,7 +3,7 @@
 
 import playwright from 'eslint-plugin-playwright';
 
-// Lint rules for the "Lessons from master failures" in AGENTS.md. They are not part of `npm run lint`:
+// Lint rules for the "Lessons from master failures" in AGENTS.md (process: docs/lessons.md). They are not part of `npm run lint`:
 // many existing files break them. `npm run lint:lessons` (script/lint-lessons-ratchet.mjs) applies
 // them only to the files a change touches, and fails when a file breaks a lesson more often than it
 // did on the base commit. Each lesson has its own rule, so a new violation of one lesson can't hide
