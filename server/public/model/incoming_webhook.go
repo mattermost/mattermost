@@ -237,6 +237,12 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	// by the JSON decoder, so only the escaped form needs to be handled here.
 	if bytes.Contains(by, []byte(`\u0000`)) {
 		by = removeEscapedNullCharacters(by)
+
+		// In valid JSON every escape is complete, so removing NULL characters cannot
+		// create a new one. If it did, as in "\u00\u000000", the payload is malformed.
+		if !bytes.Equal(removeEscapedNullCharacters(by), by) {
+			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "malformed unicode escape", http.StatusBadRequest)
+		}
 	}
 
 	// Try to decode the JSON data. Only if it fails, try to escape control

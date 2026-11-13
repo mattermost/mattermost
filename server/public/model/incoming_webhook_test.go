@@ -328,6 +328,17 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		assert.Equal(t, `a\b`, iwr.Text)
 	})
 
+	t.Run("rejects a payload where removing a NULL character would complete another escape", func(t *testing.T) {
+		// "\u00" is an incomplete escape. Removing the NULL character after it would join
+		// it with the following "00" into a new NULL character escape.
+		payload := `{"text": "\u00\u000000"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.NotNil(t, err)
+		assert.Nil(t, iwr)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
 	t.Run("keeps HTML characters unescaped", func(t *testing.T) {
 		payload := `{"text": "<b>a & b</b>\u0000"}`
 
