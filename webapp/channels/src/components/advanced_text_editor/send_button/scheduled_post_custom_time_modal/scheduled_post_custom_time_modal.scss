@@ -1,4 +1,30 @@
 .scheduled_post_custom_time_modal {
+    .ScheduledPostCustomTimeModal__recipientTimezone {
+        display: flex;
+        width: fit-content;
+        align-items: center;
+        margin-top: 4px;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        gap: 8px;
+        line-height: 16px;
+
+        input[type='checkbox'] {
+            margin: 0;
+        }
+
+        label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+    }
+
+    .DMUserTimezone + .ScheduledPostCustomTimeModal__repeat,
+    .DMUserTimezone + * > .ScheduledPostCustomTimeModal__repeat {
+        margin-top: 16px;
+    }
+
     .ScheduledPostCustomTimeModal__repeat {
         // Shrink-wrap so WithTooltip anchors to the checkbox/label, not the modal width.
         display: flex;

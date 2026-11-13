@@ -3,7 +3,7 @@
 
 import classnames from 'classnames';
 import type {Moment} from 'moment-timezone';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -35,6 +35,9 @@ type Props = {
     className?: string;
     errorText?: string | React.ReactNode;
     timePickerInterval?: number;
+
+    // Timezone the date and time are picked in. Defaults to the current user's timezone.
+    timezone?: string;
 };
 
 export default function DateTimePickerModal({
@@ -54,12 +57,27 @@ export default function DateTimePickerModal({
     className,
     errorText,
     timePickerInterval,
+    timezone,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
-    const currentTime = getCurrentMomentForTimezone(userTimezone);
+    const displayTimezone = timezone || userTimezone;
+    const currentTime = getCurrentMomentForTimezone(displayTimezone);
     const initialRoundedTime = getRoundedTime(currentTime);
 
     const [dateTime, setDateTime] = useState(initialTime || initialRoundedTime);
+
+    // When the timezone changes, keep the selected moment in time and only change how it's represented.
+    const previousTimezone = useRef(displayTimezone);
+    useEffect(() => {
+        if (previousTimezone.current === displayTimezone) {
+            return;
+        }
+        previousTimezone.current = displayTimezone;
+
+        const converted = dateTime.clone().tz(displayTimezone);
+        setDateTime(converted);
+        onChange?.(converted);
+    }, [displayTimezone, dateTime, onChange]);
 
     const [isInteracting, setIsInteracting] = useState(false);
 
@@ -120,7 +138,7 @@ export default function DateTimePickerModal({
             <DateTimeInput
                 time={dateTime}
                 handleChange={handleChange}
-                timezone={userTimezone}
+                timezone={displayTimezone}
                 setIsInteracting={setIsInteracting}
                 relativeDate={relativeDate}
                 timePickerInterval={timePickerInterval}
