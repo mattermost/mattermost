@@ -23,10 +23,6 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td>v12.2</td>
-<td><p>The <a href={useBaseUrl('/administration-guide/configure/environment-configuration-settings#enable-webhook-debugging')}>Enable Webhook Debugging</a> setting (<code>LogSettings.EnableWebhookDebugging</code>) now defaults to <code>false</code>. When enabled, failed incoming webhook requests are logged at the <code>DEBUG</code> level with their full payload, which can contain message text. Existing installations that have the setting saved as <code>true</code> keep logging payloads, and <strong>System Console &gt; Reporting &gt; Site health</strong> shows a warning while it is enabled and a log target writes debug entries. Set it to <code>false</code> unless you are troubleshooting an incoming webhook.</p></td>
-</tr>
-<tr>
 <td rowspan="27">v12.0</td>
 <td><p>Starting with v12.0.2, new installations support post messages of up to 262,144 characters, with the <code>message</code> column on <code>posts</code>, <code>drafts</code>, <code>scheduledposts</code> and <code>temporaryposts</code> created as <code>VARCHAR(1048576)</code>. Existing installations keep their current column sizes and maximum message length. The maximum message length is derived from the size of the <code>Posts.Message</code> column: a quarter of the column size, to allow for characters of up to four bytes. For example, a <code>VARCHAR(65535)</code> column allows 16,383 characters.</p></td>
 </tr>
