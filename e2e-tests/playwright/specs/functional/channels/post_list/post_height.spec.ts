@@ -9,7 +9,7 @@ import type {Disposable, Locator, Page} from '@playwright/test';
 import type {Post} from '@mattermost/types/posts';
 
 import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
-import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ChannelsPost, PlaywrightClient4, SizeWatcher} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
     let userClient: PlaywrightClient4;
@@ -681,6 +681,103 @@ test.describe('Post height', () => {
         );
     }
 
+    // Message attachment images are rendered by MM Blocks, which caps their size with inline max widths and heights
+    // (320x184 for the image and 204x120 for the thumbnail) rather than with the post's CSS
+    const attachmentImages = [
+        {file: 'image-2000x400.jpg', field: 'image_url'},
+        {file: 'image-40x400.jpg', field: 'image_url'},
+        {file: 'image-2000x400.jpg', field: 'thumb_url'},
+        {file: 'image-40x400.jpg', field: 'thumb_url'},
+    ];
+    const attachmentSurfaces = [
+        {name: 'full display', messageDisplay: 'full'},
+        {name: 'compact display', messageDisplay: 'compact'},
+        {name: 'narrow window', messageDisplay: 'full', viewport: {width: 390, height: 844}},
+        {name: 'thread', messageDisplay: 'full', inThread: true},
+    ];
+
+    for (const {file, field} of attachmentImages) {
+        for (const surface of attachmentSurfaces) {
+            test(
+                `attachment image placeholder should match the size of the loaded image (${file} ${field}, ${surface.name})`,
+                {tag: '@post_list'},
+                async () => {
+                    // # Set the message display setting and the window size, and create the post
+                    await userClient.savePreferences(user.id, [
+                        {
+                            user_id: user.id,
+                            category: 'display_settings',
+                            name: 'message_display',
+                            value: surface.messageDisplay,
+                        },
+                    ]);
+                    if (surface.viewport) {
+                        await page.setViewportSize(surface.viewport);
+                    }
+                    const post = await seedPost({
+                        message: `post with a ${file} attachment ${field}`,
+                        props: {
+                            attachments: [{title: 'Attachment title', [field]: `${fileServerUrl}/${file}`}],
+                        },
+                    });
+
+                    // # Hold back the image so that its placeholder can be measured
+                    const releaseImage = await holdBackImage(file);
+
+                    let sizeWatcher: SizeWatcher;
+                    let postComponent: ChannelsPost;
+                    if (surface.inThread) {
+                        // # Open the post's thread and watch its root post instead
+                        const rhsSizeWatcher = await watchElementSize(page, `rhsPost_${post.id}`);
+                        const centerPost = await openChannelAndGetPost(post.id);
+                        await centerPost.postComponent.openAThread();
+                        postComponent = await channelsPage.sidebarRight.getPostById(post.id);
+                        await postComponent.toBeVisible();
+                        sizeWatcher = rhsSizeWatcher;
+                    } else {
+                        ({sizeWatcher, postComponent} = await openChannelAndGetPost(post.id));
+                    }
+
+                    // # Measure the placeholder and then let the image load
+                    const placeholder = postComponent.container.locator(
+                        '.mm-blocks-image img.image-loading__placeholder',
+                    );
+                    await expect(placeholder).toBeVisible();
+                    const placeholderBox = await placeholder.boundingBox();
+
+                    // * Verify that the loading spinner is centered within the image's frame, which hides any overflow.
+                    // It's wider than the tall thumbnail, so it can't always fit entirely.
+                    const frameBox = await postComponent.container.locator('.mm-blocks-image__frame').boundingBox();
+                    const spinnerBox = await postComponent.container
+                        .locator('.mm-blocks-image .file__image-loading')
+                        .boundingBox();
+                    expect(frameBox).not.toBeNull();
+                    expect(spinnerBox).not.toBeNull();
+                    expect(spinnerBox!.x + spinnerBox!.width / 2).toBeCloseTo(frameBox!.x + frameBox!.width / 2, 0);
+                    expect(spinnerBox!.y + spinnerBox!.height / 2).toBeCloseTo(frameBox!.y + frameBox!.height / 2, 0);
+
+                    releaseImage();
+
+                    const image = postComponent.container.locator(
+                        '.mm-blocks-image .image-loaded-container img:not(.image-loading__placeholder)',
+                    );
+                    await expect(image).toBeVisible();
+                    await waitForImagesLoaded(postComponent.container);
+
+                    // * Verify that the image has the size of the placeholder and the post's height didn't change
+                    const imageBox = await image.boundingBox();
+                    expect(imageBox?.width).toBeCloseTo(placeholderBox?.width ?? 0, 0);
+                    expect(imageBox?.height).toBeCloseTo(placeholderBox?.height ?? 0, 0);
+                    const observations = await sizeWatcher.getObservations();
+                    expect(observations.length).toBeGreaterThan(0);
+                    for (const {height} of observations) {
+                        expect(height).toBeCloseTo(observations[0].height, 0);
+                    }
+                },
+            );
+        }
+    }
+
     test("a post changes height when it's replied to for the first time", {tag: '@post_list'}, async () => {
         // # Create a post with no replies or attachments
         const post = await seedPost({
@@ -788,6 +885,23 @@ test.describe('Post height', () => {
         expect(await sizeWatcher.isWatchingElement()).toBe(true);
 
         return {sizeWatcher, postComponent};
+    }
+
+    /** Delay responses for an image from the file server until the returned function is called */
+    async function holdBackImage(file: string) {
+        let releaseImage = () => {};
+        const imageReleased = new Promise<void>((resolve) => {
+            releaseImage = resolve;
+        });
+        await page.route(
+            (url) => url.pathname.endsWith(`/${file}`),
+            async (route) => {
+                await imageReleased;
+                await route.continue();
+            },
+        );
+
+        return releaseImage;
     }
 
     type SeedOptions = {
