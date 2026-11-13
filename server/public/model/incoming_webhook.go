@@ -8,10 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"reflect"
 	"regexp"
-	"slices"
-	"strings"
 )
 
 const (
@@ -203,90 +200,20 @@ func escapeControlCharsFromPayload(by []byte) []byte {
 	return re.ReplaceAllFunc(by, repl)
 }
 
-// removeNullCharacters removes NULL characters from every string reachable from v,
-// including map keys, in place. v must be a pointer or another settable value.
-//
-// It works on the decoded request rather than on the JSON payload so that the
-// decoding itself (which keys are used, and which value wins when several keys
-// match a field) is exactly the same as for a payload without NULL characters.
-func removeNullCharacters(v reflect.Value) {
-	switch v.Kind() {
-	case reflect.Pointer:
-		if !v.IsNil() {
-			removeNullCharacters(v.Elem())
-		}
-	case reflect.Interface:
-		if v.IsNil() {
-			return
-		}
-		elem := v.Elem()
-		if elem.Kind() == reflect.String {
-			if v.CanSet() {
-				v.Set(reflect.ValueOf(strings.ReplaceAll(elem.String(), "\x00", "")))
-			}
-			return
-		}
-		removeNullCharacters(elem)
-	case reflect.Struct:
-		for _, field := range v.Fields() {
-			if field.CanSet() {
-				removeNullCharacters(field)
-			}
-		}
-	case reflect.Slice, reflect.Array:
-		for i := range v.Len() {
-			removeNullCharacters(v.Index(i))
-		}
-	case reflect.String:
-		if v.CanSet() && strings.Contains(v.String(), "\x00") {
-			v.SetString(strings.ReplaceAll(v.String(), "\x00", ""))
-		}
-	case reflect.Map:
-		removeNullCharactersFromMap(v)
-	}
-}
+var escapedNullCharacterRegexp = regexp.MustCompile(`\\+u0000`)
 
-// removeNullCharactersFromMap removes NULL characters from the keys and values of
-// a map with string keys. When a key only differs from another one by NULL
-// characters, the key without NULL characters wins, and otherwise the first key in
-// sorted order wins, so that the result does not depend on map iteration order.
-func removeNullCharactersFromMap(m reflect.Value) {
-	if m.IsNil() || m.Type().Key().Kind() != reflect.String {
-		return
-	}
-
-	keys := m.MapKeys()
-	slices.SortFunc(keys, func(a, b reflect.Value) int {
-		aHasNull := strings.Contains(a.String(), "\x00")
-		bHasNull := strings.Contains(b.String(), "\x00")
-		if aHasNull != bHasNull {
-			if aHasNull {
-				return 1
-			}
-			return -1
+// removeEscapedNullCharacters removes escaped NULL characters (\u0000) from a JSON
+// payload. A run of backslashes followed by u0000 is a NULL character only when the
+// number of backslashes is odd; otherwise the last backslash is itself escaped and
+// u0000 is plain text, which is kept.
+func removeEscapedNullCharacters(by []byte) []byte {
+	return escapedNullCharacterRegexp.ReplaceAllFunc(by, func(match []byte) []byte {
+		backslashes := len(match) - len("u0000")
+		if backslashes%2 == 0 {
+			return match
 		}
-		return strings.Compare(a.String(), b.String())
+		return match[:backslashes-1]
 	})
-
-	sanitized := reflect.MakeMapWithSize(m.Type(), len(keys))
-	for _, key := range keys {
-		newKey := reflect.New(m.Type().Key()).Elem()
-		newKey.SetString(strings.ReplaceAll(key.String(), "\x00", ""))
-		if sanitized.MapIndex(newKey).IsValid() {
-			continue
-		}
-
-		value := reflect.New(m.Type().Elem()).Elem()
-		value.Set(m.MapIndex(key))
-		removeNullCharacters(value)
-		sanitized.SetMapIndex(newKey, value)
-	}
-
-	m.Clear()
-	iter := sanitized.MapRange()
-	for iter.Next() {
-		m.SetMapIndex(iter.Key(), iter.Value())
-	}
 }
 
 func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
@@ -304,6 +231,14 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	buf.ReadFrom(data)
 	by := buf.Bytes()
 
+	// The database cannot store NULL characters, so a payload containing an
+	// escaped NULL character (\u0000) would otherwise fail with an internal
+	// server error when the post is saved. A raw NULL byte is already rejected
+	// by the JSON decoder, so only the escaped form needs to be handled here.
+	if bytes.Contains(by, []byte(`\u0000`)) {
+		by = removeEscapedNullCharacters(by)
+	}
+
 	// Try to decode the JSON data. Only if it fails, try to escape control
 	// characters from the strings contained in the JSON data.
 	o, err := decodeIncomingWebhookRequest(by)
@@ -312,14 +247,6 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 		if err != nil {
 			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
-	}
-
-	// The database cannot store NULL characters, so a payload containing an
-	// escaped NULL character (\u0000) would otherwise fail with an internal
-	// server error when the post is saved. A raw NULL byte is already rejected
-	// by the JSON decoder, so only the escaped form needs to be handled here.
-	if bytes.Contains(by, []byte(`\u0000`)) {
-		removeNullCharacters(reflect.ValueOf(o))
 	}
 
 	o.Attachments = StringifyMessageAttachmentFieldValue(o.Attachments)

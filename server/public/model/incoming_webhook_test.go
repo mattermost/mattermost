@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 
@@ -274,17 +275,17 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		assert.Equal(t, "line one\nline two", iwr.Text)
 	})
 
-	t.Run("resolves keys that collide after removing NULL characters deterministically", func(t *testing.T) {
+	t.Run("uses the last of the keys that collide after removing NULL characters", func(t *testing.T) {
+		// Once NULL characters are removed these are duplicate keys, and encoding/json
+		// uses the last one.
 		payload := `{"text": "hello", "props": {"a\u0000b": "with null", "ab": "without null", "c\u0000d": "first", "cd\u0000": "second"}}`
 
-		for range 20 {
-			iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
-			require.Nil(t, err)
-			require.NotNil(t, iwr)
-			assert.Equal(t, "without null", iwr.Props["ab"])
-			assert.Equal(t, "first", iwr.Props["cd"])
-			assert.Len(t, iwr.Props, 2)
-		}
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, "without null", iwr.Props["ab"])
+		assert.Equal(t, "second", iwr.Props["cd"])
+		assert.Len(t, iwr.Props, 2)
 	})
 
 	t.Run("does not change which key is decoded into a field", func(t *testing.T) {
@@ -298,14 +299,15 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		assert.Equal(t, "intended", iwr.Text)
 	})
 
-	t.Run("ignores unknown keys that would match a field once NULL characters are removed", func(t *testing.T) {
+	t.Run("handles a key with NULL characters like the same key without them", func(t *testing.T) {
+		// "sil\u0000ent" is "silent" once NULL characters are removed, so a value of the
+		// wrong type is rejected as it would be for "silent".
 		payload := `{"text": "a\u0000b", "sil\u0000ent": "bad"}`
 
 		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
-		require.Nil(t, err)
-		require.NotNil(t, iwr)
-		assert.Equal(t, "ab", iwr.Text)
-		assert.False(t, iwr.Silent)
+		require.NotNil(t, err)
+		assert.Nil(t, iwr)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
 	t.Run("keeps an escaped backslash followed by u0000", func(t *testing.T) {
@@ -315,6 +317,15 @@ func TestIncomingWebhookRequestFromJSONNullCharacters(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, iwr)
 		assert.Equal(t, `literal \u0000 text`, iwr.Text)
+	})
+
+	t.Run("removes a NULL character that follows an escaped backslash", func(t *testing.T) {
+		payload := `{"text": "a\\\u0000b"}`
+
+		iwr, err := IncomingWebhookRequestFromJSON(strings.NewReader(payload))
+		require.Nil(t, err)
+		require.NotNil(t, iwr)
+		assert.Equal(t, `a\b`, iwr.Text)
 	})
 
 	t.Run("keeps HTML characters unescaped", func(t *testing.T) {
