@@ -14,13 +14,10 @@ import (
 func (a *App) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
 	u, err := a.Srv().Store().UserTermsOfService().GetByUser(userID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetUserTermsOfService", "app.user_terms_of_service.get_by_user.no_rows.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetUserTermsOfService", "app.user_terms_of_service.get_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetUserTermsOfService", "app.user_terms_of_service.get_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return u, nil
@@ -34,13 +31,10 @@ func (a *App) SaveUserTermsOfService(userID, termsOfServiceId string, accepted b
 		}
 
 		if _, err := a.Srv().Store().UserTermsOfService().Save(userTermsOfService); err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
+			if appErr, ok := errors.AsType[*model.AppError](err); ok {
 				return appErr
-			default:
-				return model.NewAppError("SaveUserTermsOfService", "app.user_terms_of_service.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return model.NewAppError("SaveUserTermsOfService", "app.user_terms_of_service.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
 		if err := a.Srv().Store().UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {

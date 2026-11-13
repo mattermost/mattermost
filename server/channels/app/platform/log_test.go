@@ -607,15 +607,15 @@ func TestIsLogFilteredBySearch(t *testing.T) {
 	} {
 		t.Run(tc.search, func(t *testing.T) {
 			search := newLogSearch(&model.LogFilter{Search: tc.search})
-			assert.Equal(t, tc.filtered, isLogFilteredBySearch(search, line))
+			assert.Equal(t, tc.filtered, isLogFilteredByContent(search, nil, line))
 		})
 	}
 
 	t.Run("non-ASCII terms ignore case", func(t *testing.T) {
 		line := []byte(`{"level":"info","msg":"Größe ÜBERSCHRITTEN"}`)
-		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "überschritten"}), line))
-		assert.False(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "GRÖßE"}), line))
-		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "äpfel"}), line))
+		assert.False(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "überschritten"}), nil, line))
+		assert.False(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "GRÖßE"}), nil, line))
+		assert.True(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "äpfel"}), nil, line))
 	})
 
 	t.Run("characters that lowercase to ASCII match either way", func(t *testing.T) {
@@ -623,19 +623,131 @@ func TestIsLogFilteredBySearch(t *testing.T) {
 		for _, term := range []string{"İstanbul", "istanbul", "300 \u212a", "300 k"} {
 			search := newLogSearch(&model.LogFilter{Search: term})
 			assert.False(t, search.rejectsRaw(line), term)
-			assert.False(t, isLogFilteredBySearch(search, line), term)
+			assert.False(t, isLogFilteredByContent(search, nil, line), term)
 		}
 	})
 
 	t.Run("unparseable lines are filtered", func(t *testing.T) {
-		assert.True(t, isLogFilteredBySearch(newLogSearch(&model.LogFilter{Search: "plain"}), []byte("plain text line")))
+		assert.True(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "plain"}), nil, []byte("plain text line")))
 	})
 
 	t.Run("no search keeps every line", func(t *testing.T) {
 		assert.Nil(t, newLogSearch(nil))
 		assert.Nil(t, newLogSearch(&model.LogFilter{}))
-		assert.False(t, isLogFilteredBySearch(nil, []byte("plain text line")))
+		assert.False(t, isLogFilteredByContent(nil, nil, []byte("plain text line")))
 	})
+}
+
+func TestIsLogFilteredByFields(t *testing.T) {
+	line := []byte(`{"timestamp":"2026-10-21 10:00:00.000 Z","level":"info","msg":"Webhook received","caller":"app/plugin_api.go:40","plugin_id":"github","count":7,"ok":true,"details":{"remote":"10.0.0.1"},"note":"say \"hi\""}`)
+
+	for _, tc := range []struct {
+		name     string
+		fields   map[string][]string
+		filtered bool
+	}{
+		{"matching value", map[string][]string{"plugin_id": {"github"}}, false},
+		{"one of several values", map[string][]string{"plugin_id": {"jira", "github"}}, false},
+		{"other value", map[string][]string{"plugin_id": {"jira"}}, true},
+		{"values are exact", map[string][]string{"plugin_id": {"git"}}, true},
+		{"values are case-sensitive", map[string][]string{"plugin_id": {"GitHub"}}, true},
+		{"missing field", map[string][]string{"user_id": {"github"}}, true},
+		{"every field must match", map[string][]string{"plugin_id": {"github"}, "msg": {"Webhook received"}}, false},
+		{"one field failing filters", map[string][]string{"plugin_id": {"github"}, "msg": {"Other"}}, true},
+		{"numbers compare as JSON", map[string][]string{"count": {"7"}}, false},
+		{"booleans compare as JSON", map[string][]string{"ok": {"true"}}, false},
+		{"objects compare as JSON", map[string][]string{"details": {`{"remote":"10.0.0.1"}`}}, false},
+		{"nested fields aren't top-level", map[string][]string{"remote": {"10.0.0.1"}}, true},
+		{"strings are decoded", map[string][]string{"note": {`say "hi"`}}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			fields := newLogFields(&model.LogFilter{Fields: tc.fields})
+			filtered := fields.rejectsRaw(line) || isLogFilteredByContent(nil, fields, line)
+			assert.Equal(t, tc.filtered, filtered)
+
+			// The raw check only skips decoding, so it never filters a line the decoded check keeps
+			if !isLogFilteredByContent(nil, fields, line) {
+				assert.False(t, fields.rejectsRaw(line))
+			}
+		})
+	}
+
+	t.Run("the raw check skips decoding lines with other values", func(t *testing.T) {
+		assert.True(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"jira"}}}).rejectsRaw(line))
+		assert.True(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"count": {"8"}}}).rejectsRaw(line))
+		assert.False(t, newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"jira", "github"}}}).rejectsRaw(line))
+	})
+
+	t.Run("combines with the search", func(t *testing.T) {
+		fields := newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github"}}})
+		assert.False(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "webhook"}), fields, line))
+		assert.True(t, isLogFilteredByContent(newLogSearch(&model.LogFilter{Search: "missing"}), fields, line))
+	})
+
+	t.Run("keys the encoders might escape skip the raw check", func(t *testing.T) {
+		line := []byte(`{"level":"info","msg":"m","a\u003cb":"x"}`)
+		fields := newLogFields(&model.LogFilter{Fields: map[string][]string{"a<b": {"x"}}})
+		assert.False(t, fields.rejectsRaw(line))
+		assert.False(t, isLogFilteredByContent(nil, fields, line))
+	})
+
+	t.Run("unparseable lines are filtered", func(t *testing.T) {
+		fields := newLogFields(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github"}}})
+		assert.True(t, isLogFilteredByContent(nil, fields, []byte(`plain "plugin_id": line`)))
+	})
+
+	t.Run("no fields keep every line", func(t *testing.T) {
+		assert.Nil(t, newLogFields(nil))
+		assert.Nil(t, newLogFields(&model.LogFilter{}))
+		assert.False(t, newLogFields(nil).rejectsRaw([]byte("plain text line")))
+	})
+}
+
+func TestGetLogsSkipSendFields(t *testing.T) {
+	root := t.TempDir()
+	ps := newLogPathTestService(t, root, func(cfg *model.Config) {
+		*cfg.LogSettings.EnableFile = true
+		*cfg.LogSettings.FileLocation = root
+	})
+	ps.SetLogger(mlog.CreateConsoleTestLogger(t))
+
+	// Written by the real encoder, so the raw check is tested against what it writes
+	buffer := &mlog.Buffer{}
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	require.NoError(t, mlog.AddWriterTarget(logger, buffer, true, mlog.LvlInfo, mlog.LvlError))
+	for i := range 9 {
+		pluginLogger := logger.With(mlog.String("plugin_id", []string{"github", "mattermost-ai", "jira"}[i%3]))
+		if i%2 == 0 {
+			pluginLogger.Info("Webhook received", mlog.Int("seq", i))
+		} else {
+			pluginLogger.Error("Request failed", mlog.Int("seq", i))
+		}
+	}
+	logger.Info("Server started", mlog.Int("seq", 9))
+	require.NoError(t, logger.Shutdown())
+	require.NoError(t, os.WriteFile(config.GetLogFileLocation(root), []byte(buffer.String()), 0600))
+
+	query := func(filter *model.LogFilter) []int {
+		lines, appErr := ps.GetLogsSkipSend(request.TestContext(t), 0, 10, filter)
+		require.Nil(t, appErr)
+		seqs := make([]int, 0, len(lines))
+		for _, line := range lines {
+			var entry struct {
+				Seq int `json:"seq"`
+			}
+			require.NoError(t, json.Unmarshal([]byte(line), &entry))
+			seqs = append(seqs, entry.Seq)
+		}
+		return seqs
+	}
+
+	assert.Equal(t, []int{0, 3, 6}, query(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github"}}}))
+	assert.Equal(t, []int{0, 1, 3, 4, 6, 7}, query(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github", "mattermost-ai"}}}))
+
+	// Combines with the level filter and the search
+	assert.Equal(t, []int{3}, query(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"github"}}, LogLevels: []string{"error"}}))
+	assert.Equal(t, []int{1, 7}, query(&model.LogFilter{Fields: map[string][]string{"plugin_id": {"mattermost-ai"}}, Search: "failed"}))
 }
 
 func TestGetLogsSkipSendSearch(t *testing.T) {

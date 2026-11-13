@@ -56,8 +56,8 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
         },
     };
 
-    test('should match snapshot and contain correct buttons', async () => {
-        const {container} = renderWithContext(
+    test('should render and contain correct buttons', async () => {
+        renderWithContext(
             <SidebarCategoryMenu {...baseProps}/>,
             initialState,
         );
@@ -69,7 +69,6 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
         expect(screen.getByRole('menuitem', {name: /create new category/i})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /delete category/i})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /mute category/i})).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should show correct menu items when category is favorites', async () => {

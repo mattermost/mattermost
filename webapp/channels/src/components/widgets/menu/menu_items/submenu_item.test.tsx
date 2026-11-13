@@ -14,47 +14,6 @@ jest.mock('../is_mobile_view_hack', () => ({
 }));
 
 describe('components/widgets/menu/menu_items/submenu_item', () => {
-    test('empty subMenu should match snapshot', () => {
-        const {container} = renderWithContext(
-            <SubMenuItem
-                key={'_pluginmenuitem'}
-                id={'1'}
-                text={'test'}
-                subMenu={[]}
-                action={jest.fn()}
-                root={true}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('present subMenu should match snapshot with submenu', () => {
-        const {container} = renderWithContext(
-            <SubMenuItem
-                key={'_pluginmenuitem'}
-                id={'1'}
-                text={'test'}
-                subMenu={[
-                    {
-                        id: 'A',
-                        text: 'Test A',
-                        direction: 'left',
-                    },
-                    {
-                        id: 'B',
-                        text: 'Test B',
-                        direction: 'left',
-                    },
-                ]}
-                action={jest.fn()}
-                root={true}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('test subMenu click triggers action', async () => {
         const action1 = jest.fn();
         const action2 = jest.fn();

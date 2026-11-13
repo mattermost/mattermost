@@ -14,6 +14,7 @@ import (
 func (api *API) InitSystemLocal() {
 	api.BaseRoutes.System.Handle("/ping", api.APILocal(getSystemPing)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APILocal(getLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APILocal(queryLogs)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(setServerBusy)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods(http.MethodDelete)

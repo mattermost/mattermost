@@ -11,6 +11,8 @@
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "jsx": "react",
+        "noUncheckedSideEffectImports": false,
+        "types": ["jest", "node", "@testing-library/jest-dom"],
         "rootDir": "./src",
         "composite": true,
     },

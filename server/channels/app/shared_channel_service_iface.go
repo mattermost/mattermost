@@ -28,6 +28,7 @@ type SharedChannelServiceIFace interface {
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
 	NotifyMembershipChanged(channelID string, originRemoteID string)
+	HandleClusterSyncTask(msg *model.ClusterMessage)
 	IsRemoteClusterDirectlyConnected(remoteId string) bool
 	ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 	TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)

@@ -212,7 +212,11 @@ func interruptibleSleep(ctx context.Context, d time.Duration) error {
 // findPostOnB searches for a post with the given message in a channel on Server B.
 // Returns the post ID if found, empty string otherwise.
 func (tr *TestRunner) findPostOnB(ctx context.Context, channelB, message string) string {
-	postList, _, err := tr.clientB.GetPostsForChannel(ctx, channelB, 0, 100, "", false, false)
+	return findPost(ctx, tr.clientB, channelB, message)
+}
+
+func findPost(ctx context.Context, client *model.Client4, channelID, message string) string {
+	postList, _, err := client.GetPostsForChannel(ctx, channelID, 0, 100, "", false, false)
 	if err != nil {
 		return ""
 	}

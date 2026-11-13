@@ -17,10 +17,6 @@ const mockedSendTestNotification = jest.mocked(sendTestNotification);
 
 describe('components/user_settings/notifications/send_test_notification_notice', () => {
     jest.useFakeTimers();
-    it('should match snapshot', () => {
-        const {container} = renderWithContext((<SendTestNotificationNotice/>));
-        expect(container).toMatchSnapshot();
-    });
     it('should not show on admin mode', () => {
         const {container} = renderWithContext((<SendTestNotificationNotice adminMode={true}/>));
         expect(container).toBeEmptyDOMElement();

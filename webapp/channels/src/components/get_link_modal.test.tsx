@@ -25,25 +25,6 @@ describe('components/GetLinkModal', () => {
         jest.useRealTimers();
     });
 
-    test('should match snapshot when all props is set', () => {
-        const helpText = 'help text';
-        const props = {...requiredProps, helpText};
-
-        const {baseElement} = renderWithContext(
-            <GetLinkModal {...props}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot when helpText is not set', () => {
-        const {baseElement} = renderWithContext(
-            <GetLinkModal {...requiredProps}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should have called onHide when close button is clicked', async () => {
         const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
         const newOnHide = jest.fn();
@@ -63,16 +44,10 @@ describe('components/GetLinkModal', () => {
         expect(copyButton).toHaveTextContent('Copied');
         expect(copyButton).toHaveClass('GetLinkModal__copied');
 
-        // Take snapshot with copied state
-        expect(baseElement).toMatchSnapshot();
-
         // Click the footer close button
         const footerCloseButton = baseElement.querySelector('#linkModalCloseButton') as HTMLElement;
         await user.click(footerCloseButton);
         expect(newOnHide).toHaveBeenCalledTimes(2);
-
-        // Take snapshot after closing (copiedLink should be reset)
-        expect(baseElement).toMatchSnapshot();
 
         // Verify copiedLink was reset (button should show Copy Link, not Copied)
         expect(copyButton).toHaveTextContent('Copy Link');

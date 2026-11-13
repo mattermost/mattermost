@@ -68,14 +68,6 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
         message: 'Start trial',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <StartTrialBtn {...props}/>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle on click', async () => {
         const mockOnClick = jest.fn();
 

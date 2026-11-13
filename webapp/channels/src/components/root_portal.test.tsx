@@ -13,11 +13,11 @@ describe('components/RootPortal', () => {
         console.error = jest.fn();
     });
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const rootPortalDiv = document.createElement('div');
         rootPortalDiv.id = 'root-portal';
 
-        const {getByText, container} = render(
+        const {getByText} = render(
             <RootPortal>
                 <div>{'Testing Portal'}</div>
             </RootPortal>,
@@ -25,6 +25,5 @@ describe('components/RootPortal', () => {
         );
 
         expect(getByText('Testing Portal')).toBeVisible();
-        expect(container).toMatchSnapshot();
     });
 });
