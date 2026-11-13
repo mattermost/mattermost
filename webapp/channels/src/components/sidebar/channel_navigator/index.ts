@@ -9,6 +9,7 @@ import {shouldShowUnreadsCategory} from 'mattermost-redux/selectors/entities/pre
 
 import {openModal, closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
+import {getProductRailFilter} from 'selectors/views/product_rail';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -19,6 +20,7 @@ import ChannelNavigator from './channel_navigator';
 function mapStateToProps(state: GlobalState) {
     return {
         showUnreadsCategory: shouldShowUnreadsCategory(state),
+        channelKind: getProductRailFilter(state) === 'boards' ? 'board' as const : 'channel' as const,
         isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
     };
 }
