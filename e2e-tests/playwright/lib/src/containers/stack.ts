@@ -16,6 +16,8 @@ import {
     AZURITE_BLOB_PORT,
     ELASTICSEARCH_ALIAS,
     ELASTICSEARCH_PORT,
+    SPLIT_MOCK_ALIAS,
+    SPLIT_MOCK_CONTROL_PORT,
     INBUCKET_ALIAS,
     INBUCKET_WEB_PORT,
     KEYCLOAK_ALIAS,
@@ -63,6 +65,8 @@ import {ADDITIONAL_SERVICE_STARTERS} from './requirements';
 import {startWebhookContainer} from './webhook_container';
 
 import {clearClientCache} from '@/server/client';
+import {getAdminClient} from '@/server/init';
+import {resetSplitMock, setSplitMockFlags, waitForServerFeatureFlags} from '@/server/split_mock';
 import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
 import {isUpgradeToPhaseProjectActive, upgradeToStackNotRunningError} from '@/upgrade_env';
@@ -189,6 +193,11 @@ async function startStackLocked(): Promise<void> {
             additional[name] = additionalContainers[index];
         });
 
+        // The server fetches the mock Split service's CA when it starts, so its address has to be known first.
+        if (additional.splitmock) {
+            testConfig.splitMockUrl = resolveUrl(additional.splitmock, SPLIT_MOCK_CONTROL_PORT, SPLIT_MOCK_ALIAS);
+        }
+
         const mattermost = await trackAndLog('server', startMattermostContainer(network.getName()));
 
         started = {network, postgres, inbucket, webhook, mattermost, additional};
@@ -202,6 +211,69 @@ async function startStackLocked(): Promise<void> {
     resetEnvFile('initial boot');
 
     logStackStarted(started);
+}
+
+/**
+ * Confirms the server's Split-mock sync actually works, and restarts the server once to retry if
+ * not. No-op when splitmock isn't part of this stack. Safe, and worth running, whether this
+ * process itself just booted the stack or reused one an earlier process already brought up: a
+ * fresh boot is exactly the case this exists to catch, and it costs only a quick push-and-poll
+ * (no restart) in the common case where sync already works.
+ *
+ * The server's own Split-mock sync has a one-shot race at boot: its background goroutine calls
+ * EnsureReady() (a fixed 10s wait for the Split SDK's first handshake with the management service)
+ * exactly once, and gives up for the rest of the process's life if that single attempt times out —
+ * logging only a warning, with no retry (see SetupFeatureFlags() in
+ * server/channels/app/platform/feature_flags.go). CI boots every shard's full stack at once, so
+ * that handshake can lose the race under the resulting contention even though splitmock itself is
+ * already confirmed healthy (its own Testcontainers wait strategy passed before the server ever
+ * started) — nothing on the test side can detect or recover from that failure later, so every
+ * ensureFeatureFlag() for the rest of this stack's life would otherwise fail. Catch it once, here,
+ * and restart to retry rather than let it surface as a mysterious failure deep into a run.
+ *
+ * Needs an admin login to probe, so the caller must run this only after that admin exists (e.g.
+ * after global setup's baseGlobalSetup()) — on a brand new stack's very first boot there is no
+ * admin yet at the point startStack() itself returns.
+ */
+export async function verifySplitMockSyncAfterBoot(): Promise<void> {
+    if (!testConfig.splitMockEnabled) {
+        return;
+    }
+
+    if (await splitMockSyncWorks()) {
+        return;
+    }
+
+    warnTestcontainers(
+        'the server never picked up a feature flag change from the mock Split service after booting ' +
+            '(likely lost the one-shot race its Split client sync has at startup under CI load); restarting it once to retry.',
+    );
+    await restartMattermostContainer({});
+
+    if (!(await splitMockSyncWorks())) {
+        throw new Error(
+            'The server still never synced a feature flag change from the mock Split service after one restart. ' +
+                'Every ensureFeatureFlag() spec on this stack would otherwise fail. Run "npm run testcontainers:down" and retry.',
+        );
+    }
+}
+
+// TestBoolFeature exists only for this kind of check: false by default and otherwise unused outside
+// feature_flag_split_mock.spec.ts, so flipping it here can't collide with a spec's own flag state.
+async function splitMockSyncWorks(): Promise<boolean> {
+    const probe = 'TestBoolFeature';
+    try {
+        await setSplitMockFlags({[probe]: true}, {[probe]: false});
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await waitForServerFeatureFlags(adminClient, {[probe]: true});
+        return true;
+    } catch {
+        return false;
+    } finally {
+        await resetSplitMock().catch(() => {
+            // Best-effort: a stack about to be restarted anyway doesn't need its mock state clean.
+        });
+    }
 }
 
 // A worker is killed without cleanup when a run is interrupted. If that happens mid-restart, the new server keeps
@@ -272,6 +344,7 @@ function logStackReused(): void {
         minio: testConfig.minioUrl,
         azurite: testConfig.azuriteUrl,
         nginx: testConfig.nginxUrl,
+        splitmock: testConfig.splitMockUrl,
     };
     testConfig.testcontainersServices.forEach((name) => {
         lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
@@ -601,6 +674,7 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
         port: testConfig.sslServer ? NGINX_SSL_PORT : NGINX_PORT,
         image: NGINX_IMAGE,
     },
+    splitmock: {alias: SPLIT_MOCK_ALIAS, port: SPLIT_MOCK_CONTROL_PORT, image: 'built, mock Split service'},
 };
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
@@ -773,6 +847,9 @@ function applyResolvedConfig(stack: StartedStack): void {
             }
         }
     }
+    if (stack.additional.splitmock) {
+        testConfig.splitMockUrl = resolveUrl(stack.additional.splitmock, SPLIT_MOCK_CONTROL_PORT, SPLIT_MOCK_ALIAS);
+    }
 }
 
 // One block per write: a human-readable `# [timestamp] label` comment line (dotenv ignores
@@ -794,6 +871,7 @@ function envFileLines(label: string): string[] {
         `PW_MINIO_URL=${testConfig.minioUrl}`,
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
         `PW_NGINX_URL=${testConfig.nginxUrl}`,
+        `PW_SPLIT_MOCK_URL=${testConfig.splitMockUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
         // Persist the image currently running (separate from process SERVER_IMAGE / to-image).

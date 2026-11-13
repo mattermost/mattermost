@@ -5,6 +5,7 @@ import type {StartedNetwork, StartedTestContainer} from 'testcontainers';
 
 import {startAzuriteContainer} from './azurite_container';
 import {startElasticsearchContainer} from './elasticsearch_container';
+import {startSplitMockContainer} from './split_mock_container';
 import {startKeycloakContainer} from './keycloak_container';
 import {startMinioContainer} from './minio_container';
 import {startNginxContainer} from './nginx_container';
@@ -26,4 +27,5 @@ export const ADDITIONAL_SERVICE_STARTERS: Record<
     minio: startMinioContainer,
     azurite: startAzuriteContainer,
     nginx: startNginxContainer,
+    splitmock: startSplitMockContainer,
 };

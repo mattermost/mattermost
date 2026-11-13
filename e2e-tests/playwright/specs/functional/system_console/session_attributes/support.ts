@@ -26,21 +26,16 @@ export interface SessionAttributesContext {
 /**
  * The seeded session_attributes Property group is gated server-side: requests
  * return HTTP 501 below an Enterprise Advanced license, and the System Console
- * page is hidden unless FeatureFlags.SessionAttributes is true. Probe both and
- * skip (rather than fail) when the environment does not satisfy them, so the
- * suite reports honestly on stacks that cannot exercise the feature.
+ * page is hidden unless FeatureFlags.SessionAttributes is true. Probe the
+ * license and skip (rather than fail) when it is not met, so the suite
+ * reports honestly on stacks that cannot exercise the feature.
  */
 export async function setupSessionAttributesTest(pw: PlaywrightExtended): Promise<SessionAttributesContext> {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    await pw.ensureFeatureFlag('SessionAttributes', true);
 
     const {adminUser, adminClient} = await pw.initSetup();
-
-    const config = await adminClient.getConfig();
-    test.skip(
-        config.FeatureFlags?.SessionAttributes !== true,
-        'Requires FeatureFlags.SessionAttributes=true on the server',
-    );
 
     let fields: PropertyField[] = [];
     try {

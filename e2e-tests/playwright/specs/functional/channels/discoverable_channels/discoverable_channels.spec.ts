@@ -5,9 +5,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * These specs cover the Discoverable Private Channels request-to-join UX
- * (MM-68764). They only run when the DiscoverableChannels feature flag is
- * enabled on the server (e.g. MM_FEATUREFLAGS_DiscoverableChannels=true);
- * otherwise they self-skip.
+ * (MM-68764). Each test turns the DiscoverableChannels feature flag on via
+ * pw.ensureFeatureFlag(); against a server with no mock Split service to push
+ * the change through, that call self-skips instead.
  */
 
 async function createDiscoverableChannel(adminClient: any, teamId: string) {

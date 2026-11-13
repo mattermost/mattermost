@@ -35,7 +35,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -96,7 +96,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -110,7 +110,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -152,7 +152,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -170,7 +170,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -215,7 +215,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -230,7 +230,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -273,7 +273,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -288,7 +288,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             // adminUser holds "Building 1"; policy value is "Building 7" (not held)
             const fieldName = `${fieldPrefix}Loc_${pw.random.id()}`;
@@ -333,7 +333,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -354,7 +354,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Team_${pw.random.id()}`;
             const fieldId = await createMaskingMultiselectField(adminClient, fieldName, ['Alpha', 'Bravo']);
@@ -402,7 +402,7 @@ test.describe('Attribute-Value Masking - Visibility and Text Fields', {tag: ['@a
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });

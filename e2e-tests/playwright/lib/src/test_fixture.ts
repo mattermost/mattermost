@@ -14,7 +14,6 @@ import {
     ensurePluginsLoaded,
     ensureServerDeployment,
     shouldHaveCallsEnabled,
-    shouldHaveFeatureFlag,
     shouldRunInLinux,
     skipIfNoLicense,
 } from './flag';
@@ -40,6 +39,9 @@ import {
     ensureDemoPlugin,
     ensureElasticsearch,
     ensureFeatureFlag,
+    defineFeatureFlags,
+    getFeatureFlagKey,
+    setFeatureFlagSegments,
     ensureDefaultServerEnv,
     ensureInternalSiteUrl,
     ensurePhase2MigrationCompleted,
@@ -191,7 +193,6 @@ export class PlaywrightExtended {
 
     // ./flag
     readonly shouldHaveCallsEnabled;
-    readonly shouldHaveFeatureFlag;
     readonly shouldRunInLinux;
     readonly ensureLicense;
     readonly ensureServerDeployment;
@@ -228,6 +229,9 @@ export class PlaywrightExtended {
     readonly ensureAzurite;
     readonly ensureElasticsearch;
     readonly ensureFeatureFlag;
+    readonly defineFeatureFlags;
+    readonly getFeatureFlagKey;
+    readonly setFeatureFlagSegments;
     readonly ensureKeycloak;
     readonly ensureKeycloakOpenId;
     readonly ensureLocalFile;
@@ -323,7 +327,6 @@ export class PlaywrightExtended {
 
         // ./flag
         this.shouldHaveCallsEnabled = shouldHaveCallsEnabled;
-        this.shouldHaveFeatureFlag = shouldHaveFeatureFlag;
         this.shouldRunInLinux = shouldRunInLinux;
         this.ensureLicense = ensureLicense;
         this.ensureServerDeployment = ensureServerDeployment;
@@ -361,6 +364,9 @@ export class PlaywrightExtended {
         this.ensureAzurite = ensureAzurite;
         this.ensureElasticsearch = ensureElasticsearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
+        this.defineFeatureFlags = defineFeatureFlags;
+        this.getFeatureFlagKey = getFeatureFlagKey;
+        this.setFeatureFlagSegments = setFeatureFlagSegments;
         this.ensureKeycloak = ensureKeycloak;
         this.ensureKeycloakOpenId = ensureKeycloakOpenId;
         this.ensureLocalFile = ensureLocalFile;

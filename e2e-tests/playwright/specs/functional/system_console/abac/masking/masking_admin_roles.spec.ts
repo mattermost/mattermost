@@ -46,7 +46,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -136,7 +136,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 }
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -158,7 +158,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const teamAdmin = await createTeamAdmin(adminClient, team.id);
 
@@ -271,7 +271,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 }
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -292,7 +292,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const channel = await adminClient.createChannel({
                 team_id: team.id,
@@ -372,7 +372,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 }
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -392,7 +392,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const id = pw.random.id();
             const publicFieldName = `${fieldPrefix}Pub_${id}`;
@@ -479,7 +479,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 }
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });

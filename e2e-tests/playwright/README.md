@@ -22,7 +22,7 @@ cd server && make run-server
 No separate terminal or setup step needed — Playwright brings up Postgres, Inbucket, and the Mattermost server itself via [Testcontainers](https://node.testcontainers.org/), then tears them down after the run.
 
 ```bash
-# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch, nginx)
+# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch, nginx, splitmock)
 PW_USE_TESTCONTAINERS=true npm run test -- login
 
 # Runs the full suite (not just specs/functional/subpath) against the server booted directly under
@@ -36,7 +36,8 @@ PW_USE_TESTCONTAINERS=true npm run test -- login
 PW_USE_TESTCONTAINERS=true PW_SERVER_DEPLOY=subpath npx playwright test --project subpath
 
 # Change which additional services start, comma-separated (or "" to start none).
-# nginx is still added when PW_SERVER_DEPLOY=subpath
+# nginx is still added when PW_SERVER_DEPLOY=subpath, and splitmock (the mock Split service behind
+# pw.ensureFeatureFlag()) is always started, so neither needs listing
 PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
 
 # Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)

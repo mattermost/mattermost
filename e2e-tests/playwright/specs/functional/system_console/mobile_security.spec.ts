@@ -3,6 +3,22 @@
 
 import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
+// The @mobile_ephemeral_mode tests below enable the toggle and save custom timeout values
+// through the UI, which persists on the shared server config beyond the test that set it.
+// Reset to the server's defaults after every test so a later test's "first enabled" /
+// "toggle off" assertions see a clean slate regardless of run order.
+test.afterEach(async ({pw}) => {
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        MobileEphemeralModeSettings: {
+            Enable: false,
+            DisconnectionTimeoutSeconds: 60,
+            OfflinePersistenceTimerHours: 24,
+            AutoCacheCleanupDays: 7,
+        },
+    });
+});
+
 test('should be able to enable mobile security settings when licensed', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
@@ -533,11 +549,7 @@ test(
             'Skipping test - server does not have enterprise advanced license',
         );
 
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
-            'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
-        );
+        await pw.ensureFeatureFlag('MobileEphemeralMode', true);
 
         if (!adminUser) {
             throw new Error('Failed to create admin user');
@@ -588,17 +600,14 @@ test(
             'Skipping test - server does not have enterprise advanced license',
         );
 
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
-            'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
-        );
+        await pw.ensureFeatureFlag('MobileEphemeralMode', true);
 
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
 
         // # Enable Mobile Ephemeral Mode setting via config API
+        const config = await adminClient.getConfig();
         config.MobileEphemeralModeSettings.Enable = true;
         await adminClient.updateConfig(config);
 
@@ -654,17 +663,14 @@ test(
             'Skipping test - server does not have enterprise advanced license',
         );
 
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
-            'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
-        );
+        await pw.ensureFeatureFlag('MobileEphemeralMode', true);
 
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
 
         // # Enable Mobile Ephemeral Mode setting via config API
+        const config = await adminClient.getConfig();
         config.MobileEphemeralModeSettings.Enable = true;
         await adminClient.updateConfig(config);
 
@@ -714,11 +720,7 @@ test(
             'Skipping test - server does not have enterprise advanced license',
         );
 
-        const config = await adminClient.getConfig();
-        test.skip(
-            config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
-            'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
-        );
+        await pw.ensureFeatureFlag('MobileEphemeralMode', true);
 
         if (!adminUser) {
             throw new Error('Failed to create admin user');

@@ -14,15 +14,11 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
  * so a spec can exercise the resource side without also driving the policy
  * editor UI.
  *
- * The server under test must run with MM_FEATUREFLAGS_RESOURCEATTRIBUTESINPOLICIES
- * set: the feature is flag-gated, and a feature flag cannot be turned on through
- * the config API (the config store restores flags on write), so no amount of
- * patchConfig in a spec substitutes for the environment variable. Both CI paths
- * set it — SERVER_ENV_BASELINE for the testcontainers stack the Playwright suite
- * runs on, and e2e-tests/.ci/server.generate.sh for the docker-compose one — and
- * every spec here guards with ensureFeatureFlag so a server that can't get it
- * set (e.g. an external server with no testcontainers to restart) skips rather
- * than failing on a policy save the server refuses.
+ * The feature is gated behind the ResourceAttributesInPolicies flag, which every spec here
+ * turns on via pw.ensureFeatureFlag() — no boot-time env var needed: the Testcontainers server
+ * syncs flags from the mock Split service at runtime (see lib/src/server/feature_flags.ts). Against
+ * an external server with no mock to push a change through, ensureFeatureFlag() skips instead of
+ * failing on a policy save the server refuses.
  */
 
 const PROPERTY_GROUP = 'access_control';
@@ -197,8 +193,6 @@ export async function createLinkedMultiselectScale(
 
 /**
  * Enable PropertyFieldGraph (or skip) the same way other flag-gated specs do.
- * Feature flags cannot be flipped through the config API; ensureFeatureFlag
- * restarts the testcontainers server with the boot-time env var when needed.
  */
 export async function skipIfNoGraphFields(pw: PlaywrightExtended): Promise<void> {
     await pw.ensureFeatureFlag('PropertyFieldGraph', true);

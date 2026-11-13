@@ -16,29 +16,39 @@ one worker per server -- never multiple workers sharing one server.
 Don't use `test.describe.configure({mode: 'parallel'})` or assume two tests in
 different files could race: they never do within a job.
 
-## `ensureFeatureFlag`: one server restart per spec file
+## `ensureFeatureFlag`: changes a flag on the running server, no restart
 
+The server boots on its default feature flags, and a spec changes one only through
 `pw.ensureFeatureFlag(flagName, value)` / `pw.ensureFeatureFlag({flagA: true,
-flagB: false})` (`lib/src/server/feature_flags.ts`) restarts the Testcontainers
-server with the given `MM_FEATUREFLAGS_*` env vars when it isn't already
-running with them. Feature flags can't be changed via `patchConfig` on a
-running server, so a restart is the only way to flip one.
+flagB: false})` (`lib/src/server/feature_flags.ts`). Never set `MM_FEATUREFLAGS_*`
+(including through `MM_ENV`): an env var wins over everything else and can't change
+at runtime, so the harness drops it.
+
+With the `splitmock` service (always started in Testcontainers mode, so it never needs listing in
+`PW_TESTCONTAINERS_SERVICES`), the server syncs its flags from a
+mock Split.io service (`lib/src/containers/assets/split-mock`) that
+`ensureFeatureFlag` drives. The change reaches the running server within its sync
+interval (`PW_FEATURE_FLAG_SYNC_INTERVAL_SECONDS`, 1s) and the server is **not**
+restarted. In this mode a flag change that doesn't arrive, or a server that wasn't
+booted to use the mock, fails the test instead of skipping it or restarting.
 
 - Call it at the top of every test that needs it, inside the test body -- not
   from a bare top-level call or `test.beforeAll()`. `pw` is a test-scoped
   fixture (depends on per-test `page`/`context`) and isn't available in
   `beforeAll`.
-- Every test in a spec file must request the same flag combination. When the
-  server already matches, this is a no-op, so a file restarts at most once, on
-  its first test. Mixing combinations causes a restart on every change.
-- A test needing a different combination belongs in its own file. See
-  `specs/functional/channels/categories/managed_categories_flag_off.spec.ts`
-  and
-  `specs/functional/system_console/global_attributes/global_attributes_listing_classification_markings.spec.ts`.
+- Tests in one file may ask for different values: flipping a flag is cheap, so
+  there is no need to split files by flag combination. Before the first test of
+  each spec file the fixture puts every flag back to its default
+  (`ensureDefaultServerEnv`, no restart).
+- `pw.defineFeatureFlags()`, `pw.setFeatureFlagSegments()` and
+  `pw.getFeatureFlagKey()` model Split targeting (rules for chosen keys,
+  segments, attributes, percentages). See `feature_flag_split_mock.spec.ts`.
+- Against an external server (no Testcontainers) there is no mock, so
+  `ensureFeatureFlag` can only skip the test when a flag has to change.
 
 - Before the first test of each spec file, the test fixture restarts the server
   with the env a fresh boot gets (`ensureDefaultServerEnv`), dropping every
-  `MM_*` var an earlier file set (feature flags, `ensureMinio()`,
+  `MM_*` var an earlier file set (`ensureMinio()`,
   `ensureOpensearch()`, ...), so a spec only sees what it requests itself. Don't
   rely on leftovers. Consecutive files that request the same non-default env each
   pay a restart to clear and set it.

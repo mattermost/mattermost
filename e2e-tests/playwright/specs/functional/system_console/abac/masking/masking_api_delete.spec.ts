@@ -38,7 +38,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -89,7 +89,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -104,7 +104,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -148,7 +148,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -163,7 +163,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -215,7 +215,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -232,7 +232,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -298,7 +298,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -316,7 +316,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -374,7 +374,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -394,7 +394,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const programFieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const clearanceFieldName = `${fieldPrefix}Clear_${pw.random.id()}`;
@@ -486,7 +486,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -501,7 +501,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -568,7 +568,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });
@@ -593,7 +593,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
         try {
             await enableUserManagedAttributes(adminClient);
-            await enableMaskingFlag(adminClient);
+            await enableMaskingFlag();
 
             const fieldName = `${fieldPrefix}Prog_${pw.random.id()}`;
             const fieldId = await createMaskingTextField(adminClient, fieldName);
@@ -647,7 +647,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
                 } catch {} // eslint-disable-line no-empty
             }
             try {
-                await disableMaskingFlag(adminClient);
+                await disableMaskingFlag();
             } catch {} // eslint-disable-line no-empty
         }
     });

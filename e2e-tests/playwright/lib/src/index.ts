@@ -56,8 +56,13 @@ export {
     ensureLocalFile,
     listMattermostDataFiles,
     ensurePostgresSearch,
+    ensureDefaultServerEnv,
     ensureFeatureFlag,
     requireSubpathServer,
+    flagPropagationTimeoutMs,
+    defineFeatureFlags,
+    getFeatureFlagKey,
+    setFeatureFlagSegments,
     runMmctl,
     ensureMmctl,
     upgradeServerImage,
@@ -84,7 +89,7 @@ export type {
     UpgradeLogPhase,
 } from './server';
 
-export {startStack, stopStack, withStackLock} from './containers';
+export {startStack, stopStack, verifySplitMockSyncAfterBoot, withStackLock} from './containers';
 
 export {
     ChannelsPage,

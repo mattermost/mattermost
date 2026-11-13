@@ -2,4 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {withStackLock} from './lock';
-export {startStack, stopStack} from './stack';
+export {startStack, stopStack, verifySplitMockSyncAfterBoot} from './stack';
