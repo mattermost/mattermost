@@ -751,6 +751,10 @@ func TestPluginStartingDuringOnActivate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+	token := model.NewId()
+
 	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
 		package main
 
@@ -778,7 +782,7 @@ func TestPluginStartingDuringOnActivate(t *testing.T) {
 			}
 			p.API.KVSet("state", []byte(strconv.Itoa(status.State)))
 
-			req, _ := http.NewRequest(http.MethodGet, "/"+id+"/ping", nil)
+			req, _ := http.NewRequest(http.MethodGet, "/"+id+"/ping?access_token=` + token + `", nil)
 			resp := p.API.PluginHTTP(req)
 			if resp != nil {
 				resp.Body.Close()
@@ -799,6 +803,11 @@ func TestPluginStartingDuringOnActivate(t *testing.T) {
 	require.Len(t, pluginIDs, 1)
 	require.NoError(t, activationErrors[0])
 	pluginID := pluginIDs[0]
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := buffer.String()
+	require.Contains(t, logs, "still starting", "the starting-plugin request was never logged")
+	assert.NotContains(t, logs, token, "the query string can carry an access_token")
 
 	getKey := func(key string) string {
 		value, appErr := th.App.GetPluginKey(pluginID, key)

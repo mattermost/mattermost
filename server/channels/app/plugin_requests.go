@@ -78,7 +78,7 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 		a.Log().Debug("Internal plugin request to a plugin that is still starting",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
-			mlog.String("url", r.URL.String()),
+			mlog.String("url", r.URL.Path),
 		)
 		http.Error(w, "plugin is starting", http.StatusServiceUnavailable)
 		return
