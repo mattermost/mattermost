@@ -5647,9 +5647,9 @@
     "defaultMessage": "Filter by",
     "description": "Heading of the admin console filter popover, above the filter option groups."
   },
-  "admin.general.localization.availableLocalesDescription": {
-    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names, and <link> wraps the Mattermost Translation Server link text."
+  "admin.general.localization.availableLocalesHelpText": {
+    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.",
+    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names."
   },
   "admin.general.localization.availableLocalesNoResults": {
     "defaultMessage": "No results found",
@@ -34278,10 +34278,6 @@
   "user.settings.languages.promote1": {
     "defaultMessage": "Select which language Mattermost displays in the user interface.",
     "description": "Help text under the language dropdown explaining what the setting does."
-  },
-  "user.settings.languages.promote2": {
-    "defaultMessage": "Would you like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Note under the language setting inviting users to contribute translations; <link> wraps a link to the Mattermost translation server."
   },
   "user.settings.mfa.add": {
     "defaultMessage": "Add MFA to Account",
