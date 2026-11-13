@@ -933,15 +933,11 @@ func TestInternalJobTypes(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		_, err = client.CancelJob(context.Background(), job.Id)
-		require.NoError(t, err)
-
-		_, resp, err = client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeRecap})
+		resp, err = client.CancelJob(context.Background(), job.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		inviteJob := saveJob(t, model.JobTypeResendInvitationEmail)
-		resp, err = client.CancelJob(context.Background(), inviteJob.Id)
+		_, resp, err = client.CreateJob(context.Background(), &model.Job{Type: model.JobTypeRecap})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
@@ -963,7 +959,7 @@ func TestInternalJobTypes(t *testing.T) {
 
 		resp, err = th.SystemManagerClient.CancelJob(context.Background(), job.Id)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 

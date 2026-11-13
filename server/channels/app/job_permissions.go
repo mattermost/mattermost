@@ -159,21 +159,6 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 	return a.sessionHasJobPermission(session, jobPermissions[job.Type].manage)
 }
 
-// SessionHasPermissionToCancelJob returns whether the session may cancel the job and the permission
-// that was checked. Cancelling requires the create permission, or manage_system for job types that
-// the server runs itself. The permission is nil for job types that can't be cancelled.
-func (a *App) SessionHasPermissionToCancelJob(rctx request.CTX, session model.Session, job *model.Job) (bool, *model.Permission) {
-	if hasPermission, permission := a.SessionHasPermissionToCreateJob(rctx, session, job); permission != nil {
-		return hasPermission, permission
-	}
-	// Cancelling a resend invitation email job through the API would leave its Systems table entry behind.
-	if _, ok := jobPermissions[job.Type]; !ok || job.Type == model.JobTypeResendInvitationEmail {
-		return false, nil
-	}
-
-	return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
-}
-
 // SessionHasPermissionToReadJob returns whether the session may read jobs of the type and the permission
 // that was checked. The permission is nil for unknown job types.
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
