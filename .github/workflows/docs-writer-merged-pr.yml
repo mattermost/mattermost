@@ -2,7 +2,7 @@ name: Docs Writer (Merged PR)
 
 # When a PR merges still carrying Docs/Needed, draft the missing pages in this
 # repo from the gap sticky comment, then open a PR ready for review (not a GitHub
-# draft, so reviewers and the editor-review label pick it up). Merging that PR
+# draft, so the editor-review label and any requested reviewer pick it up). Merging that PR
 # flips Docs/Needed → Docs/Done on the originating PR.
 #
 # Requires DOCS_AI_APP_CLIENT_ID (variable) + DOCS_AI_APP_PRIVATE_KEY (secret)

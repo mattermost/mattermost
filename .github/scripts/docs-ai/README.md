@@ -111,7 +111,9 @@ out of the comment it wrote last time, so it can tell its own label from a human
 When a PR **merges** still carrying `Docs/Needed`, `docs-writer-merged-pr.yml` reads the
 sticky comment's recommended actions, authors MDX with the matching `author` personas,
 pre-reviews in-loop, and opens `docs/pr-<n>` ready for review (authored by the Docs AI App).
-It is not a GitHub draft, so reviewers are notified and editor-review labelling runs.
+It is not a GitHub draft, so editor-review labelling runs and any requested reviewers are
+notified. The writer requests the source PR author, or for a bot-authored source PR the first
+human reviewer it finds; if there is none, or the request fails, no reviewer is added.
 The draft title comes from the source PR title. The draft body says what the
 documentation change does. The pre-open review trail stays in `trail.json`, uploaded
 as a workflow artifact, not the body. Merging that PR flips `Docs/Needed` →
