@@ -39,9 +39,10 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
 	if err != nil {
-		mlog.Debug("Access to route for non-existent plugin",
+		// Log the path only; the query string can carry an access_token.
+		ch.srv.Log().Debug("Access to route for non-existent plugin",
 			mlog.String("missing_plugin_id", pluginID),
-			mlog.String("url", r.URL.String()),
+			mlog.String("url", r.URL.Path),
 			mlog.Err(err))
 		http.NotFound(w, r)
 		return
@@ -83,10 +84,11 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 		return
 	}
 	if err != nil {
+		// Log the path only; the query string can carry an access_token.
 		a.Log().Error("Access to route for non-existent plugin in internal plugin request",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
-			mlog.String("url", r.URL.String()),
+			mlog.String("url", r.URL.Path),
 			mlog.Err(err),
 		)
 		http.NotFound(w, r)

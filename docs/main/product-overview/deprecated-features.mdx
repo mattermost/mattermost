@@ -93,7 +93,7 @@ This page describes features that are removed from support for Mattermost, or wi
 
 - Added logic to migrate the password hashing method from bcrypt to PBKDF2. The migration will happen progressively, migrating the password of a user as soon as they enter it; e.g. when logging in or when double-checking their password for any sensitive action. There is an edge case where users might get locked out of their account: if a server upgrades to v11 and user A logs in (i.e., they need to enter their password), and then the server downgrades to v10.12 or previous, user A will no longer be able to log in. In this case, admins will need to manually reset the password of such users, through the system console or through the [mmctl user reset-password \[users\]](mm-ref:administration-guide%2Fmanage%2Fmmctl-command-line-tool%3Ammctl%20user%20reset-password) command. The new password hashing method is more CPU-intensive. Admins of servers with password-based login should monitor the performance on periods where many users log in at the same time.
 
-- `/api/v4/teams/&#123;team_id&#125;/channels/search_archived` has been deprecated in favour of `/api/v4/channels/search` with the deleted parameter.
+- `/api/v4/teams/{team_id}/channels/search_archived` has been deprecated in favour of `/api/v4/channels/search` with the deleted parameter.
 
 - Separate notification log file has been deprecated. If admins want to continue using a separate log file for notification logs, they can use the `AdvancedLoggingJSON` configuration. An example configuration to use is:
 

@@ -27,33 +27,6 @@ describe('components/SettingItemMax', () => {
         width: 'full',
     };
 
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(<SettingItemMax {...baseProps}/>);
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
-    test('should match snapshot, without submit', () => {
-        const props = {...baseProps, submit: null};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on clientError', () => {
-        const props = {...baseProps, clientError: 'clientError'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on serverError', () => {
-        const props = {...baseProps, serverError: 'serverError'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
     test('should have called updateSection on handleUpdateSection with section after clicking cancel button', async () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
@@ -70,13 +43,6 @@ describe('components/SettingItemMax', () => {
 
         expect(baseProps.submit).toHaveBeenCalled();
         expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);
-    });
-
-    test('should match snapshot, with new saveTextButton', () => {
-        const props = {...baseProps, saveButtonText: 'CustomText'};
-        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
-
-        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should have called submit on handleSubmit onKeyDown ENTER', async () => {

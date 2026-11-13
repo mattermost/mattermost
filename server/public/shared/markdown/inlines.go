@@ -124,7 +124,7 @@ type delimiter struct {
 type inlineParser struct {
 	markdown             string
 	ranges               []Range
-	referenceDefinitions []*ReferenceDefinition
+	referenceDefinitions *ReferenceDefinitions
 
 	raw            string
 	position       int
@@ -132,7 +132,7 @@ type inlineParser struct {
 	delimiterStack *list.List
 }
 
-func newInlineParser(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) *inlineParser {
+func newInlineParser(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) *inlineParser {
 	return &inlineParser{
 		markdown:             markdown,
 		ranges:               ranges,
@@ -334,13 +334,7 @@ func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage
 }
 
 func (p *inlineParser) referenceDefinition(label string) *ReferenceDefinition {
-	clean := strings.Join(strings.Fields(label), " ")
-	for _, d := range p.referenceDefinitions {
-		if strings.EqualFold(clean, strings.Join(strings.Fields(d.Label()), " ")) {
-			return d
-		}
-	}
-	return nil
+	return p.referenceDefinitions.lookup(label)
 }
 
 func (p *inlineParser) lookForLinkOrImage() {
@@ -607,41 +601,53 @@ func (p *inlineParser) Parse() []Inline {
 	return p.inlines
 }
 
-func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*ReferenceDefinition) (inlines []Inline) {
+func ParseInlines(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) (inlines []Inline) {
 	return newInlineParser(markdown, ranges, referenceDefinitions).Parse()
 }
 
 func MergeInlineText(inlines []Inline) []Inline {
 	ret := inlines[:0]
-	for i, v := range inlines {
-		// always add first node
-		if i == 0 {
-			ret = append(ret, v)
-			continue
+	var b strings.Builder
+	var runStart, runEnd, runCount int
+	var first *Text
+
+	flush := func() {
+		if runCount == 0 {
+			return
 		}
-		// not a text node? nothing to merge
-		text, ok := v.(*Text)
-		if !ok {
-			ret = append(ret, v)
-			continue
+		if runCount == 1 {
+			ret = append(ret, first)
+		} else {
+			ret = append(ret, &Text{
+				Text:  b.String(),
+				Range: Range{runStart, runEnd},
+			})
 		}
-		// previous node is not a text node? nothing to merge
-		prevText, ok := ret[len(ret)-1].(*Text)
-		if !ok {
-			ret = append(ret, v)
-			continue
-		}
-		// previous node is not right before this one
-		if prevText.Range.End != text.Range.Position {
-			ret = append(ret, v)
-			continue
-		}
-		// we have two consecutive text nodes
-		ret[len(ret)-1] = &Text{
-			Text:  prevText.Text + text.Text,
-			Range: Range{prevText.Range.Position, text.Range.End},
-		}
+		b.Reset()
+		runCount = 0
+		first = nil
 	}
+
+	for _, v := range inlines {
+		text, ok := v.(*Text)
+		if ok && runCount > 0 && runEnd == text.Range.Position {
+			b.WriteString(text.Text)
+			runEnd = text.Range.End
+			runCount++
+			continue
+		}
+		flush()
+		if !ok {
+			ret = append(ret, v)
+			continue
+		}
+		b.WriteString(text.Text)
+		runStart = text.Range.Position
+		runEnd = text.Range.End
+		runCount = 1
+		first = text
+	}
+	flush()
 	return ret
 }
 

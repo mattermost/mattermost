@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as monaco from 'monaco-editor';
 import React from 'react';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
@@ -155,6 +156,124 @@ describe('CELEditor', () => {
             expect(searchUsersForExpression).toHaveBeenCalledWith(expression, '', '', 50, 'channel1', 'team1');
         });
         expect(screen.getByText('Access Rule Test Results')).toBeInTheDocument();
+    });
+
+    describe('test button overrides', () => {
+        const PARENT_TOOLTIP = 'Testing is unavailable here.';
+        const MASKED_TOOLTIP = 'Test is unavailable because this policy contains restricted attribute values.';
+
+        const testButton = () => screen.getByRole('button', {name: /test access rule/i});
+
+        const hoverTooltip = async () => {
+            await userEvent.hover(testButton(), {pointerEventsCheck: 0});
+            return screen.findByRole('tooltip', {}, {timeout: 2000});
+        };
+
+        test('enables the button for a valid expression when the overrides are omitted', async () => {
+            renderWithContext(<CELEditor {...baseProps}/>, {});
+
+            await waitFor(() => expect(testButton()).toBeEnabled());
+        });
+
+        test('enables the button when testButtonDisabled is false', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    testButtonDisabled={false}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            await waitFor(() => expect(testButton()).toBeEnabled());
+        });
+
+        test('disables a valid expression\'s button and shows the parent tooltip when testButtonDisabled is set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await screen.findByText('Valid')).toBeInTheDocument();
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('does not forward clicks to onTestClick while testButtonDisabled is set', async () => {
+            const onTestClick = jest.fn();
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    onTestClick={onTestClick}
+                    testButtonDisabled={true}
+                />,
+                {},
+            );
+
+            expect(await screen.findByText('Valid')).toBeInTheDocument();
+            await userEvent.click(testButton(), {pointerEventsCheck: 0});
+            expect(onTestClick).not.toHaveBeenCalled();
+        });
+
+        test('prefers the parent tooltip over the masked-values tooltip when testButtonDisabled is set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                    testButtonDisabled={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('prefers the parent tooltip over the masked-values tooltip even when testButtonDisabled is not set', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                    testButtonTooltip={PARENT_TOOLTIP}
+                />,
+                {},
+            );
+
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(PARENT_TOOLTIP);
+        });
+
+        test('shows the masked-values tooltip by default', async () => {
+            renderWithContext(
+                <CELEditor
+                    {...baseProps}
+                    hasMaskedRows={true}
+                />,
+                {},
+            );
+
+            expect(testButton()).toBeDisabled();
+            expect(await hoverTooltip()).toHaveTextContent(MASKED_TOOLTIP);
+        });
+    });
+
+    test('should announce the validation status to screen readers', async () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const status = (await screen.findByText('Valid')).closest('.cel-editor__status-message');
+        expect(status).toHaveAttribute('role', 'status');
+        expect(status).toHaveAttribute('aria-live', 'polite');
+    });
+
+    test('should give the Monaco editor an accessible name', () => {
+        renderWithContext(<CELEditor {...baseProps}/>, {});
+
+        const createMock = monaco.editor.create as jest.Mock;
+        expect(createMock.mock.calls.at(-1)[1]).toEqual(expect.objectContaining({ariaLabel: 'CEL expression editor'}));
     });
 });
 

@@ -61,7 +61,15 @@ func (ts *TeamService) IsTeamEmailAllowed(user *model.User, team *model.Team) bo
 	if user.IsBot {
 		return true
 	}
-	email := strings.ToLower(user.Email)
+	email := user.Email
+	if user.IsRemote() {
+		// Prefer the original remote email when available.
+		// Some integrations provide only the user's Email field.
+		if remoteEmail, ok := user.GetProp(model.UserPropsKeyRemoteEmail); ok && remoteEmail != "" {
+			email = remoteEmail
+		}
+	}
+	email = strings.ToLower(email)
 	allowedDomains := ts.GetAllowedDomains(user, team)
 	return IsEmailAddressAllowed(email, allowedDomains)
 }

@@ -451,6 +451,11 @@ func TestMuteHealthFindingAudit(t *testing.T) {
 func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
+	const (
+		unreachableHTTPS = "https://127.0.0.1:0"
+		badSchemeHTTP    = "http://127.0.0.1:0"
+	)
+
 	setPushServer := func(url string) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -475,24 +480,40 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 		return byCode
 	}
 
-	setPushServer("https://push.example.com")
-	assert.Empty(t, checkPushFindings())
+	setPushServer(unreachableHTTPS)
+	initial := checkPushFindings()
+	require.Len(t, initial, 1)
+	unreachable := initial["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachable)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachable.State)
+	assert.Equal(t, "health.rule.push_proxy_unreachable.message", unreachable.MessageID)
+	assert.NotEmpty(t, unreachable.Message)
 
-	setPushServer("http://push.example.com")
+	setPushServer(badSchemeHTTP)
 	firing := checkPushFindings()
-	require.Len(t, firing, 1)
+	require.Len(t, firing, 2)
 	badScheme := firing["PUSH_BAD_SCHEME"]
 	require.NotNil(t, badScheme)
 	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
 	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
 	assert.NotEmpty(t, badScheme.Message)
+	unreachableCleared := firing["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableCleared)
+	assert.Equal(t, string(healthcheck.StateResolved), unreachableCleared.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableCleared.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableCleared.FirstSeenAt)
 
-	setPushServer("https://push.example.com")
+	setPushServer(unreachableHTTPS)
 	after := checkPushFindings()
-	require.Len(t, after, 1)
+	require.Len(t, after, 2)
 	cleared := after["PUSH_BAD_SCHEME"]
 	require.NotNil(t, cleared)
 	assert.Equal(t, string(healthcheck.StateResolved), cleared.State)
 	assert.Equal(t, badScheme.Fingerprint, cleared.Fingerprint)
 	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
+	unreachableAgain := after["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableAgain)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachableAgain.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableAgain.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableAgain.FirstSeenAt)
 }

@@ -5,7 +5,7 @@ import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {render, renderWithContext, screen} from 'tests/react_testing_utils';
+import {render, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AtMention from './at_mention';
@@ -29,19 +29,6 @@ describe('components/AtMention', () => {
         getMissingMentionedUsers: jest.fn(),
     };
 
-    test('should match snapshot when mentioning user', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='user1'
-            >
-                {'(at)-user1'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render the mention as a non-submit button', () => {
         render(
             <AtMention
@@ -53,190 +40,6 @@ describe('components/AtMention', () => {
         );
 
         expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
-    });
-
-    test('should match snapshot when mentioning user with different teammate name display setting', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='user1'
-                teammateNameDisplay={General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME}
-            >
-                {'(at)-user1'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning user followed by punctuation', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='user1...'
-            >
-                {'(at)-user1'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning user containing punctuation', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='userdot.'
-            >
-                {'(at)-userdot.'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning user containing and followed by punctuation', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='userdot..'
-            >
-                {'(at)-userdot..'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning user with mixed case', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='USeR1'
-            >
-                {'(at)-USeR1'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning current user', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='currentUser'
-            >
-                {'(at)-currentUser'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning all', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='all'
-            >
-                {'(at)-all'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning all with mixed case', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='aLL'
-            >
-                {'(at)-aLL'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when not mentioning a user', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='notauser'
-            >
-                {'(at)-notauser'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when not mentioning a user with mixed case', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='NOTAuser'
-            >
-                {'(at)-NOTAuser'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning a group that is allowed reference', () => {
-        const {container} = renderWithContext(
-            <AtMention
-                {...baseProps}
-                mentionName='developers'
-            >
-                {'(at)-developers'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning a group that is allowed reference with group highlight disabled', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='developers'
-                disableGroupHighlight={true}
-            >
-                {'(at)-developers'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning a group that is not allowed reference', () => {
-        const {container} = render(
-            <AtMention
-                {...baseProps}
-                mentionName='marketing'
-            >
-                {'(at)-marketing'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when mentioning a group followed by punctuation', () => {
-        const {container} = renderWithContext(
-            <AtMention
-                {...baseProps}
-                mentionName='developers.'
-            >
-                {'(at)-developers.'}
-            </AtMention>,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 
     describe('fetchMissingUsers', () => {

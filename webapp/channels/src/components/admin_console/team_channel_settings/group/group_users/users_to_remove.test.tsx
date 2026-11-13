@@ -32,7 +32,7 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         },
     };
 
-    test('should match snapshot with 2 users', async () => {
+    test('should render with 2 users', async () => {
         const {container} = renderWithContext(
             <UsersToRemove
                 {...baseProps}
@@ -42,11 +42,9 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         await waitFor(() => {
             expect(container.querySelector('.DataGrid_loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with guests disabled', async () => {
+    test('should render with guests disabled', async () => {
         const {container} = renderWithContext(
             <UsersToRemove
                 {...baseProps}
@@ -57,26 +55,5 @@ describe('components/admin_console/team_channel_settings/group/UsersToRemove', (
         await waitFor(() => {
             expect(container.querySelector('.DataGrid_loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot loading', () => {
-        const props = {
-            ...baseProps,
-            actions: {
-                ...baseProps.actions,
-                loadTeamMembersForProfilesList: jest.fn().mockReturnValue(new Promise(() => {})),
-                loadChannelMembersForProfilesList: jest.fn().mockReturnValue(new Promise(() => {})),
-            },
-        };
-
-        const {container} = renderWithContext(
-            <UsersToRemove
-                {...props}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 });

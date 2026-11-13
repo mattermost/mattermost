@@ -194,7 +194,7 @@ func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
 // (username, email, profile image, ...)
 func (a *App) onUserProfileChange(userID string) {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return
 	}
 	syncService.NotifyUserProfileChanged(userID)
@@ -215,10 +215,42 @@ func (a *App) UpdateSharedChannelCursor(channelID, remoteID string, cursor model
 	return a.Srv().Store().SharedChannel().UpdateRemoteCursor(src.Id, cursor)
 }
 
+// GetSharedChannelCursor returns the sync cursor for the specified channelID and remoteID.
+// The remote must belong to the plugin identified by pluginID.
+func (a *App) GetSharedChannelCursor(pluginID, channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+	if err != nil {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
+	// Master read: a replica can lag a cursor just written by UpdateSharedChannelCursor,
+	// or a channel PermanentDeleteChannel removed (it leaves SharedChannelRemotes rows behind).
+	src, err := a.Srv().Store().SharedChannel().GetRemoteByIdsFromMaster(channelID, remoteID)
+	if err != nil {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - cannot fetch shared channel remote: %w", err)
+	}
+	if src.DeleteAt != 0 {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - channel %s is no longer shared with remote %s", channelID, remoteID)
+	}
+	// Confirming the invite resets the cursor to now, overwriting any rewind made before it.
+	if !src.IsInviteConfirmed {
+		return model.GetPostsSinceForSyncCursor{}, fmt.Errorf("cursor fetch failed - invite of remote %s to channel %s is not yet confirmed", remoteID, channelID)
+	}
+	return model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: src.LastPostUpdateAt,
+		LastPostUpdateID: src.LastPostUpdateID,
+		LastPostCreateAt: src.LastPostCreateAt,
+		LastPostCreateID: src.LastPostCreateID,
+	}, nil
+}
+
 // SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
 func (a *App) SyncSharedChannel(channelID string) error {
 	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
+	if syncService == nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
 	}
@@ -231,10 +263,8 @@ func (a *App) SyncSharedChannel(channelID string) error {
 //
 // Plugins run on every cluster node, so these APIs do not require the shared
 // channel service to be active (which is only the case on the cluster leader).
-// Received content is written to the database on the receiving node. Posts,
-// reactions and acknowledgements reach other remotes through cluster websocket
-// events handled by the leader; sync tasks queued as a side effect on a
-// follower (membership changes, statuses) wait in that node's inactive queue.
+// Received content is written to the database on the receiving node. Sync
+// tasks queued as a side effect on a follower are sent to the leader.
 
 // ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
 // The pluginID is server-injected (from api.id) for ownership validation; remoteID

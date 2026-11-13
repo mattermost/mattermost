@@ -1554,11 +1554,15 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
-	t.Run("too many members", func(t *testing.T) {
-		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
-		_, nErr := ss.Team().SaveMember(rctx, member, 0)
-		require.Error(t, nErr)
-		require.Equal(t, "limit exceeded: what: TeamMember count: 1 metadata: team members limit exceeded", nErr.Error())
+	t.Run("no limit when max users per team is 0", func(t *testing.T) {
+		teamID := model.NewId()
+
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		_, nErr := ss.Team().SaveMember(rctx, m1, 0)
+		require.NoError(t, nErr)
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		_, nErr = ss.Team().SaveMember(rctx, m2, 0)
+		require.NoError(t, nErr)
 	})
 
 	t.Run("too many members because previous existing members", func(t *testing.T) {
@@ -1899,9 +1903,18 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 		teamID := model.NewId()
 		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
-		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 1)
 		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
+	})
+
+	t.Run("no limit when max users per team is 0", func(t *testing.T) {
+		teamID := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		members, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
+		require.NoError(t, nErr)
+		require.Len(t, members, 2)
 	})
 
 	t.Run("too many members in one team because previous existing members", func(t *testing.T) {

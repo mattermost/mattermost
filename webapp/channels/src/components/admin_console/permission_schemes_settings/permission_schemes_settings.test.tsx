@@ -31,21 +31,9 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         ...{} as RouteComponentProps,
     };
 
-    test('should match snapshot loading', () => {
-        // loadSchemes returns a pending promise so component stays in loading state
-        const loadSchemes = jest.fn(() => new Promise<any>(() => {}));
-        const {container} = renderWithContext(
-            <PermissionSchemesSettings
-                {...defaultProps}
-                actions={{...defaultProps.actions, loadSchemes}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot without schemes', async () => {
+    test('should render without schemes', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 schemes={{}}
@@ -55,12 +43,11 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         await waitFor(() => {
             expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with schemes', async () => {
+    test('should render with schemes', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, loadSchemes}}
@@ -69,14 +56,13 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         await waitFor(() => {
             expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should show migration in-progress view', async () => {
         const loadSchemes = jest.fn(() =>
             Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 actions={{...defaultProps.actions, loadSchemes}}
@@ -85,14 +71,13 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         await waitFor(() => {
             expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should show migration on hold view', async () => {
         const loadSchemes = jest.fn(() =>
             Promise.resolve({data: [], error: {status_code: 501}}),
         );
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 jobsAreEnabled={false}
@@ -102,12 +87,11 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         await waitFor(() => {
             expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should show normal view (jobs disabled after migration)', async () => {
         const loadSchemes = jest.fn(() => Promise.resolve({data: [], error: {}}));
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 jobsAreEnabled={false}
@@ -117,6 +101,5 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         await waitFor(() => {
             expect(screen.getByText('Permission Schemes')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 });

@@ -38,9 +38,9 @@ func (s *SqlDesktopTokensStore) GetUserId(token string, minCreateAt int64) (*str
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("DesktopTokens", token)
+			return nil, store.NewErrNotFound("DesktopTokens", "Token=<redacted>")
 		}
-		return nil, errors.Wrapf(err, "No token for %s", token)
+		return nil, errors.Wrap(err, "failed to get DesktopTokens by token")
 	}
 
 	return &dt.UserId, nil

@@ -64,3 +64,9 @@ func (r Result) WithValue(v float64) Result {
 	r.Value = &v
 	return r
 }
+
+// WithUnreachableNode marks a firing result as the node-down finding for hostname. The
+// reconciler then drops that node's other unknown results and does not age its findings.
+func (r Result) WithUnreachableNode(hostname string) Result {
+	return r.WithDetail(detailKeyUnreachableNode, hostname)
+}

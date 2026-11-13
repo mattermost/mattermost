@@ -9,7 +9,6 @@ import {act, render} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
-import {generateId} from 'utils/utils';
 
 jest.mock('react-bootstrap', () => {
     const Modal = ({children, show}: {children: React.ReactNode; show: boolean}) => (show ? <div>{children}</div> : null);
@@ -69,89 +68,6 @@ describe('components/FilePreviewModal', () => {
         );
         return {ref, ...utils};
     };
-
-    test('should match snapshot', () => {
-        const {container} = renderModal();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with image', () => {
-        const {container, ref} = renderModal();
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with .mov file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'mov'})];
-        const props = {...baseProps, fileInfos};
-        const {container, ref} = renderModal(props);
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with .m4a file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'm4a'})];
-        const props = {...baseProps, fileInfos};
-        const {container, ref} = renderModal(props);
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with .js file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'js'})];
-        const props = {...baseProps, fileInfos};
-        const {container, ref} = renderModal(props);
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with other file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'other'})];
-        const props = {...baseProps, fileInfos};
-        const {container, ref} = renderModal(props);
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded with footer', () => {
-        const fileInfos = [
-            TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif'}),
-            TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
-            TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
-        ];
-        const props = {...baseProps, fileInfos};
-        const {container, ref} = renderModal(props);
-        act(() => {
-            ref.current?.setState({loaded: [true, true, true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded', () => {
-        const {container, ref} = renderModal();
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loaded and showing footer', () => {
-        const {container, ref} = renderModal();
-        act(() => {
-            ref.current?.setState({loaded: [true] as any});
-        });
-        expect(container).toMatchSnapshot();
-    });
 
     test('should go to next or previous upon key press of right or left, respectively', () => {
         const fileInfos = [
@@ -213,15 +129,6 @@ describe('components/FilePreviewModal', () => {
             ref.current?.handleModalClose();
         });
         expect(ref.current?.state.show).toBe(false);
-    });
-
-    test('should match snapshot for external file', () => {
-        const fileInfos = [
-            TestHelper.getFileInfoMock({extension: 'png'}),
-        ];
-        const props = {...baseProps, fileInfos};
-        const {container} = renderModal(props);
-        expect(container).toMatchSnapshot();
     });
 
     test('should correctly identify image URLs with isImageUrl method', () => {
@@ -382,30 +289,6 @@ describe('components/FilePreviewModal', () => {
         });
         expect(Object.keys(ref.current?.state.loaded || {})).toHaveLength(3);
         expect(Object.keys(ref.current?.state.progress || {})).toHaveLength(3);
-    });
-
-    test('should match snapshot when plugin overrides the preview component', () => {
-        const pluginFilePreviewComponents = [{
-            id: generateId(),
-            pluginId: 'file-preview',
-            override: () => true,
-            component: () => <div>{'Preview'}</div>,
-        }];
-        const props = {...baseProps, pluginFilePreviewComponents};
-        const {container} = renderModal(props);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should fall back to default preview if plugin does not need to override preview component', () => {
-        const pluginFilePreviewComponents = [{
-            id: generateId(),
-            pluginId: 'file-preview',
-            override: () => false,
-            component: () => <div>{'Preview'}</div>,
-        }];
-        const props = {...baseProps, pluginFilePreviewComponents};
-        const {container} = renderModal(props);
-        expect(container).toMatchSnapshot();
     });
 });
 

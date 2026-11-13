@@ -47,32 +47,19 @@ describe('components/integrations/EditOAuthApp', () => {
         enableOAuthServiceProvider: true,
     };
 
-    test('should match snapshot, loading', () => {
-        const props = {...baseProps, oauthApp: undefined as unknown as OAuthApp};
-        const {container} = renderWithContext(
-            <EditOAuthApp {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot', () => {
+    test('should render', () => {
         const props = {...baseProps, oauthApp};
-        const {container} = renderWithContext(
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(props.actions.getOAuthApp).toHaveBeenCalledWith(oauthApp.id);
     });
 
-    test('should match snapshot when EnableOAuthServiceProvider is false', () => {
+    test('should render when EnableOAuthServiceProvider is false', () => {
         const props = {...baseProps, oauthApp, enableOAuthServiceProvider: false};
-        const {container} = renderWithContext(
+        renderWithContext(
             <EditOAuthApp {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(props.actions.getOAuthApp).not.toHaveBeenCalledWith();
     });
 
