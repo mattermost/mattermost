@@ -262,6 +262,7 @@ jobs:
 
       - name: Open or update draft PR
         if: steps.gate.outputs.run == 'true'
+        id: open-pr
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
@@ -311,8 +312,11 @@ jobs:
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
 
       # Without this a failed draft is invisible: Docs/Needed stays on and nobody is told.
+      # Skipped once the draft PR exists; a later step failing is not a failed draft.
       - name: Tell the source PR the draft failed
-        if: failure() && steps.gate.outputs.run == 'true' && steps.pr.outputs.pr_number != ''
+        if: >-
+          failure() && steps.gate.outputs.run == 'true' && steps.pr.outputs.pr_number != '' &&
+          steps.open-pr.outcome != 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
@@ -321,7 +325,7 @@ jobs:
           set -euo pipefail
           MARKER="<!-- docs-ai-writer-failed -->"
           if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-              --jq '.[].body' | grep -qF "$MARKER"; then
+              --jq '.[].body' | grep -F "$MARKER" >/dev/null; then
             echo "Failure notice already posted on #${PR_NUMBER}."
             exit 0
           fi

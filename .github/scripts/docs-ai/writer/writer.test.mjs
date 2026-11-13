@@ -533,6 +533,50 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
   assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
 });
 
+test('authorLoop keeps prior files when a revision hits the output limit', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const fileBlock = (body) =>
+    ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
+
+  let authorCalls = 0;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": ["system-admin"]}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      return {
+        text: JSON.stringify({verdict: 'REQUEST_CHANGES', summary: 'Needs a clearer lead.', feedback: ['Clarify.']}),
+        usage: {},
+      };
+    }
+    authorCalls += 1;
+    if (prompt.includes('Revise the text this draft added')) {
+      return {text: '````mdx path=' + path + '\n---\ntitle: Foo', usage: {}, stopReason: 'max_tokens'};
+    }
+    return {
+      text: ['```summary', '- First draft of Foo.', '```', '', fileBlock('From Mattermost v11.7, Foo is available.')].join(
+        '\n',
+      ),
+      usage: {},
+    };
+  };
+
+  const {files, trail, summary} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [path]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(authorCalls, 2);
+  assert.equal(files.length, 1);
+  assert.match(files[0].content, /From Mattermost v11\.7, Foo is available/);
+  assert.match(summary, /First draft of Foo/);
+  assert.deepEqual(trail.failedGroups, []);
+  assert.ok(trail.openConcerns.some((c) => /Revision failed: .*output limit/.test(c.summary)));
+  assert.ok(trail.openConcerns.some((c) => c.summary === 'Needs a clearer lead.'));
+});
+
 function existingPageFixture() {
   const dir = mkdtempSync(join(tmpdir(), 'docs-writer-'));
   const path = 'docs/main/administration-guide/configure/foo.mdx';

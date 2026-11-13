@@ -427,15 +427,30 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
       }
 
       revision += 1;
-      const revised = await authorPass({
-        personaId: group.personaId,
-        groupPaths: group.paths,
-        brief,
-        input,
-        revisionFeedback: blocking,
-        basePages: groupFiles,
-        completeFn,
-      });
+      let revised;
+      try {
+        revised = await authorPass({
+          personaId: group.personaId,
+          groupPaths: group.paths,
+          brief,
+          input,
+          revisionFeedback: blocking,
+          basePages: groupFiles,
+          completeFn,
+        });
+      } catch (e) {
+        // A truncated or unparseable revision must not discard a complete prior pass.
+        console.error(`[author-loop] revision failed (${e.message}); keeping prior files`);
+        trail.openConcerns.push(
+          ...blocking.map((r) => ({persona: r.persona, summary: r.summary, feedback: r.feedback})),
+          {
+            persona: group.personaId ?? 'neutral',
+            summary: `Revision failed: ${e.message}`,
+            feedback: [],
+          },
+        );
+        break;
+      }
       const revisedMissing = missingGroupTargets(revised.files, group.paths);
       if (revisedMissing.length) {
         // Incomplete revision must not replace a complete prior pass.
