@@ -48,6 +48,10 @@ func createBoard(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !validateChannelSchemeAssignment(c, &channel) {
+		return
+	}
+
 	channel.CreatorId = c.AppContext.Session().UserId
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateBoard, model.AuditStatusFail)
