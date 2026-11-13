@@ -355,6 +355,28 @@ class RoutePrefixTest(unittest.TestCase):
                          {("/health/findings/{fingerprint}/mute", "muteHealthFinding", "POST")})
         self.assertEqual(checker._shorten_path_vars("/{a:[0-9]{2,3}}/{b}/{c:x}"), "/{a}/{b}/{c}")
 
+    def test_routes_chain_back_to_the_api_root(self):
+        # #39527 and #39528 wrote "GET /posts" and "GET /signup_available": the root and the
+        # subrouter prefix were lost.
+        api = ('\tapi.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()\n'
+               '\tapi.BaseRoutes.APIRoot5 = srv.Router.PathPrefix(model.APIURLSuffixV5).Subrouter()\n'
+               '\tapi.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()\n'
+               '\tapi.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()\n')
+        usage = ('\tapi.BaseRoutes.Usage.Handle("/posts", api.APISessionRequired(getPostsUsage)).Methods(http.MethodGet)\n'
+                 '\tapi.BaseRoutes.HostedCustomer.Handle("/signup_available", '
+                 'api.APISessionRequired(handleSignupAvailable)).Methods(http.MethodGet)\n'
+                 '\tsomeOtherRouter.Handle("/loose", api.APISessionRequired(loose)).Methods(http.MethodGet)\n')
+        self.assertEqual(checker._route_prefixes(api)["APIRoot5"], "/api/v5")
+        self.assertEqual(checker._parse_endpoints(usage, checker._route_prefixes(api)) - {("/loose", "loose", "GET")}, {
+            ("/api/v4/usage/posts", "getPostsUsage", "GET"),
+            ("/api/v4/hosted_customer/signup_available", "handleSignupAvailable", "GET"),
+        })
+        # The changelog reads the router as a whole and leaves out a route on an unknown receiver.
+        self.assertEqual(checker.router_endpoints([usage], api), {
+            ("/api/v4/usage/posts", "getPostsUsage", "GET"),
+            ("/api/v4/hosted_customer/signup_available", "handleSignupAvailable", "GET"),
+        })
+
     def test_a_route_on_an_unknown_router_keeps_its_own_path(self):
         self.assertEqual(checker._parse_endpoints(_HANDLE), {("/api/v4/foo", "getFoo", "GET")})
 

@@ -239,6 +239,14 @@ def git_show(ref: str, path: str) -> str | None:
     raise RuntimeError(f"git show {ref}:{path} failed: {(result.stderr or listing.stderr).strip()}")
 
 
+def git_ls(ref: str, path: str) -> list[str]:
+    """The files directly under the directory ``path`` (ending in ``/``) at ``ref``. A failing git command raises."""
+    result = _git("ls-tree", "--name-only", ref, "--", path)
+    if result.returncode != 0:
+        raise RuntimeError(f"git ls-tree {ref} -- {path} failed: {result.stderr.strip()}")
+    return sorted(line for line in result.stdout.splitlines() if line.strip())
+
+
 def git_added_files(base: str, head: str, path: str) -> list[str]:
     """Files under ``path`` added between ``base`` and ``head``. A failing git command raises."""
     result = _git("diff", "--name-only", "--diff-filter=A", base, head, "--", path)
@@ -591,7 +599,10 @@ def _pick(candidates: list[dict]) -> dict | None:
 def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
     """Where the docs for the PR ``source`` are, and why, following the PR to its docs.
 
-    ``prs`` maps each milestone PR's ``owner/repo#N`` to its title, body and head_ref;
+    ``prs`` maps each milestone PR's ``owner/repo#N`` to its title, body and head_ref. It may also
+    hold docs PRs outside the milestone (merged since the previous release, ``"outside": True``):
+    docs often land after the code, in a later milestone or none. Those count only when they
+    link the PR, never by a shared Jira key;
     ``files_of(source)`` lists a PR's changed files (filename, status, patch);
     ``read_file(path)`` reads a file as it is now, or None if it no longer exists.
 
@@ -608,10 +619,12 @@ def docs_link(source: str, prs: dict, files_of, read_file) -> dict:
         for other, info in prs.items():
             if other == source or not other.startswith("mattermost/mattermost#"):
                 continue
-            shared = keys & jira_keys(info.get("title"), info.get("head_ref"), info.get("body"))
+            shared = set() if info.get("outside") else keys & jira_keys(info.get("title"), info.get("head_ref"), info.get("body"))
             linked = source in pr_references(info.get("body"), other.split("#")[0])
             if shared or linked:
                 via = f"docs PR {other}, which " + (f"names {', '.join(sorted(shared))}" if shared else "links the PR")
+                if info.get("outside"):
+                    via += " (outside the milestone)"
                 candidates += _docs_candidates(files_of(other), via, read_file)
         chosen = _pick(candidates)
     if chosen:
