@@ -122,13 +122,18 @@ const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; plugi
 
     const addLabel = channel.group_constrained ? formatMessage({id: 'intro_messages.inviteGroupsToChannel.button', defaultMessage: 'Add groups'}) : formatMessage({id: 'intro_messages.inviteMembersToChannel.button', defaultMessage: 'Add people'});
 
+    let addPermission = isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS;
+    if (channel.group_constrained) {
+        addPermission = Permissions.MANAGE_CHANNEL_ROLES;
+    }
+
     return (
         <div className='MoreThanMaxFreeUsersWrapper'>
             <div className='MoreThanMaxFreeUsers'>
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}
-                    permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
+                    permissions={[addPermission]}
                 >
                     <TileButton
                         onClick={handleAddPeople}

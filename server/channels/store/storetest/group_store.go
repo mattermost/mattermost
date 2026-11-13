@@ -1792,6 +1792,7 @@ func testGetAllGroupSyncablesByGroupChannel(t *testing.T, rctx request.CTX, ss s
 		for _, dbGroupChannel := range groupSyncables {
 			if dbGroupChannel.GroupId == expectedGroupChannel.GroupId && dbGroupChannel.SyncableId == expectedGroupChannel.SyncableId {
 				require.True(t, dbGroupChannel.SchemeAdmin)
+				require.Equal(t, team.Id, dbGroupChannel.TeamID)
 				present = true
 				break
 			}

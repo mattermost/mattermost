@@ -124,9 +124,15 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                         permissions={[channelMembersPermission]}
                     >
                         {isGroupConstrained && isLicensedForLDAPGroups && (
-                            <MenuItemGroupsMenuItems
-                                channel={channel}
-                            />
+                            <ChannelPermissionGate
+                                channelId={channel.id}
+                                teamId={channel.team_id}
+                                permissions={[Permissions.MANAGE_CHANNEL_ROLES]}
+                            >
+                                <MenuItemGroupsMenuItems
+                                    channel={channel}
+                                />
+                            </ChannelPermissionGate>
                         )}
                         <MenuItemOpenMembersRHS
                             id='channelMembers'

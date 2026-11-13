@@ -157,13 +157,27 @@ describe('components/post_view/AddMembersButton', () => {
 
         test('should open the add groups modal for a group constrained channel', async () => {
             const groupConstrainedChannel = {...channel, group_constrained: true} as Channel;
+            const channelAdminState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    roles: {
+                        roles: {
+                            system_role: {permissions: [
+                                Permissions.ADD_USER_TO_TEAM,
+                                Permissions.MANAGE_CHANNEL_ROLES,
+                            ]},
+                        },
+                    },
+                },
+            };
 
             renderWithContext(
                 <AddMembersButton
                     {...moreThanLimitProps}
                     channel={groupConstrainedChannel}
                 />,
-                initialState,
+                channelAdminState,
             );
 
             expect(screen.queryByRole('button', {name: 'Add people'})).not.toBeInTheDocument();
@@ -174,6 +188,21 @@ describe('components/post_view/AddMembersButton', () => {
                 modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
                 dialogProps: {channel: groupConstrainedChannel},
             }));
+        });
+
+        test('should not render add groups for a group constrained channel without manage channel roles permission', () => {
+            const groupConstrainedChannel = {...channel, group_constrained: true} as Channel;
+
+            renderWithContext(
+                <AddMembersButton
+                    {...moreThanLimitProps}
+                    channel={groupConstrainedChannel}
+                />,
+                initialState,
+            );
+
+            expect(screen.queryByRole('button', {name: 'Add groups'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Add people'})).not.toBeInTheDocument();
         });
     });
 });

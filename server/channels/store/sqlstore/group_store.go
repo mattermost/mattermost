@@ -882,7 +882,7 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 				ChannelType:        result.ChannelType,
 				TeamDisplayName:    result.TeamDisplayName,
 				TeamType:           result.TeamType,
-				TeamID:             result.TeamID,
+				TeamID:             result.TeamId,
 				SchemeAdmin:        result.SchemeAdmin,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)

@@ -356,6 +356,73 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	require.Nil(t, gs)
 }
 
+func TestDeleteGroupSyncableTeamChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group := th.CreateGroup(t)
+	unlinkedTeam := th.CreateTeam(t)
+	otherTeam := th.CreateTeam(t)
+	channelOnUnlinkedTeam := th.CreateChannel(t, unlinkedTeam)
+	channelOnOtherTeam := th.CreateChannel(t, otherTeam)
+	require.Equal(t, unlinkedTeam.Id, channelOnUnlinkedTeam.TeamId)
+	require.Equal(t, otherTeam.Id, channelOnOtherTeam.TeamId)
+
+	_, appErr := th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, unlinkedTeam.Id, false))
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, otherTeam.Id, false))
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpsertGroupSyncable(model.NewGroupChannel(group.Id, channelOnUnlinkedTeam.Id, false))
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpsertGroupSyncable(model.NewGroupChannel(group.Id, channelOnOtherTeam.Id, false))
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.DeleteGroupSyncable(group.Id, unlinkedTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, appErr)
+
+	// Deleting a team syncable removes that group's channel syncable only
+	// when the channel belongs to that team.
+	cases := []struct {
+		name      string
+		channelID string
+		remains   bool
+	}{
+		{
+			name:      "channel on the same team is removed",
+			channelID: channelOnUnlinkedTeam.Id,
+			remains:   false,
+		},
+		{
+			name:      "channel on a different team remains",
+			channelID: channelOnOtherTeam.Id,
+			remains:   true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			syncables, err := th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeChannel)
+			require.Nil(t, err)
+
+			var found *model.GroupSyncable
+			for _, syncable := range syncables {
+				if syncable.SyncableId == tc.channelID {
+					found = syncable
+					break
+				}
+			}
+
+			if tc.remains {
+				require.NotNil(t, found)
+				assert.Equal(t, tc.channelID, found.SyncableId)
+				assert.Zero(t, found.DeleteAt)
+				return
+			}
+			assert.Nil(t, found)
+		})
+	}
+}
+
 func TestGetGroupsByChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
