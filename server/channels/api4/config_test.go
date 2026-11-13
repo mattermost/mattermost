@@ -556,6 +556,232 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	})
 }
 
+func TestUpdateConfigRecoveryEmailSettingsRequireManageSystem(t *testing.T) {
+	th := Setup(t)
+	th.LoginSystemManager(t)
+
+	const (
+		baselineSiteURL    = "http://baseline.example.com"
+		baselineSMTPUser   = "baseline-user"
+		baselineSMTPPass   = "baseline-password"
+		baselineSMTPServer = "baseline-smtp.example.com"
+		baselineSMTPPort   = "10025"
+		baselineSiteName   = "BaselineName"
+
+		changedSiteURL    = "http://changed.example.com"
+		changedSMTPUser   = "changed-user"
+		changedSMTPPass   = "changed-password"
+		changedSMTPServer = "changed-smtp.example.com"
+		changedSMTPPort   = "2525"
+		changedSiteName   = "ChangedName"
+	)
+
+	resetConfig := func(t *testing.T) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+			*cfg.TeamSettings.SiteName = baselineSiteName
+			*cfg.ServiceSettings.SiteURL = baselineSiteURL
+			*cfg.EmailSettings.EnableSMTPAuth = false
+			*cfg.EmailSettings.SMTPUsername = baselineSMTPUser
+			*cfg.EmailSettings.SMTPPassword = baselineSMTPPass
+			*cfg.EmailSettings.SMTPServer = baselineSMTPServer
+			*cfg.EmailSettings.SMTPPort = baselineSMTPPort
+			*cfg.EmailSettings.ConnectionSecurity = model.ConnSecurityNone
+			*cfg.EmailSettings.SkipServerCertificateVerification = false
+		})
+	}
+
+	applyChanges := func(cfg *model.Config) {
+		cfg.TeamSettings.SiteName = new(changedSiteName)
+		cfg.ServiceSettings.SiteURL = new(changedSiteURL)
+		cfg.EmailSettings.EnableSMTPAuth = new(true)
+		cfg.EmailSettings.SMTPUsername = new(changedSMTPUser)
+		cfg.EmailSettings.SMTPPassword = new(changedSMTPPass)
+		cfg.EmailSettings.SMTPServer = new(changedSMTPServer)
+		cfg.EmailSettings.SMTPPort = new(changedSMTPPort)
+		cfg.EmailSettings.ConnectionSecurity = new(model.ConnSecurityTLS)
+		cfg.EmailSettings.SkipServerCertificateVerification = new(true)
+	}
+
+	// SMTPPassword is masked on read, so it is only checked against the server-side config.
+	assertProtectedUnchanged := func(t *testing.T, cfg *model.Config, checkPassword bool) {
+		t.Helper()
+		assert.Equal(t, baselineSiteURL, *cfg.ServiceSettings.SiteURL, "ServiceSettings.SiteURL")
+		assert.False(t, *cfg.EmailSettings.EnableSMTPAuth, "EmailSettings.EnableSMTPAuth")
+		assert.Equal(t, baselineSMTPUser, *cfg.EmailSettings.SMTPUsername, "EmailSettings.SMTPUsername")
+		if checkPassword {
+			assert.Equal(t, baselineSMTPPass, *cfg.EmailSettings.SMTPPassword, "EmailSettings.SMTPPassword")
+		}
+		assert.Equal(t, baselineSMTPServer, *cfg.EmailSettings.SMTPServer, "EmailSettings.SMTPServer")
+		assert.Equal(t, baselineSMTPPort, *cfg.EmailSettings.SMTPPort, "EmailSettings.SMTPPort")
+		assert.Equal(t, model.ConnSecurityNone, *cfg.EmailSettings.ConnectionSecurity, "EmailSettings.ConnectionSecurity")
+		assert.False(t, *cfg.EmailSettings.SkipServerCertificateVerification, "EmailSettings.SkipServerCertificateVerification")
+	}
+
+	assertProtectedChanged := func(t *testing.T, cfg *model.Config, checkPassword bool) {
+		t.Helper()
+		assert.Equal(t, changedSiteURL, *cfg.ServiceSettings.SiteURL, "ServiceSettings.SiteURL")
+		assert.True(t, *cfg.EmailSettings.EnableSMTPAuth, "EmailSettings.EnableSMTPAuth")
+		assert.Equal(t, changedSMTPUser, *cfg.EmailSettings.SMTPUsername, "EmailSettings.SMTPUsername")
+		if checkPassword {
+			assert.Equal(t, changedSMTPPass, *cfg.EmailSettings.SMTPPassword, "EmailSettings.SMTPPassword")
+		}
+		assert.Equal(t, changedSMTPServer, *cfg.EmailSettings.SMTPServer, "EmailSettings.SMTPServer")
+		assert.Equal(t, changedSMTPPort, *cfg.EmailSettings.SMTPPort, "EmailSettings.SMTPPort")
+		assert.Equal(t, model.ConnSecurityTLS, *cfg.EmailSettings.ConnectionSecurity, "EmailSettings.ConnectionSecurity")
+		assert.True(t, *cfg.EmailSettings.SkipServerCertificateVerification, "EmailSettings.SkipServerCertificateVerification")
+	}
+
+	t.Run("system manager update is ignored for protected fields", func(t *testing.T) {
+		resetConfig(t)
+		t.Cleanup(func() { resetConfig(t) })
+
+		cfg, _, err := th.SystemManagerClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		applyChanges(cfg)
+
+		returnedCfg, resp, err := th.SystemManagerClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.Equal(t, changedSiteName, *returnedCfg.TeamSettings.SiteName)
+		assertProtectedUnchanged(t, returnedCfg, false)
+
+		serverCfg := th.App.Config()
+		assert.Equal(t, changedSiteName, *serverCfg.TeamSettings.SiteName)
+		assertProtectedUnchanged(t, serverCfg, true)
+	})
+
+	t.Run("system manager patch is ignored for protected fields", func(t *testing.T) {
+		resetConfig(t)
+		t.Cleanup(func() { resetConfig(t) })
+
+		patch := &model.Config{}
+		applyChanges(patch)
+
+		returnedCfg, resp, err := th.SystemManagerClient.PatchConfig(context.Background(), patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		assert.Equal(t, changedSiteName, *returnedCfg.TeamSettings.SiteName)
+		assertProtectedUnchanged(t, returnedCfg, false)
+
+		serverCfg := th.App.Config()
+		assert.Equal(t, changedSiteName, *serverCfg.TeamSettings.SiteName)
+		assertProtectedUnchanged(t, serverCfg, true)
+	})
+
+	for name, client := range map[string]*model.Client4{
+		"system admin": th.SystemAdminClient,
+		"local mode":   th.LocalClient,
+	} {
+		t.Run(name+" update changes protected fields", func(t *testing.T) {
+			resetConfig(t)
+			t.Cleanup(func() { resetConfig(t) })
+
+			cfg, _, err := client.GetConfig(context.Background())
+			require.NoError(t, err)
+			applyChanges(cfg)
+
+			returnedCfg, resp, err := client.UpdateConfig(context.Background(), cfg)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			assert.Equal(t, changedSiteName, *returnedCfg.TeamSettings.SiteName)
+			assertProtectedChanged(t, returnedCfg, false)
+
+			serverCfg := th.App.Config()
+			assert.Equal(t, changedSiteName, *serverCfg.TeamSettings.SiteName)
+			assertProtectedChanged(t, serverCfg, true)
+		})
+
+		t.Run(name+" patch changes protected fields", func(t *testing.T) {
+			resetConfig(t)
+			t.Cleanup(func() { resetConfig(t) })
+
+			patch := &model.Config{}
+			applyChanges(patch)
+
+			returnedCfg, resp, err := client.PatchConfig(context.Background(), patch)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			assert.Equal(t, changedSiteName, *returnedCfg.TeamSettings.SiteName)
+			assertProtectedChanged(t, returnedCfg, false)
+
+			serverCfg := th.App.Config()
+			assert.Equal(t, changedSiteName, *serverCfg.TeamSettings.SiteName)
+			assertProtectedChanged(t, serverCfg, true)
+		})
+	}
+}
+
+func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	for _, permissionID := range []string{
+		model.PermissionSysconsoleWriteEnvironmentSMTP.Id,
+		model.PermissionSysconsoleReadEnvironmentSMTP.Id,
+		model.PermissionSysconsoleWriteEnvironmentWebServer.Id,
+		model.PermissionSysconsoleReadEnvironmentWebServer.Id,
+		model.PermissionSysconsoleWriteAuthenticationSaml.Id,
+		model.PermissionSysconsoleReadAuthenticationSaml.Id,
+	} {
+		th.AddPermissionToRole(t, permissionID, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, permissionID, model.SystemUserRoleId)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://baseline.example.com"
+		*cfg.ServiceSettings.EnableSecurityFixAlert = false
+		*cfg.EmailSettings.SMTPServer = "baseline-smtp.example.com"
+		*cfg.EmailSettings.SMTPPassword = "baseline-password"
+	})
+
+	for name, send := range map[string]func(cfg *model.Config) (*model.Response, error){
+		"update": func(cfg *model.Config) (*model.Response, error) {
+			_, resp, err := th.Client.UpdateConfig(context.Background(), cfg)
+			return resp, err
+		},
+		"patch": func(cfg *model.Config) (*model.Response, error) {
+			_, resp, err := th.Client.PatchConfig(context.Background(), cfg)
+			return resp, err
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := &model.Config{}
+			if name == "update" {
+				cfg = th.App.Config().Clone()
+			}
+			cfg.ServiceSettings.SiteURL = new("http://changed.example.com")
+			cfg.ServiceSettings.EnableSecurityFixAlert = new(true)
+			cfg.EmailSettings.SMTPServer = new("changed-smtp.example.com")
+			cfg.EmailSettings.SMTPPassword = new("changed-password")
+
+			resp, err := send(cfg)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+
+			serverCfg := th.App.Config()
+			assert.True(t, *serverCfg.ServiceSettings.EnableSecurityFixAlert, "unprotected environment_smtp field should be writable")
+			assert.Equal(t, "http://baseline.example.com", *serverCfg.ServiceSettings.SiteURL)
+			assert.Equal(t, "baseline-smtp.example.com", *serverCfg.EmailSettings.SMTPServer)
+			assert.Equal(t, "baseline-password", *serverCfg.EmailSettings.SMTPPassword)
+
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSecurityFixAlert = false })
+		})
+	}
+
+	t.Run("read access is unaffected", func(t *testing.T) {
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, "http://baseline.example.com", *cfg.ServiceSettings.SiteURL)
+		assert.Equal(t, "baseline-smtp.example.com", *cfg.EmailSettings.SMTPServer)
+		assert.Equal(t, model.FakeSetting, *cfg.EmailSettings.SMTPPassword)
+	})
+}
+
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
