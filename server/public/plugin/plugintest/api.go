@@ -146,6 +146,38 @@ func (_m *API) CheckAccessControlExpression(actingUserID string, resourceType st
 	return r0, r1
 }
 
+// CheckAccessControlExpressionForSearch provides a mock function with given fields: actingUserID, resourceType, expression
+func (_m *API) CheckAccessControlExpressionForSearch(actingUserID string, resourceType string, expression string) ([]model.CELExpressionError, *model.AppError) {
+	ret := _m.Called(actingUserID, resourceType, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckAccessControlExpressionForSearch")
+	}
+
+	var r0 []model.CELExpressionError
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) ([]model.CELExpressionError, *model.AppError)); ok {
+		return rf(actingUserID, resourceType, expression)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) []model.CELExpressionError); ok {
+		r0 = rf(actingUserID, resourceType, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.CELExpressionError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(actingUserID, resourceType, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CopyFileInfos provides a mock function with given fields: userID, fileIds
 func (_m *API) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userID, fileIds)
@@ -1374,6 +1406,38 @@ func (_m *API) EvaluateAccessControl(userID string, resourceType string, resourc
 
 	if rf, ok := ret.Get(1).(func(string, string, string, string) *model.AppError); ok {
 		r1 = rf(userID, resourceType, resourceID, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// EvaluateAccessControlBatch provides a mock function with given fields: userID, resourceType, action, resourceIDs
+func (_m *API) EvaluateAccessControlBatch(userID string, resourceType string, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	ret := _m.Called(userID, resourceType, action, resourceIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateAccessControlBatch")
+	}
+
+	var r0 map[string]*model.AccessDecision
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string, []string) (map[string]*model.AccessDecision, *model.AppError)); ok {
+		return rf(userID, resourceType, action, resourceIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, []string) map[string]*model.AccessDecision); ok {
+		r0 = rf(userID, resourceType, action, resourceIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.AccessDecision)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, []string) *model.AppError); ok {
+		r1 = rf(userID, resourceType, action, resourceIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
