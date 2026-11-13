@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
@@ -55,6 +56,10 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	})
 }
 
+func (s *Server) clusterReloadSamlHandler(_ *model.ClusterMessage) {
+	s.Channels().configureSaml(request.EmptyContext(s.Log()))
+}
+
 func (s *Server) clusterSharedChannelSyncTaskHandler(msg *model.ClusterMessage) {
 	if scs := s.GetSharedChannelSyncService(); scs != nil {
 		scs.HandleClusterSyncTask(msg)
@@ -70,6 +75,7 @@ func (s *Server) registerClusterHandlers() {
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)
 	s.platform.RegisterClusterMessageHandler(clusterEventInvalidateChannelGuardCache, s.Channels().clusterInvalidateGuardCacheHandler)
+	s.platform.RegisterClusterMessageHandler(model.ClusterEventReloadSaml, s.clusterReloadSamlHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventSharedChannelSyncTask, s.clusterSharedChannelSyncTaskHandler)
 
 	s.platform.RegisterClusterHandlers()

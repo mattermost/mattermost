@@ -67,9 +67,10 @@ type BulkImportOpts struct {
 	// name on the destination server. Only valid for channel-scoped exports.
 	DestinationChannelName string
 
-	// SkipPreflight bypasses SSO provider configuration checks. By default the
-	// import fails if the export contains users from an auth provider that is
-	// not enabled on the destination, to prevent silent deactivated shells.
+	// SkipPreflight bypasses the checks run before anything is imported. By
+	// default the import fails if the export contains users from an auth provider
+	// that is not enabled on the destination, to prevent silent deactivated
+	// shells, or if it would take a team past TeamSettings.MaxUsersPerTeam.
 	// Set this to true only after reviewing the preflight error and accepting
 	// the risk of proceeding with a mismatched configuration.
 	SkipPreflight bool

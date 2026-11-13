@@ -789,6 +789,7 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 		assert.Equal(t, model.CurrentVersion, metadata.ServerVersion)
 		assert.NotEmpty(t, metadata.ServerID)
 		assert.NotEmpty(t, metadata.GeneratedAt)
+		assert.True(t, model.IsValidId(metadata.PacketID))
 	})
 }
 
@@ -934,6 +935,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 					GeneratedAt:   1735689600000,
 					ServerVersion: "11.0.0",
 					ServerID:      "server-id-fixed",
+					PacketID:      "packet-id-fixed",
 					LicenseID:     "license-id-fixed",
 					CustomerID:    "customer-id-fixed",
 					Extras: map[string]any{

@@ -20,6 +20,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
+import {propertyFieldMessages} from 'components/property_fields/messages';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -47,8 +48,6 @@ const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = de
 });
 
 const messages = defineMessages({
-    selectOption: {id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'},
-    selectOptions: {id: 'admin.user.selectOptions', defaultMessage: 'Select options'},
     arrayValueSeparator: {id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '},
 });
 
@@ -246,7 +245,7 @@ export default function UserAttributeField({
                         disabled={isDisabled}
                         invalid={Boolean(error)}
                         aria-describedby={describedErrorId}
-                        placeholder={intl.formatMessage(multiple ? messages.selectOptions : messages.selectOption)}
+                        placeholder={intl.formatMessage(multiple ? propertyFieldMessages.selectOptions : propertyFieldMessages.selectOption)}
                         className='UserAttributeField__combobox'
                         submitOnEnter={false}
                     />
@@ -271,7 +270,7 @@ export default function UserAttributeField({
                         menuId={`cpa-graph-menu-${field.id}`}
                         buttonId={buttonId}
                         buttonDataTestId={`cpa-graph-select-${field.id}`}
-                        placeholder={intl.formatMessage(messages.selectOptions)}
+                        placeholder={intl.formatMessage(propertyFieldMessages.selectOptions)}
                         ariaLabel={fieldLabel}
                     />
                 ),

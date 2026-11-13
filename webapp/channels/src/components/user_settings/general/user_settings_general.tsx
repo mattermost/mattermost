@@ -24,6 +24,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 import {AttributeCombobox, getAttributeComboboxType} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
+import {propertyFieldMessages} from 'components/property_fields/messages';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -1612,15 +1613,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
                         const comboboxType = getAttributeComboboxType(attribute);
-                        const placeholder = comboboxType === 'multiselect' ?
-                            formatMessage({
-                                id: 'admin.user.selectOptions',
-                                defaultMessage: 'Select options',
-                            }) :
-                            formatMessage({
-                                id: 'admin.userManagement.userDetail.selectOption',
-                                defaultMessage: 'Select an option',
-                            });
+                        const placeholderMessage = comboboxType === 'multiselect' ? propertyFieldMessages.selectOptions : propertyFieldMessages.selectOption;
+                        const placeholder = formatMessage(placeholderMessage);
 
                         inputs.push(
                             <AttributeCombobox

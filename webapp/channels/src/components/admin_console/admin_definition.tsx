@@ -122,6 +122,7 @@ import SecureConnections, {searchableStrings as secureConnectionsSearchableStrin
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import {canViewServerLogs} from './server_logs/url_filters';
 import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemRoles from './system_roles';
@@ -424,10 +425,7 @@ const AdminDefinition: AdminDefinitionType = {
             server_logs: {
                 url: 'reporting/server_logs',
                 title: defineMessage({id: 'admin.sidebar.logs', defaultMessage: 'Server Logs'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
-                ),
+                isHidden: (config, state, license, enterpriseReady, consoleAccess) => !canViewServerLogs(config, consoleAccess),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
                 searchableStrings: serverLogsSearchableStrings,
                 schema: {
