@@ -95,9 +95,7 @@ func (ps *PlatformService) LoadLicense() {
 		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(location)
 		if err != nil {
 			// No license file at the default location is the normal state of an unlicensed server.
-			if location == "" && errors.Is(err, os.ErrNotExist) {
-				ps.logger.Debug("Failed to get license from disk", mlog.Err(err))
-			} else {
+			if location != "" || !errors.Is(err, os.ErrNotExist) {
 				ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
 			}
 		} else {
