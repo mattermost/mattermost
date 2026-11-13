@@ -69,7 +69,7 @@ export default {
     MIN_USERS_IN_GM: 3,
     MAX_GROUP_CHANNELS_FOR_PROFILES: 50,
     DEFAULT_LOCALE: 'en',
-    DEFAULT_AUTOLINKED_URL_SCHEMES: ['http', 'https', 'ftp', 'mailto', 'tel', 'mattermost'],
+    DEFAULT_AUTOLINKED_URL_SCHEMES: ['http', 'https', 'ftp', 'mailto', 'tel', 'gemini', 'mattermost'],
     DISABLED: 'disabled',
     DEFAULT_ON: 'default_on',
     DEFAULT_OFF: 'default_off',
