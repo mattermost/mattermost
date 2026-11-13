@@ -7656,3 +7656,17 @@ func TestPostMutationsReadFromMaster(t *testing.T) {
 		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
 }
+
+func TestCheckPostRemindersWithoutSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+
+	th.App.CheckPostReminders(th.Context)
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := th.LogBuffer.String()
+	testlib.AssertNoLog(t, strings.NewReader(logs), mlog.LvlError.Name, "Failed to get system bot")
+	testlib.AssertLog(t, strings.NewReader(logs), mlog.LvlDebug.Name, "Skipping post reminders because there is no system admin to own the system bot")
+}
