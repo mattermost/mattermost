@@ -1,8 +1,9 @@
 @use "utils/variables";
 
 // Compass StatusBadge placed on the bottom-right corner of an avatar inside `.status-wrapper`.
-// Badge size comes from the StatusBadge `size` prop and the corner offset from the --offset-N modifier;
-// both follow compass-ui UserAvatar (see getStatusBadgeClassName in utils/status_badge.ts).
+// Badge size comes from the StatusBadge `size` prop and the corner offset from the --offset-* modifier (the
+// right/bottom value in px; `n` means negative, i.e. outside the corner); both follow compass-ui UserAvatar
+// (see getStatusBadgeClassName in utils/status_badge.ts).
 .status-wrapper .user-status-badge {
     position: absolute;
     top: auto;
@@ -11,23 +12,30 @@
     margin: 0;
     line-height: 0;
 
-    &.user-status-badge--offset-1 {
+    &.user-status-badge--offset-n1 {
         right: -1px;
         bottom: -1px;
     }
 
-    &.user-status-badge--offset-0,
-    &.user-status-badge--offset-inset-2 {
+    &.user-status-badge--offset-0 {
         right: 0;
         bottom: 0;
-        width: var(--icon-size-20);
-        height: var(--icon-size-20);
     }
 
-    // 2px inside the avatar's corner (96px avatar)
-    &.user-status-badge--offset-inset-2 {
+    &.user-status-badge--offset-2 {
         right: 2px;
         bottom: 2px;
+    }
+
+    &.user-status-badge--offset-3 {
+        right: 3px;
+        bottom: 3px;
+    }
+
+    // UserAvatar draws the medium badge at the 20px glyph size, without the 2px ring of its 24px box
+    &.user-status-badge--medium {
+        width: var(--icon-size-20);
+        height: var(--icon-size-20);
     }
 }
 

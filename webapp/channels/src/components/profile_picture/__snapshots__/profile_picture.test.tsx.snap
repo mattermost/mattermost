@@ -18,11 +18,11 @@ exports[`components/ProfilePicture should match snapshot, no user specified, def
     </span>
     <span
       aria-label="Away"
-      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
+      class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-away_1vv61_84 user-status-badge user-status-badge--offset-n2"
       role="img"
     >
       <span
-        class="_status-badge__glyph_af5ji_24"
+        class="_status-badge__glyph_1vv61_24"
       >
         <svg
           fill="currentColor"
@@ -60,11 +60,11 @@ exports[`components/ProfilePicture should match snapshot, no user specified, ove
     </span>
     <span
       aria-label="Away"
-      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
+      class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-away_1vv61_84 user-status-badge user-status-badge--offset-n2"
       role="img"
     >
       <span
-        class="_status-badge__glyph_af5ji_24"
+        class="_status-badge__glyph_1vv61_24"
       >
         <svg
           fill="currentColor"
@@ -106,11 +106,11 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
     </span>
     <span
       aria-label="Away"
-      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
+      class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-away_1vv61_84 user-status-badge user-status-badge--offset-n2"
       role="img"
     >
       <span
-        class="_status-badge__glyph_af5ji_24"
+        class="_status-badge__glyph_1vv61_24"
       >
         <svg
           fill="currentColor"
@@ -148,11 +148,11 @@ exports[`components/ProfilePicture should match snapshot, user specified 1`] = `
     </span>
     <span
       aria-label="Away"
-      class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-2"
+      class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-away_1vv61_84 user-status-badge user-status-badge--offset-n2"
       role="img"
     >
       <span
-        class="_status-badge__glyph_af5ji_24"
+        class="_status-badge__glyph_1vv61_24"
       >
         <svg
           fill="currentColor"
@@ -190,11 +190,11 @@ exports[`components/ProfilePicture should match snapshot, user specified, overri
     </span>
     <span
       aria-label="Away"
-      class="_status-badge_af5ji_13 _status-badge--size-x-small_af5ji_38 _status-badge--status-away_af5ji_76 user-status-badge user-status-badge--offset-1"
+      class="_status-badge_1vv61_13 _status-badge--size-x-small_1vv61_38 _status-badge--status-away_1vv61_84 user-status-badge user-status-badge--offset-n1"
       role="img"
     >
       <span
-        class="_status-badge__glyph_af5ji_24"
+        class="_status-badge__glyph_1vv61_24"
       >
         <svg
           fill="currentColor"

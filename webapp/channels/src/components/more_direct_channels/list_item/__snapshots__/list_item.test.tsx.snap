@@ -60,11 +60,11 @@ exports[`ListItem should match snapshot when rendering user 1`] = `
       </span>
       <span
         aria-label="Online"
-        class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-online_af5ji_72 user-status-badge user-status-badge--offset-2"
+        class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-online_1vv61_80 user-status-badge user-status-badge--offset-n2"
         role="img"
       >
         <span
-          class="_status-badge__glyph_af5ji_24"
+          class="_status-badge__glyph_1vv61_24"
         >
           <svg
             fill="currentColor"

@@ -24,8 +24,8 @@ const ProfilePopoverAvatar = ({
 }: Props) => {
     const {formatMessage} = useIntl();
 
-    // The popover avatar is 120px, which gets the same large badge as the 128px 'xxl' size
-    const statusBadgeProps = getStatusBadgeProps(hideStatus ? undefined : status, formatMessage, 'xxl');
+    // The popover avatar is 120px
+    const statusBadgeProps = getStatusBadgeProps(hideStatus ? undefined : status, formatMessage, '120');
 
     return (
         <div className='user-popover-image'>

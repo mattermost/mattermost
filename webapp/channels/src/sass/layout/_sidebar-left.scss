@@ -1018,6 +1018,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .SidebarChannel .SidebarLink {
         // The status badge circle must match whatever the avatar sits on, for every row state
         --status-badge-bg: var(--sidebar-bg);
+        --status-badge-offline-color: rgba(var(--sidebar-text-rgb), 0.32);
 
         position: relative;
         display: flex;

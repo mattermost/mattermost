@@ -30,11 +30,11 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
         </span>
         <span
           aria-label="Offline"
-          class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-2"
+          class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-offline_1vv61_92 user-status-badge user-status-badge--offset-n2"
           role="img"
         >
           <span
-            class="_status-badge__glyph_af5ji_24"
+            class="_status-badge__glyph_1vv61_24"
           >
             <svg
               fill="currentColor"
@@ -123,11 +123,11 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
         </span>
         <span
           aria-label="Offline"
-          class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-2"
+          class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-offline_1vv61_92 user-status-badge user-status-badge--offset-n2"
           role="img"
         >
           <span
-            class="_status-badge__glyph_af5ji_24"
+            class="_status-badge__glyph_1vv61_24"
           >
             <svg
               fill="currentColor"
@@ -216,11 +216,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
         </span>
         <span
           aria-label="Offline"
-          class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-2"
+          class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-offline_1vv61_92 user-status-badge user-status-badge--offset-n2"
           role="img"
         >
           <span
-            class="_status-badge__glyph_af5ji_24"
+            class="_status-badge__glyph_1vv61_24"
           >
             <svg
               fill="currentColor"
@@ -335,11 +335,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
         </span>
         <span
           aria-label="Offline"
-          class="_status-badge_af5ji_13 _status-badge--size-small_af5ji_46 _status-badge--status-offline_af5ji_84 user-status-badge user-status-badge--offset-2"
+          class="_status-badge_1vv61_13 _status-badge--size-small_1vv61_46 _status-badge--status-offline_1vv61_92 user-status-badge user-status-badge--offset-n2"
           role="img"
         >
           <span
-            class="_status-badge__glyph_af5ji_24"
+            class="_status-badge__glyph_1vv61_24"
           >
             <svg
               fill="currentColor"

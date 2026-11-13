@@ -93,8 +93,9 @@
 }
 
 .userAccountMenu_menuButton {
-    // The badge circle must match the header surface the avatar sits on
+    // The badge circle and its offline colour must match the header surface the avatar sits on
     --status-badge-bg: var(--global-header-background);
+    --status-badge-offline-color: rgba(var(--global-header-text-rgb), 0.32);
 
     position: relative;
     display: flex;
@@ -117,11 +118,6 @@
         --status-badge-bg: color-mix(in srgb, var(--global-header-text) 16%, var(--global-header-background));
 
         background: rgba(var(--global-header-text-rgb), 0.16);
-    }
-
-    // Offline badge colour is hard-coded to the centre channel text colour in compass-ui
-    .userAccountMenu_statusBadge--offline {
-        color: rgba(var(--global-header-text-rgb), 0.32);
     }
 
     .userStatusIconWrapper {

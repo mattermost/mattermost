@@ -47,8 +47,9 @@ describe('utils/status_badge', () => {
             ['lg', 'small'],
             ['xl', 'small'],
             ['xl-custom-GM', 'medium'],
-            ['xl-custom-DM', 'medium'],
-            ['xxl', 'large'],
+            ['xl-custom-DM', 'large'],
+            ['120', 'large'],
+            ['xxl', 'x-large'],
             ['inherit', 'small'],
         ] as const)('sizes the badge for a %p avatar as %p', (avatarSize, badgeSize) => {
             expect(getStatusBadgeProps('online', formatMessage, avatarSize)?.size).toBe(badgeSize);
@@ -57,18 +58,19 @@ describe('utils/status_badge', () => {
 
     describe('getStatusBadgeClassName', () => {
         test.each([
-            ['xs', 'user-status-badge user-status-badge--offset-1'],
-            ['sm', 'user-status-badge user-status-badge--offset-1'],
-            ['md', 'user-status-badge user-status-badge--offset-2'],
-            ['xl-custom-GM', 'user-status-badge user-status-badge--offset-0'],
-            ['xl-custom-DM', 'user-status-badge user-status-badge--offset-inset-2'],
+            ['xs', 'user-status-badge user-status-badge--offset-n1'],
+            ['sm', 'user-status-badge user-status-badge--offset-n1'],
+            ['md', 'user-status-badge user-status-badge--offset-n2'],
+            ['xl-custom-GM', 'user-status-badge user-status-badge--offset-0 user-status-badge--medium'],
+            ['xl-custom-DM', 'user-status-badge user-status-badge--offset-0'],
+            ['120', 'user-status-badge user-status-badge--offset-3'],
             ['xxl', 'user-status-badge user-status-badge--offset-2'],
         ] as const)('uses the corner offset for a %p avatar', (avatarSize, expected) => {
             expect(getStatusBadgeClassName(avatarSize)).toBe(expected);
         });
 
         test('appends an extra class name', () => {
-            expect(getStatusBadgeClassName('md', 'extra')).toBe('user-status-badge user-status-badge--offset-2 extra');
+            expect(getStatusBadgeClassName('md', 'extra')).toBe('user-status-badge user-status-badge--offset-n2 extra');
         });
     });
 });
