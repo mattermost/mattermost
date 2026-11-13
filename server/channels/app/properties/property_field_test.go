@@ -4815,6 +4815,27 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 			assert.Empty(t, storedChannel.Bounds)
 		})
 
+		t.Run("a child gaining a parent rule under a fake ObjectType in the same call", func(t *testing.T) {
+			groupID, template, create := setup(t)
+			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+			require.NoError(t, err)
+			channel, err := create(model.PropertyFieldObjectTypeChannel, nil)
+			require.NoError(t, err)
+
+			// The system field comes first, so its unlink check runs before the channel field's own checks.
+			system.LinkedFieldID = model.NewPointer("")
+			channel.Bounds = belowParent
+			channel.ObjectType = model.PropertyFieldObjectTypePost
+			_, _, _, err = th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{system, channel})
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.update.unlink_parent_rule_dependents.app_error", appErr.Id)
+
+			storedSystem, err := th.service.GetPropertyField(rctx, groupID, system.ID)
+			require.NoError(t, err)
+			assert.Equal(t, template.ID, storedSystem.LinkSourceID())
+		})
+
 		t.Run("allowed once the child's parent rule is removed", func(t *testing.T) {
 			groupID, _, create := setup(t)
 			system, err := create(model.PropertyFieldObjectTypeSystem, nil)
@@ -4925,5 +4946,42 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		stored.Bounds = model.PropertyBounds{}
 		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
 		require.NoError(t, err)
+	})
+
+	t.Run("an update judges the stored ObjectType, not the submitted one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		// The only parent-side field a post field would read; a user field's parent side, system, has none.
+		_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		user, err := create(model.PropertyFieldObjectTypeUser, nil)
+		require.NoError(t, err)
+
+		user.Bounds = belowParent
+		user.ObjectType = model.PropertyFieldObjectTypePost
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, user)
+		requireParentRefused(t, err, "none")
+	})
+
+	t.Run("an update that changes ObjectType returns the stored one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		system.ObjectType = model.PropertyFieldObjectTypeUser
+		updated, _, err := th.service.UpdatePropertyField(rctx, groupID, system)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldObjectTypeSystem, updated.ObjectType)
+	})
+
+	t.Run("an update with an empty ObjectType is still refused by the version check", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		system.ObjectType = ""
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, system)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
 	})
 }
