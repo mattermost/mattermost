@@ -71,7 +71,7 @@ describe('Bot accounts', () => {
         cy.apiLogin(testUser);
         cy.visit(`/${team.name}/messages/@${bots[0].username}`);
 
-        cy.get('.SidebarChannelGroup:contains(DIRECT MESSAGES) .SidebarChannel.active > .SidebarLink').then(($link) => {
+        cy.get('.SidebarChannelGroup:contains(DIRECT MESSAGES) .SidebarChannel.active .SidebarLink').then(($link) => {
             // * Verify DM label
             cy.wrap($link).find('.SidebarChannelLinkLabel').should('have.text', bots[0].username);
 

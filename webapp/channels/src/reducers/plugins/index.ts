@@ -231,6 +231,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelComposerBanner: [],
     ChannelIntro: [],
     ChannelView: [],
+    ChannelSidebarSubItems: [],
     PostHeader: [],
     ComposerPlaceholder: [],
     ProductSwitcherMenuItem: [],

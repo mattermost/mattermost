@@ -33,7 +33,23 @@ const messages = defineMessages({
         id: 'channel_mention_badge.urgent_tooltip',
         defaultMessage: 'You have an urgent mention',
     },
+    expandSubItems: {
+        id: 'sidebar_left.sidebar_channel.subItems.expand',
+        defaultMessage: 'Expand {channelName}',
+        description: 'Label of the sidebar button that shows the plugin-provided sub-items under a channel; {channelName} is the channel display name.',
+    },
+    collapseSubItems: {
+        id: 'sidebar_left.sidebar_channel.subItems.collapse',
+        defaultMessage: 'Collapse {channelName}',
+        description: 'Label of the sidebar button that hides the plugin-provided sub-items under a channel; {channelName} is the channel display name.',
+    },
 });
+
+export type SubItemsToggle = {
+    isExpanded: boolean;
+    controlsId: string;
+    onToggle: () => void;
+};
 
 type Props = WrappedComponentProps & {
     channel: Channel;
@@ -72,6 +88,11 @@ type Props = WrappedComponentProps & {
     isSharedChannel?: boolean;
     remoteNames: string[];
     hasPendingJoinRequests: boolean;
+
+    /**
+     * Set only when the channel has plugin sub-items; renders the expand/collapse button
+     */
+    subItemsToggle?: SubItemsToggle;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -182,6 +203,39 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         } else {
             this.props.actions.clearChannelSelection();
         }
+    };
+
+    handleSubItemsToggleClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.props.subItemsToggle?.onToggle();
+    };
+
+    renderSubItemsToggle = (): JSX.Element | null => {
+        const {subItemsToggle, channel, intl} = this.props;
+        if (!subItemsToggle) {
+            return null;
+        }
+
+        const label = intl.formatMessage(
+            subItemsToggle.isExpanded ? messages.collapseSubItems : messages.expandSubItems,
+            {channelName: channel.display_name},
+        );
+
+        return (
+            <WithTooltip title={label}>
+                <button
+                    type='button'
+                    className='SidebarChannelLink__subItemsToggle'
+                    aria-expanded={subItemsToggle.isExpanded}
+                    aria-controls={subItemsToggle.controlsId}
+                    aria-label={label}
+                    onClick={this.handleSubItemsToggleClick}
+                >
+                    <i className={classNames('icon', subItemsToggle.isExpanded ? 'icon-chevron-down' : 'icon-chevron-right')}/>
+                </button>
+            </WithTooltip>
+        );
     };
 
     handleMenuToggle = (isMenuOpen: boolean) => {
@@ -300,6 +354,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                         onMenuToggle={this.handleMenuToggle}
                     />
                 </div>
+                {this.renderSubItemsToggle()}
             </>
         );
 
