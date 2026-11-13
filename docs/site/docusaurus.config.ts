@@ -90,6 +90,11 @@ const config: Config = {
           editUrl: 'https://github.com/mattermost/mattermost/tree/master/docs/main/',
         },
         blog: false,
+        // Google tag (gtag.js) for Google Ads, loaded on every page.
+        gtag: {
+          trackingID: 'AW-749088370',
+          anonymizeIP: true,
+        },
         theme: {
           customCss: ['./src/css/fonts.css', './src/css/tokens.css', './src/css/custom.css'],
         },
