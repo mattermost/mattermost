@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"fmt"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -167,9 +166,9 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 
 	if err := s.GetReplica().GetBuilder(&token, query); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("UserAccessToken", fmt.Sprintf("token=%s", tokenString))
+			return nil, store.NewErrNotFound("UserAccessToken", "token=<redacted>")
 		}
-		return nil, errors.Wrapf(err, "failed to get UserAccessToken with token=%s", tokenString)
+		return nil, errors.Wrap(err, "failed to get UserAccessToken by token")
 	}
 
 	return &token, nil
