@@ -1727,6 +1727,16 @@ func TestCompleteOnboarding(t *testing.T) {
 		}
 	})
 
+	t.Run("as a system admin with an invalid site URL", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.CompleteOnboarding(context.Background(), &model.CompleteOnboardingRequest{
+			Organization: "my-org",
+			SiteURL:      "ftp://mattermost.example.com",
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.error_invalid_site_url_provided_for_onboarding")
+	})
+
 	t.Run("as a system admin when plugins are disabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = false
