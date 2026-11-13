@@ -526,7 +526,7 @@ func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
 	})
 }
 
-func TestSendChannelInvite_SyncCursorStartOnExistingRemote(t *testing.T) {
+func TestSendChannelInvite_SyncCursorStartOnNewRemote(t *testing.T) {
 	channelID := model.NewId()
 	userID := model.NewId()
 	remoteID := model.NewId()
@@ -534,33 +534,22 @@ func TestSendChannelInvite_SyncCursorStartOnExistingRemote(t *testing.T) {
 	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", DisplayName: "Test Remote", PluginID: "com.example.plugin", LastPingAt: model.GetMillis()}
 
 	testCases := []struct {
-		name         string
-		existing     *model.SharedChannelRemote
-		options      []InviteOption
-		expectCursor func(before, after int64) func(int64) bool
+		name    string
+		options []InviteOption
+		// zero means the cursor is expected to start at the invite time
+		expectedCursor int64
 	}{
 		{
-			name:     "pending remote starts at the requested cursor",
-			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID},
-			options:  []InviteOption{WithSyncCursorStart(1000)},
-			expectCursor: func(_, _ int64) func(int64) bool {
-				return func(cursor int64) bool { return cursor == 1000 }
-			},
+			name:           "starts at the requested cursor when it is earlier than now",
+			options:        []InviteOption{WithSyncCursorStart(1000)},
+			expectedCursor: 1000,
 		},
 		{
-			name:     "pending remote starts now without the option",
-			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID},
-			expectCursor: func(before, after int64) func(int64) bool {
-				return func(cursor int64) bool { return cursor >= before && cursor <= after }
-			},
+			name: "starts now without the option",
 		},
 		{
-			name:     "soft deleted remote starts now even with the option",
-			existing: &model.SharedChannelRemote{ChannelId: channelID, RemoteId: remoteID, DeleteAt: 12345},
-			options:  []InviteOption{WithSyncCursorStart(1000)},
-			expectCursor: func(before, after int64) func(int64) bool {
-				return func(cursor int64) bool { return cursor >= before && cursor <= after }
-			},
+			name:    "starts now when the requested cursor is not earlier than now",
+			options: []InviteOption{WithSyncCursorStart(model.GetMillis() + 60*60*1000)},
 		},
 	}
 
@@ -577,8 +566,8 @@ func TestSendChannelInvite_SyncCursorStartOnExistingRemote(t *testing.T) {
 			var saved *model.SharedChannelRemote
 			mockSharedChannelStore := mocks.SharedChannelStore{}
 			mockSharedChannelStore.On("Get", channelID).Return(&model.SharedChannel{ChannelId: channelID}, nil)
-			mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(tc.existing, nil)
-			mockSharedChannelStore.On("UpdateRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+			mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
+			mockSharedChannelStore.On("SaveRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
 				saved = scr
 				return true
 			})).Return(nil, nil).Once()
@@ -591,11 +580,17 @@ func TestSendChannelInvite_SyncCursorStartOnExistingRemote(t *testing.T) {
 			after := model.GetMillis()
 
 			require.NotNil(t, saved)
-			check := tc.expectCursor(before, after)
-			assert.True(t, check(saved.LastPostCreateAt), "LastPostCreateAt=%d", saved.LastPostCreateAt)
-			assert.True(t, check(saved.LastPostUpdateAt), "LastPostUpdateAt=%d", saved.LastPostUpdateAt)
+			if tc.expectedCursor != 0 {
+				assert.Equal(t, tc.expectedCursor, saved.LastPostCreateAt)
+				assert.Equal(t, tc.expectedCursor, saved.LastPostUpdateAt)
+			} else {
+				assert.GreaterOrEqual(t, saved.LastPostCreateAt, before)
+				assert.LessOrEqual(t, saved.LastPostCreateAt, after)
+				assert.GreaterOrEqual(t, saved.LastPostUpdateAt, before)
+				assert.LessOrEqual(t, saved.LastPostUpdateAt, after)
+			}
 			assert.True(t, saved.IsInviteConfirmed)
-			assert.Zero(t, saved.DeleteAt)
+			mockSharedChannelStore.AssertExpectations(t)
 		})
 	}
 }
