@@ -350,6 +350,11 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 		return nil, err
 	}
 
+	if err := a.isUniqueToUserIDs(rctx, user.Username); err != nil {
+		err.Where = "createUserOrGuest"
+		return nil, err
+	}
+
 	ruser, nErr := a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1553,6 +1558,22 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	return nil
 }
 
+func (a *App) isUniqueToUserIDs(rctx request.CTX, val string) *model.AppError {
+	normalized := model.NormalizeUsername(model.SanitizeUnicode(val))
+	if normalized == "" || !model.IsValidId(normalized) {
+		return nil
+	}
+	var notFoundErr *store.ErrNotFound
+	user, err := a.Srv().Store().User().Get(rctx, normalized)
+	if err != nil && !errors.As(err, &notFoundErr) {
+		return model.NewAppError("isUniqueToUserIDs", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if user != nil {
+		return model.NewAppError("isUniqueToUserIDs", "app.user.save.username_exists.app_error", nil, fmt.Sprintf("user id %s exists", val), http.StatusBadRequest)
+	}
+	return nil
+}
+
 func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(rctx, user.Id)
 	if err != nil {
@@ -1571,6 +1592,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 
 	if user.Username != prev.Username {
 		if err := a.isUniqueToGroupNames(user.Username); err != nil {
+			err.Where = "UpdateUser"
+			return nil, err
+		}
+
+		if err := a.isUniqueToUserIDs(rctx, user.Username); err != nil {
 			err.Where = "UpdateUser"
 			return nil, err
 		}
