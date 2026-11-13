@@ -140,12 +140,63 @@ const noUnwaitedIsVisible = {
     },
 };
 
+// One-shot reads of page state. isVisible() is left to no-unwaited-is-visible (L-007).
+const PAGE_STATE_READS = new Set([
+    'isHidden',
+    'isChecked',
+    'isEnabled',
+    'isDisabled',
+    'isEditable',
+    'count',
+    'textContent',
+    'innerText',
+    'inputValue',
+    'getAttribute',
+]);
+const COMPARISON = new Set(['===', '!==', '==', '!=', '<', '<=', '>', '>=']);
+
+// True when `node` decides a branch: an if, ternary or loop condition, through await, !, &&, || and comparisons.
+function decidesBranch(node) {
+    let child = node;
+    let parent = node.parent;
+    while (
+        parent &&
+        (PASS_THROUGH.has(parent.type) || (parent.type === 'BinaryExpression' && COMPARISON.has(parent.operator)))
+    ) {
+        child = parent;
+        parent = parent.parent;
+    }
+    return Boolean(parent && CONDITIONAL.has(parent.type) && parent.test === child);
+}
+
+const noPageStateBranch = {
+    meta: {
+        type: 'problem',
+        docs: {description: 'L-010: tests and page objects take one path; they never branch on what the page shows'},
+        messages: {
+            branch: "L-010: don't branch on {{method}}(). Branching on page state hides failures: make the state known (set it up or wait for it) and take one path.",
+        },
+        schema: [],
+    },
+    create(context) {
+        return {
+            CallExpression(node) {
+                const method = methodName(node);
+                if (PAGE_STATE_READS.has(method) && decidesBranch(node)) {
+                    context.report({node, messageId: 'branch', data: {method}});
+                }
+            },
+        };
+    },
+};
+
 const lessons = {
     meta: {name: 'mattermost-e2e-lessons'},
     rules: {
         'no-spec-locators': noSpecLocators,
         'no-xpath': noXpath,
         'no-unwaited-is-visible': noUnwaitedIsVisible,
+        'no-page-state-branch': noPageStateBranch,
     },
 };
 
@@ -160,6 +211,7 @@ export const lessonsConfig = [
             'playwright/no-wait-for-timeout': 'error', // L-007
             'playwright/prefer-web-first-assertions': 'error', // L-007
             'lessons/no-unwaited-is-visible': 'error', // L-007
+            'lessons/no-page-state-branch': 'error', // L-010
         },
     },
     {
@@ -173,7 +225,8 @@ export const lessonsConfig = [
 export const LESSON_RULES = lessonsConfig.flatMap((config) => Object.keys(config.rules));
 
 // Rules that `npm run lint:lessons` reports but doesn't fail on yet. L-001 starts here because most open
-// spec work still builds locators in specs; make it blocking once page objects cover the common cases.
-export const REPORT_ONLY_RULES = new Set(['lessons/no-spec-locators']);
+// spec work still builds locators in specs, and L-010 because existing page objects and some open PRs still branch on page state;
+// make each blocking once the code base and open PRs are ready.
+export const REPORT_ONLY_RULES = new Set(['lessons/no-spec-locators', 'lessons/no-page-state-branch']);
 
 export default lessons;

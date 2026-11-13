@@ -15,7 +15,8 @@ page is for people maintaining them: where each lesson came from, how
 | L-006        | Leaks fixed: `CollapsedThreads` (#39377), `PrivacySettings.ShowFullName`/`ShowEmailAddress` (#39497), open-invite teams (#39864). In review: `ElasticsearchSettings.Enable*` (#39871), leftover ABAC policies (#39875) |
 | L-007        | #39372                                                                                                                                                                                                                 |
 | L-008        | #39376                                                                                                                                                                                                                 |
-| L-009        | Counter-example: #39445 made the search specs wait for an engine answer because search silently falls back to Postgres on engine errors                                                                                |
+| L-009        | Counter-example: #39445 made the search specs wait for an engine answer, because on an engine error search falls back to the database (the cause is logged at warn) and the response only differs by `matches: null`   |
+| L-010        | #39982, review by praid3n: branching on page state hides failures, so tests and page objects should fail fast. Lint only (report-only for now); no entry in `AGENTS.md`, the lint message states the rule              |
 
 ## Lint ratchet
 
@@ -29,8 +30,8 @@ now. Files nobody touches are never checked.
 - When it fails, it lists every hit of that rule in the file, old and new.
   Remove the one you added; you don't have to fix the old ones.
 - Rules in `REPORT_ONLY_RULES` (`eslint-rules/lessons.mjs`) are listed the
-  same way but don't fail yet. L-001 starts there; it becomes blocking once
-  page objects cover the common cases and the team is told.
+  same way but don't fail yet. L-001 and L-010 start there; each becomes
+  blocking once the code base and open PRs are ready and the team is told.
 - Renaming or moving a file compares it with its old path, so a pure move
   passes.
 - The base is the merge base of `HEAD` and `origin/master`. Set `LESSONS_BASE`
