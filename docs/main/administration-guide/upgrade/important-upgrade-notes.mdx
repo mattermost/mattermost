@@ -23,7 +23,10 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td rowspan="27">v12.0</td>
+<td rowspan="28">v12.0</td>
+<td><p>Starting with v12.2, FIPS builds reject SAML responses that use SHA-1, including RSA-OAEP key encryption with SHA-1, and the login fails. If your identity provider encrypts SAML assertions, switch it to RSA-OAEP-11 with a SHA-256 digest and MGF1-SHA256. See <a href={useBaseUrl('/administration-guide/configure/authentication-configuration-settings#key-transport-and-sha-1-in-fips-builds')}>key transport and SHA-1 in FIPS builds</a> for the exact settings. Non-FIPS builds aren't affected.</p></td>
+</tr>
+<tr>
 <td><p>Starting with v12.0.2, new installations support post messages of up to 262,144 characters, with the <code>message</code> column on <code>posts</code>, <code>drafts</code>, <code>scheduledposts</code> and <code>temporaryposts</code> created as <code>VARCHAR(1048576)</code>. Existing installations keep their current column sizes and maximum message length. The maximum message length is derived from the size of the <code>Posts.Message</code> column: a quarter of the column size, to allow for characters of up to four bytes. For example, a <code>VARCHAR(65535)</code> column allows 16,383 characters.</p></td>
 </tr>
 <tr>

@@ -1254,6 +1254,18 @@ Mattermost supports the following encryption methods for SAML:
 
 AES-192-GCM and AES-256-GCM support was introduced in Mattermost v10.9.
 
+##### Key transport and SHA-1 in FIPS builds
+
+From v12.2, Mattermost FIPS builds reject SAML responses that use SHA-1, and the login fails. This includes SHA-1 signatures and digests, and RSA-OAEP key encryption with SHA-1. Non-FIPS builds aren't affected.
+
+If your identity provider encrypts SAML assertions, set:
+
+- **Key transport**: RSA-OAEP-11 (`http://www.w3.org/2009/xmlenc11#rsa-oaep`)
+- **Digest method**: SHA-256 (`http://www.w3.org/2001/04/xmlenc#sha256`)
+- **Mask generation function (MGF)**: MGF1-SHA256 (`http://www.w3.org/2009/xmlenc11#mgf1sha256`). Set this explicitly, because the default is SHA-1.
+
+Changing only the digest to SHA-256 isn't enough. With `rsa-oaep-mgf1p`, the MGF stays MGF1-SHA1 and decryption fails with `rsa internal error: decryption error`. For an example, see [Configure SAML with Keycloak](/administration-guide/onboard/sso-saml-keycloak).
+
 ### Service provider private key
 
 <table>
@@ -1308,7 +1320,7 @@ AES-192-GCM and AES-256-GCM support was introduced in Mattermost v10.9.
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting determines the signature algorithm used to sign the SAML request. Options are: <code>RSAwithSHA1</code>, <code>RSAwithSHA256</code>, <code>RSAwithSHA512</code>.</p><p>String input.</p><Note><p>From Mattermost v11, the default signature algorithm has been updated from <code>RSAwithSHA1</code> to <code>RSAwithSHA256</code> for improved security. Existing configurations will continue to work, but new installations will default to <code>RSAwithSHA256</code>.</p></Note></td>
+<td><p>This setting determines the signature algorithm used to sign the SAML request. Options are: <code>RSAwithSHA1</code>, <code>RSAwithSHA256</code>, <code>RSAwithSHA512</code>.</p><p>String input.</p><Note><p>From Mattermost v11, the default signature algorithm has been updated from <code>RSAwithSHA1</code> to <code>RSAwithSHA256</code> for improved security. Existing configurations will continue to work, but new installations will default to <code>RSAwithSHA256</code>.</p></Note><Note><p>From v12.2, FIPS builds reject <code>RSAwithSHA1</code>.</p></Note></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>SignatureAlgorithm</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_SIGNATUREALGORITHM</code></li></ul></td>
 </tr>
 </tbody>
