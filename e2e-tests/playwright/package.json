@@ -65,5 +65,8 @@
     "fsevents@2.3.2": true,
     "protobufjs@7.6.6": true,
     "@percy/core@1.32.12": true
+  },
+  "overrides": {
+    "pdfjs-dist": "4.10.38"
   }
 }
