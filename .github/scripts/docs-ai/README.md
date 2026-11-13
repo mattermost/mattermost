@@ -116,6 +116,13 @@ documentation change does. The pre-open review trail stays in `trail.json`, uplo
 as a workflow artifact, not the body. Closing that draft flips `Docs/Needed` →
 `Docs/Done` on the originating PR.
 
+Each author group gets one corrective retry when its first draft is unusable (a target
+omitted, no version anchor, no parseable file block). A group that still fails is listed
+under **Not drafted** in the PR body, and the other groups' pages still open. Truncation at
+the output limit and pages over the prompt size limit are not retried. When no group
+produces a page, the run fails and leaves a one-time notice on the source PR so the author
+knows to write the docs by hand.
+
 Three constraints to preserve if you change the gap label logic:
 
 - **The label follows the verdict, not the presence of a docs diff.** A push that edits an

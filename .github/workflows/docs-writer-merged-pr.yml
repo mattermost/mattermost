@@ -310,6 +310,30 @@ jobs:
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
 
+      # Without this a failed draft is invisible: Docs/Needed stays on and nobody is told.
+      - name: Tell the source PR the draft failed
+        if: failure() && steps.gate.outputs.run == 'true' && steps.pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          MARKER="<!-- docs-ai-writer-failed -->"
+          if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --jq '.[].body' | grep -qF "$MARKER"; then
+            echo "Failure notice already posted on #${PR_NUMBER}."
+            exit 0
+          fi
+          gh pr comment "$PR_NUMBER" --body-file - <<EOF
+          ${MARKER}
+          The automated documentation draft for this PR could not be generated ([workflow run](${RUN_URL})).
+
+          \`Docs/Needed\` is still set, so the documentation still needs to be written. Open a docs PR that updates \`docs/\`, and once it merges replace \`Docs/Needed\` with \`Docs/Done\` on this PR.
+
+          A maintainer can retry the draft from **Actions → Docs Writer (Merged PR) → Run workflow** with PR number \`${PR_NUMBER}\`.
+          EOF
+
       - name: Upload writer trail
         if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0

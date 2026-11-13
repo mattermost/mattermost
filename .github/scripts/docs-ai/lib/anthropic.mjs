@@ -17,14 +17,18 @@ export async function complete({model, system, userPrompt, maxTokens = 4096, tem
     ? system
     : [{type: 'text', text: system, cache_control: {type: 'ephemeral'}}];
 
+  // Stream so large max_tokens (full-page rewrites) are not refused by the SDK's
+  // non-streaming timeout guard; finalMessage() resolves to the same shape as create().
   const res = await withRetry(() =>
-    getClient().messages.create({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system: systemBlocks,
-      messages: [{role: 'user', content: userPrompt}],
-    }),
+    getClient()
+      .messages.stream({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        system: systemBlocks,
+        messages: [{role: 'user', content: userPrompt}],
+      })
+      .finalMessage(),
   );
 
   const text = res.content

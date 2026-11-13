@@ -826,3 +826,141 @@ test('authorLoop reviews only the inserted section of an existing page', async (
     rmSync(dir, {recursive: true, force: true});
   }
 });
+
+function approvingReviewer(prompt) {
+  if (prompt.includes('Which reviewers apply?')) return {text: '{"personas": []}', usage: {}};
+  if (prompt.includes('Review the diff above')) {
+    return {text: JSON.stringify({verdict: 'APPROVE', summary: 'ok', feedback: []}), usage: {}};
+  }
+  return null;
+}
+
+const anchoredBlock = (path, body = 'From Mattermost v11.7, Foo is available.') =>
+  ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
+
+test('authorLoop retries once when the first draft omits a target', async () => {
+  const a = 'docs/main/administration-guide/configure/a.mdx';
+  const b = 'docs/main/administration-guide/configure/b.mdx';
+  let authorCalls = 0;
+  let sawCorrection = false;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    const review = approvingReviewer(prompt);
+    if (review) return review;
+    authorCalls += 1;
+    if (prompt.includes('previous-attempt-rejected') && prompt.includes('omitted required targets')) {
+      sawCorrection = true;
+      return {text: [anchoredBlock(a), anchoredBlock(b)].join('\n\n'), usage: {}};
+    }
+    return {text: anchoredBlock(a), usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [a, b]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(authorCalls, 2);
+  assert.equal(sawCorrection, true);
+  assert.deepEqual(files.map((f) => f.path).sort(), [a, b]);
+  assert.deepEqual(trail.failedGroups, []);
+});
+
+test('authorLoop does not retry a draft truncated at the output limit', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  let authorCalls = 0;
+  const completeFn = async ({userPrompt}) => {
+    const review = approvingReviewer(String(userPrompt || ''));
+    if (review) return review;
+    authorCalls += 1;
+    return {text: '````mdx path=' + path + '\n---\ntitle: Foo', usage: {}, stopReason: 'max_tokens'};
+  };
+
+  await assert.rejects(
+    authorLoop({
+      brief: {summary: 's', actions: [], targetPaths: [path]},
+      input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+      completeFn,
+    }),
+    /no pages drafted: .*output limit/,
+  );
+  assert.equal(authorCalls, 1);
+});
+
+test('authorLoop keeps the pages one author wrote when another author fails', async () => {
+  const admin = 'docs/main/administration-guide/configure/foo.mdx';
+  const dev = 'docs/develop/integrate/reference/server/index.md';
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    const review = approvingReviewer(prompt);
+    if (review) return review;
+    if (prompt.includes(`target-paths>\n${dev}`) || prompt.includes(dev + '\n</target-paths')) {
+      return {text: 'I need more information.', usage: {}};
+    }
+    if (prompt.includes(admin)) return {text: anchoredBlock(admin), usage: {}};
+    return {text: 'I need more information.', usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [admin, dev]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.deepEqual(files.map((f) => f.path), [admin]);
+  assert.equal(trail.failedGroups.length, 1);
+  assert.deepEqual(trail.failedGroups[0].paths, [dev]);
+  assert.match(trail.failedGroups[0].error, /no allowed file blocks/);
+
+  const body = renderPrBody({sourcePr: 1, summary: '- Adds Foo.', milestoneVersion: 'v11.7', failedGroups: trail.failedGroups});
+  assert.match(body, /## Not drafted/);
+  assert.match(body, new RegExp('`' + dev.replaceAll('.', '\\.') + '`'));
+});
+
+test('authorLoop does not treat a free-text action starting with docs/ as a target path', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const completeFn = async ({userPrompt}) => {
+    const review = approvingReviewer(String(userPrompt || ''));
+    if (review) return review;
+    return {text: anchoredBlock(path), usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: ['docs/main/administration-guide: describe the new Foo setting'], targetPaths: []},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.deepEqual(files.map((f) => f.path), [path]);
+  assert.deepEqual(trail.failedGroups, []);
+});
+
+test('authorLoop keeps a validated draft when a pre-open reviewer errors', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) return {text: '{"personas": []}', usage: {}};
+    if (prompt.includes('Review the diff above')) return {text: 'not json at all', usage: {}};
+    return {text: anchoredBlock(path), usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [path]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(files.length, 1);
+  assert.ok(trail.openConcerns.some((c) => /did not complete/.test(c.summary)));
+});
+
+test('loadExistingPages skips a target that is a directory', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'docs-writer-'));
+  try {
+    mkdirSync(join(dir, 'docs/main/administration-guide/manage'), {recursive: true});
+    assert.deepEqual(loadExistingPages(dir, ['docs/main/administration-guide/manage']), []);
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
+});

@@ -1,4 +1,4 @@
-import {existsSync, readFileSync} from 'node:fs';
+import {existsSync, readFileSync, statSync} from 'node:fs';
 import {join} from 'node:path';
 import {complete, usageLine} from '../lib/anthropic.mjs';
 import {unifiedDiff} from '../lib/diff.mjs';
@@ -62,6 +62,15 @@ export function parseMaxRevisions(raw, fallback = 2) {
 
 const MAX_REVISIONS = parseMaxRevisions(process.env.DOCS_AI_MAX_REVISIONS);
 
+// The author re-emits whole pages; 8192 truncated mid-page on anything past ~30k chars.
+// Pages are capped at MAX_PAGE_PROMPT_CHARS, which this covers with room for the summary.
+export const AUTHOR_MAX_TOKENS = 32_000;
+
+/** An author failure a corrective retry cannot fix (same input, same outcome). */
+function fatal(message) {
+  return Object.assign(new Error(message), {retryable: false});
+}
+
 export function normalizeDocsPath(p) {
   return String(p || '')
     .trim()
@@ -94,7 +103,8 @@ export function loadExistingPages(repoRoot, groupPaths) {
     const path = normalizeDocsPath(raw);
     if (!path.startsWith('docs/') || !isAllowedPath(path)) continue;
     const abs = join(root, path);
-    if (!existsSync(abs)) continue;
+    // A directory named by the brief is not a page to edit.
+    if (!existsSync(abs) || !statSync(abs).isFile()) continue;
     pages.push({path, content: readFileSync(abs, 'utf8')});
   }
   return pages;
@@ -107,14 +117,14 @@ export function assertPagesFitPrompt(pages, maxChars = MAX_PAGE_PROMPT_CHARS) {
   for (const p of pages || []) {
     const n = String(p.content ?? '').length;
     if (n > maxChars) {
-      throw new Error(
+      throw fatal(
         `${p.path}: page is ${n} characters (limit ${maxChars}); refusing to author a replacement that might omit content`,
       );
     }
   }
 }
 
-function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, existingPages}) {
+function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, existingPages, correction}) {
   const parts = [
     DATA_NOTICE,
     '',
@@ -160,6 +170,15 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
     );
   }
 
+  if (correction) {
+    parts.push(
+      block('previous-attempt-rejected', correction, {maxChars: 2000}),
+      '',
+      'Your previous response was rejected for the reason above. Fix that problem.',
+      '',
+    );
+  }
+
   if (revisionFeedback?.length) {
     parts.push(
       block('reviewer-feedback', JSON.stringify(revisionFeedback, null, 2), {maxChars: 12_000}),
@@ -179,12 +198,21 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
   return parts.join('\n');
 }
 
-async function authorPass({personaId, groupPaths, brief, input, revisionFeedback, basePages, completeFn}) {
+async function authorPass({
+  personaId,
+  groupPaths,
+  brief,
+  input,
+  revisionFeedback,
+  basePages,
+  correction,
+  completeFn,
+}) {
   const system = personaId ? authorSystemBlocks(personaId) : neutralAuthorSystemBlocks();
   // Revisions use the in-memory draft; initial passes load the on-disk page when present.
   const existingPages = basePages ?? loadExistingPages(input.repoRoot, groupPaths);
   assertPagesFitPrompt(existingPages);
-  const {text, usage} = await completeFn({
+  const {text, usage, stopReason} = await completeFn({
     model: WRITER_MODEL,
     system,
     userPrompt: buildAuthorUserPrompt({
@@ -193,11 +221,17 @@ async function authorPass({personaId, groupPaths, brief, input, revisionFeedback
       input,
       revisionFeedback,
       existingPages,
+      correction,
     }),
-    maxTokens: 8192,
+    maxTokens: AUTHOR_MAX_TOKENS,
     temperature: 0.3,
   });
-  console.error(`[author:${personaId ?? 'neutral'}] ${WRITER_MODEL} ${usageLine(usage)}`);
+  console.error(`[author:${personaId ?? 'neutral'}] ${WRITER_MODEL} ${usageLine(usage ?? {})}`);
+  if (stopReason === 'max_tokens') {
+    throw fatal(
+      `author ${personaId ?? 'neutral'} hit the ${AUTHOR_MAX_TOKENS}-token output limit before finishing ${groupPaths.join(', ')}`,
+    );
+  }
 
   const allow = groupPathAllowlist(groupPaths);
   const files = parseFileBlocks(text)
@@ -280,52 +314,70 @@ async function reviewFiles({diff, input, brief, completeFn}) {
   return {diff, reviewers, results};
 }
 
+/** First pass for one author group, validated before review. Throws on an unusable draft. */
+async function draftGroup({group, brief, input, correction, completeFn}) {
+  const authored = await authorPass({
+    personaId: group.personaId,
+    groupPaths: group.paths,
+    brief,
+    input,
+    correction,
+    completeFn,
+  });
+  const missing = missingGroupTargets(authored.files, group.paths);
+  if (missing.length) {
+    throw new Error(`author ${group.personaId ?? 'neutral'} omitted required targets: ${missing.join(', ')}`);
+  }
+  assertVersionAnchors(authored.files, {milestoneVersion: input.milestoneVersion});
+  assertSafeMdx(authored.files);
+  const diff = draftDiff(authored.files, input);
+  if (!diff.trim()) {
+    const paths = authored.files.map((f) => f.path).join(', ');
+    throw new Error(`authored pages are identical to the existing files: ${paths}`);
+  }
+  return {...authored, diff};
+}
+
+/** One corrective retry: the model usually fixes an omitted target or anchor once told. */
+async function draftGroupWithRetry({group, brief, input, completeFn}) {
+  try {
+    return await draftGroup({group, brief, input, completeFn});
+  } catch (e) {
+    if (e.retryable === false) throw e;
+    console.error(`[author-loop] ${group.personaId ?? 'neutral'}: first draft rejected (${e.message}); retrying once`);
+    return draftGroup({group, brief, input, correction: e.message, completeFn});
+  }
+}
+
 /**
  * Author → review → revise loop.
  * `summary` is the draft PR body. `trail` is kept for the workflow artifact only.
  */
 export async function authorLoop({brief, input, completeFn = complete} = {}) {
-  const targets =
-    brief.targetPaths?.length > 0
-      ? brief.targetPaths
-      : (brief.actions ?? []).length
-        ? brief.actions
-        : ['(unspecified — derive from the gap brief)'];
-
-  // When we only have action strings, groupPathsByAuthor still needs path-like targets.
-  const pathTargets = targets.filter((t) => t.startsWith('docs/'));
+  // Concrete paths in the actions were already extracted into targetPaths by the brief
+  // parser. The rest are free text: never treat them as paths, or an action that starts
+  // with "docs/" becomes an allowlist the author's real file blocks are filtered against.
+  const pathTargets = (brief.targetPaths ?? []).filter((t) => t.startsWith('docs/'));
   const groups =
-    pathTargets.length > 0
-      ? groupPathsByAuthor(pathTargets)
-      : [{personaId: null, paths: targets}];
+    pathTargets.length > 0 ? groupPathsByAuthor(pathTargets) : [{personaId: null, paths: []}];
 
   let files = [];
-  const trail = {iterations: [], openConcerns: []};
+  const trail = {iterations: [], openConcerns: [], failedGroups: []};
   const summaries = [];
 
   for (const group of groups) {
-    let authored = await authorPass({
-      personaId: group.personaId,
-      groupPaths: group.paths,
-      brief,
-      input,
-      completeFn,
-    });
-    let groupFiles = authored.files;
-    let groupSummary = authored.summary;
-    const initialMissing = missingGroupTargets(groupFiles, group.paths);
-    if (initialMissing.length) {
-      throw new Error(
-        `author ${group.personaId ?? 'neutral'} omitted required targets: ${initialMissing.join(', ')}`,
-      );
+    let drafted;
+    try {
+      drafted = await draftGroupWithRetry({group, brief, input, completeFn});
+    } catch (e) {
+      // One unusable group must not discard the pages the other authors wrote.
+      console.error(`[author-loop] ${group.personaId ?? 'neutral'}: giving up (${e.message})`);
+      trail.failedGroups.push({author: group.personaId ?? 'neutral', paths: group.paths, error: e.message});
+      continue;
     }
-    assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
-    assertSafeMdx(groupFiles);
-    let groupDiff = draftDiff(groupFiles, input);
-    if (!groupDiff.trim()) {
-      const paths = groupFiles.map((f) => f.path).join(', ');
-      throw new Error(`authored pages are identical to the existing files: ${paths}`);
-    }
+    let groupFiles = drafted.files;
+    let groupSummary = drafted.summary;
+    let groupDiff = drafted.diff;
 
     let revision = 0;
     let lastResults = [];
@@ -346,9 +398,18 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
 
       const errors = results.filter((r) => r.verdict === 'ERROR');
       if (errors.length) {
-        throw new Error(
-          `pre-open review failed (${errors.map((r) => r.persona).join(', ')}): ${errors.map((r) => r.summary).join('; ')}`,
+        // A reviewer outage is not a reason to drop a validated draft; a human reviews the PR.
+        console.error(
+          `[author-loop] pre-open review errored (${errors.map((r) => r.persona).join(', ')}); keeping the draft`,
         );
+        trail.openConcerns.push(
+          ...errors.map((r) => ({
+            persona: r.persona,
+            summary: `Pre-open review did not complete: ${r.summary}`,
+            feedback: [],
+          })),
+        );
+        break;
       }
 
       const blocking = results.filter((r) => r.verdict === 'REQUEST_CHANGES');
@@ -433,6 +494,12 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
     );
   }
 
+  if (files.length === 0) {
+    throw new Error(
+      `no pages drafted: ${trail.failedGroups.map((g) => `${g.author}: ${g.error}`).join('; ') || 'no author groups'}`,
+    );
+  }
+
   return {files, trail, summary: summaries.join('\n\n').trim()};
 }
 
@@ -450,7 +517,7 @@ export function draftTitle(sourceTitle) {
   return title.length > DRAFT_TITLE_MAX ? `${title.slice(0, DRAFT_TITLE_MAX - 3).trimEnd()}...` : title;
 }
 
-export function renderPrBody({sourcePr, summary, milestoneVersion}) {
+export function renderPrBody({sourcePr, summary, milestoneVersion, failedGroups = []}) {
   const lines = [
     '<!-- docs-ai-draft:v1 -->',
     `<!-- docs-ai-source-pr:${sourcePr} -->`,
@@ -470,6 +537,19 @@ export function renderPrBody({sourcePr, summary, milestoneVersion}) {
   let change = sanitizeSummary(summary);
   if (change.length > 2000) change = `${change.slice(0, 2000).trimEnd()}...`;
   lines.push('## Summary', '', change || '_The draft did not include a change summary._', '');
+
+  const notDrafted = [...new Set(failedGroups.flatMap((g) => g.paths ?? []))].sort();
+  if (failedGroups.length) {
+    lines.push(
+      '## Not drafted',
+      '',
+      'The writer could not produce these pages. Add them to this PR by hand before merging:',
+      '',
+      ...(notDrafted.length ? notDrafted.map((p) => `- \`${p}\``) : ['- _Pages the gap analysis did not name._']),
+      '',
+    );
+  }
+
   lines.push('Pending human editorial review.');
   return `${lines.join('\n')}\n`;
 }
