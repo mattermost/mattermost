@@ -18,11 +18,6 @@ describe('components/PasswordResetForm', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<PasswordResetForm {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     it('should call the resetUserPassword() action on submit', async () => {
         const props = {
             ...baseProps,

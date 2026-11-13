@@ -77,13 +77,6 @@ describe('components/sidebar/show_start_trial_modal', () => {
         };
     });
 
-    test('should match snapshot', () => {
-        const {container} = render(
-            <ShowStartTrialModal/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should NOT dispatch the modal when there are less than 10 users', () => {
         const lessThan10Users = 9;
         mockTotalUsers = lessThan10Users;

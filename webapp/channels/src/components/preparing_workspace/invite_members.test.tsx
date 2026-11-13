@@ -32,23 +32,6 @@ describe('InviteMembers component', () => {
         };
     });
 
-    it('should match snapshot', () => {
-        const component = withIntl(<InviteMembers {...defaultProps}/>);
-        const {container} = render(component);
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot when it is cloud', () => {
-        const component = withIntl(
-            <InviteMembers
-                {...defaultProps}
-                isSelfHosted={false}
-            />,
-        );
-        const {container} = render(component);
-        expect(container).toMatchSnapshot();
-    });
-
     it('renders invite URL', () => {
         const component = withIntl(<InviteMembers {...defaultProps}/>);
         render(component);

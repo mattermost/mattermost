@@ -146,6 +146,17 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Option 3', 'Option 1', 'Option 2']);
         });
 
+        test('a select field without ranks shows no rank text or badge', async () => {
+            renderEditor(buildField('select'), 'opt1');
+
+            expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+            await userEvent.click(getCombobox());
+
+            expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+            expect(screen.queryByText(/Rank/)).not.toBeInTheDocument();
+            expect(screen.getByRole('option', {name: 'Option 1'})).toBeInTheDocument();
+        });
+
         test('names the input and clear button after attrs.display_name when set', () => {
             renderEditor(buildField('select', {display_name: 'Friendly Name'}), 'opt1');
 
@@ -161,22 +172,32 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(within(selections).getByText('Option 1')).toBeInTheDocument();
         });
 
-        test('renders a rank field as a single clearable combobox and saves the picked id', async () => {
+        test('renders a rank field as a single clearable combobox, highest rank first, and saves the picked id', async () => {
             const rankOptions = [
-                {id: 'senior', name: 'Senior', color: ''},
-                {id: 'junior', name: 'Junior', color: ''},
-                {id: 'mid', name: 'Mid', color: ''},
+                {id: 'junior', name: 'Junior', color: '', rank: 1},
+                {id: 'senior', name: 'Senior', color: '', rank: 3},
+                {id: 'mid', name: 'Mid', color: '', rank: 2},
             ];
-            const {saveCustomProfileAttribute} = renderEditor(buildField('rank', {options: rankOptions}), 'junior');
+            const {container, saveCustomProfileAttribute} = renderEditor(buildField('rank', {options: rankOptions}), 'junior');
 
             const combobox = getCombobox();
             expect(combobox).toHaveValue('Junior');
             expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
             expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+            expect(within(container).getByTestId('rank-badge')).toHaveTextContent('1');
+            expect(combobox).toHaveAccessibleDescription('Rank 1');
 
             await userEvent.click(combobox);
-            expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Senior', 'Junior', 'Mid']);
-            await userEvent.click(screen.getByRole('option', {name: 'Mid'}));
+            expect(screen.getAllByRole('option').map((o) => o.id)).toEqual([
+                `${COMBOBOX_ID}-listbox-option-senior`,
+                `${COMBOBOX_ID}-listbox-option-mid`,
+                `${COMBOBOX_ID}-listbox-option-junior`,
+            ]);
+            const midRow = screen.getByTestId(`${COMBOBOX_ID}-option-mid`);
+            expect(midRow).toHaveAccessibleName('Mid, Rank 2');
+            expect(within(midRow).getByTestId('rank-badge')).toHaveTextContent('2');
+            expect(midRow).not.toHaveTextContent(/Rank/);
+            await userEvent.click(screen.getByRole('option', {name: 'Mid, Rank 2'}));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'mid');
@@ -209,7 +230,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             renderEditor(buildField('select'), '');
 
             expect(getCombobox()).toHaveValue('');
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select an option');
             expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
         });
 
@@ -266,7 +287,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test('shows an empty multiselect with the placeholder, no chips and no clear button, and saves []', async () => {
             const {saveCustomProfileAttribute} = renderEditor(buildField('multiselect'), '');
 
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select options');
             expect(getChipLabels()).toEqual([]);
             expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -460,7 +481,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             await user.keyboard('{Enter}');
 
             expect(getCombobox()).toHaveValue('');
-            expect(getCombobox()).toHaveAttribute('placeholder', 'Select');
+            expect(getCombobox()).toHaveAttribute('placeholder', 'Select an option');
             expect(saveCustomProfileAttribute).not.toHaveBeenCalled();
             expect(documentKeys()).not.toContain('Enter');
 

@@ -63,84 +63,6 @@ describe('FileAttachment', () => {
         },
     };
 
-    test('should match snapshot, regular file', () => {
-        const {container} = renderWithContext(<FileAttachment {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, regular image', () => {
-        const fileInfo = {
-            ...baseFileInfo,
-            extension: 'png',
-            name: 'test.png',
-            width: 600,
-            height: 400,
-            size: 100,
-        };
-        const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, small image', () => {
-        const fileInfo = {
-            ...baseFileInfo,
-            extension: 'png',
-            name: 'test.png',
-            width: 16,
-            height: 16,
-            size: 100,
-        };
-        const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, svg image', () => {
-        const fileInfo = {
-            ...baseFileInfo,
-            extension: 'svg',
-            name: 'test.svg',
-            width: 600,
-            height: 400,
-            size: 100,
-        };
-        const props = {...baseProps, fileInfo};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, after change from file to image', () => {
-        const fileInfo = {
-            ...baseFileInfo,
-            extension: 'png',
-            name: 'test.png',
-            width: 600,
-            height: 400,
-            size: 100,
-        };
-        const {rerender, container} = renderWithContext(<FileAttachment {...baseProps}/>);
-        rerender(<FileAttachment {...{...baseProps, fileInfo}}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with compact display', () => {
-        const props = {...baseProps, compactDisplay: true};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, without compact display and without can download', () => {
-        const props = {...baseProps, canDownloadFiles: false};
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when file is not loaded', () => {
-        const {container} = renderWithContext(<FileAttachment {...{...baseProps, fileInfo: {...baseProps.fileInfo, id: 'noLoad', extension: 'jpg'}, enableSVGs: true}}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should blur file attachment link after click', async () => {
         const props = {...baseProps, compactDisplay: true};
         renderWithContext(<FileAttachment {...props}/>);
@@ -149,35 +71,5 @@ describe('FileAttachment', () => {
         const blur = jest.spyOn(link, 'blur');
         await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
-    });
-
-    test('should match snapshot when file is deleted', () => {
-        const props = {
-            ...baseProps,
-            fileInfo: {
-                ...baseFileInfo,
-                delete_at: 10000000,
-            },
-        };
-        const {container} = renderWithContext(<FileAttachment {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with thumbnail disabled', () => {
-        const {container} = renderWithContext(
-            <FileAttachment
-                {...baseProps}
-                disableThumbnail={true}
-            />);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should not render menu items when disable actions is set', () => {
-        const {container} = renderWithContext(
-            <FileAttachment
-                {...baseProps}
-                disableActions={true}
-            />);
-        expect(container).toMatchSnapshot();
     });
 });

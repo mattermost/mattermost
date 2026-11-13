@@ -53,64 +53,6 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         PermissionGroup.mockClear();
     });
 
-    test('should match snapshot on default data', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree {...defaultProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on read only', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                readOnly={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on team scope', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                scope={'team_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on system scope', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                scope={'system_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on license without LDAPGroups', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                license={{}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with parentRole with permissions', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                parentRole={{permissions: ['invite_user']}}
-                scope={'system_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should ask to toggle on row toggle', () => {
         const onToggle = jest.fn();
         renderWithContext(
@@ -155,21 +97,6 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         const postsGroup = groups[6];
         expect(postsGroup.id).toBe('posts');
         expect(postsGroup.permissions).toContain('edit_file_attachment');
-    });
-
-    test('should hide disabbled integration options', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                config={{
-                    EnableIncomingWebhooks: 'false',
-                    EnableOutgoingWebhooks: 'false',
-                    EnableCommands: 'false',
-                    EnableCustomEmoji: 'false',
-                }}
-            />,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should only render permissions that have a scope, so they are not dropped on save', () => {

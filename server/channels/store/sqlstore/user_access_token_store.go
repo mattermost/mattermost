@@ -173,7 +173,7 @@ func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcce
 
 	if err := s.GetReplica().GetBuilder(&token, query); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("UserAccessToken", "token=<redacted>")
+			return nil, store.NewErrNotFound("UserAccessToken", "token")
 		}
 		return nil, errors.Wrap(err, "failed to get UserAccessToken by token")
 	}

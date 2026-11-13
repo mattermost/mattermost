@@ -101,10 +101,10 @@ func (me SqlSessionStore) Get(rctx request.CTX, sessionIdOrToken string) (*model
 
 	err = me.DBXFromContext(rctx.Context()).Select(&sessions, sql, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Sessions by session id or token")
+		return nil, errors.Wrap(err, "failed to find Sessions by id or token")
 	}
 	if len(sessions) == 0 {
-		return nil, store.NewErrNotFound("Session", "sessionIdOrToken=<redacted>")
+		return nil, store.NewErrNotFound("Session", "sessionIdOrToken")
 	}
 	session := sessions[0]
 
@@ -290,7 +290,7 @@ func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) e
 func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = ? Or Token = ?", sessionIdOrToken, sessionIdOrToken)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete Session by session id or token")
+		return errors.Wrap(err, "failed to delete Session by id or token")
 	}
 	return nil
 }

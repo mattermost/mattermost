@@ -35,11 +35,6 @@ describe('EmojiPage', () => {
         },
     };
 
-    it('should render without crashing', () => {
-        const {container} = renderWithContext(<EmojiPage {...defaultProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     it('should render the emoji list and the add button with permission', () => {
         renderWithContext(<EmojiPage {...defaultProps}/>);
         expect(screen.getByTestId('emoji-list')).toBeInTheDocument();

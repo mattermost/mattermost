@@ -121,7 +121,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	}
 
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
@@ -324,7 +324,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
@@ -334,17 +334,17 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 	return nil
 }
 
-func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
+func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) error {
 	if err := checkUserNotDisabled(user); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	return nil

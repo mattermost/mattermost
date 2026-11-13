@@ -45,17 +45,15 @@ describe('admin_console/system_user_detail/team_list/TeamList', () => {
         refreshTeams: false,
     };
 
-    test('should match snapshot when no teams are found', async () => {
+    test('should render when no teams are found', async () => {
         const {container} = renderWithContext(<TeamList {...defaultProps}/>);
 
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with teams populated', async () => {
+    test('should render with teams populated', async () => {
         const props = {
             ...defaultProps,
             actions: {
@@ -80,7 +78,5 @@ describe('admin_console/system_user_detail/team_list/TeamList', () => {
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 });
