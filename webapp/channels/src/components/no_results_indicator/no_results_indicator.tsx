@@ -203,15 +203,7 @@ const NoResultsIndicator = ({
                 data-testid='no-results-wrapper'
                 style={style}
             >
-                {resolvedIllustration && (
-
-                    // A custom iconGraphic renders as-is; only variant illustrations get the wrapper's margin.
-                    iconGraphic === undefined ? (
-                        <div className='no-results__variant-wrapper'>
-                            {resolvedIllustration}
-                        </div>
-                    ) : resolvedIllustration
-                )}
+                {resolvedIllustration}
 
                 <div className='no-results__text-container'>
                     {title && (
