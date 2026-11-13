@@ -87,6 +87,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// CPA fields are v2-shaped, which has no place for bounds or mutability.
+	if len(pf.Bounds) > 0 || pf.Mutability != "" {
+		c.Err = model.NewAppError("createCPAField", "api.property_field.bounds_not_supported.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	// Translate to PropertyField and route through the generic property API.
 	// Server-controlled fields (group, type, target shape, creator) are
 	// stamped here; ID/TargetID/Protected are stripped so a caller can't

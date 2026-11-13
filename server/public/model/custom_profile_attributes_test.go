@@ -153,6 +153,25 @@ func TestNewCPAFieldFromPropertyField_DropsPermissions(t *testing.T) {
 	require.NotNil(t, source.Permissions, "converting to a CPAField must not mutate the source field")
 }
 
+func TestNewCPAFieldFromPropertyField_DropsBoundsAndMutability(t *testing.T) {
+	source := &PropertyField{
+		ID:         NewId(),
+		GroupID:    AccessControlPropertyGroupName,
+		Name:       "Test Field",
+		Type:       PropertyFieldTypeText,
+		Bounds:     PropertyBounds{{Operator: PropertyBoundsOperatorAtOrBelow, Reference: PropertyBoundsReferenceParent}},
+		Mutability: PropertyFieldMutabilityWriteOnce,
+	}
+
+	cpaField, err := NewCPAFieldFromPropertyField(source)
+	require.NoError(t, err)
+	require.Nil(t, cpaField.Bounds)
+	require.Empty(t, cpaField.Mutability)
+
+	require.NotNil(t, source.Bounds, "converting to a CPAField must not mutate the source field")
+	require.Equal(t, PropertyFieldMutabilityWriteOnce, source.Mutability)
+}
+
 func TestNewCPAFieldFromPropertyField_ProjectsPermissions(t *testing.T) {
 	ownerID := NewId()
 	source := &PropertyField{

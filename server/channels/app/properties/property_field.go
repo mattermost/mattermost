@@ -18,12 +18,21 @@ import (
 
 // enforceFieldGroupVersionMatch checks that the field and group versions are
 // compatible. It returns an error if the field is PSAv1 on a PSAv2 group or
-// vice versa. The lookup uses GroupByID which checks the cache first and falls
-// back to the database.
+// vice versa, or if it carries bounds or a lock in a group that isn't PSAv3.
+// The lookup uses GroupByID which checks the cache first and falls back to the
+// database.
 func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID string, field *model.PropertyField) error {
 	group, err := ps.GroupByID(groupID)
 	if err != nil {
 		return fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
+	}
+
+	// mutable and unset ask for nothing the group can't hold, so a v1/v2 caller
+	// stating them keeps working.
+	if !group.IsPSAv3() && (len(field.Bounds) > 0 ||
+		field.Mutability == model.PropertyFieldMutabilityWriteOnce || field.Mutability == model.PropertyFieldMutabilitySetOnCreate) {
+		return model.NewAppError(caller, "app.property_field.bounds_requires_v3_group.app_error", nil,
+			"field carries bounds or a mutability other than mutable in a group that is not version 3", http.StatusBadRequest)
 	}
 
 	if group.IsPSAv1() && field.IsPSAv1() {
@@ -1045,6 +1054,24 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 					http.StatusConflict,
 				)
 			}
+		}
+	}
+
+	// An update that doesn't state bounds or mutability (nil and "") leaves the
+	// stored ones alone. A non-nil empty Bounds and an explicit mutable are
+	// statements and pass through. A plugin sends fields over gob, which drops an
+	// empty slice to nil, so it can't remove the last rule this way; it can still
+	// unlock by sending mutable.
+	for _, field := range fields {
+		existing, ok := existingByID[field.ID]
+		if !ok {
+			continue
+		}
+		if field.Bounds == nil {
+			field.Bounds = existing.Bounds
+		}
+		if field.Mutability == "" {
+			field.Mutability = existing.Mutability
 		}
 	}
 
