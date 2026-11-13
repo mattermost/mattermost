@@ -128,11 +128,10 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
             await page.getByRole('button', {name: 'Save'}).last().click();
             await page.waitForLoadState('networkidle');
 
-            // # Reopen the policy from the list
+            // # Reopen the policy from the list, searching for it since it may not be on the first page
             await page.goto('/admin_console/system_attributes/membership_policies');
             await page.waitForLoadState('networkidle');
-            const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
+            const policyRow = await systemConsolePage.membershipPolicies.searchPolicy(policyName);
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();

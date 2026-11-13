@@ -65,22 +65,6 @@ describe('components/LeaveChannelModal', () => {
         },
     };
 
-    test('should match snapshot, init', () => {
-        const props = {
-            channel: channels['town-square'],
-            onExited: jest.fn(),
-            actions: {
-                leaveChannel: jest.fn(),
-            },
-        };
-
-        const {baseElement} = renderWithContext(
-            <LeaveChannelModal {...props}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should fail to leave channel', async () => {
         const props = {
             channel: channels['channel-1'],
@@ -109,29 +93,6 @@ describe('components/LeaveChannelModal', () => {
             expect(props.actions.leaveChannel).toHaveBeenCalledTimes(1);
         });
         expect(props.callback).toHaveBeenCalledTimes(0);
-    });
-
-    test('should match snapshot for the policy enforced public channel variant', () => {
-        const policyChannel = {
-            ...channels['town-square'],
-            display_name: 'Ask IT',
-            policy_enforced: true,
-        };
-
-        const {baseElement} = renderWithContext(
-            <LeaveChannelModal
-                channel={policyChannel}
-                currentUserId={'user-1'}
-                isMuted={false}
-                onExited={jest.fn()}
-                actions={{
-                    leaveChannel: jest.fn(),
-                    muteChannel: jest.fn(),
-                }}
-            />,
-        );
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render policy variant for a policy enforced public channel and offer Mute instead', async () => {

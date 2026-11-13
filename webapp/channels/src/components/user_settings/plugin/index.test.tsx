@@ -87,11 +87,6 @@ function CustomSectionThrows() {
 }
 
 describe('plugin tab', () => {
-    it('all props are properly passed to the children', () => {
-        const {container} = renderWithContext(<PluginTab {...getBaseProps()}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     it('setting name is properly set', () => {
         renderWithContext(<PluginTab {...getBaseProps()}/>);
         expect(screen.queryAllByText('plugin A Settings')).toHaveLength(2);

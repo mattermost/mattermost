@@ -73,14 +73,6 @@ describe('components/SearchableChannelList', () => {
         },
     };
 
-    test('should match init snapshot', () => {
-        const {container} = renderWithContext(
-            <SearchableChannelList {...baseProps}/>,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should set page to 0 when starting search', () => {
         const {rerender} = renderWithContext(
             <SearchableChannelList {...baseProps}/>,

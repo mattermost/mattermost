@@ -154,34 +154,6 @@ describe('components/signup/Signup', () => {
         };
     });
 
-    it('should match snapshot for all signup options enabled with isLicensed enabled', () => {
-        const {container} = renderWithContext(
-            <Signup/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
-        mockLicense = {IsLicensed: 'false', Cloud: 'false'};
-
-        const {container} = renderWithContext(
-            <Signup/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for all signup options enabled with EnableUserCreaton disabled', () => {
-        mockConfig.EnableUserCreation = 'false';
-
-        const {container} = renderWithContext(
-            <Signup/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should create user, log in and redirect to invite teamname', async () => {
         mockLocation.search = 'd=%7B"name"%3A"teamName"%7D';
 

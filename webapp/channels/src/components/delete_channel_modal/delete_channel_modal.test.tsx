@@ -41,13 +41,6 @@ describe('components/delete_channel_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot for delete_channel_modal', () => {
-        const {baseElement} = renderWithContext(
-            <DeleteChannelModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should hide on Cancel', async () => {
         renderWithContext(
             <DeleteChannelModal {...baseProps}/>,

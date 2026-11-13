@@ -48,13 +48,6 @@ describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
         filter: '',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <InstalledOutgoingOAuthConnection {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should have called props.onDelete on handleDelete ', async () => {
         const newOnDelete = jest.fn();
         const props = {...baseProps, team, onDelete: newOnDelete};

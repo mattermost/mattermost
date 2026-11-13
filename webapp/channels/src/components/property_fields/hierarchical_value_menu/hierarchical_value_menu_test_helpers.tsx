@@ -98,6 +98,14 @@ export const everyRow = () => screen.queryAllByRole('menuitemcheckbox');
 export const searchBox = () => screen.getByRole('textbox', {name: COPY.searchLabel});
 export const statusRow = () => screen.getByRole('menuitem');
 
+export const chipRemove = (chip: HTMLElement) => {
+    const remove = chip.querySelector<HTMLElement>('[data-chip-remove]');
+    if (!remove) {
+        throw new Error('Chip has no remove control');
+    }
+    return remove;
+};
+
 export const partOf = (element: HTMLElement, className: string) =>
     element.querySelector(`.hierarchical-value-menu__${className}`) as HTMLElement;
 

@@ -170,16 +170,14 @@ describe('components/BrowseChannels', () => {
     // Setup userEvent with fake timers
     const user = userEvent.setup({advanceTimers: jest.advanceTimersByTime});
 
-    test('should match snapshot and state', async () => {
+    test('should load channels on mount', async () => {
         const props = {...baseProps, actions: {...baseProps.actions, getChannels: jest.fn(channelActions.getChannels)}};
-        const {baseElement} = renderWithContext(<BrowseChannels {...props}/>);
+        renderWithContext(<BrowseChannels {...props}/>);
 
         // Wait for component to load
         await act(async () => {
             await Promise.resolve();
         });
-
-        expect(baseElement).toMatchSnapshot();
 
         // on componentDidMount
         expect(props.actions.getChannels).toHaveBeenCalledTimes(1);

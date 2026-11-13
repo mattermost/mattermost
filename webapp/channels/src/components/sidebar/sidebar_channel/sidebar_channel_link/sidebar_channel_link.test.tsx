@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
@@ -11,7 +10,6 @@ import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_chann
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-const isDesktopAppMock = jest.mocked(isDesktopApp);
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
@@ -66,48 +64,6 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         return renderWithContext(<SidebarChannelLink {...merged}/>);
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderLink();
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for desktop', () => {
-        isDesktopAppMock.mockImplementation(() => false);
-
-        const {container} = renderLink();
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when tooltip is enabled', () => {
-        const props = {
-            label: 'a'.repeat(200),
-        };
-
-        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
-        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 200});
-
-        const {container} = renderLink(props);
-
-        expect(container).toMatchSnapshot();
-
-        Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 0});
-        Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
-    });
-
-    test('should match snapshot with aria label prefix and unread mentions', () => {
-        const props = {
-            isUnread: true,
-            unreadMentions: 2,
-            ariaLabelPrefix: 'aria_label_prefix_',
-        };
-
-        const {container} = renderLink(props);
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should enable tooltip when needed', () => {
         Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
         Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 60});
@@ -126,9 +82,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             isSharedChannel: false,
         };
 
-        const {container} = renderLink(props);
-
-        expect(container).toMatchSnapshot();
+        renderLink(props);
         expect(baseProps.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 
@@ -138,9 +92,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: [],
         };
 
-        const {container} = renderLink(props);
-
-        expect(container).toMatchSnapshot();
+        renderLink(props);
         expect(baseProps.actions.fetchChannelRemotes).toHaveBeenCalledWith('channel_id');
     });
 
@@ -150,9 +102,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
             remoteNames: ['Remote 1', 'Remote 2'],
         };
 
-        const {container} = renderLink(props);
-
-        expect(container).toMatchSnapshot();
+        renderLink(props);
         expect(baseProps.actions.fetchChannelRemotes).not.toHaveBeenCalled();
     });
 

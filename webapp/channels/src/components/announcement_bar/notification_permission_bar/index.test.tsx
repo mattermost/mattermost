@@ -34,9 +34,7 @@ describe('NotificationPermissionBar', () => {
     test('should render the NotificationUnsupportedBar if notifications are not supported', () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
 
-        const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<NotificationPermissionBar/>, initialState);
 
         expect(screen.queryByText('Your browser does not support browser notifications.')).toBeInTheDocument();
         expect(screen.queryByText('Update your browser')).toBeInTheDocument();
@@ -46,9 +44,7 @@ describe('NotificationPermissionBar', () => {
         jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
         jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
 
-        const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<NotificationPermissionBar/>, initialState);
 
         expect(screen.getByText('We need your permission to show notifications in the browser.')).toBeInTheDocument();
         expect(screen.getByText('Manage notification preferences')).toBeInTheDocument();

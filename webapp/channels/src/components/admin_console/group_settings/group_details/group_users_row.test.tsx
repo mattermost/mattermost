@@ -8,7 +8,7 @@ import GroupUsersRow from 'components/admin_console/group_settings/group_details
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupUsersRow', () => {
-    test('should match snapshot', () => {
+    test('should render', () => {
         renderWithContext(
             <GroupUsersRow
                 username='test'

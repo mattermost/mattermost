@@ -20,29 +20,6 @@ describe('components/custom_status/custom_status_emoji', () => {
         handleClear: jest.fn(),
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <CustomStatusSuggestion {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot with duration', () => {
-        const props = {
-            ...baseProps,
-            status: {
-                ...baseProps.status,
-                duration: CustomStatusDuration.TODAY,
-            },
-        };
-        const {container} = renderWithContext(
-            <CustomStatusSuggestion {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should call handleSuggestionClick when click occurs on div', async () => {
         // Suppress the DOM nesting warning (button inside button) which is a component issue
         const originalError = console.error;

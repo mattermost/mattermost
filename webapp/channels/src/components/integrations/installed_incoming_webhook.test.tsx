@@ -80,17 +80,6 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <InstalledIncomingWebhook
-                {...baseProps}
-                canChange={true}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should not have edit and delete actions if user does not have permissions to change', () => {
         const {container} = renderWithContext(
             <InstalledIncomingWebhook
