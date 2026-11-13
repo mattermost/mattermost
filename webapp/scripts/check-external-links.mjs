@@ -23,6 +23,7 @@ const FORMS_MATTERMOST_PATTERN = /^https?:\/\/forms\.mattermost\.com\//i;
 const UNCRAWLABLE_HOSTS = new Set([
     'support.mattermost.com', // Zendesk fronted by Cloudflare bot mgmt
     'www.mattermost.com', // Cloudflare bot mgmt; the apex host it redirects to is still checked
+    'translate.mattermost.com', // Weblate returns 403 to non-browser clients
 ]);
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
