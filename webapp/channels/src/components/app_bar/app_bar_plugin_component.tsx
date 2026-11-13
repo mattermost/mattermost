@@ -66,6 +66,7 @@ const AppBarPluginComponent = ({
         <div
             role='button'
             tabIndex={0}
+            aria-label={tooltipText}
             className='app-bar__icon-inner'
         >
             <img
@@ -84,6 +85,7 @@ const AppBarPluginComponent = ({
             <div
                 role='button'
                 tabIndex={0}
+                aria-label={tooltipText}
                 className={classNames('app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered', {'app-bar__old-icon--active': isButtonActive})}
             >
                 {icon}
@@ -93,7 +95,14 @@ const AppBarPluginComponent = ({
 
     if (imageLoadState === ImageLoadState.ERROR) {
         content = (
-            <PluginIcon className='icon__plugin'/>
+            <div
+                role='button'
+                tabIndex={0}
+                aria-label={tooltipText}
+                className='app-bar__old-icon app-bar__icon-inner app-bar__icon-inner--centered'
+            >
+                <PluginIcon className='icon__plugin'/>
+            </div>
         );
     }
 
