@@ -188,6 +188,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 		return nil
 	}
 	if !*es.config().EmailSettings.SendEmailNotifications && !*es.config().EmailSettings.RequireEmailVerification {
+		mlog.Debug("Not sending welcome email because email notifications and email verification are disabled", mlog.String("user_id", userID))
 		return nil
 	}
 

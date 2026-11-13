@@ -114,6 +114,7 @@ func TestGetLicenseSkuName(t *testing.T) {
 }
 
 func TestSendWelcomeEmailWithEmailDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.EmailSettings.SendEmailNotifications = new(false)
