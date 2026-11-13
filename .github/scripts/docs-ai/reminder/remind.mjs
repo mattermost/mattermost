@@ -6,7 +6,7 @@
  *
  * Env:
  *   GITHUB_TOKEN, GITHUB_REPOSITORY
- *   LOOKBACK_DAYS (default 180) — only PRs merged this recently
+ *   LOOKBACK_DAYS (default 45) — only PRs merged this recently
  *   REMINDER_DATE (default today, UTC) — names the reminder round
  *   DRY_RUN=1 — print what would be posted
  */
@@ -19,7 +19,14 @@ const DONE = 'Docs/Done';
 const PER_PAGE = 100;
 // Comments post as github-actions[bot]; only trust our own markers.
 const REMINDER_AUTHOR = 'github-actions[bot]';
-export const DEFAULT_LOOKBACK_DAYS = 180;
+export const DEFAULT_LOOKBACK_DAYS = 45;
+// GitHub asks for at least a second between content-creating requests, and a
+// minute's wait after a secondary rate limit response.
+export const POST_INTERVAL_MS = 1000;
+export const RATE_LIMIT_BACKOFF_MS = 60_000;
+export const POST_RETRIES = 3;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** One marker per reminder round, so a re-run of the same day never double-posts. */
 export function reminderMarker(date) {
@@ -115,13 +122,39 @@ export function reminderBody({marker, mentions = [], docsPr}) {
   return `${lines.join('\n')}\n`;
 }
 
-export async function remind({repo, today, lookbackDays, dryRun = false, request = gh, log = console.error}) {
+export const isRateLimited = (e) => /-> (403|429):/.test(e?.message ?? '') && /rate limit/i.test(e.message);
+
+/** Post one comment, backing off and retrying while GitHub answers with a rate limit. */
+export async function postReminder(repo, number, body, {request = gh, sleep = wait, retries = POST_RETRIES, log = console.error} = {}) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await createComment(repo, number, body, {request});
+    } catch (e) {
+      if (!isRateLimited(e) || attempt >= retries) throw e;
+      const delay = RATE_LIMIT_BACKOFF_MS * 2 ** attempt;
+      log(`[reminder] #${number}: rate limited, retrying in ${delay / 1000}s`);
+      await sleep(delay);
+    }
+  }
+}
+
+export async function remind({
+  repo,
+  today,
+  lookbackDays,
+  dryRun = false,
+  request = gh,
+  sleep = wait,
+  log = console.error,
+}) {
   const marker = reminderMarker(today);
   const since = mergedSince(today, lookbackDays);
   const prs = await pendingPrs(repo, since, {request});
   log(`[reminder] ${prs.length} merged PR(s) since ${since} still carry ${NEEDED}`);
 
   const posted = [];
+  const failed = [];
+  let postedBefore = false;
   for (const pr of prs) {
     if (await alreadyReminded(repo, pr.number, marker, {request})) {
       log(`[reminder] #${pr.number}: already reminded for ${today}`);
@@ -134,12 +167,20 @@ export async function remind({repo, today, lookbackDays, dryRun = false, request
     if (dryRun) {
       log(`[reminder] dry-run #${pr.number} ${who}:\n${body}`);
     } else {
-      await createComment(repo, pr.number, body, {request});
+      if (postedBefore) await sleep(POST_INTERVAL_MS);
+      postedBefore = true;
+      try {
+        await postReminder(repo, pr.number, body, {request, sleep, log});
+      } catch (e) {
+        log(`[reminder] #${pr.number}: could not post reminder: ${e.message}`);
+        failed.push(pr.number);
+        continue;
+      }
       log(`[reminder] #${pr.number}: reminded ${who}`);
     }
     posted.push(pr.number);
   }
-  return posted;
+  return {posted, failed};
 }
 
 async function main() {
@@ -147,13 +188,17 @@ async function main() {
   if (!repo) throw new Error('GITHUB_REPOSITORY is required');
   const today = process.env.REMINDER_DATE || isoDate(new Date());
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) throw new Error(`REMINDER_DATE must be YYYY-MM-DD (got "${today}")`);
-  const posted = await remind({
+  const {posted, failed} = await remind({
     repo,
     today,
     lookbackDays: parseLookbackDays(process.env.LOOKBACK_DAYS),
     dryRun: process.env.DRY_RUN === '1' || process.argv.includes('--dry-run'),
   });
   console.error(`[reminder] ${posted.length} reminder(s) ${process.env.DRY_RUN === '1' ? 'would be ' : ''}posted`);
+  if (failed.length) {
+    console.error(`[reminder] ${failed.length} reminder(s) not posted: ${failed.map((n) => `#${n}`).join(' ')}`);
+    process.exitCode = 1;
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -119,7 +119,7 @@ as a workflow artifact, not the body. Closing that draft flips `Docs/Needed` →
 `Docs/Done` on the originating PR.
 
 On the 8th and 12th of each month, `docs-needed-reminder.yml` comments on every PR merged
-in the last 180 days that still carries `Docs/Needed`. The comment asks the author to submit
+in the last 45 days that still carries `Docs/Needed`. The comment asks the author to submit
 and merge the docs, or to swap the label for `Docs/Done` if the docs are already merged. It
 links the writer's open `docs/pr-<n>` when there is one. For a bot-authored PR it mentions the
 human assignees, or whoever merged it. Each run date has its own marker, so a re-run

@@ -4,6 +4,7 @@ import {
   mentionsFor,
   mergedSince,
   parseLookbackDays,
+  postReminder,
   reminderBody,
   reminderMarker,
   remind,
@@ -15,12 +16,14 @@ const TODAY = '2026-12-08';
 const MARKER = reminderMarker(TODAY);
 
 /** Fake GitHub: search results, per-PR comments, and writer docs PRs. */
-function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}}) {
+function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}, postErrors = {}}) {
   const posted = [];
   const request = async (path, {method = 'GET', body} = {}) => {
     if (path.startsWith('/search/issues')) return {items};
     const comment = path.match(/\/issues\/(\d+)\/comments/);
     if (comment && method === 'POST') {
+      const queued = postErrors[comment[1]];
+      if (queued?.length) throw new Error(queued.shift());
       posted.push({pr: Number(comment[1]), body: body.body});
       return {id: posted.length};
     }
@@ -33,6 +36,9 @@ function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}}) {
   };
   return {request, posted};
 }
+
+const noSleep = async () => {};
+const RATE_LIMITED = 'GitHub POST /repos/x/issues/1/comments -> 403: {"message":"You have exceeded a secondary rate limit"}';
 
 const pr = (number, login = 'dev', extra = {}) => ({number, title: `Change ${number}`, user: {login, type: 'User'}, ...extra});
 
@@ -49,10 +55,10 @@ test('mergedSince counts back whole days in UTC', () => {
 });
 
 test('parseLookbackDays accepts positive integers only', () => {
-  assert.equal(parseLookbackDays(''), 180);
+  assert.equal(parseLookbackDays(''), 45);
   assert.equal(parseLookbackDays('30'), 30);
-  assert.equal(parseLookbackDays('0'), 180);
-  assert.equal(parseLookbackDays('abc'), 180);
+  assert.equal(parseLookbackDays('0'), 45);
+  assert.equal(parseLookbackDays('abc'), 45);
 });
 
 test('reminderBody asks the author to submit and merge docs, or swap the label when done', () => {
@@ -96,7 +102,7 @@ test('remind comments once per PR per round and skips PRs already reminded', asy
     docsPrs: {1: {number: 99, merged_at: null, state: 'open'}},
   });
 
-  const done = await remind({repo: REPO, today: TODAY, lookbackDays: 180, request, log: () => {}});
+  const {posted: done} = await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
 
   assert.deepEqual(done, [1, 3]);
   assert.deepEqual(posted.map((p) => p.pr), [1, 3]);
@@ -108,19 +114,19 @@ test('an earlier round does not suppress this round', async () => {
     items: [pr(1)],
     comments: {1: [{user: {login: 'github-actions[bot]'}, body: reminderMarker('2026-11-08')}]},
   });
-  await remind({repo: REPO, today: TODAY, lookbackDays: 180, request, log: () => {}});
+  await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
   assert.equal(posted.length, 1);
 });
 
 test('remind skips the writer docs PRs themselves', async () => {
   const {request, posted} = fakeGitHub({items: [pr(5, 'app[bot]', {title: 'docs: AI draft for Foo'})]});
-  await remind({repo: REPO, today: TODAY, lookbackDays: 180, request, log: () => {}});
+  await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
   assert.equal(posted.length, 0);
 });
 
 test('dry run posts nothing', async () => {
   const {request, posted} = fakeGitHub({items: [pr(1)]});
-  const done = await remind({repo: REPO, today: TODAY, lookbackDays: 180, dryRun: true, request, log: () => {}});
+  const {posted: done} = await remind({repo: REPO, today: TODAY, lookbackDays: 45, dryRun: true, request, log: () => {}});
   assert.deepEqual(done, [1]);
   assert.equal(posted.length, 0);
 });
@@ -130,6 +136,46 @@ test('a bot PR with no human assignee pings whoever merged it', async () => {
     items: [pr(7, 'cursor[bot]', {user: {login: 'cursor[bot]', type: 'Bot'}, assignees: []})],
     mergedBy: {7: {login: 'lead', type: 'User'}},
   });
-  await remind({repo: REPO, today: TODAY, lookbackDays: 180, request, log: () => {}});
+  await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
   assert.match(posted[0].body, /^@lead Reminder:/m);
+});
+
+test('remind paces comment posts and leaves dry runs unpaced', async () => {
+  const sleeps = [];
+  const sleep = async (ms) => sleeps.push(ms);
+  const {request} = fakeGitHub({items: [pr(1), pr(2), pr(3)]});
+  await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep, log: () => {}});
+  assert.deepEqual(sleeps, [1000, 1000]);
+
+  sleeps.length = 0;
+  await remind({repo: REPO, today: TODAY, lookbackDays: 45, dryRun: true, request, sleep, log: () => {}});
+  assert.deepEqual(sleeps, []);
+});
+
+test('postReminder backs off and retries while rate limited', async () => {
+  const sleeps = [];
+  const {request, posted} = fakeGitHub({items: [], postErrors: {1: [RATE_LIMITED, RATE_LIMITED]}});
+  await postReminder(REPO, 1, 'hi', {request, sleep: async (ms) => sleeps.push(ms), log: () => {}});
+  assert.deepEqual(sleeps, [60_000, 120_000]);
+  assert.equal(posted.length, 1);
+});
+
+test('postReminder does not retry other errors', async () => {
+  const sleeps = [];
+  const {request} = fakeGitHub({items: [], postErrors: {1: ['GitHub POST x -> 404: Not Found']}});
+  await assert.rejects(
+    postReminder(REPO, 1, 'hi', {request, sleep: async (ms) => sleeps.push(ms), log: () => {}}),
+    /404/,
+  );
+  assert.deepEqual(sleeps, []);
+});
+
+test('remind keeps going past a PR whose comment cannot be posted and reports it', async () => {
+  const {request, posted} = fakeGitHub({
+    items: [pr(1), pr(2), pr(3)],
+    postErrors: {2: [RATE_LIMITED, RATE_LIMITED, RATE_LIMITED, RATE_LIMITED]},
+  });
+  const result = await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
+  assert.deepEqual(result, {posted: [1, 3], failed: [2]});
+  assert.deepEqual(posted.map((p) => p.pr), [1, 3]);
 });

@@ -17,7 +17,7 @@ on:
       lookback_days:
         description: Only PRs merged within this many days
         type: string
-        default: "180"
+        default: "45"
 
 permissions: {}
 
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: write
     steps:
       - name: Checkout
