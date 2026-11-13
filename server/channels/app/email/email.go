@@ -188,7 +188,8 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 		return nil
 	}
 	if !*es.config().EmailSettings.SendEmailNotifications && !*es.config().EmailSettings.RequireEmailVerification {
-		return errors.New("send email notifications and require email verification is disabled in the system console")
+		mlog.Debug("Not sending welcome email because email notifications and email verification are disabled", mlog.String("user_id", userID))
+		return nil
 	}
 
 	T := i18n.GetUserTranslations(locale)
