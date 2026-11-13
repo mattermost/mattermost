@@ -4494,6 +4494,28 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 				assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
 			})
 		}
+
+		// A rank changing type carries its stored raise/lower policy along; stripping
+		// it there unlocks, which keeps the type change saveable.
+		for _, toType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeText} {
+			for shape, apply := range map[string]func(f *model.PropertyField){
+				"echoed":     func(f *model.PropertyField) { f.Type = toType },
+				"REST patch": func(f *model.PropertyField) { f.Patch(&model.PropertyFieldPatch{Type: &toType}, true) },
+			} {
+				t.Run(fmt.Sprintf("raise_only rank changes type to %s: %s", toType, shape), func(t *testing.T) {
+					f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+					require.Equal(t, model.PropertyBounds{raiseOnly}, f.Bounds)
+					apply(f)
+					_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+					require.NoError(t, updateErr)
+					f = stored(t, f.ID)
+					assert.Equal(t, toType, f.Type)
+					assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+					assert.Empty(t, f.Bounds)
+					assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+				})
+			}
+		}
 	})
 
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {

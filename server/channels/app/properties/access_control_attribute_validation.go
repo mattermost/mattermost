@@ -236,11 +236,14 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	// Read before validation, which deletes change_policy "any" and nulls. A nil
 	// key or blank change_policy states nothing: it is how a plugin leaves a key
 	// unset, as the plugin RPC can't omit one. Nor does a raise/lower policy the
-	// validation strips, which would otherwise read as an unlock.
+	// validation strips, which would otherwise read as an unlock, except on a rank
+	// changing type: it carries its stored policy along, and that unlock is what
+	// keeps the type change saveable.
 	sentPolicy, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
 	sentPolicy = strings.TrimSpace(sentPolicy)
 	stripped := model.IsOrderedPropertyFieldChangePolicy(sentPolicy) && field.Type != model.PropertyFieldTypeRank
-	statesPolicy := sentPolicy != "" && !stripped || field.Attrs[model.PropertyFieldAttrEditable] != nil
+	wasRank := existing != nil && existing.Type == model.PropertyFieldTypeRank
+	statesPolicy := sentPolicy != "" && (!stripped || wasRank) || field.Attrs[model.PropertyFieldAttrEditable] != nil
 	loggable := stripped
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		dropOldPolicyKeys(field)
@@ -1422,11 +1425,11 @@ func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMut
 // taken from the baseline. A caller sending back the policy it was shown is not
 // using the old format, and nor is one whose attrs carry neither old key, or
 // carry them only nil, as a blank change_policy, or as a raise/lower policy on
-// a field that isn't a rank (statesPolicy false): every locked field's attrs
-// carry the keys the server derived, so a whole-object update that rebuilds
-// attrs without them would otherwise unlock a field it never meant to. Like an
-// omitted mutability, an omitted, nil, blank or stripped key is not an unlock;
-// change_policy "any" or editable=true is.
+// a field that isn't and wasn't a rank (statesPolicy false): every locked
+// field's attrs carry the keys the server derived, so a whole-object update
+// that rebuilds attrs without them would otherwise unlock a field it never
+// meant to. Like an omitted mutability, an omitted, nil, blank or stripped key
+// is not an unlock; change_policy "any" or editable=true is.
 func translateChangePolicy(field, existing *model.PropertyField, statesPolicy bool) (bool, error) {
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		return false, nil
