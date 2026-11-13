@@ -338,6 +338,11 @@ export async function testAccessRule(
         for (const unexpectedUser of options.expectedNonMatchingUsers) {
             const searchInput = modal.locator('input[placeholder*="Search" i]').first();
             if (await searchInput.isVisible({timeout: 2000})) {
+                // Nobody matched, so this user is already absent. The count stays blank
+                // and the unfiltered "start - end" label never appears.
+                if (totalMatches === 0) {
+                    continue;
+                }
                 // Unfiltered results use a "start - end" count. Wait for that before
                 // searching so a later empty result is not confused with the previous term.
                 if ((await searchInput.inputValue()) !== '') {

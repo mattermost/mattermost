@@ -264,11 +264,13 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // Click Edit to open channel configuration
         await channelRow.getByText('Edit').click();
 
+        // The channel list row uses the same name. The details header is the ready signal.
+        const channelConfigHeader = page.getByTestId('admin-console-header').getByText('Channel Configuration');
+        await expect(channelConfigHeader).toBeVisible();
+
         // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
         const abacToggle = systemConsolePage.channelDetail.policyEnforceSwitch.input;
-        const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
-
-        expect(abacVisibleWithGroupSync).toBe(false);
+        await expect(abacToggle).toBeHidden();
 
         // STEP 1.4: Toggle off Group Sync and verify ABAC becomes available
 
@@ -279,7 +281,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
 
         // Reload page to see updated UI
         await page.reload();
-        await expect(page.getByText(groupSyncChannelName).first()).toBeVisible();
+        await expect(channelConfigHeader).toBeVisible();
         await expect(abacToggle).toBeVisible({timeout: 15000});
 
         // Re-enable Group Sync for Step 2

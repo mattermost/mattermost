@@ -35,7 +35,17 @@ test.describe('Single-channel guests', () => {
         await page.goto(url);
         await expect(page.getByTestId('admin-console-header')).toBeVisible();
         await patchGuestEnabled(adminClient, guestEnabled);
+        const configLoaded = page.waitForResponse(
+            (response: {url: () => string; ok: () => boolean; request: () => {method: () => string}}) => {
+                return (
+                    response.request().method() === 'GET' &&
+                    response.ok() &&
+                    /\/api\/v4\/config$/.test(new URL(response.url()).pathname)
+                );
+            },
+        );
         await page.reload();
+        await configLoaded;
         await expect(page.getByTestId('admin-console-header')).toBeVisible();
     }
 
@@ -180,8 +190,10 @@ test.describe('Single-channel guests', () => {
                 false,
             );
 
-            // * Verify the single-channel guests card is not in the DOM
-            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).not.toBeVisible();
+            // The header renders before the stat cards. Wait for a card from that same
+            // render, then assert the guest card was omitted.
+            await expect(systemConsolePage.page.getByTestId('totalTeams')).toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeHidden();
         },
     );
 

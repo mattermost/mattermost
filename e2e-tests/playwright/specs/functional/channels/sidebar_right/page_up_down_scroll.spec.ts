@@ -33,9 +33,10 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
     const readScrollTop = () => threadList.evaluate((el) => el.scrollTop);
     let lastScrollTop = await readScrollTop();
 
-    // Page Up and Down in the textbox move focus to the thread list. Send the key to that list.
+    // Page Up in the reply box moves focus to the thread list. Send the key to the
+    // focused textbox; threadList.press() would focus the list first and skip that path.
     await channelsPage.sidebarRight.postCreate.input.focus();
-    await threadList.press('PageUp');
+    await page.keyboard.press('PageUp');
 
     // * Verify that the post list scrolled up by a page
     lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
@@ -54,7 +55,7 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
 
     // # Press the page down key with the post textbox focused
     await channelsPage.sidebarRight.postCreate.input.focus();
-    await threadList.press('PageDown');
+    await page.keyboard.press('PageDown');
 
     // * Verify that the post list scrolled back toward the bottom
     await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
