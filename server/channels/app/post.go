@@ -215,6 +215,18 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}()
 
+	// Every caller reaches CreatePost, not only the API, so the flag is enforced here as well
+	// as where each caller validates the values.
+	if len(post.Metadata.GetPropertyValues()) > 0 && !a.Config().FeatureFlags.PostAttributes {
+		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Callers other than the API and the plugin API reach this without
+	// PreparePostPropertyValuesForCreate, and a nil value would only be caught after the post
+	// is saved, by a dereference.
+	if slices.Contains(post.Metadata.GetPropertyValues(), nil) {
+		return nil, false, model.NewAppError("CreatePost", "api.post.create_post.invalid_attribute.app_error", nil, "nil value", http.StatusBadRequest)
+	}
+
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
 			rctx.Logger().Warn("Rejected silent notification post with persistent notifications",
@@ -443,6 +455,18 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// Runs before anything announces the post, so a failed write removes it before any
+	// `posted` event, notification or MessageHasBeenPosted hook. On success the values are
+	// taken off rpost and only handed back to the caller at the end.
+	var writtenPropertyValues []*model.PropertyValue
+	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
+		written, appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		writtenPropertyValues = written
+	}
+
 	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
 	// rpost carries the one assigned by Save.
 	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
@@ -561,6 +585,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	rpost, isMemberForPreviews, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, false, err
+	}
+
+	// The caller wrote these values, so it gets them back the way the property value API
+	// returns a write: unfiltered, to that caller only. The `posted` event above went out
+	// without them. Set on a copy, because the work handlePostEvents started in the
+	// background holds rpost and shares its metadata.
+	if len(writtenPropertyValues) > 0 {
+		rpost = rpost.Clone()
+		if rpost.Metadata != nil {
+			rpost.Metadata = rpost.Metadata.Copy()
+		} else {
+			rpost.Metadata = &model.PostMetadata{}
+		}
+		rpost.Metadata.PropertyValues = writtenPropertyValues
 	}
 
 	return rpost, isMemberForPreviews, nil
