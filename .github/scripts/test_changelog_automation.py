@@ -4,6 +4,7 @@ import unittest
 import urllib.parse
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 import changelog_automation as ca
 
@@ -719,8 +720,30 @@ class LabelTokenWorkflowTest(unittest.TestCase):
             self.assertNotIn("enterprise", token)
         self.assertEqual(self.text.count("enterprise\n          permission-pull-requests"), 2)
         label_step = self.text[self.text.index("- name: Set changelog labels on the source PRs"):]
+        self.assertIn("if: ${{ !cancelled() && steps.labelToken.outcome == 'success' }}", label_step[:200])
         self.assertIn("GH_TOKEN: ${{ steps.labelToken.outputs.token }}", label_step[:400])
         self.assertIn("LABEL_TOKEN: ${{ steps.labelToken.outputs.token }}", self.text)
+
+
+    def test_a_labels_token_that_cant_be_minted_never_blocks_the_run_or_the_merge(self):
+        # A failed mint without continue-on-error skips every later step, including the T-0 merge.
+        mints = re.findall(r"- name: Get labels token \(source repos\)\n((?:\s+[^\n]*\n)*?)\s+with:", self.text)
+        self.assertEqual(len(mints), 2)
+        for mint in mints:
+            self.assertIn("continue-on-error: true", mint)
+        merge_job = self.text[self.text.index("\n  merge:"):]
+        self.assertLess(merge_job.index("id: labelToken"), merge_job.index("- name: Merge the changelog PR if it is ready"))
+
+    def test_without_a_labels_token_the_merge_still_runs_and_only_the_swap_is_skipped(self):
+        outcome = {"merged": True, "pr": 50, "problems": [], "auto": True}
+        with mock.patch.object(ca, "fetch_reports", return_value=iter([REPORT])), \
+                mock.patch.object(ca, "run_merge", return_value=outcome) as merge, \
+                mock.patch.object(ca, "Api"), mock.patch.object(ca, "_summary") as summary:
+            ca.cmd_merge({"EVENT_NAME": "release", "RELEASE_TAG": VERSION, "GH_TOKEN": "t", "AUTO_MERGE": "true",
+                          "LABEL_TOKEN": "", "LABEL_ACTOR": "[bot]"})
+        merge.assert_called_once()
+        self.assertEqual(summary.call_args_list[-1].args[0],
+                         "Changelog labels not reconciled: no labels token for the source repos.")
 
 
 if __name__ == "__main__":

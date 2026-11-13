@@ -456,9 +456,12 @@ jobs:
       # so a PR it couldn't label reaches the Hub digest; the summary has counts only.
       # The source PRs are in mattermost/mattermost and mattermost/enterprise: a token for those
       # two repos with Pull requests: write only.
+      # Labels are best effort: a token that can't be minted skips labelling (with a warning), never
+      # the rest of the run or the digest.
       - name: Get labels token (source repos)
         id: labelToken
         if: ${{ !cancelled() && steps.publish.outcome == 'success' && needs.resolve.outputs.mode == 'auto' }}
+        continue-on-error: true
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         with:
           client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
@@ -466,6 +469,10 @@ jobs:
           owner: mattermost
           repositories: mattermost,enterprise
           permission-pull-requests: write
+
+      - name: Explain a failed labels token
+        if: ${{ !cancelled() && steps.labelToken.outcome == 'failure' }}
+        run: echo "::warning title=Changelog labels not set::Could not get a changelog write app token for mattermost/mattermost and mattermost/enterprise with Pull requests write, so no labels were set this run."
 
       - name: Set changelog labels on the source PRs
         if: ${{ !cancelled() && steps.labelToken.outcome == 'success' }}
@@ -545,9 +552,12 @@ jobs:
           repositories: mattermost
 
       # Only for the T-0 label swap on the source PRs in both repos: Pull requests: write only.
+      # It must never block the merge: without it, the merge step still runs and only the swap
+      # is skipped (its summary says so).
       - name: Get labels token (source repos)
         uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: labelToken
+        continue-on-error: true
         with:
           client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
