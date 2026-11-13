@@ -233,16 +233,20 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(rct
 	// that isn't a rank is stripped by the validation below; read it first so
 	// that is logged too.
 	oldKeys := oldPolicyKeysWritten(field, existing)
-	// Read before validation, which deletes change_policy "any" and nulls.
-	_, statesPolicy := field.Attrs[model.PropertyFieldAttrChangePolicy]
-	if _, ok := field.Attrs[model.PropertyFieldAttrEditable]; ok {
-		statesPolicy = true
-	}
-	loggable := false
+	// Read before validation, which deletes change_policy "any" and nulls. A nil
+	// key or blank change_policy states nothing: it is how a plugin leaves a key
+	// unset, as the plugin RPC can't omit one. Nor does a raise/lower policy the
+	// validation strips, which would otherwise read as an unlock, except on a rank
+	// changing type: it carries its stored policy along, and that unlock is what
+	// keeps the type change saveable.
+	sentPolicy, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	sentPolicy = strings.TrimSpace(sentPolicy)
+	stripped := model.IsOrderedPropertyFieldChangePolicy(sentPolicy) && field.Type != model.PropertyFieldTypeRank
+	wasRank := existing != nil && existing.Type == model.PropertyFieldTypeRank
+	statesPolicy := sentPolicy != "" && (!stripped || wasRank) || field.Attrs[model.PropertyFieldAttrEditable] != nil
+	loggable := stripped
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		dropOldPolicyKeys(field)
-		loggable = true
-	} else if p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string); model.IsOrderedPropertyFieldChangePolicy(p) && field.Type != model.PropertyFieldTypeRank {
 		loggable = true
 	}
 	// Both old keys are validated first: the translation below reads them.
@@ -1324,13 +1328,15 @@ const changePolicyDeprecatedMessage = "change_policy and editable are deprecated
 
 // oldPolicyKeysWritten lists the old keys field carries that differ from the
 // stored field's, so a save echoing what it was shown writes none. change_policy
-// "any" and editable=true mean the same as absent and don't count.
+// "any", nil or blank, and editable=true or nil, mean the same as absent and
+// don't count.
 func oldPolicyKeysWritten(field, existing *model.PropertyField) []string {
 	changed := func(key string) bool {
 		return existing == nil || !reflect.DeepEqual(field.Attrs[key], existing.Attrs[key])
 	}
 	var keys []string
-	if p := field.Attrs[model.PropertyFieldAttrChangePolicy]; p != nil && p != "" && p != model.PropertyFieldChangePolicyAny &&
+	p, _ := field.Attrs[model.PropertyFieldAttrChangePolicy].(string)
+	if p = strings.TrimSpace(p); p != "" && p != model.PropertyFieldChangePolicyAny &&
 		changed(model.PropertyFieldAttrChangePolicy) {
 		keys = append(keys, model.PropertyFieldAttrChangePolicy)
 	}
@@ -1417,11 +1423,13 @@ func changePolicyBaseline(existing *model.PropertyField) (model.PropertyFieldMut
 // stored field's. That write sets the settings from the policy; any other save
 // keeps the settings it states, with unstated ones (mutability "", bounds nil)
 // taken from the baseline. A caller sending back the policy it was shown is not
-// using the old format, and nor is one whose attrs carry neither old key
-// (statesPolicy false): every locked field's attrs carry the keys the server
-// derived, so a whole-object update that rebuilds attrs without them would
-// otherwise unlock a field it never meant to. Like an omitted mutability, an
-// omitted key is not an unlock; change_policy "any" or editable=true is.
+// using the old format, and nor is one whose attrs carry neither old key, or
+// carry them only nil, as a blank change_policy, or as a raise/lower policy on
+// a field that isn't and wasn't a rank (statesPolicy false): every locked
+// field's attrs carry the keys the server derived, so a whole-object update
+// that rebuilds attrs without them would otherwise unlock a field it never
+// meant to. Like an omitted mutability, an omitted, nil, blank or stripped key
+// is not an unlock; change_policy "any" or editable=true is.
 func translateChangePolicy(field, existing *model.PropertyField, statesPolicy bool) (bool, error) {
 	if field.ObjectType != model.PropertyFieldObjectTypeChannel {
 		return false, nil

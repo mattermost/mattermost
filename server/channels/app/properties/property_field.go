@@ -966,6 +966,17 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		ps.dropOldPolicyKeysFromV2Field(rctx, group, field, existingByID[field.ID])
 	}
 
+	// The store never writes ObjectType, so every check below and the response
+	// must judge the stored one, for the whole batch before any field's checks
+	// read the others through incoming. An empty one is left alone: it marks a
+	// v1 caller, which the version check above refused in a v2/v3 group and a
+	// v1 group still judges as PSAv1.
+	for _, field := range fields {
+		if existing, ok := existingByID[field.ID]; ok && field.ObjectType != "" {
+			field.ObjectType = existing.ObjectType
+		}
+	}
+
 	// Stored templates, by ID. A template updated in this same call starts as
 	// its stored row: that is what a caller echoing its linked field was shown.
 	templates := maps.Clone(existingByID)
@@ -1235,14 +1246,13 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 			return nil, nil, nil, err
 		}
 
-		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
-		// can shift the uniqueness domain. The DB unique index catches same-level
+		// Any change to Name or identity fields (TargetType/TargetID) can shift
+		// the uniqueness domain. The DB unique index catches same-level
 		// collisions, but cross-level hierarchy conflicts (system ↔ team ↔ channel)
 		// are only caught here.
 		if existing.Name != field.Name ||
 			existing.TargetType != field.TargetType ||
-			existing.TargetID != field.TargetID ||
-			existing.ObjectType != field.ObjectType {
+			existing.TargetID != field.TargetID {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)

@@ -4383,6 +4383,141 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		assert.Equal(t, model.PropertyBounds{lowerOnly}, stored(t, r.ID).Bounds)
 	})
 
+	t.Run("update: nil or blank old keys keep the lock, change_policy any or editable true lifts it", func(t *testing.T) {
+		// A plugin's whole-object save can't omit a key over RPC: it sends it nil, or
+		// "" from a typed struct. A raise_only field stores only change_policy, so
+		// that alone stands between it and an unlock.
+		locks := map[string]struct {
+			fieldType  model.PropertyFieldType
+			policy     string
+			mutability model.PropertyFieldMutability
+			bounds     model.PropertyBounds
+		}{
+			"write_once": {model.PropertyFieldTypeText, model.PropertyFieldChangePolicyNever, model.PropertyFieldMutabilityWriteOnce, nil},
+			"raise_only": {model.PropertyFieldTypeRank, model.PropertyFieldChangePolicyRaiseOnly, "", model.PropertyBounds{raiseOnly}},
+		}
+		// rebuilt replaces attrs wholesale, keeping options so a rank field stays
+		// valid; echoed sends back every stored attr. Both then set the given keys.
+		rebuilt := func(f *model.PropertyField, keys model.StringInterface) model.StringInterface {
+			attrs := model.StringInterface{model.PropertyFieldAttrVisibility: model.PropertyFieldVisibilityAlways}
+			if opts, ok := f.Attrs[model.PropertyFieldAttributeOptions]; ok {
+				attrs[model.PropertyFieldAttributeOptions] = opts
+			}
+			maps.Copy(attrs, keys)
+			return attrs
+		}
+		echoed := func(f *model.PropertyField, keys model.StringInterface) model.StringInterface {
+			attrs := maps.Clone(f.Attrs)
+			maps.Copy(attrs, keys)
+			return attrs
+		}
+		keeps := map[string]func(*model.PropertyField) model.StringInterface{}
+		for name, v := range map[string]any{"nil": nil, "empty": "", "blank": "  "} {
+			keeps["rebuilt, change_policy "+name] = func(f *model.PropertyField) model.StringInterface {
+				return rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: v})
+			}
+			keeps["echoed, change_policy "+name] = func(f *model.PropertyField) model.StringInterface {
+				return echoed(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: v})
+			}
+		}
+		keeps["rebuilt, editable nil"] = func(f *model.PropertyField) model.StringInterface {
+			return rebuilt(f, model.StringInterface{model.PropertyFieldAttrEditable: nil})
+		}
+		keeps["echoed, editable nil"] = func(f *model.PropertyField) model.StringInterface {
+			return echoed(f, model.StringInterface{model.PropertyFieldAttrEditable: nil})
+		}
+		keeps["rebuilt, both nil"] = func(f *model.PropertyField) model.StringInterface {
+			return rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: nil, model.PropertyFieldAttrEditable: nil})
+		}
+		unlocks := map[string]func(*model.PropertyField) model.StringInterface{
+			"echoed, change_policy any": func(f *model.PropertyField) model.StringInterface {
+				return echoed(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyAny})
+			},
+			"echoed, editable true": func(f *model.PropertyField) model.StringInterface {
+				return echoed(f, model.StringInterface{model.PropertyFieldAttrEditable: true})
+			},
+			"rebuilt, change_policy any beside editable nil": func(f *model.PropertyField) model.StringInterface {
+				return rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyAny, model.PropertyFieldAttrEditable: nil})
+			},
+			"rebuilt, editable true beside change_policy nil": func(f *model.PropertyField) model.StringInterface {
+				return rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: nil, model.PropertyFieldAttrEditable: true})
+			},
+		}
+
+		for lockName, l := range locks {
+			createLocked := func(t *testing.T) *model.PropertyField {
+				t.Helper()
+				f := create(t, newField(l.fieldType, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: l.policy}))
+				require.Equal(t, l.mutability, f.Mutability)
+				require.Equal(t, l.bounds, f.Bounds)
+				return f
+			}
+			for caseName, attrsFor := range keeps {
+				t.Run(lockName+" stays locked: "+caseName, func(t *testing.T) {
+					f := createLocked(t)
+					f.Name = "renamed_" + model.NewId()
+					f.Attrs = attrsFor(f)
+					_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+					require.NoError(t, updateErr)
+					f = stored(t, f.ID)
+					assert.Equal(t, l.mutability, f.Mutability)
+					assert.Equal(t, l.bounds, f.Bounds)
+					assert.Equal(t, l.policy, f.Attrs[model.PropertyFieldAttrChangePolicy])
+				})
+			}
+			for caseName, attrsFor := range unlocks {
+				t.Run(lockName+" unlocks: "+caseName, func(t *testing.T) {
+					f := createLocked(t)
+					f.Attrs = attrsFor(f)
+					_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+					require.NoError(t, updateErr)
+					f = stored(t, f.ID)
+					assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+					assert.Empty(t, f.Bounds)
+					assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+					assert.NotEqual(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+				})
+			}
+		}
+
+		// Validation strips a raise/lower policy from a field that isn't a rank, so
+		// it states nothing either.
+		for _, policy := range []string{model.PropertyFieldChangePolicyRaiseOnly, model.PropertyFieldChangePolicyLowerOnly, " " + model.PropertyFieldChangePolicyRaiseOnly + " "} {
+			t.Run(fmt.Sprintf("write_once stays locked: rebuilt, change_policy %q", policy), func(t *testing.T) {
+				f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+				f.Attrs = rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: policy})
+				_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+				require.NoError(t, updateErr)
+				f = stored(t, f.ID)
+				assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+				assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+				assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+			})
+		}
+
+		// A rank changing type carries its stored raise/lower policy along; stripping
+		// it there unlocks, which keeps the type change saveable.
+		for _, toType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeText} {
+			for shape, apply := range map[string]func(f *model.PropertyField){
+				"echoed":     func(f *model.PropertyField) { f.Type = toType },
+				"REST patch": func(f *model.PropertyField) { f.Patch(&model.PropertyFieldPatch{Type: &toType}, true) },
+			} {
+				t.Run(fmt.Sprintf("raise_only rank changes type to %s: %s", toType, shape), func(t *testing.T) {
+					f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly}))
+					require.Equal(t, model.PropertyBounds{raiseOnly}, f.Bounds)
+					apply(f)
+					_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+					require.NoError(t, updateErr)
+					f = stored(t, f.ID)
+					assert.Equal(t, toType, f.Type)
+					assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+					assert.Empty(t, f.Bounds)
+					assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+				})
+			}
+		}
+	})
+
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
 		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, nil))
 		f.Mutability = model.PropertyFieldMutabilitySetOnCreate
