@@ -336,15 +336,15 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 
 func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) error {
 	if err := checkUserNotDisabled(user); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	return nil
