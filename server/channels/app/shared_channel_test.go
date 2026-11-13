@@ -2580,7 +2580,7 @@ func TestSharedChannelDMCreatedOnFollowerSyncsFirstPost(t *testing.T) {
 	event := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", dm.Id, "", nil, "")
 	event.Add("creator_id", th.BasicUser.Id)
 	event.Add("teammate_id", remoteUser.Id)
-	th.Server.Platform().SharedChannelSyncHandler(event)
+	th.Server.Platform().SharedChannelSyncHandler(event, false)
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		value, appErr := th.App.GetPluginKey(pluginID, post.Id)
