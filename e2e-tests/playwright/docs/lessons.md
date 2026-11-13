@@ -18,6 +18,19 @@ page is for people maintaining them: where each lesson came from, how
 | L-009        | Counter-example: #39445 made the search specs wait for an engine answer, because on an engine error search falls back to the database (the cause is logged at warn) and the response only differs by `matches: null`   |
 | L-010        | #39982, review by praid3n: branching on page state hides failures, so tests and page objects should fail fast. Lint only (report-only for now); no entry in `AGENTS.md`, the lint message states the rule              |
 
+## Product lessons
+
+Lessons about product code live next to it: P-001 to P-003 in
+`webapp/AGENTS.md`, P-004 and P-005 in `server/AGENTS.md`. They have no lint.
+
+| Lesson | Source                                                                                                                                                                                                                                                                   |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P-001  | #39806: Enter right after the editor's 100 ms debounce sent stale text. #39452 had added a flush before submit that missed the case where the timer had just fired; the fix reports the debounced update inside `flushSync`                                              |
+| P-002  | #39807: a `useEffect` in `RewritePromptInput` (added by #38007) wrote a lagging `value` prop into the uncontrolled input and dropped typed characters; the fix keeps the input uncontrolled and tracks the values it has already reported                                |
+| P-003  | #39372: matthewbirtch's review traced forced clicks on Compass switches to the global `label { span { pointer-events: none } }` in `_mobile.scss`. Not user-facing, but it breaks Playwright clicks                                                                      |
+| P-004  | #39376: `PermanentDeleteFlaggedPost` posted two first replies from two goroutines and the second `INSERT INTO Threads` hit the unique key; the fix makes the removal notice wait for the report goroutine. The store race in `updateThreadsFromPosts` is not fixed there |
+| P-005  | #39445: search falls back to the database on an engine error (the cause is logged at warn), and the response only differs by `matches: null`, so a spec could pass without the engine answering                                                                          |
+
 ## Lint ratchet
 
 The _(lint)_ rules live in `eslint-rules/lessons.mjs`. Many existing files
@@ -42,6 +55,10 @@ now. Files nobody touches are never checked.
   to review.
 
 ## Adding a lesson
+
+A lesson about product code gets a `P-` id and goes in `webapp/AGENTS.md` or
+`server/AGENTS.md`; keep it to one or two lines, because agents load those files
+on every task there.
 
 Add a lesson when a human review rejects the same mistake in two or more PRs,
 or when it caused a master failure. Give it the next id and one rule in a
