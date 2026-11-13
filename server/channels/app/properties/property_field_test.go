@@ -4860,4 +4860,29 @@ func TestPropertyFieldBoundsParentField(t *testing.T) {
 		_, _, err = th.service.UpdatePropertyField(rctx, groupID, stored)
 		require.NoError(t, err)
 	})
+
+	t.Run("an update judges the stored ObjectType, not the submitted one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		// The only parent-side field a post field would read; a user field's parent side, system, has none.
+		_, err := create(model.PropertyFieldObjectTypeChannel, nil)
+		require.NoError(t, err)
+		user, err := create(model.PropertyFieldObjectTypeUser, nil)
+		require.NoError(t, err)
+
+		user.Bounds = belowParent
+		user.ObjectType = model.PropertyFieldObjectTypePost
+		_, _, err = th.service.UpdatePropertyField(rctx, groupID, user)
+		requireParentRefused(t, err, "none")
+	})
+
+	t.Run("an update that changes ObjectType returns the stored one", func(t *testing.T) {
+		groupID, _, create := setup(t)
+		system, err := create(model.PropertyFieldObjectTypeSystem, nil)
+		require.NoError(t, err)
+
+		system.ObjectType = model.PropertyFieldObjectTypeUser
+		updated, _, err := th.service.UpdatePropertyField(rctx, groupID, system)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldObjectTypeSystem, updated.ObjectType)
+	})
 }

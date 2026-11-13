@@ -937,6 +937,8 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 		if !ok {
 			continue
 		}
+		// The store never writes ObjectType, so the checks below and the response must judge the stored one.
+		field.ObjectType = existing.ObjectType
 
 		// A field converted at create time carries the owners, source plugin
 		// and sync source it had at that moment. Keep it in sync with a v2
@@ -1196,14 +1198,13 @@ func (ps *PropertyService) updatePropertyFieldsIfUnchanged(rctx request.CTX, gro
 			return nil, nil, nil, err
 		}
 
-		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
-		// can shift the uniqueness domain. The DB unique index catches same-level
+		// Any change to Name or identity fields (TargetType/TargetID) can shift
+		// the uniqueness domain. The DB unique index catches same-level
 		// collisions, but cross-level hierarchy conflicts (system ↔ team ↔ channel)
 		// are only caught here.
 		if existing.Name != field.Name ||
 			existing.TargetType != field.TargetType ||
-			existing.TargetID != field.TargetID ||
-			existing.ObjectType != field.ObjectType {
+			existing.TargetID != field.TargetID {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
