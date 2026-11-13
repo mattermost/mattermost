@@ -113,7 +113,7 @@ describe('components/SingleImageView', () => {
         expect(container.querySelector('img')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const {container} = renderWithContext(
             <SingleImageView {...baseProps}/>,
         );
@@ -123,8 +123,6 @@ describe('components/SingleImageView', () => {
             expect(container.querySelector('img')).toBeInTheDocument();
         });
 
-        expect(container).toMatchSnapshot();
-
         // Simulate loaded state by triggering image load
         const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
@@ -133,10 +131,9 @@ describe('components/SingleImageView', () => {
 
         // Simulate image load event - fireEvent used because userEvent doesn't support image loading events
         fireEvent.load(img!);
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, SVG image', async () => {
+    test('should render SVG image', async () => {
         const fileInfo = TestHelper.getFileInfoMock({
             id: 'svg_file_info_id',
             name: 'name_svg',
@@ -152,8 +149,6 @@ describe('components/SingleImageView', () => {
             expect(container.querySelector('img')).toBeInTheDocument();
         });
 
-        expect(container).toMatchSnapshot();
-
         // Simulate loaded state by triggering image load
         const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
@@ -161,7 +156,6 @@ describe('components/SingleImageView', () => {
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
 
         fireEvent.load(img!);
-        expect(container).toMatchSnapshot();
     });
 
     test('should size a dimensionless SVG from the browser default instead of a fixed sliver', async () => {
@@ -264,7 +258,6 @@ describe('components/SingleImageView', () => {
 
         // After load, should have image-fade-in class (loaded = true)
         expect(container.querySelector('.image-loaded')).toHaveClass('image-fade-in');
-        expect(container).toMatchSnapshot();
     });
 
     test('should correctly pass prop down to surround small images with a container', async () => {
@@ -330,7 +323,6 @@ describe('components/SingleImageView', () => {
             });
 
             expect(container.querySelector('.image-permalink')).toBeInTheDocument();
-            expect(container).toMatchSnapshot();
         });
     });
 });

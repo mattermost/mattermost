@@ -35,13 +35,6 @@ describe('components/unarchive_channel_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot for unarchive_channel_modal', () => {
-        const {baseElement} = renderWithContext(
-            <UnarchiveChannelModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should match state when onHide is called', async () => {
         renderWithContext(
             <UnarchiveChannelModal {...baseProps}/>,

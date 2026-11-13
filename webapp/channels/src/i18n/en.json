@@ -9959,6 +9959,34 @@
     "defaultMessage": "rows per page",
     "description": "Text after the page size dropdown on the System Console Server Logs page; reads together with \"Show\", e.g. \"Show [50] rows per page\"."
   },
+  "admin.logs.scanLimited.backTo": {
+    "defaultMessage": "Searched back to {time}.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. {time} is the time of the oldest entry it read, e.g. \"2:02 PM\"."
+  },
+  "admin.logs.scanLimited.description": {
+    "defaultMessage": "Older entries weren't searched. Download the log file to search all of it.",
+    "description": "Last line of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. \"Download\" refers to the page's Download button, which saves the full log file."
+  },
+  "admin.logs.scanLimited.descriptionNodes": {
+    "defaultMessage": "Older entries weren't searched.",
+    "description": "Last line of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when logs from several nodes are listed. A node is a server in the cluster."
+  },
+  "admin.logs.scanLimited.nodeBackTo": {
+    "defaultMessage": "Searched {node} back to {time}.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. {node} is the name of a server in the cluster and {time} the time of the oldest entry it read, e.g. \"2:02 PM\"."
+  },
+  "admin.logs.scanLimited.nodeStopped": {
+    "defaultMessage": "The search on {node} stopped at its limit.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when the time it reached is unknown. {node} is the name of a server in the cluster."
+  },
+  "admin.logs.scanLimited.stopped": {
+    "defaultMessage": "The search stopped at its limit.",
+    "description": "Line in the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing. Used when the time it reached is unknown."
+  },
+  "admin.logs.scanLimited.title": {
+    "defaultMessage": "The search stopped before reaching older entries",
+    "description": "Title of the notice on the System Console Server Logs page shown when a server stopped searching its log file at its time or size limit, so older matching entries may be missing."
+  },
   "admin.logs.scrollToBottom": {
     "defaultMessage": "Scroll to bottom",
     "description": "Accessible label for the button that scrolls the log list to the bottom on the System Console Server Logs page."
@@ -9979,9 +10007,17 @@
     "defaultMessage": "Showing {start, number} - {end, number} of {total, number}",
     "description": "Pagination summary on the System Console Server Logs page, e.g. \"Showing 1 - 50 of 1,200\"."
   },
+  "admin.logs.showingCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {total, number}+",
+    "description": "Pagination summary on the System Console Server Logs page when a node returned the maximum number of entries, so the total is a lower bound, e.g. \"Showing 1 - 50 of 10,000+\"."
+  },
   "admin.logs.showingMatches": {
     "defaultMessage": "Showing {start, number} - {end, number} of {matches, number} entries matching your filters",
     "description": "Pagination summary on the System Console Server Logs page when a search is applied; shows the range and the number of matching entries."
+  },
+  "admin.logs.showingMatchesCapped": {
+    "defaultMessage": "Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters",
+    "description": "Pagination summary on the System Console Server Logs page when a search is applied and a node returned the maximum number of entries, so the number of matching entries is a lower bound, e.g. \"Showing 1 - 50 of 10,000+ entries matching your filters\"."
   },
   "admin.logs.sortNewestFirst": {
     "defaultMessage": "Sort newest first",
@@ -10018,22 +10054,6 @@
   "admin.logs.title": {
     "defaultMessage": "Server Logs",
     "description": "Page title of the Server Logs page in the System Console."
-  },
-  "admin.logs.truncated.description": {
-    "defaultMessage": "Older entries aren't loaded or counted. Download the log file to see them.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a server returned the maximum number of log entries. \"Download\" refers to the page's Download button, which saves the full log file."
-  },
-  "admin.logs.truncated.descriptionNodes": {
-    "defaultMessage": "Older entries aren't loaded or counted.",
-    "description": "Body of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. A node is a server in the cluster."
-  },
-  "admin.logs.truncated.title": {
-    "defaultMessage": "Only the latest {limit, number} entries are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when the server returned the maximum number of log entries. {limit} is that maximum, e.g. 10,000."
-  },
-  "admin.logs.truncated.titleNodes": {
-    "defaultMessage": "Only the latest {limit, number} entries from each node are shown",
-    "description": "Title of the notice on the System Console Server Logs page shown when a node returned the maximum number of log entries and logs from several nodes are listed. {limit} is that maximum, e.g. 10,000. A node is a server in the cluster."
   },
   "admin.logs.viewInAdmin": {
     "defaultMessage": "View in admin console",
@@ -17535,10 +17555,6 @@
     "defaultMessage": "Something went wrong. Try again",
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
-  "admin.user.selectOptions": {
-    "defaultMessage": "Select options",
-    "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
-  },
   "admin.userDetail.saveChangesModal.authDataChange": {
     "defaultMessage": "Auth Data: {oldAuthData} → {newAuthData}",
     "description": "List item in the save-confirmation modal on the admin user configuration page showing an Auth Data change; {oldAuthData} and {newAuthData} are the before/after values, → is an arrow between them."
@@ -17722,10 +17738,6 @@
   "admin.userManagement.userDetail.saml": {
     "defaultMessage": "SAML: {propertyName}",
     "description": "Chip label showing a custom profile attribute is synced from SAML; {propertyName} is the linked SAML attribute name. Shown on the admin user configuration page."
-  },
-  "admin.userManagement.userDetail.selectOption": {
-    "defaultMessage": "Select an option",
-    "description": "Placeholder for the empty choice in a single-select custom profile attribute dropdown on the admin user configuration page."
   },
   "admin.userManagement.userDetail.separator": {
     "defaultMessage": ", ",
@@ -19546,10 +19558,6 @@
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
-  },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -28727,6 +28735,10 @@
     "defaultMessage": "Quarantine for Review",
     "description": "Menu item in the message actions menu (content moderation feature) that flags the message for review by moderators; 'Quarantine' is a verb."
   },
+  "post_info.quote": {
+    "defaultMessage": "Quote",
+    "description": "Menu item in the message actions menu that inserts the message's text, formatted as a Markdown quote, into the message box so the user can respond to it; 'Quote' is a verb."
+  },
   "post_info.reply": {
     "defaultMessage": "Reply",
     "description": "Menu item in the message actions menu that opens the thread to reply; 'Reply' is a verb."
@@ -29211,6 +29223,14 @@
     "defaultMessage": "Loading…",
     "description": "Shown in an attribute dropdown while options load."
   },
+  "property_fields.attribute_combobox.rank": {
+    "defaultMessage": "Rank {rank}",
+    "description": "Accessible description of a rank attribute field, giving the selected option's rank number."
+  },
+  "property_fields.attribute_combobox.ranked_option": {
+    "defaultMessage": "{name}, Rank {rank}",
+    "description": "Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number."
+  },
   "property_fields.attribute_combobox.selections": {
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
@@ -29270,6 +29290,14 @@
   "property_fields.hierarchical_value_menu.withheld": {
     "defaultMessage": "The values for this attribute are not available to you here.",
     "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
+  },
+  "property_fields.select_option": {
+    "defaultMessage": "Select an option",
+    "description": "Placeholder for an empty single-value attribute input (select or rank), shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
+  },
+  "property_fields.select_options": {
+    "defaultMessage": "Select options",
+    "description": "Placeholder for an empty multi-value attribute input, shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
   },
   "property_fields.user_attribute_fields.remove": {
     "defaultMessage": "Remove {name}",

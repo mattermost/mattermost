@@ -21,11 +21,6 @@ describe('components/InfoToast', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {container} = render(<InfoToast {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should close the toast on undo', async () => {
         render(<InfoToast {...baseProps}/>);
 

@@ -5,7 +5,7 @@ import React from 'react';
 
 import InstalledOAuthApp from 'components/integrations/installed_oauth_app/installed_oauth_app';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('components/integrations/delete_integration_link', () => {
@@ -49,51 +49,25 @@ describe('components/integrations/InstalledOAuthApp', () => {
         fromApp: false,
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps, team};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot from app', () => {
-        const props = {...baseProps, team, fromApp: true};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when oauthApp is without name and not trusted', () => {
-        const props = {
-            ...baseProps,
-            team,
-            oauthApp: {
-                ...oauthApp,
-                name: '',
-                is_trusted: false,
-            },
-        };
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on error', () => {
+    test('should render on error', async () => {
         const onRegenerateSecret = jest.fn().mockResolvedValue({error: {message: 'error'}});
         const props = {...baseProps, team, onRegenerateSecret};
-        const {container} = renderWithContext(
+        renderWithContext(
             <InstalledOAuthApp {...props}/>,
         );
 
         // Trigger error by clicking regenerate
-        screen.getByText('Regenerate Secret').click();
+        await userEvent.click(screen.getByText('Regenerate Secret'));
 
-        waitFor(() => {
-            expect(container).toMatchSnapshot();
-        });
+        expect(await screen.findByText('error')).toBeInTheDocument();
+    });
+
+    test('should filter out OAuthApp', () => {
+        const props = {...baseProps, team, filter: 'filter'};
+        const {container} = renderWithContext(
+            <InstalledOAuthApp {...props}/>,
+        );
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should call onRegenerateSecret function', async () => {
@@ -112,15 +86,6 @@ describe('components/integrations/InstalledOAuthApp', () => {
 
         expect(onRegenerateSecret).toHaveBeenCalled();
         expect(onRegenerateSecret).toHaveBeenCalledWith(oauthApp.id);
-    });
-
-    test('should filter out OAuthApp', () => {
-        const filter = 'filter';
-        const props = {...baseProps, filter};
-        const {container} = renderWithContext(
-            <InstalledOAuthApp {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should match state on button clicks, both showSecretButton and hideSecretButton', async () => {

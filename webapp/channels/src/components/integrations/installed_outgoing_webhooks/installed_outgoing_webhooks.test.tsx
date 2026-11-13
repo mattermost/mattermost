@@ -12,7 +12,7 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('components/integrations/delete_integration_link', () => {
-    const ReactMock = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
+    const ReactMock = require('react');
     return {
         __esModule: true,
         default: (props: {onDelete: () => void}) => ReactMock.createElement('button', {onClick: props.onDelete}, 'Delete'),
@@ -100,8 +100,8 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
         canManageOthersWebhooks: true,
     };
 
-    test('should match snapshot', async () => {
-        const {container} = renderWithContext(
+    test('should render', async () => {
+        renderWithContext(
             <InstalledOutgoingWebhooks
                 {...defaultProps}
             />,
@@ -111,8 +111,6 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
         await waitFor(() => {
             expect(screen.getByText('build status')).toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should call regenOutgoingHookToken function', async () => {

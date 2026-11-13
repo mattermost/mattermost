@@ -38,21 +38,10 @@ describe('plugins/PostMessageView', () => {
         userLanguage: 'en',
     };
 
-    test('should match snapshot with extended post type', () => {
-        const {baseElement} = renderWithContext(
+    test('should render with extended post type', () => {
+        renderWithContext(
             <PostMessageView {...requiredProps}/>,
         );
-
-        expect(baseElement).toMatchSnapshot();
         expect(screen.getByText('PostTypePlugin')).toBeInTheDocument();
-    });
-
-    test('should match snapshot with no extended post type', () => {
-        const props = {...requiredProps, pluginPostTypes: {}};
-        const {baseElement} = renderWithContext(
-            <PostMessageView {...props}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
     });
 });

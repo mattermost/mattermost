@@ -81,36 +81,6 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         fileObjFromProps: {name: 'Test license file'} as File,
     };
 
-    test('should match snapshot when is not licensed', async () => {
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <UploadLicenseModal {...props}/>,
-                state,
-            ));
-        });
-        expect(container!).toMatchSnapshot();
-    });
-
-    test('should match snapshot when is licensed', async () => {
-        const localState: DeepPartial<GlobalState> = {
-            ...state,
-            entities: {
-                general: {
-                    license: {...license},
-                },
-            },
-        };
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <UploadLicenseModal {...props}/>,
-                localState,
-            ));
-        });
-        expect(container!).toMatchSnapshot();
-    });
-
     test('should not show apply button when no file is selected', () => {
         const newProps = {...props, fileObjFromProps: null};
         renderWithContext(

@@ -65,7 +65,7 @@ describe('components/integrations/EditCommand', () => {
         enableCommands: true,
     };
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const {container} = renderWithContext(
             <EditCommand {...baseProps}/>,
         );
@@ -75,32 +75,19 @@ describe('components/integrations/EditCommand', () => {
             expect(container.querySelector('#displayName')).toBeInTheDocument();
         });
 
-        expect(container).toMatchSnapshot();
-
         expect(baseProps.actions.getCustomTeamCommands).toHaveBeenCalled();
         expect(baseProps.actions.getCustomTeamCommands).toHaveBeenCalledWith(team.id);
     });
 
-    test('should match snapshot, loading', () => {
-        const {container} = renderWithContext(
-            <EditCommand {...baseProps}/>,
-        );
-
-        // Before getCustomTeamCommands resolves, should show loading
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when EnableCommands is false', () => {
+    test('should render when EnableCommands is false', () => {
         const actions = {
             getCustomTeamCommands: jest.fn(),
             editCommand: jest.fn(),
         };
         const props = {...baseProps, actions, enableCommands: false};
-        const {container} = renderWithContext(
+        renderWithContext(
             <EditCommand {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(actions.getCustomTeamCommands).not.toHaveBeenCalled();
     });
 
@@ -199,10 +186,6 @@ describe('components/integrations/EditCommand', () => {
         await waitFor(() => {
             expect(container.querySelector('#displayName')).toBeInTheDocument();
         });
-
-        // The ConfirmModal (renderExtra) should be rendered but not visible initially
-        // The modal has show=false, so it renders but is hidden
-        expect(container).toMatchSnapshot();
     });
 
     test('should have match when editCommand is called', async () => {

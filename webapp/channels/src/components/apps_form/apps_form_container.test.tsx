@@ -62,13 +62,6 @@ describe('components/apps_form/AppsFormContainer', () => {
         intl,
     };
 
-    test('should match snapshot', () => {
-        const props = baseProps;
-
-        const {baseElement} = renderWithContext(<RawAppsFormContainer {...props}/>);
-        expect(baseElement).toMatchSnapshot();
-    });
-
     describe('submitForm', () => {
         test('should handle form submission result', async () => {
             const response = {

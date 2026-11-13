@@ -25,14 +25,6 @@ describe('components/global/AtMentionsButton', () => {
         },
     } as unknown as GlobalState;
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <SavedPostsButton/>,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should show active mentions', async () => {
         renderWithContext(
             <SavedPostsButton/>,

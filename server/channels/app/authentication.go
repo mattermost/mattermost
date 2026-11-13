@@ -121,7 +121,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	}
 
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
@@ -302,7 +302,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if err = checkUserNotDisabled(ldapUser); err != nil {
+	if err := checkUserNotDisabled(ldapUser); err != nil {
 		// Existing LDAP users had a slot pre-claimed; a disabled-account
 		// rejection is not a credential failure, so refund the slot so a
 		// reactivated user is not immediately rate-limited.
@@ -311,7 +311,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 				rctx.Logger().Warn("failed to refund disabled LDAP login attempt slot", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 			}
 		}
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
@@ -324,7 +324,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 
 func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
 	if err := a.CheckUserPreflightAuthenticationCriteria(rctx, user, mfaToken); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
@@ -334,17 +334,17 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 	return nil
 }
 
-func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError {
+func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) error {
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
 
 	if err := checkUserNotBot(user); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return model.AsAppError(err)
+		return err
 	}
 
 	return nil
@@ -439,7 +439,7 @@ func checkUserLoginAttempts(user *model.User, maxAttempts int) error {
 	return nil
 }
 
-func checkUserNotDisabled(user *model.User) *model.AppError {
+func checkUserNotDisabled(user *model.User) error {
 	if user.DeleteAt > 0 {
 		return model.NewAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}

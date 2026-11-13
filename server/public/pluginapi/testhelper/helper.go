@@ -68,27 +68,32 @@ func PluginID() string {
 
 func ensurePluginMeta() error {
 	pluginMetaOnce.Do(func() {
-		repoRoot, err := findRepoRoot()
-		if err != nil {
-			pluginMetaErr = fmt.Errorf("find repo root: %w", err)
-			return
+		var err error
+		dir := os.Getenv("MM_TEST_PLUGIN_DIR")
+		if dir == "" {
+			dir, err = findRepoRoot()
+			if err != nil {
+				pluginMetaErr = fmt.Errorf("find repo root: %w", err)
+				return
+			}
 		}
-		pluginID, err = getPluginID(repoRoot)
+		pluginID, err = getPluginID(dir)
 		if err != nil {
 			pluginMetaErr = fmt.Errorf("get plugin ID: %w", err)
 			return
 		}
-		matches, err := filepath.Glob(filepath.Join(repoRoot, "dist", "*.tar.gz"))
+		distDir := filepath.Join(dir, "dist")
+		matches, err := filepath.Glob(filepath.Join(distDir, "*.tar.gz"))
 		if err != nil {
-			pluginMetaErr = fmt.Errorf("glob plugin bundle in dist/: %w", err)
+			pluginMetaErr = fmt.Errorf("glob plugin bundle in %s: %w", distDir, err)
 			return
 		}
 		if len(matches) == 0 {
-			pluginMetaErr = fmt.Errorf("no plugin bundle found in dist/ — ensure 'make dist' ran before tests")
+			pluginMetaErr = fmt.Errorf("no plugin bundle found in %s — ensure 'make dist' ran before tests", distDir)
 			return
 		}
 		if len(matches) > 1 {
-			pluginMetaErr = fmt.Errorf("multiple plugin bundles found in dist/ — remove old bundles and keep only one: %v", matches)
+			pluginMetaErr = fmt.Errorf("multiple plugin bundles found in %s — remove old bundles and keep only one: %v", distDir, matches)
 			return
 		}
 		pluginBundle = matches[0]

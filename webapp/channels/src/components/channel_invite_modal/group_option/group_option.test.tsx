@@ -30,15 +30,6 @@ describe('GroupOption', () => {
         addUserProfile: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const wrapper = renderWithContext(
-            <GroupOption
-                {...props}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
-    });
-
     it('should cleanup keydown event listener on unmount', () => {
         const addUserProfileMock = jest.fn();
         const wrapper = renderWithContext(

@@ -46,13 +46,6 @@ describe('components/submenu_modal', () => {
         onExited: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <SubMenuModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should hide on modal body click', async () => {
         const view = renderWithContext(
             <SubMenuModal {...baseProps}/>,

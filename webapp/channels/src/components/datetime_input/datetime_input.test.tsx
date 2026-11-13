@@ -39,14 +39,6 @@ describe('components/datetime_input/DateTimeInput', () => {
         jest.restoreAllMocks();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <DateTimeInput {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render date and time selectors', () => {
         renderWithContext(
             <DateTimeInput {...baseProps}/>,

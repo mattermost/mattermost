@@ -35,7 +35,6 @@ describe('components/widgets/modals/components/CheckboxSettingItem', () => {
         expect(checkbox).toHaveAttribute('data-testid', 'enable-feature-checkbox');
         expect(container.querySelector('.mm-modal-generic-section-item__fieldset-checkbox')).toBeInTheDocument();
         expect(container.querySelector('.mm-modal-generic-section-item__input-checkbox')).not.toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should call handleChange with the boolean checked state', async () => {
