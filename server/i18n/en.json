@@ -11358,17 +11358,17 @@
   {
     "id": "app.property_field.option_delete_container_values.app_error",
     "translation": "{{.Count}} values of {{.FieldNames}} that other values are checked against hold the options being deleted, for example on {{.Examples}}. Change those values, or remove the parent rule that compares against them, before deleting these options.",
-    "description": "API error (409) when deleting options of a property field while a system or channel value of it, or of a field linked to it, holds one of them and a child field's parent bounds rule compares against that value; FieldNames lists the names of the fields holding the counted values, joined with commas; Examples lists up to five target IDs."
+    "description": "API error (409) when deleting options of a property field while a system or channel value of it, or of a field linked to it, holds one of them and a child field's parent bounds rule compares against that value; FieldNames lists each field holding the counted values as its name followed by its object type in parentheses, for example Classification (channel), joined with commas; Examples lists up to five target IDs."
   },
   {
     "id": "app.property_field.option_delete_locked_values.app_error",
     "translation": "{{.Count}} values of {{.FieldNames}} can't be changed and hold the options being deleted, for example on {{.Examples}}. Make {{.FieldNames}} mutable before deleting these options.",
-    "description": "API error (409) when deleting options of a property field while write_once or set_on_create values of it, or of a field linked to it, hold one of them; FieldNames lists the names of the fields holding the counted values, joined with commas; Examples lists up to five target IDs."
+    "description": "API error (409) when deleting options of a property field while write_once or set_on_create values of it, or of a field linked to it, hold one of them; FieldNames lists each field holding the counted values as its name followed by its object type in parentheses, for example Classification (channel), joined with commas; Examples lists up to five target IDs."
   },
   {
     "id": "app.property_field.option_delete_self_rule_values.app_error",
     "translation": "{{.Count}} values of {{.FieldNames}} can only be raised or lowered and hold the options being deleted, for example on {{.Examples}}. Remove the raise-only or lower-only rule from {{.FieldNames}} before deleting these options.",
-    "description": "API error (409) when deleting options of a property field while values of it, or of a field linked to it, that a raise-only or lower-only bounds rule governs hold one of them; FieldNames lists the names of the fields holding the counted values, joined with commas; Examples lists up to five target IDs."
+    "description": "API error (409) when deleting options of a property field while values of it, or of a field linked to it, that a raise-only or lower-only bounds rule governs hold one of them; FieldNames lists each field holding the counted values as its name followed by its object type in parentheses, for example Classification (channel), joined with commas; Examples lists up to five target IDs."
   },
   {
     "id": "app.property_field.option_ranks_stored_values.app_error",

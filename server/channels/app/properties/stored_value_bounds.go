@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"maps"
@@ -35,21 +36,29 @@ func (b *storedValueBreaches) add(count int64, examples []string) {
 }
 
 // heldFields names the fields whose stored values were counted in one refusal, so the message can
-// tell the admin which field to change.
-type heldFields struct{ names, ids []string }
+// tell the admin which field to change. A template and the fields linked to it can share a name, so
+// each is named with its object type too.
+type heldField struct{ name, id string }
+
+type heldFields []heldField
 
 func (h *heldFields) add(count int64, f *model.PropertyField) {
 	if count > 0 {
-		h.names = append(h.names, f.Name)
-		h.ids = append(h.ids, f.ID)
+		*h = append(*h, heldField{f.Name + " (" + f.ObjectType + ")", f.ID})
 	}
 }
 
 // join sorts first: GetLinkedFields has no ORDER BY, and the message should not change between runs.
-func (h *heldFields) join() (names, ids string) {
-	slices.Sort(h.names)
-	slices.Sort(h.ids)
-	return strings.Join(h.names, ", "), strings.Join(h.ids, ", ")
+// Names and IDs come out in the same order, so the n-th name is the n-th ID's field.
+func (h heldFields) join() (names, ids string) {
+	slices.SortFunc(h, func(a, b heldField) int {
+		return cmp.Or(strings.Compare(a.name, b.name), strings.Compare(a.id, b.id))
+	})
+	ns, is := make([]string, len(h)), make([]string, len(h))
+	for i, f := range h {
+		ns[i], is[i] = f.name, f.id
+	}
+	return strings.Join(ns, ", "), strings.Join(is, ", ")
 }
 
 // allowedByRule returns the option IDs in ranks that pass op against refRank.
