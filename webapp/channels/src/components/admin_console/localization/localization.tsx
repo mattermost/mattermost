@@ -13,7 +13,6 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
-import ExternalLink from 'components/external_link';
 
 import * as I18n from 'i18n/i18n';
 
@@ -60,8 +59,8 @@ const messages = defineMessages({
         defaultMessage: 'Available Languages:',
     },
     availableLocalesDescription: {
-        id: 'admin.general.localization.availableLocalesDescription',
-        defaultMessage: "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
+        id: 'admin.general.localization.availableLocalesHelpText',
+        defaultMessage: "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.",
     },
     availableLocalesNoResults: {
         id: 'admin.general.localization.availableLocalesNoResults',
@@ -144,14 +143,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                         <FormattedMessage
                             {...messages.availableLocalesDescription}
                             values={{
-                                link: (msg: React.ReactNode) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://translate.mattermost.com/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
                                 strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
