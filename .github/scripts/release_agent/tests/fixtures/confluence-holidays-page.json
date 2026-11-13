@@ -1,0 +1,12 @@
+{
+ "_source": "Laid out like the Release Processes Overview page's holiday lists (a heading per year, a table per country): headings, the two country names and dates only, no holiday names. 2026 and 2027 each have 20 distinct days, with days off in both the US and Canada listed twice.",
+ "body": {
+  "storage": {
+   "value": "<h2>Entity and EOR locations holidays for 2025</h2><h3>US</h3><table><tbody><tr><th>Date</th></tr><tr><td>(12/25/2025)</td></tr></tbody></table><h3>Canada</h3><table><tbody><tr><th>Date</th></tr><tr><td>(12/26/2025)</td></tr></tbody></table><h2>Entity and EOR locations holidays for 2026</h2><h3>US</h3><table><tbody><tr><th>Date</th></tr><tr><td>(1/01/2026)</td></tr><tr><td>(1/19/2026)</td></tr><tr><td>(2/16/2026)</td></tr><tr><td>(4/03/2026)</td></tr><tr><td>(5/25/2026)</td></tr><tr><td>(6/19/2026)</td></tr><tr><td>(7/03/2026)</td></tr><tr><td>(9/07/2026)</td></tr><tr><td>(11/26/2026)</td></tr><tr><td>(11/27/2026)</td></tr><tr><td>(12/24/2026)</td></tr><tr><td>(12/25/2026)</td></tr></tbody></table><h3>Canada</h3><table><tbody><tr><th>Date</th></tr><tr><td>(1/01/2026)</td></tr><tr><td>(2/16/2026)</td></tr><tr><td>(4/03/2026)</td></tr><tr><td>(5/18/2026)</td></tr><tr><td>(6/24/2026)</td></tr><tr><td>(7/01/2026)</td></tr><tr><td>(8/03/2026)</td></tr><tr><td>(9/07/2026)</td></tr><tr><td>(9/30/2026)</td></tr><tr><td>(10/12/2026)</td></tr><tr><td>(11/11/2026)</td></tr><tr><td>(12/25/2026)</td></tr><tr><td>(12/28/2026)</td></tr></tbody></table><h2>Entity and EOR locations holidays for 2027</h2><h3>US</h3><table><tbody><tr><th>Date</th></tr><tr><td>(1/01/2027)</td></tr><tr><td>(1/18/2027)</td></tr><tr><td>(2/15/2027)</td></tr><tr><td>(5/31/2027)</td></tr><tr><td>(6/18/2027)</td></tr><tr><td>(7/05/2027)</td></tr><tr><td>(9/06/2027)</td></tr><tr><td>(11/25/2027)</td></tr><tr><td>(11/26/2027)</td></tr><tr><td>(12/24/2027)</td></tr></tbody></table><h3>Canada</h3><table><tbody><tr><th>Date</th></tr><tr><td>(1/01/2027)</td></tr><tr><td>(2/15/2027)</td></tr><tr><td>(3/26/2027)</td></tr><tr><td>(5/24/2027)</td></tr><tr><td>(6/24/2027)</td></tr><tr><td>(7/01/2027)</td></tr><tr><td>(8/02/2027)</td></tr><tr><td>(9/06/2027)</td></tr><tr><td>(9/30/2027)</td></tr><tr><td>(10/11/2027)</td></tr><tr><td>(11/11/2027)</td></tr><tr><td>(12/24/2027)</td></tr><tr><td>(12/27/2027)</td></tr><tr><td>(12/28/2027)</td></tr></tbody></table>"
+  }
+ },
+ "_links": {
+  "base": "https://mattermost.atlassian.net/wiki",
+  "webui": "/spaces/X/pages/2928869382"
+ }
+}

@@ -1,0 +1,55 @@
+name: Release Agent Test
+
+on:
+  pull_request:
+    paths:
+      - '.github/release-agent/**'
+      - '.github/scripts/release_agent/**'
+      - '.github/scripts/changelog_release.py'
+      - '.github/workflows/release-agent.yml'
+      - '.github/workflows/release-agent-test.yml'
+
+permissions: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet -r .github/release-agent/requirements.txt
+
+      - name: Validate rules
+        working-directory: .github/scripts
+        run: python3 -m release_agent validate
+
+      - name: Unit tests
+        working-directory: .github/scripts
+        run: python3 -m unittest discover -s release_agent/tests -t . -v
+
+  actionlint:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: actionlint
+        run: |
+          docker run --rm -v "$PWD:/repo" --workdir /repo \
+            rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 \
+            -color .github/workflows/release-agent.yml .github/workflows/release-agent-test.yml
