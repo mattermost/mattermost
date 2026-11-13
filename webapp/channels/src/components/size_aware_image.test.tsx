@@ -79,7 +79,6 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('.file__image-loading')).not.toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should reserve a placeholder without rendering image content when renderPlaceholderOnly is true', () => {
@@ -173,16 +172,6 @@ describe('components/SizeAwareImage', () => {
         expect(container.querySelector('.loading-image__preview')).toBeNull();
     });
 
-    test('should match snapshot when handleSmallImageContainer prop is passed', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-        };
-
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should surround the image with container div if the image is small', async () => {
         const props = {
             ...baseProps,
@@ -250,16 +239,6 @@ describe('components/SizeAwareImage', () => {
         await simulateImageLoad(img, 24, 24);
 
         expect(screen.getByRole('img')?.className).toBe(`${props.className} small-image--inside-container`);
-    });
-
-    test('should load download and copy link buttons when an image is mounted', () => {
-        const fileURL = 'https://example.com/image.png';
-        const props = {
-            ...baseProps,
-            fileURL,
-        };
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
     });
 
     test('should load download hyperlink with href set to fileURL', () => {

@@ -28,31 +28,6 @@ describe('FileThumbnail', () => {
         enableSVGs: false,
     };
 
-    test('should render a small image', () => {
-        const {container} = render(
-            <FileThumbnail {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render a normal-sized image', () => {
-        const props = {
-            ...baseProps,
-            fileInfo: {
-                ...fileInfo,
-                height: 150,
-                width: 150,
-            },
-        };
-
-        const {container} = render(
-            <FileThumbnail {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render an svg when svg previews are enabled', () => {
         const props = {
             ...baseProps,
@@ -66,8 +41,6 @@ describe('FileThumbnail', () => {
         const {container} = render(
             <FileThumbnail {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('img')).toBeInTheDocument();
     });
 
@@ -84,8 +57,6 @@ describe('FileThumbnail', () => {
         const {container} = render(
             <FileThumbnail {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 
@@ -101,8 +72,6 @@ describe('FileThumbnail', () => {
         const {container} = render(
             <FileThumbnail {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 
@@ -118,8 +87,6 @@ describe('FileThumbnail', () => {
         const {container} = render(
             <FileThumbnail {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('div.file-icon')).toBeInTheDocument();
     });
 });

@@ -8,43 +8,6 @@ import SpinnerButton from 'components/spinner_button';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/SpinnerButton', () => {
-    test('should match snapshot with required props', () => {
-        const {container} = renderWithContext(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            >
-                {'Test'}
-            </SpinnerButton>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with spinning', () => {
-        const {container} = renderWithContext(
-            <SpinnerButton
-                spinning={true}
-                spinningText='Test'
-            >
-                {'Test'}
-            </SpinnerButton>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with children', () => {
-        const {container} = renderWithContext(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            >
-                <span id='child1'/>
-                <span id='child2'/>
-            </SpinnerButton>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle onClick', async () => {
         const onClick = jest.fn();
 

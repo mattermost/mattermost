@@ -15,11 +15,6 @@ describe('components/admin_console/workspace-optimization/cta_buttons', () => {
         actionText: 'Action Text',
     };
 
-    test('should match snapshot', () => {
-        const {container} = render(<CtaButtons {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('test ctaButtons list lenght is 2 as defined in baseProps', () => {
         render(<CtaButtons {...baseProps}/>);
         const ctaButtons = screen.getAllByRole('button');

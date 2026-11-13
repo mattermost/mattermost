@@ -35,8 +35,10 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
+import {quoteTextFromPost} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
 import {isBurnOnReadPost, isThisPostBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
+import {canQuoteFromPost} from 'selectors/drafts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -115,6 +117,10 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
+        // Quote goes into the message box shown with the post
+        const isCenter = !ownProps.location || ownProps.location === Locations.CENTER;
+        const isRHS = ownProps.location === Locations.RHS_ROOT || ownProps.location === Locations.RHS_COMMENT;
+
         // Reduced to a boolean here on purpose. `dot_menu` renders once per post,
         // and handing it the field array would subscribe every one of them to a
         // reference that changes whenever any channel's fields are refetched.
@@ -163,6 +169,7 @@ function makeMapStateToProps() {
             ),
             canPin: !systemMessage && !isBoRPost && !isArchivedChannel(channel),
             canCopyText: !systemMessage && !isBoRPost,
+            canQuote: !systemMessage && (isCenter || isRHS) && canQuoteFromPost(state, post.id, isRHS),
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
             hasPostAttributes,
@@ -186,6 +193,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setThreadFollow,
             burnPostNow,
             savePreferences,
+            quoteTextFromPost,
         }, dispatch),
     };
 }

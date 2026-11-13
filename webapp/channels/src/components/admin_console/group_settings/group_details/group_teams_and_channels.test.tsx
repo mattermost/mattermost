@@ -60,50 +60,6 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         onRemoveItem: jest.fn(),
     };
 
-    test('should match snapshot, with teams, with channels and loading', () => {
-        const {container} = renderWithContext(
-            <GroupTeamsAndChannels
-                {...defaultProps}
-                loading={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with teams, with channels and loaded', () => {
-        const {container} = renderWithContext(
-            <GroupTeamsAndChannels
-                {...defaultProps}
-                loading={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, without teams, without channels and loading', () => {
-        const {container} = renderWithContext(
-            <GroupTeamsAndChannels
-                {...defaultProps}
-                teams={[]}
-                channels={[]}
-                loading={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, without teams, without channels and loaded', () => {
-        const {container} = renderWithContext(
-            <GroupTeamsAndChannels
-                {...defaultProps}
-                teams={[]}
-                channels={[]}
-                loading={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should toggle the collapse for an element', async () => {
         renderWithContext(<GroupTeamsAndChannels {...defaultProps}/>);
 

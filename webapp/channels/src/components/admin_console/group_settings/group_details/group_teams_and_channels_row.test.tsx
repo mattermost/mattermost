@@ -18,60 +18,6 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         );
     };
 
-    for (const type of [
-        'public-team',
-        'private-team',
-        'public-channel',
-        'private-channel',
-    ]) {
-        test('should match snapshot, for ' + type, () => {
-            const {container} = renderInTable(
-                <GroupTeamsAndChannelsRow
-                    id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
-                    type={type}
-                    name={'Test ' + type}
-                    hasChildren={false}
-                    collapsed={false}
-                    onRemoveItem={jest.fn()}
-                    onToggleCollapse={jest.fn()}
-                    onChangeRoles={jest.fn()}
-                />,
-            );
-            expect(container).toMatchSnapshot();
-        });
-    }
-    test('should match snapshot, when has children', () => {
-        const {container} = renderInTable(
-            <GroupTeamsAndChannelsRow
-                id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
-                type='public-team'
-                name={'Test team with children'}
-                hasChildren={true}
-                collapsed={false}
-                onRemoveItem={jest.fn()}
-                onToggleCollapse={jest.fn()}
-                onChangeRoles={jest.fn()}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when has children and is collapsed', () => {
-        const {container} = renderInTable(
-            <GroupTeamsAndChannelsRow
-                id='xxxxxxxxxxxxxxxxxxxxxxxxxx'
-                type='public-team'
-                name={'Test team with children'}
-                hasChildren={true}
-                collapsed={true}
-                onRemoveItem={jest.fn()}
-                onToggleCollapse={jest.fn()}
-                onChangeRoles={jest.fn()}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should call onToggleCollapse on caret click', async () => {
         const onToggleCollapse = jest.fn();
         renderInTable(

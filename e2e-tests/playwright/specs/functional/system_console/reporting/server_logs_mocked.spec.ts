@@ -164,21 +164,21 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
     );
 
     /**
-     * @objective Verify a node returning a full page of entries shows the notice that older
-     * entries were left out.
+     * @objective Verify a node returning a full page of entries marks the footer total with a
+     * trailing "+", since older entries weren't loaded.
      */
     test(
-        'shows a notice when a node returns the maximum number of entries',
+        'marks the total as capped when a node returns the maximum number of entries',
         {tag: ['@system_console', '@server_logs']},
         async ({pw}) => {
             // # Open the server logs with a full page of entries from one node
             const fullPage = Array.from({length: LOGS_PAGE_SIZE}, (_, i) => logEntry(`entry ${i}`));
             const {serverLogs, lastRequest} = await openWithMockedLogs(pw, () => ({'node-a': fullPage}));
 
-            // * Verify the page size is requested and the notice is shown
+            // * Verify the page size is requested and the footer total is shown as a lower bound
             expect(lastRequest().params.get('logs_per_page')).toBe(String(LOGS_PAGE_SIZE));
-            await expect(serverLogs.truncationNotice).toHaveText(
-                `Only the latest ${LOGS_PAGE_SIZE.toLocaleString('en-US')} entries are shown`,
+            await expect(serverLogs.footerInfo).toHaveText(
+                new RegExp(`^Showing \\d+ - \\d+ of ${LOGS_PAGE_SIZE.toLocaleString('en-US')}\\+$`),
             );
         },
     );

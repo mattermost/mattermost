@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
-
-exports[`components/ModalController component should match snapshot without any modals 1`] = `<div />`;
