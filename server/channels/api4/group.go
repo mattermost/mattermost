@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -698,18 +696,9 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		team, teamErr := c.App.GetTeam(syncableID)
-		if teamErr != nil {
-			return teamErr
-		}
-
-		permission := model.PermissionInviteUser
-		if team.IsGroupConstrained() {
-			permission = model.PermissionManageTeam
-		}
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, permission) &&
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) &&
 			!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, appErr := c.App.GetChannel(c.AppContext, syncableID)
@@ -719,17 +708,14 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 
 		// If it's the first time that the syncable gets linked to the team (i.e. no current sync to the team or to a team's channel),
 		// check that the user has the permission to manage the team.
-		_, appErr = c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
-		if appErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(appErr, &nfErr):
-				if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionInviteUser) &&
-					!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
-					return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionInviteUser})
-				}
-			default:
-				return appErr
+		teamSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, channel.TeamId, model.GroupSyncableTypeTeam)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			return appErr
+		}
+		if teamSyncable == nil || teamSyncable.DeleteAt != 0 {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) &&
+				!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+				return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 			}
 		}
 
