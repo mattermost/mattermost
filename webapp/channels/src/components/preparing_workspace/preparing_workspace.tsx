@@ -102,7 +102,7 @@ const PreparingWorkspace = ({
     const configSiteUrl = config.SiteURL;
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
-    const isConfigSiteUrlUnset = !configSiteUrl || configSiteUrl === Constants.DEFAULT_SITE_URL;
+    const isConfigSiteUrlUnset = !configSiteUrl || isConfigSiteUrlDefault;
     const [showSiteUrlStep, setShowSiteUrlStep] = useState(false);
 
     const stepOrder = [
@@ -123,7 +123,7 @@ const PreparingWorkspace = ({
     const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
-        url: browserSiteUrl.replace(/\/$/, ''),
+        url: browserSiteUrl,
     });
 
     // Only send the Site URL if the admin saw the step and didn't skip it.
@@ -430,13 +430,14 @@ const PreparingWorkspace = ({
                         });
                     }}
                     setInviteId={(inviteId: string) => {
-                        setForm({
-                            ...form,
+                        // Called after the team request returns, when the admin may have changed the form on the next steps.
+                        setForm((prev: Form) => ({
+                            ...prev,
                             teamMembers: {
-                                ...form.teamMembers,
+                                ...prev.teamMembers,
                                 inviteId,
                             },
-                        });
+                        }));
                     }}
                     className='child-page'
                     createTeam={createTeam}

@@ -26,6 +26,9 @@ import './site_url.scss';
 
 const IPV4_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
 
+// The server doesn't time out when it fetches the URL, so give up on the test after a while.
+const TEST_TIMEOUT = 10000;
+
 // Adds the browser's protocol when the URL has none, and trims one trailing slash like the server does.
 export function normalizeSiteUrl(input: string, protocol = window.location.protocol): string {
     let url = input.trim();
@@ -38,7 +41,7 @@ export function normalizeSiteUrl(input: string, protocol = window.location.proto
 // Matches the server check: an http(s) origin only, with a hostname and an optional port from 1 to 65535,
 // and without a path, query, fragment or user info.
 export function isValidSiteUrl(url: string): boolean {
-    if (!(/^https?:\/\/[^/?#@\\\s]+$/).test(url)) {
+    if (!(/^https?:\/\/[^/?#@%\\\s]+$/).test(url) || url.endsWith(':')) {
         return false;
     }
     let parsed;
@@ -83,6 +86,9 @@ const SiteUrl = (props: Props) => {
     const testRun = useRef(0);
     useEffect(() => {
         testRun.current++;
+        if (props.show) {
+            setStatus(SiteUrlStatuses.Idle);
+        }
     }, [props.show]);
 
     const normalizedUrl = normalizeSiteUrl(props.url);
@@ -106,10 +112,18 @@ const SiteUrl = (props: Props) => {
         setStatus(SiteUrlStatuses.Testing);
         const run = ++testRun.current;
         let ok = true;
+        let timeout;
         try {
-            await Client4.testSiteURL(normalizedUrl);
+            await Promise.race([
+                Client4.testSiteURL(normalizedUrl),
+                new Promise((resolve, reject) => {
+                    timeout = setTimeout(reject, TEST_TIMEOUT);
+                }),
+            ]);
         } catch {
             ok = false;
+        } finally {
+            clearTimeout(timeout);
         }
         if (run !== testRun.current) {
             return;
