@@ -190,9 +190,10 @@ test.describe('Single-channel guests', () => {
                 false,
             );
 
-            // The header renders before the stat cards. Wait for a card from that same
-            // render, then assert the guest card was omitted.
+            // The header renders before the stat cards. Wait for a card from that same render.
             await expect(systemConsolePage.page.getByTestId('totalTeams')).toBeVisible();
+
+            // * The single-channel guests card is omitted when guest accounts are disabled
             await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeHidden();
         },
     );
