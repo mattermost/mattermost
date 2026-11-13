@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -22,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
 func TestParseAuthTokenFromRequest(t *testing.T) {
@@ -93,7 +93,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	t.Run("should run successfully when attempts are available", func(t *testing.T) {
 		err = th.App.Srv().Store().User().UpdateFailedPasswordAttempts(th.BasicUser.Id, maxFailedLoginAttempts-1)
 		require.NoError(t, err)
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 		token := fmt.Sprintf("%06d", code)
 
 		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, token)
