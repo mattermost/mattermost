@@ -1301,7 +1301,7 @@ func TestWebConnIsBasicAuthenticatedDoesNotLogToken(t *testing.T) {
 			token := model.NewId()
 
 			suite := &platform_mocks.SuiteIFace{}
-			suite.On("GetSession", token).Return(nil, model.NewAppError("GetSession", "api.context.invalid_token.error", nil, "", tc.statusCode))
+			suite.On("GetSession", token).Return(nil, model.NewAppError("GetSession", "api.context.invalid_session.error", nil, "", tc.statusCode))
 
 			wc := th.Service.NewWebConn(&WebConnConfig{
 				WebSocket: &websocket.Conn{},
