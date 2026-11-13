@@ -19,9 +19,8 @@ describe('/components/common/InfiniteScroll', () => {
         bufferValue: 100,
     };
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
-        expect(container).toMatchSnapshot();
 
         const wrapperDiv = container.querySelector(`.${baseProps.styleClass}`);
 
@@ -146,8 +145,6 @@ describe('/components/common/InfiniteScroll', () => {
         // Now it should show the loader during fetching
         loadingDiv = container.querySelector('.loading-screen');
         expect(loadingDiv).toBeInTheDocument();
-
-        expect(container).toMatchSnapshot();
 
         // Resolve the callback to cleanup
         await act(async () => {

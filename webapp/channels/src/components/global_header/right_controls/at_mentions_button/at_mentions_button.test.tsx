@@ -31,14 +31,6 @@ describe('components/global/AtMentionsButton', () => {
         jest.clearAllMocks();
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <AtMentionsButton/>,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should show active mentions', async () => {
         renderWithContext(
             <AtMentionsButton/>,

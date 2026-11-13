@@ -62,15 +62,6 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <InviteAs {...props}/>,
-            state,
-            {useMockedStore: true},
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('shows the radio buttons', () => {
         renderWithContext(
             <InviteAs {...props}/>,

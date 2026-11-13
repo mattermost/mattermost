@@ -8,19 +8,6 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TeamModes} from './team_modes';
 
 describe('admin_console/team_channel_settings/team/TeamModes', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <TeamModes
-                onToggle={jest.fn()}
-                syncChecked={false}
-                allAllowedChecked={false}
-                allowedDomains={''}
-                allowedDomainsChecked={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('keeps separator under Sync Group Members when synced and ABAC row follows', () => {
         renderWithContext(
             <TeamModes

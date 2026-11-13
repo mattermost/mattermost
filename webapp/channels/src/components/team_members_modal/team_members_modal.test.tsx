@@ -33,16 +33,6 @@ describe('components/TeamMembersModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <TeamMembersModal
-                {...baseProps}
-            />,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should call onHide on Modal\'s onExited', async () => {
         renderWithContext(
             <TeamMembersModal

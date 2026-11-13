@@ -75,7 +75,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const baseProps = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             isLicensed: false,
@@ -102,6 +102,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
                 setGlobalItem: jest.fn(),
                 burnPostNow: jest.fn(),
                 savePreferences: jest.fn(),
+                quoteTextFromPost: jest.fn(),
             },
             canEdit: false,
             canDelete: false,
@@ -123,6 +124,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             canPin: true,
             canCopyText: true,
             canCopyLink: true,
+            canQuote: true,
             isBurnOnReadPost: false,
             isUnrevealedBurnOnReadPost: false,
         };

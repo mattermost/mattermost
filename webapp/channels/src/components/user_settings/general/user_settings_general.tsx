@@ -21,9 +21,10 @@ import {isPropertyFieldSyncedForAuthService} from 'mattermost-redux/utils/proper
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
+import {AttributeCombobox, getAttributeComboboxType} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
+import {propertyFieldMessages} from 'components/property_fields/messages';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -1611,6 +1612,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                     if (valueRefersToOptions(attribute)) {
                         const comboboxId = 'customProfileAttribute_' + attribute.id;
+                        const comboboxType = getAttributeComboboxType(attribute);
+                        const placeholderMessage = comboboxType === 'multiselect' ? propertyFieldMessages.selectOptions : propertyFieldMessages.selectOption;
+                        const placeholder = formatMessage(placeholderMessage);
 
                         inputs.push(
                             <AttributeCombobox
@@ -1619,12 +1623,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 testId={comboboxId}
                                 label={getUserPropertyFieldLabel(attribute)}
                                 options={attribute.attrs?.options ?? []}
-                                placeholder={formatMessage({
-                                    id: 'user.settings.general.select',
-                                    defaultMessage: 'Select',
-                                })}
+                                placeholder={placeholder}
                                 zIndex={ZIndex.MENU}
-                                multiple={attribute.type === 'multiselect'}
+                                type={comboboxType}
                                 value={this.state.customAttributeValues[attribute.id]}
                                 onChange={(value) => this.updateComboboxAttribute(attribute.id, value)}
                             />,

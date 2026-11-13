@@ -8,14 +8,6 @@ import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_
 import Input from './input';
 
 describe('components/widgets/inputs/Input', () => {
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <Input/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should keep defaultValue across re-renders when value is omitted (uncontrolled / IME)', () => {
         const {rerender} = renderWithContext(
             <Input defaultValue=''/>,

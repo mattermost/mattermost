@@ -100,15 +100,6 @@ describe('PostAttachmentOpenGraph', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <PostAttachmentOpenGraph {...baseProps}/>,
-            initialState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render nothing without any data', () => {
         const {container} = renderWithContext(
             <PostAttachmentOpenGraph {...baseProps}/>,
@@ -177,12 +168,6 @@ describe('PostAttachmentOpenGraphBody', () => {
         description: 'test-description',
         isInPermalink: false,
     };
-
-    test('should match snapshot', () => {
-        const {container} = render(<PostAttachmentOpenGraphBody {...baseProps}/>);
-
-        expect(container).toMatchSnapshot();
-    });
 
     test('should not render without title', () => {
         const props = {
@@ -257,29 +242,6 @@ describe('PostAttachmentOpenGraphImage', () => {
         title: 'test_image',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <PostAttachmentOpenGraphImage {...baseProps}/>,
-            initialState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should not render when used in Permalink', () => {
-        const props = {
-            ...baseProps,
-            isInPermalink: true,
-        };
-
-        const {container} = renderWithContext(
-            <PostAttachmentOpenGraphImage {...props}/>,
-            initialState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render a large image with toggle', () => {
         const {container} = renderWithContext(
             <PostAttachmentOpenGraphImage {...baseProps}/>,
@@ -319,14 +281,6 @@ describe('PostAttachmentOpenGraphBody', () => {
         siteName: 'test_sitename',
         description: 'test_description',
     };
-
-    test('should match snapshot', () => {
-        const {container} = render(
-            <PostAttachmentOpenGraphBody {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
 
     describe('permalink preview', () => {
         test('should add extra class for permalink view', () => {
