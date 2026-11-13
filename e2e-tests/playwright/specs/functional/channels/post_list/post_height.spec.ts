@@ -616,6 +616,71 @@ test.describe('Post height', () => {
         );
     }
 
+    for (const messageDisplay of ['full', 'compact']) {
+        test(
+            `OpenGraph thumbnail placeholder should match the size of the loaded image (image-600x1200.jpg, ${messageDisplay} display)`,
+            {tag: '@post_list'},
+            async () => {
+                // # Set the message display setting and create a post with a link preview that has a tall thumbnail
+                await userClient.savePreferences(user.id, [
+                    {
+                        user_id: user.id,
+                        category: 'display_settings',
+                        name: 'message_display',
+                        value: messageDisplay,
+                    },
+                ]);
+                const post = await seedPost({message: `${fileServerUrl}/opengraph-tall.html`});
+
+                // # Hold back the image so that its placeholder can be measured
+                let releaseImage = () => {};
+                const imageReleased = new Promise<void>((resolve) => {
+                    releaseImage = resolve;
+                });
+                await page.route(
+                    (url) => url.pathname.endsWith('/image-600x1200.jpg') || url.pathname === '/api/v4/image',
+                    async (route) => {
+                        await imageReleased;
+                        await route.continue();
+                    },
+                );
+
+                const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
+
+                // * Verify that the link preview has a thumbnail rather than a large image
+                const thumbnail = postComponent.container.locator('.PostAttachmentOpenGraph__image');
+                await expect(thumbnail).toBeVisible();
+                await expect(thumbnail).not.toHaveClass(/large/);
+
+                // # Measure the placeholder and then let the image load
+                const placeholder = thumbnail.locator('img.image-loading__placeholder');
+                await expect(placeholder).toBeAttached();
+                const placeholderBox = await placeholder.boundingBox();
+                releaseImage();
+
+                const image = thumbnail.locator('.image-loaded-container img:not(.image-loading__placeholder)');
+                await expect(image).toBeVisible();
+                await waitForImagesLoaded(postComponent.container);
+
+                // * Verify that the image has the size of the placeholder and fits within the thumbnail
+                const imageBox = await image.boundingBox();
+                expect({width: imageBox?.width, height: imageBox?.height}).toEqual({
+                    width: placeholderBox?.width,
+                    height: placeholderBox?.height,
+                });
+
+                const thumbnailBox = await thumbnail.boundingBox();
+                expect(imageBox!.x).toBeGreaterThanOrEqual(thumbnailBox!.x);
+                expect(imageBox!.y).toBeGreaterThanOrEqual(thumbnailBox!.y);
+                expect(imageBox!.x + imageBox!.width).toBeLessThanOrEqual(thumbnailBox!.x + thumbnailBox!.width);
+                expect(imageBox!.y + imageBox!.height).toBeLessThanOrEqual(thumbnailBox!.y + thumbnailBox!.height);
+
+                // * Verify that the post's height didn't change
+                expect(await sizeWatcher.getObservations()).toHaveLength(1);
+            },
+        );
+    }
+
     test("a post changes height when it's replied to for the first time", {tag: '@post_list'}, async () => {
         // # Create a post with no replies or attachments
         const post = await seedPost({
