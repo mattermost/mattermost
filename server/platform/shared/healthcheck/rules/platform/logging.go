@@ -4,9 +4,12 @@
 package platform
 
 import (
+	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
@@ -97,6 +100,34 @@ func debugTarget(s *healthcheck.Snapshot, enabledSetting func(*model.Config) *bo
 	return ok && isDebugLevel(level), ok
 }
 
+// advancedDebugTarget reports whether LogSettings.AdvancedLoggingJSON defines a target that writes debug entries.
+// Without the advanced logging license the server keeps only file and console targets; an unknown license
+// cannot rule out the others. ok is false when the setting is unreadable.
+func advancedDebugTarget(s *healthcheck.Snapshot) (debug, ok bool) {
+	cfg, ok := s.ConfigRoot()
+	if !ok {
+		return false, false
+	}
+	targets := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(cfg.LogSettings.GetAdvancedLoggingConfig(), &targets); err != nil {
+		return false, false
+	}
+
+	licensed, licenseKnown := s.LicenseFeature(healthcheck.FeatureAdvancedLogging)
+	allTypes := !licenseKnown || licensed
+	for _, target := range targets {
+		if !allTypes && !strings.EqualFold(target.Type, "file") && !strings.EqualFold(target.Type, "console") {
+			continue
+		}
+		if slices.ContainsFunc(target.Levels, func(level mlog.Level) bool {
+			return level.ID == mlog.LvlDebug.ID || level.ID == mlog.LvlTrace.ID
+		}) {
+			return true, true
+		}
+	}
+	return false, true
+}
+
 func evalLogWebhookPayloads(s *healthcheck.Snapshot) healthcheck.Result {
 	fileDebug, fileOK := debugTarget(s,
 		func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile },
@@ -104,8 +135,9 @@ func evalLogWebhookPayloads(s *healthcheck.Snapshot) healthcheck.Result {
 	consoleDebug, consoleOK := debugTarget(s,
 		func(cfg *model.Config) *bool { return cfg.LogSettings.EnableConsole },
 		func(cfg *model.Config) *string { return cfg.LogSettings.ConsoleLevel })
-	if !fileDebug && !consoleDebug {
-		if !fileOK || !consoleOK {
+	advancedDebug, advancedOK := advancedDebugTarget(s)
+	if !fileDebug && !consoleDebug && !advancedDebug {
+		if !fileOK || !consoleOK || !advancedOK {
 			return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 		}
 		return healthcheck.Resolved()

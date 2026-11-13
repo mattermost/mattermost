@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -107,6 +108,21 @@ func TestLogWebhookPayloads(t *testing.T) {
 		}
 	}
 	quietConsole := consoleLog(true, "INFO")
+	advancedTarget := func(targetType string, levels string) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.LogSettings.EnableFile = new(false)
+			cfg.LogSettings.EnableConsole = new(false)
+			cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"adv": {"type": "` + targetType + `", "format": "json", "levels": [` + levels + `]}}`)
+		}
+	}
+	debugLevels := `{"id": 4, "name": "info"}, {"id": 5, "name": "debug"}`
+	advancedLicense := func(allowed bool) *healthcheck.NodeSnapshot {
+		return leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			diag.License.SkuShortName = model.LicenseShortSkuEnterprise
+			diag.License.Features = &model.Features{AdvancedLogging: new(allowed)}
+		})
+	}
+	unlicensed := leaderNode(nil)
 	payloadsLogged := firing("health.rule.log_webhook_payloads.message", nil)
 
 	testCases := []struct {
@@ -138,6 +154,22 @@ func TestLogWebhookPayloads(t *testing.T) {
 				cfg.LogSettings.FileLevel = nil
 			})),
 			want: payloadsLogged,
+		},
+		{"advanced file target at debug", configSnapshot(all(webhookDebugging(true), advancedTarget("file", debugLevels))), payloadsLogged},
+		{"advanced target at trace", configSnapshot(all(webhookDebugging(true), advancedTarget("file", `{"id": 6, "name": "trace"}`))), payloadsLogged},
+		{"advanced target at info", configSnapshot(all(webhookDebugging(true), advancedTarget("file", `{"id": 4, "name": "info"}`))), resolved},
+		{"advanced debug target with webhook debugging off", configSnapshot(all(webhookDebugging(false), advancedTarget("file", debugLevels))), resolved},
+		{"advanced console target at debug when unlicensed", configSnapshot(all(webhookDebugging(true), advancedTarget("Console", debugLevels)), unlicensed), payloadsLogged},
+		{"advanced syslog target at debug when unlicensed", configSnapshot(all(webhookDebugging(true), advancedTarget("syslog", debugLevels)), unlicensed), resolved},
+		{"advanced syslog target at debug without advanced logging", configSnapshot(all(webhookDebugging(true), advancedTarget("syslog", debugLevels)), advancedLicense(false)), resolved},
+		{"advanced syslog target at debug with advanced logging", configSnapshot(all(webhookDebugging(true), advancedTarget("syslog", debugLevels)), advancedLicense(true)), payloadsLogged},
+		{"advanced syslog target at debug with license unknown", configSnapshot(all(webhookDebugging(true), advancedTarget("syslog", debugLevels))), payloadsLogged},
+		{
+			name: "advanced logging unreadable without another debug target",
+			snapshot: configSnapshot(all(webhookDebugging(true), fileLog(false, "DEBUG"), consoleLog(false, "DEBUG"), func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"broken": `)
+			})),
+			want: configUnknown,
 		},
 	}
 
