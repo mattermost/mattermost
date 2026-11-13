@@ -504,14 +504,13 @@
     }
 
     // Keep the badge matching the highlight applied by applyTheme (utils.tsx) when a post menu is open
-    // (post--hovered, 8%) or the post has keyboard focus (a11y--active, 4%), including while the pointer is over it.
-    &.post--hovered,
-    &.post--hovered:not(.post--editing):hover {
+    // (post--hovered, 8%) or the post has keyboard focus (a11y--active, 4%). Plain pointer hover also adds
+    // post--hovered, but the :hover rule above is more specific and sets both the background and badge to 4%.
+    &.post--hovered {
         --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
     }
 
-    &.a11y--active,
-    &.a11y--active:not(.post--editing):hover {
+    &.a11y--active {
         --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 4%, var(--center-channel-bg));
     }
 
