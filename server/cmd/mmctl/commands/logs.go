@@ -71,7 +71,7 @@ The logs are read from every node of the cluster, and filtered on each node. Thi
 
 --follow, --level, --node, --plugin, --search and --since need a v12.2 or later server. Older servers ignore --plugin and --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
 
---plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and the server's entries about the plugin, such as its activation and health checks.
+--plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and most of the server's entries about the plugin, such as its activation and health checks.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.`,
 	Example: `  # print the last 200 entries of each node
@@ -145,6 +145,7 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err := checkLogsServerVersion(ctx, c, opts); err != nil {
 		return err
 	}
+	warnUnknownPlugins(ctx, c, opts.plugins, printer.PrintWarning)
 
 	return newLogFollower(c, opts, os.Stdout).run(ctx)
 }
@@ -195,6 +196,9 @@ func logsOptionsFromFlags(cmd *cobra.Command) (*logsOptions, error) {
 		if !slices.Contains(opts.plugins, id) {
 			opts.plugins = append(opts.plugins, id)
 		}
+	}
+	if cmd.Flags().Changed("plugin") && len(opts.plugins) == 0 {
+		return nil, errors.New("--plugin needs at least one plugin ID")
 	}
 	if len(opts.plugins) > model.LogFilterFieldMaxValues {
 		return nil, fmt.Errorf("--plugin accepts at most %d plugin IDs", model.LogFilterFieldMaxValues)
@@ -274,6 +278,31 @@ func checkLogsServerVersion(ctx context.Context, c client.Client, opts *logsOpti
 	}
 	return fmt.Errorf("%s %s a v%s or later server, and the server runs v%s. Upgrade the server, or run mmctl logs without %s",
 		joinFlags(flags), verb, logsMinServerVersion, version, pronoun)
+}
+
+// warnUnknownPlugins warns about the plugin IDs no installed plugin has, as a plugin name given
+// instead of its ID matches nothing. It's not an error, as a plugin that was removed, or is about
+// to be installed, can have entries. Reading the plugins needs another permission than reading
+// the logs, so it says nothing when it can't.
+func warnUnknownPlugins(ctx context.Context, c client.Client, ids []string, warn func(msg string)) {
+	if len(ids) == 0 {
+		return
+	}
+	plugins, _, err := c.GetPlugins(ctx)
+	if err != nil || plugins == nil {
+		return
+	}
+	installed := make(map[string]bool)
+	for _, info := range slices.Concat(plugins.Active, plugins.Inactive) {
+		if info != nil {
+			installed[info.Id] = true
+		}
+	}
+	for _, id := range ids {
+		if !installed[id] {
+			warn(fmt.Sprintf("no installed plugin has the ID %q. --plugin takes plugin IDs, not names", id))
+		}
+	}
 }
 
 // parseServerVersion reads the major, minor and patch version from the X-Version-Id header,
@@ -639,6 +668,13 @@ func (f *logFollower) print(logs map[string][]json.RawMessage, from, fetchedAt t
 				}
 				continue
 			}
+			// The server adds this after filtering, so it doesn't match the filters
+			if entry.scanLimited {
+				if emit {
+					f.warn(scanLimitedWarning(node, entry.scannedBackTo))
+				}
+				continue
+			}
 			hasEntries = true
 
 			sortTime := entry.Time
@@ -724,6 +760,10 @@ type logQueryEntry struct {
 	key        string
 	failedNode bool
 	error      string
+	// scanLimited marks the entry the server adds when a node's scan stopped at its time or
+	// size budget, and scannedBackTo holds the timestamp of the oldest line it read
+	scanLimited   bool
+	scannedBackTo string
 }
 
 func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
@@ -736,9 +776,21 @@ func parseLogQueryEntry(raw json.RawMessage) logQueryEntry {
 			entry.failedNode, _ = field.Interface.(bool)
 		case "error":
 			entry.error, _ = field.Interface.(string)
+		case "scan_limited":
+			entry.scanLimited, _ = field.Interface.(bool)
+		case "scanned_back_to":
+			entry.scannedBackTo, _ = field.Interface.(string)
 		}
 	}
 	return entry
+}
+
+func scanLimitedWarning(node, scannedBackTo string) string {
+	searched := "older entries weren't searched"
+	if scannedBackTo != "" {
+		searched = fmt.Sprintf("entries logged before %s weren't searched", scannedBackTo)
+	}
+	return fmt.Sprintf("the search on node %q stopped at its limit, so %s. Narrow the search with --since", node, searched)
 }
 
 // field returns the value of a top-level field as the server compares it, and whether the entry

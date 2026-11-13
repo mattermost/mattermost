@@ -64,6 +64,15 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Times(1)
 	}
 
+	// expectPlugins expects the plugin list --plugin checks its IDs against
+	expectPlugins := func(ids ...string) {
+		plugins := &model.PluginsResponse{}
+		for _, id := range ids {
+			plugins.Active = append(plugins.Active, &model.PluginInfo{Manifest: model.Manifest{Id: id}})
+		}
+		s.client.EXPECT().GetPlugins(gomock.Any()).Return(plugins, &model.Response{}, nil).Times(1)
+	}
+
 	s.Run("Display single log line", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		expectLogFormat(new(true))
@@ -138,6 +147,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("plugin", "github"))
 
 		expectServerVersion("12.2.0.12345.abcdef.true")
+		expectPlugins("com.mattermost.calls", "github")
 		before := time.Now()
 		var filter *model.LogFilter
 		s.client.
@@ -367,6 +377,9 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 				// Local mode doesn't report a version
 				expectServerVersion("")
+				if flag == "plugin" {
+					expectPlugins("github")
+				}
 				expectLogFormat(nil)
 				s.client.
 					EXPECT().
@@ -417,6 +430,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},
 			{"invalid plugin ID", map[string]string{"plugin": "github,not a plugin"}, `invalid plugin ID "not a plugin"`},
 			{"empty plugin ID", map[string]string{"plugin": "github,"}, `invalid plugin ID ""`},
+			{"no plugin ID", map[string]string{"plugin": ""}, "--plugin needs at least one plugin ID"},
 			{"too many plugin IDs", map[string]string{"plugin": tooManyPluginIDs}, "--plugin accepts at most 20 plugin IDs"},
 		} {
 			s.Run(tc.name, func() {
@@ -821,6 +835,33 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		s.Equal(warning+warning, stderr)
 	})
 
+	s.Run("Warn when a node's scan stopped at its limit, whatever the filters", func() {
+		limited := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"scanned_back_to":"2026-11-03 07:00:00.000 Z","timestamp":"2026-11-03 08:00:01.000 Z"}`)
+		limitedNoTime := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"timestamp":"2026-11-03 08:00:01.000 Z"}`)
+
+		_, stdout, stderr := follow(&logsOptions{number: 10, levels: logLevelGroups["error"], plugins: []string{"github"}},
+			respond(map[string][]json.RawMessage{
+				"node-1": {testLogLine(t0, "error", "kept", "plugin_id", "github"), limited},
+				"node-2": {limitedNoTime},
+			}),
+		)
+
+		s.Equal([]string{"[node-1] kept"}, testLogMessages(stdout))
+		s.Equal("the search on node \"node-1\" stopped at its limit, so entries logged before 2026-11-03 07:00:00.000 Z weren't searched. Narrow the search with --since\n"+
+			"the search on node \"node-2\" stopped at its limit, so older entries weren't searched. Narrow the search with --since\n", stderr)
+	})
+
+	s.Run("Don't warn about a scan stopped at its limit with --number 0", func() {
+		limited := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"timestamp":"2026-11-03 08:00:01.000 Z"}`)
+
+		_, stdout, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {limited}}),
+		)
+
+		s.Empty(stdout)
+		s.Empty(stderr)
+	})
+
 	s.Run("Print the entries of several nodes in timestamp order, prefixed with their node", func() {
 		_, stdout, _ := follow(&logsOptions{number: 10},
 			respond(map[string][]json.RawMessage{
@@ -976,4 +1017,37 @@ func testLogsCmdF(client client.Client, cmd *cobra.Command, args []string) (stdo
 	data = data[:len(data)-1]
 
 	return data, errBuf.String(), nil
+}
+
+func (s *MmctlUnitTestSuite) TestWarnUnknownPlugins() {
+	s.Run("Warn about the IDs no installed plugin has", func() {
+		s.client.
+			EXPECT().
+			GetPlugins(gomock.Any()).
+			Return(&model.PluginsResponse{
+				Active:   []*model.PluginInfo{{Manifest: model.Manifest{Id: "github"}}},
+				Inactive: []*model.PluginInfo{{Manifest: model.Manifest{Id: "jira"}}},
+			}, &model.Response{}, nil).
+			Times(1)
+
+		var warnings []string
+		warnUnknownPlugins(s.T().Context(), s.client, []string{"github", "jira", "Calls"}, func(msg string) { warnings = append(warnings, msg) })
+		s.Equal([]string{`no installed plugin has the ID "Calls". --plugin takes plugin IDs, not names`}, warnings)
+	})
+
+	s.Run("Say nothing when the plugins can't be read", func() {
+		s.client.
+			EXPECT().
+			GetPlugins(gomock.Any()).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, errors.New("forbidden")).
+			Times(1)
+
+		var warnings []string
+		warnUnknownPlugins(s.T().Context(), s.client, []string{"Calls"}, func(msg string) { warnings = append(warnings, msg) })
+		s.Empty(warnings)
+	})
+
+	s.Run("Don't read the plugins without --plugin", func() {
+		warnUnknownPlugins(s.T().Context(), s.client, nil, func(msg string) { s.Fail("unexpected warning", msg) })
+	})
 }

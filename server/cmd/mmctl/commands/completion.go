@@ -87,7 +87,11 @@ func pluginIDCompletionF(ctx context.Context, c client.Client, _ *cobra.Command,
 // pluginIDFlagCompletionF completes the comma-separated plugin IDs of a --plugin flag: the value
 // after the last comma, skipping the IDs given before in the value or in earlier uses of the flag.
 func pluginIDFlagCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	given, _ := cmd.Flags().GetStringSlice("plugin")
+	var given []string
+	flagged, _ := cmd.Flags().GetStringSlice("plugin")
+	for _, id := range flagged {
+		given = append(given, strings.TrimSpace(id))
+	}
 	prefix := ""
 	if i := strings.LastIndex(toComplete, ","); i >= 0 {
 		prefix = toComplete[:i+1]

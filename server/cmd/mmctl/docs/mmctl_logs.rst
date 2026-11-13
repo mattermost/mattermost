@@ -15,7 +15,7 @@ The logs are read from every node of the cluster, and filtered on each node. Thi
 
 --follow, --level, --node, --plugin, --search and --since need a v12.2 or later server. Older servers ignore --plugin and --search, don't filter the logs of other nodes, match the node mmctl connects to only by the name "default", and read their whole log file on every --follow poll, so mmctl refuses these flags with them.
 
---plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and the server's entries about the plugin, such as its activation and health checks.
+--plugin takes plugin IDs, not names. It shows every entry logged with that plugin_id: the plugin's own logs, including its stdout and stderr, and most of the server's entries about the plugin, such as its activation and health checks.
 
 Entries are colored when printed to a terminal. Set NO_COLOR to turn the colors off, or CLICOLOR_FORCE to keep them when the output is piped.
 

@@ -203,6 +203,11 @@ func TestPluginIDCompletion(t *testing.T) {
 			flags:      []string{"github", "jira"},
 			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
 		},
+		"skips the IDs of earlier flags, trimmed": {
+			toComplete: "",
+			flags:      []string{"github, jira"},
+			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c := mocks.NewMockClient(gomock.NewController(t))
