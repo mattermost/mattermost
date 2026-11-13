@@ -177,16 +177,19 @@ export default function HierarchicalValueMenu({
         onOptionsLoaded,
     });
 
-    // Measure trigger width on mount so it's available for the first open.
+    // Measure trigger width on mount and when opening so it tracks layout changes.
     useEffect(() => {
         if (!matchesTriggerWidth) {
             return;
         }
         const trigger = document.getElementById(buttonId);
-        if (trigger && triggerWidth === null) {
-            setTriggerWidth(trigger.offsetWidth);
+        if (trigger && (triggerWidth === null || isOpen)) {
+            const width = trigger.offsetWidth;
+            if (width > 0) {
+                setTriggerWidth(width);
+            }
         }
-    }, [matchesTriggerWidth, buttonId, triggerWidth]);
+    }, [matchesTriggerWidth, buttonId, triggerWidth, isOpen]);
 
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const rowRefs = useRef(new Map<string, HTMLLIElement>());
