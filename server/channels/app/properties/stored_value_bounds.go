@@ -35,11 +35,11 @@ func (b *storedValueBreaches) add(count int64, examples []string) {
 	}
 }
 
-// heldFields names the fields whose stored values were counted in one refusal, so the message can
-// tell the admin which field to change. A template and the fields linked to it can share a name, so
-// each is named with its object type too.
+// heldField is a field whose stored values were counted in a refusal. A template and the fields
+// linked to it can share a name, so name carries the object type too.
 type heldField struct{ name, id string }
 
+// heldFields are the fields counted in one refusal, so the message can tell the admin which to change.
 type heldFields []heldField
 
 func (h *heldFields) add(count int64, f *model.PropertyField) {

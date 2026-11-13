@@ -991,7 +991,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 
 	t.Run("every locked field linked to a template is named, each name beside its own ID", func(t *testing.T) {
 		template := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
-		// Four fields, so sorting names and IDs separately would rarely line up by chance.
+		// Four fields, so names and IDs listed in unrelated orders would almost never match up by chance.
 		var linked []*model.PropertyField
 		var names []string
 		for range 4 {
