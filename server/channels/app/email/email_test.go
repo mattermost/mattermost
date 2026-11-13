@@ -113,6 +113,20 @@ func TestGetLicenseSkuName(t *testing.T) {
 	}
 }
 
+func TestSendWelcomeEmailWithEmailDisabled(t *testing.T) {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.EmailSettings.SendEmailNotifications = new(false)
+	cfg.EmailSettings.RequireEmailVerification = new(false)
+
+	es := &Service{
+		config: func() *model.Config { return cfg },
+	}
+
+	err := es.SendWelcomeEmail(model.NewId(), "user@example.com", false, false, "en", "http://localhost:8065", "")
+	require.NoError(t, err)
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

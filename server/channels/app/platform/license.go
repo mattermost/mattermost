@@ -91,9 +91,15 @@ func (ps *PlatformService) LoadLicense() {
 
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
+		location := *ps.Config().ServiceSettings.LicenseFileLocation
+		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(location)
 		if err != nil {
-			ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
+			// No license file at the default location is the normal state of an unlicensed server.
+			if location == "" && errors.Is(err, os.ErrNotExist) {
+				ps.logger.Debug("Failed to get license from disk", mlog.Err(err))
+			} else {
+				ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
+			}
 		} else {
 			if _, err := ps.SaveLicense(licenseBytes); err != nil {
 				ps.logger.Error("Failed to save license key loaded from disk.", mlog.Err(err))
