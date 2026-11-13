@@ -97,11 +97,10 @@ type Channels struct {
 	imgDecoder *imaging.Decoder
 	imgEncoder *imaging.Encoder
 
-	dndTask           leaderTask
-	postReminderTask  leaderTask
-	scheduledPostTask leaderTask
-
-	healthCheckTask leaderTask
+	dndTask           clusterTask
+	postReminderTask  clusterTask
+	scheduledPostTask clusterTask
+	healthCheckTask   clusterTask
 
 	interruptQuitChan chan struct{}
 }
