@@ -82,10 +82,11 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
         width: 'auto',
         height: 'auto',
         objectFit: isPerson ? 'cover' : 'contain',
-
-        // Also applied to SizeAwareImage's placeholder, which otherwise takes the image's aspect ratio
-        aspectRatio: isPerson ? '1' : undefined,
     };
+    if (isPerson) {
+        // Also applied to SizeAwareImage's placeholder, which otherwise takes the image's aspect ratio
+        imageConstraintStyle.aspectRatio = '1';
+    }
     if (caps.maxWidth !== undefined) {
         imageConstraintStyle.maxWidth = caps.maxWidth;
     }

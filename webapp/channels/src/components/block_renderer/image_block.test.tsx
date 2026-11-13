@@ -146,10 +146,11 @@ describe('ImageBlock', () => {
         }));
     });
 
+    // The style is applied to the placeholder over its own aspect ratio, so it mustn't contain an undefined one
     it.each([
-        ['default', undefined, 'contain', undefined],
-        ['person', 'person' as const, 'cover', '1'],
-    ])('passes the size caps to SizeAwareImage as a style (%s image)', (_, imageStyle, objectFit, aspectRatio) => {
+        ['default', undefined, {objectFit: 'contain'}],
+        ['person', 'person' as const, {objectFit: 'cover', aspectRatio: '1'}],
+    ])('passes the size caps to SizeAwareImage as a style (%s image)', (_, imageStyle, expectedStyle) => {
         renderWithContext(
             <ImageBlock
                 block={{
@@ -162,15 +163,12 @@ describe('ImageBlock', () => {
             />,
         );
 
-        expect(jest.mocked(SizeAwareImage).mock.lastCall?.[0]).toEqual(expect.objectContaining({
-            style: {
-                width: 'auto',
-                height: 'auto',
-                maxWidth: 204,
-                maxHeight: 120,
-                objectFit,
-                aspectRatio,
-            },
-        }));
+        expect(jest.mocked(SizeAwareImage).mock.lastCall?.[0].style).toStrictEqual({
+            width: 'auto',
+            height: 'auto',
+            maxWidth: 204,
+            maxHeight: 120,
+            ...expectedStyle,
+        });
     });
 });
