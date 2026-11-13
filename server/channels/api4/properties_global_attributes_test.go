@@ -60,7 +60,8 @@ func seedListingTemplates(tb testing.TB, th *TestHelper, token string, names ...
 }
 
 func TestSearchGlobalAttributeListing(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	// SetupConfig, unlike Setup, leaves feature flags writable so a subtest can toggle them.
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.PropertyFieldPermissionsV3 = true }).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
 

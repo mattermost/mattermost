@@ -12,7 +12,7 @@ import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
-import {getPropertyFieldSyncSources} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldSyncSources, sortOptionsByRank} from 'mattermost-redux/utils/property_utils';
 import type {PropertySyncSource} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -22,6 +22,7 @@ import * as Menu from 'components/menu';
 import {AttributeCombobox} from 'components/property_fields/attribute_combobox';
 import {asGraphValueIds} from 'components/property_fields/graph';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
+import {propertyFieldMessages} from 'components/property_fields/messages';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -48,9 +49,7 @@ type CPARankSelectProps = {
 };
 
 const CPARankSelect: React.FC<CPARankSelectProps> = ({fieldId, options, value, onChange, disabled, placeholder, errorId}) => {
-    // Highest rank first. Options missing a rank (shouldn't happen on a ranked
-    // field) sort to the bottom.
-    const orderedOptions = [...options].sort((a, b) => (b.rank ?? -Infinity) - (a.rank ?? -Infinity));
+    const orderedOptions = sortOptionsByRank(options);
     const selectedOption = options.find((option) => option.id === value);
 
     return (
@@ -120,8 +119,6 @@ const syncSourceChipMessages: Record<PropertySyncSource, MessageDescriptor> = de
 });
 
 const messages = defineMessages({
-    selectOption: {id: 'admin.userManagement.userDetail.selectOption', defaultMessage: 'Select an option'},
-    selectOptions: {id: 'admin.user.selectOptions', defaultMessage: 'Select options'},
     arrayValueSeparator: {id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '},
 });
 
@@ -308,7 +305,7 @@ export default function UserAttributeField({
                 controlId: comboboxId,
                 control: (
                     <AttributeCombobox
-                        multiple={multiple}
+                        type={field.type}
                         id={comboboxId}
                         testId={comboboxId}
                         label={fieldLabel}
@@ -318,7 +315,7 @@ export default function UserAttributeField({
                         disabled={isDisabled}
                         invalid={Boolean(error)}
                         aria-describedby={describedErrorId}
-                        placeholder={intl.formatMessage(multiple ? messages.selectOptions : messages.selectOption)}
+                        placeholder={intl.formatMessage(multiple ? propertyFieldMessages.selectOptions : propertyFieldMessages.selectOption)}
                         className='UserAttributeField__combobox'
                         submitOnEnter={false}
                     />
@@ -336,7 +333,7 @@ export default function UserAttributeField({
                         onChange={(optionId) => onChange(field.id, optionId)}
                         disabled={isDisabled}
                         errorId={describedErrorId}
-                        placeholder={intl.formatMessage(messages.selectOption)}
+                        placeholder={intl.formatMessage(propertyFieldMessages.selectOption)}
                     />
                 ),
             };
@@ -358,8 +355,10 @@ export default function UserAttributeField({
                         menuId={`cpa-graph-menu-${field.id}`}
                         buttonId={buttonId}
                         buttonDataTestId={`cpa-graph-select-${field.id}`}
-                        placeholder={intl.formatMessage(messages.selectOptions)}
+                        placeholder={intl.formatMessage(propertyFieldMessages.selectOptions)}
                         ariaLabel={fieldLabel}
+                        invalid={Boolean(error)}
+                        ariaDescribedBy={describedErrorId}
                     />
                 ),
             };
