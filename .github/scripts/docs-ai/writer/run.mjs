@@ -108,7 +108,7 @@ async function main() {
   const {files, trail, summary} = await authorLoop({brief, input});
 
   writeFileSync(join(outDir, 'trail.json'), `${JSON.stringify(trail, null, 2)}\n`);
-  const body = renderPrBody({sourcePr: pr, summary, milestoneVersion});
+  const body = renderPrBody({sourcePr: pr, summary, milestoneVersion, failedGroups: trail.failedGroups});
   writeFileSync(join(outDir, 'pr-body.md'), body);
   writeFileSync(join(outDir, 'draft-title.txt'), `${draftTitle(input.prTitle)}\n`);
 

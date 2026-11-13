@@ -262,6 +262,7 @@ jobs:
 
       - name: Open or update draft PR
         if: steps.gate.outputs.run == 'true'
+        id: open-pr
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
@@ -280,6 +281,7 @@ jobs:
             NUM=$(echo "$EXISTING" | jq -r .number)
             URL=$(echo "$EXISTING" | jq -r .url)
             gh pr edit "$NUM" --title "$TITLE" --body-file .docs-ai/writer/pr-body.md
+            echo "opened=true" >> "$GITHUB_OUTPUT"
           else
             URL=$(gh pr create \
               --base master \
@@ -287,6 +289,7 @@ jobs:
               --title "$TITLE" \
               --body-file .docs-ai/writer/pr-body.md \
               --draft)
+            echo "opened=true" >> "$GITHUB_OUTPUT"
             NUM=$(gh pr view "$BRANCH" --json number --jq .number)
             if [ -n "$REVIEWER" ]; then
               gh pr edit "$NUM" --add-reviewer "$REVIEWER" || true
@@ -309,6 +312,35 @@ jobs:
           set -euo pipefail
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
           gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
+
+      # Without this a failed draft is invisible: Docs/Needed stays on and nobody is told.
+      # Skipped once the draft PR exists; a later step failing is not a failed draft.
+      # Merge events fall back to the event PR so a failure before "Resolve source PR" is reported.
+      - name: Tell the source PR the draft failed
+        if: >-
+          failure() && steps.gate.outputs.run == 'true' &&
+          (steps.pr.outputs.pr_number != '' || github.event_name == 'pull_request') &&
+          steps.open-pr.outputs.opened != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          MARKER="<!-- docs-ai-writer-failed -->"
+          if gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --jq '.[].body' | grep -F "$MARKER" >/dev/null; then
+            echo "Failure notice already posted on #${PR_NUMBER}."
+            exit 0
+          fi
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
+          ${MARKER}
+          The automated documentation draft for this PR could not be generated ([workflow run](${RUN_URL})).
+
+          \`Docs/Needed\` is still set, so the documentation still needs to be written. Open a docs PR that updates \`docs/\`, and once it merges replace \`Docs/Needed\` with \`Docs/Done\` on this PR.
+
+          A maintainer can retry the draft from **Actions → Docs Writer (Merged PR) → Run workflow** with PR number \`${PR_NUMBER}\`.
+          EOF
 
       - name: Upload writer trail
         if: always() && steps.gate.outputs.run == 'true'
