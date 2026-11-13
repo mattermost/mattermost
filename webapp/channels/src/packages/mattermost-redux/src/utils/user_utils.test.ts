@@ -79,7 +79,7 @@ describe('user utils', () => {
             const suggestions = nameSuggestionsForUser(userObj);
             const expectedSuggestions = [
                 'test.user', '.user', 'user',
-                'test', 'user name', 'test user name', 'tester',
+                'test', 'user name', 'test user name', 'user name test', 'tester',
                 'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
                 'test.user_name',
             ];
@@ -90,7 +90,7 @@ describe('user utils', () => {
             const suggestions = nameSuggestionsForUser(userObj, true);
             const expectedSuggestions = [
                 'test.user', '.user', 'user',
-                'test', 'user name', 'test user name', 'tester',
+                'test', 'user name', 'test user name', 'user name test', 'tester',
                 'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
                 'test.user_name',
                 'test.user_name@example.com',
@@ -110,6 +110,20 @@ describe('user utils', () => {
             const suggestions = nameSuggestionsForUser(userObj, false);
             expect(suggestions).not.toContain('test.user_name@example.com');
             expect(suggestions).toContain('test.user_name'); // Should still contain the prefix
+        });
+
+        it('should include the reversed full name (last first)', () => {
+            const suggestions = nameSuggestionsForUser(userObj);
+            expect(suggestions).toContain('user name test');
+        });
+
+        it('should not add a reversed full name when the first or last name is missing', () => {
+            const onlyFirst = nameSuggestionsForUser({...userObj, first_name: 'Test', last_name: ''});
+            const onlyLast = nameSuggestionsForUser({...userObj, first_name: '', last_name: 'Smith'});
+
+            // Only the existing "first + ' ' + last" entry is present, no extra reversed entry
+            expect(onlyFirst.filter((s) => s.trim() === 'test')).toEqual(['test', 'test ']);
+            expect(onlyLast.filter((s) => s.trim() === 'smith')).toEqual(['smith', ' smith']);
         });
 
         it('should gracefully handle missing values for fields', () => {
@@ -198,6 +212,19 @@ describe('user utils', () => {
 
         it('should match by fullname case-insensitive', () => {
             expect(filterProfilesStartingWithTerm(users, 'first LAST')).toEqual([userA, userB]);
+        });
+
+        it('should match by reversed fullname (last first)', () => {
+            expect(filterProfilesStartingWithTerm(users, 'Last1 First')).toEqual([userA]);
+            expect(filterProfilesStartingWithTerm(users, 'last2 first')).toEqual([userB]);
+        });
+
+        it('should match by reversed fullname prefix', () => {
+            expect(filterProfilesStartingWithTerm(users, 'Last1 Fir')).toEqual([userA]);
+        });
+
+        it('should not match a reversed fullname that does not exist', () => {
+            expect(filterProfilesStartingWithTerm(users, 'Last3 First')).toEqual([]);
         });
 
         it('should match by nickname', () => {
@@ -342,6 +369,15 @@ describe('user utils', () => {
 
         it('should match by fullname case-insensitive', () => {
             expect(filterProfilesMatchingWithTerm(users, 'first LAST')).toEqual([userA, userB]);
+        });
+
+        it('should match by reversed fullname (last first)', () => {
+            expect(filterProfilesMatchingWithTerm(users, 'Last1 First')).toEqual([userA]);
+            expect(filterProfilesMatchingWithTerm(users, 'ast2 fir')).toEqual([userB]);
+        });
+
+        it('should not match a reversed fullname that does not exist', () => {
+            expect(filterProfilesMatchingWithTerm(users, 'Last3 First')).toEqual([]);
         });
 
         it('should match by nickname substring', () => {
