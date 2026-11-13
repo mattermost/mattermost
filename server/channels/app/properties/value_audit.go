@@ -42,8 +42,10 @@ const (
 // bounds_not_enforced actions, a write a bounds rule refused or would have
 // refused. Prev and Current are nil for bulk-delete actions
 // (delete_for_target, delete_for_field). For the bounds actions Current is the
-// value the write tried to store (nil for a clear or delete) and the Bounds*
-// fields say which rule broke; they are empty on every other action. Each group
+// value the write tried to store (nil for a clear or delete), Prev and ValueID
+// are the object's stored row the write would replace (nil and empty when it has
+// none), and the Bounds* fields say which rule broke; they are empty on every
+// other action. Each group
 // decides which fields to include in its audit record.
 type ValueAuditEvent struct {
 	Action     string

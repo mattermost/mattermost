@@ -3096,6 +3096,7 @@ func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 
 	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return false }, nil, nil))
 
 	// optionIDs returns the persisted option IDs in rank order, so a test can
 	// name a rung ("the middle one") without hardcoding a generated ID.
@@ -4048,282 +4049,6 @@ func TestAccessControlAttributeValidationHookRefusesUnsupportedTypes(t *testing.
 	}
 }
 
-func TestAccessControlAttributeValidationHookBoundsFlag(t *testing.T) {
-	th := Setup(t)
-
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_bounds_flag", Version: model.PropertyGroupVersionV3})
-	require.NoError(t, err)
-
-	boundsEnabled := false
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
-		PropertyFieldBounds: func() bool { return boundsEnabled },
-	}, group.ID))
-
-	const disabledErrID = "app.property_field.bounds_disabled.app_error"
-	raiseOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
-	lowerOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}
-
-	newField := func(fieldType model.PropertyFieldType, mutate func(f *model.PropertyField)) *model.PropertyField {
-		f := &model.PropertyField{
-			GroupID:    group.ID,
-			Name:       "field_" + model.NewId(),
-			Type:       fieldType,
-			TargetType: "system",
-			ObjectType: model.PropertyFieldObjectTypeUser,
-		}
-		if fieldType == model.PropertyFieldTypeRank {
-			f.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
-				map[string]any{"id": model.NewId(), "name": "Low", "rank": 1},
-				map[string]any{"id": model.NewId(), "name": "High", "rank": 2},
-			}}
-		}
-		mutate(f)
-		return f
-	}
-	requireAppError := func(t *testing.T, err error, id string) {
-		t.Helper()
-		var appErr *model.AppError
-		require.ErrorAs(t, err, &appErr)
-		assert.Equal(t, id, appErr.Id)
-		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	}
-	// create stores a field with the flag on, then restores it to off.
-	create := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
-		t.Helper()
-		boundsEnabled = true
-		defer func() { boundsEnabled = false }()
-		created, createErr := th.service.CreatePropertyField(th.Context, field)
-		require.NoError(t, createErr)
-		return created
-	}
-	// stored reads the field back, since a create's return has its own attrs.
-	stored := func(t *testing.T, id string) *model.PropertyField {
-		t.Helper()
-		f, getErr := th.service.fieldStore.Get(th.Context, group.ID, id)
-		require.NoError(t, getErr)
-		return f
-	}
-
-	t.Run("off: a new rule or write_once is refused, mutable is fine", func(t *testing.T) {
-		_, createErr := th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly}
-		}))
-		requireAppError(t, createErr, disabledErrID)
-
-		_, createErr = th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-			f.Mutability = model.PropertyFieldMutabilityWriteOnce
-		}))
-		requireAppError(t, createErr, disabledErrID)
-
-		_, createErr = th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-			f.Mutability = model.PropertyFieldMutabilityMutable
-		}))
-		require.NoError(t, createErr)
-	})
-
-	t.Run("on: rules and write_once can be created", func(t *testing.T) {
-		boundsEnabled = true
-		defer func() { boundsEnabled = false }()
-
-		_, createErr := th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly}
-		}))
-		require.NoError(t, createErr)
-		_, createErr = th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-			f.Mutability = model.PropertyFieldMutabilityWriteOnce
-		}))
-		require.NoError(t, createErr)
-	})
-
-	t.Run("off: a field that already has rules keeps working, but gains none", func(t *testing.T) {
-		ruled := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly}
-		}))
-
-		adding := stored(t, ruled.ID)
-		adding.Bounds = model.PropertyBounds{raiseOnly, lowerOnly}
-		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, adding)
-		requireAppError(t, updateErr, disabledErrID)
-
-		echo := stored(t, ruled.ID)
-		echo.Bounds = model.PropertyBounds{raiseOnly}
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, echo)
-		require.NoError(t, updateErr)
-
-		unstated := stored(t, ruled.ID)
-		unstated.Name = "renamed_" + model.NewId()
-		unstated.Bounds, unstated.Mutability = nil, ""
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, unstated)
-		require.NoError(t, updateErr)
-		assert.True(t, model.PropertyBoundsEqual(model.PropertyBounds{raiseOnly}, stored(t, ruled.ID).Bounds))
-
-		removing := stored(t, ruled.ID)
-		removing.Bounds = model.PropertyBounds{}
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, removing)
-		require.NoError(t, updateErr)
-		assert.Empty(t, stored(t, ruled.ID).Bounds)
-	})
-
-	t.Run("off: reordering two rules is an echo", func(t *testing.T) {
-		two := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly, lowerOnly}
-		}))
-
-		reordered := stored(t, two.ID)
-		reordered.Bounds = model.PropertyBounds{lowerOnly, raiseOnly}
-		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, reordered)
-		require.NoError(t, updateErr)
-	})
-
-	t.Run("off: write_once can be lifted but not added to a mutable field", func(t *testing.T) {
-		locked := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-			f.Mutability = model.PropertyFieldMutabilityWriteOnce
-		}))
-
-		echo := stored(t, locked.ID)
-		echo.Name = "renamed_" + model.NewId()
-		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, echo)
-		require.NoError(t, updateErr)
-
-		lifted := stored(t, locked.ID)
-		lifted.Mutability = model.PropertyFieldMutabilityMutable
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, lifted)
-		require.NoError(t, updateErr)
-
-		relock := stored(t, locked.ID)
-		relock.Mutability = model.PropertyFieldMutabilityWriteOnce
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, relock)
-		requireAppError(t, updateErr, disabledErrID)
-	})
-
-	t.Run("on: adding a rule or write_once needs Enterprise Advanced, removing never does", func(t *testing.T) {
-		const licenseErrID = "app.property_field.bounds_license.app_error"
-		requireLicenseError := func(t *testing.T, err error) {
-			t.Helper()
-			var appErr *model.AppError
-			require.ErrorAs(t, err, &appErr)
-			assert.Equal(t, licenseErrID, appErr.Id)
-			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-		}
-		setLicense := func(t *testing.T, sku string) {
-			prev := th.service.licenseProvider
-			th.service.licenseProvider = func() *model.License {
-				if sku == "" {
-					return nil
-				}
-				return model.NewTestLicenseSKU(sku)
-			}
-			t.Cleanup(func() { th.service.licenseProvider = prev })
-		}
-		// Stored while Enterprise Advanced is licensed, then the license drops to Enterprise.
-		setLicense(t, model.LicenseShortSkuEnterpriseAdvanced)
-		ruled := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly}
-		}))
-		locked := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-			f.Mutability = model.PropertyFieldMutabilityWriteOnce
-		}))
-		plain := create(t, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {}))
-		rankPlain := create(t, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {}))
-		boundsEnabled = true // create resets it
-		defer func() { boundsEnabled = false }()
-
-		for _, sku := range []string{"", model.LicenseShortSkuEnterprise} {
-			setLicense(t, sku)
-
-			_, createErr := th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-				f.Bounds = model.PropertyBounds{raiseOnly}
-			}))
-			requireLicenseError(t, createErr)
-
-			_, createErr = th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-				f.Mutability = model.PropertyFieldMutabilityWriteOnce
-			}))
-			requireLicenseError(t, createErr)
-
-			adding := stored(t, rankPlain.ID)
-			adding.Bounds = model.PropertyBounds{raiseOnly}
-			_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, adding)
-			requireLicenseError(t, updateErr)
-
-			changed := stored(t, ruled.ID)
-			changed.Bounds = model.PropertyBounds{lowerOnly}
-			_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, changed)
-			requireLicenseError(t, updateErr)
-
-			locking := stored(t, plain.ID)
-			locking.Mutability = model.PropertyFieldMutabilityWriteOnce
-			_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, locking)
-			requireLicenseError(t, updateErr)
-
-			// Resaving what is stored, and unstated bounds and mutability, add nothing.
-			echo := stored(t, ruled.ID)
-			echo.Name = "renamed_" + model.NewId()
-			_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, echo)
-			require.NoError(t, updateErr)
-			echo = stored(t, locked.ID)
-			echo.Name = "renamed_" + model.NewId()
-			_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, echo)
-			require.NoError(t, updateErr)
-			unstated := stored(t, ruled.ID)
-			unstated.Bounds, unstated.Mutability = nil, ""
-			_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, unstated)
-			require.NoError(t, updateErr)
-		}
-
-		setLicense(t, "")
-		lifted := stored(t, locked.ID)
-		lifted.Mutability = model.PropertyFieldMutabilityMutable
-		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, lifted)
-		require.NoError(t, updateErr)
-
-		removing := stored(t, ruled.ID)
-		removing.Bounds = model.PropertyBounds{}
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, removing)
-		require.NoError(t, updateErr)
-		assert.Empty(t, stored(t, ruled.ID).Bounds)
-
-		setLicense(t, model.LicenseShortSkuEnterpriseAdvanced)
-		adding := stored(t, rankPlain.ID)
-		adding.Bounds = model.PropertyBounds{raiseOnly}
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, adding)
-		require.NoError(t, updateErr)
-		locking := stored(t, plain.ID)
-		locking.Mutability = model.PropertyFieldMutabilityWriteOnce
-		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, locking)
-		require.NoError(t, updateErr)
-	})
-
-	t.Run("off: the flag error wins over the license error", func(t *testing.T) {
-		prev := th.service.licenseProvider
-		th.service.licenseProvider = func() *model.License { return nil }
-		t.Cleanup(func() { th.service.licenseProvider = prev })
-
-		_, createErr := th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeRank, func(f *model.PropertyField) {
-			f.Bounds = model.PropertyBounds{raiseOnly}
-		}))
-		requireAppError(t, createErr, disabledErrID)
-	})
-
-	t.Run("a nil provider is off", func(t *testing.T) {
-		hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
-		err := hook.validateBoundsChange(&model.PropertyField{Bounds: model.PropertyBounds{raiseOnly}}, nil, false)
-		requireAppError(t, err, disabledErrID)
-	})
-
-	t.Run("set_on_create is refused whatever the flag says", func(t *testing.T) {
-		for _, enabled := range []bool{false, true} {
-			boundsEnabled = enabled
-			_, createErr := th.service.CreatePropertyField(th.Context, newField(model.PropertyFieldTypeText, func(f *model.PropertyField) {
-				f.ObjectType = model.PropertyFieldObjectTypeChannel
-				f.Mutability = model.PropertyFieldMutabilitySetOnCreate
-			}))
-			requireAppError(t, createErr, "app.property_field.set_on_create_unsupported.app_error")
-		}
-		boundsEnabled = false
-	})
-}
-
 func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.T) {
 	th := Setup(t)
 
@@ -4331,9 +4056,8 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 	require.NoError(t, err)
 
 	boundsEnabled := false
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
-		PropertyFieldBounds: func() bool { return boundsEnabled },
-	}, group.ID))
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
+	th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }, nil, nil))
 
 	raiseOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}
 	lowerOnly := model.PropertyBoundsRule{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}
@@ -4463,8 +4187,9 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 			assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
 		}
 
+		// The stored editable=false is still in attrs, as a client sending back what
+		// it read would leave it.
 		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
-		delete(f.Attrs, model.PropertyFieldAttrEditable)
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
 		require.NoError(t, updateErr)
 		f = stored(t, f.ID)
@@ -4576,13 +4301,86 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		require.NoError(t, updateErr)
 		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
 
-		// An old-format client unlocks by sending change_policy any and no editable.
+		// An old-format client unlocks by sending change_policy any.
 		f = stored(t, f.ID)
 		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
-		delete(f.Attrs, model.PropertyFieldAttrEditable)
 		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
 		requireAppErrorID(t, updateErr, "app.property_field.change_policy_unsupported.app_error", http.StatusBadRequest)
 		assert.Equal(t, model.PropertyBounds{raiseOnly, lowerOnly}, stored(t, f.ID).Bounds)
+	})
+
+	t.Run("update: change_policy any unlocks despite the stored editable false", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrEditable)
+	})
+
+	t.Run("update: editable true unlocks despite the stored change_policy", func(t *testing.T) {
+		f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+		require.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+
+		f.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		f = stored(t, f.ID)
+		assert.Equal(t, model.PropertyFieldMutability(""), f.Mutability)
+		assert.NotContains(t, f.Attrs, model.PropertyFieldAttrChangePolicy)
+		assert.Equal(t, true, f.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	t.Run("update: what isn't an unlock keeps its meaning", func(t *testing.T) {
+		// An echo of editable true beside raise_only stays raise_only.
+		f := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+			model.PropertyFieldAttrEditable:     true,
+		}))
+		require.Equal(t, true, f.Attrs[model.PropertyFieldAttrEditable])
+		f.Name = "renamed_" + model.NewId()
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{raiseOnly}, stored(t, f.ID).Bounds)
+
+		// editable true sent with a new change_policy follows the change_policy.
+		f = stored(t, f.ID)
+		f.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		f.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, f)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{lowerOnly}, stored(t, f.ID).Bounds)
+
+		// change_policy any beside an editable false the stored field never had reads never.
+		g := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, nil))
+		g.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyAny
+		g.Attrs[model.PropertyFieldAttrEditable] = false
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, g)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, g.ID).Mutability)
+
+		// The same pair on create, where nothing is stored, also reads never.
+		c := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyAny,
+			model.PropertyFieldAttrEditable:     false,
+		}))
+		assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, stored(t, c.ID).Mutability)
+
+		// editable true differing from the stored editable, sent with a change_policy that
+		// also differs from the stored one, follows the change_policy.
+		r := create(t, newField(model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+		}))
+		require.NotEqual(t, true, r.Attrs[model.PropertyFieldAttrEditable])
+		r.Attrs[model.PropertyFieldAttrChangePolicy] = model.PropertyFieldChangePolicyLowerOnly
+		r.Attrs[model.PropertyFieldAttrEditable] = true
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, r)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyBounds{lowerOnly}, stored(t, r.ID).Bounds)
 	})
 
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
@@ -4666,10 +4464,13 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 			LinkedFieldID: &template.ID,
 		})
 		require.NoError(t, systemErr)
-		flagOn := false
-		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
-			PropertyFieldBounds: func() bool { return flagOn },
-		}, groupID))
+		// The bounds hook must run after this group's CPA hook, as in server.go, so it
+		// judges the translated field.
+		prevHooks := th.service.hooks
+		t.Cleanup(func() { th.service.hooks = prevHooks })
+		th.service.hooks = nil
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, groupID))
+		th.service.AddHook(NewBoundsHook(th.service, func() bool { return boundsEnabled }, nil, nil))
 		belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
 
 		channelField := func(policy string, bounds model.PropertyBounds) *model.PropertyField {
@@ -4704,8 +4505,8 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 			requireAppErrorID(t, createErr, "app.property_field.bounds_disabled.app_error", http.StatusBadRequest)
 			assert.Equal(t, before, fieldCount())
 
-			flagOn = true
-			t.Cleanup(func() { flagOn = false })
+			boundsEnabled = true
+			t.Cleanup(func() { boundsEnabled = false })
 			created, createErr := th.service.CreatePropertyField(th.Context, channelField(model.PropertyFieldChangePolicyRaiseOnly, belowParent))
 			require.NoError(t, createErr)
 			assert.Equal(t, model.PropertyBounds{belowParent[0], raiseOnly}, storedIn(created.ID).Bounds)
@@ -4723,9 +4524,9 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 		})
 
 		t.Run("an old-format write keeping a parent rule the field has is saved flag off", func(t *testing.T) {
-			flagOn = true
+			boundsEnabled = true
 			f, createErr := th.service.CreatePropertyField(th.Context, channelField("", belowParent))
-			flagOn = false
+			boundsEnabled = false
 			require.NoError(t, createErr)
 
 			f = storedIn(f.ID)

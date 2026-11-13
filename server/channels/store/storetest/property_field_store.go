@@ -4708,6 +4708,50 @@ func testPropertyFieldOptionStorage(t *testing.T, rctx request.CTX, ss store.Sto
 		require.JSONEq(t, string(written), string(readBack))
 		require.Zero(t, countOwnedOptions(t, field.ID))
 	})
+
+	t.Run("GetDeletedOptionIDs reports only soft-deleted options", func(t *testing.T) {
+		optA := map[string]any{"id": model.NewId(), "name": "A"}
+		optB := map[string]any{"id": model.NewId(), "name": "B"}
+		optC := map[string]any{"id": model.NewId(), "name": "C"}
+		field := newSelectField(t, "DeletedIDs", []any{optA, optB, optC})
+
+		field.Attrs = model.StringInterface{"options": []any{optA, optC}}
+		_, err := ss.PropertyField().Update("", []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+
+		neverStored := model.NewId()
+		got, err := ss.PropertyField().GetDeletedOptionIDs(field, []string{optA["id"].(string), optB["id"].(string), neverStored})
+		require.NoError(t, err)
+		require.Equal(t, []string{optB["id"].(string)}, got, "a live option and one never stored must not be reported")
+
+		got, err = ss.PropertyField().GetDeletedOptionIDs(field, nil)
+		require.NoError(t, err)
+		require.Empty(t, got)
+	})
+
+	t.Run("GetDeletedOptionIDs sees an option deleted on the link source", func(t *testing.T) {
+		optA := map[string]any{"id": model.NewId(), "name": "A"}
+		optB := map[string]any{"id": model.NewId(), "name": "B"}
+		template := newSelectField(t, "DeletedIDsTemplate", []any{optA, optB})
+		linked, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "DeletedIDsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Attrs:         model.StringInterface{"options": []any{optA, optB}},
+		})
+		require.NoError(t, err)
+
+		template.Attrs = model.StringInterface{"options": []any{optA}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+
+		got, err := ss.PropertyField().GetDeletedOptionIDs(linked, []string{optA["id"].(string), optB["id"].(string)})
+		require.NoError(t, err)
+		require.Equal(t, []string{optB["id"].(string)}, got)
+	})
 }
 
 func testPropertyFieldOptionEdges(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {

@@ -195,13 +195,17 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 
 	type fixture struct {
 		system, channel, post *model.PropertyField
+		// createDirect adds a field linked to the template straight to the store, with no bounds.
+		createDirect func(objectType string) *model.PropertyField
+		// create adds a field through the service with the bounds passed, so one can be made after others.
+		create func(objectType string, bounds model.PropertyBounds) *model.PropertyField
 	}
 	// setup creates the three fields, each with the given bounds; the channel field is created
 	// first and the post field last, so a rule on either finds its parent side.
 	setup := func(t *testing.T, channelBounds, postBounds model.PropertyBounds) fixture {
 		t.Helper()
-		_, create, _ := boundsSetup(t, th, rctx)
-		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil)}
+		_, create, createDirect := boundsSetup(t, th, rctx)
+		f := fixture{system: create(model.PropertyFieldObjectTypeSystem, nil), create: create, createDirect: createDirect}
 		f.channel = create(model.PropertyFieldObjectTypeChannel, channelBounds)
 		f.post = create(model.PropertyFieldObjectTypePost, postBounds)
 		return f
@@ -268,6 +272,22 @@ func TestRefuseRulesBrokenByStoredPostValues(t *testing.T) {
 		seed(f.post, model.PropertyValueTargetTypePost, high, "optmid")
 		require.NoError(t, setBounds(f.post, below))
 		assert.Equal(t, below, storedBounds(f.post))
+	})
+
+	t.Run("a ruled post field past the first page of a template's fields is checked", func(t *testing.T) {
+		f := setup(t, nil, nil)
+		for range 101 {
+			f.createDirect(model.PropertyFieldObjectTypePost)
+		}
+		f.post = f.create(model.PropertyFieldObjectTypePost, below)
+		seedSystem(f, "optmid")
+		z := channel(f, "")
+		high := post(f, z, "opthigh")
+
+		err := setBounds(f.channel, below)
+		requireAppErrorID(t, err, breachID, http.StatusConflict)
+		assert.Equal(t, []string{high}, examplesOf(err))
+		assert.Empty(t, storedBounds(f.channel))
 	})
 
 	t.Run("a deleted post does not count", func(t *testing.T) {
@@ -754,12 +774,60 @@ func TestRefuseRankChangeBreakingStoredValues(t *testing.T) {
 
 	t.Run("an option sent without a rank is refused as invalid options", func(t *testing.T) {
 		f := setup(t, below, nil)
+		hooks := th.service.hooks
 		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		t.Cleanup(func() { th.service.hooks = hooks })
 		opts := options(1, 2, 3, nil)
 		delete(opts[1].(map[string]any), "rank")
 		err := saveOptions(f, opts)
 		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
 		assert.Equal(t, original, storedRanks(f))
+	})
+
+	t.Run("reviving a deleted option at a rank that breaks a stored value is refused", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "optmid")
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)[:2]))
+		channel(f, "opthigh")
+
+		err := saveOptions(f, options(1, 2, 3, nil))
+		requireAppErrorID(t, err, ranksID, http.StatusConflict)
+		assert.Equal(t, map[string]int{"optlow": 1, "optmid": 2}, storedRanks(f))
+	})
+
+	t.Run("reviving a deleted option at its old rank with nothing broken saves", func(t *testing.T) {
+		f := setup(t, below, nil)
+		seedSystem(f, "opthigh")
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)[1:]))
+		channel(f, "optlow")
+
+		require.NoError(t, saveOptions(f, options(1, 2, 3, nil)))
+		assert.Equal(t, original, storedRanks(f))
+	})
+
+	t.Run("a new option is not a revival, with or without the CPA hook assigning its ID", func(t *testing.T) {
+		f := setup(t, below, nil)
+		// The CPA hook rejects the fixture's readable IDs, so swap to real ones before it is registered.
+		low, mid, high := model.NewId(), model.NewId(), model.NewId()
+		base := []any{
+			map[string]any{"id": low, "name": "LOW", "rank": 1},
+			map[string]any{"id": mid, "name": "MID", "rank": 2},
+			map[string]any{"id": high, "name": "HIGH", "rank": 3},
+		}
+		require.NoError(t, saveOptions(f, base))
+		hooks := th.service.hooks
+		th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, f.template.GroupID))
+		t.Cleanup(func() { th.service.hooks = hooks })
+		seedSystem(f, mid)
+		// A breach already stored, so any recount would refuse the save.
+		channel(f, high)
+
+		noID := append(slices.Clone(base), map[string]any{"name": "MAX", "rank": 4})
+		require.NoError(t, saveOptions(f, noID))
+		assert.Len(t, storedRanks(f), 4)
+		chosen := append(slices.Clone(base), map[string]any{"id": model.NewId(), "name": "MAX", "rank": 4}, map[string]any{"id": model.NewId(), "name": "TOP", "rank": 5})
+		require.NoError(t, saveOptions(f, chosen))
+		assert.Len(t, storedRanks(f), 5)
 	})
 }
 
