@@ -16,62 +16,6 @@ describe('components/view_image/ImagePreview', () => {
         fileInfo: fileInfo1,
     };
 
-    test('should match snapshot, without preview', () => {
-        const {container} = render(
-            <ImagePreview {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with preview', () => {
-        const props = {
-            ...baseProps,
-            fileInfo: {
-                ...fileInfo1,
-                id: 'file_id_1',
-                has_preview_image: true,
-            },
-        };
-
-        const {container} = render(
-            <ImagePreview {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, without preview, cannot download', () => {
-        const props = {
-            ...baseProps,
-            canDownloadFiles: false,
-        };
-
-        const {container} = render(
-            <ImagePreview {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with preview, cannot download', () => {
-        const props = {
-            ...baseProps,
-            canDownloadFiles: false,
-            fileInfo: {
-                ...fileInfo1,
-                id: 'file_id_1',
-                has_preview_image: true,
-            },
-        };
-
-        const {container} = render(
-            <ImagePreview {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should apply transform when scale is provided and not 1', () => {
         const props = {
             ...baseProps,

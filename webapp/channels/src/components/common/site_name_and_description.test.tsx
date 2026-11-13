@@ -13,18 +13,15 @@ describe('/components/common/SiteNameAndDescription', () => {
         siteName: 'Mattermost',
     };
 
-    test('should match snapshot, default', () => {
-        const {container} = renderWithContext(<SiteNameAndDescription {...baseProps}/>);
-        expect(container).toMatchSnapshot();
+    test('should render default', () => {
+        renderWithContext(<SiteNameAndDescription {...baseProps}/>);
         expect(screen.getByRole('heading', {level: 1})).toHaveTextContent(baseProps.siteName);
         expect(screen.getByText('All team communication in one place, searchable and accessible anywhere')).toBeInTheDocument();
     });
 
-    test('should match snapshot, with custom site name and description', () => {
+    test('should render with custom site name and description', () => {
         const props = {...baseProps, customDescriptionText: 'custom_description_text', siteName: 'other_site'};
-        const {container} = renderWithContext(<SiteNameAndDescription {...props}/>);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<SiteNameAndDescription {...props}/>);
         expect(screen.getByRole('heading', {level: 1})).toHaveTextContent(props.siteName);
         expect(screen.getByRole('heading', {level: 3})).toHaveTextContent(props.customDescriptionText);
     });

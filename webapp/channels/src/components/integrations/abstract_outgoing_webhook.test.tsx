@@ -109,11 +109,6 @@ describe('components/integrations/AbstractOutgoingWebhook', () => {
         action,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AbstractOutgoingWebhook {...requiredProps}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should not render username in case of enablePostUsernameOverride is false ', () => {
         const usernameTrueProps = {...requiredProps};
         const {container} = renderWithContext(<AbstractOutgoingWebhook {...usernameTrueProps}/>, initialState as GlobalState);

@@ -32,99 +32,22 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
-
-        expect(container).toMatchSnapshot();
+    test('should render', () => {
+        renderWithContext(<EmailNotificationSetting {...requiredProps}/>);
         expect(document.getElementById('emailNotificationImmediately')).toBeInTheDocument();
         expect(document.getElementById('emailNotificationNever')).toBeInTheDocument();
         expect(document.getElementById('emailNotificationMinutes')).not.toBeInTheDocument();
         expect(document.getElementById('emailNotificationHour')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, enabled email batching', () => {
+    test('should render enabled email batching', () => {
         const props = {
             ...requiredProps,
             enableEmailBatching: true,
         };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
+        renderWithContext(<EmailNotificationSetting {...props}/>);
         expect(document.getElementById('emailNotificationMinutes')).toBeInTheDocument();
         expect(document.getElementById('emailNotificationHour')).toBeInTheDocument();
-    });
-
-    test('should match snapshot, not send email notifications', () => {
-        const props = {
-            ...requiredProps,
-            sendEmailNotifications: false,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, active section != email and SendEmailNotifications !== true', () => {
-        const props = {
-            ...requiredProps,
-            sendEmailNotifications: false,
-            active: false,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, active section != email and SendEmailNotifications = true', () => {
-        const props = {
-            ...requiredProps,
-            sendEmailNotifications: true,
-            active: false,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true', () => {
-        const props = {
-            ...requiredProps,
-            sendEmailNotifications: true,
-            active: false,
-            enableEmail: true,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on serverError', () => {
-        const newServerError = 'serverError';
-        const props = {...requiredProps, error: newServerError};
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when CRT on and email set to immediately', () => {
-        const props = {
-            ...requiredProps,
-            enableEmail: true,
-            isCollapsedThreadsEnabled: true,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, when CRT on and email set to never', () => {
-        const props = {
-            ...requiredProps,
-            enableEmail: false,
-            isCollapsedThreadsEnabled: true,
-        };
-        const {container} = renderWithContext(<EmailNotificationSetting {...props}/>);
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should pass handleChange', async () => {

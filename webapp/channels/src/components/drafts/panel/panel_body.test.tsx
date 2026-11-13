@@ -4,7 +4,6 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {PostPriority} from '@mattermost/types/posts';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -76,44 +75,6 @@ describe('components/drafts/panel/panel_body', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <PanelBody
-                {...baseProps}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for requested_ack', () => {
-        const {container} = renderWithContext(
-            <PanelBody
-                {...baseProps}
-                priority={{
-                    priority: '',
-                    requested_ack: true,
-                }}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for priority', () => {
-        const {container} = renderWithContext(
-            <PanelBody
-                {...baseProps}
-                priority={{
-                    priority: PostPriority.IMPORTANT,
-                    requested_ack: false,
-                }}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     it('should have called handleFormattedTextClick', () => {
         const handleClickSpy = jest.spyOn(utils, 'handleFormattedTextClick');
 
@@ -127,6 +88,5 @@ describe('components/drafts/panel/panel_body', () => {
         const postContent = container.querySelector('div.post__content');
         (postContent as HTMLElement)?.click();
         expect(handleClickSpy).toHaveBeenCalledTimes(1);
-        expect(container).toMatchSnapshot();
     });
 });

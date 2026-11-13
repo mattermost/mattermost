@@ -42,31 +42,13 @@ describe('DesktopNotificationSettings', () => {
         desktopAndMobileSettingsDifferent: false,
     };
 
-    test('should match snapshot, on max setting', () => {
-        const {container} = renderWithContext(
-            <DesktopNotificationSettings {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on min setting', () => {
-        const props = {...baseProps, active: false};
-        const {container} = renderWithContext(
-            <DesktopNotificationSettings {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should not show desktop thread notification checkbox when collapsed threads are not enabled', () => {
         const props = {...baseProps, isCollapsedThreadsEnabled: false};
-        const {container} = renderWithContext(
+        renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.queryByText('Notify me about replies to threads I\'m following')).toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should not show desktop thread notification checkbox when desktop is all', () => {

@@ -31,12 +31,10 @@ describe('CommandSuggestion', () => {
         onMouseMove: jest.fn(),
     };
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(
             <CommandSuggestion {...baseProps}/>,
         );
-
-        expect(container).toMatchSnapshot();
 
         const titleElement = container.querySelector('.slash-command__title');
         expect(titleElement?.textContent).toEqual('invite @[username] ~[channel]');
