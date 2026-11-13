@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -4541,6 +4542,115 @@ func TestPropertyFieldBoundsGroupVersionAndUnstated(t *testing.T) {
 		var appErr *model.AppError
 		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "model.property_field.is_valid.app_error", appErr.Id)
+	})
+}
+
+func TestUpdatePropertyFieldPreHooksSeeStoredObjectType(t *testing.T) {
+	th := Setup(t)
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV3).ID
+
+	var seen []string
+	th.service.AddHook(&testHook{
+		preUpdateFieldFn: func(_ string, f *model.PropertyField) (*model.PropertyField, error) {
+			seen = append(seen, f.ObjectType)
+			return f, nil
+		},
+		preUpdateFieldsFn: func(_ string, fs []*model.PropertyField) ([]*model.PropertyField, error) {
+			for _, f := range fs {
+				seen = append(seen, f.ObjectType)
+			}
+			return fs, nil
+		},
+	})
+
+	newChannelField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    groupID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Field " + model.NewId(),
+		})
+	}
+	submitted := func(f *model.PropertyField, objectType string) *model.PropertyField {
+		c := *f
+		c.ObjectType = objectType
+		return &c
+	}
+
+	t.Run("a submitted type is replaced by the stored one before the hooks run", func(t *testing.T) {
+		a, b := newChannelField(t), newChannelField(t)
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, submitted(a, model.PropertyFieldObjectTypeUser))
+		require.NoError(t, err)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeChannel}, seen)
+
+		seen = nil
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{
+			submitted(a, model.PropertyFieldObjectTypeUser),
+			submitted(b, model.PropertyFieldObjectTypeSystem),
+		})
+		require.NoError(t, err)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeChannel}, seen)
+	})
+
+	t.Run("an empty type reaches the hooks and the version check still refuses it", func(t *testing.T) {
+		a := newChannelField(t)
+		requireMismatch := func(t *testing.T, err error) {
+			t.Helper()
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
+		}
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, submitted(a, ""))
+		requireMismatch(t, err)
+		assert.Equal(t, []string{""}, seen)
+
+		seen = nil
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{submitted(a, "")})
+		requireMismatch(t, err)
+		assert.Equal(t, []string{""}, seen)
+	})
+
+	t.Run("a type submitted for a stored v1 field is left for the version check to refuse", func(t *testing.T) {
+		v1 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
+		legacy := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    v1,
+			TargetType: "user",
+			Type:       model.PropertyFieldTypeText,
+			Name:       "Legacy " + model.NewId(),
+		})
+
+		seen = nil
+		_, _, err := th.service.UpdatePropertyField(th.Context, v1, submitted(legacy, model.PropertyFieldObjectTypeUser))
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.version_mismatch.app_error", appErr.Id)
+		assert.Equal(t, []string{model.PropertyFieldObjectTypeUser}, seen)
+	})
+
+	t.Run("a field that is not stored fails as it did before the pin", func(t *testing.T) {
+		a := newChannelField(t)
+		missing := submitted(a, model.PropertyFieldObjectTypeChannel)
+		missing.ID = model.NewId()
+		requireMissing := func(t *testing.T, err error) {
+			t.Helper()
+			var mismatch *store.ErrResultsMismatch
+			require.ErrorAs(t, err, &mismatch)
+			assert.Contains(t, err.Error(), "failed to get existing fields for update")
+		}
+
+		_, _, err := th.service.UpdatePropertyField(th.Context, groupID, missing)
+		requireMissing(t, err)
+
+		_, _, _, err = th.service.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{
+			submitted(a, model.PropertyFieldObjectTypeUser), missing,
+		})
+		requireMissing(t, err)
 	})
 }
 
