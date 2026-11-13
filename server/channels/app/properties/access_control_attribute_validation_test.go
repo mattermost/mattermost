@@ -4479,6 +4479,21 @@ func TestAccessControlAttributeValidationHookChangePolicyTranslation(t *testing.
 				})
 			}
 		}
+
+		// Validation strips a raise/lower policy from a field that isn't a rank, so
+		// it states nothing either.
+		for _, policy := range []string{model.PropertyFieldChangePolicyRaiseOnly, model.PropertyFieldChangePolicyLowerOnly, " " + model.PropertyFieldChangePolicyRaiseOnly + " "} {
+			t.Run(fmt.Sprintf("write_once stays locked: rebuilt, change_policy %q", policy), func(t *testing.T) {
+				f := create(t, newField(model.PropertyFieldTypeText, model.PropertyFieldObjectTypeChannel, model.StringInterface{model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever}))
+				f.Attrs = rebuilt(f, model.StringInterface{model.PropertyFieldAttrChangePolicy: policy})
+				_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, f)
+				require.NoError(t, updateErr)
+				f = stored(t, f.ID)
+				assert.Equal(t, model.PropertyFieldMutabilityWriteOnce, f.Mutability)
+				assert.Equal(t, model.PropertyFieldChangePolicyNever, f.Attrs[model.PropertyFieldAttrChangePolicy])
+				assert.Equal(t, false, f.Attrs[model.PropertyFieldAttrEditable])
+			})
+		}
 	})
 
 	t.Run("a set_on_create field refuses an old-format write", func(t *testing.T) {
