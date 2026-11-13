@@ -724,16 +724,26 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			}
 		}
 
-		var permission *model.Permission
-		if channel.Type == model.ChannelTypePrivate {
-			permission = model.PermissionManagePrivateChannelMembers
-		} else {
-			permission = model.PermissionManagePublicChannelMembers
+		if appErr := verifyManageChannelGroupsPermission(c, channel); appErr != nil {
+			return appErr
 		}
+	}
 
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission); !ok {
-			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
-		}
+	return nil
+}
+
+func verifyManageChannelGroupsPermission(c *Context, channel *model.Channel) *model.AppError {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		return nil
+	}
+
+	permission := model.PermissionManagePublicChannelMembers
+	if channel.Type == model.ChannelTypePrivate {
+		permission = model.PermissionManagePrivateChannelMembers
+	}
+
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, permission); !ok {
+		return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
 	return nil
@@ -1194,14 +1204,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		var permission *model.Permission
-		if channel.Type == model.ChannelTypePrivate {
-			permission = model.PermissionManagePrivateChannelMembers
-		} else {
-			permission = model.PermissionManagePublicChannelMembers
-		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), NotAssociatedToChannelID, permission); !ok {
-			c.SetPermissionError(permission)
+		if appErr = verifyManageChannelGroupsPermission(c, channel); appErr != nil {
+			c.Err = appErr
 			return
 		}
 		opts.NotAssociatedToChannel = NotAssociatedToChannelID
@@ -1213,14 +1217,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		var permission *model.Permission
-		if channel.Type == model.ChannelTypePrivate {
-			permission = model.PermissionManagePrivateChannelMembers
-		} else {
-			permission = model.PermissionManagePublicChannelMembers
-		}
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ChannelIDForMemberCount, permission); !ok {
-			c.SetPermissionError(permission)
+		if appErr = verifyManageChannelGroupsPermission(c, channel); appErr != nil {
+			c.Err = appErr
 			return
 		}
 		opts.IncludeChannelMemberCount = ChannelIDForMemberCount

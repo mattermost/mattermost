@@ -68,4 +68,5 @@ const (
 	MigrationKeyAddDiscoverableChannelPermissions      = "add_discoverable_channel_permissions"
 	MigrationRemoveImportTeamPermission                = "remove_import_team_permission"
 	MigrationKeyAddAIRecapsPermissions                 = "add_ai_recaps_permissions"
+	MigrationKeyRemoveGroupsChannelMemberPermissions   = "remove_groups_channel_member_permissions"
 )
