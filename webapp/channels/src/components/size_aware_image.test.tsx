@@ -122,6 +122,28 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder).not.toHaveAttribute('height');
     });
 
+    test('should give the placeholder the same explicit size as the real image', () => {
+        const dimensions = {width: 1200, height: 300};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions, width: '200', height: '50'}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        const realImage = screen.getByRole('img', {hidden: true});
+        expect(placeholder).toHaveAttribute('width', '200');
+        expect(placeholder).toHaveAttribute('height', '50');
+        expect(realImage).toHaveAttribute('width', '200');
+        expect(realImage).toHaveAttribute('height', '50');
+    });
+
+    test('should give the placeholder only the explicit width so its height follows the aspect ratio like the real image', () => {
+        const dimensions = {width: 1200, height: 300};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions, width: '300'}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder).toHaveAttribute('width', '300');
+        expect(placeholder).not.toHaveAttribute('height');
+        expect(placeholder.style.aspectRatio).toEqual('auto 1200 / 300');
+    });
+
     test('should render a mini preview when showLoader is true and preview is set', () => {
         const props = {
             ...baseProps,

@@ -490,6 +490,14 @@ test.describe('Post height', () => {
             makePost: (file: string) => seedPost({message: `![wide image](${fileServerUrl}/${file})`}),
         },
         {
+            name: 'Markdown image with an explicit size',
+            makePost: (file: string) => seedPost({message: `![wide image](${fileServerUrl}/${file} =200x50)`}),
+        },
+        {
+            name: 'Markdown image with an explicit width',
+            makePost: (file: string) => seedPost({message: `![wide image](${fileServerUrl}/${file} =300)`}),
+        },
+        {
             name: 'image preview',
             makePost: (file: string) => seedPost({message: `${fileServerUrl}/${file}`}),
         },
