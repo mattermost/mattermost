@@ -6204,6 +6204,7 @@ func TestLoginCookies(t *testing.T) {
 			name             string
 			preview          bool
 			useCase          string
+			campaign         string
 			landing          string
 			expectedLocation string
 		}{
@@ -6211,13 +6212,18 @@ func TestLoginCookies(t *testing.T) {
 			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
 			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
 			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
-			{name: "landing path is ignored outside a preview", landing: "/nato", expectedLocation: siteURL},
+			{name: "landing path applies with a non-trial license", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "use case is ignored with a non-trial license", useCase: "mission-ops", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored with a non-trial license", landing: "nato", expectedLocation: siteURL},
+			{name: "no landing path with a non-trial license", expectedLocation: siteURL},
+			{name: "campaign wins over the landing path", campaign: "focalboard", landing: "/nato", expectedLocation: siteURL + "/boards"},
 		}
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				license := model.NewTestLicense("cloud")
+				license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
 				if tc.preview {
+					license = model.NewTestLicense("cloud")
 					license.IsTrial = true
 					license.StartsAt = model.GetMillis()
 					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
@@ -6239,6 +6245,7 @@ func TestLoginCookies(t *testing.T) {
 				form.Add("login_id", user.Username)
 				form.Add("cws_token", token)
 				form.Add("use_case", tc.useCase)
+				form.Add("utm_campaign", tc.campaign)
 				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
 					http.MethodPost,
 					"/users/login/cws",
