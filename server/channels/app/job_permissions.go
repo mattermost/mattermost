@@ -103,7 +103,7 @@ var jobPermissions = map[string]jobTypePermissions{
 
 // SessionHasPermissionToCreateJob returns whether the session may create the job and the permission
 // that was checked. The permission is nil if jobs of this type can't be created through the API.
-func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+func (a *App) SessionHasPermissionToCreateJob(rctx request.CTX, session model.Session, job *model.Job) (bool, *model.Permission) {
 	switch job.Type {
 	case model.JobTypeAccessControlTeamSync:
 		return a.sessionHasPermissionToTeamSyncJob(session, job)
@@ -118,8 +118,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		channelID := a.getChannelIDFromJobData(job.Data)
 		if channelID != "" {
 			// Check specific channel permission
-			ctx := request.EmptyContext(a.Srv().Log())
-			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := a.HasPermissionToChannel(rctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
 			if hasChannelPermission {
 				return true, model.PermissionManageChannelAccessRules
 			}
@@ -138,8 +137,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		policyID, hasPolicyID := job.Data["policy_id"]
 		if hasPolicyID && policyID != "" && model.IsValidId(policyID) && hasTeamID && teamID != "" && model.IsValidId(teamID) {
 			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
-				ctx := request.EmptyContext(a.Srv().Log())
-				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(ctx, teamID, policyID); appErr == nil && owned {
+				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(rctx, teamID, policyID); appErr == nil && owned {
 					return true, model.PermissionManageTeamAccessRules
 				}
 			}
@@ -164,8 +162,8 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 // SessionHasPermissionToCancelJob returns whether the session may cancel the job and the permission
 // that was checked. Cancelling requires the create permission, or manage_system for job types that
 // the server runs itself. The permission is nil for job types that can't be cancelled.
-func (a *App) SessionHasPermissionToCancelJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	if hasPermission, permission := a.SessionHasPermissionToCreateJob(session, job); permission != nil {
+func (a *App) SessionHasPermissionToCancelJob(rctx request.CTX, session model.Session, job *model.Job) (bool, *model.Permission) {
+	if hasPermission, permission := a.SessionHasPermissionToCreateJob(rctx, session, job); permission != nil {
 		return hasPermission, permission
 	}
 	// Cancelling a resend invitation email job through the API would leave its Systems table entry behind.

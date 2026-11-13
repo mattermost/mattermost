@@ -154,7 +154,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "job", &job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(c.AppContext, *c.AppContext.Session(), &job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -387,7 +387,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(job)
 	auditRec.AddEventObjectType("job")
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCancelJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCancelJob(c.AppContext, *c.AppContext.Session(), job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCancelJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
