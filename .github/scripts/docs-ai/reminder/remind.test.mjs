@@ -17,7 +17,7 @@ const TODAY = '2026-12-08';
 const MARKER = reminderMarker(TODAY);
 
 /** Fake GitHub: search results, per-PR comments, and writer docs PRs. */
-function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}, postErrors = {}}) {
+function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}, heads = {}, postErrors = {}}) {
   const posted = [];
   const request = async (path, {method = 'GET', body} = {}) => {
     if (path.startsWith('/search/issues')) return {items};
@@ -35,7 +35,7 @@ function fakeGitHub({items, comments = {}, docsPrs = {}, mergedBy = {}, postErro
     const head = decodeURIComponent(path).match(/head=mattermost:docs\/pr-(\d+)/);
     if (head) return docsPrs[head[1]] ? [docsPrs[head[1]]] : [];
     const pull = path.match(/\/pulls\/(\d+)$/);
-    if (pull) return {merged_by: mergedBy[pull[1]] ?? null};
+    if (pull) return {head: {ref: heads[pull[1]] ?? `feature-${pull[1]}`}, merged_by: mergedBy[pull[1]] ?? null};
     throw new Error(`unexpected request ${method} ${path}`);
   };
   return {request, posted};
@@ -122,10 +122,13 @@ test('an earlier round does not suppress this round', async () => {
   assert.equal(posted.length, 1);
 });
 
-test('remind skips the writer docs PRs themselves', async () => {
-  const {request, posted} = fakeGitHub({items: [pr(5, 'app[bot]', {title: 'docs: AI draft for Foo'})]});
+test('remind skips the writer docs PRs themselves, whatever their title', async () => {
+  const {request, posted} = fakeGitHub({
+    items: [pr(5, 'app[bot]', {title: 'Renamed by a human'}), pr(6, 'dev', {title: 'docs: AI draft for a human PR'})],
+    heads: {5: 'docs/pr-4'},
+  });
   await remind({repo: REPO, today: TODAY, lookbackDays: 45, request, sleep: noSleep, log: () => {}});
-  assert.equal(posted.length, 0);
+  assert.deepEqual(posted.map((p) => p.pr), [6]);
 });
 
 test('dry run posts nothing', async () => {

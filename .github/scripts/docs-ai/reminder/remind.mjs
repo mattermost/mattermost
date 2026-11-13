@@ -19,6 +19,8 @@ const DONE = 'Docs/Done';
 const PER_PAGE = 100;
 // Comments post as github-actions[bot]; only trust our own markers.
 const REMINDER_AUTHOR = 'github-actions[bot]';
+// Branch prefix of the merged-PR writer's docs PRs (docs-writer-merged-pr.yml).
+const WRITER_BRANCH_PREFIX = 'docs/pr-';
 export const DEFAULT_LOOKBACK_DAYS = 45;
 // GitHub asks for at least a second between content-creating requests, and a
 // minute's wait after a secondary rate limit response.
@@ -57,7 +59,7 @@ export function searchQuery(repo, since) {
 
 const isBot = (user) => user?.type === 'Bot' || String(user?.login ?? '').endsWith('[bot]');
 
-/** Merged PRs still carrying Docs/Needed, minus the writer's own docs/pr-* PRs. */
+/** Merged PRs still carrying Docs/Needed. */
 export async function pendingPrs(repo, since, {request = gh} = {}) {
   const q = encodeURIComponent(searchQuery(repo, since));
   const prs = [];
@@ -67,9 +69,7 @@ export async function pendingPrs(repo, since, {request = gh} = {}) {
     prs.push(...items);
     if (items.length < PER_PAGE) break;
   }
-  return prs
-    .filter((pr) => !/^docs: AI draft for /.test(pr.title ?? ''))
-    .map((pr) => ({number: pr.number, title: pr.title, mentions: mentionsFor(pr)}));
+  return prs.map((pr) => ({number: pr.number, title: pr.title, mentions: mentionsFor(pr)}));
 }
 
 /**
@@ -84,15 +84,19 @@ export function mentionsFor(pr) {
 /** Docs PR the merged-PR writer opened for this source PR, if any. */
 export async function writerDocsPr(repo, number, {request = gh} = {}) {
   const owner = repo.split('/')[0];
-  const head = encodeURIComponent(`${owner}:docs/pr-${number}`);
+  const head = encodeURIComponent(`${owner}:${WRITER_BRANCH_PREFIX}${number}`);
   const pulls = await request(`/repos/${repo}/pulls?head=${head}&state=all&per_page=1`);
   const pr = pulls?.[0];
   return pr ? {number: pr.number, merged: Boolean(pr.merged_at), state: pr.state} : null;
 }
 
+/** The writer's own docs PRs; their source PR gets the reminder instead. */
+export function isWriterDocsPr(pull) {
+  return String(pull?.head?.ref ?? '').startsWith(WRITER_BRANCH_PREFIX);
+}
+
 /** Last resort for a bot PR with no human assignee: whoever merged it. */
-export async function mergerMention(repo, number, {request = gh} = {}) {
-  const pull = await request(`/repos/${repo}/pulls/${number}`);
+export function mergerMention(pull) {
   return pull?.merged_by && !isBot(pull.merged_by) ? [pull.merged_by.login] : [];
 }
 
@@ -177,12 +181,18 @@ export async function remind({
   const failed = [];
   let postedBefore = false;
   for (const pr of prs) {
+    // Search results carry no head branch, so read it from the pull itself.
+    const pull = await request(`/repos/${repo}/pulls/${pr.number}`);
+    if (isWriterDocsPr(pull)) {
+      log(`[reminder] #${pr.number}: writer docs PR, skipped`);
+      continue;
+    }
     if (await alreadyReminded(repo, pr.number, marker, {request})) {
       log(`[reminder] #${pr.number}: already reminded for ${today}`);
       continue;
     }
     const docsPr = await writerDocsPr(repo, pr.number, {request});
-    if (!pr.mentions.length) pr.mentions = await mergerMention(repo, pr.number, {request});
+    if (!pr.mentions.length) pr.mentions = mergerMention(pull);
     const body = reminderBody({marker, mentions: pr.mentions, docsPr});
     const who = pr.mentions.map((m) => `@${m}`).join(' ') || '(no human to mention)';
     if (dryRun) {
