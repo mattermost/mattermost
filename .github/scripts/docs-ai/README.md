@@ -7,6 +7,7 @@ Three pipelines, one persona registry, one package.
 | `docs-review.yml` | Is this prose right? | Manual `workflow_dispatch` with a PR number (while tuning) |
 | `docs-gap.yml` | Is a page missing? | Every PR |
 | `docs-writer-merged-pr.yml` | Write the missing pages | PR merged with `Docs/Needed` |
+| `docs-needed-reminder.yml` | Are merged docs still owed? | 8th and 12th of each month |
 
 Review and gap are advisory. No verdict blocks a merge. `docs/api` reference pages are
 generated from OpenAPI — out of scope for review and as a gap action.
@@ -46,6 +47,7 @@ single job so it becomes one check rather than a matrix of them.
 | `gap/report.mjs` | Posts the sticky gap comment and owns `Docs/Needed` |
 | `writer/run.mjs` | Reads the gap sticky, runs the author loop, writes MDX |
 | `writer/sync.mjs` | On merge of `docs/pr-*`, flips `Docs/Needed` → `Docs/Done` |
+| `reminder/remind.mjs` | Comments on merged PRs still carrying `Docs/Needed` |
 
 `npm test` (run from this directory) is the registry validator the workflow also runs
 before reviewing or writing.
@@ -115,6 +117,13 @@ The draft title comes from the source PR title. The draft body says what the
 documentation change does. The pre-open review trail stays in `trail.json`, uploaded
 as a workflow artifact, not the body. Closing that draft flips `Docs/Needed` →
 `Docs/Done` on the originating PR.
+
+On the 8th and 12th of each month, `docs-needed-reminder.yml` comments on every PR merged
+in the last 45 days that still carries `Docs/Needed`. The comment asks the author to submit
+and merge the docs, or to swap the label for `Docs/Done` if the docs are already merged. It
+links the writer's open `docs/pr-<n>` when there is one. For a bot-authored PR it mentions the
+human assignees, or whoever merged it. Each run date has its own marker, so a re-run
+does not double-post. Run it manually with `dry_run` to preview the comments.
 
 Three constraints to preserve if you change the gap label logic:
 
