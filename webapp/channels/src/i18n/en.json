@@ -20207,6 +20207,18 @@
     "defaultMessage": "Already in board",
     "description": "Board version of the note beside a person in the add-people-to-board results who is already a member of the board."
   },
+  "channel_invite.gm_already_exists": {
+    "defaultMessage": "A group message with these members already exists. <link>Go to existing group message</link>",
+    "description": "Error shown in the add-people modal when the selected members already form another group message; the link navigates to that existing conversation."
+  },
+  "channel_invite.gm_history_warning.description": {
+    "defaultMessage": "People you add will be able to see the full message history of this group message.",
+    "description": "Body of the info banner in the add-people modal when inviting someone into an existing group message."
+  },
+  "channel_invite.gm_history_warning.title": {
+    "defaultMessage": "Conversation history will be visible",
+    "description": "Title of the info banner in the add-people modal when inviting someone into an existing group message."
+  },
   "channel_invite.invite_guest": {
     "defaultMessage": "Invite as a Guest",
     "description": "Link at the bottom of the add-people-to-channel modal; starts the flow for inviting someone as a guest user."
