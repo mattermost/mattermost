@@ -11,4 +11,4 @@ Targets were derived from the majority rendering in existing locale files and th
 
 This file set is the authority for these terms. Notes state guidance directly rather than deferring to an external source, so a translation prompt needs nothing beyond the glossary itself.
 
-The translation rules in [`i18n/scripts/`](../scripts/) use it: a translation that leaves out a `doNotTranslate` name lands only with a stated reason. `node i18n/scripts/check_glossary.mjs` checks these files in CI.
+The translation pipeline in [`i18n/scripts/`](../scripts/) uses it: each worklist item lists the terms its English uses, with this locale's target and note, and a translation that leaves out a `doNotTranslate` name lands only with a stated reason. `node i18n/scripts/check_glossary.mjs` checks these files in CI.

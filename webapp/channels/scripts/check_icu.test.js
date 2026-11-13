@@ -256,6 +256,16 @@ describe('check_icu', () => {
             expect(code).toBe(1);
             expect(stderr).toContain('fr.json:a.b: empty translation');
         });
+
+        test('errors after thousands of warnings still reach a pipe', () => {
+            const en = Object.fromEntries(Array.from({length: 5000}, (_, i) => [`missing.key${i}`, 'Hello']));
+            const {code, stderr} = check({...en, 'a.b': 'Hello'}, {'fr.json': {'a.b': ''}}, {warnMissingKeys: true});
+
+            expect(code).toBe(1);
+            expect(stderr).toContain('5000 warning(s)');
+            expect(stderr).toContain('fr.json:a.b: empty translation');
+            expect(stderr).toContain('1 error(s) across 1 locale file(s)');
+        });
     });
 
     describe('variables and tags', () => {
