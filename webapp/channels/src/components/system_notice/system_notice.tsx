@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
@@ -144,7 +144,7 @@ export class SystemNotice extends React.PureComponent<Props> {
                         <Button
                             id='systemnotice_remindme'
                             emphasis='primary'
-                            size='sm'
+                            size='small'
                             onClick={this.hideAndRemind}
                         >
                             <FormattedMessage
@@ -156,7 +156,7 @@ export class SystemNotice extends React.PureComponent<Props> {
                             <Button
                                 id='systemnotice_dontshow'
                                 emphasis='tertiary'
-                                size='sm'
+                                size='small'
                                 onClick={this.hideAndForget}
                             >
                                 <FormattedMessage

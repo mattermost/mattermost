@@ -4,7 +4,6 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
@@ -44,7 +43,7 @@ export const TeamGroups = ({onGroupRemoved, syncChecked, team, onAddCallback, to
         button={
             <ToggleModalButton
                 id='addGroupsToTeamToggle'
-                className={buttonClassNames({emphasis: 'primary'})}
+                emphasis='primary'
                 modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
                 dialogType={AddGroupsToTeamModal}
                 dialogProps={{

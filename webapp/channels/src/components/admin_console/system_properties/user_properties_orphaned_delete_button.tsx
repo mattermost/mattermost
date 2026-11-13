@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -17,6 +18,7 @@ type Props = {
 };
 
 const OrphanedFieldDeleteButton: React.FC<Props> = ({field, deleteField}) => {
+    const {formatMessage} = useIntl();
     const {promptDelete} = useUserPropertyFieldDelete();
 
     const handleDelete = () => {
@@ -33,7 +35,7 @@ const OrphanedFieldDeleteButton: React.FC<Props> = ({field, deleteField}) => {
             onClick={handleDelete}
             disabled={field.delete_at !== 0}
             data-testid={`orphaned-field-delete-${field.id}`}
-            aria-label='Delete orphaned field'
+            aria-label={formatMessage({id: 'admin.accessibility.delete_orphaned_field', defaultMessage: 'Delete orphaned field'})}
         >
             <TrashCanOutlineIcon
                 size={18}

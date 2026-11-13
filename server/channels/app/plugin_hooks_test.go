@@ -1470,6 +1470,53 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
+func TestHookOnPluginClusterEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnPluginClusterEvent(_ *plugin.Context, ev model.PluginClusterEvent) {
+			_ = p.API.KVSet(ev.Id, []byte(ev.SourceId+"|"+string(ev.Data)))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	th.Server.clusterPluginEventHandler(&model.ClusterMessage{
+		Event: model.ClusterEventPluginEvent,
+		Props: map[string]string{
+			"PluginID": pluginID,
+			"EventID":  "event",
+			"SourceID": "node2",
+		},
+		Data: []byte("data"),
+	})
+
+	value, appErr := th.App.GetPluginKey(pluginID, "event")
+	require.Nil(t, appErr)
+	assert.Equal(t, "node2|data", string(value))
+}
+
 func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t, StartMetrics).InitBasic(t)

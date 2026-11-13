@@ -2,9 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useMemo, type JSX} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {DotsVerticalIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -12,10 +15,28 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import * as Menu from 'components/menu';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {getHistory} from 'utils/browser_history';
 
+import {AVAILABLE_ROLES} from './roles';
+
 import '../access_control/policies.scss';
+
+const panelMessages = defineMessages({
+    title: {
+        id: 'admin.permission_policies.title',
+        defaultMessage: 'Permission Policies',
+    },
+    description: {
+        id: 'admin.permission_policies.description',
+        defaultMessage: 'Create policies to control channel action permissions based on user attributes.',
+    },
+    addPolicy: {
+        id: 'admin.permission_policies.add_policy',
+        defaultMessage: 'Add policy',
+    },
+});
 
 type Props = {
     actions: {
@@ -26,15 +47,12 @@ type Props = {
 
 const PAGE_SIZE = 10;
 
-const ROLE_LABELS: Record<string, string> = {
-    system_guest: 'Guest users',
-    system_user: 'Members',
-    system_admin: 'System administrators',
-};
+const PolicyMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
+    create_burn_on_read_post: 'Create Burn on Read Message',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {
@@ -43,12 +61,13 @@ function getActionsLabel(policy: AccessControlPolicy): string {
     return unique.map((a) => ACTION_LABELS[a] || a).join(', ') || 'None';
 }
 
-function getRoleLabel(policy: AccessControlPolicy): string {
-    const role = policy.roles?.[0];
-    if (!role) {
+function getRoleLabel(policy: AccessControlPolicy, formatMessage: IntlShape['formatMessage']): string {
+    const roleValue = policy.roles?.[0];
+    if (!roleValue) {
         return 'None';
     }
-    return ROLE_LABELS[role] || role;
+    const role = AVAILABLE_ROLES.find((r) => r.value === roleValue);
+    return role ? formatMessage(role.label) : roleValue;
 }
 
 export default function PermissionPolicyList(props: Props): JSX.Element {
@@ -156,6 +175,11 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
     };
 
     const getRows = (): Row[] => {
+        const policyMenuLabel = intl.formatMessage({
+            id: 'admin.permission_policies.menu.aria_label',
+            defaultMessage: 'Policy actions menu',
+        });
+
         return policies.map((policy: AccessControlPolicy) => {
             return {
                 cells: {
@@ -166,7 +190,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                     ),
                     role: (
                         <div className='policy-resources'>
-                            {getRoleLabel(policy)}
+                            {getRoleLabel(policy, intl.formatMessage)}
                         </div>
                     ),
                     policyActions: (
@@ -179,17 +203,16 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                             <Menu.Container
                                 menuButton={{
                                     id: `policy-menu-${policy.id}`,
-                                    class: 'policy-menu-button',
-                                    children: (
-                                        <i className='icon icon-dots-vertical'/>
-                                    ),
+                                    as: PolicyMenuTrigger,
+                                    'aria-label': policyMenuLabel,
+                                    children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                                }}
+                                menuButtonTooltip={{
+                                    text: policyMenuLabel,
                                 }}
                                 menu={{
                                     id: `policy-menu-dropdown-${policy.id}`,
-                                    'aria-label': intl.formatMessage({
-                                        id: 'admin.permission_policies.menu.aria_label',
-                                        defaultMessage: 'Policy actions menu',
-                                    }),
+                                    'aria-label': policyMenuLabel,
                                 }}
                             >
                                 <Menu.Item
@@ -307,37 +330,25 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
     };
 
     return (
-        <div className='PolicyTable'>
-            <div className='policy-header'>
-                <div className='policy-header-text'>
-                    <h1>
-                        <FormattedMessage
-                            id='admin.permission_policies.title'
-                            defaultMessage='Permission Policies'
-                        />
-                    </h1>
-                    <p>
-                        <FormattedMessage
-                            id='admin.permission_policies.description'
-                            defaultMessage='Create policies to control file upload and download permissions based on user attributes.'
-                        />
-                    </p>
-                </div>
+        <AdminPanel
+            id='permission_policies'
+            className='PolicyTable'
+            title={panelMessages.title}
+            subtitle={panelMessages.description}
+            button={
                 <Button
                     emphasis='primary'
                     onClick={() => {
                         history.push('/admin_console/system_attributes/permission_policies/edit_policy');
                     }}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
                     <span>
-                        <FormattedMessage
-                            id='admin.permission_policies.add_policy'
-                            defaultMessage='Add policy'
-                        />
+                        <FormattedMessage {...panelMessages.addPolicy}/>
                     </span>
                 </Button>
-            </div>
+            }
+        >
             <DataGrid
                 columns={columns}
                 rows={rows}
@@ -352,6 +363,6 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                 nextPage={nextPage}
                 previousPage={previousPage}
             />
-        </div>
+        </AdminPanel>
     );
 }

@@ -47,7 +47,6 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
                         defaultMessage='Allow only users with a specific email domain to join this team'
                     />
                 }
-                data-testid='allowedDomainsCheckbox'
                 className='access-allowed-domains-section'
                 title={formatMessage({
                     id: 'general_tab.AllowedDomainsTitle',
@@ -58,7 +57,10 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
                     defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
                 })}
                 descriptionAboveContent={true}
-                inputFieldData={{name: 'showAllowedDomains'}}
+                inputFieldData={{
+                    name: 'showAllowedDomains',
+                    dataTestId: 'allowedDomainsCheckbox',
+                }}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
             />

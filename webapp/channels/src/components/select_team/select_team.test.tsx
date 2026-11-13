@@ -3,7 +3,6 @@
 
 import React from 'react';
 
-import type {CloudUsage} from '@mattermost/types/cloud';
 import type {Team} from '@mattermost/types/teams';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
@@ -41,19 +40,11 @@ describe('components/select_team/SelectTeam', () => {
             addUserToTeam: jest.fn().mockResolvedValue({data: true}),
         },
         totalTeamsCount: 15,
-        isCloud: false,
-        isFreeTrial: false,
-        usageDeltas: {
-            teams: {
-                active: Number.MAX_VALUE,
-            },
-        } as CloudUsage,
     };
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const props = {...baseProps};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-        expect(container).toMatchSnapshot();
+        renderWithContext(<SelectTeam {...props}/>);
 
         // on componentDidMount
         expect(props.actions.getTeams).toHaveBeenCalledTimes(1);
@@ -61,7 +52,7 @@ describe('components/select_team/SelectTeam', () => {
         expect(props.actions.loadRolesIfNeeded).toHaveBeenCalledWith(baseProps.currentUserRoles.split(' '));
     });
 
-    test('should match snapshot, on loading', async () => {
+    test('should render on loading', async () => {
         const addUserToTeam = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves to keep loading state
         const props = {
             ...baseProps,
@@ -70,7 +61,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        renderWithContext(<SelectTeam {...props}/>);
 
         // Click on a team to trigger loading state
         await userEvent.click(screen.getByText('Team A'));
@@ -78,11 +69,9 @@ describe('components/select_team/SelectTeam', () => {
         await waitFor(() => {
             expect(screen.getByText('Loading')).toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on error', async () => {
+    test('should render on error', async () => {
         const addUserToTeam = jest.fn().mockResolvedValue({error: {message: 'error message'}});
         const props = {
             ...baseProps,
@@ -91,7 +80,7 @@ describe('components/select_team/SelectTeam', () => {
                 addUserToTeam,
             },
         };
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
+        renderWithContext(<SelectTeam {...props}/>);
 
         // Click on a team to trigger error state
         await userEvent.click(screen.getByText('Team A'));
@@ -99,26 +88,6 @@ describe('components/select_team/SelectTeam', () => {
         await waitFor(() => {
             expect(screen.getByText('error message')).toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on no joinable team but can create team', () => {
-        const props = {...baseProps, listableTeams: []};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on no joinable team and is not system admin nor can create team', () => {
-        const props = {...baseProps, listableTeams: [], currentUserRoles: '', canManageSystem: false, canCreateTeams: false};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on no joinable team and user is guest', () => {
-        const props = {...baseProps, listableTeams: [], currentUserRoles: '', currentUserIsGuest: true, canManageSystem: false, canCreateTeams: false};
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-        expect(container).toMatchSnapshot();
     });
 
     test('should match state and call addUserToTeam on team click', async () => {
@@ -176,23 +145,6 @@ describe('components/select_team/SelectTeam', () => {
         await waitFor(() => {
             expect(screen.queryByText('error message')).not.toBeInTheDocument();
         });
-    });
-
-    test('should match snapshot, on create team restricted', () => {
-        const props = {
-            ...baseProps,
-            isCloud: true,
-            isFreeTrial: false,
-            usageDeltas: {
-                teams: {
-                    active: 0,
-                },
-            } as CloudUsage,
-        };
-
-        const {container} = renderWithContext(<SelectTeam {...props}/>);
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should filter out group-constrained teams from joinable teams list', () => {

@@ -5,6 +5,7 @@ import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
+import type {Page} from '@playwright/test';
 
 // Channel attributes share the access_control group with Classification Markings.
 export const GROUP = 'access_control';
@@ -20,7 +21,7 @@ export const DISPLAY_BANNER_TOP = 'display_banner_top';
 
 type CreateOptions = {
     objectType?: 'channel' | 'user';
-    type?: 'select' | 'multiselect' | 'text';
+    type?: 'select' | 'multiselect' | 'text' | 'rank';
     options?: string[];
 
     required?: boolean;
@@ -36,6 +37,10 @@ type CreateOptions = {
 
     sortOrder?: number;
     optionColors?: Record<string, string>;
+
+    // Rank fields only. The server requires a positive, unique rank on every option,
+    // so unlisted options take their 1-based position.
+    optionRanks?: Record<string, number>;
 };
 
 // The server validates field names as CEL identifiers, so anything that is not
@@ -57,6 +62,7 @@ export async function createAttribute(
         permissionValues = 'member',
         sortOrder,
         optionColors,
+        optionRanks,
     }: CreateOptions = {},
 ): Promise<PropertyField> {
     const field: Record<string, unknown> = {
@@ -72,10 +78,11 @@ export async function createAttribute(
     const attrs: Record<string, unknown> = {};
 
     if (options.length) {
-        attrs.options = options.map((optionName) => ({
+        attrs.options = options.map((optionName, index) => ({
             id: '',
             name: optionName,
             ...(optionColors?.[optionName] ? {color: optionColors[optionName]} : {}),
+            ...(type === 'rank' ? {rank: optionRanks?.[optionName] ?? index + 1} : {}),
         }));
     }
     if (required !== undefined) {
@@ -108,6 +115,23 @@ export async function setChannelValue(
     await client.patchPropertyValues(GROUP, 'channel', channelId, [
         {field_id: field.id, value} as Parameters<Client4['patchPropertyValues']>[3][number],
     ]);
+}
+
+/**
+ * Hands an attribute's values to an integration, so the server refuses every
+ * later write by a session user.
+ *
+ * Applied after the fixture's own writes rather than at create time, because
+ * once the owners land not even a system admin can seed a value.
+ */
+export async function assignAttributeOwner(
+    adminClient: Client4,
+    field: PropertyField,
+    ownerId: string,
+): Promise<PropertyField> {
+    return adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
+        attrs: {owners: [{id: ownerId, type: 'plugin', scopes: []}]},
+    });
 }
 
 export async function createChannelForAttributes(
@@ -166,6 +190,17 @@ export function valueFor(values: Array<PropertyValue<unknown>>, field: PropertyF
     return values.find((value) => value.field_id === field.id)?.value;
 }
 
+// Counts channel-create requests, for proving a key press did or didn't confirm the modal.
+export function trackChannelCreates(page: Page): () => number {
+    let count = 0;
+    page.on('request', (request) => {
+        if (request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/channels')) {
+            count++;
+        }
+    });
+    return () => count;
+}
+
 export async function deleteAttributes(adminClient: Client4, fields: PropertyField[]): Promise<void> {
     for (const field of fields) {
         try {
@@ -178,7 +213,7 @@ export async function deleteAttributes(adminClient: Client4, fields: PropertyFie
 export async function purgeAttributes(adminClient: Client4): Promise<void> {
     for (const objectType of ['channel', 'user'] as const) {
         try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, TARGET_TYPE);
+            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: TARGET_TYPE});
             const stale = (fields ?? []).filter(
                 (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
             );
@@ -197,7 +232,7 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
  * deletes a field someone meant to keep.
  */
 export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
-    const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});
+    const fields = await adminClient.getPropertyFields(GROUP, 'channel', {targetType: TARGET_TYPE, perPage: 200});
     const foreign = (fields ?? []).filter(
         (field) => field.delete_at === 0 && field.attrs?.required === true && !field.name.startsWith(FIELD_PREFIX),
     );

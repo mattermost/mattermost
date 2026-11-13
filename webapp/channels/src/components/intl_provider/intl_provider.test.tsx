@@ -141,4 +141,32 @@ describe('components/IntlProvider', () => {
 
         expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
+
+    test('on locale change, should update the lang attribute to the current locale', () => {
+        const props = {
+            ...baseProps,
+            actions: {
+                loadTranslations: jest.fn(),
+            },
+        };
+
+        const {rerender} = render(<IntlProvider {...props}/>);
+
+        expect(document.documentElement.lang).toBe('en');
+
+        act(() => {
+            rerender(
+                <IntlProvider
+                    {...props}
+                    locale='fr'
+                    translations={{
+                        'test.hello_world': 'Bonjour tout le monde!',
+                    }}
+                />,
+            );
+        });
+
+        expect(document.documentElement.lang).toBe('fr');
+    });
 });
+

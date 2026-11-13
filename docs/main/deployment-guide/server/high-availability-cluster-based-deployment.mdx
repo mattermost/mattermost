@@ -268,8 +268,7 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
    sudo dnf install nginx
    ```
 
-2. **Configure high availability backend:** Create an NGINX configuration that defines all Mattermost servers in the cluster with high-performance settings optimized for high availability deployments.
-
+2. **Configure NGINX:** Create the site file with all Mattermost servers in the `upstream` block. The locations and the cache are the ones from [Set up an NGINX proxy](/deployment-guide/server/setup-nginx-proxy). This site file listens on port 80. For HTTPS, use the site file from that page and replace its single-server `upstream` block with the `upstream` block from this script.
    Set configuration variables for your environment:
 
    ```bash
@@ -287,89 +286,71 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
    MM_DOMAIN="mattermost.example.com"
    ```
 
-   Create the NGINX configuration file with high-performance settings:
+   Create the cache directory with the right permissions. Use `nginx` instead of `www-data` on RHEL/CentOS:
+
+   ```bash
+   sudo mkdir -p /var/cache/nginx
+   sudo chown -R www-data:www-data /var/cache/nginx
+   ```
+
+   Create the NGINX configuration file:
 
    ```bash
    sudo tee "$NGINX_CONF" > /dev/null <<EOF
-   upstream backend {
-         server ${MM_SERVER_1}:8065 max_fails=0;
-         server ${MM_SERVER_2}:8065 max_fails=0;
-         keepalive 256;
-   }
-
+   # cache for static files, used by location /
    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=mattermost_cache:10m max_size=3g inactive=120m use_temp_path=off;
 
+   upstream backend {
+       server ${MM_SERVER_1}:8065 max_fails=3 fail_timeout=10s;           # first node, skipped after three failures
+       server ${MM_SERVER_2}:8065 max_fails=3 fail_timeout=10s;           # second node, same failure handling
+       keepalive 32;                                                      # reuse up to 32 idle connections to Mattermost
+       keepalive_timeout 55s;                                             # close idle ones before Mattermost's 60s limit
+   }
+
    server {
-     listen 80 reuseport;
-     server_name ${MM_DOMAIN};
+       listen 80 reuseport;                                               # plain HTTP on IPv4
+       listen [::]:80 reuseport;                                          # plain HTTP on IPv6
+       server_name ${MM_DOMAIN};                                          # your domain name
 
-     location ~ /api/v[0-9]+/(users/)?websocket$ {
-           proxy_set_header Upgrade \$http_upgrade;
-           proxy_set_header Connection "upgrade";
-           client_max_body_size 50M;
-           proxy_set_header Host \$http_host;
-           proxy_set_header X-Real-IP \$remote_addr;
-           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto \$scheme;
-           proxy_set_header X-Frame-Options SAMEORIGIN;
-           proxy_buffers 256 16k;
-           proxy_buffer_size 16k;
-           client_body_timeout 60s;
-           send_timeout        300s;
-           lingering_timeout   5s;
-           proxy_connect_timeout   90s;
-           proxy_send_timeout      300s;
-           proxy_read_timeout      90s;
-           proxy_http_version 1.1;
-           proxy_pass http://backend;
-     }
+       location ~ /api/v[0-9]+/websocket/?\$ {
+           proxy_http_version 1.1;                                        # WebSocket upgrade needs HTTP/1.1
+           proxy_set_header Upgrade \$http_upgrade;                       # forward the WebSocket upgrade request
+           proxy_set_header Connection "upgrade";                         # switch the connection to WebSocket
+           proxy_set_header Host \$host;                                  # pass the original host name
+           proxy_set_header X-Real-IP \$remote_addr;                      # the user's real IP address
+           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
+           proxy_set_header X-Forwarded-Proto \$scheme;                   # pass the original scheme
+           proxy_connect_timeout 10s;                                     # give up after 10s, then try the next node
+           proxy_read_timeout 120s;                                       # longer than Mattermost's 60s WebSocket ping
+           proxy_pass http://backend;                                     # forward to Mattermost
+       }
 
-     location ~ /api/v[0-9]+/users/[a-z0-9]+/image\$ {
-           proxy_set_header Connection "";
-           client_max_body_size 50M;
-           proxy_set_header Host \$http_host;
-           proxy_set_header X-Real-IP \$remote_addr;
-           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto \$scheme;
-           proxy_set_header X-Frame-Options SAMEORIGIN;
-           proxy_buffers 256 16k;
-           proxy_buffer_size 16k;
-           proxy_read_timeout 600s;
-           proxy_http_version 1.1;
-           proxy_pass http://backend;
-           proxy_cache mattermost_cache;
-           proxy_cache_revalidate on;
-           proxy_cache_min_uses 2;
-           proxy_cache_use_stale timeout;
-           proxy_cache_lock on;
-           proxy_ignore_headers Cache-Control Expires;
-           proxy_cache_valid 200 24h;
-     }
-
-     location / {
-           proxy_set_header Connection "";
-           client_max_body_size 50M;
-           proxy_set_header Host \$http_host;
-           proxy_set_header X-Real-IP \$remote_addr;
-           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto \$scheme;
-           proxy_set_header X-Frame-Options SAMEORIGIN;
-           proxy_buffers 256 16k;
-           proxy_buffer_size 16k;
-           proxy_read_timeout 600s;
-           proxy_http_version 1.1;
-           proxy_pass http://backend;
-           proxy_cache mattermost_cache;
-           proxy_cache_revalidate on;
-           proxy_cache_min_uses 2;
-           proxy_cache_use_stale timeout;
-           proxy_cache_lock on;
-     }
+       location / {
+           proxy_set_header Host \$host;                                  # pass the original host name
+           proxy_set_header X-Real-IP \$remote_addr;                      # the user's real IP address
+           proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;  # IP chain of all proxies, can be faked
+           proxy_set_header X-Forwarded-Proto \$scheme;                   # pass the original scheme
+           proxy_set_header Connection "";                                # lets NGINX reuse upstream connections
+           proxy_http_version 1.1;                                        # needed for upstream connection reuse
+           proxy_connect_timeout 10s;                                     # give up after 10s, then try the next node
+           proxy_read_timeout 300s;                                       # Mattermost ends requests after 5 minutes
+           proxy_buffer_size 16k;                                         # fits large OAuth and SAML response headers
+           proxy_buffers 8 16k;                                           # required with a 16k proxy_buffer_size
+           client_max_body_size 101M;                                     # allow uploads up to Mattermost's 100 MiB limit
+           proxy_pass http://backend;                                     # forward to Mattermost
+           proxy_cache mattermost_cache;                                  # cache static files
+           proxy_cache_revalidate on;                                     # refresh stale entries with conditional requests
+           proxy_cache_min_uses 2;                                        # cache a file after its second request
+           proxy_cache_use_stale timeout;                                 # serve the cached file if Mattermost times out
+           proxy_cache_lock on;                                           # one request fills the cache for a file
+       }
    }
    EOF
    ```
 
-   This configuration includes high-performance optimizations such as preventing servers from being marked unavailable (`max_fails=0`), user image caching for 24 hours, and extended timeouts for long-running operations. For additional NGINX performance tuning options, including worker process optimization and advanced buffer settings, see the [high-performance scaling configuration](/deployment-guide/server/setup-nginx-proxy#high-performance-scaling-configuration) section.
+   This configuration includes high-performance optimizations such as marking a server unavailable for ten seconds only after three failed attempts (`max_fails=3 fail_timeout=10s`), static file caching, and extended timeouts for long-running operations. For additional NGINX performance tuning options, including worker process optimization and advanced buffer settings, see the [high-performance scaling configuration](/deployment-guide/server/setup-nginx-proxy#high-performance-scaling-configuration) section.
+
+   Add one `server` line to the `upstream` block for each additional Mattermost server in the cluster. Also review the [Mattermost settings behind NGINX](/deployment-guide/server/setup-nginx-proxy#mattermost-settings-behind-nginx), including `TrustedProxyIPHeader`, which applies to every node.
 
 3. **Enable the site configuration:**
 
@@ -385,16 +366,13 @@ For high-scale deployments, the NGINX proxy documentation includes additional **
 4. **Test and apply NGINX configuration:**
 
    ```bash
-   sudo nginx -t
-   sudo systemctl restart nginx
+   sudo nginx -t && sudo systemctl restart nginx
    sudo systemctl enable nginx
    ```
 
-5. **Configure TLS:** For production deployments, configure TLS on your NGINX proxy. See [Set up TLS](/deployment-guide/server/setup-tls) for detailed instructions on configuring TLS with NGINX. You can either use Let's Encrypt for automatic certificate management or provide your own TLS certificates.
+5. **Configure health checks:** The `max_fails=3 fail_timeout=10s` setting on each `server` line makes NGINX skip a node for ten seconds after three failed attempts. One slow request doesn't remove a node from rotation. By default, NGINX retries a request on another node only after an error or timeout while connecting to the node, sending the request or reading the response headers, and only before it sends a response to the client. HTTP 500 and 503 responses are not retried. NGINX does not retry `POST`, `LOCK` and `PATCH` requests once they were sent. A `PUT` or `DELETE` request that times out can be retried on another node, so it may run twice. This is rare. To detect failed servers and remove them from rotation, monitor the Mattermost API endpoint `http://SERVER_IP:8065/api/v4/system/ping` (which returns `Status 200` for healthy servers) using an active health check at your load balancer or monitoring system.
 
-6. **Configure health checks:** The upstream block above sets `max_fails=0`, which disables NGINX's passive quarantining - backends are not marked unavailable based on failed-request counts. Individual failed requests are still retried against other backends via NGINX's default `proxy_next_upstream` behavior. To detect failed servers and remove them from rotation, monitor the Mattermost API endpoint `http://SERVER_IP:8065/api/v4/system/ping` (which returns `Status 200` for healthy servers) using an active health check at your load balancer or monitoring system.
-
-7. **Verify proxy functionality:** Test access through the proxy using your configured domain name and verify traffic is distributed across backend servers by checking Mattermost server logs.
+6. **Verify proxy functionality:** Test access through the proxy using your configured domain name and verify traffic is distributed across backend servers by checking Mattermost server logs.
 
 ### File storage
 
@@ -673,7 +651,40 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
 
    </Important>
 
-2. **Configure read replicas:** Point directly to individual reader instance endpoints (not the reader endpoint). Create a configuration patch file:
+2. **Configure read replicas:** Mattermost supports two ways to point `DataSourceReplicas` at your Aurora readers. Both are valid. Choose based on how often your set of reader instances changes.
+
+   **Option A: Aurora cluster reader endpoint.** Add the reader endpoint as a single entry, and shorten the connection lifetime so read connections keep spreading across reader instances:
+
+   ```bash
+   # Create a configuration patch file
+   cat > /tmp/replica-config.json <<'EOF'
+   {
+     "SqlSettings": {
+       "DataSourceReplicas": [
+         "postgres://username:password@your-cluster.cluster-ro-xxxxx.region.rds.amazonaws.com:5432/mattermost?sslmode=require&connect_timeout=10"
+       ],
+       "ConnMaxLifetimeMilliseconds": 300000
+     }
+   }
+   EOF
+
+   # Apply the configuration
+   mmctl config patch /tmp/replica-config.json
+
+   # Clean up the temporary file
+   rm /tmp/replica-config.json
+   ```
+
+   - **Pros:** The configuration doesn't change when you add, remove, or replace reader instances, so it works with Aurora Replica Auto Scaling. Aurora stops routing new connections to readers that are unavailable. A single entry uses a single connection pool per node.
+   - **Cons:** Aurora balances connections, not queries. The reader endpoint picks a reader instance when a connection opens, and every query on that connection goes to the same instance. With the default [maximum connection lifetime](/administration-guide/configure/environment-configuration-settings#maximum-connection-lifetime) of 1 hour, an uneven split between readers can last up to an hour, and newly added readers receive little traffic until old connections expire. Because there's only one pool, you may also need to raise `MaxOpenConns` to keep the same read capacity. See the next step.
+
+   <Important>
+
+   When using the reader endpoint, set `ConnMaxLifetimeMilliseconds` to between `60000` and `300000` (1 to 5 minutes) so that connections regularly reconnect and rebalance. Use Amazon CloudWatch to compare CPU and connection counts across reader instances, and adjust the value if the load stays uneven.
+
+   </Important>
+
+   **Option B: Individual reader instance endpoints.** Add each reader instance endpoint as a separate entry:
 
    ```bash
    # Create a configuration patch file
@@ -695,11 +706,10 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    rm /tmp/replica-config.json
    ```
 
-   <Note>
+   - **Pros:** Mattermost rotates read queries across the entries one query at a time, which spreads load more evenly than the reader endpoint, regardless of connection lifetime.
+   - **Cons:** The list must be updated every time a reader instance is added, removed, or replaced. New readers receive no traffic until they're added, so this option doesn't work with Aurora Replica Auto Scaling. Mattermost marks a replica offline only after a connection error, not a timeout, and sends reads to the primary only when every listed replica is offline. A reader that becomes unresponsive stays in rotation, and the queries sent to it wait until the [query timeout](/administration-guide/configure/environment-configuration-settings#query-timeout) expires. Each entry also gets its own connection pool, so connection counts grow with the number of readers.
 
-   Use **individual reader instance endpoints** rather than the Aurora reader endpoint. Mattermost has its own load balancing logic for read queries and can failover to the primary connection if reader instances become unavailable.
-
-   </Note>
+   Use Option A if your reader instances change over time or you use Aurora Replica Auto Scaling. Use Option B if your set of reader instances is fixed and you need the most even read load.
 
 3. **Configure connection pool settings:**
 
@@ -709,13 +719,15 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    mmctl config set SqlSettings.MaxIdleConns 50
    ```
 
-   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source, per Mattermost server node**, not as a cluster-wide total: each node opens its own connection pool, sized to `MaxOpenConns`, for the primary database and for each read replica and search replica.
+   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source, per Mattermost server node**, not as a cluster-wide total: each node opens its own connection pool, sized to `MaxOpenConns`, for the primary database and for each entry in `DataSourceReplicas` and `DataSourceSearchReplicas`.
 
-   To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node—the primary counts as 1, then add the number of read replicas and the number of search replicas. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes:
+   A single reader endpoint entry gets a single pool, no matter how many reader instances sit behind it. If you replace several reader instance entries with one reader endpoint entry, raise `MaxOpenConns` and `MaxIdleConns` to keep the same read capacity. For example, replacing 3 instance entries at `MaxOpenConns` 100 needs `MaxOpenConns` 300 to allow the same 300 read connections per node. Because the primary uses the same setting, also confirm the writer's `max_connections` can handle the higher value.
+
+   To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node: the primary counts as 1, then add the number of entries in `DataSourceReplicas` and `DataSourceSearchReplicas`. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes:
 
    `MaxOpenConns` x (data sources per node) x (number of app nodes)
 
-   For example, with one primary and two read replicas, each node has 3 data sources. Across a 3-node cluster, at the default `MaxOpenConns` of 100, that's 3 x 3 x 100 = 900 possible connections.
+   For example, with one primary and two reader instance entries, each node has 3 data sources. Across a 3-node cluster, at the default `MaxOpenConns` of 100, that's 3 x 3 x 100 = 900 possible connections.
 
 4. **Verify database configuration:** Restart Mattermost and check that database connections are healthy:
 

@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 
@@ -23,6 +22,8 @@ import * as Keyboard from 'utils/keyboard';
 import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIcon, UrgentIcon, AcknowledgementIcon, PersistentNotificationsIcon, Footer} from './post_priority_picker_item';
 
 import './post_priority_picker.scss';
+
+const PostPriorityMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type Props = {
     settings?: PostPriorityMetadata;
@@ -238,20 +239,11 @@ function PostPriorityPicker({
         <Menu.Container
             menuButton={{
                 id: 'messagePriority',
-                as: 'div',
-                children: (
-                    <IconContainer
-                        id='messagePriority'
-                        className={classNames({control: true, active: pickerOpen})}
-                        disabled={disabled}
-                        type='button'
-                        aria-label={messagePriority}
-                    >
-                        <AlertCircleOutlineIcon
-                            size={18}
-                            color='currentColor'
-                        />
-                    </IconContainer>),
+                as: PostPriorityMenuTrigger,
+                class: 'control',
+                disabled,
+                'aria-label': messagePriority,
+                children: <Icon glyph={<AlertCircleOutlineIcon/>}/>,
             }}
             menu={{
                 id: 'post.priority.dropdown',

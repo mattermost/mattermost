@@ -2,6 +2,7 @@
 title: "Example plugins"
 sidebar_position: 90
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 ## Server "Hello, world!"
 
@@ -23,7 +24,7 @@ To see a stripped down version of the demo plugin with just the build scripts an
 
 The [Zoom plugin for Mattermost](https://github.com/mattermost/mattermost-plugin-zoom) adds UI elements that allow users to easily create and join Zoom meetings:
 
-<img src="/img/extend/zoom-plugin-screenshot.png" width="445" height="295" />
+<img src={useBaseUrl('/img/extend/zoom-plugin-screenshot.png')} width="445" height="295" />
 
 Topics demonstrated:
 
@@ -37,7 +38,7 @@ Topics demonstrated:
 
 The [JIRA plugin for Mattermost](https://github.com/mattermost/mattermost-plugin-jira) creates a webhook that your JIRA server can use to post messages to Mattermost when issues are created:
 
-<img src="/img/extend/jira-plugin-screenshot.png" width="445" height="263" />
+<img src={useBaseUrl('/img/extend/jira-plugin-screenshot.png')} width="445" height="263" />
 
 Topics demonstrated:
 
@@ -59,7 +60,7 @@ Topics demonstrated:
 
 The [Memes plugin for Mattermost](https://github.com/mattermost/mattermost-plugin-memes) creates a slash command that can be used to create dank memes:
 
-<img src="/img/extend/memes-plugin-screenshot.png" width="445" height="325" />
+<img src={useBaseUrl('/img/extend/memes-plugin-screenshot.png')} width="445" height="325" />
 
 Topics demonstrated:
 

@@ -11,7 +11,7 @@ import {TestHelper} from 'utils/test_helper';
 jest.mock('components/suggestion/suggestion_box', () => {
     // Use require inside the factory: jest hoists mocks before imports run, and babel-plugin-jest-hoist
     // forbids non-mock-prefixed outer variables (e.g. React). Cast so forwardRef accepts generics (TS2347).
-    const react = require('react') as typeof import('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
+    const react = require('react') as typeof import('react');
     const MockSuggestionBox = react.forwardRef<HTMLTextAreaElement, any>((props: any, ref: any) => (
         <textarea
             ref={ref}
@@ -90,58 +90,6 @@ describe('components/TextBox', () => {
         characterLimit: 0,
     };
 
-    test('should match snapshot with required props', () => {
-        const emptyFunction = jest.fn();
-        const props = {
-            ...baseProps,
-            id: 'someid',
-            value: 'some test text',
-            onChange: emptyFunction,
-            onKeyPress: emptyFunction,
-            characterLimit: 400,
-            createMessage: 'placeholder text',
-            supportsCommands: false,
-        };
-
-        const {container} = renderWithContext(
-            <Textbox {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with additional, optional props', () => {
-        const emptyFunction = jest.fn();
-        const props = {
-            ...baseProps,
-            id: 'someid',
-            value: 'some test text',
-            onChange: emptyFunction,
-            onKeyPress: emptyFunction,
-            characterLimit: 4000,
-            createMessage: 'placeholder text',
-            supportsCommands: false,
-            rootId: 'root_id',
-            onCompositionUpdate: jest.fn().mockReturnValue({}),
-            onHeightChange: jest.fn().mockReturnValue({}),
-            onKeyDown: jest.fn().mockReturnValue({}),
-            onMouseUp: jest.fn().mockReturnValue({}),
-            onKeyUp: jest.fn().mockReturnValue({}),
-            onBlur: jest.fn().mockReturnValue({}),
-            handlePostError: jest.fn().mockReturnValue({}),
-            suggestionListPosition: 'top' as const,
-            emojiEnabled: true,
-            disabled: true,
-            badConnection: true,
-            preview: true,
-            openWhenEmpty: true,
-        };
-
-        const {container} = renderWithContext(
-            <Textbox {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should throw error when value is too long', () => {
         const emptyFunction = jest.fn();
 
@@ -163,12 +111,11 @@ describe('components/TextBox', () => {
             handlePostError,
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <Textbox {...props}/>,
         );
 
         expect(gotError).toEqual(true);
-        expect(container).toMatchSnapshot();
     });
 
     test('should throw error when new property is too long', () => {
@@ -192,7 +139,7 @@ describe('components/TextBox', () => {
             handlePostError,
         };
 
-        const {container, rerender} = renderWithContext(
+        const {rerender} = renderWithContext(
             <Textbox {...props}/>,
         );
 
@@ -206,6 +153,5 @@ describe('components/TextBox', () => {
         );
 
         expect(gotError).toEqual(true);
-        expect(container).toMatchSnapshot();
     });
 });

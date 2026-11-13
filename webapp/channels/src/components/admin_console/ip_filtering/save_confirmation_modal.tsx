@@ -6,7 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import ExternalLink from 'components/external_link';
 
@@ -77,7 +77,7 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
                     data-testid='save-confirmation-button'
                     type='button'
                     emphasis='primary'
-                    variant='destructive'
+                    destructive={true}
                     onClick={() => onConfirm?.()}
                 >
                     {buttonText}

@@ -67,7 +67,7 @@ type RemoteClusterServiceIFace interface {
 	SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendMsgResultFunc) error
 	SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error
 	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
-	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error)
+	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, *model.AppError)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
 	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
 	PingNow(rc *model.RemoteCluster)
@@ -83,13 +83,16 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 
 // Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
-	server      ServerIface
-	app         AppIface
-	httpClient  *http.Client
-	send        []chan any
-	done        chan struct{} // signals sendLoop workers to stop; lifecycle: Start -> Shutdown
-	active      atomic.Bool   // true after Start(), false after Shutdown()
-	disablePing bool          // when true, pingStart skips launching the ping loop; for testing
+	server     ServerIface
+	app        AppIface
+	httpClient *http.Client
+	// uploadClient sends each upload on a new connection: a pooled one may already be dropped by
+	// the remote, and a replayed upload can collide with the partial write of the first attempt.
+	uploadClient *http.Client
+	send         []chan any
+	done         chan struct{} // signals sendLoop workers to stop; lifecycle: Start -> Shutdown
+	active       atomic.Bool   // true after Start(), false after Shutdown()
+	disablePing  bool          // when true, pingStart skips launching the ping loop; for testing
 
 	syncFailedSinceLastPing sync.Map // set of remoteIds (string) with a pending sync failure; presence is the marker
 
@@ -136,10 +139,18 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 		Timeout:   SendTimeout,
 	}
 
+	uploadTransport := transport.Clone()
+	uploadTransport.DisableKeepAlives = true
+	uploadClient := &http.Client{
+		Transport: uploadTransport,
+		Timeout:   SendTimeout,
+	}
+
 	service := &Service{
 		server:                   server,
 		app:                      app,
 		httpClient:               client,
+		uploadClient:             uploadClient,
 		topicListeners:           make(map[string]map[string]TopicListener),
 		connectionStateListeners: make(map[string]ConnectionStateListener),
 	}

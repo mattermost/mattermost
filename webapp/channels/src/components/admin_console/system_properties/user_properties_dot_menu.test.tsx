@@ -284,7 +284,7 @@ describe('UserPropertyDotMenu', () => {
 
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
-        expect(within(editableItem).getByRole('button')).toBeEnabled();
+        expect(within(editableItem).getByRole('switch')).toBeEnabled();
         expect(screen.queryByText('Synced attributes are managed by AD/LDAP or SAML')).not.toBeInTheDocument();
     });
 
@@ -305,7 +305,7 @@ describe('UserPropertyDotMenu', () => {
 
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
-        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(within(editableItem).getByRole('switch')).toBeDisabled();
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
@@ -347,7 +347,7 @@ describe('UserPropertyDotMenu', () => {
 
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
-        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(within(editableItem).getByRole('switch')).toBeDisabled();
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
@@ -369,7 +369,7 @@ describe('UserPropertyDotMenu', () => {
 
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
-        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(within(editableItem).getByRole('switch')).toBeDisabled();
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
     });
 
@@ -390,7 +390,7 @@ describe('UserPropertyDotMenu', () => {
 
         const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
-        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(within(editableItem).getByRole('switch')).toBeDisabled();
         expect(screen.getByText('This attribute is managed by an integration')).toBeInTheDocument();
 
         expect(screen.getByText('Link attribute to AD/LDAP')).toBeInTheDocument();
@@ -438,7 +438,7 @@ describe('UserPropertyDotMenu', () => {
 
         // everything else stays editable
         expect(screen.getByRole('menuitem', {name: /Visibility/})).not.toHaveAttribute('aria-disabled', 'true');
-        expect(within(screen.getByRole('menuitemcheckbox', {name: /Editable by users/})).getByRole('button')).toBeEnabled();
+        expect(within(screen.getByRole('menuitemcheckbox', {name: /Editable by users/})).getByRole('switch')).toBeEnabled();
         expect(screen.getByRole('menuitem', {name: /Duplicate attribute/})).not.toHaveAttribute('aria-disabled', 'true');
         expect(screen.getByRole('menuitem', {name: /Delete attribute/})).not.toHaveAttribute('aria-disabled', 'true');
     });

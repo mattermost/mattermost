@@ -80,11 +80,11 @@ describe('components/TeamSettings', () => {
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
     });
 
-    test('should not render allowed domains checkbox if no permissions for team inviting', () => {
-        const props = {...defaultProps, canInviteTeamMembers: false};
-        renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsCheckbox = screen.queryByTestId('allowedDomainsCheckbox');
-        expect(allowedDomainsCheckbox).toBeNull();
+    test('should still render allowed domains checkbox if no permissions for team inviting', () => {
+        // Allowed domains is independent of INVITE_USER; only the invite section is gated.
+        renderWithContext(<AccessTab {...defaultProps}/>);
+        expect(screen.getByTestId('allowedDomainsCheckbox')).toBeInTheDocument();
+        expect(screen.queryByTestId('teamInviteContainer')).toBeNull();
     });
 
     test('should not show allowed domains input if allowed domains is empty', () => {

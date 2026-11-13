@@ -9,8 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {SelfHostedProducts} from 'utils/constants';
-import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
 import {InviteType} from './invite_as';
@@ -121,19 +119,6 @@ describe('InviteView', () => {
             preferences: {
                 myPreferences: {},
             },
-            hostedCustomer: {
-                products: {
-                    productsLoaded: true,
-                    products: {
-                        prod_professional: TH.getProductMock({
-                            id: 'prod_professional',
-                            name: 'Professional',
-                            sku: SelfHostedProducts.PROFESSIONAL,
-                            price_per_seat: 7.5,
-                        }),
-                    },
-                },
-            },
             limits: {
                 serverLimits: {},
             },
@@ -182,6 +167,21 @@ describe('InviteView', () => {
             usersLoader,
         };
     }
+
+    it('calls onClose when the header close control is clicked', async () => {
+        const onClose = jest.fn();
+        renderWithContext(
+            <InviteView
+                {...props}
+                onClose={onClose}
+            />,
+            state,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
 
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
         renderWithContext(

@@ -168,6 +168,24 @@ func (_m *ScheduledRecapStore) MarkExecuted(id string, lastRunAt int64, nextRunA
 	return r0
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userId
+func (_m *ScheduledRecapStore) PermanentDeleteByUser(userId string) error {
+	ret := _m.Called(userId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: scheduledRecap
 func (_m *ScheduledRecapStore) Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error) {
 	ret := _m.Called(scheduledRecap)

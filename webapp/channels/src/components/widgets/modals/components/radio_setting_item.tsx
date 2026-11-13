@@ -4,6 +4,8 @@
 import type {ReactNode, JSX} from 'react';
 import React from 'react';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
+
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
@@ -35,21 +37,18 @@ function RadioSettingItem({
 }: Props): JSX.Element {
     const fields = inputFieldData.options.map((option) => {
         return (
-            <label
+            <Radio
                 key={option.key}
+                id={option.key}
+                data-testid={option.dataTestId}
                 className='mm-modal-generic-section-item__label-radio'
+                name={option.name}
+                checked={option.value === inputFieldValue}
+                value={option.value}
+                onChange={handleChange}
             >
-                <input
-                    id={option.key}
-                    data-testid={option.dataTestId}
-                    type='radio'
-                    name={option.name}
-                    checked={option.value === inputFieldValue}
-                    value={option.value}
-                    onChange={handleChange}
-                />
                 {option.title}
-            </label>
+            </Radio>
         );
     });
 

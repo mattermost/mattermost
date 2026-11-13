@@ -4,9 +4,12 @@
 package storetest
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,19 +23,29 @@ import (
 
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
+	t.Run("CreatePropertyFieldPermissions", func(t *testing.T) { testCreatePropertyFieldPermissions(t, rctx, ss, s) })
+	t.Run("ReverseLookupGrants", func(t *testing.T) { testReverseLookupGrants(t, rctx, ss) })
+	t.Run("ValidateMaskByFieldID", func(t *testing.T) { testValidateMaskByFieldID(t, rctx, ss) })
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
+	t.Run("UpdatePropertyFieldPermissions", func(t *testing.T) { testUpdatePropertyFieldPermissions(t, rctx, ss, s) })
+	t.Run("LegacyPermissionColumns", func(t *testing.T) { testPropertyFieldLegacyPermissionColumns(t, rctx, ss, s) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
+	t.Run("DeletePropertyFieldPermissions", func(t *testing.T) { testDeletePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
+	t.Run("GetFieldsMissingPermissions", func(t *testing.T) { testGetFieldsMissingPermissions(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
 	t.Run("GetLinkedFields", func(t *testing.T) { testGetLinkedFields(t, rctx, ss) })
 	t.Run("UpdateWithLinkedDependents", func(t *testing.T) { testUpdateWithLinkedDependents(t, rctx, ss) })
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
+	t.Run("SearchGlobalAttributeListing", func(t *testing.T) { testSearchGlobalAttributeListing(t, rctx, ss) })
+	t.Run("GetLiveLinkedFieldsByObjectTypes", func(t *testing.T) { testGetLiveLinkedFieldsByObjectTypes(t, ss) })
+	t.Run("GetLiveUserFieldsByNames", func(t *testing.T) { testGetLiveUserFieldsByNames(t, ss) })
 	t.Run("OptionStorage", func(t *testing.T) { testPropertyFieldOptionStorage(t, rctx, ss, s) })
 	t.Run("OptionEdges", func(t *testing.T) { testPropertyFieldOptionEdges(t, rctx, ss, s) })
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
@@ -198,6 +211,343 @@ func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testCreatePropertyFieldPermissions(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	type grantRow struct {
+		Type   string `db:"type"`
+		ID     string `db:"id"`
+		Action string `db:"action"`
+	}
+	selectGrantRows := func(t *testing.T, fieldID string) []grantRow {
+		t.Helper()
+		var rows []grantRow
+		require.NoError(t, s.GetMaster().Select(&rows,
+			"SELECT Type, ID, Action FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return rows
+	}
+
+	t.Run("should store one grants row per action in each grant's allow list", func(t *testing.T) {
+		userID := model.NewId()
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+					},
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+						Allow:    []string{model.PropertyActionValueRead},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 3, countGrants(t, created.ID))
+
+		require.ElementsMatch(t, []grantRow{
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionValueWrite},
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionOptionWrite},
+			{Type: model.PropertyOwnerTypeUser, ID: userID, Action: model.PropertyActionValueRead},
+		}, selectGrantRows(t, created.ID))
+	})
+
+	t.Run("should write a grants row once when several grants map to it", func(t *testing.T) {
+		pluginID := model.NewId()
+		grants := []model.Grant{
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+				Scopes:   []string{"entra"},
+				Allow:    []string{model.PropertyActionValueRead, model.PropertyActionValueWrite},
+			},
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: pluginID},
+				Scopes:   []string{"okta"},
+				Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionValueWrite},
+			},
+		}
+		field := &model.PropertyField{
+			GroupID:     model.NewId(),
+			Name:        "Field with overlapping grants",
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeTemplate,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{Grants: grants},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		require.ElementsMatch(t, []grantRow{
+			{Type: model.PropertyOwnerTypePlugin, ID: pluginID, Action: model.PropertyActionValueRead},
+			{Type: model.PropertyOwnerTypePlugin, ID: pluginID, Action: model.PropertyActionValueWrite},
+		}, selectGrantRows(t, created.ID))
+
+		// The column still holds both grants, scopes and all.
+		stored, err := ss.PropertyField().Get(rctx, created.GroupID, created.ID)
+		require.NoError(t, err)
+		require.Equal(t, grants, stored.Permissions.Grants)
+
+		// An update runs the same sync.
+		stored.Name = "Field with overlapping grants, renamed"
+		_, err = ss.PropertyField().Update(stored.GroupID, []*model.PropertyField{stored}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, countGrants(t, created.ID))
+	})
+
+	t.Run("should store NULL permissions and no grants when Permissions is nil", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Field without permissions",
+			Type:    model.PropertyFieldTypeText,
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Permissions FROM PropertyFields WHERE ID = $1", created.ID))
+		require.False(t, stored.Valid)
+	})
+}
+
+func testReverseLookupGrants(t *testing.T, rctx request.CTX, ss store.Store) {
+	roleID := model.NewId()
+	userID := model.NewId()
+
+	field := &model.PropertyField{
+		GroupID:    model.NewId(),
+		Name:       "Field with grants",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+					Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+				},
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+					Allow:    []string{model.PropertyActionValueRead},
+				},
+			},
+		},
+	}
+	created, err := ss.PropertyField().Create(field)
+	require.NoError(t, err)
+
+	otherField := &model.PropertyField{
+		GroupID: model.NewId(),
+		Name:    "Field without grants",
+		Type:    model.PropertyFieldTypeText,
+	}
+	_, err = ss.PropertyField().Create(otherField)
+	require.NoError(t, err)
+
+	t.Run("GetFieldsByGrant", func(t *testing.T) {
+		fieldIDs, err := ss.PropertyField().GetFieldsByGrant(rctx, model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueWrite)
+		require.NoError(t, err)
+		require.Equal(t, []string{created.ID}, fieldIDs)
+
+		fieldIDs, err = ss.PropertyField().GetFieldsByGrant(rctx, model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueRead)
+		require.NoError(t, err)
+		require.Empty(t, fieldIDs)
+	})
+
+	t.Run("GetGrantsForField", func(t *testing.T) {
+		grants, err := ss.PropertyField().GetGrantsForField(rctx, created.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []model.Grant{
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+				Allow:    []string{model.PropertyActionOptionWrite, model.PropertyActionValueWrite},
+			},
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+				Allow:    []string{model.PropertyActionValueRead},
+			},
+		}, grants)
+
+		grants, err = ss.PropertyField().GetGrantsForField(rctx, model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, grants)
+	})
+
+	t.Run("HasGrantForIdentity", func(t *testing.T) {
+		has, err := ss.PropertyField().HasGrantForIdentity(rctx, model.PropertyOwnerTypeUser, userID)
+		require.NoError(t, err)
+		require.True(t, has)
+
+		has, err = ss.PropertyField().HasGrantForIdentity(rctx, model.PropertyOwnerTypeUser, model.NewId())
+		require.NoError(t, err)
+		require.False(t, has)
+	})
+}
+
+func testValidateMaskByFieldID(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	t.Run("mask_by_field_id referencing a non-existent field is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Missing target template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: model.NewId()},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "non-existent field")
+	})
+
+	userField, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Unlinked holdings field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	t.Run("mask_by_field_id referencing a field not linked to this template is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Unlinked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: userField.ID},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "not linked")
+	})
+
+	t.Run("mask_by_field_id referencing a non-user field is rejected", func(t *testing.T) {
+		otherTemplate, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Other template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: otherTemplate.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "object_type:user")
+	})
+
+	t.Run("mask_by_field_id referencing a deleted field is rejected", func(t *testing.T) {
+		deletedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Deleted holdings field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		require.NoError(t, ss.PropertyField().Delete(groupID, deletedUserField.ID))
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a deleted field",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: deletedUserField.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "deleted field")
+	})
+
+	t.Run("mask_by_field_id referencing a live, linked user field is accepted", func(t *testing.T) {
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Linked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		linkedFieldID := template.ID
+		linkedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Linked holdings field",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedFieldID,
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: linkedUserField.ID}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+	})
+
+	t.Run("mask_by_field_id referencing a member-writable field is rejected", func(t *testing.T) {
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a writable holdings field",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		linkedFieldID := template.ID
+		writableHoldings, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Member-writable holdings field",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedFieldID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Value: model.ReadWrite{Write: model.PermissionLevelMember}},
+			},
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: writableHoldings.ID}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.ErrorContains(t, err, "write their own holdings")
+	})
+}
+
 // insertPropertyFieldWithNullColumns inserts a property field row that
 // simulates a record created before the migrations that added Protected,
 // Permission*, CreatedBy, and UpdatedBy columns. Those columns are left
@@ -275,6 +625,7 @@ func testGetPropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 		require.Equal(t, fieldID, field.ID)
 		require.Empty(t, field.CreatedBy)
 		require.Empty(t, field.UpdatedBy)
+		require.Nil(t, field.Permissions)
 		require.False(t, field.Protected)
 		require.Nil(t, field.PermissionField)
 		require.Nil(t, field.PermissionValues)
@@ -999,6 +1350,247 @@ func testUpdatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testUpdatePropertyFieldPermissions(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	t.Run("should sync grants and the permissions column to match the updated field", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+					Allow:    []string{model.PropertyActionValueRead, model.PropertyActionOptionRead},
+				},
+			},
+		}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(rctx, "", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, created.Permissions, fetched.Permissions)
+	})
+
+	t.Run("should delete all grants and store NULL when permissions is cleared", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field losing its grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = nil
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(rctx, "", created.ID)
+		require.NoError(t, err)
+		require.Nil(t, fetched.Permissions)
+	})
+}
+
+func testPropertyFieldLegacyPermissionColumns(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	type legacyCols struct {
+		Protected         bool           `db:"protected"`
+		PermissionField   sql.NullString `db:"permissionfield"`
+		PermissionValues  sql.NullString `db:"permissionvalues"`
+		PermissionOptions sql.NullString `db:"permissionoptions"`
+	}
+
+	verifyCols := func(t *testing.T, fieldID string, expected legacyCols) {
+		t.Helper()
+		var actual legacyCols
+		require.NoError(t, s.GetMaster().Get(&actual,
+			"SELECT Protected, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = $1", fieldID))
+
+		require.Equal(t, expected.Protected, actual.Protected)
+		require.Equal(t, expected.PermissionField.String, actual.PermissionField.String)
+		require.Equal(t, expected.PermissionValues.String, actual.PermissionValues.String)
+		require.Equal(t, expected.PermissionOptions.String, actual.PermissionOptions.String)
+	}
+
+	t.Run("should store projected values from Permissions object", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Projected Permissions",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         false,
+			PermissionField:   sql.NullString{String: "admin", Valid: true},
+			PermissionValues:  sql.NullString{String: "member", Valid: true},
+			PermissionOptions: sql.NullString{String: "sysadmin", Valid: true},
+		})
+	})
+
+	t.Run("should store submitted legacy columns when Permissions is nil", func(t *testing.T) {
+		admin := model.PermissionLevelAdmin
+		member := model.PermissionLevelMember
+		sysadmin := model.PermissionLevelSysadmin
+
+		field := &model.PropertyField{
+			GroupID:           model.NewId(),
+			Name:              "Submitted Legacy",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   &admin,
+			PermissionValues:  &member,
+			PermissionOptions: &sysadmin,
+			Protected:         false,
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         false,
+			PermissionField:   sql.NullString{String: "admin", Valid: true},
+			PermissionValues:  sql.NullString{String: "member", Valid: true},
+			PermissionOptions: sql.NullString{String: "sysadmin", Valid: true},
+		})
+	})
+
+	t.Run("should store Protected true when field.write is none", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Protected Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         true,
+			PermissionField:   sql.NullString{String: "none", Valid: true},
+			PermissionValues:  sql.NullString{String: "everyone", Valid: true},
+			PermissionOptions: sql.NullString{String: "everyone", Valid: true},
+		})
+	})
+
+	t.Run("should store PermissionValues everyone when value.write is everyone", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Everyone Value Write",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelEveryone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelAdmin},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         false,
+			PermissionField:   sql.NullString{String: "admin", Valid: true},
+			PermissionValues:  sql.NullString{String: "everyone", Valid: true},
+			PermissionOptions: sql.NullString{String: "admin", Valid: true},
+		})
+	})
+
+	t.Run("should update projected values from Permissions object", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Update Projected",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		field.Permissions.Restrictions.Field.Write = model.PermissionLevelSysadmin
+		field.Permissions.Restrictions.Value.Write = model.PermissionLevelAdmin
+		field.Permissions.Restrictions.Option.Write = model.PermissionLevelMember
+
+		_, err = ss.PropertyField().Update(created.GroupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         false,
+			PermissionField:   sql.NullString{String: "sysadmin", Valid: true},
+			PermissionValues:  sql.NullString{String: "admin", Valid: true},
+			PermissionOptions: sql.NullString{String: "member", Valid: true},
+		})
+	})
+}
+
 func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		err := ss.PropertyField().Delete("", model.NewId())
@@ -1161,6 +1753,41 @@ func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s S
 		edges, err := ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Len(t, edges, 1)
+	})
+}
+
+func testDeletePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should remove grants when the field is deleted", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants to delete",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		var before int
+		require.NoError(t, s.GetMaster().Get(&before,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Equal(t, 1, before)
+
+		require.NoError(t, ss.PropertyField().Delete("", created.ID))
+
+		var after int
+		require.NoError(t, s.GetMaster().Get(&after,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Zero(t, after)
 	})
 }
 
@@ -3536,6 +4163,154 @@ func testUpdateWithLinkedDependents(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 }
 
+func testGetFieldsMissingPermissions(t *testing.T, rctx request.CTX, ss store.Store) {
+	registerGroup := func(t *testing.T, version int) string {
+		t.Helper()
+		group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: version})
+		require.NoError(t, err)
+		return group.ID
+	}
+	v1GroupID := registerGroup(t, model.PropertyGroupVersionV1)
+	v2GroupID := registerGroup(t, model.PropertyGroupVersionV2)
+	v3GroupID := registerGroup(t, model.PropertyGroupVersionV3)
+
+	createField := func(t *testing.T, field *model.PropertyField) *model.PropertyField {
+		t.Helper()
+		if field.Name == "" {
+			field.Name = "Field-" + model.NewId()
+		}
+		if field.Type == "" {
+			field.Type = model.PropertyFieldTypeText
+		}
+		if field.TargetType == "" {
+			field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		return created
+	}
+
+	wantV2 := createField(t, &model.PropertyField{GroupID: v2GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	wantV2Select := createField(t, &model.PropertyField{
+		GroupID:    v2GroupID,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		Type:       model.PropertyFieldTypeSelect,
+		Attrs: map[string]any{
+			"options": []any{
+				map[string]any{"name": "a"},
+				map[string]any{"name": "b"},
+			},
+		},
+	})
+	wantV3 := createField(t, &model.PropertyField{GroupID: v3GroupID, ObjectType: model.PropertyFieldObjectTypeChannel})
+
+	converted := createField(t, &model.PropertyField{
+		GroupID:    v2GroupID,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+				Allow:    []string{model.PropertyActionValueWrite},
+			}},
+		},
+	})
+	deleted := createField(t, &model.PropertyField{GroupID: v2GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	require.NoError(t, ss.PropertyField().Delete(v2GroupID, deleted.ID))
+	psaV1 := createField(t, &model.PropertyField{GroupID: v2GroupID})
+	inV1Group := createField(t, &model.PropertyField{GroupID: v1GroupID, ObjectType: model.PropertyFieldObjectTypeUser})
+	inUnregisteredGroup := createField(t, &model.PropertyField{GroupID: model.NewId(), ObjectType: model.PropertyFieldObjectTypeUser})
+
+	// Other subtests share this database, so only this test's own fields are
+	// asserted on, but every page is walked to check the order holds.
+	fetchAll := func(t *testing.T, cursor model.PropertyFieldSearchCursor, perPage int) []*model.PropertyField {
+		t.Helper()
+		var all []*model.PropertyField
+		for {
+			page, err := ss.PropertyField().GetFieldsMissingPermissions(rctx, cursor, perPage)
+			require.NoError(t, err)
+			require.LessOrEqual(t, len(page), perPage)
+			all = append(all, page...)
+			if len(page) < perPage {
+				return all
+			}
+			last := page[len(page)-1]
+			cursor = model.PropertyFieldSearchCursor{PropertyFieldID: last.ID, CreateAt: last.CreateAt}
+		}
+	}
+	byID := func(fields []*model.PropertyField) map[string]*model.PropertyField {
+		m := make(map[string]*model.PropertyField, len(fields))
+		for _, field := range fields {
+			m[field.ID] = field
+		}
+		return m
+	}
+
+	t.Run("returns only live PSAv2 fields with no permissions object in version 2 and 3 groups", func(t *testing.T) {
+		fetched := byID(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+
+		for _, want := range []*model.PropertyField{wantV2, wantV2Select, wantV3} {
+			require.Contains(t, fetched, want.ID)
+		}
+		for name, unwanted := range map[string]*model.PropertyField{
+			"already converted":    converted,
+			"soft-deleted":         deleted,
+			"PSAv1":                psaV1,
+			"in a version 1 group": inV1Group,
+			"in no known group":    inUnregisteredGroup,
+		} {
+			require.NotContains(t, fetched, unwanted.ID, "a field %s must not be returned", name)
+		}
+		for _, field := range fetched {
+			require.Nil(t, field.Permissions)
+		}
+	})
+
+	t.Run("returns option-bearing fields hydrated like any other read", func(t *testing.T) {
+		fetched := byID(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+		viaGet, err := ss.PropertyField().Get(rctx, v2GroupID, wantV2Select.ID)
+		require.NoError(t, err)
+		require.Equal(t, viaGet, fetched[wantV2Select.ID])
+	})
+
+	t.Run("pages in (CreateAt, Id) order, each field once", func(t *testing.T) {
+		all := fetchAll(t, model.PropertyFieldSearchCursor{}, 1)
+		seen := map[string]bool{}
+		for i, field := range all {
+			require.False(t, seen[field.ID], "field %s returned twice", field.ID)
+			seen[field.ID] = true
+			if i > 0 {
+				prev := all[i-1]
+				require.True(t, prev.CreateAt < field.CreateAt || (prev.CreateAt == field.CreateAt && prev.ID < field.ID),
+					"fields out of (CreateAt, Id) order")
+			}
+		}
+		for _, want := range []*model.PropertyField{wantV2, wantV2Select, wantV3} {
+			require.True(t, seen[want.ID])
+		}
+	})
+
+	t.Run("starts after the cursor", func(t *testing.T) {
+		ids := func(fields []*model.PropertyField) []string {
+			out := make([]string, len(fields))
+			for i, field := range fields {
+				out[i] = field.ID
+			}
+			return out
+		}
+		all := ids(fetchAll(t, model.PropertyFieldSearchCursor{}, 100))
+		at := slices.Index(all, wantV2.ID)
+		require.GreaterOrEqual(t, at, 0)
+
+		after := fetchAll(t, model.PropertyFieldSearchCursor{PropertyFieldID: wantV2.ID, CreateAt: wantV2.CreateAt}, 100)
+		require.Equal(t, all[at+1:], ids(after))
+	})
+
+	t.Run("refuses a page size below one", func(t *testing.T) {
+		_, err := ss.PropertyField().GetFieldsMissingPermissions(rctx, model.PropertyFieldSearchCursor{}, 0)
+		require.Error(t, err)
+	})
+}
+
 func testSearchByLinkedFieldID(t *testing.T, rctx request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
@@ -4891,4 +5666,856 @@ func mustGetOptionEdges(t *testing.T, ss store.Store, fieldID string) []*model.P
 	edges, err := ss.PropertyField().GetOptionEdges(fieldID)
 	require.NoError(t, err)
 	return edges
+}
+
+// listingFixture builds the fields of one Global Attributes listing scenario in a
+// group of its own, so subtests never see each other's rows.
+type listingFixture struct {
+	t       *testing.T
+	ss      store.Store
+	groupID string
+}
+
+func newListingFixture(t *testing.T, ss store.Store) *listingFixture {
+	return &listingFixture{t: t, ss: ss, groupID: model.NewId()}
+}
+
+type listingFieldOption func(*model.PropertyField)
+
+func withAttrs(attrs map[string]any) listingFieldOption {
+	return func(f *model.PropertyField) {
+		if f.Attrs == nil {
+			f.Attrs = model.StringInterface{}
+		}
+		maps.Copy(f.Attrs, attrs)
+	}
+}
+
+func withDisplayName(displayName string) listingFieldOption {
+	return withAttrs(map[string]any{model.PropertyFieldAttrDisplayName: displayName})
+}
+
+func withOwner(ownerType, id string) listingFieldOption {
+	return withAttrs(map[string]any{model.PropertyAttrsOwners: []any{
+		map[string]any{"id": id, "type": ownerType, "scopes": []any{}},
+	}})
+}
+
+func withPluginSource(pluginID string, protected bool) listingFieldOption {
+	return withAttrs(map[string]any{
+		model.PropertyAttrsSourcePluginID: pluginID,
+		model.PropertyAttrsProtected:      protected,
+	})
+}
+
+func (f *listingFixture) create(groupID, objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	field := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       name,
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: objectType,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}
+	for _, opt := range opts {
+		opt(field)
+	}
+	created, err := f.ss.PropertyField().Create(field)
+	require.NoError(f.t, err)
+	return created
+}
+
+func (f *listingFixture) field(objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.create(f.groupID, objectType, name, opts...)
+}
+
+func (f *listingFixture) template(name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.field(model.PropertyFieldObjectTypeTemplate, name, opts...)
+}
+
+func (f *listingFixture) linked(template *model.PropertyField, objectType, name string, opts ...listingFieldOption) *model.PropertyField {
+	f.t.Helper()
+	return f.field(objectType, name, append([]listingFieldOption{func(pf *model.PropertyField) {
+		pf.LinkedFieldID = &template.ID
+	}}, opts...)...)
+}
+
+func (f *listingFixture) remove(field *model.PropertyField) {
+	f.t.Helper()
+	require.NoError(f.t, f.ss.PropertyField().Delete(field.GroupID, field.ID))
+}
+
+var allListingResourceTypes = []string{
+	model.PropertyFieldObjectTypeUser,
+	model.PropertyFieldObjectTypeChannel,
+	model.PropertyFieldObjectTypePost,
+}
+
+// search runs the listing query over every resource type, unless mutate narrows
+// it, and returns the matched field names in listing order.
+func (f *listingFixture) search(rctx request.CTX, mutate ...func(*model.GlobalAttributeListingOpts)) []string {
+	f.t.Helper()
+	opts := model.GlobalAttributeListingOpts{
+		GroupID:              f.groupID,
+		AllowedResourceTypes: allListingResourceTypes,
+	}
+	for _, m := range mutate {
+		m(&opts)
+	}
+	fields, err := f.ss.PropertyField().SearchGlobalAttributeListing(rctx, opts)
+	require.NoError(f.t, err)
+
+	names := make([]string, 0, len(fields))
+	for _, field := range fields {
+		names = append(names, field.Name)
+	}
+	return names
+}
+
+func listingSource(source string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.Source = source }
+}
+
+func listingTerm(term string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.Term = term }
+}
+
+func listingResourceType(resourceType string) func(*model.GlobalAttributeListingOpts) {
+	return func(o *model.GlobalAttributeListingOpts) { o.ResourceType = resourceType }
+}
+
+func testSearchGlobalAttributeListing(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("row set", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		alpha := f.template("alpha")
+		f.linked(alpha, model.PropertyFieldObjectTypeUser, "alpha_user_child")
+		f.linked(alpha, model.PropertyFieldObjectTypeChannel, "alpha_channel_child")
+		f.template("beta")
+		f.field(model.PropertyFieldObjectTypeUser, "gamma_user")
+		f.field(model.PropertyFieldObjectTypeChannel, "delta_channel")
+		f.field(model.PropertyFieldObjectTypePost, "epsilon_post")
+
+		// None of these are rows.
+		f.field(model.PropertyFieldObjectTypeUser, "zeta_team_target", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelTeam)
+			pf.TargetID = model.NewId()
+		})
+		f.field(model.PropertyFieldObjectTypeChannel, "eta_channel_target", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
+			pf.TargetID = model.NewId()
+		})
+		f.template("mu_channel_target_template", func(pf *model.PropertyField) {
+			pf.TargetType = string(model.PropertyFieldTargetLevelChannel)
+			pf.TargetID = model.NewId()
+		})
+		f.remove(f.field(model.PropertyFieldObjectTypeUser, "theta_deleted_user"))
+		f.remove(f.template("iota_deleted_template"))
+		f.create(model.NewId(), model.PropertyFieldObjectTypeTemplate, "kappa_other_group_template")
+		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "lambda_other_group_user")
+
+		t.Run("holds system templates and unlinked system resource fields only", func(t *testing.T) {
+			names := f.search(rctx)
+			require.Equal(t, []string{"alpha", "beta", "delta_channel", "epsilon_post", "gamma_user"}, names)
+		})
+
+		t.Run("leaves out resource fields of a type that is not allowed", func(t *testing.T) {
+			names := f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+			})
+			require.Equal(t, []string{"alpha", "beta", "gamma_user"}, names)
+
+			names = f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost}
+			})
+			require.Equal(t, []string{"alpha", "beta", "delta_channel", "epsilon_post"}, names)
+		})
+
+		t.Run("holds only templates when no resource type is allowed", func(t *testing.T) {
+			for _, allowed := range [][]string{nil, {}} {
+				names := f.search(rctx, func(o *model.GlobalAttributeListingOpts) {
+					o.AllowedResourceTypes = allowed
+				})
+				require.Equal(t, []string{"alpha", "beta"}, names)
+			}
+		})
+
+		t.Run("returns whole property fields", func(t *testing.T) {
+			fields, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, model.GlobalAttributeListingOpts{
+				GroupID:              f.groupID,
+				Term:                 "alpha",
+				AllowedResourceTypes: allListingResourceTypes,
+			})
+			require.NoError(t, err)
+			require.Len(t, fields, 1)
+			require.Equal(t, alpha.ID, fields[0].ID)
+			require.Equal(t, model.PropertyFieldObjectTypeTemplate, fields[0].ObjectType)
+			require.Equal(t, f.groupID, fields[0].GroupID)
+		})
+
+		t.Run("holds nothing for a group with no fields", func(t *testing.T) {
+			empty := newListingFixture(t, ss)
+			names := empty.search(rctx)
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("exclude ids", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		classification := f.template("classification")
+		other := f.template("other")
+		resource := f.field(model.PropertyFieldObjectTypePost, "post_field")
+
+		exclude := func(ids ...string) func(*model.GlobalAttributeListingOpts) {
+			return func(o *model.GlobalAttributeListingOpts) { o.ExcludeIDs = ids }
+		}
+
+		names := f.search(rctx, exclude(classification.ID))
+		require.Equal(t, []string{"other", "post_field"}, names)
+
+		names = f.search(rctx, exclude(classification.ID, resource.ID))
+		require.Equal(t, []string{"other"}, names)
+
+		names = f.search(rctx, exclude(model.NewId()))
+		require.Equal(t, []string{"classification", "other", "post_field"}, names)
+
+		names = f.search(rctx, exclude(classification.ID, other.ID, resource.ID))
+		require.Empty(t, names)
+
+		names = f.search(rctx, listingTerm("classification"), exclude(classification.ID))
+		require.Empty(t, names, "an excluded row stays out when the term matches it")
+	})
+
+	t.Run("term", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		f.template("csv_export", withDisplayName("Quarterly Report"))
+		f.template("plain_name")
+		f.field(model.PropertyFieldObjectTypeUser, "percent", withDisplayName("50% off"))
+		f.field(model.PropertyFieldObjectTypeUser, "underscore", withDisplayName("a_b"))
+		f.field(model.PropertyFieldObjectTypeUser, "lookalike", withDisplayName("axb"))
+		f.field(model.PropertyFieldObjectTypeUser, "backslash", withDisplayName(`c\d`))
+		f.field(model.PropertyFieldObjectTypeUser, "emptydisplay", withDisplayName(""))
+
+		t.Run("matches the display name", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("quarterly"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("matches the name even when a display name is set", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("csv"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("matches a name when the display name is empty", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("emptydisp"))
+			require.Equal(t, []string{"emptydisplay"}, names)
+		})
+
+		t.Run("matches a substring in the middle", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("terly rep"))
+			require.Equal(t, []string{"csv_export"}, names)
+		})
+
+		t.Run("ignores case in the term and the stored value", func(t *testing.T) {
+			for _, term := range []string{"QUARTERLY", "QuArTeRlY", "CSV_EXPORT", "Plain_Name"} {
+				names := f.search(rctx, listingTerm(term))
+				require.Len(t, names, 1, term)
+			}
+		})
+
+		t.Run("matches nothing for an unrelated term", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("zzz-no-such-attribute"))
+			require.Empty(t, names)
+		})
+
+		t.Run("an empty term matches every row", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(""))
+			require.Len(t, names, 7)
+		})
+
+		t.Run("drops an asterisk, the escape character, from the term", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("*"))
+			require.Len(t, names, 7)
+
+			names = f.search(rctx, listingTerm("plain*_name"))
+			require.Equal(t, []string{"plain_name"}, names)
+		})
+
+		t.Run("treats a percent sign literally", func(t *testing.T) {
+			names := f.search(rctx, listingTerm("%"))
+			require.Equal(t, []string{"percent"}, names)
+
+			names = f.search(rctx, listingTerm("50%"))
+			require.Equal(t, []string{"percent"}, names)
+		})
+
+		t.Run("treats an underscore literally", func(t *testing.T) {
+			// Unescaped, "a_b" would also match "axb".
+			names := f.search(rctx, listingTerm("a_b"))
+			require.Equal(t, []string{"underscore"}, names)
+
+			names = f.search(rctx, listingTerm("_"))
+			require.ElementsMatch(t, []string{"csv_export", "plain_name", "underscore"}, names)
+		})
+
+		t.Run("treats a backslash literally", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(`\`))
+			require.Equal(t, []string{"backslash"}, names)
+
+			names = f.search(rctx, listingTerm(`c\d`))
+			require.Equal(t, []string{"backslash"}, names)
+		})
+
+		t.Run("does not let a quote break the query", func(t *testing.T) {
+			names := f.search(rctx, listingTerm(`'; DROP TABLE PropertyFields; --`))
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("source", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// Managed here: no plugin, no sync, no owners.
+		f.template("managed_template")
+		f.field(model.PropertyFieldObjectTypeChannel, "managed_channel")
+		withChildren := f.template("managed_with_plain_child")
+		f.linked(withChildren, model.PropertyFieldObjectTypeUser, "managed_plain_child")
+		// A plugin ID without protection does not make a plugin field.
+		f.field(model.PropertyFieldObjectTypePost, "unprotected_source", withPluginSource("com.example.plugin", false))
+
+		// Plugin through the row's own attrs.
+		f.field(model.PropertyFieldObjectTypeUser, "plugin_protected_user", withPluginSource("com.example.plugin", true))
+		f.template("plugin_protected_template", withPluginSource("com.example.plugin", true))
+		f.field(model.PropertyFieldObjectTypePost, "plugin_protected_post", withPluginSource("com.example.plugin", true))
+
+		// Plugin through an owner.
+		f.field(model.PropertyFieldObjectTypeUser, "plugin_owned_user", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		ownedTemplate := f.template("plugin_owned_template")
+		f.linked(ownedTemplate, model.PropertyFieldObjectTypeUser, "plugin_owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		f.linked(ownedTemplate, model.PropertyFieldObjectTypeChannel, "plugin_owned_channel_child")
+
+		// Owned by something other than a plugin: listed under All only.
+		for _, ownerType := range []string{model.PropertyOwnerTypeService, model.PropertyOwnerTypeRole, model.PropertyOwnerTypeUser} {
+			f.field(model.PropertyFieldObjectTypeUser, ownerType+"_owned_user", withOwner(ownerType, "someone"))
+		}
+		serviceOwned := f.template("service_owned_template")
+		f.linked(serviceOwned, model.PropertyFieldObjectTypeUser, "service_owned_child", withOwner(model.PropertyOwnerTypeService, "svc-sync"))
+
+		// A plugin owner that does not count.
+		deletedOwner := f.template("deleted_owner_template")
+		f.remove(f.linked(deletedOwner, model.PropertyFieldObjectTypeUser, "deleted_owner_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner")))
+		channelOwner := f.template("channel_owner_template")
+		f.linked(channelOwner, model.PropertyFieldObjectTypeChannel, "channel_owner_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+		f.field(model.PropertyFieldObjectTypeChannel, "channel_owner_resource", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		// Synced from an identity source: the definition on the template or the unlinked field itself.
+		f.template("ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail"}))
+		f.template("saml_template", withAttrs(map[string]any{model.PropertyFieldAttrSAML: "email"}))
+		f.template("openid_template", withAttrs(map[string]any{model.PropertyFieldAttrOpenID: "email"}))
+		f.template("ldap_and_saml_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail", model.PropertyFieldAttrSAML: "email"}))
+		f.field(model.PropertyFieldObjectTypeUser, "ldap_user", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+		f.template("blank_ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: ""}))
+		syncedAndOwned := f.template("ldap_and_owned_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "mail"}))
+		f.linked(syncedAndOwned, model.PropertyFieldObjectTypeUser, "ldap_and_owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		t.Run("plugin", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
+			require.Equal(t, []string{
+				"ldap_and_owned_template",
+				"plugin_owned_template",
+				"plugin_owned_user",
+				"plugin_protected_post",
+				"plugin_protected_template",
+				"plugin_protected_user",
+			}, names)
+		})
+
+		t.Run("ldap", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+			require.Equal(t, []string{"ldap_and_owned_template", "ldap_and_saml_template", "ldap_template", "ldap_user"}, names)
+		})
+
+		t.Run("saml", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceSAML))
+			require.Equal(t, []string{"ldap_and_saml_template", "saml_template"}, names)
+		})
+
+		t.Run("openid", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceOpenID))
+			require.Equal(t, []string{"openid_template"}, names)
+		})
+
+		t.Run("managed", func(t *testing.T) {
+			names := f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
+			require.Equal(t, []string{
+				"blank_ldap_template",
+				"channel_owner_resource",
+				"channel_owner_template",
+				"deleted_owner_template",
+				"managed_channel",
+				"managed_template",
+				"managed_with_plain_child",
+				"unprotected_source",
+			}, names)
+		})
+
+		t.Run("no filter lists every row, owner-only rows included", func(t *testing.T) {
+			names := f.search(rctx)
+			require.Len(t, names, 23)
+			require.Contains(t, names, "service_owned_template")
+			require.Contains(t, names, "role_owned_user")
+			require.Contains(t, names, "user_owned_user")
+			require.Contains(t, names, "service_owned_user")
+		})
+
+		t.Run("owner-only rows match no source filter but All", func(t *testing.T) {
+			ownerOnly := []string{"service_owned_template", "service_owned_user", "role_owned_user", "user_owned_user"}
+			for _, source := range []string{
+				model.GlobalAttributeSourceManaged,
+				model.GlobalAttributeSourcePlugin,
+				model.GlobalAttributeSourceLDAP,
+				model.GlobalAttributeSourceSAML,
+				model.GlobalAttributeSourceOpenID,
+			} {
+				names := f.search(rctx, listingSource(source))
+				for _, name := range ownerOnly {
+					require.NotContains(t, names, name, source)
+				}
+			}
+		})
+
+		t.Run("a row synced from several sources matches each", func(t *testing.T) {
+			ldap := f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+			saml := f.search(rctx, listingSource(model.GlobalAttributeSourceSAML))
+			require.Contains(t, ldap, "ldap_and_saml_template")
+			require.Contains(t, saml, "ldap_and_saml_template")
+		})
+
+		t.Run("every row lands in a source filter or is owner-only", func(t *testing.T) {
+			// The five filters between them, plus the owner-only rows, cover the
+			// row set, so a row cannot fall out of the listing by source.
+			seen := map[string]bool{}
+			for _, source := range []string{
+				model.GlobalAttributeSourceManaged,
+				model.GlobalAttributeSourcePlugin,
+				model.GlobalAttributeSourceLDAP,
+				model.GlobalAttributeSourceSAML,
+				model.GlobalAttributeSourceOpenID,
+			} {
+				names := f.search(rctx, listingSource(source))
+				for _, name := range names {
+					seen[name] = true
+				}
+			}
+			all := f.search(rctx)
+			var missing []string
+			for _, name := range all {
+				if !seen[name] {
+					missing = append(missing, name)
+				}
+			}
+			require.ElementsMatch(t, []string{"service_owned_template", "service_owned_user", "role_owned_user", "user_owned_user"}, missing)
+		})
+	})
+
+	t.Run("source edge cases", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// Protection is read from the attr, never the column.
+		f.field(model.PropertyFieldObjectTypeUser, "protected_column_user", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: "com.example.plugin",
+		}), func(pf *model.PropertyField) {
+			pf.Protected = true
+			pf.PermissionField = model.NewPointer(model.PermissionLevelNone)
+		})
+
+		// One plugin-owned linked user field is enough.
+		twoChildren := f.template("two_children_template")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "plain_child")
+		f.linked(twoChildren, model.PropertyFieldObjectTypeUser, "owned_child", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+
+		// Values of the wrong JSON type read as unset.
+		f.template("numeric_ldap_template", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: 123}))
+		f.field(model.PropertyFieldObjectTypePost, "numeric_plugin_post", withAttrs(map[string]any{
+			model.PropertyAttrsSourcePluginID: 5,
+			model.PropertyAttrsProtected:      true,
+		}))
+		f.field(model.PropertyFieldObjectTypeUser, "object_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: map[string]any{}}))
+		f.field(model.PropertyFieldObjectTypeUser, "empty_owners_user", withAttrs(map[string]any{model.PropertyAttrsOwners: []any{}}))
+
+		names := f.search(rctx, listingSource(model.GlobalAttributeSourcePlugin))
+		require.Equal(t, []string{"two_children_template"}, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP))
+		require.Empty(t, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceManaged))
+		require.Equal(t, []string{"empty_owners_user", "numeric_ldap_template", "numeric_plugin_post", "object_owners_user", "protected_column_user"}, names)
+	})
+
+	t.Run("source with term", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		f.template("clearance_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.template("clearance_managed")
+		f.template("department_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+
+		names := f.search(rctx, listingTerm("clearance"), listingSource(model.GlobalAttributeSourceLDAP))
+		require.Equal(t, []string{"clearance_ldap"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingSource(model.GlobalAttributeSourceManaged))
+		require.Equal(t, []string{"clearance_managed"}, names)
+
+		names = f.search(rctx, listingTerm("department"), listingSource(model.GlobalAttributeSourceSAML))
+		require.Empty(t, names)
+	})
+
+	t.Run("resource type", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		userOnly := f.template("user_only")
+		f.linked(userOnly, model.PropertyFieldObjectTypeUser, "user_only_user")
+		userAndChannel := f.template("user_and_channel")
+		f.linked(userAndChannel, model.PropertyFieldObjectTypeUser, "user_and_channel_user")
+		f.linked(userAndChannel, model.PropertyFieldObjectTypeChannel, "user_and_channel_channel")
+		all := f.template("all_three")
+		f.linked(all, model.PropertyFieldObjectTypeUser, "all_three_user")
+		f.linked(all, model.PropertyFieldObjectTypeChannel, "all_three_channel")
+		f.linked(all, model.PropertyFieldObjectTypePost, "all_three_post")
+		f.template("nowhere")
+		deletedChild := f.template("deleted_post_child")
+		f.linked(deletedChild, model.PropertyFieldObjectTypeUser, "deleted_post_child_user")
+		f.remove(f.linked(deletedChild, model.PropertyFieldObjectTypePost, "deleted_post_child_post"))
+		otherGroupChild := f.template("other_group_channel_child")
+		f.create(model.NewId(), model.PropertyFieldObjectTypeChannel, "other_group_channel_child_channel", func(pf *model.PropertyField) {
+			pf.LinkedFieldID = &otherGroupChild.ID
+		})
+
+		f.field(model.PropertyFieldObjectTypeUser, "loose_user")
+		f.field(model.PropertyFieldObjectTypeChannel, "loose_channel")
+		f.field(model.PropertyFieldObjectTypePost, "loose_post")
+
+		t.Run("user", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser))
+			require.Equal(t, []string{"all_three", "deleted_post_child", "loose_user", "user_and_channel", "user_only"}, names)
+		})
+
+		t.Run("channel, not counting a linked field in another group", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeChannel))
+			require.Equal(t, []string{"all_three", "loose_channel", "user_and_channel"}, names)
+		})
+
+		t.Run("post, not counting a deleted linked field", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypePost))
+			require.Equal(t, []string{"all_three", "loose_post"}, names)
+		})
+
+		t.Run("a template with no linked fields matches no type", func(t *testing.T) {
+			for _, resourceType := range allListingResourceTypes {
+				names := f.search(rctx, listingResourceType(resourceType))
+				require.NotContains(t, names, "nowhere", resourceType)
+			}
+		})
+
+		t.Run("a type that is not allowed matches nothing", func(t *testing.T) {
+			for _, resourceType := range []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypePost} {
+				names := f.search(rctx, listingResourceType(resourceType), func(o *model.GlobalAttributeListingOpts) {
+					o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+				})
+				require.Empty(t, names, resourceType)
+			}
+		})
+
+		t.Run("linked fields of a type that is not allowed do not change what another type matches", func(t *testing.T) {
+			userOnlyAllowed := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = []string{model.PropertyFieldObjectTypeUser}
+			})
+			require.Equal(t, f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser)), userOnlyAllowed)
+		})
+
+		t.Run("no allowed type matches nothing, templates included", func(t *testing.T) {
+			names := f.search(rctx, listingResourceType(model.PropertyFieldObjectTypeUser), func(o *model.GlobalAttributeListingOpts) {
+				o.AllowedResourceTypes = nil
+			})
+			require.Empty(t, names)
+		})
+	})
+
+	t.Run("combined filters", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		match := f.template("clearance_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.linked(match, model.PropertyFieldObjectTypeUser, "clearance_ldap_user")
+		wrongSource := f.template("clearance_managed")
+		f.linked(wrongSource, model.PropertyFieldObjectTypeUser, "clearance_managed_user")
+		wrongType := f.template("clearance_ldap_channel_only", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "clearance"}))
+		f.linked(wrongType, model.PropertyFieldObjectTypeChannel, "clearance_ldap_channel_only_child")
+		wrongTerm := f.template("department_ldap", withAttrs(map[string]any{model.PropertyFieldAttrLDAP: "department"}))
+		f.linked(wrongTerm, model.PropertyFieldObjectTypeUser, "department_ldap_user")
+
+		names := f.search(rctx,
+			listingTerm("clearance"),
+			listingSource(model.GlobalAttributeSourceLDAP),
+			listingResourceType(model.PropertyFieldObjectTypeUser),
+		)
+		require.Equal(t, []string{"clearance_ldap"}, names)
+
+		names = f.search(rctx, listingSource(model.GlobalAttributeSourceLDAP), listingResourceType(model.PropertyFieldObjectTypeUser))
+		require.Equal(t, []string{"clearance_ldap", "department_ldap"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingResourceType(model.PropertyFieldObjectTypeUser))
+		require.Equal(t, []string{"clearance_ldap", "clearance_managed"}, names)
+
+		names = f.search(rctx, listingTerm("clearance"), listingResourceType(model.PropertyFieldObjectTypeChannel))
+		require.Equal(t, []string{"clearance_ldap_channel_only"}, names)
+
+		names = f.search(rctx,
+			listingTerm("clearance"),
+			listingSource(model.GlobalAttributeSourceLDAP),
+			listingResourceType(model.PropertyFieldObjectTypeUser),
+			func(o *model.GlobalAttributeListingOpts) { o.ExcludeIDs = []string{match.ID} },
+		)
+		require.Empty(t, names)
+	})
+
+	t.Run("order", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+
+		// The display name leads, falling back to the name, ignoring case.
+		f.template("zzz_name_first_alphabetically", withDisplayName("Aardvark"))
+		f.template("banana")
+		f.template("Cherry")
+		f.template("apple")
+		f.field(model.PropertyFieldObjectTypeUser, "dragonfruit", withDisplayName(""))
+
+		names := f.search(rctx)
+		require.Equal(t, []string{"zzz_name_first_alphabetically", "apple", "banana", "Cherry", "dragonfruit"}, names)
+
+		t.Run("breaks ties on the id", func(t *testing.T) {
+			tied := newListingFixture(t, ss)
+			ids := []string{
+				tied.template("tie_one", withDisplayName("Same")).ID,
+				tied.template("tie_two", withDisplayName("same")).ID,
+				tied.field(model.PropertyFieldObjectTypeUser, "tie_three", withDisplayName("SAME")).ID,
+			}
+			slices.Sort(ids)
+
+			fields, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, model.GlobalAttributeListingOpts{
+				GroupID:              tied.groupID,
+				AllowedResourceTypes: allListingResourceTypes,
+			})
+			require.NoError(t, err)
+			got := make([]string, 0, len(fields))
+			for _, field := range fields {
+				got = append(got, field.ID)
+			}
+			require.Equal(t, ids, got)
+		})
+	})
+
+	t.Run("returns every matching row", func(t *testing.T) {
+		f := newListingFixture(t, ss)
+		var expected []string
+		for i := range model.AccessControlGroupFieldLimit {
+			name := fmt.Sprintf("row_%03d", i)
+			if i%2 == 0 {
+				f.template(name)
+			} else {
+				f.field(model.PropertyFieldObjectTypeUser, name)
+			}
+			expected = append(expected, name)
+		}
+
+		require.Equal(t, expected, f.search(rctx))
+	})
+
+	t.Run("invalid opts", func(t *testing.T) {
+		valid := model.GlobalAttributeListingOpts{GroupID: model.NewId()}
+		for name, mutate := range map[string]func(*model.GlobalAttributeListingOpts){
+			"no group":         func(o *model.GlobalAttributeListingOpts) { o.GroupID = "" },
+			"bad source":       func(o *model.GlobalAttributeListingOpts) { o.Source = "ssh" },
+			"injected source":  func(o *model.GlobalAttributeListingOpts) { o.Source = "ldap' OR '1'='1" },
+			"bad type":         func(o *model.GlobalAttributeListingOpts) { o.ResourceType = "template" },
+			"injected type":    func(o *model.GlobalAttributeListingOpts) { o.ResourceType = "user' OR '1'='1" },
+			"bad allowed":      func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"template"} },
+			"injected allowed": func(o *model.GlobalAttributeListingOpts) { o.AllowedResourceTypes = []string{"user' OR '1'='1"} },
+		} {
+			t.Run(name, func(t *testing.T) {
+				opts := valid
+				mutate(&opts)
+				_, err := ss.PropertyField().SearchGlobalAttributeListing(rctx, opts)
+				require.Error(t, err)
+			})
+		}
+	})
+}
+
+func testGetLiveLinkedFieldsByObjectTypes(t *testing.T, ss store.Store) {
+	f := newListingFixture(t, ss)
+
+	first := f.template("first")
+	second := f.template("second")
+	untouched := f.template("untouched")
+
+	firstUser := f.linked(first, model.PropertyFieldObjectTypeUser, "first_user")
+	firstChannel := f.linked(first, model.PropertyFieldObjectTypeChannel, "first_channel")
+	firstPost := f.linked(first, model.PropertyFieldObjectTypePost, "first_post")
+	secondUser := f.linked(second, model.PropertyFieldObjectTypeUser, "second_user", withOwner(model.PropertyOwnerTypePlugin, "com.example.owner"))
+	f.remove(f.linked(second, model.PropertyFieldObjectTypeChannel, "second_channel_deleted"))
+
+	ids := func(fields []*model.PropertyField) []string {
+		out := make([]string, 0, len(fields))
+		for _, field := range fields {
+			out = append(out, field.ID)
+		}
+		return out
+	}
+
+	t.Run("returns live linked fields of the given object types across templates", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID,
+			[]string{first.ID, second.ID, untouched.ID},
+			[]string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
+		)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{firstUser.ID, firstChannel.ID, secondUser.ID}, ids(fields))
+	})
+
+	t.Run("leaves out a field of another group linked to the template", func(t *testing.T) {
+		f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "foreign_child", func(pf *model.PropertyField) {
+			pf.LinkedFieldID = &untouched.ID
+		})
+
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out object types that were not asked for", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, []string{model.PropertyFieldObjectTypePost})
+		require.NoError(t, err)
+		require.Equal(t, []string{firstPost.ID}, ids(fields))
+	})
+
+	t.Run("leaves out deleted linked fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Equal(t, []string{secondUser.ID}, ids(fields))
+	})
+
+	t.Run("carries the linked field's object type, link and attrs", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{second.ID}, []string{model.PropertyFieldObjectTypeUser})
+		require.NoError(t, err)
+		require.Len(t, fields, 1)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, fields[0].ObjectType)
+		require.NotNil(t, fields[0].LinkedFieldID)
+		require.Equal(t, second.ID, *fields[0].LinkedFieldID)
+		require.True(t, model.HasPropertyFieldOwners(fields[0]))
+	})
+
+	t.Run("returns nothing for a template nothing links to", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{untouched.ID}, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("returns nothing for no templates or no object types", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, nil, allListingResourceTypes)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+
+		fields, err = ss.PropertyField().GetLiveLinkedFieldsByObjectTypes(f.groupID, []string{first.ID}, nil)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+}
+
+func testGetLiveUserFieldsByNames(t *testing.T, ss store.Store) {
+	f := newListingFixture(t, ss)
+
+	template := f.template("clearance_template")
+	alpha := f.field(model.PropertyFieldObjectTypeUser, "Alpha")
+	beta := f.field(model.PropertyFieldObjectTypeUser, "BETA")
+	linked := f.linked(template, model.PropertyFieldObjectTypeUser, "gamma")
+	f.remove(f.field(model.PropertyFieldObjectTypeUser, "delta"))
+	f.field(model.PropertyFieldObjectTypeChannel, "epsilon")
+	f.field(model.PropertyFieldObjectTypeUser, "zeta", func(pf *model.PropertyField) {
+		pf.TargetType = string(model.PropertyFieldTargetLevelTeam)
+		pf.TargetID = model.NewId()
+	})
+	f.create(model.NewId(), model.PropertyFieldObjectTypeUser, "alpha")
+
+	ids := func(fields []*model.PropertyField) []string {
+		out := make([]string, 0, len(fields))
+		for _, field := range fields {
+			out = append(out, field.ID)
+		}
+		return out
+	}
+
+	t.Run("matches names ignoring case in either direction", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"alpha", "Beta"})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{alpha.ID, beta.ID}, ids(fields))
+
+		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{strings.ToUpper("alpha")})
+		require.NoError(t, err)
+		require.Equal(t, []string{alpha.ID}, ids(fields))
+	})
+
+	t.Run("returns option sets like any other read", func(t *testing.T) {
+		selectField := f.field(model.PropertyFieldObjectTypeUser, "eta_select", func(pf *model.PropertyField) {
+			pf.Type = model.PropertyFieldTypeSelect
+			pf.Attrs = model.StringInterface{"options": []map[string]any{{"name": "one"}, {"name": "two"}}}
+		})
+
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"eta_select"})
+		require.NoError(t, err)
+		require.Equal(t, []string{selectField.ID}, ids(fields))
+		require.Len(t, fields[0].Attrs["options"], 2)
+	})
+
+	t.Run("includes a user field linked to a template", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"gamma"})
+		require.NoError(t, err)
+		require.Equal(t, []string{linked.ID}, ids(fields))
+		require.NotNil(t, fields[0].LinkedFieldID)
+		require.Equal(t, template.ID, *fields[0].LinkedFieldID)
+	})
+
+	t.Run("leaves out deleted fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"delta"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out fields that are not user fields", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"epsilon", "clearance_template"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("leaves out fields that are not system level", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"zeta"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
+
+	t.Run("stays within the group", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"alpha"})
+		require.NoError(t, err)
+		require.Len(t, fields, 1)
+		require.Equal(t, f.groupID, fields[0].GroupID)
+	})
+
+	t.Run("returns nothing for no names or unknown names", func(t *testing.T) {
+		fields, err := ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, nil)
+		require.NoError(t, err)
+		require.Empty(t, fields)
+
+		fields, err = ss.PropertyField().GetLiveUserFieldsByNames(f.groupID, []string{"nonexistent"})
+		require.NoError(t, err)
+		require.Empty(t, fields)
+	})
 }

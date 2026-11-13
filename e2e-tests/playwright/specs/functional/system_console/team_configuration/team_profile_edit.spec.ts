@@ -71,7 +71,7 @@ test('blocks saving a team name shorter than the minimum length', {tag: '@system
 
     // * Verify an inline validation error is shown and the page stays on the team
     await expect(page.getByText('Team name must be 2 or more characters')).toBeVisible();
-    expect(new URL(page.url()).pathname).toBe(`/admin_console/user_management/teams/${team.id}`);
+    await expect(page).toHavePath(`/admin_console/user_management/teams/${team.id}`);
 
     // * Verify the team name was not changed on the server
     const unchangedTeam = await adminClient.getTeam(team.id);

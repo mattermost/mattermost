@@ -3,6 +3,7 @@ name: Docs CI
 on:
   pull_request:
     paths:
+      - ".github/workflows/docs-ci.yaml"
       - "docs/**"
       - "api/v4/source/**"
       - "api/playbooks/**"
@@ -10,6 +11,7 @@ on:
     branches:
       - master
     paths:
+      - ".github/workflows/docs-ci.yaml"
       - "docs/**"
       - "api/v4/source/**"
       - "api/playbooks/**"
@@ -48,9 +50,32 @@ jobs:
         working-directory: docs/site
         run: npm run typecheck
 
+      - name: Egress-check unit tests
+        working-directory: docs/site
+        run: npm run test:egress
+
       - name: Build docs site (includes OpenAPI prebuild)
         working-directory: docs/site
         run: npm run build
         env:
           ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
           ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
+
+      - name: Check absolute docs.mattermost.com links
+        working-directory: docs/site
+        run: npm run check:absolute-links
+
+      # Hosted Algolia injects SearchBar preconnects; do not scan that artifact.
+      # Rebuild without ALGOLIA_* (prebuild already ran) for the offline shape.
+      # BASE_URL matches the offline bundle the server ships (mattermost/delivery-platform
+      # builds it with BASE_URL=/_documentation/), so links that only break under that
+      # base URL fail here instead of in the release pipeline.
+      - name: Rebuild offline bundle shape for egress scan
+        working-directory: docs/site
+        run: npx docusaurus build && npm run postbuild
+        env:
+          BASE_URL: /_documentation/
+
+      - name: Scan built site for egress
+        working-directory: docs/site
+        run: npm run check:egress

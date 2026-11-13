@@ -12,6 +12,7 @@ import DeploymentOnly from '@site/src/components/DeploymentOnly';
 import IMEDiagram from '@site/src/components/IMEDiagram';
 import DeploymentArchitectureBuilder from '@site/src/components/DeploymentArchitectureBuilder';
 import CompassIcon from '@site/src/components/CompassIcon';
+import Video from '@site/src/components/Video';
 import Hero from '@site/src/components/Hero';
 import Eyebrow from '@site/src/components/Eyebrow';
 import StatStrip from '@site/src/components/StatStrip';
@@ -23,6 +24,7 @@ import PluginGoDocs from '@site/src/components/PluginGoDocs';
 import PluginGoExample from '@site/src/components/PluginGoExample';
 import PluginJsDocs from '@site/src/components/PluginJsDocs';
 import PluginManifestDocs from '@site/src/components/PluginManifestDocs';
+import TryMattermostCTA from '@site/src/components/TryMattermostCTA';
 // Globally available so migrated developer docs (Hugo `tabs` shortcode)
 // can use them without imports.
 import Tabs from '@theme/Tabs';
@@ -45,6 +47,7 @@ export default {
   IMEDiagram,
   DeploymentArchitectureBuilder,
   CompassIcon,
+  Video,
   Hero,
   Eyebrow,
   StatStrip,
@@ -56,6 +59,7 @@ export default {
   PluginGoExample,
   PluginJsDocs,
   PluginManifestDocs,
+  TryMattermostCTA,
   Tabs,
   TabItem,
 };

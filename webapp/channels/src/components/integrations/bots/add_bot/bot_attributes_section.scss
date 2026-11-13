@@ -1,0 +1,44 @@
+.BotAttributesSection {
+    &__title {
+        font-weight: 600;
+    }
+
+    &__description {
+        margin: 7px 0 12px; // aligns with .control-label padding-top
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__error {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 7px;
+        color: var(--error-text);
+        gap: 8px;
+    }
+
+    .BotAttributesSection__add {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .UserAttributeFields {
+        margin-bottom: 8px;
+
+        > .UserAttributeField.cpa-field,
+        > .UserAttributeField__row {
+            margin-bottom: 12px;
+        }
+    }
+
+    .UserAttributeField.cpa-field {
+        line-height: 20px;
+
+        .UserAttributeField__name {
+            display: block;
+            margin: 0 0 4px;
+            font-weight: normal;
+        }
+    }
+}

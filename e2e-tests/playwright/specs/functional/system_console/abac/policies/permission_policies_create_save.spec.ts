@@ -123,7 +123,7 @@ test.describe('Permission Policies - Create Policy', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(
-            systemConsolePage.page.getByText('Attribute Based Permission Policy', {exact: true}),
+            systemConsolePage.page.getByText('Attribute-Based Permission Policy', {exact: true}),
         ).toBeVisible();
 
         // # Cancel navigates back to list without saving

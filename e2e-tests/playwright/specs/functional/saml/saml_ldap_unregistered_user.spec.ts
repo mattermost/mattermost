@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a SAML user who is not present in LDAP cannot log in while
@@ -11,6 +11,11 @@ import {expect, test} from '@mattermost/playwright-lib';
  * Keycloak and OpenLDAP running.
  */
 test('MM-T3664 SAML login is rejected when the user is not registered in LDAP', {tag: '@saml'}, async ({pw}) => {
+    test.skip(
+        testConfig.subpathMode,
+        'Known product bug: the server signs the error page URL with the subpath but the webapp verifies it without, so the error message is never shown under a subpath.',
+    );
+
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 

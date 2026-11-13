@@ -34,14 +34,6 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         areAllSectionsInactive: false,
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <UserSettingsTheme {...requiredProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should saveTheme', async () => {
         const props = {
             ...requiredProps,
@@ -83,6 +75,36 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         // The premade themes should be visible (theme thumbnails are rendered)
         const premadeThemes = document.querySelectorAll('.premade-themes');
         expect(premadeThemes.length).toBeGreaterThan(0);
+    });
+
+    it('should switch between premade and custom theme radios', async () => {
+        const props = {
+            ...requiredProps,
+            selected: true,
+        };
+
+        renderWithContext(
+            <UserSettingsTheme {...props}/>,
+        );
+
+        const premadeRadio = screen.getByLabelText('Premade Themes');
+        const customRadio = screen.getByLabelText('Custom Theme');
+
+        expect(premadeRadio).toBeChecked();
+        expect(customRadio).not.toBeChecked();
+        expect(document.querySelectorAll('.premade-themes').length).toBeGreaterThan(0);
+
+        await userEvent.click(customRadio);
+
+        expect(customRadio).toBeChecked();
+        expect(premadeRadio).not.toBeChecked();
+        expect(document.getElementById('customThemesSection')).toBeInTheDocument();
+        expect(document.querySelectorAll('.premade-themes').length).toBe(0);
+
+        await userEvent.click(premadeRadio);
+
+        expect(premadeRadio).toBeChecked();
+        expect(document.querySelectorAll('.premade-themes').length).toBeGreaterThan(0);
     });
 
     it('should deleteTeamSpecificThemes if applyToAllTeams is enabled', async () => {

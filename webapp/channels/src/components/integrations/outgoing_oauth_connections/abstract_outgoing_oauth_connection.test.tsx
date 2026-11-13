@@ -75,18 +75,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         submitAction: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps};
-        const {container} = renderWithContext(
-            <Router>
-                <AbstractOutgoingOAuthConnection {...props}/>
-            </Router>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, displays client error', async () => {
+    test('should display client error', async () => {
         const submitAction = jest.fn().mockResolvedValue({data: true});
 
         const newServerError = 'serverError';
@@ -101,13 +90,12 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         const audienceUrlsInput = screen.getByDisplayValue('https://aud.com');
         await userEvent.clear(audienceUrlsInput);
 
-        const submitButton = container.querySelector('button.btn-primary') as HTMLButtonElement;
+        const submitButton = container.querySelector('#saveConnection') as HTMLButtonElement;
         await act(async () => {
             submitButton?.click();
         });
 
         expect(submitAction).not.toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
     });
 
     test('should call action function', async () => {
@@ -123,7 +111,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
 
         await userEvent.type(container.querySelector('#client_secret') as HTMLInputElement, 'secret');
 
-        await userEvent.click(container.querySelector('button.btn-primary') as HTMLButtonElement);
+        await userEvent.click(container.querySelector('#saveConnection') as HTMLButtonElement);
 
         // Changing the secret marks the form unvalidated, so submitting prompts to save anyway.
         await userEvent.click(document.querySelector('#confirmModalButton') as HTMLButtonElement);

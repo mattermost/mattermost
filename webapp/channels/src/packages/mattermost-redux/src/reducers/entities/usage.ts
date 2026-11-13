@@ -47,15 +47,6 @@ export default function usage(state: CloudUsage = emptyUsage, action: MMReduxAct
             },
         };
     }
-    case CloudTypes.RECEIVED_BOARDS_USAGE: {
-        return {
-            ...state,
-            boards: {
-                cards: action.data,
-                cardsLoaded: true,
-            },
-        };
-    }
     case CloudTypes.RECEIVED_TEAMS_USAGE: {
         return {
             ...state,

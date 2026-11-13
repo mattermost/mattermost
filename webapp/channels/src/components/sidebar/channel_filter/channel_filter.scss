@@ -1,0 +1,6 @@
+// The checkbox shown in each item of the filter menu, which renders in a popover outside the
+// sidebar. It only shows the item's state, so clicks go to the item itself.
+.SidebarFilters_menuCheckbox {
+    display: flex;
+    pointer-events: none;
+}

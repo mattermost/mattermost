@@ -44,7 +44,7 @@ export default function DeleteScheduledPostModal({
         <GenericModal
             className='delete_scheduled_post_modal'
             confirmButtonText={confirmButtonText}
-            confirmButtonVariant='destructive'
+            destructive={true}
             handleCancel={noop}
             handleConfirm={handleOnConfirm}
             modalHeaderText={title}

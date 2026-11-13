@@ -238,7 +238,7 @@ const PDFPreview = memo(({
                 ref={container}
                 className='view-image__loading'
             >
-                <LoadingSpinner/>
+                <LoadingSpinner size='24'/>
             </div>
         );
     }

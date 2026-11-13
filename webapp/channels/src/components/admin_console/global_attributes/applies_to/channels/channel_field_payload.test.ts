@@ -87,10 +87,10 @@ describe('buildChannelFieldPayload', () => {
     });
 
     it('does not alias the caller-owned locations array into the payload', () => {
-        const displayLocations: ChannelDisplayLocation[] = [DISPLAY_LABEL_INFO];
+        const displayLocations: ChannelDisplayLocation[] = [DISPLAY_LABEL_HEADER];
         const payload = buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations});
 
-        expect(payload.attrs).toEqual({actions: [DISPLAY_LABEL_INFO]});
+        expect(payload.attrs).toEqual({actions: [DISPLAY_LABEL_HEADER]});
         expect((payload.attrs as {actions: string[]}).actions).not.toBe(displayLocations);
     });
 
@@ -143,19 +143,21 @@ describe('parseChannelFieldConfig', () => {
         expect(parseChannelFieldConfig(channelField({editable: false})).changePolicy).toBe('never');
     });
 
-    it('drops an action the row cannot render', () => {
-        // display_banner_bottom validates server-side but has no control here, so
-        // carrying it through would let a save silently rewrite it.
-        const config = parseChannelFieldConfig(channelField({actions: ['display_banner_bottom', DISPLAY_LABEL_INFO]}));
+    it('preserves display_label_info and drops actions the row never supported', () => {
+        // Channel Info is UI-hidden only: carrying it through keeps a save from
+        // stripping backend state. display_banner_bottom still has no placement.
+        const config = parseChannelFieldConfig(channelField({actions: ['display_banner_bottom', DISPLAY_LABEL_INFO, DISPLAY_LABEL_HEADER]}));
 
-        expect(config.displayLocations).toEqual([DISPLAY_LABEL_INFO]);
+        expect(config.displayLocations).toEqual([DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO]);
     });
 
     it('round-trips whatever buildChannelFieldPayload wrote', () => {
         const configs: ChannelResourceConfig[] = [
             DEFAULT_CHANNEL_RESOURCE_CONFIG,
             {required: true, changePolicy: 'never', displayLocations: [DISPLAY_LABEL_HEADER]},
-            {required: false, changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_INFO, DISPLAY_BANNER_TOP]},
+            {required: false, changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP]},
+            {required: false, changePolicy: 'any', displayLocations: [DISPLAY_LABEL_INFO]},
+            {required: false, changePolicy: 'any', displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO]},
         ];
 
         for (const config of configs) {

@@ -53,16 +53,14 @@ $mm-blocks-container-max-heights: (
     button {
         align-self: flex-start;
 
-        //override global .btn padding and font size:
-        &.btn {
-            height: 36px;
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
         .LoadingSpinner .spinner {
             margin-right: 0px;
         }
+    }
+
+    // Compass Button medium size with mm_blocks padding (overrides token padding).
+    .mm-blocks-button {
+        padding: 8px 16px !important;
     }
 
     .mm-blocks-container {
@@ -220,20 +218,17 @@ $mm-blocks-container-max-heights: (
         margin: 0;
     }
 
-    // Button styles automatically add a margin between button siblings.
-    // We handle this with flex gap, so we remove this margin.
-    .btn + .btn {
-        margin-left: 0px;
-    }
-
     // Legacy attachment action colors (`ActionButton` STATUS_COLORS).
+    // Compass Button uses `--button-fg` for label/icon color.
     .mm-blocks-button--good,
     .mm-blocks-button--success {
+        --button-fg: rgb(var(--semantic-color-success));
         background-color: rgba(var(--semantic-color-success), 0.08) !important;
         color: rgb(var(--semantic-color-success)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
+            --button-fg: rgb(var(--semantic-color-success));
             background-color: rgba(var(--semantic-color-success), 0.12) !important;
             color: rgb(var(--semantic-color-success)) !important;
         }
@@ -244,35 +239,19 @@ $mm-blocks-container-max-heights: (
     }
 
     .mm-blocks-button--warning {
+        --button-fg: rgb(var(--semantic-color-warning));
         background-color: rgba(var(--semantic-color-warning), 0.08) !important;
         color: rgb(var(--semantic-color-warning)) !important;
 
         &:hover:not(:disabled),
         &:focus:not(:disabled) {
+            --button-fg: rgb(var(--semantic-color-warning));
             background-color: rgba(var(--semantic-color-warning), 0.12) !important;
             color: rgb(var(--semantic-color-warning)) !important;
         }
 
         &:active:not(:disabled) {
             background-color: rgba(var(--semantic-color-warning), 0.16) !important;
-        }
-    }
-
-    // Avoid global `.app__body .btn.btn-danger` (filled red + white text), which overrides
-    // `.btn.btn-tertiary.btn-danger`. Matches legacy `ActionButton` danger styling.
-    .mm-blocks-button--danger {
-        background-color: rgba(var(--semantic-color-danger), 0.08) !important;
-        color: rgb(var(--semantic-color-danger)) !important;
-
-        &:hover:not(:disabled),
-        &:focus:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.12) !important;
-            color: rgb(var(--semantic-color-danger)) !important;
-        }
-
-        &:active:not(:disabled) {
-            background-color: rgba(var(--semantic-color-danger), 0.16) !important;
-            color: rgb(var(--semantic-color-danger)) !important;
         }
     }
 

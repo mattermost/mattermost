@@ -101,7 +101,7 @@ describe('components/widgets/settings/CheckboxGroupSetting', () => {
         expect(onChange).toHaveBeenCalledWith('reasons', ['r2']);
     });
 
-    test('labelPosition "after" renders the text after the input', () => {
+    test('labelPosition "after" does not apply label-before styling', () => {
         const {container} = render(
             <CheckboxGroupSetting
                 id='reasons'
@@ -112,15 +112,11 @@ describe('components/widgets/settings/CheckboxGroupSetting', () => {
             />,
         );
 
-        const label = container.querySelector('.checkbox label')!;
-        const input = label.querySelector('input')!;
-        const text = label.querySelector('.inline-choice-setting__text')!;
-
-        // input precedes the text node when the label is positioned after
-        expect(input.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const checkbox = container.querySelector('.checkbox label')!;
+        expect(checkbox).not.toHaveClass('inline-choice-setting--label-before');
     });
 
-    test('labelPosition "before" renders the text before the input', () => {
+    test('labelPosition "before" applies label-before styling', () => {
         const {container} = render(
             <CheckboxGroupSetting
                 id='reasons'
@@ -131,11 +127,7 @@ describe('components/widgets/settings/CheckboxGroupSetting', () => {
             />,
         );
 
-        const label = container.querySelector('.checkbox label')!;
-        const input = label.querySelector('input')!;
-        const text = label.querySelector('.inline-choice-setting__text')!;
-
-        // text precedes the input when the label is positioned before
-        expect(text.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const checkbox = container.querySelector('.checkbox label')!;
+        expect(checkbox).toHaveClass('inline-choice-setting--label-before');
     });
 });

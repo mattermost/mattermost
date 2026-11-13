@@ -31,7 +31,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Delete", func(t *testing.T) { testPostStoreDelete(t, rctx, ss) })
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, rctx, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, rctx, ss) })
-	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss) })
+	t.Run("PermDeleteLimitExceeded", func(t *testing.T) { testPostStorePermDeleteLimitExceeded(t, rctx, ss, s) })
+	t.Run("PermDeleteByUserAssociatedData", func(t *testing.T) { testPostStorePermDeleteByUserAssociatedData(t, rctx, ss, s) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, rctx, ss) })
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, rctx, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
@@ -569,6 +570,7 @@ func testPostStoreSaveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, errT)
 
 		assert.Equal(t, int64(1), thread.ReplyCount)
+		assert.Equal(t, o2.CreateAt, thread.LastReplyAt)
 		assert.Equal(t, int(1), len(thread.Participants))
 		assert.Equal(t, model.StringArray{o2.UserId}, thread.Participants)
 
@@ -1037,6 +1039,54 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.GreaterOrEqual(t, r1.Posts[r1.Order[1]].UpdateAt, m1.UpdateAt)
 		require.True(t, *r1.HasNext)
 	})
+
+	t.Run("Deleted replies", func(t *testing.T) {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		now := model.GetMillis()
+		root, err := ss.Post().Save(rctx, &model.Post{CreateAt: now, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID()})
+		require.NoError(t, err)
+		replies := make([]*model.Post, 3)
+		for i := range replies {
+			replies[i], err = ss.Post().Save(rctx, &model.Post{CreateAt: now + int64(i) + 1, ChannelId: channel.Id, UserId: model.NewId(), Message: NewTestID(), RootId: root.Id})
+			require.NoError(t, err)
+		}
+		deletedAt := now + 10
+		require.NoError(t, ss.Post().Delete(rctx, replies[1].Id, deletedAt, ""))
+
+		for _, collapsed := range []bool{true, false} {
+			t.Run(fmt.Sprintf("collapsed=%t", collapsed), func(t *testing.T) {
+				opts := model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down"}
+				list, getErr := ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.Equal(t, []string{root.Id, replies[0].Id, replies[2].Id}, list.Order)
+
+				opts = model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down", UpdatesOnly: true, FromUpdateAt: now + 5}
+				list, getErr = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.Equal(t, []string{root.Id, replies[1].Id}, list.Order)
+				assert.Equal(t, deletedAt, list.Posts[replies[1].Id].DeleteAt)
+
+				opts.Direction = ""
+				list, getErr = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+				require.NoError(t, getErr)
+				assert.NotContains(t, list.Posts, replies[1].Id)
+			})
+		}
+
+		require.NoError(t, ss.Post().Delete(rctx, root.Id, now+20, ""))
+		for _, collapsed := range []bool{true, false} {
+			opts := model.GetPostsOptions{CollapsedThreads: collapsed, Direction: "down", UpdatesOnly: true, FromUpdateAt: now + 5}
+			_, err = ss.Post().Get(rctx, root.Id, opts, root.UserId, map[string]bool{})
+			require.IsType(t, &store.ErrNotFound{}, err)
+		}
+	})
 }
 
 func testPostStoreGetSingle(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1432,16 +1482,16 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		updatedRootPost, err := ss.Post().GetSingle(rctx, rootPost1.Id, false)
 		require.NoError(t, err)
 
-		beforeDeleteTime := updatedRootPost.UpdateAt
+		deleteTime := updatedRootPost.UpdateAt + 1000
 
 		// Delete the reply previous to last
-		err = ss.Post().Delete(rctx, replyPost2.Id, model.GetMillis(), "")
+		err = ss.Post().Delete(rctx, replyPost2.Id, deleteTime, "")
 		require.NoError(t, err)
 
 		updatedRootPost, err = ss.Post().GetSingle(rctx, rootPost1.Id, false)
 		require.NoError(t, err)
 
-		require.Greater(t, updatedRootPost.UpdateAt, beforeDeleteTime)
+		require.Equal(t, deleteTime, updatedRootPost.UpdateAt)
 	})
 
 	t.Run("thread with multiple replies, update thread last reply at", func(t *testing.T) {
@@ -1468,6 +1518,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    model.NewId(),
 			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
+			CreateAt:  rootPost1.CreateAt + 1000,
 		})
 		require.NoError(t, err)
 
@@ -1477,6 +1528,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    model.NewId(),
 			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
+			CreateAt:  rootPost1.CreateAt + 2000,
 		})
 		require.NoError(t, err)
 
@@ -1486,12 +1538,14 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 			UserId:    model.NewId(),
 			Message:   NewTestID(),
 			RootId:    rootPost1.Id,
+			CreateAt:  rootPost1.CreateAt + 3000,
 		})
 		require.NoError(t, err)
 
 		thread, err := ss.Thread().Get(rootPost1.Id)
 		require.NoError(t, err)
 		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+		require.Equal(t, int64(3), thread.ReplyCount)
 
 		// Delete the reply previous to last
 		err = ss.Post().Delete(rctx, replyPost2.Id, model.GetMillis(), "")
@@ -1501,6 +1555,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		// last reply at should be unchanged
 		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+		require.Equal(t, int64(2), thread.ReplyCount)
 
 		// Delete the last reply
 		err = ss.Post().Delete(rctx, replyPost3.Id, model.GetMillis(), "")
@@ -1510,6 +1565,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		// last reply at should have changed
 		require.Equal(t, replyPost1.CreateAt, thread.LastReplyAt)
+		require.Equal(t, int64(1), thread.ReplyCount)
 
 		// Delete the last reply
 		err = ss.Post().Delete(rctx, replyPost1.Id, model.GetMillis(), "")
@@ -1519,6 +1575,8 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		// last reply at should be 0
 		require.Equal(t, int64(0), thread.LastReplyAt)
+		require.Equal(t, int64(0), thread.ReplyCount)
+		require.Empty(t, thread.Participants)
 	})
 
 	t.Run("thread with file attachments", func(t *testing.T) {
@@ -1828,10 +1886,8 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err, "Deleted id should have failed")
 }
 
-func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss store.Store) {
-	const maxPosts = 10000
+func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamID := model.NewId()
-	userID := model.NewId()
 	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      teamID,
 		DisplayName: "10KPosts",
@@ -1840,19 +1896,133 @@ func testPostStorePermDeleteLimitExceeded(t *testing.T, rctx request.CTX, ss sto
 	}, -1)
 	require.NoError(t, err)
 
-	for range maxPosts + 100 {
-		post := &model.Post{
-			ChannelId: channel.Id,
-			UserId:    userID,
-			Message:   NewTestID(),
+	savePosts := func(t *testing.T, userID, rootID string, count int) {
+		t.Helper()
+
+		posts := make([]*model.Post, count)
+		for i := range posts {
+			posts[i] = &model.Post{ChannelId: channel.Id, UserId: userID, RootId: rootID, Message: "bulk post"}
 		}
-		_, err = ss.Post().Save(rctx, post)
+		_, _, err := ss.Post().SaveMultiple(rctx, posts)
 		require.NoError(t, err)
 	}
 
-	err = ss.Post().PermanentDeleteByUser(rctx, userID)
-	var errLimitExceeded *store.ErrLimitExceeded
-	require.ErrorAs(t, err, &errLimitExceeded)
+	countPosts := func(t *testing.T, userID string) int {
+		t.Helper()
+
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count, "SELECT COUNT(*) FROM Posts WHERE UserId = ?", userID))
+
+		return count
+	}
+
+	requireLimitExceeded := func(t *testing.T, userID string) {
+		t.Helper()
+
+		err := ss.Post().PermanentDeleteByUser(rctx, userID)
+		var errLimitExceeded *store.ErrLimitExceeded
+		require.ErrorAs(t, err, &errLimitExceeded)
+	}
+
+	t.Run("a user exactly at the limit is deleted", func(t *testing.T) {
+		userID := model.NewId()
+		savePosts(t, userID, "", store.MaxPostsPerUserPermanentDelete)
+
+		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+		require.Zero(t, countPosts(t, userID))
+	})
+
+	t.Run("a user over the limit is deleted over several calls", func(t *testing.T) {
+		userID := model.NewId()
+		savePosts(t, userID, "", 2*store.MaxPostsPerUserPermanentDelete+1)
+
+		requireLimitExceeded(t, userID)
+		require.Equal(t, store.MaxPostsPerUserPermanentDelete+1, countPosts(t, userID))
+
+		requireLimitExceeded(t, userID)
+		require.Equal(t, 1, countPosts(t, userID))
+
+		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+		require.Zero(t, countPosts(t, userID))
+	})
+
+	t.Run("replies count towards the limit", func(t *testing.T) {
+		userID := model.NewId()
+		root, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "root"})
+		require.NoError(t, err)
+		savePosts(t, userID, "", store.MaxPostsPerUserPermanentDelete/2)
+		savePosts(t, userID, root.Id, store.MaxPostsPerUserPermanentDelete/2+1)
+
+		requireLimitExceeded(t, userID)
+		require.Equal(t, 1, countPosts(t, userID))
+
+		require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+		require.Zero(t, countPosts(t, userID))
+	})
+}
+
+func testPostStorePermDeleteByUserAssociatedData(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Associated data",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+	withPriority := func(post *model.Post) *model.Post {
+		post.Metadata = &model.PostMetadata{Priority: &model.PostPriority{
+			Priority:                model.NewPointer(model.PostPriorityUrgent),
+			RequestedAck:            model.NewPointer(true),
+			PersistentNotifications: model.NewPointer(true),
+		}}
+		return post
+	}
+
+	root, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: userID, Message: "root"}))
+	require.NoError(t, err)
+	otherReply, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: otherUserID, RootId: root.Id, Message: "reply by someone else"}))
+	require.NoError(t, err)
+	otherRoot, err := ss.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: otherUserID, Message: "root by someone else"})
+	require.NoError(t, err)
+	reply, err := ss.Post().Save(rctx, withPriority(&model.Post{ChannelId: channel.Id, UserId: userID, RootId: otherRoot.Id, Message: "reply"}))
+	require.NoError(t, err)
+
+	deletedPostIDs := []string{root.Id, otherReply.Id, reply.Id}
+	for _, postID := range deletedPostIDs {
+		_, err = ss.Reaction().Save(&model.Reaction{UserId: otherUserID, PostId: postID, EmojiName: "smile", ChannelId: channel.Id})
+		require.NoError(t, err)
+		_, err = ss.PostAcknowledgement().SaveWithModel(&model.PostAcknowledgement{UserId: otherUserID, PostId: postID, ChannelId: channel.Id, AcknowledgedAt: model.GetMillis()})
+		require.NoError(t, err)
+		_, err = ss.ReadReceipt().Save(rctx, &model.ReadReceipt{UserID: otherUserID, PostID: postID, ExpireAt: model.GetMillis() + 100000})
+		require.NoError(t, err)
+		require.NoError(t, ss.Post().SetPostReminder(&model.PostReminder{UserId: otherUserID, PostId: postID, TargetTime: model.GetMillis()/1000 + 1000}))
+	}
+
+	tables := []string{"Reactions", "PostAcknowledgements", "ReadReceipts", "PostReminders", "PostsPriority", "PersistentNotifications"}
+	countForPosts := func(t *testing.T, table string) int {
+		t.Helper()
+
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count, "SELECT COUNT(*) FROM "+table+" WHERE PostId IN (?, ?, ?)", root.Id, otherReply.Id, reply.Id))
+		return count
+	}
+	for _, table := range tables {
+		require.Equal(t, len(deletedPostIDs), countForPosts(t, table), "test setup should have left rows in %s", table)
+	}
+
+	require.NoError(t, ss.Post().PermanentDeleteByUser(rctx, userID))
+
+	for _, table := range tables {
+		assert.Zero(t, countForPosts(t, table), "%s still holds rows for deleted posts", table)
+	}
+
+	_, err = ss.Post().GetSingle(rctx, otherReply.Id, true)
+	require.Error(t, err, "replies to the user's root posts should be deleted")
+	_, err = ss.Post().GetSingle(rctx, otherRoot.Id, true)
+	require.NoError(t, err, "posts the user replied to should not be deleted")
 }
 
 func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4675,7 +4845,7 @@ func testPostStoreGetOldest(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetMaxPostSize(t *testing.T, _ request.CTX, ss store.Store) {
-	assert.Equal(t, model.PostMessageMaxRunesV2, ss.Post().GetMaxPostSize())
+	assert.Equal(t, model.PostMessageMaxRunesV3, ss.Post().GetMaxPostSize())
 }
 
 func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5407,6 +5577,128 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
 	})
 
+	t.Run("Posts modified after creation are paged in CreateAt order", func(t *testing.T) {
+		modifiedChannelID := model.NewId()
+		base := model.GetMillis()
+
+		posts := make([]*model.Post, 5)
+		for i := range posts {
+			p, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: modifiedChannelID,
+				UserId:    model.NewId(),
+				Message:   fmt.Sprintf("modified test post %d", i),
+				CreateAt:  base + int64(i+1)*100,
+			})
+			require.NoError(t, err)
+			posts[i] = p
+		}
+
+		// Posts of excluded types, one live and one deleted, interleaved with the others.
+		for _, p := range []*model.Post{
+			{Type: model.PostTypeHeaderChange, CreateAt: base + 150},
+			{Type: model.PostTypeCard, CreateAt: base + 350, DeleteAt: base + 360},
+		} {
+			p.ChannelId = modifiedChannelID
+			p.UserId = model.NewId()
+			_, err := ss.Post().Save(rctx, p)
+			require.NoError(t, err)
+		}
+
+		// The second post is modified (e.g. reacted to) after all the others were created,
+		// and the fourth is deleted after that.
+		_, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", base+900, posts[1].Id)
+		require.NoError(t, err)
+		_, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ?, DeleteAt = ? WHERE Id = ?", base+1000, base+1000, posts[3].Id)
+		require.NoError(t, err)
+
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:                         modifiedChannelID,
+			SinceCreateAt:                     true,
+			IncludeDeleted:                    true,
+			ExcludeChannelMetadataSystemPosts: true,
+			ExcludedPostTypes:                 []string{model.PostTypeCard},
+		}
+		start := model.GetPostsSinceForSyncCursor{LastPostCreateAt: base}
+
+		page1, cursor, err := ss.Post().GetPostsSinceForSync(opt, start, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[0:3]), getPostIds(page1))
+		require.Equal(t, posts[2].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[2].Id, cursor.LastPostCreateID)
+
+		page2, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[3:5]), getPostIds(page2))
+		require.Equal(t, posts[4].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[4].Id, cursor.LastPostCreateID)
+
+		page3, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Empty(t, page3)
+
+		// A page ending on the deleted post takes its cursor from that post.
+		page1, cursor, err = ss.Post().GetPostsSinceForSync(opt, start, 4)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[0:4]), getPostIds(page1))
+		require.Equal(t, posts[3].CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, posts[3].Id, cursor.LastPostCreateID)
+
+		page2, _, err = ss.Post().GetPostsSinceForSync(opt, cursor, 4)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds(posts[4:5]), getPostIds(page2))
+	})
+
+	t.Run("Deleted post sharing CreateAt with the last post of a full live page", func(t *testing.T) {
+		tieChannelID := model.NewId()
+		base := model.GetMillis()
+
+		save := func(id string, createAt, deleteAt int64) *model.Post {
+			p, err := ss.Post().Save(rctx, &model.Post{
+				Id:        id,
+				RemoteId:  new(model.NewId()),
+				ChannelId: tieChannelID,
+				UserId:    model.NewId(),
+				Message:   "tie test post",
+				CreateAt:  createAt,
+				DeleteAt:  deleteAt,
+			})
+			require.NoError(t, err)
+			return p
+		}
+
+		// The deleted post sorts before the last live post by Id, so it only makes the first
+		// page if the deleted half's CreateAt bound is inclusive.
+		tiedIDs := []string{model.NewId(), model.NewId()}
+		slices.Sort(tiedIDs)
+
+		live0 := save(model.NewId(), base+100, 0)
+		live1 := save(model.NewId(), base+200, 0)
+		live2 := save(tiedIDs[1], base+300, 0)
+		tied := save(tiedIDs[0], base+300, base+500)
+		later := save(model.NewId(), base+400, base+500)
+
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:      tieChannelID,
+			SinceCreateAt:  true,
+			IncludeDeleted: true,
+		}
+
+		page1, cursor, err := ss.Post().GetPostsSinceForSync(opt, model.GetPostsSinceForSyncCursor{LastPostCreateAt: base}, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{live0, live1, tied}), getPostIds(page1))
+		require.Equal(t, tied.CreateAt, cursor.LastPostCreateAt)
+		require.Equal(t, tied.Id, cursor.LastPostCreateID)
+
+		page2, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Equal(t, getPostIds([]*model.Post{live2, later}), getPostIds(page2))
+		require.Equal(t, later.Id, cursor.LastPostCreateID)
+
+		page3, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 3)
+		require.NoError(t, err)
+		require.Empty(t, page3)
+	})
+
 	t.Run("CreateAt collisions", func(t *testing.T) {
 		// this test requires all the CreateAt timestamps to be the same.
 		result, err := s.GetMaster().Exec("UPDATE Posts SET CreateAt = ?", model.GetMillis())
@@ -5416,7 +5708,8 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Greater(t, rows, int64(0))
 
 		opt := model.GetPostsSinceForSyncOptions{
-			ChannelId: channelID,
+			ChannelId:     channelID,
+			SinceCreateAt: true,
 		}
 		cursor := model.GetPostsSinceForSyncCursor{}
 		posts1, cursor, err := ss.Post().GetPostsSinceForSync(opt, cursor, 5)
@@ -5428,6 +5721,20 @@ func testGetPostsSinceCreateForSync(t *testing.T, rctx request.CTX, ss store.Sto
 		require.Len(t, posts2, 3, "should get 3 posts")
 
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
+
+		// Live and deleted posts share the CreateAt, so pages must continue across both by Id.
+		opt.IncludeDeleted = true
+		cursor = model.GetPostsSinceForSyncCursor{}
+		var all []*model.Post
+		for _, expected := range []int{4, 4, 2, 0} {
+			var page []*model.Post
+			page, cursor, err = ss.Post().GetPostsSinceForSync(opt, cursor, 4)
+			require.NoError(t, err)
+			require.Len(t, page, expected)
+			all = append(all, page...)
+		}
+		require.ElementsMatch(t, getPostIds(data), getPostIds(all))
+		require.IsIncreasing(t, getPostIds(all))
 	})
 }
 

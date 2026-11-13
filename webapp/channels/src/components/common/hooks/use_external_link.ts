@@ -7,7 +7,17 @@ import {useSelector} from 'react-redux';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {getSiteURL} from 'utils/url';
+
 import type {GlobalState} from 'types/store';
+
+function isSameOrigin(url: URL, siteURL: string): boolean {
+    try {
+        return url.origin === new URL(siteURL).origin;
+    } catch {
+        return false;
+    }
+}
 
 export type ExternalLinkQueryParams = {
     utm_source?: string;
@@ -20,7 +30,7 @@ export type ExternalLinkQueryParams = {
 /**
  * useExternalLink is used when linking outside of the MM server to add extra tracking parameters when linking to any
  * page on mattermost.com (such as our docs or marketing websites). When passed any URL that isn't on mattermost.com,
- * it returns the original URL unmodified.
+ * or one on this server's own origin, it returns the original URL unmodified.
  *
  * @param href The external URL being linked to
  * @param location The location of the link within the app
@@ -51,6 +61,10 @@ export function useExternalLink(href: string, location: string = '', overwriteQu
         }
 
         if (parsedUrl.protocol === 'mailto:') {
+            return [href, {}];
+        }
+
+        if (isSameOrigin(parsedUrl, config?.SiteURL || getSiteURL())) {
             return [href, {}];
         }
 

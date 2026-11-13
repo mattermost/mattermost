@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
@@ -17,7 +17,7 @@ import {getHistory} from 'utils/browser_history';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_outgoing_webhook.update', defaultMessage: 'Update'};
-const LOADING = {id: 'update_outgoing_webhook.updating', defaultMessage: 'Updating...'};
+const LOADING = defineMessage({id: 'update_outgoing_webhook.updating', defaultMessage: 'Updating...'});
 
 export interface Props {
 

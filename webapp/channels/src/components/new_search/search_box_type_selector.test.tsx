@@ -17,8 +17,29 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
     };
 
     test('should have the built-in type options', () => {
-        renderWithContext(<SearchBoxTypeSelector {...baseProps}/>);
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}}},
+        );
         expect(screen.getByText('Files')).toBeInTheDocument();
+        expect(screen.getByText('Messages')).toBeInTheDocument();
+    });
+
+    test('should not have the files option when file search is disabled', () => {
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'false'}}}},
+        );
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
+        expect(screen.getByText('Messages')).toBeInTheDocument();
+    });
+
+    test('should not have the files option when file attachments are disabled', () => {
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {entities: {general: {config: {EnableFileAttachments: 'false', EnableFileSearch: 'true'}}}},
+        );
+        expect(screen.queryByText('Files')).not.toBeInTheDocument();
         expect(screen.getByText('Messages')).toBeInTheDocument();
     });
 
@@ -60,5 +81,27 @@ describe('components/new_search/SearchBoxTypeSelector', () => {
         );
         screen.getByText('test').click();
         expect(baseProps.setSearchType).toHaveBeenCalledWith('test-id');
+    });
+
+    test('should show prioritized plugin options before Messages and Files, without a keyword label', () => {
+        renderWithContext(
+            <SearchBoxTypeSelector {...baseProps}/>,
+            {
+                plugins: {
+                    components: {
+                        SearchButtons: [
+                            {component: (() => <span>{'low'}</span>) as React.ComponentType, pluginId: 'low-id', priority: 0},
+                            {component: (() => <span>{'mid'}</span>) as React.ComponentType, pluginId: 'mid-id', priority: 5},
+                            {component: (() => <span>{'high'}</span>) as React.ComponentType, pluginId: 'high-id', priority: 10},
+                        ],
+                    },
+                },
+                entities: {general: {license: {IsLicensed: 'true'}, config: {EnableFileAttachments: 'true', EnableFileSearch: 'true'}}},
+            },
+        );
+
+        const options = screen.getAllByRole('radio').map((option) => option.textContent);
+        expect(options).toEqual(['high', 'mid', 'Messages', 'Files', 'low']);
+        expect(screen.queryByText('Keyword:')).not.toBeInTheDocument();
     });
 });

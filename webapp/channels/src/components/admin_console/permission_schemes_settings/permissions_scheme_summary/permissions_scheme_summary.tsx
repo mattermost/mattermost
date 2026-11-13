@@ -75,6 +75,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
 
         const confirmButton = (
             <LoadingWrapper
+                legacy={true}
                 loading={this.state.deleting}
                 text={defineMessage({id: 'admin.permissions.permissionsSchemeSummary.deleting', defaultMessage: 'Deleting...'})}
             >

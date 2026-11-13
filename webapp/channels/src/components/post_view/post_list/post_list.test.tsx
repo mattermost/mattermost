@@ -36,6 +36,7 @@ jest.mock('utils/performance_telemetry', () => ({
     Mark: {},
     Measure: {},
     measureAndReport: jest.fn(),
+    clearChannelSwitchMarks: jest.fn(),
 }));
 
 const actionsProp = {
@@ -82,21 +83,6 @@ describe('components/post_view/post_list', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         lastVirtPostListProps = null;
-    });
-
-    it('snapshot for loading when there are no posts', () => {
-        const {container} = renderWithContext(
-            <PostList {...{...baseProps, postListIds: []}}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    it('snapshot with couple of posts', () => {
-        const postIds = createFakePosIds(2);
-        const {container} = renderWithContext(
-            <PostList {...{...baseProps, postListIds: postIds}}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     it('Should call postsOnLoad', async () => {

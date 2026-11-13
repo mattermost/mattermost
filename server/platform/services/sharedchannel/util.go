@@ -32,6 +32,18 @@ func fixMention(post *model.Post, mentionMap model.UserMentionMap, user *model.U
 	}
 }
 
+// prepareRemoteEmailForSync selects the original email before RemoteId
+// is rewritten. Forwarded users may have synthetic Email values.
+func prepareRemoteEmailForSync(user *model.User) (string, bool) {
+	if user.GetRemoteID() == "" {
+		user.SetProp(model.UserPropsKeyRemoteEmail, user.Email)
+		return user.Email, user.Email != ""
+	}
+
+	remoteEmail, ok := user.GetProp(model.UserPropsKeyRemoteEmail)
+	return remoteEmail, ok && remoteEmail != ""
+}
+
 func sanitizeUserForSync(user *model.User) *model.User {
 	user.Password = model.NewId()
 	user.AuthData = nil
@@ -98,13 +110,11 @@ func isConflictError(err error) (string, bool) {
 		return "", false
 	}
 
-	var errConflict *store.ErrConflict
-	if errors.As(err, &errConflict) {
+	if errConflict, ok := errors.AsType[*store.ErrConflict](err); ok {
 		return strings.ToLower(errConflict.Resource), true
 	}
 
-	var errInput *store.ErrInvalidInput
-	if errors.As(err, &errInput) {
+	if errInput, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 		_, field, _ := errInput.InvalidInputInfo()
 		return strings.ToLower(field), true
 	}

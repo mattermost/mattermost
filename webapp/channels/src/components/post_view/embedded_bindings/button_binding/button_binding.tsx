@@ -5,7 +5,7 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -14,7 +14,6 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {createCallContext} from 'utils/apps';
 
@@ -119,20 +118,18 @@ class ButtonBinding extends React.PureComponent<Props, State> {
         return (
             <Button
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 onClick={this.handleClick}
+                disabled={this.state.executing}
+                loading={this.state.executing}
             >
-                <LoadingWrapper
-                    loading={this.state.executing}
-                >
-                    <Markdown
-                        message={label}
-                        options={{
-                            mentionHighlight: false,
-                            markdown: false,
-                        }}
-                    />
-                </LoadingWrapper>
+                <Markdown
+                    message={label}
+                    options={{
+                        mentionHighlight: false,
+                        markdown: false,
+                    }}
+                />
             </Button>
         );
     }

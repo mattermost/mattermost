@@ -106,7 +106,6 @@ function makeFileInfo(overrides: Partial<FileInfo> = {}): FileInfo {
         height: 0,
         has_preview_image: false,
         clientId: '',
-        archived: false,
         ...overrides,
     } as FileInfo;
 }

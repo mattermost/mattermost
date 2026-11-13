@@ -2,7 +2,8 @@
     "compilerOptions": {
         "allowJs": true,
         "module": "commonjs",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
+        "types": ["*"],
         "target": "ES2022",
         "lib": [
             "ES2022"

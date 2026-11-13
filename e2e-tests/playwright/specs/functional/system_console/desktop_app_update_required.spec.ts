@@ -19,24 +19,17 @@ test('Desktop App update required screen shows when connecting with older versio
     const config = await adminClient.getConfig();
     const appDownloadLink = config.NativeAppSettings.AppDownloadLink;
 
-    const context = await pw.testBrowser.browser.newContext({
-        userAgent: DESKTOP_APP_USER_AGENT,
-    });
+    const {page} = await pw.testBrowser.newPage({userAgent: DESKTOP_APP_USER_AGENT});
 
-    try {
-        const page = await context.newPage();
-        await page.goto('/');
+    await page.goto('/');
 
-        await expect(page.getByRole('heading', {name: 'Update Required'})).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Update Required'})).toBeVisible();
 
-        const message = page.locator('.message');
-        await expect(message).toContainText(OLD_DESKTOP_VERSION);
-        await expect(message).toContainText(MINIMUM_VERSION);
+    const message = page.locator('.message');
+    await expect(message).toContainText(OLD_DESKTOP_VERSION);
+    await expect(message).toContainText(MINIMUM_VERSION);
 
-        const downloadLink = page.getByRole('link', {name: 'Download Updated App'});
-        await expect(downloadLink).toBeVisible();
-        await expect(downloadLink).toHaveAttribute('href', appDownloadLink);
-    } finally {
-        await context.close();
-    }
+    const downloadLink = page.getByRole('link', {name: 'Download Updated App'});
+    await expect(downloadLink).toBeVisible();
+    await expect(downloadLink).toHaveAttribute('href', appDownloadLink);
 });

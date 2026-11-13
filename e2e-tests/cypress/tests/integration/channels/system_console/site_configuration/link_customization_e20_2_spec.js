@@ -49,7 +49,7 @@ describe('SupportSettings', () => {
         backToTeam();
 
         // # Open about modal
-        cy.uiOpenProductMenu(`About ${siteName}`);
+        cy.uiOpenSwitchProductMenu(`About ${siteName}`);
 
         // * Verify that links do not change and they open to default pages
         cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.TermsOfService}/*`));
@@ -65,7 +65,7 @@ describe('SupportSettings', () => {
         backToTeam();
 
         // # Open about modal
-        cy.uiOpenProductMenu(`About ${siteName}`);
+        cy.uiOpenSwitchProductMenu(`About ${siteName}`);
 
         // * Verify that tos link is set to default
         cy.get('#tosLink').should('contain', 'Terms of Use').and('have.attr', 'href').and('match', new RegExp(`${FixedPublicLinks.TermsOfService}/*`));
@@ -79,7 +79,7 @@ describe('SupportSettings', () => {
         backToTeam();
 
         // # Open about modal
-        cy.uiOpenProductMenu(`About ${siteName}`);
+        cy.uiOpenSwitchProductMenu(`About ${siteName}`);
 
         // * Verify that tos link is there
         cy.get('#tosLink').should('be.visible').and('contain', 'Terms of Use');

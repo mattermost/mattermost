@@ -1,5 +1,13 @@
 body {
     &.error {
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+
+        &.app__body {
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
+        }
+
         .container-fluid {
             display: table;
             height: 90%;
@@ -10,22 +18,30 @@ body {
             max-width: 800px;
             padding: 5em 0;
             margin: 0 auto;
-            color: #555;
+            color: var(--center-channel-color);
             text-align: left;
         }
 
         .error__icon {
-            color: #ccc;
+            color: rgba(var(--center-channel-color-rgb), 0.32);
             font-size: 4em;
+        }
+
+        a,
+        a:hover,
+        a:focus {
+            color: var(--link-color);
         }
 
         h2 {
             margin: 0.8em 0 0.5em;
+            color: var(--center-channel-color);
             font-size: 1.5em;
             font-weight: 600;
         }
 
         p {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 1.2em;
         }
     }

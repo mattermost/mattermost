@@ -242,3 +242,15 @@ func (s *SqlChannelJoinRequestStore) CountPending(channelId string) (int64, erro
 	}
 	return count, nil
 }
+
+func (s *SqlChannelJoinRequestStore) PermanentDeleteByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete(channelJoinRequestsTable).
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ChannelJoinRequests with userId=%s", userId)
+	}
+
+	return nil
+}

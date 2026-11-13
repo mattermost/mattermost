@@ -5,6 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 import {v4 as uuidv4} from 'uuid';
+
 const second = 1000;
 const minute = 60 * 1000;
 
@@ -18,6 +19,7 @@ export const duration = {
     one_min: minute,
     two_min: minute * 2,
     four_min: minute * 4,
+    ten_min: minute * 10,
 };
 
 /**
@@ -28,6 +30,56 @@ export const duration = {
 export const wait = async (ms = 0): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+// Node's fetch (used by Client4) rejects a self-signed cert by default; kept here (not in
+// containers/server) to avoid a circular import.
+let previousTlsRejectUnauthorized: string | undefined;
+let tlsVerificationDisabled = false;
+let tlsWarningSuppressed = false;
+
+// Suppresses Node's one-time NODE_TLS_REJECT_UNAUTHORIZED warning without hiding other warnings.
+function suppressTlsRejectUnauthorizedWarning(): void {
+    if (tlsWarningSuppressed) {
+        return;
+    }
+    tlsWarningSuppressed = true;
+    const existingListeners = process.listeners('warning');
+    process.removeAllListeners('warning');
+    process.on('warning', (warning) => {
+        if (warning.message.includes('NODE_TLS_REJECT_UNAUTHORIZED')) {
+            return;
+        }
+        existingListeners.forEach((listener) => listener(warning));
+    });
+}
+
+// A worker process can inherit NODE_TLS_REJECT_UNAUTHORIZED='0' without calling
+// disableTlsVerificationForSelfSignedProxy() itself, so install the filter regardless.
+if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+    suppressTlsRejectUnauthorizedWarning();
+}
+
+export function disableTlsVerificationForSelfSignedProxy(): void {
+    if (tlsVerificationDisabled) {
+        return;
+    }
+    suppressTlsRejectUnauthorizedWarning();
+    previousTlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    tlsVerificationDisabled = true;
+}
+
+export function restoreTlsVerification(): void {
+    if (!tlsVerificationDisabled) {
+        return;
+    }
+    if (previousTlsRejectUnauthorized === undefined) {
+        delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+    } else {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = previousTlsRejectUnauthorized;
+    }
+    tlsVerificationDisabled = false;
+}
 
 export function getRandomId(length = 7): string {
     const MAX_SUBSTRING_INDEX = 27;

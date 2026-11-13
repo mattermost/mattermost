@@ -5,9 +5,14 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -212,15 +217,128 @@ func TestValidateLogFilePath(t *testing.T) {
 		err = ValidateLogFilePath(nonExistentFile, root)
 		assert.NoError(t, err)
 	})
+
+	t.Run("rejects a dangling symlink escaping root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		// Target is deliberately never created, so the link resolves to nothing.
+		link := filepath.Join(root, "dangling.log")
+		err = os.Symlink(filepath.Join(outsideDir, "absent.log"), link)
+		require.NoError(t, err)
+
+		err = ValidateLogFilePath(link, root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unresolved symlink")
+	})
+
+	t.Run("rejects a path deeper than the resolver limit", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		deep := filepath.Join(root, strings.Repeat("a/", maxLogPathDepth+10)+"app.log")
+
+		err = ValidateLogFilePath(deep, root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "maximum directory depth")
+	})
+
+	t.Run("rejects non-existent file path outside root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		err = ValidateLogFilePath(filepath.Join(outsideDir, "future.log"), root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("rejects non-existent file under a symlinked directory escaping root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		err = os.Symlink(outsideDir, filepath.Join(root, "escape"))
+		require.NoError(t, err)
+
+		err = ValidateLogFilePath(filepath.Join(root, "escape", "future.log"), root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("allows paths when root itself is reached through a symlink", func(t *testing.T) {
+		realRoot, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(realRoot)
+		})
+
+		linkDir, err := os.MkdirTemp("", "link")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(linkDir)
+		})
+
+		// Reach the same directory through a symlink, as /var -> /private/var does.
+		symlinkedRoot := filepath.Join(linkDir, "logs")
+		err = os.Symlink(realRoot, symlinkedRoot)
+		require.NoError(t, err)
+
+		err = os.WriteFile(filepath.Join(realRoot, "app.log"), []byte("test"), 0644)
+		require.NoError(t, err)
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), symlinkedRoot))
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "future.log"), symlinkedRoot))
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(realRoot, "app.log"), symlinkedRoot))
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), realRoot))
+	})
 }
 
 // deliveryTargetJSON is an advanced logging config whose only target is bound to the
 // audit-delivery level.
-var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+var deliveryTargetJSON = json.RawMessage(`{"my-delivery":{"type":"file","format":"json","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+
+// noneAuditTargetJSON binds audit-api and audit-delivery to a target of type "none", which
+// logr never builds.
+const noneAuditTargetJSON = `{"a":{"type":"none","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}]}}`
+
+func setAdditionalAuditTargets(t *testing.T, value string) {
+	t.Helper()
+	t.Setenv(AdditionalAuditTargetsEnv, value)
+}
 
 func TestIsAuditLoggingActive(t *testing.T) {
-	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
-	stdTargetJSON := json.RawMessage(`{"my-log":{"type":"file","levels":[{"id":4,"name":"info"}],"options":{"filename":"info.log"}}}`)
+	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
+	stdTargetJSON := json.RawMessage(`{"my-log":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"info.log"}}}`)
 	malformedJSON := json.RawMessage(`{not valid json`)
 
 	tests := []struct {
@@ -228,6 +346,7 @@ func TestIsAuditLoggingActive(t *testing.T) {
 		fileEnabled          bool
 		fileName             string
 		advancedLoggingJSON  json.RawMessage
+		additionalTargets    string
 		allowAdvancedLogging bool
 		expected             bool
 	}{
@@ -281,10 +400,216 @@ func TestIsAuditLoggingActive(t *testing.T) {
 			allowAdvancedLogging: true,
 			expected:             false,
 		},
+		{
+			// configureAudit applies env var targets regardless of license.
+			name:                 "env var audit target, unlicensed",
+			fileEnabled:          false,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var audit target merged with non-audit advanced config",
+			fileEnabled:          false,
+			advancedLoggingJSON:  stdTargetJSON,
+			additionalTargets:    string(auditTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             true,
+		},
+		{
+			// Like configureAudit, an env var target replaces the advanced target of the same name.
+			name:                 "env var target overrides same-named advanced audit target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    `{"my-audit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with no audit level",
+			fileEnabled:          false,
+			additionalTargets:    string(stdTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target bound only to audit-delivery",
+			fileEnabled:          false,
+			additionalTargets:    string(deliveryTargetJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "malformed env var JSON",
+			fileEnabled:          false,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			// configureAudit returns before Configure when additional JSON is malformed,
+			// so a valid licensed advanced target is never applied either.
+			name:                 "malformed env var JSON with valid licensed advanced target",
+			fileEnabled:          false,
+			advancedLoggingJSON:  auditTargetJSON,
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			// The basic _defAudit target is dropped too when configureAudit fails.
+			name:                 "malformed env var JSON with file audit enabled",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    string(malformedJSON),
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of unknown type",
+			fileEnabled:          false,
+			additionalTargets:    `{"my-audit":{"type":"bogus","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			// An invalid env var target fails configureAudit as a whole, dropping _defAudit.
+			name:                 "env var target of unknown type with file audit enabled",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"my-audit":{"type":"bogus","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target overrides _defAudit with no audit level",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"_defAudit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none",
+			fileEnabled:          false,
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "advanced target of type None, licensed",
+			fileEnabled:          false,
+			advancedLoggingJSON:  json.RawMessage(`{"a":{"type":"None","levels":[{"id":100,"name":"audit-api"}]}}`),
+			allowAdvancedLogging: true,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none overrides _defAudit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    `{"_defAudit":{"type":"none","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target of type none alongside file audit",
+			fileEnabled:          true,
+			fileName:             "audit.log",
+			additionalTargets:    noneAuditTargetJSON,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with missing host",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with no options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}]}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with TLS and default trust",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			// The path is on the server's filesystem, which offline packet evaluation can't read.
+			name:                 "env var syslog target with TLS and cert file path",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"/nonexistent/mattermost/syslog-ca.pem"}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var syslog target with TLS and unparseable cert",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514,"tls":true,"cert":"bm90IGEgY2VydA=="}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var syslog target with unknown format",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"syslog","format":"bogus","levels":[{"id":100,"name":"audit-api"}],"options":{"host":"localhost","port":514}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var console target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stderr"}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var console target with invalid output",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"console","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"out":"stdlog"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var file target with no filename",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var tcp target",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"gelf","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1","port":5000}}}`,
+			allowAdvancedLogging: false,
+			expected:             true,
+		},
+		{
+			name:                 "env var tcp target with missing port",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"tcp","format":"json","levels":[{"id":100,"name":"audit-api"}],"options":{"ip":"127.0.0.1"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
+		{
+			name:                 "env var target with malformed format options",
+			fileEnabled:          false,
+			additionalTargets:    `{"a":{"type":"file","format":"json","format_options":{"enable_caller":"yes"},"levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`,
+			allowAdvancedLogging: false,
+			expected:             false,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			setAdditionalAuditTargets(t, tc.additionalTargets)
+
 			auditSettings := model.ExperimentalAuditSettings{}
 			auditSettings.SetDefaults()
 			*auditSettings.FileEnabled = tc.fileEnabled
@@ -296,92 +621,563 @@ func TestIsAuditLoggingActive(t *testing.T) {
 	}
 }
 
-func TestIsAuditLevelActive(t *testing.T) {
-	auditTargetJSON := json.RawMessage(`{"my-audit":{"type":"file","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"audit.log"}}}`)
-	malformedJSON := json.RawMessage(`{not valid json`)
+func TestAuditActivityChecksDoNotDialSyslog(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = listener.Close()
+	})
 
-	tests := []struct {
-		name                 string
-		level                mlog.Level
-		fileEnabled          bool
-		advancedLoggingJSON  json.RawMessage
-		allowAdvancedLogging bool
-		expected             bool
-	}{
-		{
-			name:                 "file audit covers audit-api",
-			level:                mlog.LvlAuditAPI,
-			fileEnabled:          true,
-			allowAdvancedLogging: false,
-			expected:             true,
-		},
-		{
-			// The whole point of the helper: FileEnabled alone must not make
-			// audit-delivery active, because _defAudit is not bound to it.
-			name:                 "file audit does not cover audit-delivery",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          true,
-			allowAdvancedLogging: false,
-			expected:             false,
-		},
-		{
-			name:                 "advanced delivery target, licensed",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             true,
-		},
-		{
-			name:                 "advanced delivery target, unlicensed",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: false,
-			expected:             false,
-		},
-		{
-			name:                 "advanced target for a different audit level",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  auditTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-		{
-			name:                 "file audit plus advanced delivery target",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          true,
-			advancedLoggingJSON:  deliveryTargetJSON,
-			allowAdvancedLogging: true,
-			expected:             true,
-		},
-		{
-			name:                 "nothing configured",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-		{
-			name:                 "malformed advanced JSON",
-			level:                mlog.LvlAuditDelivery,
-			fileEnabled:          false,
-			advancedLoggingJSON:  malformedJSON,
-			allowAdvancedLogging: true,
-			expected:             false,
-		},
-	}
+	var dials atomic.Int32
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
+			}
+			dials.Add(1)
+			_ = conn.Close()
+		}
+	}()
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			auditSettings := model.ExperimentalAuditSettings{}
-			auditSettings.SetDefaults()
-			*auditSettings.FileEnabled = tc.fileEnabled
-			*auditSettings.FileName = "audit.log"
-			auditSettings.AdvancedLoggingJSON = tc.advancedLoggingJSON
+	port := listener.Addr().(*net.TCPAddr).Port
+	setAdditionalAuditTargets(t, fmt.Sprintf(
+		`{"a":{"type":"syslog","format":"json","levels":[{"id":100,"name":"audit-api"},{"id":104,"name":"audit-delivery"}],"options":{"host":"127.0.0.1","port":%d}}}`,
+		port,
+	))
 
-			assert.Equal(t, tc.expected, IsAuditLevelActive(auditSettings, tc.allowAdvancedLogging, tc.level))
+	auditSettings := model.ExperimentalAuditSettings{}
+	auditSettings.SetDefaults()
+	*auditSettings.FileEnabled = false
+
+	assert.True(t, IsAuditLoggingActive(auditSettings, false))
+
+	// Give a stray dial time to be accepted before checking.
+	time.Sleep(100 * time.Millisecond)
+	assert.Zero(t, dials.Load(), "activity checks must not connect to the syslog server")
+}
+
+func TestAdditionalAuditConfig(t *testing.T) {
+	t.Run("blank", func(t *testing.T) {
+		setAdditionalAuditTargets(t, "  ")
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		assert.Nil(t, cfg)
+	})
+
+	t.Run("valid targets", func(t *testing.T) {
+		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		require.Contains(t, cfg, "my-delivery")
+		assert.Equal(t, "file", cfg["my-delivery"].Type)
+		assert.Equal(t, []mlog.Level{mlog.LvlAuditDelivery}, cfg["my-delivery"].Levels)
+	})
+
+	t.Run("malformed JSON", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{not valid json`)
+
+		_, err := AdditionalAuditConfig()
+		assert.Error(t, err)
+	})
+
+	t.Run("reads the env var on each call", func(t *testing.T) {
+		setAdditionalAuditTargets(t, string(deliveryTargetJSON))
+
+		cfg, err := AdditionalAuditConfig()
+		require.NoError(t, err)
+		require.Contains(t, cfg, "my-delivery")
+
+		setAdditionalAuditTargets(t, "")
+		cfg, err = AdditionalAuditConfig()
+		require.NoError(t, err)
+		assert.Nil(t, cfg)
+	})
+}
+
+func TestEffectiveAuditConfig(t *testing.T) {
+	auditSettings := model.ExperimentalAuditSettings{}
+	auditSettings.SetDefaults()
+	*auditSettings.FileEnabled = true
+	*auditSettings.FileName = "audit.log"
+
+	t.Run("env var target replaces _defAudit", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{"_defAudit":{"type":"file","format":"json","levels":[{"id":4,"name":"info"}],"options":{"filename":"audit.log"}}}`)
+
+		cfg, err := EffectiveAuditConfig(auditSettings, nil)
+		require.NoError(t, err)
+		require.Contains(t, cfg, "_defAudit")
+		require.Len(t, cfg["_defAudit"].Levels, 1)
+		assert.Equal(t, mlog.LvlInfo.ID, cfg["_defAudit"].Levels[0].ID)
+	})
+
+	t.Run("malformed env var JSON", func(t *testing.T) {
+		setAdditionalAuditTargets(t, `{not valid json`)
+
+		_, err := EffectiveAuditConfig(auditSettings, nil)
+		assert.ErrorContains(t, err, "invalid additional config for audit")
+	})
+}
+
+func TestIsLogPathEnforcementEnabled(t *testing.T) {
+	t.Run("nil config", func(t *testing.T) {
+		assert.False(t, IsLogPathEnforcementEnabled(nil))
+	})
+
+	t.Run("nil feature flags", func(t *testing.T) {
+		assert.False(t, IsLogPathEnforcementEnabled(&model.Config{}))
+	})
+
+	t.Run("flag off", func(t *testing.T) {
+		cfg := &model.Config{FeatureFlags: &model.FeatureFlags{}}
+		cfg.FeatureFlags.SetDefaults()
+		assert.False(t, IsLogPathEnforcementEnabled(cfg))
+	})
+
+	t.Run("flag on", func(t *testing.T) {
+		cfg := &model.Config{FeatureFlags: &model.FeatureFlags{EnforceLogPathRoot: true}}
+		assert.True(t, IsLogPathEnforcementEnabled(cfg))
+	})
+}
+
+func TestValidateLogPaths(t *testing.T) {
+	// root and outside are siblings so that neither is a path prefix of the other
+	base := t.TempDir()
+	root := filepath.Join(base, "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+	outside := filepath.Join(base, "evil")
+	require.NoError(t, os.MkdirAll(outside, 0700))
+
+	fileTargetJSON := func(name, path string) json.RawMessage {
+		raw, err := json.Marshal(map[string]any{
+			name: map[string]any{
+				"type":    "file",
+				"levels":  []map[string]any{{"id": 2, "name": "error"}},
+				"options": map[string]any{"filename": path},
+			},
 		})
+		require.NoError(t, err)
+		return raw
 	}
+
+	// baseCfg returns a config whose every log path is inside root.
+	baseCfg := func() *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.LogSettings.EnableFile = new(true)
+		cfg.LogSettings.FileLocation = new(root)
+		cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(root, "audit.log"))
+		return cfg
+	}
+
+	t.Run("nil config", func(t *testing.T) {
+		assert.NoError(t, ValidateLogPaths(nil, nil, root))
+	})
+
+	t.Run("clean config", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("ok", filepath.Join(root, "adv.log"))
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = fileTargetJSON("ok-audit", filepath.Join(root, "adv-audit.log"))
+
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("LogSettings.FileLocation outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.FileLocation = new(outside)
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "LogSettings.FileLocation")
+		assert.Contains(t, err.Error(), GetLogFileLocation(outside))
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("LogSettings.FileLocation skipped when EnableFile is false", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.EnableFile = new(false)
+		cfg.LogSettings.FileLocation = new(outside)
+
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("LogSettings.AdvancedLoggingJSON outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("evil", filepath.Join(outside, "out.log"))
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `LogSettings.AdvancedLoggingJSON target "evil"`)
+		assert.Contains(t, err.Error(), filepath.Join(outside, "out.log"))
+	})
+
+	t.Run("AdvancedLoggingJSON file type is case-insensitive", func(t *testing.T) {
+		// logr lowercases type before building targets; mixed case must still be enforced
+		raw, err := json.Marshal(map[string]any{
+			"evil": map[string]any{
+				"type":    "File",
+				"levels":  []map[string]any{{"id": 2, "name": "error"}},
+				"options": map[string]any{"filename": filepath.Join(outside, "out.log")},
+			},
+		})
+		require.NoError(t, err)
+
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = raw
+
+		err = ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `LogSettings.AdvancedLoggingJSON target "evil"`)
+	})
+
+	t.Run("ExperimentalAuditSettings.FileName outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "ExperimentalAuditSettings.FileName")
+		assert.Contains(t, err.Error(), filepath.Join(outside, "audit.log"))
+	})
+
+	t.Run("ExperimentalAuditSettings.FileName skipped when FileEnabled is false", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("ExperimentalAuditSettings.AdvancedLoggingJSON outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = fileTargetJSON("evil-audit", filepath.Join(outside, "out.log"))
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `ExperimentalAuditSettings.AdvancedLoggingJSON target "evil-audit"`)
+	})
+
+	t.Run("non-file targets are ignored", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"console": {"type": "console", "levels": [{"id": 2, "name": "error"}], "options": {"out": "stdout"}}}`)
+
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("malformed AdvancedLoggingJSON is skipped", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"broken": `)
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(`{"broken": `)
+
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("reports the first offending field in config order", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.FileLocation = new(outside)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("evil", filepath.Join(outside, "out.log"))
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "LogSettings.FileLocation")
+	})
+
+	t.Run("reports a deterministic target when several in one section are bad", func(t *testing.T) {
+		raw, err := json.Marshal(map[string]any{
+			"zeta":  map[string]any{"type": "file", "levels": []map[string]any{{"id": 2, "name": "error"}}, "options": map[string]any{"filename": filepath.Join(outside, "z.log")}},
+			"alpha": map[string]any{"type": "file", "levels": []map[string]any{{"id": 2, "name": "error"}}, "options": map[string]any{"filename": filepath.Join(outside, "a.log")}},
+		})
+		require.NoError(t, err)
+
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = raw
+
+		for range 20 {
+			err := ValidateLogPaths(cfg, nil, root)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), `target "alpha"`, "the alphabetically first bad target should always be reported")
+		}
+	})
+}
+
+func TestIsWithinDir(t *testing.T) {
+	sep := string(filepath.Separator)
+	dir := sep + "opt" + sep + "mattermost"
+
+	assert.True(t, isWithinDir(dir, dir), "the directory itself is inside")
+	assert.True(t, isWithinDir(dir+sep+"plugins"+sep+"x", dir))
+	assert.False(t, isWithinDir(sep+"opt", dir), "a parent is outside")
+	assert.False(t, isWithinDir(dir+"-other"+sep+"x", dir), "a sibling with a common prefix is outside")
+	assert.False(t, isWithinDir(sep+"srv", dir))
+}
+
+func TestManagedDirs(t *testing.T) {
+	newCfg := func(plugins, client, data string) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.PluginSettings.Directory = new(plugins)
+		cfg.PluginSettings.ClientDirectory = new(client)
+		cfg.FileSettings.Directory = new(data)
+		return cfg
+	}
+
+	t.Run("failed lookups add nothing", func(t *testing.T) {
+		assert.Empty(t, foundDir("./", false))
+		assert.Equal(t, "/x", foundDir("/x", true))
+	})
+
+	t.Run("empty settings add nothing", func(t *testing.T) {
+		dirs := managedDirs(newCfg("", " ", ""), nil)
+		assert.NotContains(t, dirs, "")
+		assert.NotContains(t, dirs, " ")
+	})
+
+	t.Run("config and active directories contribute", func(t *testing.T) {
+		dirs := managedDirs(newCfg("/new/plugins", "/new/client", "/new/data"), []string{"/old/plugins", "/etc/mattermost"})
+		assert.Subset(t, dirs, []string{"/new/plugins", "/new/client", "/new/data", "/old/plugins", "/etc/mattermost"})
+	})
+
+	t.Run("no active directories adds none", func(t *testing.T) {
+		dirs := managedDirs(newCfg("/new/plugins", "/new/client", "/new/data"), nil)
+		assert.Contains(t, dirs, "/new/plugins")
+		assert.NotContains(t, dirs, "/old/plugins")
+	})
+
+	t.Run("export and compliance directories are managed", func(t *testing.T) {
+		cfg := newCfg("/p", "/c", "/d")
+		cfg.FileSettings.ExportDirectory = new("/export")
+		cfg.ComplianceSettings.Directory = new("/compliance")
+		assert.Subset(t, managedDirs(cfg, nil), []string{"/export", "/compliance"})
+	})
+
+	t.Run("nil config sets no directories", func(t *testing.T) {
+		assert.Empty(t, ConfigurableManagedDirs(nil))
+	})
+
+	t.Run("executable directory is managed", func(t *testing.T) {
+		exe, err := os.Executable()
+		require.NoError(t, err)
+		assert.Contains(t, managedDirs(newCfg("/p", "/c", "/d"), nil), filepath.Dir(exe))
+	})
+
+	t.Run("duplicates are removed", func(t *testing.T) {
+		cfg := newCfg("/same", "/same", "/same")
+		assert.Equal(t, 1, strings.Count(strings.Join(managedDirs(cfg, []string{"/same"}), "\n"), "/same"))
+	})
+}
+
+func TestValidateLogPathsManagedDirs(t *testing.T) {
+	// root is wide, like MM_LOG_PATH=/opt, and contains the plugin directory
+	root := t.TempDir()
+	pluginDir := filepath.Join(root, "mattermost", "plugins")
+	logDir := filepath.Join(root, "mattermost", "logs")
+	require.NoError(t, os.MkdirAll(pluginDir, 0700))
+	require.NoError(t, os.MkdirAll(logDir, 0700))
+
+	fileTargetJSON := func(path string) json.RawMessage {
+		raw, err := json.Marshal(map[string]any{
+			"t": map[string]any{
+				"type":    "file",
+				"levels":  []map[string]any{{"id": 2, "name": "error"}},
+				"options": map[string]any{"filename": path},
+			},
+		})
+		require.NoError(t, err)
+		return raw
+	}
+
+	cfgWith := func(plugins string) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.LogSettings.EnableFile = new(true)
+		cfg.LogSettings.FileLocation = new(logDir)
+		cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+		cfg.PluginSettings.Directory = new(plugins)
+		return cfg
+	}
+
+	pluginBinary := filepath.Join(pluginDir, "x", "plugin")
+
+	t.Run("target outside managed directories is accepted", func(t *testing.T) {
+		cfg := cfgWith(pluginDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(logDir, "mattermost.log"))
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("each field rejects a target inside the plugin directory", func(t *testing.T) {
+		cases := map[string]func(*model.Config){
+			"LogSettings.FileLocation": func(cfg *model.Config) {
+				cfg.LogSettings.FileLocation = new(pluginDir)
+			},
+			"LogSettings.AdvancedLoggingJSON": func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
+			},
+			"ExperimentalAuditSettings.FileName": func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+				cfg.ExperimentalAuditSettings.FileName = new(pluginBinary)
+			},
+			"ExperimentalAuditSettings.AdvancedLoggingJSON": func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
+			},
+		}
+		for field, mutate := range cases {
+			t.Run(field, func(t *testing.T) {
+				cfg := cfgWith(pluginDir)
+				mutate(cfg)
+
+				err := ValidateLogPaths(cfg, nil, root)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), field)
+				assert.Contains(t, err.Error(), "inside server-managed directory")
+				assert.Contains(t, err.Error(), pluginDir)
+			})
+		}
+	})
+
+	t.Run("target equal to a managed directory is rejected", func(t *testing.T) {
+		cfg := cfgWith(pluginDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginDir)
+		assert.Error(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("target inside an active plugin directory is rejected when the new config moves it", func(t *testing.T) {
+		newCfg := cfgWith(filepath.Join(root, "elsewhere"))
+		newCfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
+
+		assert.NoError(t, ValidateLogPaths(newCfg, nil, root))
+		assert.Error(t, ValidateLogPaths(newCfg, []string{pluginDir}, root))
+	})
+
+	t.Run("target inside the new plugin directory is rejected when the active directories differ", func(t *testing.T) {
+		newCfg := cfgWith(pluginDir)
+		newCfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
+
+		assert.Error(t, ValidateLogPaths(newCfg, []string{filepath.Join(root, "elsewhere")}, root))
+	})
+
+	t.Run("compliance directory is managed", func(t *testing.T) {
+		complianceDir := filepath.Join(root, "mattermost", "compliance")
+		cfg := cfgWith(pluginDir)
+		cfg.ComplianceSettings.Directory = new(complianceDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(complianceDir, "compliance", "export.zip"))
+		assert.Error(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("data directory is managed", func(t *testing.T) {
+		dataDir := filepath.Join(root, "mattermost", "data")
+		cfg := cfgWith(pluginDir)
+		cfg.FileSettings.Directory = new(dataDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(dataDir, "out.log"))
+		assert.Error(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("managed directory containing the logging root is skipped", func(t *testing.T) {
+		cfg := cfgWith(root)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(logDir, "adv.log"))
+		assert.NoError(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("managed directory equal to the logging root is skipped", func(t *testing.T) {
+		cfg := cfgWith(logDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(logDir, "adv.log"))
+		assert.NoError(t, ValidateLogPaths(cfg, nil, logDir))
+	})
+
+	t.Run("target reaching the plugin directory through a symlink is rejected", func(t *testing.T) {
+		link := filepath.Join(logDir, "link")
+		if err := os.Symlink(pluginDir, link); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+		// the link lives inside root, so only the managed-directory check can reject it
+		cfg := cfgWith(pluginDir)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(link, "x", "plugin"))
+
+		err := ValidateLogPaths(cfg, nil, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "inside server-managed directory")
+	})
+
+	t.Run("managed directory behind a symlink is resolved", func(t *testing.T) {
+		link := filepath.Join(root, "plugins-link")
+		if err := os.Symlink(pluginDir, link); err != nil {
+			t.Skipf("symlinks unavailable: %v", err)
+		}
+		cfg := cfgWith(link)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(pluginBinary)
+		assert.Error(t, ValidateLogPaths(cfg, nil, root))
+	})
+
+	t.Run("relative managed directory is made absolute", func(t *testing.T) {
+		wd, err := os.Getwd()
+		require.NoError(t, err)
+
+		cfg := cfgWith("./plugins")
+		cfg.LogSettings.EnableFile = new(false)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON(filepath.Join(wd, "plugins", "x", "plugin"))
+
+		err = ValidateLogPaths(cfg, nil, wd)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "inside server-managed directory")
+	})
+}
+
+func TestValidateLogFilePathSymlinkResolution(t *testing.T) {
+	t.Run("accepts an existing file under a symlinked root", func(t *testing.T) {
+		base := t.TempDir()
+
+		realRoot := filepath.Join(base, "real-logs")
+		require.NoError(t, os.MkdirAll(realRoot, 0700))
+
+		linkedRoot := filepath.Join(base, "linked-logs")
+		require.NoError(t, os.Symlink(realRoot, linkedRoot))
+
+		logFile := filepath.Join(realRoot, "mattermost.log")
+		require.NoError(t, os.WriteFile(logFile, []byte("ok"), 0600))
+
+		// the root is reached through the symlink, the file through the real path
+		assert.NoError(t, ValidateLogFilePath(logFile, linkedRoot))
+		// ...and the other way around
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(linkedRoot, "mattermost.log"), realRoot))
+	})
+
+	t.Run("rejects a not-yet-created file whose parent symlinks out of the root", func(t *testing.T) {
+		base := t.TempDir()
+
+		root := filepath.Join(base, "logs")
+		require.NoError(t, os.MkdirAll(root, 0700))
+		outside := filepath.Join(base, "evil")
+		require.NoError(t, os.MkdirAll(outside, 0700))
+
+		// a symlink inside the root pointing out of it
+		require.NoError(t, os.Symlink(outside, filepath.Join(root, "escape")))
+
+		// the file does not exist yet, so only its parent can be resolved
+		err := ValidateLogFilePath(filepath.Join(root, "escape", "out.log"), root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("accepts a not-yet-created file in a not-yet-created subdirectory of the root", func(t *testing.T) {
+		base := t.TempDir()
+
+		root := filepath.Join(base, "logs")
+		require.NoError(t, os.MkdirAll(root, 0700))
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(root, "nested", "deeper", "out.log"), root))
+	})
+
+	t.Run("rejects a path outside a root that does not exist yet", func(t *testing.T) {
+		base := t.TempDir()
+
+		err := ValidateLogFilePath(filepath.Join(base, "evil", "out.log"), filepath.Join(base, "missing-root"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
 }

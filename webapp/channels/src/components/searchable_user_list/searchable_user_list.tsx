@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -230,7 +230,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     <Button
                         id='searchableUserListNextBtn'
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
@@ -248,7 +248,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     <Button
                         id='searchableUserListPrevBtn'
                         emphasis='tertiary'
-                        size='sm'
+                        size='small'
                         className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >

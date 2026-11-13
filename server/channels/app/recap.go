@@ -70,8 +70,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
 		if storeErr != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(storeErr, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](storeErr); ok {
 				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
 			}
 			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
@@ -426,6 +425,9 @@ func (a *App) fetchPostsForRecapWithFallback(rctx request.CTX, channelID string,
 	posts := make([]*model.Post, 0, len(postList.Posts))
 	for _, postID := range postList.Order {
 		if post, ok := postList.Posts[postID]; ok {
+			if post.DeleteAt != 0 {
+				continue
+			}
 			posts = append(posts, post)
 			if len(posts) >= limit {
 				break

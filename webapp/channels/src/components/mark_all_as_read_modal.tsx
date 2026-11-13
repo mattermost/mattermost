@@ -4,6 +4,7 @@
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
 import {ShortcutKeys} from '@mattermost/shared/components/shortcut_key';
 
@@ -103,18 +104,21 @@ export default function MarkAllAsReadModal({
                 {checkbox}
             </div>
             <div className='mark_all_as_read_modal__footer'>
-                <button
-                    className='btn btn-tertiary'
+                <Button
+                    type='button'
+                    emphasis='tertiary'
                     onClick={handleClose}
                 >
                     {cancelButtonText}
-                </button>
-                <button
-                    className='btn btn-danger'
+                </Button>
+                <Button
+                    type='button'
+                    emphasis='primary'
+                    destructive={true}
                     onClick={handleConfirm}
                 >
                     {confirmButtonText}
-                </button>
+                </Button>
             </div>
         </GenericModal>
     );

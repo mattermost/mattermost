@@ -3,7 +3,10 @@
 
 import React from 'react';
 
+import ConnectedUnarchiveChannelModal from 'components/unarchive_channel_modal';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannelModal from './unarchive_channel_modal';
@@ -31,13 +34,6 @@ describe('components/unarchive_channel_modal', () => {
         },
         onExited: jest.fn(),
     };
-
-    test('should match snapshot for unarchive_channel_modal', () => {
-        const {baseElement} = renderWithContext(
-            <UnarchiveChannelModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
 
     test('should match state when onHide is called', async () => {
         renderWithContext(
@@ -90,5 +86,19 @@ describe('components/unarchive_channel_modal', () => {
         await waitFor(() => {
             expect(onExited).toHaveBeenCalledTimes(1);
         });
+    });
+
+    test('says board for a board', () => {
+        renderWithContext(
+            <ConnectedUnarchiveChannelModal
+                channel={channel}
+                onExited={jest.fn()}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Confirm UNARCHIVE Board')).toBeInTheDocument();
+        expect(screen.getByText(/Are you sure you wish to unarchive the/)).toHaveTextContent('Are you sure you wish to unarchive the testing board?');
+        expect(screen.queryByText(/channel/i)).not.toBeInTheDocument();
     });
 });

@@ -6,7 +6,6 @@ import React from 'react';
 import {renderWithContext} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
-import {limitThresholds} from 'utils/limits';
 
 import MenuCloudTrial from './menu_cloud_trial';
 
@@ -189,44 +188,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         expect(openModalLink?.textContent).toBe('Learn more');
     });
 
-    test('should show the invitation to see plans when is not in Trial and has had previous Trial', () => {
-        const state = {
-            entities: {
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        is_free_trial: 'false',
-                        trial_end_at: 232434,
-                        product_id: 'prod_starter',
-                    },
-                    products: {
-                        prod_starter: {
-                            id: 'prod_starter',
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                    limits,
-                },
-                usage,
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {roles: 'system_admin'},
-                    },
-                },
-            },
-        };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
-        const openModalLink = container.querySelector('.open-see-plans-modal');
-        expect(openModalLink).not.toBeNull();
-        expect(openModalLink?.textContent).toEqual('See plans');
-    });
-
     test('should show the invitation to open the trial benefits modal when is End User and is in TRIAL', () => {
         const state = {
             entities: {
@@ -300,45 +261,5 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
         const openModalLink = container.querySelector('.open-trial-benefits-modal');
         expect(openModalLink).toBeNull();
-    });
-
-    test('should return null if some limit needs attention', () => {
-        const state = {
-            entities: {
-                users,
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        product_id: 'prod_starter',
-                        is_free_trial: 'false',
-                        trial_end_at: 232434,
-                    },
-                    products: {
-                        prod_starter: {
-                            id: 'prod_starter',
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                    limits,
-                },
-                usage: {
-                    ...usage,
-                    messages: {
-                        ...usage.messages,
-                        history: Math.ceil((limitThresholds.warn / 100) * limits.limits.messages.history) + 1,
-                    },
-                },
-            },
-        };
-        const {container} = renderWithContext(<MenuCloudTrial id='menuCloudTrial'/>, state);
-        expect(container.querySelector('.MenuCloudTrial')).toBeNull();
-        expect(container.querySelector('.open-see-plans-modal')).toBeNull();
-        expect(container.querySelector('.open-learn-more-trial-modal')).toBeNull();
-        expect(container.querySelector('.open-trial-benefits-modal')).toBeNull();
     });
 });

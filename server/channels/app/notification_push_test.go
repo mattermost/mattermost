@@ -1862,6 +1862,7 @@ func TestPushNotificationRace(t *testing.T) {
 	// Playbooks DB job requires a plugin mock
 	pluginStore := mocks.PluginStore{}
 	pluginStore.On("List", mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
+	pluginStore.On("ListWithOptions", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]string{}, nil)
 	mockStore.On("Plugin").Return(&pluginStore)
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",
@@ -1879,7 +1880,8 @@ func TestPushNotificationRace(t *testing.T) {
 		platform.ConfigStore(memoryStore),
 		platform.SetFileStore(&fmocks.FileBackend{}),
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
-		platform.StoreOverride(mockStore))
+		platform.StoreOverride(mockStore),
+		platform.DisableGlobalLogger())
 	require.NoError(t, err)
 	ch, err := NewChannels(s)
 	require.NoError(t, err)

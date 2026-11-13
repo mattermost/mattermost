@@ -414,5 +414,28 @@
   },
   "server": {
     "target": "servidor"
+  },
+  "health dashboard": {
+    "target": "Salud del sitio",
+    "note": "Name of the System Console page; matches its title and sidebar item. In running text: 'la página Salud del sitio'."
+  },
+  "health finding": {
+    "target": "hallazgo de salud",
+    "note": "Masculine; plural hallazgos de salud. Plain 'hallazgo' on the Salud del sitio page itself. Some server strings ship 'hallazgo de estado'; use 'de salud' to match the page name."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine: el plugin Agents; with the full name 'el plugin Mattermost Agents'. 'Agents' is a product name: catalogs ship 'plugin de Agentes' in admin.site.localization.* — do not propagate."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Masculine: el Hosted Push Notification Service de Mattermost."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Masculine: el Test Push Notification Service de Mattermost."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

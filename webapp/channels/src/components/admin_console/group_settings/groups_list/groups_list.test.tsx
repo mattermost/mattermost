@@ -27,24 +27,8 @@ function openFilters() {
 }
 
 describe('components/admin_console/group_settings/GroupsList.tsx', () => {
-    test('should match snapshot, while loading', () => {
-        // getLdapGroups never resolves, so component stays in loading state
-        const {container} = renderWithContext(
-            <GroupsList
-                groups={[]}
-                total={0}
-                actions={{
-                    getLdapGroups: jest.fn().mockReturnValue(new Promise(() => {})),
-                    link: jest.fn(),
-                    unlink: jest.fn(),
-                }}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with only linked selected', async () => {
-        const {container} = renderWithContext(
+    test('should render with only linked selected', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -64,12 +48,10 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
         // Click on test2 (linked group) to select it
         await userEvent.click(screen.getByText('test2'));
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with only not-linked selected', async () => {
-        const {container} = renderWithContext(
+    test('should render with only not-linked selected', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -89,12 +71,10 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
 
         // Click on test1 (not-linked group) to select it
         await userEvent.click(screen.getByText('test1'));
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with mixed types selected', async () => {
-        const {container} = renderWithContext(
+    test('should render with mixed types selected', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -115,12 +95,10 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         // Click both groups to select them
         await userEvent.click(screen.getByText('test1'));
         await userEvent.click(screen.getByText('test2'));
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, without selection', async () => {
-        const {container} = renderWithContext(
+    test('should render without selection', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -137,8 +115,6 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await waitFor(() => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
     test('onCheckToggle must toggle the checked data', async () => {
@@ -248,8 +224,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         expect(unlink).toHaveBeenCalledWith('test2');
     });
 
-    test('should match snapshot, without results', async () => {
-        const {container} = renderWithContext(
+    test('should render without results', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -263,11 +239,10 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await waitFor(() => {
             expect(screen.getByText('No groups found')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with results', async () => {
-        const {container} = renderWithContext(
+    test('should render with results', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -285,10 +260,9 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await waitFor(() => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with results and next and previous', async () => {
+    test('should render with results and next and previous', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
         const groups = [
             {primary_key: 'test1', name: 'test1'},
@@ -303,7 +277,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             {primary_key: 'test10', name: 'test10'},
         ];
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <GroupsList
                 groups={groups}
                 total={401}
@@ -319,19 +293,17 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         });
 
         // Click next to get to page 1 (both prev and next should be available with total=401)
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
         await userEvent.click(nextButton);
 
         await waitFor(() => {
             expect(getLdapGroups).toHaveBeenCalledTimes(2);
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with results and next', async () => {
+    test('should render with results and next', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        const {container} = renderWithContext(
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -356,14 +328,11 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         await waitFor(() => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
-
-        // On page 0 with total=401, next is enabled, prev is disabled
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with results and previous', async () => {
+    test('should render with results and previous', async () => {
         const getLdapGroups = jest.fn().mockReturnValue(Promise.resolve());
-        const {container} = renderWithContext(
+        renderWithContext(
             <GroupsList
                 groups={[
                     {primary_key: 'test1', name: 'test1'},
@@ -383,14 +352,12 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         });
 
         // Click next to get to page 1, then prev is enabled
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
         await userEvent.click(nextButton);
 
         await waitFor(() => {
             expect(getLdapGroups).toHaveBeenCalledTimes(2);
         });
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should change properly the state and call the getLdapGroups, on previousPage when page > 0', async () => {
@@ -421,8 +388,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
-        const prevButton = screen.getByTitle('Previous Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
+        const prevButton = screen.getByRole('button', {name: 'Previous page'});
 
         // Navigate to page 2: click next twice
         await userEvent.click(nextButton);
@@ -480,7 +447,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const prevButton = screen.getByTitle('Previous Icon').closest('button')!;
+        const prevButton = screen.getByRole('button', {name: 'Previous page'});
 
         // On page 0, previous button should be disabled
         expect(prevButton).toBeDisabled();
@@ -518,7 +485,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
             expect(screen.getByText('test1')).toBeInTheDocument();
         });
 
-        const nextButton = screen.getByTitle('Next Icon').closest('button')!;
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
 
         // Select some groups
         await userEvent.click(screen.getByText('test1'));
@@ -544,8 +511,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         expect(test1Group).not.toHaveClass('checked');
     });
 
-    test('should match snapshot, with filters open', async () => {
-        const {container} = renderWithContext(
+    test('should render with filters open', async () => {
+        renderWithContext(
             <GroupsList
                 groups={[]}
                 total={0}
@@ -566,8 +533,6 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         // Verify filters are shown
         expect(screen.getByText('Is Linked')).toBeInTheDocument();
         expect(screen.getByText('Is Not Linked')).toBeInTheDocument();
-
-        expect(container).toMatchSnapshot();
     });
 
     test('clicking the clear icon clears searchString', async () => {
@@ -681,8 +646,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         openFilters();
 
         // Click the "Is Linked" filter checkbox
-        const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
-        await userEvent.click(isLinkedCheckbox);
+        await userEvent.click(screen.getByRole('checkbox', {name: 'Is Linked'}));
 
         // The search string should now include 'is:linked'
         expect(searchInput).toHaveValue('foo is:linked');
@@ -713,7 +677,7 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         openFilters();
 
         // Click the "Is Linked" filter checkbox to check it
-        const isLinkedCheckbox = screen.getByText('Is Linked').parentElement!.querySelector('.filter-check')!;
+        const isLinkedCheckbox = screen.getByRole('checkbox', {name: 'Is Linked'});
         await userEvent.click(isLinkedCheckbox);
         expect(searchInput).toHaveValue('foo is:linked');
 

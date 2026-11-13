@@ -29,8 +29,7 @@ func (a *App) CreateView(rctx request.CTX, view *model.View, connectionID string
 
 	saved, err := a.Srv().Store().View().Save(view)
 	if err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
 		}
 		return nil, model.NewAppError("CreateView", "app.view.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -59,8 +58,7 @@ func (a *App) GetView(rctx request.CTX, viewID string) (*model.View, *model.AppE
 func (a *App) GetViewsForChannel(rctx request.CTX, channelID string, opts model.ViewQueryOpts) ([]*model.View, *model.AppError) {
 	result, err := a.Srv().Store().View().GetForChannel(channelID, opts)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		if errors.As(err, &invErr) {
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 		return nil, model.NewAppError("GetViewsForChannel", "app.view.get_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -111,8 +109,7 @@ func (a *App) DeleteView(rctx request.CTX, view *model.View, connectionID string
 		return model.NewAppError("DeleteView", "app.view.delete.nil_view.app_error", nil, "view is nil", http.StatusBadRequest)
 	}
 	if err := a.Srv().Store().View().Delete(view.Id, model.GetMillis()); err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("DeleteView", "app.view.delete.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return model.NewAppError("DeleteView", "app.view.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

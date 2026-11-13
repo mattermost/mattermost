@@ -6,18 +6,14 @@ import type {IntlShape} from 'react-intl';
 import * as limits from './limits';
 import * as mmBlock from './mm_block';
 import {
-    ADAPTIVE_CARDS_COMPLEX,
     ADAPTIVE_CARDS_SIMPLE,
-    ATTACHMENTS_COMPLEX,
     ATTACHMENTS_SIMPLE,
-    BLOCK_KIT_COMPLEX,
     BLOCK_KIT_SIMPLE,
     MALFORMED_ADAPTIVE_CARDS,
     MALFORMED_ATTACHMENTS,
     MALFORMED_BLOCK_KIT,
     MALFORMED_MM_BLOCKS_MIXED,
     MALFORMED_MM_BLOCKS_ONLY_INVALID,
-    MM_BLOCKS_COMPLEX,
     MM_BLOCKS_SIMPLE,
 } from './test_fixtures';
 
@@ -65,13 +61,26 @@ describe('translatePostProps', () => {
     });
 
     describe('format priority', () => {
+        const mmBlocksResult = [
+            {type: 'text', text: 'Hello **from** mm blocks'},
+            {type: 'button', text: 'Sample action', action_id: 'mm_blocks_demo', style: 'primary'},
+        ];
+        const blockKitResult = [
+            {type: 'container', content: [{type: 'text', text: '*Hello* from Block Kit'}]},
+            {type: 'divider'},
+            {type: 'container', flow: 'horizontal', content: [{type: 'button', text: 'OK', action_id: 'block_kit_demo'}]},
+        ];
+        const cardsResult = [
+            {type: 'text', text: 'Hello from an Adaptive Card'},
+        ];
+
         it('should prefer mm_blocks over blocks, cards, and attachments', () => {
             expect(translatePostProps({
                 mm_blocks: [...MM_BLOCKS_SIMPLE],
                 blocks: [...BLOCK_KIT_SIMPLE],
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            }, mockIntl)).toMatchSnapshot();
+            }, mockIntl)).toEqual(mmBlocksResult);
         });
 
         it('should prefer blocks over cards and attachments when mm_blocks is absent', () => {
@@ -79,50 +88,73 @@ describe('translatePostProps', () => {
                 blocks: [...BLOCK_KIT_SIMPLE],
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            }, mockIntl)).toMatchSnapshot();
+            }, mockIntl)).toEqual(blockKitResult);
         });
 
         it('should prefer cards over attachments when mm_blocks and blocks are absent', () => {
             expect(translatePostProps({
                 cards: [...ADAPTIVE_CARDS_SIMPLE],
                 attachments: [...ATTACHMENTS_SIMPLE],
-            }, mockIntl)).toMatchSnapshot();
+            }, mockIntl)).toEqual(cardsResult);
         });
     });
 
-    describe('simple payloads', () => {
-        it('should translate native mm_blocks', () => {
-            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_SIMPLE]}, mockIntl)).toMatchSnapshot();
+    describe('attachment fields', () => {
+        const fieldsContainerOf = (fields: unknown[]) => {
+            const result = translatePostProps({attachments: [{fields}]}, mockIntl);
+            return result?.[0].type === 'container' ? result[0].content[0] : undefined;
+        };
+
+        it('should render titles of fields with empty values', () => {
+            expect(fieldsContainerOf([
+                {title: 'Great (1 vote)', value: '', short: true},
+                {title: 'Meh (0 votes)', value: '', short: true},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [{
+                    type: 'column_set',
+                    columns: [
+                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Great (1 vote):**'}]},
+                        {type: 'column', width: 'stretch', gap: 'none', items: [{type: 'text', text: '**Meh (0 votes):**'}]},
+                    ],
+                }],
+            });
         });
 
-        it('should translate Block Kit blocks', () => {
-            expect(translatePostProps({blocks: [...BLOCK_KIT_SIMPLE]}, mockIntl)).toMatchSnapshot();
+        it('should render a titled field with a null value alongside fields that have values', () => {
+            expect(fieldsContainerOf([
+                {title: 'Monday', value: '@alice, @bob'},
+                {title: 'Friday', value: null},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Monday:**'}, {type: 'text', text: '@alice, @bob'}]},
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: '**Friday:**'}]},
+                ],
+            });
         });
 
-        it('should translate Adaptive Cards', () => {
-            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_SIMPLE]}, mockIntl)).toMatchSnapshot();
+        it('should skip fields with neither a title nor a value', () => {
+            expect(fieldsContainerOf([
+                {title: '', value: ''},
+                {title: ' ', value: null},
+                {value: 'kept'},
+            ])).toEqual({
+                type: 'container',
+                flow: 'vertical',
+                gap: 'medium',
+                content: [
+                    {type: 'container', flow: 'vertical', gap: 'none', content: [{type: 'text', text: 'kept'}]},
+                ],
+            });
         });
 
-        it('should translate legacy attachments', () => {
-            expect(translatePostProps({attachments: [...ATTACHMENTS_SIMPLE]}, mockIntl)).toMatchSnapshot();
-        });
-    });
-
-    describe('complex payloads', () => {
-        it('should translate rich mm_blocks (container, column_set, collapsible, select)', () => {
-            expect(translatePostProps({mm_blocks: [...MM_BLOCKS_COMPLEX]}, mockIntl)).toMatchSnapshot();
-        });
-
-        it('should translate rich attachments (fields, media, footer, actions, multiple cards)', () => {
-            expect(translatePostProps({attachments: [...ATTACHMENTS_COMPLEX]}, mockIntl)).toMatchSnapshot();
-        });
-
-        it('should translate rich Block Kit (accessory, fields, image, select)', () => {
-            expect(translatePostProps({blocks: [...BLOCK_KIT_COMPLEX]}, mockIntl)).toMatchSnapshot();
-        });
-
-        it('should translate rich Adaptive Cards (columns, image, action set)', () => {
-            expect(translatePostProps({cards: [...ADAPTIVE_CARDS_COMPLEX]}, mockIntl)).toMatchSnapshot();
+        it('should omit the fields container when every field is empty', () => {
+            expect(translatePostProps({attachments: [{fields: [{title: '', value: ''}]}]}, mockIntl)).toEqual([]);
         });
     });
 
@@ -131,7 +163,9 @@ describe('translatePostProps', () => {
             expect(translatePostProps({
                 mm_blocks: 'not-an-array' as unknown,
                 attachments: [{text: 'fallback attachment'}],
-            }, mockIntl)).toMatchSnapshot();
+            }, mockIntl)).toEqual([
+                {type: 'container', border: true, content: [{type: 'text', text: 'fallback attachment'}]},
+            ]);
         });
 
         it('should not fall through when mm_blocks is a non-empty array but every entry is invalid', () => {
@@ -144,11 +178,36 @@ describe('translatePostProps', () => {
         });
 
         it('should keep valid mm_blocks and drop invalid siblings', () => {
-            expect(translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_MIXED]}, mockIntl)).toMatchSnapshot();
+            expect(translatePostProps({mm_blocks: [...MALFORMED_MM_BLOCKS_MIXED]}, mockIntl)).toEqual([
+                {type: 'text', text: 'Valid block'},
+                {type: 'button', text: 'Good', action_id: 'valid_btn'},
+            ]);
         });
 
         it('should skip invalid attachment entries and keep partial attachment content', () => {
-            expect(translatePostProps({attachments: [...MALFORMED_ATTACHMENTS]}, mockIntl)).toMatchSnapshot();
+            expect(translatePostProps({attachments: [...MALFORMED_ATTACHMENTS]}, mockIntl)).toEqual([
+                {
+                    type: 'container',
+                    border: true,
+                    content: [
+                        {type: 'text', text: 'Only body survives'},
+                        {
+                            type: 'container',
+                            flow: 'horizontal',
+                            gap: 'medium',
+                            content: [{
+                                type: 'static_select',
+                                action_id: 'ok_select',
+                                placeholder: 'OK',
+                                options: [{text: 'Good', value: 'g'}],
+                                initial_option: '',
+                                data_source: '',
+                                cookie: '',
+                            }],
+                        },
+                    ],
+                },
+            ]);
         });
 
         it('should return empty array when every attachment entry is unusable', () => {
@@ -156,11 +215,15 @@ describe('translatePostProps', () => {
         });
 
         it('should skip invalid Block Kit blocks and keep valid sections', () => {
-            expect(translatePostProps({blocks: [...MALFORMED_BLOCK_KIT]}, mockIntl)).toMatchSnapshot();
+            expect(translatePostProps({blocks: [...MALFORMED_BLOCK_KIT]}, mockIntl)).toEqual([
+                {type: 'container', content: [{type: 'text', text: 'Kept section'}]},
+            ]);
         });
 
         it('should skip non-AdaptiveCard entries and partial invalid card bodies', () => {
-            expect(translatePostProps({cards: [...MALFORMED_ADAPTIVE_CARDS]}, mockIntl)).toMatchSnapshot();
+            expect(translatePostProps({cards: [...MALFORMED_ADAPTIVE_CARDS]}, mockIntl)).toEqual([
+                {type: 'text', text: 'Valid line'},
+            ]);
         });
 
         it('should return empty array when cards array has no translatable AdaptiveCard', () => {
@@ -173,7 +236,9 @@ describe('translatePostProps', () => {
                 blocks: null as unknown,
                 cards: undefined,
                 attachments: [{text: 'uses attachments'}],
-            }, mockIntl)).toMatchSnapshot();
+            }, mockIntl)).toEqual([
+                {type: 'container', border: true, content: [{type: 'text', text: 'uses attachments'}]},
+            ]);
         });
     });
 

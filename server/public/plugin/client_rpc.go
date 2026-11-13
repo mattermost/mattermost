@@ -1586,6 +1586,48 @@ func (s *apiRPCServer) UploadData(args *Z_UploadDataArgs, returns *Z_UploadDataR
 	return nil
 }
 
+// KVListWithOptions is manually implemented instead of generated so that the
+// client returns an AppError on every RPC error: StatusNotImplemented when the
+// server doesn't support this method (pre-12.2), otherwise
+// StatusInternalServerError. The generated version
+// silently returns (nil, nil) on RPC errors, which is indistinguishable from
+// an empty result due to encoding/gob conflating nil and empty slices.
+type Z_KVListWithOptionsArgs struct {
+	A int
+	B int
+	C model.PluginKVListOptions
+}
+
+type Z_KVListWithOptionsReturns struct {
+	A []string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	_args := &Z_KVListWithOptionsArgs{page, perPage, options}
+	_returns := &Z_KVListWithOptionsReturns{}
+	if err := g.client.Call("Plugin.KVListWithOptions", _args, _returns); err != nil {
+		if err.Error() == "rpc: can't find method Plugin.KVListWithOptions" {
+			return nil, model.NewAppError("KVListWithOptions", "plugin.api.kv_list_with_options.not_implemented",
+				nil, err.Error(), http.StatusNotImplemented)
+		}
+		return nil, model.NewAppError("KVListWithOptions", "plugin.api.kv_list_with_options.rpc_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVListWithOptions(args *Z_KVListWithOptionsArgs, returns *Z_KVListWithOptionsReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVListWithOptions(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVListWithOptions called but not implemented."))
+	}
+	return nil
+}
+
 func init() {
 	hookNameToId["ServeMetrics"] = ServeMetricsID
 }

@@ -5,7 +5,7 @@ import React from 'react';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {renderWithContext, screen, act, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, act, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import PermissionTeamSchemeSettings from './permission_team_scheme_settings';
 
@@ -165,7 +165,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         Object.keys(mockPlaybookTreeProps).forEach((key) => delete mockPlaybookTreeProps[key]);
     });
 
-    test('should match snapshot on new with default roles without permissions', async () => {
+    test('should render on new with default roles without permissions', async () => {
         renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
@@ -182,7 +182,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.team_admin.role.permissions).toEqual([]);
     });
 
-    test('should match snapshot on new with default roles with permissions', async () => {
+    test('should render on new with default roles with permissions', async () => {
         const roles = {
             system_guest: {
                 permissions: ['create_post'],
@@ -354,40 +354,47 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(channelAdminPanel).not.toHaveClass('closed');
         expect(teamAdminPanel).not.toHaveClass('closed');
 
+        // Compass AdminPanel toggles via the expand/collapse header control, not the title text.
+        const togglePanel = async (panel: Element | null) => {
+            const collapseButton = within(panel as HTMLElement).queryByRole('button', {name: 'Collapse section'});
+            const expandButton = within(panel as HTMLElement).queryByRole('button', {name: 'Expand section'});
+            await userEvent.click((collapseButton ?? expandButton)!);
+        };
+
         // Toggle guests closed
-        await userEvent.click(screen.getByText('Guests'));
+        await togglePanel(guestsPanel);
         expect(guestsPanel).toHaveClass('closed');
 
         // Toggle guests open
-        await userEvent.click(screen.getByText('Guests'));
+        await togglePanel(guestsPanel);
         expect(guestsPanel).not.toHaveClass('closed');
 
         // Toggle all_users closed
-        await userEvent.click(screen.getByText('All Members'));
+        await togglePanel(allUsersPanel);
         expect(allUsersPanel).toHaveClass('closed');
 
         // Toggle all_users open
-        await userEvent.click(screen.getByText('All Members'));
+        await togglePanel(allUsersPanel);
         expect(allUsersPanel).not.toHaveClass('closed');
 
         // Toggle channel_admin closed
-        await userEvent.click(screen.getByText('Channel Administrators'));
+        await togglePanel(channelAdminPanel);
         expect(channelAdminPanel).toHaveClass('closed');
 
         // Toggle channel_admin open
-        await userEvent.click(screen.getByText('Channel Administrators'));
+        await togglePanel(channelAdminPanel);
         expect(channelAdminPanel).not.toHaveClass('closed');
 
         // Toggle team_admin closed
-        await userEvent.click(screen.getByText('Team Administrators'));
+        await togglePanel(teamAdminPanel);
         expect(teamAdminPanel).toHaveClass('closed');
 
         // Toggle team_admin open
-        await userEvent.click(screen.getByText('Team Administrators'));
+        await togglePanel(teamAdminPanel);
         expect(teamAdminPanel).not.toHaveClass('closed');
     });
 
-    test('should match snapshot on edit without permissions', async () => {
+    test('should render on edit without permissions', async () => {
         const props = {
             ...defaultProps,
             schemeId: 'xyz',
@@ -425,7 +432,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual([]);
     });
 
-    test('should match snapshot on edit with permissions', async () => {
+    test('should render on edit with permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -527,7 +534,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.team_admin.role.permissions).not.toContain(Permissions.CREATE_POST);
     });
 
-    test('should match snapshot on edit without guest permissions', async () => {
+    test('should render on edit without guest permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -568,7 +575,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(screen.getByTestId('permissions-tree-team_admin')).toBeInTheDocument();
     });
 
-    test('should match snapshot on edit without license', async () => {
+    test('should render on edit without license', async () => {
         const props = {
             ...defaultProps,
             license: {

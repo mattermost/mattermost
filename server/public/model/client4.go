@@ -39,6 +39,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	// Deprecated: the server no longer sets this header.
 	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	HeaderRejectReason              = "X-Reject-Reason"
@@ -313,6 +314,10 @@ func (c *Client4) deliveryTrackingRoute() clientRoute {
 	return newClientRoute("delivery_tracking")
 }
 
+func (c *Client4) healthFindingsRoute() clientRoute {
+	return newClientRoute("health").Join("findings")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -371,10 +376,6 @@ func (c *Client4) testEmailRoute() clientRoute {
 
 func (c *Client4) testNotificationRoute() clientRoute {
 	return newClientRoute("notifications").Join("test")
-}
-
-func (c *Client4) usageRoute() clientRoute {
-	return newClientRoute("usage")
 }
 
 func (c *Client4) testSiteURLRoute() clientRoute {
@@ -744,13 +745,13 @@ func (c *Client4) integrityRoute() clientRoute {
 
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
+	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
 
 // DoAPIPost makes a POST request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPost(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPost, c.APIURL+url, data, "")
 }
 
 // DoAPIPostJSON marshals the provided data to JSON and makes a POST request to the specified URL.
@@ -760,13 +761,13 @@ func (c *Client4) DoAPIPostJSON(ctx context.Context, url string, data any) (*htt
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPost, c.APIURL+url, buf, "")
 }
 
 // DoAPIPut makes a PUT request to the specified URL with optional string data.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIPut(ctx context.Context, url, data string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
+	return c.DoAPIRequest(ctx, http.MethodPut, c.APIURL+url, data, "")
 }
 
 // DoAPIPutJSON marshals the provided data to JSON and makes a PUT request to the specified URL.
@@ -776,7 +777,7 @@ func (c *Client4) DoAPIPutJSON(ctx context.Context, url string, data any) (*http
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPut, c.APIURL+url, buf, "")
 }
 
 // DoAPIPatchJSON marshals the provided data to JSON and makes a PATCH request to the specified URL.
@@ -786,13 +787,13 @@ func (c *Client4) DoAPIPatchJSON(ctx context.Context, url string, data any) (*ht
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodPatch, c.APIURL+url, buf, "")
 }
 
 // DoAPIDelete makes a DELETE request to the specified URL.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIDelete(ctx context.Context, url string) (*http.Response, error) {
-	return c.doAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
+	return c.DoAPIRequest(ctx, http.MethodDelete, c.APIURL+url, "", "")
 }
 
 // DoAPIDeleteJSON marshals the provided data to JSON and makes a DELETE request to the specified URL.
@@ -802,13 +803,13 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*h
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
+	return c.DoAPIRequestBytes(ctx, http.MethodDelete, c.APIURL+url, buf, "")
 }
 
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method string, route clientRoute, data string, headers map[string]string) (*http.Response, error) {
@@ -819,12 +820,16 @@ func (c *Client4) doAPIRequestWithHeadersRoute(ctx context.Context, method strin
 	return c.DoAPIRequestWithHeaders(ctx, method, routePath, data, headers)
 }
 
-func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequest makes an HTTP request with the specified method to a fully-qualified URL, with optional string data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", strings.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
-func (c *Client4) doAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
+// DoAPIRequestBytes makes an HTTP request with the specified method to a fully-qualified URL, with optional byte data and ETag.
+// Returns the HTTP response or any error that occurred during the request.
+func (c *Client4) DoAPIRequestBytes(ctx context.Context, method, url string, data []byte, etag string) (*http.Response, error) {
+	return c.DoAPIRequestReader(ctx, method, url, "", bytes.NewReader(data), map[string]string{HeaderEtagClient: etag})
 }
 
 func (c *Client4) doAPIGet(ctx context.Context, route clientRoute, etag string) (*http.Response, error) {
@@ -927,10 +932,10 @@ func (c *Client4) doAPIDeleteJSON(ctx context.Context, route clientRoute, data a
 	return c.DoAPIDeleteJSON(ctx, routePath, data)
 }
 
-// doAPIRequestReader makes an HTTP request using an io.Reader for the request body and custom headers.
+// DoAPIRequestReader makes an HTTP request to a fully-qualified URL using an io.Reader for the request body, with an optional content type and custom headers.
 // This is the most flexible DoAPI method, supporting streaming data and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
-func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
+func (c *Client4) DoAPIRequestReader(ctx context.Context, method, url, contentType string, data io.Reader, headers map[string]string) (*http.Response, error) {
 	rq, err := http.NewRequestWithContext(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -972,7 +977,7 @@ func (c *Client4) doAPIRequestReader(ctx context.Context, method, url, contentTy
 }
 
 func (c *Client4) DoUploadFile(ctx context.Context, url string, data []byte, contentType string) (*FileUploadResponse, *Response, error) {
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.APIURL+url, contentType, bytes.NewReader(data), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -1003,7 +1008,7 @@ func (c *Client4) doAPIRequestReaderRoute(ctx context.Context, method string, ro
 	if err != nil {
 		return nil, err
 	}
-	return c.doAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
+	return c.DoAPIRequestReader(ctx, method, c.APIURL+routeStr, contentType, data, headers)
 }
 
 // Authentication Section
@@ -4451,7 +4456,7 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) (io.ReadCloser, str
 		return nil, "", BuildResponse(r), fmt.Errorf("could not parse Content-Disposition header: %w", err)
 	}
 
-	return r.Body, params["filename"], BuildResponse(r), nil
+	return r.Body, SanitizeFilename(params["filename"]), BuildResponse(r), nil
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
@@ -5708,7 +5713,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 		return "", nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5729,7 +5734,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 		return nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
+	r, err := c.DoAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5740,7 +5745,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*AccessResponse, *Response, error) {
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
+	r, err := c.DoAPIRequestReader(ctx, http.MethodPost, c.URL+"/oauth/access_token", "application/x-www-form-urlencoded", strings.NewReader(data.Encode()), nil)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6782,6 +6787,66 @@ func (c *Client4) RemovePlugin(ctx context.Context, id string) (*Response, error
 	return BuildResponse(r), nil
 }
 
+// GetPluginPublicKeys returns the names of the configured plugin signature public keys.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKeys(ctx context.Context) ([]string, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]string](r)
+}
+
+// GetPluginPublicKey returns the contents of a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) GetPluginPublicKey(ctx context.Context, name string) ([]byte, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("public_keys", name), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+// AddPluginPublicKey adds a plugin signature public key with the given name.
+// Only available in local mode.
+func (c *Client4) AddPluginPublicKey(ctx context.Context, name string, key io.Reader) (*Response, error) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("public_key", name)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(part, key); err != nil {
+		return nil, err
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, err
+	}
+
+	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.pluginsRoute().Join("public_keys"), writer.FormDataContentType(), body, nil)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// DeletePluginPublicKey removes a configured plugin signature public key.
+// Only available in local mode.
+func (c *Client4) DeletePluginPublicKey(ctx context.Context, name string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.pluginsRoute().Join("public_keys", name))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // GetWebappPlugins will return a list of plugins that the webapp should download.
 func (c *Client4) GetWebappPlugins(ctx context.Context) ([]*Manifest, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.pluginsRoute().Join("webapp"), "")
@@ -7370,15 +7435,6 @@ func (c *Client4) GetCloudProducts(ctx context.Context) ([]*Product, *Response, 
 	return DecodeJSONFromResponse[[]*Product](r)
 }
 
-func (c *Client4) GetSelfHostedProducts(ctx context.Context) ([]*Product, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("products", "selfhosted"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Product](r)
-}
-
 func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("limits"), "")
 	if err != nil {
@@ -7476,33 +7532,6 @@ func (c *Client4) GetSubscription(ctx context.Context) (*Subscription, *Response
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*Subscription](r)
-}
-
-func (c *Client4) GetInvoicesForSubscription(ctx context.Context) ([]*Invoice, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.cloudRoute().Join("subscription", "invoices"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Invoice](r)
-}
-
-func (c *Client4) UpdateCloudCustomer(ctx context.Context, customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer"), customerInfo)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
-}
-
-func (c *Client4) UpdateCloudCustomerAddress(ctx context.Context, address *Address) (*CloudCustomer, *Response, error) {
-	r, err := c.doAPIPutJSON(ctx, c.cloudRoute().Join("customer", "address"), address)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*CloudCustomer](r)
 }
 
 func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) {
@@ -7621,9 +7650,7 @@ func (c *Client4) DownloadComplianceExport(ctx context.Context, jobId string, wr
 	if cd := r.Header.Get("Content-Disposition"); cd != "" {
 		var params map[string]string
 		if _, params, err = mime.ParseMediaType(cd); err == nil {
-			if params["filename"] != "" {
-				filename = params["filename"]
-			}
+			filename = SanitizeFilename(params["filename"])
 		}
 	}
 
@@ -7917,39 +7944,6 @@ func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, erro
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// Usage Section
-
-// GetPostsUsage returns rounded off total usage of posts for the instance
-func (c *Client4) GetPostsUsage(ctx context.Context) (*PostsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("posts"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*PostsUsage](r)
-}
-
-// GetStorageUsage returns the file storage usage for the instance,
-// rounded down the most signigicant digit
-func (c *Client4) GetStorageUsage(ctx context.Context) (*StorageUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("storage"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*StorageUsage](r)
-}
-
-// GetTeamsUsage returns total usage of teams for the instance
-func (c *Client4) GetTeamsUsage(ctx context.Context) (*TeamsUsage, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.usageRoute().Join("teams"), "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*TeamsUsage](r)
 }
 
 func (c *Client4) GetPostInfo(ctx context.Context, postId string) (*PostInfo, *Response, error) {
@@ -8509,11 +8503,23 @@ func (c *Client4) DeleteAccessControlPolicy(ctx context.Context, id string) (*Re
 }
 
 func (c *Client4) CheckExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, false, channelId...)
+}
+
+// CheckMembershipExpression is CheckExpression for a membership rule: it also
+// rejects what the membership sync can't evaluate.
+func (c *Client4) CheckMembershipExpression(ctx context.Context, expression string, channelId ...string) ([]CELExpressionError, *Response, error) {
+	return c.checkExpression(ctx, expression, true, channelId...)
+}
+
+func (c *Client4) checkExpression(ctx context.Context, expression string, membership bool, channelId ...string) ([]CELExpressionError, *Response, error) {
 	checkExpressionRequest := struct {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
+		Membership bool   `json:"membership,omitempty"`
 	}{
 		Expression: expression,
+		Membership: membership,
 	}
 	if len(channelId) > 0 && channelId[0] != "" {
 		checkExpressionRequest.ChannelId = channelId[0]
@@ -8644,6 +8650,42 @@ func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Respon
 // If the user is not the author, the post will be expired for that user by updating their read receipt expiration time.
 func (c *Client4) BurnPost(ctx context.Context, postID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postID).Join("burn"))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// Health Dashboard Section
+
+// GetHealthFindings returns the stored health findings, rendered in the client's locale, and
+// when the server last evaluated them. Only filter.Muted is sent; the server decides which
+// surfaces are returned.
+func (c *Client4) GetHealthFindings(ctx context.Context, filter HealthFindingFilter) (*HealthFindingList, *Response, error) {
+	query := url.Values{}
+	if filter.Muted != MutedExcluded {
+		query.Set("muted", string(filter.Muted))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.healthFindingsRoute(), query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*HealthFindingList](r)
+}
+
+func (c *Client4) MuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIPost(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) UnmuteHealthFinding(ctx context.Context, fingerprint string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.healthFindingsRoute().Join(fingerprint, "mute"))
 	if err != nil {
 		return BuildResponse(r), err
 	}

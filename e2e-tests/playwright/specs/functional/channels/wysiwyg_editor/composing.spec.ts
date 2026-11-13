@@ -10,7 +10,7 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
         await pw.ensureFeatureFlag('WysiwygEditor', true);
     });
 
-    test('posts a plain-text message', async ({pw}) => {
+    test('posts a plain-text message with button', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);
 
@@ -26,7 +26,27 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
 
         const last = await channelsPage.getLastPost();
         await last.toContainText(msg);
-        expect(await editor.isEmpty()).toBe(true);
+        await expect(editor.input).toHaveText('');
+    });
+
+    test('posts a plain-text message with enter key', async ({pw}) => {
+        const {user, userClient, team} = await pw.initSetup();
+        await setWysiwygUserPreference(userClient, user.id, true);
+
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+        await channelsPage.toBeVisible();
+
+        const editor = new WysiwygEditor(page.getByTestId('post-create'));
+        await editor.toBeVisible();
+
+        const msg = `wysiwyg plain ${pw.random.id()}`;
+        await editor.type(msg);
+        await editor.sendByEnter();
+
+        const last = await channelsPage.getLastPost();
+        await last.toContainText(msg);
+        await expect(editor.input).toHaveText('');
     });
 
     test('placeholder shows when empty and hides after typing', async ({pw}) => {

@@ -176,6 +176,8 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+
+	AuditEventSearchGlobalAttributeListing = "searchGlobalAttributeListing" // search the Global Attributes listing
 )
 
 // Property Field Options
@@ -252,6 +254,12 @@ const (
 	AuditEventUnlinkGroupSyncable     = "unlinkGroupSyncable"     // unlink group from team or channel synchronization
 )
 
+// Health Dashboard
+const (
+	AuditEventMuteHealthFinding   = "muteHealthFinding"   // mute health dashboard finding
+	AuditEventUnmuteHealthFinding = "unmuteHealthFinding" // unmute health dashboard finding
+)
+
 // Imports
 const (
 	AuditEventBulkImport   = "bulkImport"   // bulk import data from a file
@@ -316,6 +324,8 @@ const (
 	AuditEventGetFirstAdminVisitMarketplaceStatus = "getFirstAdminVisitMarketplaceStatus" // get first admin visit status
 	AuditEventInstallMarketplacePlugin            = "installMarketplacePlugin"            // install plugin from official marketplace
 	AuditEventInstallPluginFromURL                = "installPluginFromURL"                // install plugin from external URL
+	AuditEventLocalAddPluginPublicKey             = "localAddPluginPublicKey"             // add plugin signature public key locally
+	AuditEventLocalDeletePluginPublicKey          = "localDeletePluginPublicKey"          // delete plugin signature public key locally
 	AuditEventRemovePlugin                        = "removePlugin"                        // delete plugin
 	AuditEventSetFirstAdminVisitMarketplaceStatus = "setFirstAdminVisitMarketplaceStatus" // set first admin visit status
 	AuditEventUploadPlugin                        = "uploadPlugin"                        // upload plugin file to server for installation

@@ -7,6 +7,7 @@ import ReactSelect from 'react-select';
 import type {OnChangeValue, StylesConfig} from 'react-select';
 import type {Timezone} from 'timezones.json';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -208,23 +209,20 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
         const noTimezonesFromServer = timezones.length === 0;
         const automaticTimezoneInput = (
             <div
-                className='checkbox'
+                className='checkbox no-padding'
                 key={inputId.automaticTimezoneInput}
             >
-                <label>
-                    <input
-                        id='automaticTimezoneInput'
-                        type='checkbox'
-                        checked={useAutomaticTimezone}
-                        onChange={this.handleAutomaticTimezone}
-                        disabled={noTimezonesFromServer}
-                    />
+                <Checkbox
+                    id='automaticTimezoneInput'
+                    checked={useAutomaticTimezone}
+                    onChange={this.handleAutomaticTimezone}
+                    disabled={noTimezonesFromServer}
+                >
                     <FormattedMessage
                         id='user.settings.timezones.automatic'
                         defaultMessage='Automatic'
                     />
-
-                </label>
+                </Checkbox>
             </div>
         );
 

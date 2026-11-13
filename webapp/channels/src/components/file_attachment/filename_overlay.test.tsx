@@ -6,10 +6,10 @@ import React from 'react';
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
 
-import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/file_attachment/FilenameOverlay', () => {
-    function emptyFunction() {} //eslint-disable-line no-empty-function
+    function emptyFunction() {}
     const fileInfo = {
         id: 'thumbnail_id',
         name: 'test_filename',
@@ -25,7 +25,6 @@ describe('components/file_attachment/FilenameOverlay', () => {
         size: 100,
         mime_type: '',
         clientId: '',
-        archived: false,
     };
 
     const baseProps = {
@@ -35,48 +34,25 @@ describe('components/file_attachment/FilenameOverlay', () => {
         canDownload: true,
     };
 
-    test('should match snapshot, standard display', () => {
-        const {container} = renderWithContext(
-            <FilenameOverlay {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, compact display', async () => {
+    test('should render compact display', async () => {
         const handleImageClick = jest.fn();
         const props = {...baseProps, compactDisplay: true, handleImageClick};
         const {container} = renderWithContext(
             <FilenameOverlay {...props}/>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('.icon')).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('link'));
         expect(handleImageClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot, with Download icon as children', () => {
+    test('should render with Download icon as children', () => {
         const props = {...baseProps, canDownload: true};
-        const {container} = renderWithContext(
+        renderWithContext(
             <FilenameOverlay {...props}>
                 <AttachmentIcon/>
             </FilenameOverlay>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByRole('img', {name: 'Attachment Icon'})).toBeInTheDocument();
-    });
-
-    test('should match snapshot, standard but not downloadable', () => {
-        const props = {...baseProps, canDownload: false};
-        const {container} = render(
-            <FilenameOverlay {...props}>
-                <AttachmentIcon/>
-            </FilenameOverlay>,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 });

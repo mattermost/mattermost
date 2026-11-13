@@ -538,6 +538,26 @@ func TestLicenseHasMHPNS(t *testing.T) {
 	}
 }
 
+func TestLicenseHasAdvancedLogging(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		expectedValue bool
+	}{
+		{"nil license", nil, false},
+		{"nil features", &License{}, false},
+		{"nil AdvancedLogging feature", &License{Features: &Features{}}, false},
+		{"AdvancedLogging feature disabled", &License{Features: &Features{AdvancedLogging: new(false)}}, false},
+		{"AdvancedLogging feature enabled", &License{Features: &Features{AdvancedLogging: new(true)}}, true},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasAdvancedLogging())
+		})
+	}
+}
+
 func TestLicenseHasAddOn(t *testing.T) {
 	testCases := []struct {
 		description   string

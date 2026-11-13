@@ -208,7 +208,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                     <div className='more-modal__actions'>
                         <button
                             className='more-modal__actions--round'
-                            aria-label='Add users to team'
+                            aria-label={this.props.intl.formatMessage({id: 'accessibility.add_users_to_team', defaultMessage: 'Add users to team'})}
                         >
                             <i
                                 className='icon icon-plus'

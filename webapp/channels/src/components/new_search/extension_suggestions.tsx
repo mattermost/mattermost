@@ -76,7 +76,7 @@ const messages: Record<string, MessageDescriptor> =
         },
         presentation: {
             id: 'file_type.presentation',
-            defaultMessage: 'Powerpoint Presentation',
+            defaultMessage: 'PowerPoint Presentation',
         },
         spreadsheet: {
             id: 'file_type.spreadsheet',

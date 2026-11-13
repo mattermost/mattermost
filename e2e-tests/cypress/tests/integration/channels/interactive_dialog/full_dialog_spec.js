@@ -113,10 +113,15 @@ describe('Interactive Dialog - Apps Form', () => {
                         // # Click label to close any opened drop-downs
                         cy.get('label').first().click({force: true});
                     } else if (element.name === 'someradiooptions') {
-                        cy.get('input').should('be.visible').and('have.length', optionsLength[element.name]);
+                        // Compass Radio hides the native input (opacity:0); assert
+                        // the visible option labels and underlying input state.
+                        cy.get('input[type="radio"]').should('have.length', optionsLength[element.name]);
+                        cy.get('.inline-choice-setting__options label').
+                            should('be.visible').
+                            and('have.length', optionsLength[element.name]);
 
                         // * Verify that no option is selected by default
-                        cy.get('input').each(($elInput) => {
+                        cy.get('input[type="radio"]').each(($elInput) => {
                             cy.wrap($elInput).should('not.be.checked');
                         });
                     } else if (element.name === 'boolean_input') {

@@ -49,6 +49,24 @@ func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *CommandWebhookStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: webhook
 func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	ret := _m.Called(webhook)

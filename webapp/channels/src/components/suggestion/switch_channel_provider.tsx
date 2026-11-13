@@ -6,7 +6,7 @@ import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -367,7 +367,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
             <div className='suggestion-list__discoverable-action'>
                 <Button
                     emphasis={hasPendingJoinRequest ? 'tertiary' : 'primary'}
-                    size='sm'
+                    size='small'
                     tabIndex={-1}
                 >
                     {hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}

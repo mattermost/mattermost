@@ -8,16 +8,6 @@ import {render, screen, userEvent} from 'tests/react_testing_utils';
 import AlertTag from './alert_tag';
 
 describe('components/widgets/tag/AlertTag', () => {
-    test('should match snapshot', () => {
-        const {container} = render(
-            <AlertTag
-                text='Tag Text'
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render the text correctly', () => {
         render(
             <AlertTag

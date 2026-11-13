@@ -2284,7 +2284,7 @@ func TestImportUsernamRemap(t *testing.T) {
 {"type":"user","user":{"username":"` + srcUsername + `","email":"` + destUser.Email + `","auth_service":"ldap","auth_data":"` + authData + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
 {"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + srcUsername + `","message":"hello from renamed user","create_at":` + strconv.FormatInt(createAt, 10) + `}}`
 
-		_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+		_, _, appErr = th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(jsonl), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 		require.Nil(t, appErr)
 
 		team, tErr := th.App.Srv().Store().Team().GetByName(teamName)
@@ -2416,6 +2416,10 @@ func TestImportUsernamRemap(t *testing.T) {
 
 		_, ok := report.Remap.Lookup(srcUsername)
 		assert.False(t, ok, "a shared email must not redirect content to a differently-named account")
+
+		// The unmatched-user record must not be logged when the shell was never created:
+		// otherwise the CSV would report created_inactive for an account that does not exist.
+		assert.Empty(t, report.UnmatchedUsers.All(), "no unmatched-user record should be logged when shell creation failed")
 	})
 
 	t.Run("remap is populated on username conflict during scoped import shell creation", func(t *testing.T) {
@@ -2658,7 +2662,7 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserTeams(th.Context, user, tc.data, false)
+				appErr := th.App.importUserTeams(th.Context, user, user.Username, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -2688,7 +2692,7 @@ func TestImportUserTeams(t *testing.T) {
 		})
 	}
 
-	t.Run("Should fail if the MaxUserPerTeam is reached", func(t *testing.T) {
+	t.Run("Should not enforce MaxUsersPerTeam", func(t *testing.T) {
 		user := th.CreateUser(t)
 		data := &[]imports.UserTeamImportData{
 			{
@@ -2697,8 +2701,11 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
-		require.NotNil(t, appErr)
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
+		require.Nil(t, appErr)
+
+		_, err := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
+		require.NoError(t, err, "user should have joined the team despite it being over the limit")
 	})
 
 	t.Run("Group-synced admin should keep admin when imported roles omit team_admin", func(t *testing.T) {
@@ -2724,7 +2731,7 @@ func TestImportUserTeams(t *testing.T) {
 				Name: &th.BasicTeam.Name,
 			},
 		}
-		appErr := th.App.importUserTeams(th.Context, user, data, false)
+		appErr := th.App.importUserTeams(th.Context, user, user.Username, data, false, &imports.ImportReport{})
 		require.Nil(t, appErr)
 
 		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2844,7 +2851,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for range 2 {
-				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data, false)
+				appErr := th.App.importUserChannels(th.Context, user, user.Username, th.BasicTeam, tc.data, false, &imports.ImportReport{})
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -4613,6 +4620,75 @@ func TestImportImportPost(t *testing.T) {
 		}
 		require.Equal(t, rootPost.Id, replyPost.RootId)
 		require.Equal(t, now, replyPost.CreateAt)
+	})
+
+	t.Run("Post with priority and acknowledgements", func(t *testing.T) {
+		priorityPostTime := hashtagTime + 9
+		ackTime := priorityPostTime + 1
+		data := imports.LineImportWorkerData{
+			LineImportData: imports.LineImportData{
+				Post: &imports.PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &username,
+					Message:  new("Message with priority"),
+					CreateAt: &priorityPostTime,
+					Priority: &model.PostPriority{
+						Priority:                new(model.PostPriorityUrgent),
+						RequestedAck:            new(true),
+						PersistentNotifications: new(true),
+					},
+					Acknowledgements: &[]imports.PostAcknowledgementImportData{{User: &username2, AcknowledgedAt: &ackTime}},
+				},
+			},
+			LineNumber: 1,
+		}
+		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true, false, &imports.ImportReport{})
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, priorityPostTime)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 1)
+		post := posts[0]
+
+		priority, nErr := th.App.Srv().Store().PostPriority().GetForPost(post.Id)
+		require.NoError(t, nErr)
+		assert.Equal(t, model.PostPriorityUrgent, *priority.Priority)
+		assert.True(t, *priority.RequestedAck)
+		assert.True(t, *priority.PersistentNotifications)
+
+		_, nErr = th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, nErr, &nfErr, "imported posts must not schedule persistent notifications")
+
+		acks, nErr := th.App.Srv().Store().PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, nErr)
+		require.Len(t, acks, 1)
+		assert.Equal(t, user2.Id, acks[0].UserId)
+		assert.Equal(t, ackTime, acks[0].AcknowledgedAt)
+
+		reAckTime := ackTime + 1
+		data.Post.Priority = &model.PostPriority{Priority: new("important"), RequestedAck: new(true)}
+		data.Post.Acknowledgements = &[]imports.PostAcknowledgementImportData{{User: &username2, AcknowledgedAt: &reAckTime}}
+		errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false, true, false, &imports.ImportReport{})
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, priorityPostTime)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 1)
+		require.Equal(t, post.Id, posts[0].Id)
+
+		priority, nErr = th.App.Srv().Store().PostPriority().GetForPost(post.Id)
+		require.NoError(t, nErr)
+		assert.Equal(t, "important", *priority.Priority)
+		assert.False(t, model.SafeDereference(priority.PersistentNotifications))
+
+		acks, nErr = th.App.Srv().Store().PostAcknowledgement().GetForPost(post.Id)
+		require.NoError(t, nErr)
+		require.Len(t, acks, 1)
+		assert.Equal(t, reAckTime, acks[0].AcknowledgedAt)
 	})
 }
 

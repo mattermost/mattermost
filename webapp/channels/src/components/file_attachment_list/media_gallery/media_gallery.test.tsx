@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -9,7 +9,15 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import MediaGallery, {nextNarrowState} from './media_gallery';
+import {ArchiveFileError, ArchiveTooLargeError, buildFileArchive} from './file_archive';
+import MediaGallery from './media_gallery';
+
+jest.mock('./file_archive', () => ({
+    ...jest.requireActual('./file_archive'),
+    buildFileArchive: jest.fn(),
+}));
+
+const mockBuildFileArchive = buildFileArchive as jest.MockedFunction<typeof buildFileArchive>;
 
 function fileInfo(overrides: Partial<FileInfo>): FileInfo {
     return {
@@ -27,41 +35,9 @@ function fileInfo(overrides: Partial<FileInfo>): FileInfo {
         height: 600,
         has_preview_image: true,
         clientId: '',
-        archived: false,
         ...overrides,
     };
 }
-
-describe('nextNarrowState', () => {
-    const SCROLLBAR_WIDTH = 15;
-
-    it('switches to compact rows below the enter threshold', () => {
-        expect(nextNarrowState(false, 479)).toBe(true);
-        expect(nextNarrowState(false, 480)).toBe(false);
-    });
-
-    it('stays compact until well past the enter threshold so a vanishing scrollbar cannot flip it back', () => {
-        expect(nextNarrowState(true, 479 + SCROLLBAR_WIDTH)).toBe(true);
-        expect(nextNarrowState(true, 511)).toBe(true);
-        expect(nextNarrowState(true, 512)).toBe(false);
-    });
-
-    it('settles at every width in the worst case, where tall rows scroll and compact rows do not', () => {
-        for (let unscrolledWidth = 400; unscrolledWidth <= 600; unscrolledWidth++) {
-            const scrolledWidth = unscrolledWidth - SCROLLBAR_WIDTH;
-
-            // Going compact hides the scrollbar, which widens the container back out.
-            if (nextNarrowState(false, scrolledWidth)) {
-                expect(nextNarrowState(true, unscrolledWidth)).toBe(true);
-            }
-
-            // Going tall shows the scrollbar, which narrows the container again.
-            if (!nextNarrowState(true, unscrolledWidth)) {
-                expect(nextNarrowState(false, scrolledWidth)).toBe(false);
-            }
-        }
-    });
-});
 
 describe('MediaGallery', () => {
     const baseState = {
@@ -142,28 +118,146 @@ describe('MediaGallery', () => {
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
 
-    it('uses compact rows in a narrow container', () => {
-        const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-            width: 400,
-            height: 144,
-        } as DOMRect);
+    it('leaves tile sizing to CSS so a narrow container does not need to be measured', () => {
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[
+                    fileInfo({id: 'a', name: 'a.png', width: 800, height: 600}),
+                    fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4', width: 0, height: 0}),
+                ]}
+                postId='p1'
+                onItemClick={jest.fn()}
+            />,
+            baseState,
+        );
 
-        try {
+        const [image, video] = screen.getAllByTestId('media-gallery-tile');
+        expect(image.style.getPropertyValue('--tile-ratio')).toBe(String(800 / 600));
+        expect(image.style.getPropertyValue('--tile-native-width')).toBe('800px');
+        expect(video.style.getPropertyValue('--tile-ratio')).toBe('1.5');
+        expect(video.style.getPropertyValue('--tile-native-width')).toBe('');
+
+        for (const tile of [image, video]) {
+            expect(tile.style.width).toBe('');
+            expect(tile.style.height).toBe('');
+        }
+    });
+
+    describe('layout', () => {
+        const mixedFiles = [
+            fileInfo({id: 'landscape', name: 'landscape.png', width: 1600, height: 900}),
+            fileInfo({id: 'portrait', name: 'portrait.png', width: 600, height: 1200}),
+            fileInfo({id: 'small', name: 'small.png', width: 40, height: 40}),
+            fileInfo({id: 'panorama', name: 'panorama.png', width: 6000, height: 1000}),
+            fileInfo({id: 'clip', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4', width: 0, height: 0}),
+        ];
+
+        // Everything that decides the gallery's height: its row-height classes,
+        // how tiles are grouped into wrapper elements, and each tile's sizing styles.
+        function layoutOf(root: Element) {
+            const gallery = root.querySelector('.MediaGallery')!;
+            const tiles = Array.from(root.querySelectorAll<HTMLElement>('.MediaGallery__tile'));
+            const groupSizes = new Map<Element, number>();
+            for (const tile of tiles) {
+                groupSizes.set(tile.parentElement!, (groupSizes.get(tile.parentElement!) ?? 0) + 1);
+            }
+            return {
+                galleryClassName: gallery.className,
+                tileGroups: Array.from(groupSizes.values()),
+                tiles: tiles.map((tile) => ({
+                    ratio: tile.style.getPropertyValue('--tile-ratio'),
+                    nativeWidth: tile.style.getPropertyValue('--tile-native-width'),
+                    width: tile.style.width,
+                    height: tile.style.height,
+                    flex: tile.style.flex,
+                })),
+            };
+        }
+
+        function mockContainerWidth(width: number) {
+            return jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({width, height: 0} as DOMRect);
+        }
+
+        it('renders its final layout on the first commit so the post list measures the right height', () => {
+            const rectSpy = mockContainerWidth(1000);
+
+            // The post list measures each post from a layout effect on mount,
+            // before any re-render the gallery might schedule.
+            let firstCommitLayout: ReturnType<typeof layoutOf> | undefined;
+            const MeasuringParent = ({children}: {children: React.ReactNode}) => {
+                const ref = React.useRef<HTMLDivElement>(null);
+                React.useLayoutEffect(() => {
+                    firstCommitLayout = layoutOf(ref.current!);
+                }, []);
+                return <div ref={ref}>{children}</div>;
+            };
+
+            // Five landscape images pack into different rows at a 700px guess
+            // than at 1000px, which is what used to shift the post.
+            const landscapeFiles = ['a', 'b', 'c', 'd', 'e'].map((id) => fileInfo({id, name: `${id}.png`}));
+
+            try {
+                const {container} = renderWithContext(
+                    <MeasuringParent>
+                        <MediaGallery
+                            fileInfos={landscapeFiles}
+                            postId='p1'
+                            onItemClick={jest.fn()}
+                        />
+                    </MeasuringParent>,
+                    baseState,
+                );
+
+                expect(firstCommitLayout!.tiles).toHaveLength(landscapeFiles.length);
+                expect(layoutOf(container)).toEqual(firstCommitLayout);
+            } finally {
+                rectSpy.mockRestore();
+            }
+        });
+
+        it('does not depend on the measured container width', () => {
+            const layoutAtWidth = (width: number) => {
+                const rectSpy = mockContainerWidth(width);
+                try {
+                    const {container, unmount} = renderWithContext(
+                        <MediaGallery
+                            fileInfos={mixedFiles}
+                            postId='p1'
+                            onItemClick={jest.fn()}
+                        />,
+                        baseState,
+                    );
+                    const layout = layoutOf(container);
+                    unmount();
+                    return layout;
+                } finally {
+                    rectSpy.mockRestore();
+                }
+            };
+
+            // Narrow RHS, typical center channel and a very wide window.
+            const narrow = layoutAtWidth(320);
+            expect(layoutAtWidth(1000)).toEqual(narrow);
+            expect(layoutAtWidth(2400)).toEqual(narrow);
+        });
+
+        it('switches row height for compact display with a class rather than a measurement', () => {
             const {container} = renderWithContext(
                 <MediaGallery
-                    fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
+                    fileInfos={mixedFiles}
                     postId='p1'
+                    compactDisplay={true}
                     onItemClick={jest.fn()}
                 />,
                 baseState,
             );
 
-            const row = container.querySelector<HTMLElement>('.MediaGallery__row');
-            expect(row).not.toBeNull();
-            expect(row!.style.height).toBe('144px');
-        } finally {
-            rectSpy.mockRestore();
-        }
+            const layout = layoutOf(container);
+            expect(layout.galleryClassName).toContain('MediaGallery--compact');
+            for (const tile of layout.tiles) {
+                expect(tile.height).toBe('');
+            }
+        });
     });
 
     it('marks the tile container as hidden when isEmbedVisible is false', () => {
@@ -204,4 +298,110 @@ describe('MediaGallery', () => {
         await userEvent.click(toggle);
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
+
+    describe('download all', () => {
+        const originalCreateObjectURL = URL.createObjectURL;
+        const originalRevokeObjectURL = URL.revokeObjectURL;
+        let anchorClick: jest.SpyInstance;
+        let downloadedAs: string[];
+
+        // jsdom does not implement the object URL APIs.
+        beforeEach(() => {
+            URL.createObjectURL = jest.fn().mockReturnValue('blob:archive');
+            URL.revokeObjectURL = jest.fn();
+            downloadedAs = [];
+            anchorClick = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function(this: HTMLAnchorElement) {
+                downloadedAs.push(this.download);
+            });
+        });
+
+        afterEach(() => {
+            anchorClick.mockRestore();
+            URL.createObjectURL = originalCreateObjectURL;
+            URL.revokeObjectURL = originalRevokeObjectURL;
+            mockBuildFileArchive.mockReset();
+        });
+
+        const state = {
+            entities: {
+                ...baseState.entities,
+                channels: {channels: {c1: {id: 'c1', display_name: 'Town Square'}}},
+                posts: {posts: {p1: {id: 'p1', create_at: new Date(2026, 8, 29, 12).getTime()}}},
+            },
+        };
+
+        const renderGallery = () => renderWithContext(
+            <MediaGallery
+                fileInfos={[
+                    fileInfo({id: 'a', name: 'a.png'}),
+                    fileInfo({id: 'b', name: 'b.png'}),
+                ]}
+                postId='p1'
+                onItemClick={jest.fn()}
+                onToggleCollapse={jest.fn()}
+            />,
+            state,
+        );
+
+        it('downloads one archive named after the channel and post date, showing progress while it is prepared', async () => {
+            const blob = new Blob(['zip']);
+            let finish: (value: Blob) => void = () => {};
+            let reportProgress: (done: number) => void = () => {};
+            mockBuildFileArchive.mockImplementation((_files, options) => {
+                reportProgress = options?.onProgress ?? reportProgress;
+                return new Promise((resolve) => {
+                    finish = resolve;
+                });
+            });
+
+            renderGallery();
+            const button = screen.getByRole('button', {name: /download all/i});
+            const click = userEvent.click(button);
+
+            await waitFor(() => expect(button).toBeDisabled());
+            expect(button).toHaveAttribute('aria-busy', 'true');
+            expect(button).toHaveTextContent('Preparing 0 of 2...');
+            expect(within(button).getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(mockBuildFileArchive.mock.calls[0][0].map((f) => f.id)).toEqual(['a', 'b']);
+
+            act(() => reportProgress(1));
+            expect(button).toHaveTextContent('Preparing 1 of 2...');
+
+            finish(blob);
+            await click;
+
+            await waitFor(() => expect(button).toBeEnabled());
+            expect(URL.createObjectURL).toHaveBeenCalledWith(blob);
+            expect(downloadedAs).toEqual(['Town-Square-2026-09-29.zip']);
+            expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:archive');
+        });
+
+        it('shows the server error inline, then clears it on a successful retry', async () => {
+            mockBuildFileArchive.mockRejectedValueOnce(new ArchiveFileError('You do not have the appropriate permissions.'));
+
+            renderGallery();
+            const button = screen.getByRole('button', {name: /download all/i});
+            await userEvent.click(button);
+
+            await waitFor(() => expect(button).toBeEnabled());
+            expect(screen.getByRole('alert')).toHaveTextContent('You do not have the appropriate permissions.');
+            expect(anchorClick).not.toHaveBeenCalled();
+
+            mockBuildFileArchive.mockResolvedValueOnce(new Blob());
+            await userEvent.click(button);
+
+            await waitFor(() => expect(anchorClick).toHaveBeenCalled());
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        });
+
+        it('explains when the files are too large to download together', async () => {
+            mockBuildFileArchive.mockRejectedValueOnce(new ArchiveTooLargeError());
+
+            renderGallery();
+            await userEvent.click(screen.getByRole('button', {name: /download all/i}));
+
+            expect(await screen.findByRole('alert')).toHaveTextContent('These files are too large to download together.');
+        });
+    });
 });
+

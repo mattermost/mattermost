@@ -106,7 +106,7 @@ describe('Verify users can receive notification on browser', () => {
         // # Set Desktop Notification preference to Nothing
         cy.get('#CustomizeYourExperienceTour > button').click();
         cy.get('#desktopAndMobileTitle').click();
-        cy.get('#sendDesktopNotificationsSection input[type=radio]').last().check();
+        cy.get('#sendDesktopNotificationsSection input[type=radio]').last().check({force: true});
         cy.get('#saveSetting').click();
         cy.wait(500);
         triggertestNotification();
@@ -121,7 +121,7 @@ describe('Verify users can receive notification on browser', () => {
 });
 
 function triggertestNotification() {
-    cy.get('.sectionNoticeContent').scrollIntoView().should('be.visible');
-    cy.get('.btn-tertiary').should('be.visible').should('have.text', 'Troubleshooting docs');
-    cy.get('.btn-primary').should('be.visible').should('have.text', 'Send a test notification').click();
+    cy.findByText('Troubleshooting notifications').scrollIntoView().should('be.visible');
+    cy.findByRole('button', {name: 'Troubleshooting docs'}).should('be.visible');
+    cy.findByRole('button', {name: 'Send a test notification'}).should('be.visible').click();
 }

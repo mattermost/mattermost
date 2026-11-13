@@ -316,6 +316,9 @@ export type AppForm = {
     submit_on_cancel?: boolean;
     fields?: AppField[];
 
+    // Width tier for the modal. Absent means 'small', the historical width.
+    size?: 'small' | 'medium' | 'large';
+
     // source is used in 2 cases:
     //   - if submit is not set, it is used to fetch the submittable form from
     //     the app.
@@ -326,6 +329,10 @@ export type AppForm = {
     // submit is called when one of the submit buttons is pressed, or the
     // command is executed.
     submit?: AppCall;
+
+    // refresh_on_return re-fetches the form from source when a dialog stacked on
+    // top of it closes. Set by interactive dialogs (Dialog.refresh_on_return).
+    refresh_on_return?: boolean;
 
     depends_on?: string[];
 };
@@ -358,6 +365,10 @@ function isAppForm(v: unknown): v is AppForm {
     }
 
     if (form.submit_buttons !== undefined && typeof form.submit_buttons !== 'string') {
+        return false;
+    }
+
+    if (form.refresh_on_return !== undefined && typeof form.refresh_on_return !== 'boolean') {
         return false;
     }
 
@@ -443,6 +454,18 @@ export type CollapsibleConfig = {
     fields?: AppField[]; // Child fields grouped inside this collapsible section
     expanded?: boolean; // Whether the section starts expanded (default: true)
     bordered?: boolean; // Whether the section renders with a border (default: true)
+
+    // How the child fields are laid out inside the section. 'stacked' (the
+    // default) renders them vertically, one under the next.
+    //
+    // 'grid' renders each child collapsible as a row of a table and each of
+    // that child's own fields as a cell of that row — including a nested
+    // collapsible, which renders as an ordinary section inside its cell.
+    // Columns are matched by position, and a row's first cell is its header: a
+    // real, editable field in a sticky column rather than the row's label. The
+    // row's label is kept as the row's accessible name, and the section's own
+    // label, caret and border are the same in either layout.
+    layout?: 'stacked' | 'grid';
 };
 
 export type DateTimeConfig = {

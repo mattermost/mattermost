@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './delete_modal';
@@ -70,7 +70,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByText('Start with a top-level value. You can add parents and children from its row.')).toBeInTheDocument();
         expect(screen.getByText('Up to 100 parents per value, 100 levels deep.')).toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toHaveClass('btn-primary');
+        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton').className).toMatch(/button--emphasis-primary/);
         expect(screen.getByTestId('attributeOptionsGraphEmpty__nameInput')).toHaveAttribute('placeholder', 'Value name');
         expect(screen.queryByTestId('attributeOptionsGraphList')).not.toBeInTheDocument();
     });
@@ -163,7 +163,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
         expect(screen.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('placeholder', 'Add a top-level value');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
         expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toBeDisabled();
 
         const row = getRow('Root');
@@ -186,8 +186,8 @@ describe('AttributeOptionsGraphValues', () => {
         await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'Trunk');
 
         expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toHaveClass('btn-secondary');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toHaveClass('btn-primary');
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
+        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).not.toMatch(/button--emphasis-primary/);
     });
 
     it('adds a trimmed child from the overflow menu as an indented sibling row', async () => {
@@ -213,6 +213,36 @@ describe('AttributeOptionsGraphValues', () => {
         await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Child', 'Root'));
+    });
+
+    it('aligns a child draft with existing siblings at the same depth', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'newtop', parents: []},
+                    {id: '', name: 'newmiddle', parents: ['newtop']},
+                    {id: '', name: 'newmiddle2', parents: ['newtop']},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowAddChild('newtop');
+        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+
+        expect(getRow('newtop')).toHaveAttribute('data-depth', '0');
+        expect(getRow('newmiddle', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(getRow('newmiddle2', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(draft).toHaveAttribute('data-depth', '1');
+        expect(draft.style.getPropertyValue('--attribute-options-graph-values-indent')).toBe(
+            getRow('newmiddle', 'newtop').style.getPropertyValue('--attribute-options-graph-values-indent'),
+        );
+        expect(within(draft).queryByTestId('attributeOptionsGraphRow__dragHandle')).not.toBeInTheDocument();
+        expect(draft.querySelector('.attribute-options-graph-values__draft-handle-spacer')).toBeNull();
+
+        const items = [...screen.getByTestId('attributeOptionsGraphList').querySelectorAll(':scope > li')];
+        expect(items[items.length - 2]).toHaveAttribute('data-option-name', 'newmiddle2');
+        expect(items[items.length - 1]).toBe(draft);
     });
 
     it('cancels the child draft without adding a value', async () => {
@@ -408,6 +438,39 @@ describe('AttributeOptionsGraphValues', () => {
         const parentsAnchor = within(nameWrap).getByTestId('attributeOptionsGraphRow__parentsAnchor');
         expect(parentsAnchor.tagName).toBe('DIV');
         expect(parentsAnchor).toHaveClass('attribute-options-graph-values__parents-anchor');
+    });
+
+    it('portals parent search suggestions outside the value menu and does not close on suggestion press', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'Air', parents: []},
+                    {id: '', name: 'Maritime', parents: []},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowParents('Air');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+
+        const search = screen.getByTestId('attributeGraphParentsPane__search');
+        const menuPaper = search.closest('.MuiPopover-paper');
+        expect(menuPaper).toBeTruthy();
+
+        await userEvent.click(search);
+        const suggestions = await screen.findByTestId('attributeGraphParentsPane__suggestions');
+        expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
+        expect(menuPaper).not.toContainElement(suggestions);
+        expect(suggestions.closest('.attribute-graph-parents-pane__suggestions-paper')).toBeTruthy();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-Maritime');
+        fireEvent.mouseDown(candidate);
+        fireEvent.pointerDown(candidate);
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        expect(screen.getByRole('menu', {name: 'Edit Air', hidden: true})).toBeInTheDocument();
+        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor')).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {

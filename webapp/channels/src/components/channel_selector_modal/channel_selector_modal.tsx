@@ -225,7 +225,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 <div className='more-modal__actions'>
                     <button
                         className='more-modal__actions--round'
-                        aria-label='Select channel'
+                        aria-label={this.props.intl.formatMessage({id: 'accessibility.select_channel', defaultMessage: 'Select channel'})}
                     >
                         <i className='icon icon-plus'/>
                     </button>

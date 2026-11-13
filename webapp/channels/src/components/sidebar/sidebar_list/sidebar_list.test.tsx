@@ -146,6 +146,9 @@ describe('SidebarList', () => {
         hasUnreadThreads: false,
         markAllAsReadWithoutConfirm: false,
         markAllAsReadShortcutEnabled: false,
+        isProductRailShown: false,
+        showNoBoards: false,
+        categoryIdsHiddenByProductRail: new Set<string>(),
         currentStaticPageId: '',
         staticPages: [],
         actions: {
@@ -166,20 +169,17 @@ describe('SidebarList', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should render', () => {
+        renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         const sidebarRegion = screen.getByRole('application', {name: /channel sidebar region/i});
         const droppable = sidebarRegion.querySelector('#sidebar-droppable-categories');
         expect(droppable).toBeInTheDocument();
-        expect(droppable).toMatchSnapshot();
     });
 
     test('should close sidebar on mobile when channel is selected (ie. changed)', () => {
@@ -379,6 +379,46 @@ describe('SidebarList', () => {
             source: {droppableId: 'category1', index: 0},
         });
         expect(droppable.style.height).toBe('');
+    });
+
+    test('should translate a category drop past categories the product rail hides', () => {
+        const categories = [
+            {...baseProps.categories[0], id: 'category_a', type: CategoryTypes.CUSTOM},
+            {...baseProps.categories[0], id: 'category_b', type: CategoryTypes.CUSTOM},
+            {...baseProps.categories[0], id: 'category_c', type: CategoryTypes.CUSTOM},
+        ];
+        const props = {
+            ...baseProps,
+            categories,
+            categoryIdsHiddenByProductRail: new Set(['category_b']),
+            actions: {...baseProps.actions, moveCategory: jest.fn()},
+        };
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...props}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
+        );
+
+        const drop = (draggableId: string, index: number): DropResult => ({
+            reason: 'DROP',
+            type: 'SIDEBAR_CATEGORY',
+            source: {droppableId: 'droppable-categories', index: 0},
+            destination: {droppableId: 'droppable-categories', index},
+            combine: null,
+            draggableId,
+            mode: 'SNAP' as MovementMode,
+        });
+
+        // Shown as [a, c]: c dropped first goes before a in the full list.
+        sidebarListRef.current!.onDragEnd(drop('category_c', 0));
+        expect(props.actions.moveCategory).toHaveBeenLastCalledWith(baseProps.currentTeam.id, 'category_c', 0);
+
+        // a dropped last goes after c, past the hidden b.
+        sidebarListRef.current!.onDragEnd(drop('category_a', 1));
+        expect(props.actions.moveCategory).toHaveBeenLastCalledWith(baseProps.currentTeam.id, 'category_a', 2);
     });
 
     test('should call correct action on dropping item', () => {

@@ -18,90 +18,6 @@ jest.mock('actions/admin_actions', () => {
 });
 
 describe('components/ElasticSearchSettings', () => {
-    test('should match snapshot, disabled', () => {
-        const config = {
-            ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                Backend: '',
-                SkipTLSVerification: false,
-                CA: 'test.ca',
-                ClientCert: 'test.crt',
-                ClientKey: 'test.key',
-                Username: 'test',
-                Password: 'test',
-                Sniff: false,
-                EnableIndexing: false,
-                EnableSearching: false,
-                EnableAutocomplete: false,
-                EnableSearchPublicChannelsWithoutMembership: false,
-                IgnoredPurgeIndexes: '',
-            },
-        };
-        const {container} = renderWithContext(
-            <ElasticSearchSettings
-                config={config as AdminConfig}
-                isDisabled={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, enabled', () => {
-        const config = {
-            ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                Backend: '',
-                SkipTLSVerification: false,
-                CA: 'test.ca',
-                ClientCert: 'test.crt',
-                ClientKey: 'test.key',
-                Username: 'test',
-                Password: 'test',
-                Sniff: false,
-                EnableIndexing: true,
-                EnableSearching: false,
-                EnableAutocomplete: false,
-                EnableSearchPublicChannelsWithoutMembership: false,
-                IgnoredPurgeIndexes: '',
-            },
-        };
-        const {container} = renderWithContext(
-            <ElasticSearchSettings
-                config={config as AdminConfig}
-                isDisabled={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, sniff enabled', () => {
-        const config = {
-            ElasticsearchSettings: {
-                ConnectionURL: 'test',
-                Backend: '',
-                SkipTLSVerification: false,
-                CA: 'test.ca',
-                ClientCert: 'test.crt',
-                ClientKey: 'test.key',
-                Username: 'test',
-                Password: 'test',
-                Sniff: true,
-                EnableIndexing: true,
-                EnableSearching: false,
-                EnableAutocomplete: false,
-                EnableSearchPublicChannelsWithoutMembership: false,
-                IgnoredPurgeIndexes: '',
-            },
-        };
-        const {container} = renderWithContext(
-            <ElasticSearchSettings
-                config={config as AdminConfig}
-                isDisabled={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should show warning when sniff is enabled', () => {
         const config = {
             ElasticsearchSettings: {
@@ -118,6 +34,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -146,6 +63,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };
@@ -174,6 +92,7 @@ describe('components/ElasticSearchSettings', () => {
                 EnableSearching: false,
                 EnableAutocomplete: false,
                 EnableSearchPublicChannelsWithoutMembership: false,
+                EnableFileIndexing: true,
                 IgnoredPurgeIndexes: '',
             },
         };

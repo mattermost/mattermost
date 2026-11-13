@@ -291,22 +291,26 @@ export class ToastWrapperClass extends React.PureComponent<Props, State> {
 
     newMessagesToastText = (count: number | undefined, since: number) => {
         if (this.props.width > TOAST_TEXT_COLLAPSE_WIDTH && typeof since !== 'undefined') {
+            // The sentence is built inside Timestamp's render prop so that the "since"
+            // connective is re-evaluated whenever Timestamp refreshes its own label.
             return (
-                <FormattedMessage
-                    id='postlist.toast.newMessagesSince'
-                    defaultMessage='{count, number} new {count, plural, one {message} other {messages}} {isToday, select, true {} other {since}} {date}'
-                    values={{
-                        count,
-                        isToday: isToday(new Date(since)).toString(),
-                        date: (
-                            <Timestamp
-                                value={since}
-                                useTime={false}
-                                ranges={TOAST_REL_RANGES}
-                            />
-                        ),
-                    }}
-                />
+                <Timestamp
+                    value={since}
+                    useTime={false}
+                    ranges={TOAST_REL_RANGES}
+                >
+                    {({value, formatted}) => (
+                        <FormattedMessage
+                            id='postlist.toast.newMessagesSince'
+                            defaultMessage='{count, number} new {count, plural, one {message} other {messages}} {isToday, select, true {} other {since}} {date}'
+                            values={{
+                                count,
+                                isToday: isToday(value).toString(),
+                                date: formatted,
+                            }}
+                        />
+                    )}
+                </Timestamp>
             );
         }
         return (

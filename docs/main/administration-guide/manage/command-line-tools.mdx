@@ -29,6 +29,10 @@ These `mattermost` commands include the following functionality:
 - Return the most recently applied version number
 - Roll back database migrations
 
+**Documentation**
+
+- Serve the offline documentation bundle locally when the server is not running
+
 **Server Operations**
 
 - Start the Mattermost job server
@@ -118,6 +122,7 @@ Options
 
 Child Commands  
 - [mattermost db](#mattermost-db) - Database commands
+- [mattermost docs](#mattermost-docs) - Serve the offline product documentation
 - [mattermost export](#mattermost-export) - Compliance export commands
 - [mattermost help](#mattermost-help) - Generate full documentation for the CLI
 - [mattermost import](#mattermost-import) - Legacy import command
@@ -244,9 +249,40 @@ mattermost db version
 
 ------------------------------------------------------------------------------------------------------------------------
 
-## mattermost export
+<PlanAvailability slug="pro-plus" />
+
+## mattermost docs
+
+From Mattermost v12.1, you can serve the offline documentation bundle on localhost without a running server, database, or configuration. See [Offline documentation](/administration-guide/manage/offline-documentation) for details on the bundle and the `/_documentation/` server route.
+
+Description  
+Serve the offline product documentation over HTTP on localhost. Requires no config, database, or app layer.
+
+Format  
+``` sh
+mattermost docs [flags]
+```
+
+Example  
+``` sh
+bin/mattermost docs
+bin/mattermost docs --port 9000
+bin/mattermost docs --dir /path/to/docs/site/build
+```
+
+Options  
+``` text
+--port int    Local TCP port to listen on (default 8066)
+--dir string  Serve this bundle directory instead of the one packaged with the release
+```
+
+The command prints the URL and runs until interrupted with Ctrl-C. Without `--dir`, it locates the bundle from the `client/` directory next to the binary. If the release was packaged without the documentation bundle, the command exits with an error.
+
+------------------------------------------------------------------------------------------------------------------------
 
 <PlanAvailability slug="ent-plus" />
+
+## mattermost export
 
 Description  
 Commands for exporting data for compliance and for merging multiple Mattermost instances.

@@ -25,6 +25,7 @@ func TestChannelJoinRequestStore(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("GetForUser paginates and filters by status", testChannelJoinRequestGetForUser(ss))
 	t.Run("Update transitions status and stores reviewer", testChannelJoinRequestUpdate(ss))
 	t.Run("CountPending only counts pending rows", testChannelJoinRequestCountPending(ss))
+	t.Run("PermanentDeleteByUser removes only the user's requests", testChannelJoinRequestPermanentDeleteByUser(ss))
 }
 
 func newPendingRequest(channelId, userId string) *model.ChannelJoinRequest {
@@ -260,5 +261,38 @@ func testChannelJoinRequestCountPending(ss store.Store) func(*testing.T) {
 		count, err = ss.ChannelJoinRequest().CountPending(channelId)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
+	}
+}
+
+func testChannelJoinRequestPermanentDeleteByUser(ss store.Store) func(*testing.T) {
+	return func(t *testing.T) {
+		userId := model.NewId()
+		otherUserId := model.NewId()
+		reviewedChannelId := model.NewId()
+
+		reviewed, err := ss.ChannelJoinRequest().Save(newPendingRequest(reviewedChannelId, userId))
+		require.NoError(t, err)
+		reviewed.Status = model.ChannelJoinRequestStatusDenied
+		reviewed.ReviewedBy = otherUserId
+		reviewed.ReviewedAt = model.GetMillis()
+		_, err = ss.ChannelJoinRequest().Update(reviewed)
+		require.NoError(t, err)
+		_, err = ss.ChannelJoinRequest().Save(newPendingRequest(model.NewId(), userId))
+		require.NoError(t, err)
+		other, err := ss.ChannelJoinRequest().Save(newPendingRequest(model.NewId(), otherUserId))
+		require.NoError(t, err)
+
+		require.NoError(t, ss.ChannelJoinRequest().PermanentDeleteByUser(userId))
+
+		for _, status := range []string{model.ChannelJoinRequestStatusPending, model.ChannelJoinRequestStatusDenied} {
+			_, total, getErr := ss.ChannelJoinRequest().GetForUser(userId, model.GetChannelJoinRequestsOpts{Status: status, PerPage: 10})
+			require.NoError(t, getErr)
+			assert.Zero(t, total, "%s requests were left behind", status)
+		}
+
+		_, err = ss.ChannelJoinRequest().Get(other.Id)
+		require.NoError(t, err)
+
+		require.NoError(t, ss.ChannelJoinRequest().PermanentDeleteByUser(userId), "deleting again must succeed")
 	}
 }

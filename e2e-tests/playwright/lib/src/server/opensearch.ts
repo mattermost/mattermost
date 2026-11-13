@@ -28,9 +28,9 @@ export function opensearchServerConfig(): Partial<AdminConfig['ElasticsearchSett
 /**
  * Checks OpenSearch was started this run, restarts the server onto it if the OpenSearch Go client
  * isn't already the registered search engine, and confirms the server can actually reach it —
- * skipping the test otherwise, instead of failing on an unmet precondition. Backend picks which of
- * two Go implementations (Elasticsearch vs OpenSearch client) the server registers — a factory
- * invoked once at startup, never re-invoked by the config-change watcher — so switching it needs a
+ * skipping the test if it can't. A failed restart throws, since it breaks the server rather than missing a
+ * precondition. Backend picks which of two Go implementations (Elasticsearch vs OpenSearch client) the server
+ * registers — a factory invoked once at startup, never re-invoked by the config-change watcher — so switching it needs a
  * restart, unlike the rest of ElasticsearchSettings, which the watcher does pick up live.
  */
 export async function ensureOpensearch(): Promise<void> {
@@ -39,15 +39,18 @@ export async function ensureOpensearch(): Promise<void> {
         return;
     }
 
-    try {
-        const env = {MM_ELASTICSEARCHSETTINGS_BACKEND: 'opensearch'};
-        if (!bootEnvMatches(env)) {
-            await restartMattermostContainer(env);
-        }
+    // The connection settings go in before the restart: booting with the OpenSearch backend while they still point at
+    // Elasticsearch's default URL crashes the server (nil response in the search logger's LogRoundTrip).
+    const {adminClient} = await getAdminClient();
+    await adminClient.patchConfig({ElasticsearchSettings: opensearchServerConfig()});
 
-        const {adminClient} = await getAdminClient();
-        await adminClient.patchConfig({ElasticsearchSettings: opensearchServerConfig()});
-        await adminClient.testElasticsearch();
+    const env = {MM_ELASTICSEARCHSETTINGS_BACKEND: 'opensearch'};
+    if (!bootEnvMatches(env)) {
+        await restartMattermostContainer(env);
+    }
+
+    try {
+        await (await getAdminClient()).adminClient.testElasticsearch();
     } catch (error) {
         test.skip(true, `Skipping test - OpenSearch connection test failed: ${String(error)}`);
     }

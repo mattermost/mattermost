@@ -702,6 +702,11 @@ func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.P
 	_m.Called(c, preferences)
 }
 
+// PropertyValuesHaveBeenUpdated provides a mock function with given fields: c, userID, groupID, targetType, targetID, values, previousValues
+func (_m *Hooks) PropertyValuesHaveBeenUpdated(c *plugin.Context, userID string, groupID string, targetType string, targetID string, values []*model.PropertyValue, previousValues []*model.PropertyValue) {
+	_m.Called(c, userID, groupID, targetType, targetID, values, previousValues)
+}
+
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)

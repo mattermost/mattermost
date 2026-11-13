@@ -394,6 +394,34 @@ describe('Markdown.Links', () => {
         );
     });
 
+    it('Phone links starting with +', () => {
+        expect(Markdown.format('tel:+34600517276').trim()).toBe(`<p>${link('tel:+34600517276')}</p>`);
+
+        expect(Markdown.format('tel:+44.20.7946.0958').trim()).toBe(`<p>${link('tel:+44.20.7946.0958')}</p>`);
+
+        expect(Markdown.format('Call me at tel:+34600517276 today').trim()).toBe(
+            `<p>Call me at ${link('tel:+34600517276')} today</p>`,
+        );
+
+        expect(Markdown.format('Call me at tel:+34600517276.').trim()).toBe(
+            `<p>Call me at ${link('tel:+34600517276')}.</p>`,
+        );
+
+        expect(Markdown.format('Call tel:+34600517276, or email me').trim()).toBe(
+            `<p>Call ${link('tel:+34600517276')}, or email me</p>`,
+        );
+
+        expect(Markdown.format('(tel:+34600517276)').trim()).toBe(`<p>(${link('tel:+34600517276')})</p>`);
+
+        expect(Markdown.format('[+34 600 517 276](tel:+34600517276)').trim()).toBe(
+            `<p>${link('tel:+34600517276', '+34 600 517 276')}</p>`,
+        );
+
+        expect(Markdown.format('tel:+').trim()).toBe('<p>tel:+</p>');
+
+        expect(Markdown.format('test:+34600517276').trim()).toBe('<p>test:+34600517276</p>');
+    });
+
     it('Relative link', () => {
         expect(Markdown.format('[A Relative Link](/static/files/5b4a7904a3e041018526a00dba59ee48.png)').trim()).toBe(
             '<p><a class="theme markdown__link" href="/static/files/5b4a7904a3e041018526a00dba59ee48.png" rel="noreferrer" target="_blank">A Relative Link</a></p>',
@@ -420,6 +448,8 @@ describe('Markdown.Links', () => {
             expect(Markdown.format('ftp://ftp.example.com').trim()).toBe(`<p>${link('ftp://ftp.example.com')}</p>`);
 
             expect(Markdown.format('tel:1-555-123-4567').trim()).toBe(`<p>${link('tel:1-555-123-4567')}</p>`);
+
+            expect(Markdown.format('tel:+1-555-123-4567').trim()).toBe(`<p>${link('tel:+1-555-123-4567')}</p>`);
 
             expect(Markdown.format('mailto:test@example.com').trim()).toBe(`<p>${link('mailto:test@example.com')}</p>`);
 
@@ -454,6 +484,8 @@ describe('Markdown.Links', () => {
             expect(Markdown.format('ftp://ftp.example.com').trim()).toBe(`<p>${link('ftp://ftp.example.com')}</p>`);
 
             expect(Markdown.format('tel:1-555-123-4567').trim()).toBe(`<p>${link('tel:1-555-123-4567')}</p>`);
+
+            expect(Markdown.format('tel:+1-555-123-4567').trim()).toBe(`<p>${link('tel:+1-555-123-4567')}</p>`);
 
             expect(Markdown.format('mailto:test@example.com').trim()).toBe(`<p>${link('mailto:test@example.com')}</p>`);
 

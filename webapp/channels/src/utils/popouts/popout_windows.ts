@@ -99,6 +99,9 @@ export async function popoutRhsSearch(
     searchType: SearchType = 'messages',
     channelName?: string,
     searchTeamId?: string,
+
+    // Whatever else the view needs to come back the same way, such as the recent mentions filters.
+    extraParams?: Record<string, string>,
 ) {
     const url = new URL(
         `${getBasePath()}/_popout/rhs/${teamName}/search`,
@@ -112,6 +115,9 @@ export async function popoutRhsSearch(
     }
     if (searchTeamId !== undefined) {
         url.searchParams.set('searchTeamId', searchTeamId);
+    }
+    for (const [key, value] of Object.entries(extraParams ?? {})) {
+        url.searchParams.set(key, value);
     }
 
     const path = `${url.pathname}${url.search}`;

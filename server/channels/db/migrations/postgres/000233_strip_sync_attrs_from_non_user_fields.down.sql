@@ -1,0 +1,2 @@
+-- Intentionally a no-op: removed ldap/saml attrs cannot be safely restored
+-- since the original values are not stored anywhere after the up migration.

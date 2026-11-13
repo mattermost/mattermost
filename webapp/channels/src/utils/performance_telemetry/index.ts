@@ -21,6 +21,14 @@ export const enum Measure {
     TeamSwitch = 'team_switch',
 }
 
+// Cleared once a channel or team switch has been measured, or when a plugin channel view
+// replaces the post list that would have measured it. Keeps the next switch from using a stale start.
+export function clearChannelSwitchMarks() {
+    performance.clearMarks(Mark.ChannelLinkClicked);
+    performance.clearMarks(Mark.TeamLinkClicked);
+    performance.clearMarks(Mark.PostListLoaded);
+}
+
 export function markAndReport(name: string): PerformanceMark {
     return performance.mark(name, {
         detail: {

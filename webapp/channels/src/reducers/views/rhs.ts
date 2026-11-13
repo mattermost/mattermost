@@ -13,9 +13,10 @@ import {
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
 import {ActionTypes, RHSStates, Threads} from 'utils/constants';
+import {defaultMentionFilters} from 'utils/mention_search';
 
 import type {MMAction} from 'types/store';
-import type {RhsState} from 'types/store/rhs';
+import type {MentionFilters, RhsState} from 'types/store/rhs';
 
 function selectedPostId(state = '', action: MMAction) {
     switch (action.type) {
@@ -209,17 +210,39 @@ function searchTerms(state = '', action: MMAction) {
     }
 }
 
-function searchTeam(state = null, action: MMAction) {
+function searchTeam(state: string | null = null, action: MMAction) {
     switch (action.type) {
     case ActionTypes.UPDATE_RHS_SEARCH_TEAM:
         return action.teamId;
     case ActionTypes.UPDATE_RHS_STATE:
-        if (action.state !== RHSStates.SEARCH) {
+
+        // Mention searches keep their team so that a mention search scoped to a single channel stays
+        // scoped. showMentions clears the team explicitly when opening an all-teams mention search.
+        if (action.state !== RHSStates.SEARCH && action.state !== RHSStates.MENTION) {
             return null;
         }
         return state;
     case UserTypes.LOGOUT_SUCCESS:
         return null;
+    default:
+        return state;
+    }
+}
+
+// mentionFilters holds the filters applied in the recent mentions panel. They outlive a single
+// search so that paging and re-running the search keep them, and are cleared when the panel moves to
+// anything other than a mention search.
+function mentionFilters(state: MentionFilters = defaultMentionFilters, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.UPDATE_RHS_MENTION_FILTERS:
+        return action.filters;
+    case ActionTypes.UPDATE_RHS_STATE:
+        if (action.state !== RHSStates.MENTION) {
+            return defaultMentionFilters;
+        }
+        return state;
+    case UserTypes.LOGOUT_SUCCESS:
+        return defaultMentionFilters;
     default:
         return state;
     }
@@ -434,6 +457,7 @@ export default combineReducers({
     rhsState,
     searchTerms,
     searchTeam,
+    mentionFilters,
     searchType,
     searchResultsTerms,
     searchResultsType,

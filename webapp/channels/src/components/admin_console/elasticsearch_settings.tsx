@@ -38,6 +38,7 @@ interface State extends BaseState {
     enableSearching: boolean;
     enableAutocomplete: boolean;
     enableSearchPublicChannelsWithoutMembership: boolean;
+    enableFileIndexing: boolean;
     configTested: boolean;
     canSave: boolean;
     canPurgeAndIndex: boolean;
@@ -68,7 +69,7 @@ export const messages = defineMessages({
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
     help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
     rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
-    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'}, // eslint-disable-line formatjs/no-multiple-whitespaces
+    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n\n<b>Note: Please ensure no other indexing job is in progress in the table above.</b>'}, // eslint-disable-line formatjs/no-multiple-whitespaces
     rebuildChannelsIndexButtonText: {id: 'admin.elasticsearch.rebuildChannelsIndex.title', defaultMessage: 'Rebuild Channels Index'},
     purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
     purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Indexes'},
@@ -119,6 +120,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
         config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
         config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = this.state.enableSearchPublicChannelsWithoutMembership;
+        config.ElasticsearchSettings.EnableFileIndexing = this.state.enableFileIndexing;
 
         return config;
     };
@@ -138,6 +140,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             enableAutocomplete: config.ElasticsearchSettings.EnableAutocomplete,
             enableSearchPublicChannelsWithoutMembership: config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership,
+            enableFileIndexing: config.ElasticsearchSettings.EnableFileIndexing,
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
@@ -563,6 +566,25 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership')}
+                />
+                <BooleanSetting
+                    id='enableFileIndexing'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableFileIndexingTitle'
+                            defaultMessage='Enable file indexing:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableFileIndexingDescription'
+                            defaultMessage='When false, new or updated file attachments are not indexed. File search continues to return previously indexed files, but files uploaded while this setting is false are not searchable until a bulk index is run after re-enabling it.'
+                        />
+                    }
+                    value={this.state.enableFileIndexing}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableFileIndexing')}
                 />
             </SettingsGroup>
         );

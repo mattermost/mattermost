@@ -12,6 +12,21 @@ import type {RHSStates} from 'utils/constants';
 
 export type SearchType = '' | 'files' | 'messages';
 
+// MentionType mirrors the three ways a post can mention you: by your username, by a group you belong
+// to, or by one of the keywords in your notification settings.
+export type MentionType = 'direct' | 'group' | 'keyword';
+
+export type MentionDateRange = 'any' | 'today' | 'last_7_days';
+
+// MentionFilters narrows the recent mentions panel. An empty channelIds or mentionTypes means the
+// filter isn't applied, rather than that nothing matches. The team is tracked separately, in
+// searchTeam, because the search API takes it as its own argument.
+export type MentionFilters = {
+    channelIds: Array<Channel['id']>;
+    mentionTypes: MentionType[];
+    date: MentionDateRange;
+};
+
 export type FakePost = {
     id: Post['id'];
     exists: boolean;
@@ -33,6 +48,7 @@ export type RhsViewState = {
     rhsState: RhsState;
     searchTerms: string;
     searchTeam: Team['id'] | null;
+    mentionFilters: MentionFilters;
     searchType: SearchType;
     pluggableId: string;
     searchResultsTerms: string;

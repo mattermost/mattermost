@@ -6,6 +6,8 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import * as ClassificationBannerHook from 'components/common/hooks/useChannelClassificationBanner';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {LicenseSkus, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -176,6 +178,26 @@ describe('components/channel_banner', () => {
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
+    test('uses resolved classification banner text without rendering it a second time', () => {
+        const classificationHook = jest.spyOn(ClassificationBannerHook, 'default').mockReturnValue({
+            hasClassification: true,
+            classificationBanner: {enabled: true, text: '{{missing}}', background_color: '#ff0000'},
+            bannerText: '{{missing}}',
+            classificationId: undefined,
+            classificationIsBannerDesignated: false,
+        });
+
+        try {
+            renderWithContext(
+                <ChannelBanner channelId='channel_id_1'/>,
+                baseState,
+            );
+            expect(screen.getByTestId('channel_banner_text')).toHaveTextContent('{{missing}}');
+        } finally {
+            classificationHook.mockRestore();
+        }
+    });
+
     test('should not render when channel has no banner', () => {
         renderWithContext(
             <ChannelBanner channelId={'non-existent-channel-id'}/>,
@@ -215,6 +237,41 @@ describe('components/channel_banner', () => {
         renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,
             incompleteBannerInfoState,
+        );
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('should not render when banner text is empty', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'channel_id_1',
+            team_id: 'team_id',
+            display_name: 'Test Channel 1',
+            name: 'test-channel',
+            type: Constants.OPEN_CHANNEL as ChannelType,
+            banner_info: {
+                text: '   ',
+                background_color: '#FF0000',
+                enabled: true,
+            },
+        });
+
+        const emptyTextState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    channels: {
+                        ...baseState.entities.channels.channels,
+                        [channel.id]: channel,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            emptyTextState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });

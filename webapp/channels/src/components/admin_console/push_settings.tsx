@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
@@ -239,7 +240,7 @@ export class PushSettings extends OLDAdminSettings<Props, State> {
             pushServerHelpText = (
                 <FormattedMessage
                     id='admin.email.mtpnsHelp'
-                    defaultMessage='Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkHPNS>Mattermost Hosted Push Notification Service</linkHPNS>.'
+                    defaultMessage='Download <linkIOS>Mattermost iOS app</linkIOS> from iTunes. Download <linkAndroid>Mattermost Android app</linkAndroid> from Google Play. Learn more about the <linkTPNS>Mattermost Test Push Notification Service</linkTPNS>.'
                     values={{
                         linkIOS: (msg) => (
                             <ExternalLink
@@ -257,7 +258,7 @@ export class PushSettings extends OLDAdminSettings<Props, State> {
                                 {msg}
                             </ExternalLink>
                         ),
-                        linkHPNS: (msg) => (
+                        linkTPNS: (msg) => (
                             <ExternalLink
                                 href={DocLinks.SETUP_PUSH_NOTIFICATIONS}
                                 location='push_settings'
@@ -293,34 +294,34 @@ export class PushSettings extends OLDAdminSettings<Props, State> {
                 <div className='form-group'>
                     <div className='col-sm-4'/>
                     <div className='col-sm-8'>
-                        <input
-                            type='checkbox'
+                        <Checkbox
                             checked={this.state.agree}
-                            onChange={this.handleAgreeChange}
                             disabled={this.props.isDisabled}
-                        />
-                        <FormattedMessage
-                            id='admin.email.agreeHPNS'
-                            defaultMessage=' I understand and accept the Mattermost Hosted Push Notification Service <linkTerms>Terms of Service</linkTerms> and <linkPrivacy>Privacy Policy</linkPrivacy>.'
-                            values={{
-                                linkTerms: (msg) => (
-                                    <ExternalLink
-                                        href='https://mattermost.com/hpns-terms/'
-                                        location='push_settings'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                linkPrivacy: (msg) => (
-                                    <ExternalLink
-                                        href='https://mattermost.com/data-processing-addendum/'
-                                        location='push_settings'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
+                            onChange={this.handleAgreeChange}
+                        >
+                            <FormattedMessage
+                                id='admin.email.agreeHPNS'
+                                defaultMessage=' I understand and accept the Mattermost Hosted Push Notification Service <linkTerms>Terms of Service</linkTerms> and <linkPrivacy>Privacy Policy</linkPrivacy>.'
+                                values={{
+                                    linkTerms: (msg) => (
+                                        <ExternalLink
+                                            href='https://mattermost.com/hpns-terms/'
+                                            location='push_settings'
+                                        >
+                                            {msg}
+                                        </ExternalLink>
+                                    ),
+                                    linkPrivacy: (msg) => (
+                                        <ExternalLink
+                                            href='https://mattermost.com/data-processing-addendum/'
+                                            location='push_settings'
+                                        >
+                                            {msg}
+                                        </ExternalLink>
+                                    ),
+                                }}
+                            />
+                        </Checkbox>
                     </div>
                 </div>
             );

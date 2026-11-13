@@ -46,12 +46,10 @@
         margin-top: 4px;
     }
 
-    .EditPolicy__delete-masked-values-warning {
-        margin: 28px 28px 0;
-    }
-
+    // Warnings live in AdminPanel body (panel padding owns horizontal inset).
+    .EditPolicy__delete-masked-values-warning,
     .EditPolicy__delete-linked-teams-warning {
-        margin: 28px 28px 0;
+        margin: 0 0 16px;
     }
 
     .EditPolicy__delete-linked-teams-list {

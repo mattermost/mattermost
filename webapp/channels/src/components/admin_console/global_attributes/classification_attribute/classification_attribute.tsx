@@ -8,11 +8,13 @@ import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
+import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -25,10 +27,10 @@ import {
     optionsToLevels,
     saveDeleteChannelLinkedField,
 } from 'components/admin_console/classification_markings/utils';
-import Card from 'components/card/card';
 import LoadingScreen from 'components/loading_screen';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import Input from 'components/widgets/inputs/input/input';
 
 import {useChannelResourceRemove} from './remove_channel_resource_modal';
@@ -36,14 +38,16 @@ import {useChannelResourceRemove} from './remove_channel_resource_modal';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import type {ResourceObjectType} from '../attribute_details/attribute_applies_to_constants';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
-import {formatAttributeHeadingName} from '../utils';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
+import {fetchLinkedFieldsForTemplate, isResourceObjectType} from '../utils';
 
 import './classification_attribute.scss';
 
 export const CLASSIFICATION_ATTRIBUTE_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/classification`;
 
-type LoadState = 'loading' | 'ready' | 'missing' | 'failed';
+type LoadState = 'loading' | 'ready' | 'missing' | 'failed' | 'conflict';
 
 // The property routes answer 404 for a field that does not exist, which both of this
 // page's loads treat as absent rather than broken.
@@ -72,9 +76,14 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const {promptRemove} = useChannelResourceRemove();
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     const [loadState, setLoadState] = useState<LoadState>('loading');
     const [template, setTemplate] = useState<PropertyField | null>(null);
+
+    // A same-named field classification does not own. Editing here would either
+    // describe it wrongly or collide with it on save, so the page stops.
+    const [conflictField, setConflictField] = useState<PropertyField | null>(null);
 
     // The field as the server currently holds it, so Save knows whether to create,
     // patch or delete rather than inferring it from the form.
@@ -82,6 +91,12 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 
     // null means classification does not apply to channels.
     const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);
+
+    // The template's other linked fields. Classification Markings applies the
+    // template to Users under a different name (`clearance`), and Attribute
+    // Management lists no row for a linked field, so this page is the only
+    // place that name can be found.
+    const [otherLinkedResources, setOtherLinkedResources] = useState<Array<{type: ResourceObjectType; name: string}>>([]);
 
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
@@ -102,17 +117,33 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 // ordinary state for both of these: classification may not be set up,
                 // and it may be set up without applying to channels. Only a real
                 // failure gets the error state.
-                const [templateField, existingChannelField] = await Promise.all([
-                    fetchClassificationField().catch(rethrowUnlessNotFound),
-                    fetchChannelClassificationField().catch(rethrowUnlessNotFound),
-                ]);
+                const templateLookup = (await fetchClassificationField().catch(rethrowUnlessNotFound)) ?? {};
                 if (!isMountedRef.current) {
                     return;
                 }
+                if (templateLookup.conflict) {
+                    setConflictField(templateLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const templateField = templateLookup.field;
                 if (!templateField) {
                     setLoadState('missing');
                     return;
                 }
+
+                const channelLookup = (await fetchChannelClassificationField(templateField.id).catch(rethrowUnlessNotFound)) ?? {};
+                if (!isMountedRef.current) {
+                    return;
+                }
+                if (channelLookup.conflict) {
+                    setConflictField(channelLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const existingChannelField = channelLookup.field;
                 setTemplate(templateField);
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
@@ -127,6 +158,39 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
             }
         })();
     }, []);
+
+    // Kept out of the load above, whose catch replaces the whole page with an
+    // error screen. These rows only report which other resources the template
+    // reaches, so a scope that will not list costs the rows, not the page.
+    useEffect(() => {
+        if (!template) {
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+            try {
+                const linkedFields = (await fetchLinkedFieldsForTemplate(template.id, allowedResourceTypes).catch(rethrowUnlessNotFound)) ?? [];
+                if (cancelled) {
+                    return;
+                }
+                const otherResources: Array<{type: ResourceObjectType; name: string}> = [];
+                for (const linked of linkedFields) {
+                    if (linked.object_type !== CHANNEL_OBJECT_TYPE && isResourceObjectType(linked.object_type)) {
+                        otherResources.push({type: linked.object_type, name: linked.name});
+                    }
+                }
+                setOtherLinkedResources(otherResources);
+            } catch (error) {
+                console.error('ClassificationAttribute-load-linked-resources: ', error); // eslint-disable-line no-console
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [allowedResourceTypes, template]);
 
     const levels = useMemo(() => {
         const options = (template?.attrs?.options ?? []) as PropertyFieldOption[];
@@ -234,7 +298,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     }, [canSave, channelField, channelResource, markClean, template]);
 
     const displayName = (template?.attrs?.display_name as string | undefined)?.trim() ||
-        formatAttributeHeadingName(template?.name ?? formatMessage(messages.nameFallback));
+        formatPropertyFieldLabel(template?.name ?? formatMessage(messages.nameFallback));
 
     return (
         <div
@@ -251,7 +315,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             data-testid='classificationAttributeBackLink'
                         >
                             <ChevronLeftIcon
-                                size={20}
+                                size={28}
                                 aria-hidden={true}
                             />
                         </BlockableLink>
@@ -287,6 +351,25 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             />
                         </p>
                     )}
+                    {/* The name is not reserved, so Attribute Management can create an
+                        attribute called `classification` that this page does not own.
+                        Two ways in: a template of any type other than rank (the listing
+                        no longer links here for one, but the URL still resolves), or a
+                        channel attribute of that name linked to a different template,
+                        whose options the Applies-to card below would otherwise edit.
+                        Both are cleared by renaming or deleting the attribute. */}
+                    {loadState === 'conflict' && conflictField && (
+                        <p
+                            className='ClassificationAttribute__notice'
+                            role='alert'
+                            data-testid='classificationAttributeConflict'
+                        >
+                            <FormattedMessage
+                                {...messages.nameConflict}
+                                values={{name: conflictField.name}}
+                            />
+                        </p>
+                    )}
                     {loadState === 'failed' && (
                         <p
                             className='ClassificationAttribute__notice'
@@ -298,129 +381,118 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                     )}
                     {loadState === 'ready' && template && (
                         <>
-                            <Card
-                                expanded={true}
-                                disableExpandAnimation={true}
-                                className='console'
+                            <AdminPanel
+                                id='classification_attribute_definition'
+                                title={messages.definitionTitle}
+                                subtitle={messages.definitionSubtitle}
                             >
-                                <Card.Header>
-                                    <div className='ClassificationAttribute__cardHeader'>
-                                        <div className='ClassificationAttribute__blockTitle'>
-                                            <FormattedMessage {...messages.definitionTitle}/>
-                                        </div>
-                                        <FormattedMessage
-                                            tagName='p'
-                                            {...messages.definitionSubtitle}
+                                <div className='ClassificationAttribute__row'>
+                                    <label
+                                        className='ClassificationAttribute__label'
+                                        htmlFor='input_display_name'
+                                    >
+                                        <FormattedMessage {...messages.displayNameLabel}/>
+                                    </label>
+                                    <div className='ClassificationAttribute__fieldControl'>
+                                        <Input
+                                            name='display_name'
+                                            type='text'
+                                            useLegend={false}
+                                            aria-label={formatMessage(messages.displayNameLabel)}
+                                            value={displayName}
+                                            disabled={true}
+                                            data-testid='classificationAttributeName'
                                         />
+                                        <div className='ClassificationAttribute__uniqueName'>
+                                            <span className='ClassificationAttribute__uniqueNameCaption'>
+                                                <span className='ClassificationAttribute__uniqueNamePrefix'>
+                                                    <FormattedMessage {...messages.uniqueNamePrefix}/>
+                                                </span>
+                                                <span data-testid='classificationAttributeUniqueName'>
+                                                    {template.name}
+                                                </span>
+                                            </span>
+                                            <p className='ClassificationAttribute__helperText'>
+                                                <FormattedMessage {...messages.helperText}/>
+                                            </p>
+                                        </div>
                                     </div>
-                                </Card.Header>
-                                <Card.Body expanded={true}>
-                                    <div className='ClassificationAttribute__row'>
-                                        <label
-                                            className='ClassificationAttribute__label'
-                                            htmlFor='input_display_name'
+                                </div>
+                                <div className='ClassificationAttribute__row'>
+                                    <span className='ClassificationAttribute__label'>
+                                        <FormattedMessage {...messages.typeLabel}/>
+                                    </span>
+                                    <div className='ClassificationAttribute__fieldControl'>
+                                        <button
+                                            type='button'
+                                            className='ClassificationAttribute__typeButton'
+                                            disabled={true}
+                                            aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
+                                            data-testid='classificationAttributeType'
                                         >
-                                            <FormattedMessage {...messages.displayNameLabel}/>
-                                        </label>
-                                        <div className='ClassificationAttribute__fieldControl'>
-                                            <Input
-                                                name='display_name'
-                                                type='text'
-                                                useLegend={false}
-                                                aria-label={formatMessage(messages.displayNameLabel)}
-                                                value={displayName}
-                                                disabled={true}
-                                                data-testid='classificationAttributeName'
-                                            />
-                                            <div className='ClassificationAttribute__uniqueName'>
-                                                <span className='ClassificationAttribute__uniqueNameCaption'>
-                                                    <span className='ClassificationAttribute__uniqueNamePrefix'>
-                                                        <FormattedMessage {...messages.uniqueNamePrefix}/>
-                                                    </span>
-                                                    <span data-testid='classificationAttributeUniqueName'>
-                                                        {template.name}
-                                                    </span>
-                                                </span>
-                                                <p className='ClassificationAttribute__helperText'>
-                                                    <FormattedMessage {...messages.helperText}/>
-                                                </p>
-                                            </div>
-                                        </div>
+                                            <span className='ClassificationAttribute__typeButtonInner'>
+                                                <SortAscendingIcon size={18}/>
+                                                <FormattedMessage {...messages.typeRanked}/>
+                                            </span>
+                                            <i className='icon icon-chevron-down'/>
+                                        </button>
                                     </div>
-                                    <div className='ClassificationAttribute__row'>
-                                        <span className='ClassificationAttribute__label'>
-                                            <FormattedMessage {...messages.typeLabel}/>
-                                        </span>
-                                        <div className='ClassificationAttribute__fieldControl'>
-                                            <button
-                                                type='button'
-                                                className='ClassificationAttribute__typeButton'
-                                                disabled={true}
-                                                aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
-                                                data-testid='classificationAttributeType'
-                                            >
-                                                <span className='ClassificationAttribute__typeButtonInner'>
-                                                    <SortAscendingIcon size={18}/>
-                                                    <FormattedMessage {...messages.typeRanked}/>
-                                                </span>
-                                                <i className='icon icon-chevron-down'/>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className='ClassificationAttribute__row'>
-                                        <span className='ClassificationAttribute__label'>
-                                            <FormattedMessage {...messages.optionsLabel}/>
-                                        </span>
-                                        <div className='ClassificationAttribute__fieldControl'>
-                                            <ul
-                                                className='ClassificationAttribute__options'
-                                                data-testid='classificationAttributeLevels'
-                                            >
-                                                {levels.map((level) => (
-                                                    <li key={level.id}>
-                                                        <span
-                                                            className='ClassificationAttribute__optionChip'
-                                                            style={{
-                                                                backgroundColor: level.color,
-                                                                color: getContrastingSimpleColor(level.color) || '#FFFFFF',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className='ClassificationAttribute__optionRankShade'
-                                                                aria-hidden={true}
-                                                            />
-                                                            <span className='ClassificationAttribute__optionRank'>
-                                                                {level.rank}
-                                                            </span>
-                                                            <span className='ClassificationAttribute__optionLabel'>
-                                                                {level.name}
-                                                            </span>
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <div className='ClassificationAttribute__markingsFooter'>
-                                                <p className='ClassificationAttribute__markingsCopy'>
-                                                    <FormattedMessage {...messages.markingsFooter}/>
-                                                    <Link
-                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ClassificationAttribute__markingsOpen')}
-                                                        data-testid='classificationAttributeMarkingsLink'
+                                </div>
+                                <div className='ClassificationAttribute__row'>
+                                    <span className='ClassificationAttribute__label'>
+                                        <FormattedMessage {...messages.optionsLabel}/>
+                                    </span>
+                                    <div className='ClassificationAttribute__fieldControl'>
+                                        <ul
+                                            className='ClassificationAttribute__options'
+                                            data-testid='classificationAttributeLevels'
+                                        >
+                                            {levels.map((level) => (
+                                                <li key={level.id}>
+                                                    <span
+                                                        className='ClassificationAttribute__optionChip'
+                                                        style={{
+                                                            backgroundColor: level.color,
+                                                            color: getContrastingSimpleColor(level.color) || '#FFFFFF',
+                                                        }}
                                                     >
-                                                        <FormattedMessage {...messages.openMarkings}/>
-                                                        <OpenInNewIcon
-                                                            size={12}
+                                                        <span
+                                                            className='ClassificationAttribute__optionRankShade'
                                                             aria-hidden={true}
                                                         />
+                                                        <span className='ClassificationAttribute__optionRank'>
+                                                            {level.rank}
+                                                        </span>
+                                                        <span className='ClassificationAttribute__optionLabel'>
+                                                            {level.name}
+                                                        </span>
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className='ClassificationAttribute__markingsFooter'>
+                                            <div className='ClassificationAttribute__markingsCopy'>
+                                                <FormattedMessage {...messages.markingsFooter}/>
+                                                <Button
+                                                    asChild={true}
+                                                    emphasis='tertiary'
+                                                    size='small'
+                                                    className='ClassificationAttribute__markingsOpen'
+                                                    data-testid='classificationAttributeMarkingsLink'
+                                                    trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
+                                                >
+                                                    <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
+                                                        <FormattedMessage {...messages.openMarkings}/>
                                                     </Link>
-                                                </p>
+                                                </Button>
                                             </div>
                                         </div>
                                     </div>
-                                </Card.Body>
-                            </Card>
+                                </div>
+                            </AdminPanel>
                             <AppliesToCard
                                 ordered={true}
+                                readOnlyResources={otherLinkedResources}
                                 channelResource={channelResource}
                                 onChannelResourceChange={handleChannelResourceChange}
                                 onChannelResourceRemove={handleChannelResourceRemove}
@@ -438,13 +510,15 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         onClick={handleSave}
                         defaultMessage={<FormattedMessage {...messages.save}/>}
                     />
-                    <BlockableLink
-                        className={buttonClassNames({emphasis: 'quaternary'})}
-                        to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
                         data-testid='classificationAttributeCancelLink'
                     >
-                        <FormattedMessage {...messages.cancel}/>
-                    </BlockableLink>
+                        <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
+                            <FormattedMessage {...messages.cancel}/>
+                        </BlockableLink>
+                    </Button>
                     {saveFailed && (
                         <span
                             className='ClassificationAttribute__error'
@@ -496,6 +570,10 @@ const messages = defineMessages({
     notConfigured: {
         id: 'admin.global_attributes.classification.not_configured',
         defaultMessage: 'Classification is not set up yet. Enable it on the {link} page first.',
+    },
+    nameConflict: {
+        id: 'admin.global_attributes.classification.name_conflict',
+        defaultMessage: 'An attribute named "{name}" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.',
     },
     loadFailed: {
         id: 'admin.global_attributes.classification.load_failed',

@@ -50,8 +50,9 @@ Below are different ways to create bot accounts. After the bot account is create
 5. (Optional) Set a **Display Name** and **Description**.
 6. (Optional) Choose what role the bot should have. Defaults to **Member**. If you assign **System Admin**, the bot will have read and write access for any Public channels, Private channels, and Direct Messages.
 7. (Optional) Select additional permissions for the account. Enable the bot to post to all Mattermost channels, or post to all Mattermost Public channels.
-8. Select **Create Bot Account**.
-9. Copy the token displayed on the **Setup Successful** page before you select **Done** as you won't have access to the token again once you close the screen.
+8. (Optional) From Mattermost v12.1, set the bot's **Attributes**. Select **Add attribute**, choose an attribute, and enter or select its value. Select the trash icon next to an attribute to remove it. Required attributes must have a value before you can save. See [Bot attributes](#bot-attributes) for details.
+9. Select **Create Bot Account**.
+10. Copy the token displayed on the **Setup Successful** page before you select **Done** as you won't have access to the token again once you close the screen.
 
 ### RESTful API
 
@@ -78,6 +79,35 @@ Bot accounts which were converted from user accounts will have their authenticat
 Plugins can create bot accounts through an `EnsureBot` helper function. For an example, see [the Demo Plugin](https://github.com/mattermost/mattermost-plugin-demo/blob/master/server/configuration.go#L210-L217).
 
 Bots created by a plugin use the plugin's ID as the creator, unless otherwise specified by the plugin.
+
+## Bot attributes
+
+From Mattermost v12.1, with a Mattermost Enterprise or Enterprise Advanced license, you can set [user attribute](https://docs.mattermost.com/administration-guide/manage/admin/attribute-management) values on bot accounts, the same way you set them on users. Bot attributes are shown in the bot's profile popover, and they're evaluated by [attribute-based access control (ABAC)](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control) policies.
+
+<Important>
+
+Membership policies and permission policies apply to bot accounts exactly as they apply to users. A bot that doesn't have the attribute values a policy requires can't be added to private channels or teams governed by that policy, is removed from them during synchronization, and can't perform actions a permission policy restricts. Set the bot's attributes before adding it to channels or teams that use access policies.
+
+</Important>
+
+### Who can set bot attribute values
+
+- The bot's owner, if they have permission to manage bots. Managing bots owned by others requires permission to manage other users' bots.
+- System Admins.
+
+The following attributes can't be set by bot owners who aren't System Admins:
+
+- Attributes whose **Who can set the value** setting is **System Administrator**. Only System Admins can set these values.
+- Attributes on a bot that has the **System Admin** role. Only System Admins can change these values.
+
+Attributes synchronized from AD/LDAP or SAML are read-only and can't be edited for bots.
+
+### Set bot attribute values
+
+- **User interface**: Go to **Product menu > Integrations > Bot Accounts**, then select **Edit** for the bot, or set attributes when you [create the bot](#user-interface-ui). Select **Add attribute** to add a value, or the trash icon to remove one. System Admins can select **Manage attributes** to open **System Console > System Attributes > Attribute Management** and define new attributes.
+- **RESTful API**: Send `PATCH /api/v4/users/{bot_user_id}/custom_profile_attributes` with a map of attribute IDs to values, authenticated as the bot's owner or a System Admin. A bot can also update its own values using its access token.
+
+If the bot account is created but some of its settings can't be saved, such as its attributes, icon, roles, or access token, Mattermost shows a **Bot account created, but some settings were not saved** banner that lists what failed. Edit the bot to set those settings again.
 
 ## Technical notes
 
@@ -181,6 +211,10 @@ If neither of the above help resolve your issue, you also have the option to cho
 When AD/LDAP or SAML synchronization is enabled, you can create bot accounts using the steps outlined above. These bot accounts won't require an email address.
 
 If you need to sync service accounts from AD/LDAP or SAML to Mattermost and use them as bot accounts, [please reach out to us](https://mattermost.com/contact-us) to discuss in detail. You may not need to sync service accounts and use them as bot accounts to meet your use case.
+
+### Do attribute-based access policies apply to bot accounts?
+
+Yes. [Membership policies and permission policies](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control) evaluate bot accounts the same way they evaluate users. A bot that's missing an attribute a rule checks, or has a value that doesn't match, is treated like any user who doesn't qualify. Give the bot the [attributes](#bot-attributes) it needs before adding it to channels or teams that use access policies.
 
 ### How are bot accounts identified in compliance exports?
 

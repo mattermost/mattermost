@@ -6,6 +6,7 @@ import {expect} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {components} from '@/ui/components';
+import {testConfig} from '@/test_config';
 
 export default class LoginPage {
     readonly page: Page;
@@ -126,7 +127,7 @@ export default class LoginPage {
             expect(href).toBeTruthy();
             const url = new URL(href!, this.page.url());
             expect(url.origin).toBe(new URL(this.page.url()).origin);
-            expect(url.pathname).toBe(path);
+            expect(url.pathname).toBe(testConfig.withSubpath(path));
             expect(['', '?extra=expired']).toContain(url.search);
         }).toPass();
         if (color) {

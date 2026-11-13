@@ -3,16 +3,15 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {MouseEvent, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {
-    AlertOutlineIcon,
-    CloseIcon,
-} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Chip} from '@mattermost/compass-ui/components/chip';
 
+import AttributeChip, {AttributeChipRemoveButton} from 'components/channel_attributes/attribute_chip';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -114,70 +113,95 @@ export function hierarchicalMenuStatusKind(input: {
     return input.optionCount ? null : 'empty';
 }
 
+export type HierarchicalValueMenuVariant = 'input' | 'inline' | 'policy';
+
 export type SelectedValueChipsProps = {
     selectedIds: string[];
     labelForId: (id: string) => ChipLabel;
     disabled: boolean;
     onRemove: (id: string) => void;
     trailingChips?: ReactNode;
+    variant?: HierarchicalValueMenuVariant;
 };
 
-export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove, trailingChips}: SelectedValueChipsProps) {
+function closedTriggerOf(element: Element): HTMLElement | null {
+    const trigger = element.closest<HTMLElement>('.hierarchical-value-menu__button');
+    return trigger && trigger.getAttribute('aria-expanded') !== 'true' ? trigger : null;
+}
+
+function focusTriggerFromChip(event: MouseEvent<HTMLDivElement>) {
+    const trigger = closedTriggerOf(event.currentTarget);
+    if (trigger) {
+        event.preventDefault();
+
+        // Script focus after a text field gets :focus-visible in Chrome; a pointer press must not leave a ring.
+        trigger.focus({preventScroll: true, focusVisible: false});
+    }
+}
+
+export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove, trailingChips, variant = 'input'}: SelectedValueChipsProps) {
     const {formatMessage} = useIntl();
 
     return (
         <span className='hierarchical-value-menu__chips'>
             {selectedIds.map((id) => {
                 const {text, state} = labelForId(id);
+                const removeLabel = state === 'named' ?
+                    formatMessage(messages.removeValue, {name: text}) :
+                    formatMessage(messages.removeUnnamedValue);
 
-                return (
-                    <span
-                        key={id}
-                        className={classNames('hierarchical-value-menu__chip', {
-                            'hierarchical-value-menu__chip--pending': state === 'pending',
-                            'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
-                        })}
-                    >
-                        <span className='hierarchical-value-menu__chip-label'>{text}</span>
-                        {!disabled && (
-                            <span
-                                className='hierarchical-value-menu__chip-remove'
-                                role='button'
-                                tabIndex={0}
-                                data-option-id={id}
-                                data-menu-prevent-open={true}
-                                aria-label={state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue)}
-
-                                // Inside the trigger, and often inside a <label> that
-                                // points at that trigger: pointerdown must be canceled
-                                // or the label/button activates and the click never
-                                // reaches onRemove.
-                                onPointerDown={(event) => {
-                                    if (event.button !== 0) {
-                                        return;
-                                    }
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                    onRemove(id);
-                                }}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                    onRemove(id);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter' || event.key === ' ') {
-                                        event.stopPropagation();
-                                        event.preventDefault();
-                                        onRemove(id);
-                                    }
-                                }}
-                            >
-                                <CloseIcon size={12}/>
-                            </span>
-                        )}
-                    </span>
-                );
+                switch (variant) {
+                case 'inline':
+                case 'policy':
+                    return (
+                        <AttributeChip
+                            key={id}
+                            label={text || removeLabel}
+                            value={text}
+                            size='medium'
+                            announceLabel={false}
+                            className={classNames('hierarchical-value-menu__chip', {
+                                'AttributeChip--pending': state === 'pending',
+                                'AttributeChip--unavailable': state === 'unavailable',
+                                'hierarchical-value-menu__chip--pending': state === 'pending',
+                                'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
+                            })}
+                        >
+                            {!disabled && (
+                                <AttributeChipRemoveButton
+                                    onRemove={() => onRemove(id)}
+                                    removeLabel={removeLabel}
+                                />
+                            )}
+                        </AttributeChip>
+                    );
+                case 'input':
+                    return (
+                        <Chip
+                            key={id}
+                            size='medium'
+                            className={classNames('hierarchical-value-menu__chip', {
+                                'hierarchical-value-menu__chip--pending': state === 'pending',
+                                'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
+                            })}
+                            aria-label={disabled ? undefined : removeLabel}
+                            onMouseDown={disabled ? undefined : focusTriggerFromChip}
+                            onRemove={disabled ? undefined : (event) => {
+                                event.stopPropagation();
+                                if (selectedIds.length === 1) {
+                                    closedTriggerOf(event.currentTarget)?.focus({preventScroll: true, focusVisible: event.detail === 0});
+                                }
+                                onRemove(id);
+                            }}
+                        >
+                            <span className='hierarchical-value-menu__chip-value'>{text}</span>
+                        </Chip>
+                    );
+                default: {
+                    const unreachable: never = variant;
+                    return unreachable;
+                }
+                }
             })}
             {trailingChips}
         </span>
@@ -252,8 +276,8 @@ export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusPr
             {onRetry && (
                 <Button
                     type='button'
-                    emphasis='tertiary'
-                    size='xs'
+                    emphasis='link'
+                    size='x-small'
                     className='hierarchical-value-menu__retry'
                     onClick={(event) => {
                         event.stopPropagation();

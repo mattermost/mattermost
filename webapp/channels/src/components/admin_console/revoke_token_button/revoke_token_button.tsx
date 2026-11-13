@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -32,7 +32,7 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     return (
         <Button
             type='button'
-            variant='destructive'
+            destructive={true}
             onClick={handleClick}
         >
             <FormattedMessage

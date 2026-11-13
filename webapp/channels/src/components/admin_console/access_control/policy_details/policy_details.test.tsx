@@ -157,43 +157,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}});
     });
 
-    test('should match snapshot with new policy', () => {
-        // The ChannelList's Filter component has an existing prop type issue with TeamFilterDropdown
-        // that only surfaces during full rendering (not shallow). Suppress for this test.
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
-            if (typeof args[0] === 'string' && args[0].includes('Failed prop type')) {
-                // no-op: suppress prop type warnings
-            }
-        });
-
-        const props = {
-            ...defaultProps,
-            policyId: '',
-        };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
-        expect(container).toMatchSnapshot();
-
-        errorSpy.mockRestore();
-    });
-
-    test('should match snapshot with existing policy', () => {
-        const props = {
-            ...defaultProps,
-            actions: {
-                ...defaultProps.actions,
-                fetchPolicy: jest.fn().mockResolvedValue({
-                    data: {
-                        id: 'policy1',
-                        name: 'Policy 1',
-                        rules: [{expression: 'true'}],
-                    },
-                }),
-            },
-        };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should show masked values warning banner when policy has masked rows', async () => {
         // hasMaskedRows is derived in policy_details from the presence of the
         // "--------" sentinel in the loaded expression — drive the test via a
@@ -361,7 +324,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         // The mode-toggle button is disabled while no usable attributes are
         // available, so the test needs at least one to actually exercise the
         // Simple → Advanced → Simple round-trip.
-        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: true}}]});
+        mockGetAccessControlFields.mockResolvedValue({data: [{name: 'program', attrs: {ldap: 'program'}}]});
 
         const props = {
             ...defaultProps,
@@ -560,7 +523,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const renderWithLoadedExpression = (expression: string, attributeName: string) => {
             // A single usable (LDAP-synced) attribute clears the no-usable-attributes
             // gate so the toggle reflects the expression, not the attributes state.
-            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: 'program'}}]});
             const props = {
                 ...defaultProps,
                 actions: {
@@ -592,6 +555,14 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 '("Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program)',
                 'program',
             );
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('a "has any of" group without parens stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('"Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program', 'program');
 
             await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
 

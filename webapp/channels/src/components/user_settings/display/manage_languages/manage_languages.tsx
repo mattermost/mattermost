@@ -11,7 +11,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 
 import type {Language} from 'i18n/i18n';
@@ -95,9 +94,14 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
 
     handleKeyDown = (e: React.KeyboardEvent) => {
         const modalBody = document.querySelector('.modal-body');
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
-            modalBody?.classList.add('no-scroll');
-            this.setState({openMenu: true});
+
+        // Space/Enter open the controlled menu (react-select Space alone is unreliable
+        // when menuIsOpen is controlled and the control was not focused on mount).
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+            if (!this.state.openMenu) {
+                modalBody?.classList.add('no-scroll');
+                this.setState({openMenu: true});
+            }
         }
     };
 
@@ -246,21 +250,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                     <FormattedMessage
                         id='user.settings.languages.promote1'
                         defaultMessage='Select which language Mattermost displays in the user interface.'
-                    />
-                    <p/>
-                    <FormattedMessage
-                        id='user.settings.languages.promote2'
-                        defaultMessage='Would you like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.'
-                        values={{
-                            link: (msg: React.ReactNode) => (
-                                <ExternalLink
-                                    href='http://translate.mattermost.com'
-                                    location='manage_languages'
-                                >
-                                    {msg}
-                                </ExternalLink>
-                            ),
-                        }}
                     />
                 </div>
             </div>

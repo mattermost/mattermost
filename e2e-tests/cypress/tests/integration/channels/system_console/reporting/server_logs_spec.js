@@ -24,14 +24,14 @@ describe('System Console > Server Logs', () => {
     });
 
     it('MM-T908 Logs - Verify content categories', () => {
-        // * Verify the banner is showed.
-        cy.get('.banner__content span').should('not.empty');
+        // * Verify the log format selector is showed.
+        cy.get('#serverLogsFormatMenuButton').should('be.visible');
 
         // * Verify reload button is showed.
-        cy.get('.admin-logs-content button span').should('be.visible').and('contain', 'Reload');
+        cy.get('.ServerLogs .LogViewer__filters button').contains('Reload').should('be.visible');
 
         // * Verify that server logs are showed correctly.
-        cy.get('.admin-logs-content div.LogTable').should('be.visible').and('not.empty');
-        cy.get('.admin-logs-content div.LogTable span').eq(0).should('not.empty');
+        cy.get('.ServerLogs div.LogViewer').should('be.visible').and('not.empty');
+        cy.get('.ServerLogs .LogRow__message').eq(0).should('not.empty');
     });
 });

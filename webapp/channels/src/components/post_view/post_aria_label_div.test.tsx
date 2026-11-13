@@ -4,7 +4,6 @@
 import React from 'react';
 import * as reactIntl from 'react-intl';
 
-import enMessages from 'i18n/en.json';
 import esMessages from 'i18n/es.json';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -54,11 +53,11 @@ describe('PostAriaLabelDiv', () => {
     };
 
     test('should render aria-label in the given locale', () => {
-        (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
+        (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: {}, defaultLocale: 'en'}));
 
         let renderResult = renderWithContext(<PostAriaLabelDiv {...baseProps}/>, baseState, {
             locale: 'en',
-            intlMessages: enMessages,
+            intlMessages: {},
         });
 
         let div = renderResult.container.firstChild as HTMLElement;
@@ -78,13 +77,13 @@ describe('PostAriaLabelDiv', () => {
     });
 
     test('should pass other props through to the rendered div', () => {
-        (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'}));
+        (reactIntl.useIntl as jest.Mock).mockImplementation(() => reactIntl.createIntl({locale: 'en', messages: {}, defaultLocale: 'en'}));
 
         let props = baseProps;
 
         let renderResult = renderWithContext(<PostAriaLabelDiv {...props}/>, baseState, {
             locale: 'en',
-            intlMessages: enMessages,
+            intlMessages: {},
         });
         let div = renderResult.container.firstChild as HTMLElement;
 
@@ -105,7 +104,7 @@ describe('PostAriaLabelDiv', () => {
             baseState,
             {
                 locale: 'en',
-                intlMessages: enMessages,
+                intlMessages: {},
             },
         );
         div = renderResult.container.firstChild as HTMLElement;

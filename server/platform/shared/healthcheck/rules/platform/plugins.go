@@ -1,0 +1,116 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package platform
+
+import (
+	"maps"
+	"slices"
+	"strings"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+)
+
+func init() {
+	healthcheck.Register(pluginsOff, pluginHealthOff, pluginNotRunning)
+}
+
+const pluginsConsolePath = "/admin_console/plugins/plugin_management"
+
+var pluginsOff = healthcheck.Rule{
+	Code:     "PLUGINS_OFF",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityInfo,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.plugins_off.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.plugins_off.remediation"),
+		ConsolePath:   pluginsConsolePath,
+	},
+	Surface:    healthcheck.SurfaceInternal,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "PluginSettings.Enable",
+	Eval:       healthcheck.Single(evalPluginsOff),
+}
+
+var pluginHealthOff = healthcheck.Rule{
+	Code:     "PLUGIN_HEALTH_OFF",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.plugin_health_off.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.plugin_health_off.remediation"),
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "PluginSettings.EnableHealthCheck",
+	Eval:       healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginHealthOff),
+}
+
+var pluginNotRunning = healthcheck.Rule{
+	Code:     "PLUGIN_NOT_RUNNING",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.plugin_not_running.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.plugin_not_running.remediation"),
+		ConsolePath:   pluginsConsolePath,
+	},
+	Surface:        healthcheck.SurfaceProduct,
+	Volatility:     healthcheck.VolatilityProbe,
+	AppliesToCloud: true,
+	Subject:        "PluginSettings.PluginStates",
+	Eval:           healthcheck.Gate(pluginsEnabled, healthcheck.ReasonConfigUnavailable, evalPluginNotRunning),
+}
+
+func pluginsEnabled(s *healthcheck.Snapshot) (bool, bool) {
+	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.PluginSettings.Enable })
+}
+
+func evalPluginsOff(s *healthcheck.Snapshot) healthcheck.Result {
+	enabled, ok := pluginsEnabled(s)
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case !enabled:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugins_off.message"))
+	default:
+		return healthcheck.Resolved()
+	}
+}
+
+func evalPluginHealthOff(s *healthcheck.Snapshot) healthcheck.Result {
+	healthCheck, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.PluginSettings.EnableHealthCheck })
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case !healthCheck:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_health_off.message"))
+	default:
+		return healthcheck.Resolved()
+	}
+}
+
+// The plugin list marks a plugin enabled only while it runs, so enabled-but-listed-disabled means it stopped.
+func evalPluginNotRunning(s *healthcheck.Snapshot) healthcheck.Result {
+	if !s.Has(model.SectionPlugins) {
+		return healthcheck.Unknown(healthcheck.ReasonPluginsUnavailable)
+	}
+
+	states := s.Config.Config.PluginSettings.PluginStates
+	var notRunning []string
+	for _, id := range slices.Sorted(maps.Keys(states)) {
+		if states[id] == nil || !states[id].Enable {
+			continue
+		}
+		// A plugin in neither list is a leftover state entry for an uninstalled plugin.
+		if running, listed := s.PluginEnabled(id); listed && !running {
+			notRunning = append(notRunning, id)
+		}
+	}
+
+	if len(notRunning) == 0 {
+		return healthcheck.Resolved()
+	}
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.plugin_not_running.message")).WithDetail("plugins", strings.Join(notRunning, ", "))
+}

@@ -79,7 +79,6 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('.file__image-loading')).not.toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should reserve a placeholder without rendering image content when renderPlaceholderOnly is true', () => {
@@ -122,7 +121,7 @@ describe('components/SizeAwareImage', () => {
         expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
     });
 
-    test('should have display set to initial in loaded state', async () => {
+    test('should leave display to CSS in loaded state', async () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
@@ -131,7 +130,7 @@ describe('components/SizeAwareImage', () => {
         expect(screen.getByRole('img')).toBeVisible();
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -154,9 +153,9 @@ describe('components/SizeAwareImage', () => {
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
         await simulateImageLoad(img, width, height);
 
-        // Verify loaded state through DOM: file-preview__button should be visible
+        // Verify loaded state through DOM: file-preview__button should no longer be hidden
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
@@ -171,16 +170,6 @@ describe('components/SizeAwareImage', () => {
         // The placeholder still reserves the image's space after a load failure
         expect(container.querySelector('img.image-loading__placeholder')).not.toBeNull();
         expect(container.querySelector('.loading-image__preview')).toBeNull();
-    });
-
-    test('should match snapshot when handleSmallImageContainer prop is passed', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-        };
-
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
     });
 
     test('should surround the image with container div if the image is small', async () => {
@@ -250,16 +239,6 @@ describe('components/SizeAwareImage', () => {
         await simulateImageLoad(img, 24, 24);
 
         expect(screen.getByRole('img')?.className).toBe(`${props.className} small-image--inside-container`);
-    });
-
-    test('should load download and copy link buttons when an image is mounted', () => {
-        const fileURL = 'https://example.com/image.png';
-        const props = {
-            ...baseProps,
-            fileURL,
-        };
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
     });
 
     test('should load download hyperlink with href set to fileURL', () => {

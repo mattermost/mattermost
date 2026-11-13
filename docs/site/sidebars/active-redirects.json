@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 1038
+    "active": 1039
   },
   "redirects": [
     {
@@ -255,7 +255,7 @@
     },
     {
       "from": "/collaborate/channel-naming-conventions",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/collaborate/channel-types",
@@ -579,7 +579,7 @@
     },
     {
       "from": "/channels/channel-naming-conventions",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/channels/rename-channels",
@@ -875,7 +875,7 @@
     },
     {
       "from": "/deploy/desktop/desktop-app-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/deploy/mobile/mobile-app-deployment",
@@ -883,11 +883,11 @@
     },
     {
       "from": "/deploy/desktop/desktop-custom-dictionaries",
-      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     },
     {
       "from": "/deploy/desktop/desktop-msi-installer-and-group-policy-install",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/deploy/desktop/desktop-troubleshooting",
@@ -903,7 +903,7 @@
     },
     {
       "from": "/deploy/desktop/silent-windows-desktop-distribution",
-      "to": "/deployment-guide/desktop/silent-windows-desktop-distribution"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/deploy/encryption-options",
@@ -987,6 +987,10 @@
     },
     {
       "from": "/deploy/quick-start-evaluation",
+      "to": "/deployment-guide/quick-start-evaluation"
+    },
+    {
+      "from": "/deployment-guide/quick-start-evaluation/docker-and-azure",
       "to": "/deployment-guide/quick-start-evaluation"
     },
     {
@@ -1339,7 +1343,7 @@
     },
     {
       "from": "/help/getting-started/organizing",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization"
     },
     {
       "from": "/help/getting-started/organizing-conversations",
@@ -1423,15 +1427,15 @@
     },
     {
       "from": "/install/desktop-app-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/install/desktop-custom-dictionaries",
-      "to": "/deployment-guide/desktop/desktop-custom-dictionaries"
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     },
     {
       "from": "/install/desktop-msi-installer-and-group-policy-install",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/install/installing-mattermost-omnibus",
@@ -1519,11 +1523,11 @@
     },
     {
       "from": "/install/desktop-managed-resources",
-      "to": "/deployment-guide/desktop/desktop-app-managed-resources"
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
     },
     {
       "from": "/install/desktop-msi-gpo",
-      "to": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install"
+      "to": "/deployment-guide/desktop/windows-desktop-install"
     },
     {
       "from": "/install/docker-ebs",
@@ -1723,7 +1727,7 @@
     },
     {
       "from": "/install/config-ssl-http2-nginx",
-      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http-2"
+      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2"
     },
     {
       "from": "/install/config-proxy-nginx",
@@ -1799,7 +1803,11 @@
     },
     {
       "from": "/integrate/servicenow",
-      "to": "/integrations-guide/servicenow"
+      "to": "/integrations-guide/popular-integrations"
+    },
+    {
+      "from": "/integrations-guide/servicenow",
+      "to": "/integrations-guide/popular-integrations"
     },
     {
       "from": "/integrate/zoom",
@@ -1991,7 +1999,7 @@
     },
     {
       "from": "/messaging/organizing-channels",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/messaging/organizing-conversations",
@@ -1999,7 +2007,7 @@
     },
     {
       "from": "/messaging/organizing-mattermost",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization"
     },
     {
       "from": "/messaging/pinning-messages",
@@ -4156,6 +4164,34 @@
     {
       "from": "/welcome/team-keyboard-shortcuts",
       "to": "/end-user-guide/collaborate/team-keyboard-shortcuts"
+    },
+    {
+      "from": "/end-user-guide/collaborate/channel-naming-conventions",
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
+    },
+    {
+      "from": "/product-overview/moving-from-slack",
+      "to": "/administration-guide/onboard/slack-migration-overview"
+    },
+    {
+      "from": "/administration-guide/onboard/moving-from-slack",
+      "to": "/administration-guide/onboard/slack-migration-overview"
+    },
+    {
+      "from": "/deployment-guide/desktop/silent-windows-desktop-distribution",
+      "to": "/deployment-guide/desktop/windows-desktop-install"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install",
+      "to": "/deployment-guide/desktop/windows-desktop-install"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-app-managed-resources",
+      "to": "/deployment-guide/desktop/distribute-a-custom-desktop-app"
+    },
+    {
+      "from": "/deployment-guide/desktop/desktop-custom-dictionaries",
+      "to": "/deployment-guide/desktop/desktop-troubleshooting"
     }
   ]
 }

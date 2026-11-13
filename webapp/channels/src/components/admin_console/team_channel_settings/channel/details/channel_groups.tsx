@@ -4,7 +4,6 @@
 import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 
@@ -44,7 +43,7 @@ export const ChannelGroups: React.FunctionComponent<ChannelGroupsProps> = (props
             button={
                 <ToggleModalButton
                     id='addGroupsToChannelToggle'
-                    className={buttonClassNames({emphasis: 'primary'})}
+                    emphasis='primary'
                     modalId={ModalIdentifiers.ADD_GROUPS_TO_CHANNEL}
                     dialogType={AddGroupsToChannelModal}
                     dialogProps={{

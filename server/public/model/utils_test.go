@@ -255,6 +255,32 @@ func TestAppErrorSerialize(t *testing.T) {
 	})
 }
 
+func TestAsAppError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		assert.Nil(t, AsAppError(nil))
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(appErr))
+	})
+
+	t.Run("wrapped AppError", func(t *testing.T) {
+		appErr := NewAppError("TestAsAppError", "message", nil, "", http.StatusNotFound)
+		assert.Same(t, appErr, AsAppError(fmt.Errorf("context: %w", appErr)))
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		err := errors.New("plain")
+
+		appErr := AsAppError(err)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.app_error.internal_error", appErr.Id)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		assert.ErrorIs(t, appErr, err)
+	})
+}
+
 func TestCopyStringMap(t *testing.T) {
 	itemKey := "item1"
 	originalMap := make(map[string]string)
@@ -876,6 +902,30 @@ func TestIsValidAlphaNumHyphenUnderscorePlus(t *testing.T) {
 	for _, tc := range cases {
 		actual := IsValidAlphaNumHyphenUnderscorePlus(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: '%v'\tshould returned: %#v", tc.Input, tc.Result)
+	}
+}
+
+func TestDecodeId(t *testing.T) {
+	id := NewId()
+	b, ok := DecodeId(id)
+	require.True(t, ok)
+	require.Equal(t, id, encoding.EncodeToString(b[:]))
+
+	// The last character carries 3 bits of the ID and 2 unused bits that NewId leaves at zero. Setting an
+	// unused bit gives a different string that the decoder still turns into the same 16 bytes; DecodeId must
+	// reject it, or two channels could share one key.
+	const alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769"
+	alt := id[:25] + string(alphabet[strings.IndexByte(alphabet, id[25])|1])
+	var same [16]byte
+	_, err := encoding.Decode(same[:], []byte(alt))
+	require.NoError(t, err)
+	require.Equal(t, b, same, "the decoder ignores the unused bits")
+	_, ok = DecodeId(alt)
+	require.False(t, ok)
+
+	for _, bad := range []string{"l0v2aaaaaaaaaaaaaaaaaaaaaa", "short"} {
+		_, ok := DecodeId(bad)
+		require.False(t, ok, bad)
 	}
 }
 

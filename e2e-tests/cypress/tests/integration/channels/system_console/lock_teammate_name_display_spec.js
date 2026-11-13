@@ -44,7 +44,7 @@ describe('System Console', () => {
         cy.get('#name_formatEdit').click();
 
         // # Choose Show first and last name
-        cy.get('#name_formatFormatC').check();
+        cy.get('#name_formatFormatC').check({force: true});
 
         // # Click Save button to save the settings
         cy.uiSave();

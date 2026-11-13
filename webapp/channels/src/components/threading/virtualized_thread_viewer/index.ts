@@ -9,10 +9,11 @@ import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/sel
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isDateLine, makeCombineUserActivityPosts} from 'mattermost-redux/utils/post_list';
 
 import {measureRhsOpened} from 'actions/views/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
-import {makePrepareReplyIdsForThreadViewer, makeGetThreadLastViewedAt} from 'selectors/views/threads';
+import {makeFilterRepliesAndAddSeparators, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import type {GlobalState} from 'types/store';
 import type {FakePost} from 'types/store/rhs';
@@ -25,27 +26,36 @@ type OwnProps = {
     selected: Post | FakePost;
     useRelativeTimestamp: boolean;
     onCardClick: (post: Post) => void;
+    hideRoot?: boolean;
 };
 
 function makeMapStateToProps() {
-    const getRepliesListWithSeparators = makePrepareReplyIdsForThreadViewer();
+    const getRepliesListWithSeparators = makeFilterRepliesAndAddSeparators();
+    const combineUserActivityPosts = makeCombineUserActivityPosts();
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
 
     return (state: GlobalState, ownProps: OwnProps) => {
-        const {postIds, useRelativeTimestamp, selected, channelId} = ownProps;
+        const {postIds, useRelativeTimestamp, selected, channelId, hideRoot} = ownProps;
 
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const currentUserId = getCurrentUserId(state);
         const lastViewedAt = getThreadLastViewedAt(state, selected.id);
         const directTeammate = getDirectTeammate(state, channelId);
 
-        const lastPost = getPost(state, postIds[0]);
+        // postIds is newest-first and includes the root. Separators skip the oldest post, so the
+        // root stays in that list or the first unread reply loses its new-messages line. Remove it
+        // before join/leave posts are combined: those ids become user-activity-<id> and would no
+        // longer match the root.
+        const replyPostIds = hideRoot ? postIds.filter((id) => id !== selected.id) : postIds;
+        const lastPost = getPost(state, replyPostIds[0] || postIds[0]);
 
-        const replyListIds = getRepliesListWithSeparators(state, {
+        const separatedIds = getRepliesListWithSeparators(state, {
             postIds,
             showDate: !useRelativeTimestamp,
             lastViewedAt: collapsedThreads ? lastViewedAt : undefined,
         });
+        const visibleIds = hideRoot ? withoutRoot(separatedIds, selected.id) : separatedIds;
+        const replyListIds = combineUserActivityPosts(state, visibleIds);
         const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
         return {
@@ -58,6 +68,17 @@ function makeMapStateToProps() {
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
         };
     };
+}
+
+// The root is the oldest post, so the date line that belongs only to it is the last id.
+export function withoutRoot(ids: string[], rootId: string): string[] {
+    const withoutRootId = ids.filter((id) => id !== rootId);
+    const last = withoutRootId[withoutRootId.length - 1];
+    const beforeLast = withoutRootId[withoutRootId.length - 2];
+    if (last && isDateLine(last) && (!beforeLast || isDateLine(beforeLast))) {
+        return withoutRootId.slice(0, -1);
+    }
+    return withoutRootId;
 }
 
 const mapDispatchToProps = {

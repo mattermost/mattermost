@@ -27,6 +27,7 @@ export type OwnProps = {
     colorize?: boolean;
     hideStatus?: boolean;
     hideGuestTag?: boolean;
+    fromWebhook?: boolean;
     channelId?: Channel['id'];
 };
 

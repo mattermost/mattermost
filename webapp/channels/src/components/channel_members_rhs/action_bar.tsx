@@ -133,7 +133,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                             >
                                 <ButtonIcon
                                     className='icon-account-plus-outline'
-                                    title='Add Icon'
+                                    aria-hidden='true'
                                 />
                                 <FormattedMessage
                                     id='channel_members_rhs.action_bar.add_button'

@@ -48,8 +48,10 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     selectChannel: jest.fn().mockReturnValue(() => ({type: 'SELECT_CHANNEL'})),
 }));
 
+const mockGetTeamByName = jest.fn().mockReturnValue(() => ({type: 'GET_TEAM_BY_NAME'}));
 jest.mock('mattermost-redux/actions/teams', () => ({
     selectTeam: jest.fn().mockReturnValue(() => ({type: 'SELECT_TEAM'})),
+    getTeamByName: jest.fn((...args) => mockGetTeamByName(...args)),
 }));
 
 jest.mock('mattermost-redux/actions/threads', () => ({
@@ -127,6 +129,7 @@ describe('ThreadPopout', () => {
     };
 
     beforeEach(() => {
+        mockGetTeamByName.mockClear();
         Object.defineProperty(window, 'isActive', {
             writable: true,
             value: false,
@@ -190,6 +193,45 @@ describe('ThreadPopout', () => {
         expect(threadViewer).toHaveAttribute('data-root-post-id', 'post-123');
         expect(threadViewer).toHaveAttribute('data-use-relative-timestamp', 'true');
         expect(threadViewer).toHaveAttribute('data-is-thread-view', 'true');
+    });
+
+    it('should fetch the team by name when it is not loaded yet', () => {
+        const stateWithoutTeam = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                teams: {
+                    currentTeamId: '',
+                    teams: {},
+                },
+            },
+        };
+
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+                <Route
+                    path='/_popout/thread/:team/:postId'
+                    component={ThreadPopout}
+                />
+            </MemoryRouter>,
+            stateWithoutTeam,
+        );
+
+        expect(mockGetTeamByName).toHaveBeenCalledWith('test-team');
+    });
+
+    it('should not refetch the team when it is already loaded', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+                <Route
+                    path='/_popout/thread/:team/:postId'
+                    component={ThreadPopout}
+                />
+            </MemoryRouter>,
+            baseState,
+        );
+
+        expect(mockGetTeamByName).not.toHaveBeenCalled();
     });
 
     it('should handle missing post gracefully', () => {

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -86,7 +86,7 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
                 <div className='channel-selector-search'>
                     <Input
                         type='text'
-                        placeholder={{id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'}}
+                        placeholder={defineMessage({id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'})}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         useLegend={false}

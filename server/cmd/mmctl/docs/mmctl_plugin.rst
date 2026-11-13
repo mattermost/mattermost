@@ -42,6 +42,7 @@ SEE ALSO
 * `mmctl plugin disable <mmctl_plugin_disable.rst>`_ 	 - Disable plugins
 * `mmctl plugin enable <mmctl_plugin_enable.rst>`_ 	 - Enable plugins
 * `mmctl plugin install-url <mmctl_plugin_install-url.rst>`_ 	 - Install plugin from url
+* `mmctl plugin keys <mmctl_plugin_keys.rst>`_ 	 - List plugin signature public keys
 * `mmctl plugin list <mmctl_plugin_list.rst>`_ 	 - List plugins
 * `mmctl plugin marketplace <mmctl_plugin_marketplace.rst>`_ 	 - Management of marketplace plugins
 

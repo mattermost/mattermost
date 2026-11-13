@@ -399,5 +399,26 @@
   },
   "server": {
     "target": "サーバー"
+  },
+  "health dashboard": {
+    "target": "サイトヘルス",
+    "note": "Page title and sidebar entry; used as is in running text ('サイトヘルスが有効になっていません')."
+  },
+  "health finding": {
+    "target": "ヘルスチェックの検出事項",
+    "note": "Shorten to '検出事項' inside the health dashboard, where the context is clear."
+  },
+  "Agents plugin": {
+    "target": "Agentsプラグイン",
+    "note": "'Agents' is a product name and stays in English. The admin.site.localization.* strings ship 'エージェントプラグイン'; do not propagate it."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service"
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service"
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

@@ -3,18 +3,22 @@
 
 import React, {type JSX} from 'react';
 
+import type {SpinnerSize} from '@mattermost/compass-ui/components/spinner';
+
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
     loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
+    size?: SpinnerSize;
 };
 
 const LoadingImagePreview: React.FC<Props> = ({
     loading,
     progress,
     containerClass = 'view-image__loading',
+    size = '16',
 }: Props) => {
     let progressView: JSX.Element = (
         <span className='loader-percent'/>
@@ -31,7 +35,7 @@ const LoadingImagePreview: React.FC<Props> = ({
 
     return (
         <div className={containerClass}>
-            <LoadingSpinner/>
+            <LoadingSpinner size={size}/>
             {progressView}
         </div>
     );

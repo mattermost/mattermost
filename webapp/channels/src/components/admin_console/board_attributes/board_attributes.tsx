@@ -8,11 +8,12 @@ import {useDispatch} from 'react-redux';
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {useBoardAttributesTable} from './board_attributes_table';
 
 import SaveChangesPanel from '../save_changes_panel';
-import {AdminSection, AdminWrapper, DangerText, SectionContent, SectionHeader, SectionHeading} from '../system_properties/controls';
+import {AdminWrapper, DangerText} from '../system_properties/controls';
 import type {SearchableStrings} from '../types';
 
 type Props = {
@@ -55,24 +56,14 @@ export default function BoardAttributes(props: Props) {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
-                <AdminSection data-testid='board_attributes'>
-                    <SectionHeader>
-                        <hgroup>
-                            <FormattedMessage
-                                tagName={SectionHeading}
-                                id='admin.board_attributes.section_title'
-                                defaultMessage='Board Attributes'
-                            />
-                            <FormattedMessage
-                                id='admin.board_attributes.section_subtitle'
-                                defaultMessage='Customize the attributes available by default in cards across every board on the system.'
-                            />
-                        </hgroup>
-                    </SectionHeader>
-                    <SectionContent $compact={true}>
-                        {boardAttributes.content}
-                    </SectionContent>
-                </AdminSection>
+                <AdminPanel
+                    id='board_attributes'
+                    data-testid='board_attributes'
+                    title={panelMessages.title}
+                    subtitle={panelMessages.subtitle}
+                >
+                    {boardAttributes.content}
+                </AdminPanel>
             </AdminWrapper>
             <SaveChangesPanel
                 saving={saving}
@@ -91,6 +82,11 @@ export default function BoardAttributes(props: Props) {
         </div>
     );
 }
+
+const panelMessages = defineMessages({
+    title: {id: 'admin.board_attributes.section_title', defaultMessage: 'Board Attributes'},
+    subtitle: {id: 'admin.board_attributes.section_subtitle', defaultMessage: 'Customize the attributes available by default in cards across every board on the system.'},
+});
 
 const msg = defineMessages({
     pageTitle: {id: 'admin.board_attributes.page_title', defaultMessage: 'Board Attributes'},

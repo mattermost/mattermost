@@ -1,0 +1,16 @@
+{
+    "enabled": [
+        {
+            "id": "com.mattermost.enabled",
+            "name": "Enabled Plugin",
+            "version": "1.2.3"
+        }
+    ],
+    "disabled": [
+        {
+            "id": "com.mattermost.disabled",
+            "name": "Disabled Plugin",
+            "version": "2.3.4"
+        }
+    ]
+}

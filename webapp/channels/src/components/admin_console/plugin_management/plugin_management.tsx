@@ -8,12 +8,14 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
+import {ProgressBar} from '@mattermost/compass-ui/components/progress-bar';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
@@ -30,9 +32,11 @@ import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
 import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
+import {canViewPluginLogs, pluginLogsPath} from '../server_logs/url_filters';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
+import type {ConsoleAccess} from '../types';
 
 import './plugin_management.scss';
 
@@ -203,6 +207,9 @@ type PluginItemProps = {
     isDisabled?: boolean;
 
     configEnabled: boolean;
+
+    // Whether to link to the plugin's entries in the server logs
+    showLogsLink?: boolean;
 };
 
 const messages = defineMessages({
@@ -220,6 +227,8 @@ const messages = defineMessages({
     enableRemoteMarketplaceDesc: {id: 'admin.plugins.settings.enableRemoteMarketplaceDesc', defaultMessage: 'When true, marketplace fetches latest plugins from the configured Marketplace URL.'},
     automaticPrepackagedPlugins: {id: 'admin.plugins.settings.automaticPrepackagedPlugins', defaultMessage: 'Enable Automatic Prepackaged Plugins:'},
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
+    restrictUnauthenticatedWebappPlugins: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPlugins', defaultMessage: 'Restrict Plugins Available Before Login:'},
+    restrictUnauthenticatedWebappPluginsDesc: {id: 'admin.plugins.settings.restrictUnauthenticatedWebappPluginsDesc', defaultMessage: 'When true, only plugins that declare <code>webapp.pre_auth</code> in their manifest are listed and loaded for visitors who are not logged in, such as on the login page. All other plugins load after the user logs in. When false, all enabled plugins are listed to visitors who are not logged in.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
     uploadSuccess: {id: 'admin.plugin.upload.success', defaultMessage: 'Successfully uploaded plugin: {pluginName}'},
@@ -244,6 +253,8 @@ export const searchableStrings = [
     messages.enableRemoteMarketplaceDesc,
     messages.automaticPrepackagedPlugins,
     messages.automaticPrepackagedPluginsDesc,
+    messages.restrictUnauthenticatedWebappPlugins,
+    messages.restrictUnauthenticatedWebappPluginsDesc,
     messages.marketplaceUrl,
     messages.marketplaceUrlDesc,
 ];
@@ -261,6 +272,7 @@ const PluginItem = ({
     isDisabled,
     configEnabled,
     license,
+    showLogsLink = false,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
@@ -324,6 +336,21 @@ const PluginItem = ({
                         defaultMessage='Settings'
                     />
                 </Link>
+            </span>
+        );
+    }
+
+    let logsButton = null;
+    if (showLogsLink) {
+        logsButton = (
+            <span>
+                {' - '}
+                <BlockableLink to={pluginLogsPath(pluginStatus.id)}>
+                    <FormattedMessage
+                        id='admin.plugin.viewLogs'
+                        defaultMessage='View logs'
+                    />
+                </BlockableLink>
             </span>
         );
     }
@@ -480,6 +507,7 @@ const PluginItem = ({
                 {activateButton}
                 {removeButton}
                 {settingsButton}
+                {logsButton}
             </div>
             <div>
                 {notices}
@@ -498,6 +526,8 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     license?: ClientLicense;
+
+    consoleAccess?: ConsoleAccess;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -533,6 +563,7 @@ type State = BaseState & {
     automaticPrepackagedPlugins: boolean;
     marketplaceUrl: string;
     requirePluginSignature: boolean;
+    restrictUnauthenticatedWebappPlugins: boolean;
     removing: string | null;
     draggingUpload: boolean;
 };
@@ -571,6 +602,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             config.PluginSettings.AutomaticPrepackagedPlugins = this.state.automaticPrepackagedPlugins;
             config.PluginSettings.MarketplaceURL = this.state.marketplaceUrl;
             config.PluginSettings.RequirePluginSignature = this.state.requirePluginSignature;
+            config.PluginSettings.RestrictUnauthenticatedWebappPlugins = this.state.restrictUnauthenticatedWebappPlugins;
         }
 
         return config;
@@ -586,6 +618,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
+            restrictUnauthenticatedWebappPlugins: config?.PluginSettings?.RestrictUnauthenticatedWebappPlugins,
         };
 
         return state;
@@ -1019,7 +1052,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -1180,6 +1213,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
+                        showLogsLink={canViewPluginLogs(this.props.config, this.props.consoleAccess)}
                     />
                 );
             });
@@ -1316,6 +1350,22 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.AutomaticPrepackagedPlugins')}
                                 />
+                                <BooleanSetting
+                                    id='restrictUnauthenticatedWebappPlugins'
+                                    label={<FormattedMessage {...messages.restrictUnauthenticatedWebappPlugins}/>}
+                                    helpText={
+                                        <FormattedMessage
+                                            {...messages.restrictUnauthenticatedWebappPluginsDesc}
+                                            values={{
+                                                code: (msg: React.ReactNode) => <code>{msg}</code>,
+                                            }}
+                                        />
+                                    }
+                                    value={this.state.restrictUnauthenticatedWebappPlugins}
+                                    disabled={this.props.isDisabled || !this.state.enable}
+                                    onChange={this.handleChange}
+                                    setByEnv={this.isSetByEnv('PluginSettings.RestrictUnauthenticatedWebappPlugins')}
+                                />
                                 <SettingSet
                                     helpText={uploadHelpText}
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
@@ -1351,13 +1401,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                             </span>
                                         )}
                                         {this.state.uploading && (
-                                            <div
+                                            <ProgressBar
                                                 className='PluginManagement__uploadProgress'
-                                                role='progressbar'
+                                                indeterminate={true}
+                                                size='small'
                                                 aria-label={this.props.intl.formatMessage({id: 'admin.plugin.upload.progress', defaultMessage: 'Plugin upload progress'})}
-                                            >
-                                                <div className='PluginManagement__uploadProgressBar'/>
-                                            </div>
+                                            />
                                         )}
                                     </button>
                                     <input

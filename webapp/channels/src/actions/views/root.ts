@@ -5,7 +5,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
-import en from 'i18n/en.json';
 import {ActionTypes} from 'utils/constants';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
@@ -42,7 +41,7 @@ export function unregisterPluginTranslationsSource(pluginId: string) {
 
 export function loadTranslations(locale: string, url: string): ActionFuncAsync {
     return async (dispatch) => {
-        const translations = {...en};
+        const translations: Translations = {};
         Object.values(pluginTranslationSources).forEach((pluginFunc) => {
             Object.assign(translations, pluginFunc(locale));
         });

@@ -462,8 +462,11 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 
 	if data.EmojiName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > model.EmojiNameMaxLength {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
+	}
+	// Same empty/length/charset rules as Reaction.IsValid. Do not use IsValidEmojiName —
+	// it rejects system emoji names, which are valid on reactions.
+	if *data.EmojiName == "" || len(*data.EmojiName) > model.EmojiNameMaxLength || !model.IsValidAlphaNumHyphenUnderscorePlus(*data.EmojiName) {
+		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_invalid.error", nil, "emoji_name="+*data.EmojiName, http.StatusBadRequest)
 	}
 
 	if data.CreateAt == nil {
@@ -472,6 +475,37 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func ValidatePostPriorityImportData(priority *model.PostPriority, acknowledgements *[]PostAcknowledgementImportData, postCreateAt int64) *model.AppError {
+	if priority != nil {
+		if priority.Priority == nil {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.priority_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if model.SafeDereference(priority.PersistentNotifications) && *priority.Priority != model.PostPriorityUrgent {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.persistent_notifications_not_urgent.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	acks := model.SafeDereference(acknowledgements)
+	if len(acks) == 0 {
+		return nil
+	}
+
+	if priority == nil || !model.SafeDereference(priority.RequestedAck) {
+		return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgements_not_requested.error", nil, "", http.StatusBadRequest)
+	}
+
+	for _, ack := range acks {
+		if model.SafeDereference(ack.User) == "" {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledgement_user_missing.error", nil, "", http.StatusBadRequest)
+		}
+		if ack.AcknowledgedAt == nil || *ack.AcknowledgedAt < postCreateAt {
+			return model.NewAppError("BulkImport", "app.import.validate_post_priority_import_data.acknowledged_at_invalid.error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
@@ -558,6 +592,10 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 				return err
 			}
 		}
+	}
+
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
 	}
 
 	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
@@ -683,6 +721,10 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 				return err
 			}
 		}
+	}
+
+	if err := ValidatePostPriorityImportData(data.Priority, data.Acknowledgements, *data.CreateAt); err != nil {
+		return err
 	}
 
 	if data.Attachments != nil {

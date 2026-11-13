@@ -4,8 +4,8 @@
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
 
 import {focusElement} from 'utils/a11y_utils';
 
@@ -30,9 +30,9 @@ type Props = {
     message?: React.ReactNode;
 
     /*
-     * The variant to use for the confirm button
+     * Whether the confirm button uses destructive styling
      */
-    confirmButtonVariant?: ButtonVariant;
+    destructive?: boolean;
 
     /*
      * The CSS class to apply to the modal
@@ -120,7 +120,7 @@ type Props = {
 const ConfirmModal = ({
     title = '',
     message = '',
-    confirmButtonVariant,
+    destructive,
     confirmButtonText = '',
     modalClass = '',
     id,
@@ -234,7 +234,8 @@ const ConfirmModal = ({
                     {!hideConfirm && (
                         <Button
                             type='button'
-                            variant={confirmButtonVariant}
+                            emphasis='primary'
+                            destructive={destructive}
                             onClick={handleConfirm}
                             id='confirmModalButton'
                             autoFocus={true}

@@ -1,6 +1,15 @@
 .LoadingSpinner {
+    // TODO(compass-design#142): drop once Compass Spinner aligns to the text baseline by default.
+    .spinner:not(.fa) {
+        vertical-align: middle;
+    }
+
     &.with-text {
+        display: inline-flex;
+        align-items: center;
+
         .spinner {
+            flex-shrink: 0;
             margin-right: 5px;
         }
     }

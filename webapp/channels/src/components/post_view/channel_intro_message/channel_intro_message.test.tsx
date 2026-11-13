@@ -1,10 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
+}));
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn((modalData) => ({type: 'MOCK_OPEN_MODAL', modalData})),
 }));
 
 jest.mock('@mattermost/compass-icons/components', () => ({
@@ -16,10 +21,15 @@ jest.mock('@mattermost/compass-icons/components', () => ({
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Permissions} from 'mattermost-redux/constants';
+
+import {openModal} from 'actions/views/modals';
+
 import {compassIconForName} from 'components/channel_type_icon';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {Constants} from 'utils/constants';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelIntroMessage from './channel_intro_message';
@@ -63,6 +73,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         stats: {},
         usersLimit: 10,
         isMobileView: false,
+        channelKind: 'channel' as const,
         actions: {
             getTotalUsersStats: jest.fn().mockResolvedValue([]),
             favoriteChannel: jest.fn().mockResolvedValue([]),
@@ -115,6 +126,144 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             expect(screen.getByText('This is the start of test channel. Any team member can join and read this channel.')).toBeInTheDocument();
         });
+
+        test('should call a board a board', () => {
+            const boardState = boardChannelsState('channel_id');
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    channelKind='board'
+                />,
+                {...initialState, plugins: {...initialState.plugins, ...boardState.plugins}},
+            );
+
+            expect(screen.getByText('This is the start of test channel. Any team member can join and read this board.')).toBeInTheDocument();
+            expect(screen.queryByText(/read this channel/)).not.toBeInTheDocument();
+            expect(screen.getByText(/Public board created by creatorName on/)).toBeInTheDocument();
+            expect(screen.queryByText(/Public channel created/)).not.toBeInTheDocument();
+            expect(screen.getByText(/This board's purpose is: test/)).toBeInTheDocument();
+            expect(screen.queryByText(/This channel's purpose/)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('action buttons', () => {
+        const stateWithHeaderPermission = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    ...initialState.entities.users,
+                    currentUserId: 'test-user-id',
+                    profiles: {
+                        ...initialState.entities.users.profiles,
+                        'test-user-id': TestHelper.getUserMock({id: 'test-user-id', roles: 'system_user'}),
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {permissions: [Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]},
+                    },
+                },
+            },
+        } as any;
+
+        beforeEach(() => {
+            jest.mocked(openModal).mockClear();
+            baseProps.actions.favoriteChannel.mockClear();
+            baseProps.actions.unfavoriteChannel.mockClear();
+        });
+
+        test('Favorite is a toggle with a constant name; state is exposed via aria-pressed', () => {
+            const {rerender} = renderWithContext(
+                <ChannelIntroMessage{...baseProps}/>, initialState,
+            );
+
+            expect(screen.getByRole('button', {name: 'Favorite'})).toHaveAttribute('aria-pressed', 'false');
+
+            rerender(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    isFavorite={true}
+                />,
+            );
+
+            expect(screen.getByRole('button', {name: 'Favorite'})).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.queryByRole('button', {name: 'Favorited'})).not.toBeInTheDocument();
+        });
+
+        test('Favorite toggles the favorite state of the channel', async () => {
+            const {rerender} = renderWithContext(
+                <ChannelIntroMessage{...baseProps}/>, initialState,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Favorite'}));
+            expect(baseProps.actions.favoriteChannel).toHaveBeenCalledWith('channel_id');
+            expect(baseProps.actions.unfavoriteChannel).not.toHaveBeenCalled();
+
+            rerender(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    isFavorite={true}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Favorite'}));
+            expect(baseProps.actions.unfavoriteChannel).toHaveBeenCalledWith('channel_id');
+        });
+
+        test('Favorite is disabled in a managed category', () => {
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    isInManagedCategory={true}
+                />,
+                initialState,
+            );
+
+            expect(screen.getByRole('button', {name: 'Favorite'})).toBeDisabled();
+        });
+
+        test('Set header is a dialog trigger that opens the edit header modal', async () => {
+            renderWithContext(
+                <ChannelIntroMessage{...baseProps}/>, stateWithHeaderPermission,
+            );
+
+            const button = screen.getByRole('button', {name: 'Set header'});
+            expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+            expect(button).not.toHaveAttribute('aria-pressed');
+
+            await userEvent.click(button);
+
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
+                dialogProps: {channel},
+            }));
+        });
+
+        test('Set header is hidden without permission to edit channel properties', () => {
+            renderWithContext(
+                <ChannelIntroMessage{...baseProps}/>, initialState,
+            );
+
+            expect(screen.queryByRole('button', {name: 'Set header'})).not.toBeInTheDocument();
+        });
+
+        test('Notifications is a dialog trigger that opens the channel notifications modal', async () => {
+            renderWithContext(
+                <ChannelIntroMessage{...baseProps}/>, initialState,
+            );
+
+            const button = screen.getByRole('button', {name: 'Notifications'});
+            expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+            expect(button).not.toHaveAttribute('aria-pressed');
+
+            await userEvent.click(button);
+
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
+                dialogProps: expect.objectContaining({channel, currentUser: baseProps.currentUser}),
+            }));
+        });
     });
 
     describe('test Group Channel', () => {
@@ -156,7 +305,6 @@ describe('components/post_view/ChannelIntroMessages', () => {
             const headerDialog = screen.getByLabelText('Set header');
             expect(headerDialog).toBeInTheDocument();
             expect(headerDialog).toHaveTextContent('Set header');
-            expect(headerDialog).toHaveClass('action-button');
 
             // one for user1 and one for guest
 
@@ -221,7 +369,6 @@ describe('components/post_view/ChannelIntroMessages', () => {
 
             expect(headerDialog).toBeInTheDocument();
             expect(headerDialog).toHaveTextContent('Set header');
-            expect(headerDialog).toHaveClass('action-button');
         });
     });
 

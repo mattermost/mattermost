@@ -1306,6 +1306,13 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 	return channelMembers, nil
 }
 
+// groupSearchPattern builds the LIKE pattern used to match a group search term against a group's
+// name or display name. A leading "@" is stripped so that searching by mention, which is how groups
+// are referenced throughout the product, matches the same groups as searching by bare name.
+func groupSearchPattern(q string) string {
+	return fmt.Sprintf("%%%s%%", sanitizeSearchTerm(strings.TrimPrefix(q, "@"), "\\"))
+}
+
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	var query sq.SelectBuilder
 	switch t {
@@ -1351,7 +1358,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	}
 
 	if opts.Q != "" {
-		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
+		pattern := groupSearchPattern(opts.Q)
 		operatorKeyword := "ILIKE"
 		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
@@ -1411,7 +1418,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts 
 	}
 
 	if opts.Q != "" {
-		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
+		pattern := groupSearchPattern(opts.Q)
 		operatorKeyword := "ILIKE"
 		query = query.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
@@ -1562,7 +1569,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts,
 	}
 
 	if opts.Q != "" {
-		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
+		pattern := groupSearchPattern(opts.Q)
 		operatorKeyword := "ILIKE"
 		groupsQuery = groupsQuery.Where(fmt.Sprintf("(UserGroups.Name %[1]s ? OR UserGroups.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}

@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import './data_spillage_actions.scss';
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -61,8 +61,8 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
             data-testid='data-spillage-action'
         >
             <Button
-                size='sm'
-                variant='destructive'
+                size='small'
+                destructive={true}
                 data-testid='data-spillage-action-remove-message'
                 onClick={handleRemoveMessage}
             >
@@ -74,7 +74,7 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
 
             <Button
                 emphasis='tertiary'
-                size='sm'
+                size='small'
                 data-testid='data-spillage-action-keep-message'
                 onClick={handleKeepMessage}
             >

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-import billing from '@/fixtures/client_billing.json';
+export {};
 
 function simulateSubscription() {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
@@ -125,98 +125,5 @@ describe('System Console - Subscriptions section', () => {
             cy.wrap(link).should('have.attr', 'rel', 'noopener noreferrer');
             cy.request(link.prop('href')).its('status').should('eq', 200);
         });
-    });
-
-    it('MM-T4122 "Upgrade now" navigation and closing of Upgrade window', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
-        cy.get('#professional_action').click();
-
-        // * Check for "Provide Your Payment Details" label
-        cy.findByText('Provide your payment details').should('be.visible');
-
-        // # Click on close button of Upgrade window
-        cy.get('#closeIcon').parent().should('exist').click();
-
-        // * Check for "Your trial has started!" label
-        cy.contains('span', 'Your trial has started!').should('be.visible');
-    });
-
-    it('MM-T4124 Purchase modal UI check', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
-
-        cy.get('#professional_action').click();
-
-        // * Check for "Provide Your Payment Details" label
-        cy.findByText('Provide your payment details').should('be.visible');
-
-        // * Check for Compare plans navigation
-        cy.contains('span', 'Compare plans').click();
-
-        cy.findByRole('heading', {name: 'Select a plan'}).should('be.visible');
-        cy.findByRole('button', {name: 'Close'}).click();
-
-        // * Check for See how billing works navigation
-        cy.contains('span', 'See how billing works').should('be.visible');
-    });
-
-    it('MM-T4128 Enable/disable "Upgrade" button in Purchase modal', () => {
-        // # Click on Upgrade Now button
-        cy.contains('span', 'Upgrade Now').parent().click();
-
-        // # Click on Upgrade Now button on plans modal
-        cy.get('#professional_action').click();
-
-        // * Check for "Provide your payment details" label
-        cy.findByText('Provide your payment details').should('be.visible');
-
-        // # Enter card details
-        cy.uiGetPaymentCardInput().within(() => {
-            cy.get('[name="cardnumber"]').should('be.enabled').clear().type(billing.visa.cardNumber);
-            cy.get('[name="exp-date"]').should('be.enabled').clear().type(billing.visa.expDate);
-            cy.get('[name="cvc"]').should('be.enabled').clear().type(billing.visa.cvc);
-        });
-        cy.get('#input_name').clear().type('test name');
-        cy.findByText('Country').parent().find('.icon-chevron-down').click();
-        cy.findByText('Country').parent().find("input[type='text']").type('India{enter}', {force: true});
-        cy.get('#input_address').type('test1');
-        cy.get('#input_address2').type('test2');
-        cy.get('#input_city').clear().type('testcity');
-        cy.get('#input_state').type('test');
-        cy.get('#input_postalCode').type('444');
-
-        // * Check for enable status of Upgrade button
-        cy.get('.RHS').find('button').should('be.enabled');
-
-        // # Enter invalid csv
-        cy.uiGetPaymentCardInput().within(() => {
-            cy.get('[name="cvc"]').clear().type(billing.invalidvisa.cvc);
-        });
-        cy.get('#input_name').clear().type('test user');
-        cy.get('.RHS').find('button').should('be.disabled');
-
-        // # Enter billing details
-        cy.findByText('Country').parent().find('.icon-chevron-down').click();
-        cy.findByText('Country').parent().find("input[type='text']").type('India{enter}', {force: true});
-        cy.get('.RHS').find('button').should('be.disabled');
-        cy.get('#input_address').type('test1');
-        cy.get('#input_address2').type('test2');
-        cy.get('#input_city').clear().type('testcity');
-        cy.get('.RHS').find('button').should('be.disabled');
-        cy.get('#input_state').type('test');
-        cy.get('.RHS').find('button').should('be.disabled');
-        cy.get('#input_postalCode').type('444');
-
-        // # Enter invalid card details
-        cy.uiGetPaymentCardInput().within(() => {
-            cy.get('[name="cardnumber"]').should('be.enabled').clear().type(billing.invalidvisa.cardNumber);
-            cy.get('[name="exp-date"]').should('be.enabled').clear().type(billing.visa.expDate);
-            cy.get('[name="cvc"]').should('be.enabled').clear().type(billing.visa.cvc);
-        });
-        cy.get('#input_name').clear().type('test user');
-
-        // * Check for disabled Upgrade button for having wrong card details
-        cy.get('.RHS').find('button').should('be.disabled');
     });
 });

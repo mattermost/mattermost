@@ -5,11 +5,14 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import ChannelsResourceSettings from './channels_resource_settings';
+import type {ChannelResourceConfig} from './types';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 describe('ChannelsResourceSettings', () => {
@@ -24,13 +27,18 @@ describe('ChannelsResourceSettings', () => {
         },
     };
 
-    const renderSettings = (state?: DeepPartial<GlobalState>) => {
+    const renderSettings = (
+        value: ChannelResourceConfig = DEFAULT_CHANNEL_RESOURCE_CONFIG,
+        state?: DeepPartial<GlobalState>,
+        props: {disabled?: boolean} = {},
+    ) => {
         const onChange = jest.fn();
 
         renderWithContext(
             <ChannelsResourceSettings
-                value={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                value={value}
                 onChange={onChange}
+                disabled={props.disabled}
             />,
             state,
         );
@@ -46,7 +54,7 @@ describe('ChannelsResourceSettings', () => {
     });
 
     it('shows the Required toggle when ChannelAttributesRequired is on', () => {
-        renderSettings(requiredEnabledState);
+        renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, requiredEnabledState);
 
         expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
         expect(screen.getByText('Required')).toBeInTheDocument();
@@ -57,5 +65,46 @@ describe('ChannelsResourceSettings', () => {
 
         expect(screen.getByText('Display location')).toBeInTheDocument();
         expect(screen.getByText('Changing the value')).toBeInTheDocument();
+    });
+
+    it('renders Header and Banner location checkboxes', () => {
+        renderSettings({
+            ...DEFAULT_CHANNEL_RESOURCE_CONFIG,
+            displayLocations: [DISPLAY_LABEL_HEADER],
+        });
+
+        const header = screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`);
+        const banner = screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`);
+
+        expect(header).toBeChecked();
+        expect(banner).not.toBeChecked();
+        expect(screen.getByText('Header')).toBeInTheDocument();
+        expect(screen.getByText('Banner')).toBeInTheDocument();
+    });
+
+    it('toggles a display location via Compass Checkbox', async () => {
+        const {onChange} = renderSettings({
+            ...DEFAULT_CHANNEL_RESOURCE_CONFIG,
+            displayLocations: [],
+        });
+
+        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+            displayLocations: [DISPLAY_LABEL_HEADER],
+        }));
+    });
+
+    it('disables location checkboxes when disabled', () => {
+        renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, undefined, {disabled: true});
+
+        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeDisabled();
+        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeDisabled();
+    });
+
+    it('keeps the Required control as a switch, not a Compass Checkbox', () => {
+        renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, requiredEnabledState);
+
+        expect(screen.getByTestId('channelsResourceRequired-button')).toHaveAttribute('role', 'switch');
     });
 });

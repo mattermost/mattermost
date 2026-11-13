@@ -271,4 +271,42 @@ func TestProcessPostFileChanges(t *testing.T) {
 		require.Equal(t, postId, updatedFileInfo2.PostId)
 		require.Equal(t, th.SystemAdminUser.Id, updatedFileInfo2.CreatorId)
 	})
+
+	t.Run("file creator option attaches without a session user", func(t *testing.T) {
+		postId := model.NewId()
+		fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
+		noUserFile := th.CreateFileInfo(t, model.UploadNoUserID, "", th.BasicChannel.Id)
+
+		oldPost := &model.Post{
+			Id:        postId,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		newPost := &model.Post{
+			Id:        postId,
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Message",
+			CreateAt:  model.GetMillis() - 10000,
+			FileIds:   []string{fileInfo.Id, noUserFile.Id},
+		}
+
+		th.Context.Session().UserId = ""
+
+		fileIds, appErr := th.App.processPostFileChanges(th.Context, newPost, oldPost, &model.UpdatePostOptions{
+			FileCreatorID: th.BasicUser.Id,
+		})
+		require.Nil(t, appErr)
+		require.ElementsMatch(t, []string{fileInfo.Id, noUserFile.Id}, fileIds)
+
+		updated, err := th.App.Srv().Store().FileInfo().Get(fileInfo.Id)
+		require.NoError(t, err)
+		require.Equal(t, postId, updated.PostId)
+
+		updatedNoUser, err := th.App.Srv().Store().FileInfo().Get(noUserFile.Id)
+		require.NoError(t, err)
+		require.Equal(t, postId, updatedNoUser.PostId)
+	})
 }

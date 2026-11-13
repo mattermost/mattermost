@@ -20,6 +20,7 @@ import type {ChipLabel} from './hierarchical_value_menu_parts';
 import {
     COPY,
     allRows,
+    chipRemove,
     deferred,
     diamond,
     everyRow,
@@ -27,6 +28,7 @@ import {
     hintOf,
     httpErrorOf,
     chevronOf,
+    labelOf,
     maybeRow,
     openMenu,
     opt,
@@ -37,6 +39,7 @@ import {
     settle,
     statusRow,
     trigger,
+    triggerButton,
 } from './hierarchical_value_menu_test_helpers';
 
 import {GRAPH_MAX_SEARCH_ROWS} from '../graph';
@@ -140,7 +143,7 @@ describe('SelectedValueChips', () => {
     test('the chip X removes the value', async () => {
         const onRemove = jest.fn();
         renderChips({onRemove});
-        await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program'}));
+        await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
         expect(onRemove).toHaveBeenCalledWith('opt-air');
     });
 
@@ -176,6 +179,142 @@ describe('SelectedValueChips', () => {
             labelForId: () => ({text: 'Value unavailable', state: 'unavailable'}),
         });
         expect(screen.getByRole('button', {name: 'Remove value'})).toBeInTheDocument();
+    });
+
+    test('the input variant renders Compass chips', () => {
+        renderChips();
+
+        expect(document.querySelectorAll('[data-chip].hierarchical-value-menu__chip')).toHaveLength(2);
+        expect(document.querySelector('.AttributeChip')).toBeNull();
+    });
+
+    test.each(['inline', 'policy'] as const)('the %s variant keeps AttributeChip', (variant) => {
+        renderChips({variant});
+
+        expect(document.querySelectorAll('.AttributeChip.hierarchical-value-menu__chip')).toHaveLength(2);
+        expect(document.querySelector('[data-chip]')).toBeNull();
+    });
+
+    test('a disabled input chip is plain text with no remove control or button role', () => {
+        renderChips({disabled: true, selectedIds: ['opt-air']});
+
+        const chip = document.querySelector('[data-chip]') as HTMLElement;
+        expect(chip).toHaveTextContent('Air Program');
+        expect(chip.querySelector('[data-chip-remove]')).toBeNull();
+        expect(screen.queryByRole('button')).toBeNull();
+    });
+
+    test('the chip X stops the click from reaching the trigger', async () => {
+        const onTriggerClick = jest.fn();
+        const onRemove = jest.fn();
+        renderWithContext(
+            <div
+                role='presentation'
+                onClick={onTriggerClick}
+            >
+                <SelectedValueChips
+                    selectedIds={['opt-air']}
+                    labelForId={() => named('Air Program')}
+                    disabled={false}
+                    onRemove={onRemove}
+                />
+            </div>,
+        );
+
+        await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
+
+        expect(onRemove).toHaveBeenCalledWith('opt-air');
+        expect(onTriggerClick).not.toHaveBeenCalled();
+    });
+
+    describe('chip mousedown', () => {
+        // Stand-in for the real trigger: only the class and aria-expanded matter to the handler.
+        const renderInTrigger = (expanded: boolean) => {
+            renderWithContext(
+                <div
+                    role='button'
+                    className='hierarchical-value-menu__button'
+                    aria-expanded={expanded}
+                    tabIndex={-1}
+                >
+                    <SelectedValueChips
+                        selectedIds={['opt-air']}
+                        labelForId={() => named('Air Program')}
+                        disabled={false}
+                        onRemove={jest.fn()}
+                    />
+                </div>,
+            );
+            const triggerElement = document.querySelector('.hierarchical-value-menu__button') as HTMLElement;
+            return {triggerElement, chip: document.querySelector('[data-chip]') as HTMLElement};
+        };
+
+        test('focuses the closed trigger without scrolling or a focus ring', () => {
+            const {triggerElement, chip} = renderInTrigger(false);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            const notPrevented = fireEvent.mouseDown(chip);
+
+            expect(notPrevented).toBe(false);
+            expect(triggerElement).toHaveFocus();
+            expect(focus).toHaveBeenCalledTimes(1);
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+        });
+
+        test('removing the last chip from the keyboard focuses the trigger with a focus ring', async () => {
+            const {triggerElement} = renderInTrigger(false);
+            const focus = jest.spyOn(triggerElement, 'focus');
+            await act(async () => {
+                screen.getByRole('button', {name: 'Remove Air Program'}).focus();
+            });
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(triggerElement).toHaveFocus();
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        });
+
+        test('removing the last chip with the mouse focuses the trigger without a focus ring', async () => {
+            const {triggerElement} = renderInTrigger(false);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Air Program'})));
+
+            expect(triggerElement).toHaveFocus();
+            expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+        });
+
+        test('does not focus the trigger while the menu is open', () => {
+            const {triggerElement, chip} = renderInTrigger(true);
+            const focus = jest.spyOn(triggerElement, 'focus');
+
+            const notPrevented = fireEvent.mouseDown(chip);
+
+            expect(notPrevented).toBe(true);
+            expect(focus).not.toHaveBeenCalled();
+        });
+    });
+
+    test('Delete on a focused chip removes the value', async () => {
+        const onRemove = jest.fn();
+        renderChips({selectedIds: ['opt-air'], onRemove});
+        await act(async () => {
+            screen.getByRole('button', {name: 'Remove Air Program'}).focus();
+        });
+
+        await userEvent.keyboard('{Delete}');
+
+        expect(onRemove).toHaveBeenCalledWith('opt-air');
+    });
+
+    test('a pending chip has an empty value and an unavailable chip says so', () => {
+        renderChips({
+            selectedIds: ['opt-a', 'opt-b'],
+            labelForId: (id) => (id === 'opt-a' ? {text: '', state: 'pending'} : {text: 'Value unavailable', state: 'unavailable'}),
+        });
+
+        expect(document.querySelector('.hierarchical-value-menu__chip--pending .hierarchical-value-menu__chip-value')).toBeEmptyDOMElement();
+        expect(document.querySelector('.hierarchical-value-menu__chip--unavailable .hierarchical-value-menu__chip-value')).toHaveTextContent('Value unavailable');
     });
 
     test('pending class when state is pending', () => {
@@ -802,26 +941,90 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
         test('ariaLabel names the trigger, defaulting to the placeholder', () => {
             const {rerenderWith} = renderMenu();
-            expect(trigger()).toHaveAccessibleName(COPY.placeholder);
+            expect(triggerButton()).toHaveAccessibleName(COPY.placeholder);
 
             rerenderWith({ariaLabel: 'Programs'});
 
-            expect(trigger()).toHaveAccessibleName('Programs');
+            expect(triggerButton()).toHaveAccessibleName('Programs');
         });
 
         test('buttonClassName lands on the trigger', () => {
             renderMenu({buttonClassName: 'policy-row__value-trigger'});
 
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('policy-row__value-trigger');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('policy-row__value-trigger');
+        });
+
+        test('defaults to the input variant with a Compass caret', () => {
+            const {container} = renderMenu();
+
+            const root = container.querySelector('.hierarchical-value-menu');
+            expect(root).toHaveClass('hierarchical-value-menu--input');
+            expect(root).not.toHaveClass('hierarchical-value-menu--inline');
+            expect(root).not.toHaveClass('hierarchical-value-menu--policy');
+            expect(trigger().querySelector('.hierarchical-value-menu__caret[aria-hidden="true"] svg')).toBeInTheDocument();
+        });
+
+        test('variant=inline marks the root and omits the trigger chevron', () => {
+            const {container} = renderMenu({variant: 'inline'});
+
+            const root = container.querySelector('.hierarchical-value-menu');
+            expect(root).toHaveClass('hierarchical-value-menu--inline');
+            expect(root).not.toHaveClass('hierarchical-value-menu--input');
+            expect(trigger().querySelector('svg')).not.toBeInTheDocument();
+        });
+
+        test('variant=policy keeps the plain chevron and AttributeChip chips', () => {
+            const {container} = renderMenu({
+                variant: 'policy',
+                selectedIds: ['opt-air'],
+                fallbackLabels: {'opt-air': 'Air Program'},
+            });
+
+            expect(container.querySelector('.hierarchical-value-menu')).toHaveClass('hierarchical-value-menu--policy');
+            expect(trigger().querySelector('.hierarchical-value-menu__caret')).toBeNull();
+            expect(trigger().querySelector('.AttributeChip')).toBeInTheDocument();
+            expect(trigger().querySelector('[data-chip]')).toBeNull();
+            expect(trigger().querySelector('.hierarchical-value-menu__button-inner > svg')).toBeInTheDocument();
         });
 
         test('disabled marks the trigger disabled and adds the disabled class', () => {
             renderMenu({disabled: true});
 
-            expect(trigger()).toBeDisabled();
-            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
-            expect(trigger()).toHaveClass('disabled');
+            expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
+            expect(triggerButton()).toHaveClass('hierarchical-value-menu__button');
+            expect(triggerButton()).toHaveClass('disabled');
+        });
+
+        test('the open menu caps at 320px so long labels can ellipsize', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu({variant: 'policy'});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            const menu = screen.getByRole('menu');
+            expect(menu).toHaveClass('hierarchical-value-menu__menu');
+            expect(menu).not.toHaveClass('hierarchical-value-menu__menu--trigger-width');
+            expect(menu).toHaveStyle({maxWidth: '320px'});
+            expect(labelOf('Air Program')).toHaveClass('hierarchical-value-menu__label');
+        });
+
+        test('variant=input opens the menu at the trigger width', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const offsetWidth = jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(480);
+            try {
+                renderMenu();
+
+                await openMenu();
+                await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+                const menu = screen.getByRole('menu');
+                expect(menu).toHaveClass('hierarchical-value-menu__menu--trigger-width');
+                expect(menu).toHaveStyle({width: '480px', maxWidth: '480px'});
+            } finally {
+                offsetWidth.mockRestore();
+            }
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {

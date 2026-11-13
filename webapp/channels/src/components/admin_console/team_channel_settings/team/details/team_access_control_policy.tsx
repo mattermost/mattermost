@@ -89,7 +89,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                     defaultMessage='Remove policy'
                 />
             }
-            confirmButtonVariant='destructive'
+            destructive={true}
             cancelButtonText={
                 <FormattedMessage
                     id='admin.team_settings.team_detail.remove_policy_confirm.cancel'

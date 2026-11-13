@@ -1,0 +1,1383 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState} from 'react';
+
+import {LogLevelEnum, LogNodeKey} from '@mattermost/types/admin';
+
+import {Preferences} from 'mattermost-redux/constants';
+
+import {fakeNow} from 'tests/helpers/date';
+import {act, renderWithContext, fireEvent, screen, waitFor, within} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import LogList, {loadPrefs} from './log_list';
+import type {LogObjectWithAdditionalInfo, PluginOption} from './types';
+
+const PREFS_KEY = 'mm_admin_logs_prefs';
+
+function makeLog(msg: string, timestamp: string, level = LogLevelEnum.INFO): LogObjectWithAdditionalInfo {
+    return {
+        caller: `caller ${msg}`,
+        job_id: `job_id ${msg}`,
+        level,
+        msg,
+        timestamp,
+        worker: `worker ${msg}`,
+    };
+}
+
+function makeNodeLog(node: string, msg: string, timestamp = '2026-03-12T10:00:01.000Z', level = LogLevelEnum.INFO): LogObjectWithAdditionalInfo {
+    return {...makeLog(msg, timestamp, level), [LogNodeKey]: node};
+}
+
+function makeFailedNodeLog(node: string, timestamp = '2026-03-12 10:00:02.000 +00:00'): LogObjectWithAdditionalInfo {
+    return {
+        timestamp,
+        level: LogLevelEnum.ERROR,
+        msg: 'Failed to fetch logs from node',
+        error: 'connection refused',
+        failed_node: true,
+        [LogNodeKey]: node,
+    } as unknown as LogObjectWithAdditionalInfo;
+}
+
+// Entries one second apart, oldest first, so the sort order is unambiguous
+function makeLogs(count: number, level = LogLevelEnum.INFO): LogObjectWithAdditionalInfo[] {
+    return Array.from({length: count}, (_, i) => makeLog(
+        `msg ${i + 1}`,
+        new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString(),
+        level,
+    ));
+}
+
+const baseProps = {
+    loading: false,
+    truncatedNodes: [] as string[],
+    onSearchChange: jest.fn(),
+    search: '',
+    onReload: jest.fn(),
+    downloadUrl: '',
+    liveTailEnabled: false,
+    onToggleLiveTail: jest.fn(),
+    pollInterval: 5000,
+    onPollIntervalChange: jest.fn(),
+    pollIntervals: [5000],
+    pollIntervalLabels: {5000: {id: 'test.pollInterval.5s', defaultMessage: 'Every 5 seconds'}},
+    timePresets: [],
+    timeRange: null,
+    timeRangeStart: null,
+    onTimePreset: jest.fn(),
+    onCustomRange: jest.fn(),
+    onClearTimeRange: jest.fn(),
+    nodes: [] as string[],
+    selectedNode: '',
+    onSelectedNodeChange: jest.fn(),
+    plugins: [] as PluginOption[],
+    selectedPlugins: [] as string[],
+    onSelectedPluginsChange: jest.fn(),
+};
+
+// Holds the levels the way Logs does, since LogList only renders them
+function StatefulLogList(props: Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>) {
+    const [enabledLevels, setEnabledLevels] = useState(() => new Set(loadPrefs().enabledLevels));
+    return (
+        <LogList
+            {...props}
+            enabledLevels={enabledLevels}
+            onEnabledLevelsChange={setEnabledLevels}
+        />
+    );
+}
+
+function renderList(logs: LogObjectWithAdditionalInfo[]) {
+    return renderWithContext(
+        <StatefulLogList
+            {...baseProps}
+            logs={logs}
+        />,
+    );
+}
+
+type ListProps = Omit<React.ComponentProps<typeof LogList>, 'enabledLevels' | 'onEnabledLevelsChange'>;
+
+type AdminSettings = {timezone?: string; militaryTime?: boolean};
+
+// Settings set the admin's timezone and Clock Display, which otherwise default to UTC and the 12-hour clock
+function renderListWith(props: Partial<ListProps>, settings?: AdminSettings) {
+    const {timezone = 'UTC', militaryTime = false} = settings ?? {};
+    return renderWithContext(
+        <StatefulLogList
+            {...baseProps}
+            logs={[]}
+            {...props}
+        />,
+        settings && {entities: {
+            users: {
+                currentUserId: 'user1',
+                profiles: {user1: {id: 'user1', timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timezone}}},
+            },
+            preferences: {myPreferences: TestHelper.getPreferencesMock([
+                {category: Preferences.CATEGORY_DISPLAY_SETTINGS, name: Preferences.USE_MILITARY_TIME, value: String(militaryTime)},
+            ], 'user1')},
+        }},
+    );
+}
+
+function pressKey(key: string) {
+    fireEvent.keyDown(screen.getByRole('list'), {key});
+}
+
+function pressArrow(direction: 'ArrowDown' | 'ArrowUp', times = 1) {
+    for (let i = 0; i < times; i++) {
+        pressKey(direction);
+    }
+}
+
+function focusedRow(): Element | null {
+    return document.querySelector('.LogRow--focused');
+}
+
+function focusedRowMessage(): string | undefined {
+    return focusedRow()?.querySelector('.LogRow__message')?.textContent ?? undefined;
+}
+
+function rowNodes(): string[] {
+    return Array.from(document.querySelectorAll('.LogRow__node')).map((el) => el.textContent ?? '');
+}
+
+function openNodeMenu() {
+    fireEvent.click(screen.getByLabelText('Open menu to select a node'));
+}
+
+function rowMessages(): string[] {
+    return Array.from(document.querySelectorAll('.LogRow__message')).map((el) => el.textContent ?? '');
+}
+
+function openLevelsMenu() {
+    fireEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
+}
+
+function levelMenuItem(label: string): HTMLElement {
+    return screen.getByRole('menuitemcheckbox', {name: new RegExp(`^${label}`)});
+}
+
+function storedPrefs() {
+    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
+}
+
+// Pins the sort order to ascending for suites whose tests don't depend on
+// sort direction, so their expectations stay readable regardless of the
+// current default.
+function pinAscendingSort(extraPrefs: Record<string, unknown> = {}) {
+    localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, ...extraPrefs}));
+}
+
+describe('components/admin_console/server_logs/LogList', () => {
+    beforeEach(() => {
+        localStorage.clear();
+
+        // Not implemented by jsdom
+        Element.prototype.scrollIntoView = jest.fn();
+        Element.prototype.scrollTo = jest.fn();
+    });
+
+    const first = makeLog('msg 1', '2026-03-12T10:00:01.000Z');
+    const second = makeLog('msg 2', '2026-03-12T10:00:02.000Z');
+    const third = makeLog('msg 3', '2026-03-12T10:00:03.000Z');
+
+    describe('selection', () => {
+        beforeEach(pinAscendingSort);
+
+        test('should move the selection with the arrow keys', () => {
+            renderList([first, second, third]);
+
+            pressArrow('ArrowDown', 2);
+            expect(focusedRowMessage()).toBe('msg 2');
+            expect(document.activeElement).toBe(focusedRow()?.querySelector('.LogRow__main'));
+
+            pressArrow('ArrowUp');
+            expect(focusedRowMessage()).toBe('msg 1');
+        });
+
+        test('should keep the selection on the same entry when new logs arrive', () => {
+            const {rerender} = renderList([first, second, third]);
+
+            pressArrow('ArrowDown', 3);
+            expect(focusedRowMessage()).toBe('msg 3');
+
+            // A poll delivers an older entry, so every row below it shifts down a position
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[makeLog('msg 0', '2026-03-12T10:00:00.000Z'), first, second, third]}
+                />,
+            );
+
+            expect(focusedRowMessage()).toBe('msg 3');
+        });
+
+        test('should keep the selection on the same entry when older logs age out', () => {
+            const {rerender} = renderList([first, second, third]);
+
+            pressArrow('ArrowDown', 2);
+            expect(focusedRowMessage()).toBe('msg 2');
+
+            // A poll with an active time preset drops the oldest entry off the front
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[second, third]}
+                />,
+            );
+
+            expect(focusedRowMessage()).toBe('msg 2');
+            expect(document.activeElement).toBe(focusedRow()?.querySelector('.LogRow__main'));
+        });
+
+        test('should keep the selection on the same entry when newest entries sort first', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: false}));
+
+            const {rerender} = renderList([first, second, third]);
+
+            // Newest first, so the second row is the middle entry
+            pressArrow('ArrowDown', 2);
+            expect(focusedRowMessage()).toBe('msg 2');
+
+            // A live-tail poll adds a newer entry, which lands above the selection
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[first, second, third, makeLog('msg 4', '2026-03-12T10:00:04.000Z')]}
+                />,
+            );
+
+            expect(focusedRowMessage()).toBe('msg 2');
+        });
+
+        test('should drop the selection when the selected entry is gone', () => {
+            const {rerender} = renderList([first, second, third]);
+
+            pressArrow('ArrowDown');
+            expect(focusedRowMessage()).toBe('msg 1');
+
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[second, third]}
+                />,
+            );
+
+            expect(focusedRow()).toBeNull();
+        });
+    });
+
+    describe('level filters', () => {
+        beforeEach(pinAscendingSort);
+
+        const mixedLevels = [
+            makeLog('an error', '2026-03-12T10:00:01.000Z', LogLevelEnum.ERROR),
+            makeLog('a warning', '2026-03-12T10:00:02.000Z', LogLevelEnum.WARN),
+            makeLog('some info', '2026-03-12T10:00:03.000Z', LogLevelEnum.INFO),
+            makeLog('a debug line', '2026-03-12T10:00:04.000Z', LogLevelEnum.DEBUG),
+        ];
+
+        test('should show a count of the entries per level', () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+            expect(levelMenuItem('Debug')).toHaveTextContent('Debug1');
+        });
+
+        test('should count and filter the levels each group covers', () => {
+            renderList([
+                ...mixedLevels,
+                makeLog('a fatal error', '2026-03-12T10:00:05.000Z', LogLevelEnum.FATAL),
+                makeLog('a trace line', '2026-03-12T10:00:06.000Z', LogLevelEnum.TRACE),
+                makeLog('a std log line', '2026-03-12T10:00:07.000Z', LogLevelEnum.STDLOG),
+            ]);
+            openLevelsMenu();
+
+            expect(levelMenuItem('Error')).toHaveTextContent('Error2');
+            expect(levelMenuItem('Info')).toHaveTextContent('Info2');
+            expect(levelMenuItem('Debug')).toHaveTextContent('Debug2');
+
+            fireEvent.click(levelMenuItem('Debug'));
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a fatal error', 'a std log line']);
+        });
+
+        test('should hide and restore a level when it is unchecked', () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            fireEvent.click(levelMenuItem('Debug'));
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info']);
+
+            fireEvent.click(levelMenuItem('Debug'));
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
+        });
+
+        test('should keep the last enabled level on, so the list cannot filter itself empty', () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            fireEvent.click(levelMenuItem('Error'), {ctrlKey: true});
+            expect(rowMessages()).toEqual(['an error']);
+
+            fireEvent.click(levelMenuItem('Error'));
+            expect(rowMessages()).toEqual(['an error']);
+        });
+
+        test('should solo a level on ctrl-click and restore every level on a second ctrl-click', () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            fireEvent.click(levelMenuItem('Warn'), {ctrlKey: true});
+            expect(rowMessages()).toEqual(['a warning']);
+
+            fireEvent.click(levelMenuItem('Warn'), {ctrlKey: true});
+            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
+        });
+
+        test('should re-enable every level from the select all item', async () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            fireEvent.click(levelMenuItem('Info'), {ctrlKey: true});
+            expect(rowMessages()).toEqual(['some info']);
+
+            fireEvent.click(screen.getByRole('menuitem', {name: 'Select all levels'}));
+
+            // Selecting all levels closes the menu, which defers the handler
+            // until the close animation has finished
+            await waitFor(() => {
+                expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
+            });
+        });
+    });
+
+    describe('footer', () => {
+        // The server searches, so the loaded entries are no longer a meaningful total
+        test('should count the matching entries while searching', () => {
+            renderWithContext(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={[second]}
+                    search='msg 2'
+                />,
+            );
+
+            expect(rowMessages()).toEqual(['msg 2']);
+            expect(screen.getByText(/of 1 entries matching your filters$/)).toBeInTheDocument();
+        });
+    });
+
+    describe('searching', () => {
+        // The server searches, so an entry without the term is still listed
+        test('should list the entries the server returned for a search', () => {
+            renderListWith({logs: [first, second], search: 'msg 2'});
+
+            expect(rowMessages().sort()).toEqual(['msg 1', 'msg 2']);
+        });
+
+        test('should keep the list in place rather than show the spinner while a search loads', () => {
+            renderListWith({logs: [], loading: true, search: 'missing'});
+
+            expect(screen.queryByText('Loading logs')).not.toBeInTheDocument();
+            expect(screen.getByText('Refreshing…')).toBeInTheDocument();
+            expect(screen.queryByText(/No logs match your filters/)).not.toBeInTheDocument();
+        });
+
+        test('should show the spinner while the first load has no entries', () => {
+            renderListWith({logs: [], loading: true});
+
+            expect(screen.getByText('Loading logs')).toBeInTheDocument();
+        });
+
+        test('should limit the search to the length the server accepts', () => {
+            renderListWith({logs: []});
+
+            expect(screen.getByLabelText('Search logs')).toHaveAttribute('maxlength', '256');
+        });
+    });
+
+    describe('capped total', () => {
+        const footer = () => document.querySelector('.LogViewer__footer-info');
+        const twoNodes = {logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], truncatedNodes: ['node-b']};
+
+        test('should show the exact total when every node returned less than the limit', () => {
+            renderListWith({logs: [first]});
+
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1$/);
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
+
+        test('should mark the total as capped when the only node returned a full page', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default']});
+
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+$/);
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
+
+        test('should mark the matches as capped when a search is active', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default'], truncatedNodes: ['default'], search: 'a'});
+
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+ entries matching your filters$/);
+        });
+
+        test('should only mark the total as capped when a truncated node is in view', () => {
+            const {rerender} = renderListWith(twoNodes);
+            expect(footer()).toHaveTextContent(/^Showing 1 - 2 of 2\+$/);
+
+            const renderSelected = (node: string) => rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    {...twoNodes}
+                    selectedNode={node}
+                />,
+            );
+
+            renderSelected('node-a');
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1$/);
+
+            renderSelected('node-b');
+            expect(footer()).toHaveTextContent(/^Showing 1 - 1 of 1\+$/);
+            expect(screen.queryByText(/Only the latest/)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('scan limit notice', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('should not show the notice when no scan stopped at its limit', () => {
+            renderListWith({logs: [first]});
+
+            expect(screen.queryByText(/The search stopped/)).not.toBeInTheDocument();
+        });
+
+        test('should say how far back the server searched', () => {
+            fakeNow('2026-03-12T10:00:00Z');
+            renderListWith({
+                logs: [makeNodeLog('default', 'a')],
+                nodes: ['default'],
+                scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 09:15:00.000 Z'}],
+            });
+
+            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
+            expect(screen.getByText('Searched back to 9:15 AM.')).toBeInTheDocument();
+            expect(screen.getByText(/Download the log file to search all of it/)).toBeInTheDocument();
+        });
+
+        test('should name each node, and the day when it is not today', () => {
+            fakeNow('2026-03-12T10:00:00Z');
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b'), makeNodeLog('node-c', 'c')],
+                nodes: ['node-a', 'node-b', 'node-c'],
+                scanLimitedNodes: [
+                    {node: 'node-a', scannedBackTo: '2026-03-10 09:15:00.000 Z'},
+                    {node: 'node-c'},
+                ],
+            });
+
+            expect(screen.getByText(/^Searched node-a back to Mar 10, 9:15\sAM\.$/)).toBeInTheDocument();
+            expect(screen.getByText('The search on node-c stopped at its limit.')).toBeInTheDocument();
+            expect(screen.queryByText(/node-b/, {selector: '.LogViewer__notice-line'})).not.toBeInTheDocument();
+            expect(screen.getByText("Older entries weren't searched.")).toBeInTheDocument();
+        });
+
+        test('should only show the notice for the selected node', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                scanLimitedNodes: [{node: 'node-b'}],
+            });
+
+            expect(screen.queryByText(/The search stopped/)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('sorting', () => {
+        test('should default to showing the newest entries first', () => {
+            renderList([first, second, third]);
+
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+        });
+
+        test('should reverse the rows when the time header is clicked', () => {
+            renderList([first, second, third]);
+
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+
+            fireEvent.click(screen.getByRole('button', {name: /^Time/}));
+            expect(rowMessages()).toEqual(['msg 1', 'msg 2', 'msg 3']);
+        });
+
+        test('should keep entries with the same timestamp in reverse file order when newest first', () => {
+            renderList([
+                makeLog('starting', '2026-10-20 11:39:58.781 +02:00'),
+                makeLog('listening', '2026-10-20 11:39:58.781 +02:00'),
+                makeLog('later', '2026-10-20 11:39:58.782 +02:00'),
+            ]);
+
+            expect(rowMessages()).toEqual(['later', 'listening', 'starting']);
+
+            fireEvent.click(screen.getByRole('button', {name: /^Time/}));
+            expect(rowMessages()).toEqual(['starting', 'listening', 'later']);
+        });
+
+        test('should interleave entries from different cluster nodes by timestamp', () => {
+            renderList([
+                makeLog('node1 a', '2026-10-20 11:39:58.100 +02:00'),
+                makeLog('node1 b', '2026-10-20 11:39:58.300 +02:00'),
+                makeLog('node2 a', '2026-10-20 09:39:58.200 Z'),
+            ]);
+
+            expect(rowMessages()).toEqual(['node1 b', 'node2 a', 'node1 a']);
+        });
+    });
+
+    describe('pagination', () => {
+        beforeEach(() => pinAscendingSort({pageSize: 50}));
+
+        function footerInfo(): string {
+            return document.querySelector('.LogViewer__footer-info')?.textContent ?? '';
+        }
+
+        function pageIndicator(): string {
+            return document.querySelector('.LogViewer__page-indicator')?.textContent ?? '';
+        }
+
+        test('should page through the logs with the previous and next buttons', () => {
+            renderList(makeLogs(60));
+
+            expect(rowMessages()).toHaveLength(50);
+            expect(rowMessages()[0]).toBe('msg 1');
+            expect(footerInfo()).toContain('Showing 1 - 50 of 60');
+            expect(pageIndicator()).toBe('Page 1 of 2');
+            expect(screen.getByLabelText('Previous page')).toBeDisabled();
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+            expect(rowMessages()).toEqual(['msg 51', 'msg 52', 'msg 53', 'msg 54', 'msg 55', 'msg 56', 'msg 57', 'msg 58', 'msg 59', 'msg 60']);
+            expect(footerInfo()).toContain('Showing 51 - 60 of 60');
+            expect(screen.getByLabelText('Next page')).toBeDisabled();
+
+            fireEvent.click(screen.getByLabelText('Previous page'));
+            expect(rowMessages()[0]).toBe('msg 1');
+            expect(pageIndicator()).toBe('Page 1 of 2');
+        });
+
+        test('should show more rows when the page size grows', () => {
+            renderList(makeLogs(60));
+
+            expect(rowMessages()).toHaveLength(50);
+
+            fireEvent.change(screen.getByLabelText('Show'), {target: {value: '100'}});
+            expect(rowMessages()).toHaveLength(60);
+            expect(pageIndicator()).toBe('Page 1 of 1');
+        });
+
+        test('should clamp the page when the logs no longer fill it', () => {
+            const {rerender} = renderList(makeLogs(60));
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+            expect(pageIndicator()).toBe('Page 2 of 2');
+
+            // A poll returns fewer entries than the current page starts at
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={makeLogs(30)}
+                />,
+            );
+
+            expect(pageIndicator()).toBe('Page 1 of 1');
+            expect(rowMessages()).toHaveLength(30);
+        });
+    });
+
+    describe('stored preferences', () => {
+        test('should restore the stored preferences on mount', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({
+                pageSize: 50,
+                wrapText: false,
+                enabledLevels: ['error'],
+                sortAsc: false,
+            }));
+
+            renderList([
+                makeLog('an error', '2026-03-12T10:00:01.000Z', LogLevelEnum.ERROR),
+                makeLog('a later error', '2026-03-12T10:00:02.000Z', LogLevelEnum.ERROR),
+                makeLog('some info', '2026-03-12T10:00:03.000Z', LogLevelEnum.INFO),
+            ]);
+
+            expect(rowMessages()).toEqual(['a later error', 'an error']);
+            expect(screen.getByLabelText('Show')).toHaveValue('50');
+            expect(screen.getByRole('button', {name: 'Wrap text'})).toHaveAttribute('aria-pressed', 'false');
+        });
+
+        test('should save a preference change', () => {
+            renderList([first]);
+
+            fireEvent.click(screen.getByRole('button', {name: 'Wrap text'}));
+
+            expect(storedPrefs()).toEqual({
+                pageSize: 200,
+                wrapText: false,
+                enabledLevels: ['error', 'warn', 'info', 'debug'],
+                sortAsc: false,
+                node: '',
+            });
+        });
+
+        test('should fall back to the defaults when the stored preferences are unusable', () => {
+            localStorage.setItem(PREFS_KEY, 'not json');
+            renderList([first]);
+
+            expect(storedPrefs()).toEqual({
+                pageSize: 200,
+                wrapText: true,
+                enabledLevels: ['error', 'warn', 'info', 'debug'],
+                sortAsc: false,
+                node: '',
+            });
+        });
+
+        test('should ignore stored values outside the supported set', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({
+                pageSize: 7,
+                wrapText: 'yes',
+                enabledLevels: ['nope'],
+                sortAsc: 'maybe',
+                node: 42,
+            }));
+
+            renderList([first]);
+
+            expect(storedPrefs()).toEqual({
+                pageSize: 200,
+                wrapText: true,
+                enabledLevels: ['error', 'warn', 'info', 'debug'],
+                sortAsc: false,
+                node: '',
+            });
+        });
+    });
+
+    describe('stored node', () => {
+        test('should restore the stored node', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({node: 'node-b'}));
+
+            expect(loadPrefs().node).toBe('node-b');
+        });
+
+        test('should load prefs saved before the node existed as all nodes', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true}));
+
+            expect(loadPrefs()).toEqual({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true, node: ''});
+        });
+
+        test('should save the selected node', () => {
+            renderListWith({logs: [makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], selectedNode: 'node-b'});
+
+            expect(storedPrefs().node).toBe('node-b');
+        });
+    });
+
+    describe('nodes', () => {
+        beforeEach(pinAscendingSort);
+
+        test('should hide the node selector and node column with a single node', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default']});
+
+            expect(screen.queryByLabelText('Node')).not.toBeInTheDocument();
+            expect(screen.queryByLabelText('Open menu to select a node')).not.toBeInTheDocument();
+            expect(rowNodes()).toEqual([]);
+            expect(document.querySelector('.LogViewer__header-node')).toBeNull();
+            expect(document.querySelector('.LogRow--with-node')).toBeNull();
+            expect(rowMessages()).toEqual(['a']);
+        });
+
+        test('should hide the node selector before any node is known', () => {
+            renderListWith({logs: [makeLog('untagged', '2026-03-12T10:00:01.000Z')]});
+
+            expect(screen.queryByLabelText('Open menu to select a node')).not.toBeInTheDocument();
+            expect(rowMessages()).toEqual(['untagged']);
+        });
+
+        test('should show the node selector and node column with two or more nodes', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z'), makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            expect(screen.getByLabelText('Node')).toHaveValue('All nodes');
+            expect(rowNodes()).toEqual(['node-a', 'node-b']);
+            expect(document.querySelector('.LogViewer__header-node')).toHaveTextContent('Node');
+
+            openNodeMenu();
+            expect(within(screen.getByRole('menu', {name: 'Node menu'})).getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['All nodes', 'node-a', 'node-b']);
+            expect(screen.getByRole('menuitemradio', {name: 'All nodes'})).toHaveAttribute('aria-checked', 'true');
+            expect(screen.getByRole('menuitemradio', {name: 'node-a'})).toHaveAttribute('aria-checked', 'false');
+        });
+
+        test('should keep the node selector while a node is selected, even if it is the only node known', () => {
+            renderListWith({logs: [makeNodeLog('node-b', 'b')], nodes: ['node-b'], selectedNode: 'node-b'});
+
+            expect(screen.getByLabelText('Node')).toHaveValue('node-b');
+            expect(rowNodes()).toEqual([]);
+            expect(document.querySelector('.LogViewer__header-node')).toBeNull();
+
+            openNodeMenu();
+            expect(screen.getByRole('menuitemradio', {name: 'node-b'})).toHaveAttribute('aria-checked', 'true');
+        });
+
+        test('should report the picked node, and an empty node for all nodes', async () => {
+            const onSelectedNodeChange = jest.fn();
+            const logs = [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')];
+            const {unmount} = renderListWith({logs, nodes: ['node-a', 'node-b'], onSelectedNodeChange});
+
+            openNodeMenu();
+            fireEvent.click(screen.getByRole('menuitemradio', {name: 'node-b'}));
+            await waitFor(() => expect(onSelectedNodeChange).toHaveBeenCalledWith('node-b'));
+            unmount();
+
+            onSelectedNodeChange.mockClear();
+            renderListWith({logs, nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});
+
+            openNodeMenu();
+            fireEvent.click(screen.getByRole('menuitemradio', {name: 'All nodes'}));
+            await waitFor(() => expect(onSelectedNodeChange).toHaveBeenCalledWith(''));
+        });
+
+        test('should only show the selected node\'s entries', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a 1', '2026-03-12T10:00:01.000Z'),
+                    makeNodeLog('node-b', 'b 1', '2026-03-12T10:00:02.000Z'),
+                    makeNodeLog('node-a', 'a 2', '2026-03-12T10:00:03.000Z'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+            });
+
+            expect(rowMessages()).toEqual(['a 1', 'a 2']);
+            expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('Showing 1 - 2 of 2');
+        });
+
+        test('should count only the selected node\'s entries per level', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a', '2026-03-12T10:00:01.000Z', LogLevelEnum.ERROR),
+                    makeNodeLog('node-b', 'b', '2026-03-12T10:00:02.000Z', LogLevelEnum.ERROR),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-b',
+            });
+
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        test('should offer to clear the selected node when it has no entries', () => {
+            const onSelectedNodeChange = jest.fn();
+            renderListWith({logs: [], nodes: ['node-a', 'node-b'], selectedNode: 'node-b', onSelectedNodeChange});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onSelectedNodeChange).toHaveBeenCalledWith('');
+        });
+
+        test('should keep identical lines from different nodes as separate rows', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'same'), makeNodeLog('node-b', 'same')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            expect(rowNodes()).toEqual(['node-a', 'node-b']);
+        });
+
+        test('should render a failed node as an error row', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'fine'), makeFailedNodeLog('node-b')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            const row = screen.getByText('Failed to fetch logs from node').closest('.LogRow');
+            expect(row).toHaveClass('LogRow--error-bg');
+            expect(row?.querySelector('.LogRow__node')).toHaveTextContent('node-b');
+
+            fireEvent.click(row!.querySelector('.LogRow__main')!);
+            expect(screen.getByText('connection refused')).toBeInTheDocument();
+        });
+
+        test('should count a failed node as an error', () => {
+            renderListWith({
+                logs: [makeNodeLog('node-a', 'fine'), makeFailedNodeLog('node-b')],
+                nodes: ['node-a', 'node-b'],
+            });
+
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+            expect(levelMenuItem('Info')).toHaveTextContent('Info1');
+        });
+    });
+
+    describe('time range', () => {
+        beforeEach(() => {
+            pinAscendingSort();
+            jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-03-12T10:10:00.000Z'));
+        });
+
+        // Five minutes before the mocked now
+        const timeRangeStart = Date.parse('2026-03-12T10:05:00.000Z');
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        // The failed-node entry is older than the cutoff on purpose
+        const timeRangeLogs = [
+            makeLog('old', '2026-03-12T10:04:59.000Z'),
+            makeLog('recent', '2026-03-12T10:05:30.000Z'),
+            makeLog('unparseable', 'not a timestamp'),
+            makeFailedNodeLog('node-b', '2026-03-12 09:00:00.000 +00:00'),
+        ];
+
+        test('should drop entries older than the active time range', () => {
+            renderListWith({logs: timeRangeLogs, timeRange: 5, timeRangeStart});
+
+            expect(rowMessages().sort()).toEqual(['Failed to fetch logs from node', 'recent', 'unparseable']);
+            expect(document.querySelector('.LogViewer__footer-info')).toHaveTextContent('of 3');
+        });
+
+        test('should keep an entry exactly at the cutoff', () => {
+            renderListWith({logs: [makeLog('edge', '2026-03-12T10:05:00.000Z')], timeRange: 5, timeRangeStart});
+
+            expect(rowMessages()).toEqual(['edge']);
+        });
+
+        test('should parse the server timestamp format against the cutoff', () => {
+            renderListWith({
+                logs: [
+                    makeLog('old', '2026-03-12 12:04:59.000 +02:00'),
+                    makeLog('recent', '2026-03-12 12:05:30.000 +02:00'),
+                    makeLog('old utc', '2026-03-12 10:04:59.000 Z'),
+                    makeLog('recent utc', '2026-03-12 10:05:45.000 Z'),
+                ],
+                timeRange: 5,
+                timeRangeStart,
+            });
+
+            expect(rowMessages()).toEqual(['recent', 'recent utc']);
+        });
+
+        test('should count only entries in the time range per level', () => {
+            renderListWith({logs: timeRangeLogs, timeRange: 5, timeRangeStart});
+
+            openLevelsMenu();
+            expect(levelMenuItem('Info')).toHaveTextContent('Info2');
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        test('should count only entries in the time range as search matches', () => {
+            renderListWith({logs: timeRangeLogs, timeRange: 5, timeRangeStart, search: 'e'});
+
+            expect(screen.getByText(/of 3 entries matching your filters$/)).toBeInTheDocument();
+        });
+
+        test('should show every entry without a time range', () => {
+            renderListWith({logs: timeRangeLogs, timeRange: null});
+
+            expect(rowMessages()).toHaveLength(4);
+        });
+
+        test('should still hide a failed node when errors are turned off', () => {
+            pinAscendingSort({enabledLevels: ['info']});
+            renderListWith({logs: timeRangeLogs, timeRange: 5, timeRangeStart});
+
+            expect(rowMessages()).not.toContain('Failed to fetch logs from node');
+            expect(rowMessages().sort()).toEqual(['recent', 'unparseable']);
+        });
+
+        test('should only keep an entry older than the time range when the server marked it as a failed node', () => {
+            // Same message as the failed-node entry, but logged by the node itself
+            const logged = makeLog('Failed to fetch logs from node', '2026-03-12T09:00:00.000Z', LogLevelEnum.ERROR);
+            renderListWith({logs: [logged, makeLog('recent', '2026-03-12T10:05:30.000Z')], timeRange: 5, timeRangeStart});
+
+            expect(rowMessages()).toEqual(['recent']);
+        });
+
+        test('should offer to clear a time range that filters out every entry', () => {
+            const onClearTimeRange = jest.fn();
+            renderListWith({logs: [makeLog('old', '2026-03-12T10:04:59.000Z')], timeRange: 5, timeRangeStart, onClearTimeRange});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+            expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onClearTimeRange).toHaveBeenCalledTimes(1);
+        });
+
+        test('should go back to the first page when the time range changes', () => {
+            pinAscendingSort({pageSize: 50});
+            const {rerender} = renderListWith({logs: makeLogs(60)});
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+            expect(document.querySelector('.LogViewer__page-indicator')).toHaveTextContent('Page 2 of 2');
+
+            // Every entry is inside the range, so only the reset can move the page
+            rerender(
+                <StatefulLogList
+                    {...baseProps}
+                    logs={makeLogs(60)}
+                    timeRange={15}
+                />,
+            );
+
+            expect(document.querySelector('.LogViewer__page-indicator')).toHaveTextContent('Page 1 of 2');
+        });
+
+        test('should apply the time range and the selected node together', () => {
+            renderListWith({
+                logs: [
+                    makeNodeLog('node-a', 'a old', '2026-03-12T10:00:00.000Z'),
+                    makeNodeLog('node-a', 'a recent', '2026-03-12T10:09:00.000Z'),
+                    makeNodeLog('node-b', 'b recent', '2026-03-12T10:09:00.000Z'),
+                ],
+                nodes: ['node-a', 'node-b'],
+                selectedNode: 'node-a',
+                timeRange: 5,
+                timeRangeStart,
+            });
+
+            expect(rowMessages()).toEqual(['a recent']);
+        });
+    });
+
+    describe('custom time range', () => {
+        beforeEach(() => {
+            pinAscendingSort();
+            fakeNow('2026-03-12T10:10:00.000Z');
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        const customRange = {
+            from: Date.parse('2026-03-12T10:00:00.000Z'),
+            to: Date.parse('2026-03-12T10:30:00.000Z'),
+        };
+
+        // The failed-node entry is outside the range on purpose
+        const rangeLogs = [
+            makeLog('before', '2026-03-12T09:59:59.000Z'),
+            makeLog('start', '2026-03-12T10:00:00.000Z'),
+            makeLog('inside', '2026-03-12 12:15:00.000 +02:00'),
+            makeLog('end', '2026-03-12T10:30:00.000Z'),
+            makeLog('after', '2026-03-12T10:30:01.000Z'),
+            makeLog('unparseable', 'not a timestamp'),
+            makeFailedNodeLog('node-b', '2026-03-12 11:00:00.000 +00:00'),
+        ];
+
+        test('should keep only entries within both bounds, inclusive', () => {
+            renderListWith({logs: rangeLogs, timeRange: customRange});
+
+            expect(rowMessages()).toEqual(['start', 'inside', 'end', 'unparseable', 'Failed to fetch logs from node']);
+        });
+
+        test('should show the range in the duration field', () => {
+            renderListWith({timeRange: customRange});
+
+            // Intl separates the parts with thin and narrow no-break spaces
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Mar 12, 10:00 – 10:30 AM');
+            expect(screen.getByLabelText('Open menu to select a time range')).not.toHaveClass('LogViewer__duration--custom-year');
+        });
+
+        test('should mark the custom range as the selected duration', () => {
+            renderListWith({timeRange: customRange});
+
+            fireEvent.click(screen.getByLabelText('Open menu to select a time range'));
+
+            expect(screen.getByRole('menuitemradio', {name: 'Custom range…'})).toHaveAttribute('aria-checked', 'true');
+            expect(screen.getByRole('menuitemradio', {name: 'All time'})).toHaveAttribute('aria-checked', 'false');
+        });
+
+        test('should offer to clear a custom range that filters out every entry', () => {
+            const onClearTimeRange = jest.fn();
+            renderListWith({logs: [makeLog('after', '2026-03-12T11:00:00.000Z')], timeRange: customRange, onClearTimeRange});
+
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+            expect(onClearTimeRange).toHaveBeenCalledTimes(1);
+        });
+
+        test('should not offer live tail intervals while a custom range is active', () => {
+            renderListWith({timeRange: customRange});
+
+            fireEvent.click(screen.getByLabelText('Open menu to turn live tail on or off'));
+
+            const interval = screen.getByRole('menuitemradio', {name: /^Every 5 seconds/});
+            expect(interval).toHaveAttribute('aria-disabled', 'true');
+            expect(interval).toHaveAccessibleDescription('Not available with a custom time range');
+        });
+
+        test('should show the year of a range from an earlier year', () => {
+            renderListWith({timeRange: {
+                from: Date.parse('2025-12-31T23:00:00.000Z'),
+                to: Date.parse('2026-01-01T01:00:00.000Z'),
+            }});
+
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2025, 11:00 PM – Jan 1, 2026, 1:00 AM');
+
+            // The longer label gets a wider field
+            expect(screen.getByLabelText('Open menu to select a time range')).toHaveClass('LogViewer__duration--custom-year');
+        });
+
+        test('should decide on the year in the user\'s timezone', () => {
+            // Already 2027 in Tokyo, still 2026 in UTC
+            fakeNow('2026-12-31T16:00:00.000Z');
+            renderListWith(
+                {timeRange: {from: Date.parse('2026-12-31T14:00:00.000Z'), to: Date.parse('2026-12-31T14:30:00.000Z')}},
+                {timezone: 'Asia/Tokyo'},
+            );
+
+            expect((screen.getByLabelText('Duration') as HTMLInputElement).value.replace(/\s/g, ' ')).toBe('Dec 31, 2026, 11:00 – 11:30 PM');
+        });
+    });
+
+    describe('keyboard shortcuts', () => {
+        beforeEach(pinAscendingSort);
+
+        test('should focus the search input on /', () => {
+            renderList([first, second, third]);
+
+            pressKey('/');
+
+            expect(document.activeElement).toBe(screen.getByLabelText('Search logs'));
+        });
+
+        test('should leave typing in the search input alone', () => {
+            renderList([first, second, third]);
+
+            fireEvent.keyDown(screen.getByLabelText('Search logs'), {key: 'ArrowDown'});
+
+            expect(focusedRow()).toBeNull();
+        });
+    });
+
+    describe('live tail updates', () => {
+        const fourth = makeLog('msg 4', '2026-03-12T10:00:04.000Z');
+        const fifth = makeLog('msg 5', '2026-03-12T10:00:05.000Z');
+
+        function renderUpdatable(logs: LogObjectWithAdditionalInfo[], props: Partial<ListProps> = {}) {
+            const result = renderListWith({logs, ...props});
+            return {
+                ...result,
+                update: (next: LogObjectWithAdditionalInfo[], nextProps: Partial<ListProps> = {}) => result.rerender(
+                    <StatefulLogList
+                        {...baseProps}
+                        {...props}
+                        logs={next}
+                        {...nextProps}
+                    />,
+                ),
+            };
+        }
+
+        function newEntriesButton() {
+            return screen.queryByRole('button', {name: /new entr/});
+        }
+
+        function newRowMessages(): string[] {
+            return Array.from(document.querySelectorAll('.LogRow--new .LogRow__message')).map((el) => el.textContent ?? '');
+        }
+
+        test('should insert and highlight new rows at the top of the first page', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            expect(newRowMessages()).toEqual([]);
+
+            update([first, second, third, fourth, fifth]);
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2', 'msg 1']);
+            expect(newRowMessages()).toEqual(['msg 5', 'msg 4']);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+
+        test('should only highlight the rows from the latest update', () => {
+            const {update} = renderUpdatable([first, second, third]);
+
+            update([first, second, third, fourth]);
+            update([first, second, third, fourth, fifth]);
+
+            expect(newRowMessages()).toEqual(['msg 5']);
+        });
+
+        test('should hold new entries while a row is expanded, and show them from the pill', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third, fourth, fifth]);
+
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+            expect(newEntriesButton()).toHaveTextContent('2 new entries');
+            expect(screen.getByText(/Showing 1 - 3 of 3/)).toBeInTheDocument();
+
+            fireEvent.click(newEntriesButton()!);
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2', 'msg 1']);
+            expect(newRowMessages()).toEqual(['msg 5', 'msg 4']);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+            expect(screen.getByText(/Showing 1 - 5 of 5/)).toBeInTheDocument();
+
+            // The expanded row stays expanded through the update
+            expect(document.querySelector('.LogRow--expanded .LogRow__message')).toHaveTextContent('msg 2');
+        });
+
+        test('should hold new entries while scrolled away from the top', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            const list = screen.getByRole('list', {name: 'Server log entries'});
+            Object.defineProperty(list, 'scrollTop', {configurable: true, value: 120});
+
+            update([first, second, third, fourth]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+
+            fireEvent.click(newEntriesButton()!);
+
+            expect(list.scrollTo).toHaveBeenCalledWith({top: 0});
+        });
+
+        test('should hold new entries on a later page and jump to the first page from the pill', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50}));
+            const logs = makeLogs(60);
+            const {update} = renderUpdatable(logs);
+            fireEvent.click(screen.getByRole('button', {name: 'Next page'}));
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+
+            update([...logs, makeLog('msg 61', '2026-03-12T10:01:00.000Z')]);
+
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+            fireEvent.click(newEntriesButton()!);
+
+            expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+            expect(rowMessages()[0]).toBe('msg 61');
+        });
+
+        test('should hold new entries when sorted oldest first and jump to the last page from the pill', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50, sortAsc: true}));
+            const logs = makeLogs(50);
+            const {update} = renderUpdatable(logs);
+
+            update([...logs, makeLog('msg 51', '2026-03-12T10:01:00.000Z')]);
+
+            expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
+            fireEvent.click(newEntriesButton()!);
+
+            expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+            expect(rowMessages()).toEqual(['msg 51']);
+        });
+
+        test('should leave held entries out of the level counts until they are shown', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third, makeLog('an error', '2026-03-12T10:00:04.000Z', LogLevelEnum.ERROR)]);
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error0');
+            fireEvent.keyDown(screen.getByRole('menu', {name: 'Log levels menu'}), {key: 'Escape'});
+
+            fireEvent.click(newEntriesButton()!);
+            openLevelsMenu();
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+        });
+
+        // The server only returns entries matching the search, so the level filter is the one left to apply
+        test('should only count held entries in an enabled level group', () => {
+            pinAscendingSort({enabledLevels: ['error']});
+            const {update} = renderUpdatable([first, second, third]);
+
+            update([first, second, third, makeLog('a fatal', '2026-03-12T10:00:04.000Z', LogLevelEnum.FATAL), makeLog('other', '2026-03-12T10:00:05.000Z')]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+        });
+
+        test('should show an entry from a failed node right away', () => {
+            const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:01.000Z')]);
+            fireEvent.click(screen.getByText('a1'));
+
+            update([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:01.000Z'), makeFailedNodeLog('node-a', '2026-03-12 10:00:09.000 +00:00')]);
+
+            expect(screen.getByText('Failed to fetch logs from node')).toBeInTheDocument();
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+
+        test('should show the latest entry from a node that keeps failing', () => {
+            const {update} = renderUpdatable([makeFailedNodeLog('node-a', '2026-03-12 10:00:01.000 +00:00')]);
+
+            update([makeFailedNodeLog('node-a', '2026-03-12 10:00:09.000 +00:00')]);
+
+            expect(screen.getByTitle('2026-03-12 10:00:09.000 +00:00')).toBeInTheDocument();
+        });
+
+        test('should hold entries from a node that had none', () => {
+            const {update} = renderUpdatable([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z')]);
+            fireEvent.click(screen.getByText('a1'));
+
+            update([makeNodeLog('node-a', 'a1', '2026-03-12T10:00:05.000Z'), makeNodeLog('node-b', 'b1', '2026-03-12T10:00:01.000Z')]);
+
+            expect(newEntriesButton()).toHaveTextContent('1 new entry');
+        });
+
+        test('should not highlight the rows again after paging away and back', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50}));
+            const logs = makeLogs(60);
+            const {update} = renderUpdatable(logs);
+            update([...logs, makeLog('msg 61', '2026-03-12T10:01:00.000Z')]);
+            expect(newRowMessages()).toEqual(['msg 61']);
+
+            fireEvent.click(screen.getByRole('button', {name: 'Next page'}));
+            fireEvent.click(screen.getByRole('button', {name: 'Previous page'}));
+
+            expect(newRowMessages()).toEqual([]);
+        });
+
+        test('should drop entries that age out when the parent moves the time range on', () => {
+            const props = {timeRange: 5, timePresets: [{label: {id: 'test.time.5m', defaultMessage: 'Last 5 minutes'}, minutes: 5}]};
+            const {update} = renderUpdatable([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {...props, timeRangeStart: Date.parse('2026-03-12T10:00:00.000Z')});
+            expect(rowMessages()).toEqual(['recent', 'msg 1']);
+
+            update([first, makeLog('recent', '2026-03-12T10:04:00.000Z')], {timeRangeStart: Date.parse('2026-03-12T10:00:05.000Z')});
+
+            expect(rowMessages()).toEqual(['recent']);
+        });
+
+        test('should show a full reload as it is, without holding or highlighting', () => {
+            const {update} = renderUpdatable([first, second, third]);
+            fireEvent.click(screen.getByText('msg 2'));
+
+            update([first, second, third], {loading: true});
+            update([second, third, fourth, fifth], {loading: false});
+
+            expect(rowMessages()).toEqual(['msg 5', 'msg 4', 'msg 3', 'msg 2']);
+            expect(newRowMessages()).toEqual([]);
+            expect(newEntriesButton()).not.toBeInTheDocument();
+        });
+    });
+    describe('row times', () => {
+        beforeEach(() => {
+            pinAscendingSort();
+            fakeNow('2026-03-12T18:00:00.000Z');
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        const rowTimes = () => Array.from(document.querySelectorAll('.LogRow__timestamp')).map((el) => el.textContent);
+        const timeColumnChars = () => (document.querySelector('.LogViewer') as HTMLElement).style.getPropertyValue('--log-timestamp-chars');
+
+        test('should show the times in the admin\'s timezone rather than the server\'s', () => {
+            renderListWith({logs: [
+                makeLog('utc', '2026-03-12 14:30:00.000 +00:00'),
+                makeLog('offset', '2026-03-12 10:45:00.000 -04:00'),
+            ]}, {timezone: 'Europe/Berlin', militaryTime: true});
+
+            expect(rowTimes()).toEqual(['15:30:00.000', '15:45:00.000']);
+        });
+
+        // The formats themselves are covered by the utils tests; this checks they reach the rows and the column
+        test.each([
+            ['24-hour, only today', [first, second], true, ['10:00:01.000', '10:00:02.000'], '12'],
+            ['12-hour, across midnight', [makeLog('a', '2026-03-11T23:59:59.000Z'), makeLog('b', '2026-03-12T00:00:01.000Z')], false, ['2026-03-11 11:59:59.000 PM', '2026-03-12 12:00:01.000 AM'], '26'],
+        ])('should size the time column to the format: %s', (_, logs, militaryTime, times, chars) => {
+            renderListWith({logs}, {militaryTime});
+
+            expect(rowTimes()).toEqual(times);
+            expect(timeColumnChars()).toBe(chars);
+        });
+
+        test('should add the date at midnight when the entries stop being from today', () => {
+            jest.useFakeTimers({now: new Date('2026-03-12T23:59:00.000Z')});
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            act(() => {
+                jest.advanceTimersByTime(60 * 1000);
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
+        });
+
+        test('should add the date when the page comes back after midnight before the timer fires', () => {
+            // Only the clock is faked, so the real midnight timer is still a minute away when the page comes back
+            fakeNow('2026-03-12T23:59:00.000Z');
+            renderListWith({logs: [makeLog('late', '2026-03-12T23:58:00.000Z')]}, {militaryTime: true});
+            expect(rowTimes()).toEqual(['23:58:00.000']);
+
+            jest.setSystemTime(new Date('2026-03-13T08:00:00.000Z'));
+            act(() => {
+                document.dispatchEvent(new Event('visibilitychange'));
+            });
+
+            expect(rowTimes()).toEqual(['2026-03-12 23:58:00.000']);
+        });
+
+        test('should show the date on every page when any entry is from another day', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, pageSize: 50}));
+            const logs = [
+                makeLog('yesterday', '2026-03-11T23:00:00.000Z'),
+                ...Array.from({length: 60}, (_, i) => makeLog(`msg ${i}`, new Date(Date.UTC(2026, 2, 12, 10, 0, i)).toISOString())),
+            ];
+            renderListWith({logs}, {militaryTime: true});
+
+            fireEvent.click(screen.getByLabelText('Next page'));
+
+            // This page only holds entries from today, yet keeps the date
+            expect(rowTimes()[0]).toBe('2026-03-12 10:00:49.000');
+        });
+    });
+});
+
+describe('components/admin_console/server_logs/LogList plugin filter', () => {
+    const plugins = [{id: 'github', name: 'GitHub'}, {id: 'jira', name: 'Jira'}];
+
+    function renderPlugins(selectedPlugins: string[], onSelectedPluginsChange = jest.fn()) {
+        renderListWith({plugins, selectedPlugins, onSelectedPluginsChange});
+        return onSelectedPluginsChange;
+    }
+
+    function pluginMenuItem(name: string) {
+        fireEvent.click(screen.getByLabelText('Open menu to select which plugins to show logs from'));
+        return screen.getByRole('menuitemcheckbox', {name: new RegExp(`^${name}`)});
+    }
+
+    test('should count a plugin with no entries as a filter, and clear it with the others', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+        expect(screen.queryByText(/No logs found/)).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Clear filters'}));
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+
+    test('should narrow to one plugin on Ctrl/Cmd-click', () => {
+        const onSelectedPluginsChange = renderPlugins(['github', 'jira']);
+
+        fireEvent.click(pluginMenuItem('Jira'), {metaKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith(['jira']);
+    });
+
+    test('should restore all logs on Ctrl/Cmd-click of the only picked plugin, like the levels menu', () => {
+        const onSelectedPluginsChange = renderPlugins(['github']);
+
+        fireEvent.click(pluginMenuItem('GitHub'), {ctrlKey: true});
+        expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
+    });
+});

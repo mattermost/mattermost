@@ -1,0 +1,29 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.LogKeyboardHints {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+    gap: 6px;
+    text-align: left;
+
+    &__title {
+        margin-bottom: 2px;
+        font-weight: 600;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    // Fixed width so the descriptions line up in a column
+    &__keys {
+        display: inline-flex;
+        min-width: 64px;
+        flex-shrink: 0;
+        gap: 4px;
+    }
+}

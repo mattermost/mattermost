@@ -103,13 +103,13 @@ describe('Interactive Dialog - Stacked Dialogs via action_button elements', () =
         cy.contains('This child dialog was opened from the "Details" action button.').should('be.visible');
 
         // * The child dialog stacks on top while the parent stays open (2 modals)
-        cy.get('[id="appsModal"]').should('have.length', 2);
+        cy.get('.apps-form-modal').should('have.length', 2);
 
         // * The Summary child was NOT opened
-        cy.contains('[id="appsModalLabel"]', 'Summary Dialog').should('not.exist');
+        cy.contains('.apps-form-modal .modal-title', 'Summary Dialog').should('not.exist');
 
-        // * The parent dialog is still present underneath
-        cy.contains('[id="appsModalLabel"]', 'Parent Dialog with Action Button').should('exist');
+        // * The parent dialog is still present underneath (hidden, so it has no appsModal ids)
+        cy.contains('.apps-form-modal .modal-title', 'Parent Dialog with Action Button').should('exist');
     });
 
     it('MM-T2560C - "Open Summary" button stacks a child dialog that reflects the Summary source', () => {
@@ -132,13 +132,13 @@ describe('Interactive Dialog - Stacked Dialogs via action_button elements', () =
         cy.contains('This child dialog was opened from the "Summary" action button.').should('be.visible');
 
         // * The child dialog stacks on top (2 modals)
-        cy.get('[id="appsModal"]').should('have.length', 2);
+        cy.get('.apps-form-modal').should('have.length', 2);
 
         // * The Details child was NOT opened
-        cy.contains('[id="appsModalLabel"]', 'Details Dialog').should('not.exist');
+        cy.contains('.apps-form-modal .modal-title', 'Details Dialog').should('not.exist');
 
-        // * The parent dialog is still present underneath
-        cy.contains('[id="appsModalLabel"]', 'Parent Dialog with Action Button').should('exist');
+        // * The parent dialog is still present underneath (hidden, so it has no appsModal ids)
+        cy.contains('.apps-form-modal .modal-title', 'Parent Dialog with Action Button').should('exist');
     });
 
     it('MM-T2560D - Submitting the child dialog returns to the parent dialog', () => {
@@ -155,15 +155,15 @@ describe('Interactive Dialog - Stacked Dialogs via action_button elements', () =
 
         // * Wait for the child to render, then confirm both dialogs are stacked
         cy.contains('[id="appsModalLabel"]', 'Details Dialog').should('be.visible');
-        cy.get('[id="appsModal"]').should('have.length', 2);
+        cy.get('.apps-form-modal').should('have.length', 2);
 
         // # Submit the child dialog (target its modal via the verified title)
-        cy.contains('[id="appsModalLabel"]', 'Details Dialog').closest('[id="appsModal"]').within(() => {
+        cy.contains('[id="appsModalLabel"]', 'Details Dialog').closest('.apps-form-modal').within(() => {
             cy.get('#appsModalSubmit').click();
         });
 
         // * The child dialog is dismissed — only the parent remains
-        cy.get('[id="appsModal"]').should('have.length', 1);
+        cy.get('.apps-form-modal').should('have.length', 1);
         cy.get('#appsModalLabel').should('contain', 'Parent Dialog with Action Button');
     });
 });

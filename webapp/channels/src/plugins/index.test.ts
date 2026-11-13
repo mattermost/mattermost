@@ -3,8 +3,9 @@
 
 import {createStore} from 'redux';
 
-import type {PluginManifest} from '@mattermost/types/plugins';
+import type {ClientPluginManifest, PluginManifest} from '@mattermost/types/plugins';
 
+import {Client4} from 'mattermost-redux/client';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
@@ -14,10 +15,11 @@ import pluginsReducer from 'reducers/plugins';
 import store from 'stores/redux_store';
 
 import type PluginRegistry from 'plugins/registry';
+import {ActionTypes} from 'utils/constants';
 
 import {logPluginLoadFailure, removeWebappPlugin} from './actions';
 
-import {loadPlugin, removePlugin} from './index';
+import {ensureAuthenticatedPluginsLoaded, loadPlugin, loadPluginsIfNecessary, removePlugin} from './index';
 
 jest.mock('stores/redux_store', () => ({
     getState: jest.fn(() => ({})),
@@ -328,5 +330,102 @@ describe('loadPlugin', () => {
         jest.mocked(registerPluginWebSocketEvent).mockClear();
         registry.registerWebSocketEventHandler('after unload', jest.fn());
         expect(registerPluginWebSocketEvent).not.toHaveBeenCalled();
+    });
+});
+
+describe('plugin synchronization', () => {
+    let state: {entities: {users: {currentUserId: string}}; plugins: {plugins: Record<string, PluginManifest>}};
+
+    function setCurrentUserId(currentUserId: string) {
+        state = {...state, entities: {users: {currentUserId}}};
+    }
+
+    beforeEach(() => {
+        state = {entities: {users: {currentUserId: ''}}, plugins: {plugins: {}}};
+        jest.mocked(store.getState).mockImplementation(() => state as any);
+        jest.mocked(store.dispatch).mockImplementation((action: any) => {
+            if (typeof action === 'function') {
+                return action(store.dispatch, store.getState);
+            }
+            if (action?.type === ActionTypes.RECEIVED_WEBAPP_PLUGINS) {
+                const plugins = Object.fromEntries((action.data as PluginManifest[]).map((m) => [m.id, m]));
+                state = {...state, plugins: {plugins}};
+            }
+            return action;
+        });
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        jest.mocked(store.getState).mockImplementation(() => ({}) as any);
+        jest.mocked(store.dispatch).mockReset();
+    });
+
+    test('loadPluginsIfNecessary waits for newly listed plugins to finish loading', async () => {
+        const manifest = {
+            id: 'sync-test-plugin',
+            version: '1.0.0',
+            webapp: {bundle_path: '/static/plugins/sync-test-plugin/main.js'},
+        } as PluginManifest;
+        jest.spyOn(Client4, 'getWebappPlugins').mockResolvedValue([manifest as ClientPluginManifest]);
+
+        let resolved = false;
+        const result = loadPluginsIfNecessary().then(() => {
+            resolved = true;
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(document.getElementById('plugin_' + manifest.id)).not.toBeNull();
+        expect(resolved).toBe(false);
+
+        const initialize = jest.fn();
+        pluginWindow.registerPlugin(manifest.id, {initialize});
+        await result;
+
+        expect(initialize).toHaveBeenCalledTimes(1);
+
+        removePlugin(manifest);
+        delete pluginWindow.plugins[manifest.id];
+    });
+
+    test('ensureAuthenticatedPluginsLoaded only re-synchronizes when the list was fetched for another session', async () => {
+        const getWebappPlugins = jest.spyOn(Client4, 'getWebappPlugins').mockResolvedValue([]);
+
+        // Fetched while logged out, as on the login page.
+        await loadPluginsIfNecessary();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(1);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(1);
+
+        setCurrentUserId('user1');
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
+
+        setCurrentUserId('user2');
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(3);
+    });
+
+    test('ensureAuthenticatedPluginsLoaded re-synchronizes after a failed fetch for the same session', async () => {
+        const getWebappPlugins = jest.spyOn(Client4, 'getWebappPlugins').
+            mockRejectedValueOnce(new Error('network error')).
+            mockResolvedValue([]);
+
+        // The fetch made right after login fails.
+        setCurrentUserId('user3');
+        await loadPluginsIfNecessary();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(1);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
+
+        await ensureAuthenticatedPluginsLoaded();
+        expect(getWebappPlugins).toHaveBeenCalledTimes(2);
     });
 });

@@ -45,6 +45,7 @@ test('MM-T5615 restricts bookmark management to users with permission', {tag: '@
     await adminClient.addToChannel(user.id, channel.id);
     await createLinkBookmark(userClient, channel.id, 'First link', 'https://example.com/first');
     await createLinkBookmark(userClient, channel.id, 'Second link', 'https://example.com/second');
+    await pw.ensurePhase2MigrationCompleted();
     const scheme = await adminClient.createScheme({
         display_name: `Bookmark permissions ${pw.random.id()}`,
         scope: 'team',

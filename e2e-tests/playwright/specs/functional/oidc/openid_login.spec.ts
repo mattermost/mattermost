@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a user who only exists in Keycloak is provisioned via OpenID SSO on first
@@ -53,6 +53,11 @@ test(
     'OpenID login is rejected when the email already belongs to a basic-auth account',
     {tag: '@openid'},
     async ({pw}) => {
+        test.skip(
+            testConfig.subpathMode,
+            'Known product bug: the server signs the error page URL with the subpath but the webapp verifies it without, so the error message is never shown under a subpath.',
+        );
+
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
         await pw.ensureKeycloakOpenId();

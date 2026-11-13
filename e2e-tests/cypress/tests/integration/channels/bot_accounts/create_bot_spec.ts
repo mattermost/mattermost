@@ -41,7 +41,7 @@ function createBot() {
         cy.postMessage('hello');
 
         // # Go to bot integrations page
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('a.integration-option[href$="/bots"]').click();
         cy.get('#addBotAccount').click();
 
@@ -53,7 +53,7 @@ function createBot() {
         // * Verify confirmation page
         cy.url().
             should('include', `/${team.name}/integrations/confirm`).
-            should('match', /token=[a-zA-Z0-9]{26}/);
+            should('not.match', /[?&]token=/);
 
         // * Verify confirmation form/token
         cy.get('div.backstage-form').

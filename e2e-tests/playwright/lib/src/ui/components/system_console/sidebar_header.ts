@@ -16,6 +16,8 @@ export default class SystemConsoleSidebarHeader {
     readonly userName: Locator;
     readonly menuButton: Locator;
     readonly menu: Locator;
+    readonly switchTeamsMenuItem: Locator;
+    readonly switchTeamsMenu: Locator;
     readonly aboutMenuItem: Locator;
     readonly logOutMenuItem: Locator;
 
@@ -24,8 +26,12 @@ export default class SystemConsoleSidebarHeader {
         this.headerInfo = container.getByTestId('admin-sidebar-header-info');
         this.title = container.getByText('System Console');
         this.userName = container.getByText(/^@/);
-        this.menuButton = container.getByRole('button', {name: 'Menu Icon'});
-        this.menu = container.getByRole('menu');
+        this.menuButton = container; // container IS the #admin-sidebar-header button
+
+        // Rendered in a portal at the page level once the menu is open.
+        this.menu = container.page().getByRole('menu', {name: 'System Console Menu'});
+        this.switchTeamsMenuItem = container.page().getByRole('menuitem', {name: 'Switch teams'});
+        this.switchTeamsMenu = container.page().getByRole('menu', {name: 'Switch teams'});
         this.aboutMenuItem = container.page().getByRole('menuitem', {name: /^About /});
         this.logOutMenuItem = container.page().getByRole('menuitem', {name: 'Log Out'});
     }
@@ -42,6 +48,17 @@ export default class SystemConsoleSidebarHeader {
         await this.menuButton.click();
         await expect(this.menu).toBeVisible();
         return this.menu;
+    }
+
+    /**
+     * Opens the header menu and the Switch teams submenu.
+     * Returns the submenu paper — that is the scroll container, not the list.
+     */
+    async openSwitchTeamsMenu(): Promise<Locator> {
+        await this.openMenu();
+        await this.switchTeamsMenuItem.hover();
+        await expect(this.switchTeamsMenu).toBeVisible();
+        return this.container.page().locator('.MuiPaper-root:has(#adminConsoleSwitchTeamsMenu)');
     }
 
     /**

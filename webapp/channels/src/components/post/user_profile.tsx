@@ -108,6 +108,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     channelId={post.channel_id}
                     hideStatus={true}
                     hideGuestTag={hideGuestTag}
+                    fromWebhook={true}
                     overwriteName={overwriteName}
                     colorize={colorize}
                     overwriteIcon={overwriteIcon}

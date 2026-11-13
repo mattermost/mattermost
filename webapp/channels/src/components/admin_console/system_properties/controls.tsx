@@ -1,37 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import React from 'react';
 import styled, {css} from 'styled-components';
 
-export const SectionHeading = styled.h3`
-    &&& {
-        margin-bottom: 8px;
-    }
-`;
-
-export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
-    &&& {
-        padding: 24px 32px;
-        ${({$borderless}) => !$borderless && css`
-            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-        `}
-    }
-`;
-
-export const SectionContent = styled.div.attrs({className: 'content'})<{$compact?: boolean}>`
-    &&& {
-        padding: ${({$compact}) => ($compact ? '24px 32px' : '48px 32px')};
-        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-    }
-`;
-
-export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-    && {
-        overflow: visible;
-    }
-`;
+import {Button} from '@mattermost/compass-ui/components/button';
 
 export const AdminWrapper = (props: {children: ReactNode}) => {
     return (
@@ -84,16 +58,30 @@ export const DangerText = styled.span`
     color: #D24B4E;
 `;
 
-export const FieldDeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
-    font-weight: normal;
-`;
+type CompassButtonProps = ComponentProps<typeof Button>;
 
-export const LinkButton = styled.button.attrs({className: 'btn btn-link'})`
-    font-weight: normal;
-    padding: 8px 16px !important;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 16px;
-    gap: 6px;
-`;
+export const FieldDeleteButton = ({className, style, ...props}: CompassButtonProps) => (
+    <Button
+        size='small'
+        emphasis='tertiary'
+        className={className ? `btn-transparent ${className}` : 'btn-transparent'}
+        style={{fontWeight: 'normal', ...style}}
+        {...props}
+    />
+);
+
+export const LinkButton = ({style, ...props}: CompassButtonProps) => (
+    <Button
+        emphasis='link'
+        style={{
+            fontWeight: 600,
+            padding: '8px 16px',
+            fontSize: 12,
+            fontStyle: 'normal',
+            lineHeight: '16px',
+            gap: 6,
+            ...style,
+        }}
+        {...props}
+    />
+);

@@ -35,6 +35,21 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
     steps:
+      - name: Set pending commit status
+        if: ${{ inputs.STATUS_CONTEXT != '' }}
+        env:
+          COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
+          CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
+            -f state=pending \
+            -f context="${CONTEXT_NAME}" \
+            -f description="Docs preview build for ${COMMIT_SHA} is running" \
+            -f target_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -120,8 +135,10 @@ jobs:
             -f description="Docs preview build for ${COMMIT_SHA} succeeded" \
             -f target_url="$PREVIEW_URL"
 
+      # A cancelled run was superseded by a newer run for the same PR, which
+      # owns the status, so only report genuine failures.
       - name: Set failure commit status
-        if: ${{ always() && inputs.STATUS_CONTEXT != '' && (failure() || cancelled()) }}
+        if: ${{ failure() && inputs.STATUS_CONTEXT != '' }}
         env:
           COMMIT_SHA: ${{ inputs.COMMIT_SHA }}
           CONTEXT_NAME: ${{ inputs.STATUS_CONTEXT }}

@@ -13,6 +13,7 @@ import ScheduledPostCustomTimeModal
     from 'components/advanced_text_editor/send_button/scheduled_post_custom_time_modal/scheduled_post_custom_time_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import Action from './action';
 import DeleteDraftModal from './delete_draft_modal';
@@ -34,7 +35,7 @@ type Props = {
     canSend: boolean;
     onSchedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     channelId: string;
-    allowRecurring: boolean;
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
 function DraftActions({
@@ -46,7 +47,7 @@ function DraftActions({
     canSend,
     onSchedule,
     channelId,
-    allowRecurring,
+    repeatDisabledReason,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -79,10 +80,10 @@ function DraftActions({
             dialogProps: {
                 channelId,
                 onConfirm: onSchedule,
-                allowRecurring,
+                repeatDisabledReason,
             },
         }));
-    }, [allowRecurring, channelId, dispatch, onSchedule]);
+    }, [repeatDisabledReason, channelId, dispatch, onSchedule]);
 
     return (
         <>

@@ -1,11 +1,13 @@
 // Self-contained on purpose: Account Settings renders this widget and must not
 // depend on the admin ABAC stylesheets. The chip rules mirror
 // table_editor/selector_menus.scss rather than importing it.
-// The trigger is a Compass-like input (same 1px / 4px / 40px recipe as ranked
-// CPA and Compass Input), not the borderless policy-table cell.
+// The base trigger is the bordered `policy` one; `--input` overrides it with
+// the Compass multiselect look and `--inline` makes it borderless.
 .hierarchical-value-menu {
     width: 100%;
 
+    // Role is a div (not a button) so chip removes can be real <button>s without
+    // nesting interactive controls.
     &__button {
         display: flex;
         width: 100%;
@@ -25,7 +27,7 @@
         font-weight: normal;
         text-align: left;
 
-        &:hover:not(.disabled) {
+        &:hover:not(.disabled):not([aria-disabled='true']) {
             border-color: rgba(var(--center-channel-color-rgb), 0.24);
             background: var(--center-channel-bg);
             color: inherit;
@@ -42,11 +44,187 @@
             outline: none;
         }
 
-        &.disabled {
+        &.disabled,
+        &[aria-disabled='true'] {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);
             background: rgba(var(--center-channel-color-rgb), 0.04);
             cursor: not-allowed;
             opacity: 0.6;
+        }
+    }
+
+    // Channel-info chrome: match ChannelInfoAttributes__valueTrigger (borderless,
+    // grey wash on hover/open). Policy keeps the bordered base trigger above;
+    // input is the Compass-style block below.
+    &--inline {
+        width: auto;
+        min-width: 0;
+        flex: 1;
+
+        .hierarchical-value-menu__button {
+            width: 100%;
+            min-height: 28px;
+            padding: 0 4px;
+            border: none;
+            background: transparent;
+
+            &:hover:not(.disabled):not([aria-disabled='true']),
+            &[aria-expanded='true'] {
+                border: none;
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+                box-shadow: none;
+            }
+
+            &:focus-visible {
+                border: none;
+                background: transparent;
+                box-shadow: none;
+                outline: 2px solid var(--button-bg);
+                outline-offset: 2px;
+            }
+
+            &[aria-expanded='true']:focus-visible {
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            &.disabled,
+            &[aria-disabled='true'] {
+                border: none;
+                background: transparent;
+                opacity: 0.6;
+            }
+        }
+
+        .hierarchical-value-menu__placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.48);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+        }
+
+        // Dismiss only while the picker is open (or the control is keyboard-focused).
+        // Collapse the control's box when hidden so chips do not reserve trailing space.
+        .AttributeChip--dismissible {
+            padding: 4px 8px;
+            gap: 0;
+        }
+
+        .AttributeChip__remove {
+            overflow: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+            opacity: 0;
+            pointer-events: none;
+
+            &:focus-visible {
+                width: 14px;
+                height: 14px;
+                margin-inline-start: 4px;
+                opacity: 0.56;
+                pointer-events: auto;
+            }
+        }
+
+        .hierarchical-value-menu__button[aria-expanded='true'] {
+            .AttributeChip--dismissible {
+                padding: 4px 4px 4px 8px;
+            }
+
+            .AttributeChip__remove {
+                width: 14px;
+                height: 14px;
+                margin-inline-start: 4px;
+                opacity: 0.56;
+                pointer-events: auto;
+            }
+        }
+    }
+
+    // Graph attribute field: mirrors the Compass Combobox multiselect.
+    &--input {
+        .hierarchical-value-menu__button {
+            padding: var(--spacing-s) var(--spacing-l);
+            border: 0;
+            box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16);
+            transition: box-shadow var(--duration-quick) var(--ease-transition);
+
+            &.hierarchical-value-menu__button--has-chips {
+                padding-block: var(--spacing-xs);
+                padding-inline-start: var(--spacing-xs);
+            }
+
+            &:hover:not(.disabled, [aria-disabled='true'], [aria-expanded='true'], :focus-visible, .hierarchical-value-menu__button--invalid) {
+                box-shadow: inset 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.24);
+            }
+
+            &[aria-expanded='true'],
+            &:focus-visible {
+                box-shadow:
+                    inset 0 0 0 1px var(--focus-ring-color),
+                    0 0 0 1px var(--focus-ring-color);
+            }
+
+            &.hierarchical-value-menu__button--invalid {
+                box-shadow: inset 0 0 0 1px var(--error-text);
+
+                &[aria-expanded='true'],
+                &:focus-visible {
+                    box-shadow:
+                        inset 0 0 0 1px var(--error-text),
+                        0 0 0 1px var(--error-text);
+                }
+            }
+
+            &.disabled,
+            &[aria-disabled='true'] {
+                background: var(--center-channel-bg);
+                opacity: 0.56;
+            }
+        }
+
+        .hierarchical-value-menu__button-inner {
+            gap: var(--spacing-s);
+        }
+
+        .hierarchical-value-menu__placeholder {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-100);
+            font-weight: var(--font-weight-regular);
+            line-height: var(--line-height-100);
+        }
+
+        // The -1px block margin offsets the chip's 1px transparent border so a
+        // single row of chips keeps the field at 40px.
+        .hierarchical-value-menu__chips {
+            min-width: 0;
+            margin: -1px 0;
+            gap: var(--spacing-xxs);
+        }
+
+        .hierarchical-value-menu__chip {
+            margin: 0;
+        }
+
+        .hierarchical-value-menu__chip--pending .hierarchical-value-menu__chip-value {
+            display: inline-block;
+            width: 64px;
+            height: 12px;
+            border-radius: var(--radius-xs);
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            color: transparent;
+            vertical-align: middle;
+        }
+
+        .hierarchical-value-menu__chip--unavailable .hierarchical-value-menu__chip-value {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-style: italic;
+        }
+
+        // The global .a11y--focused box-shadow would double up Compass's own
+        // chip focus ring.
+        [data-chip].a11y--focused {
+            box-shadow: none;
         }
     }
 
@@ -71,64 +249,71 @@
     }
 
     // Every chip, wrapping. No "+N" and no cap: chip overflow is a known
-    // residual for this widget.
+    // residual for this widget. Chips themselves are AttributeChip.
     &__chips {
         display: flex;
         flex-grow: 1;
         flex-wrap: wrap;
+        align-items: center;
         gap: 2px;
     }
 
     &__chip {
-        display: flex;
-        height: 24px;
-        align-items: center;
-        border-radius: 4px;
         margin: 2px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    &__chip-label {
-        padding: 0 4px 0 8px;
-        font-size: 12px;
-    }
-
-    &__chip--pending &__chip-label {
-        width: 64px;
-        height: 12px;
-        border-radius: 2px;
-        background: rgba(var(--center-channel-color-rgb), 0.16);
-    }
-
-    // A read that failed leaves nothing known about the id -- not even a stale
-    // name. The chip says so instead of printing the raw identifier.
-    &__chip--unavailable &__chip-label {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-style: italic;
-    }
-
-    &__chip-remove {
-        display: flex;
+    // Rendered by the input variant only; matches the Combobox trailing icon.
+    &__caret {
+        display: inline-flex;
+        flex-shrink: 0;
         align-items: center;
-        padding: 0 4px;
-        cursor: pointer;
+        justify-content: center;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        margin-inline-end: var(--spacing-xxxs);
+        pointer-events: none;
+        transition: transform var(--duration-quick) var(--ease-transition);
 
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        .hierarchical-value-menu__button[aria-expanded='true'] & {
+            transform: rotate(180deg);
+        }
+
+        svg {
+            width: var(--icon-size-16);
+            height: var(--icon-size-16);
         }
     }
 
+    // Cap the open list at 320px so long option names ellipsize instead of
+    // stretching the popover (chips already clamp at 148px in Channel Info).
     &__menu {
+        max-width: 320px;
         max-height: 400px;
+        overflow-x: hidden;
         overflow-y: auto;
+
+        // The search header's bottom padding already separates it from the
+        // first row; MenuList's own top padding would double that gap.
+        &.MuiList-padding {
+            padding-top: 0;
+        }
+
+        // The list's inline width is the trigger's; rows fill it instead of
+        // stopping at the 320px cap.
+        &--trigger-width .hierarchical-value-menu__row {
+            max-width: none;
+        }
     }
 
     &__search {
+        max-width: 320px;
+        box-sizing: border-box;
         padding: 10px;
     }
 
     &__row {
         // padding-inline-start is set inline, from the row's depth.
+        max-width: 320px;
+        box-sizing: border-box;
         align-items: center;
 
         // Menu.Item paints the whole <li> on hover (and when aria-expanded).
@@ -144,9 +329,12 @@
 
             > .leading-element {
                 overflow: visible;
+                flex-shrink: 0;
+                margin-inline-end: 4px;
             }
 
             > .label-elements {
+                overflow: hidden;
                 min-width: 0;
                 flex: 1 1 auto;
             }
@@ -205,6 +393,7 @@
 
     &__label {
         overflow: hidden;
+        max-width: 100%;
         color: var(--center-channel-color);
         font-size: 14px;
         line-height: 20px;
@@ -213,13 +402,18 @@
     }
 
     &__hint {
+        overflow: hidden;
+        max-width: 100%;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__trailing {
         display: inline-flex;
+        flex-shrink: 0;
         align-items: center;
         gap: 4px;
     }
@@ -263,14 +457,21 @@
         gap: 8px;
     }
 
-    &__retry.btn {
-        height: auto;
-        min-height: 0;
-        padding: 0;
-        border: none;
-        background: transparent;
-        color: var(--link-color);
-        font-size: 12px;
-        font-weight: 600;
+}
+
+// Menu portals outside .hierarchical-value-menu; keep the paper in sync with
+// the 320px list/search cap so long labels cannot widen the popover shell.
+.menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__menu),
+.menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__search) {
+    max-width: 320px;
+}
+
+// Trigger-width menus size the list explicitly, so neither our 320px cap nor
+// menu.scss's 496px paper cap applies. Five classes beat menu.scss's four.
+.MuiPopover-root.MuiModal-root.menu_menuStyled .MuiPaper-root:has(> .hierarchical-value-menu__menu--trigger-width) {
+    max-width: none;
+
+    > .hierarchical-value-menu__search {
+        max-width: none;
     }
 }

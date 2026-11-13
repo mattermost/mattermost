@@ -7,8 +7,8 @@ import React, {
     useState,
     useRef,
 } from 'react';
-import {useIntl} from 'react-intl';
-import {shallowEqual, useSelector, useDispatch} from 'react-redux';
+import {defineMessage, useIntl} from 'react-intl';
+import {shallowEqual, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
@@ -18,17 +18,15 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense, isChannelPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {
-    setShowPreviewOnChannelSettingsHeaderModal,
-    setShowPreviewOnChannelSettingsPurposeModal,
-} from 'actions/views/textbox';
 import {getBasePath, isChannelAccessControlEnabled} from 'selectors/general';
 import {getChannelSettingsTabs} from 'selectors/plugins';
 
 import type {Tab as SidebarTab} from 'components/settings_sidebar/settings_sidebar';
 import {normalizePluginIcon} from 'components/settings_sidebar/settings_sidebar';
 
+import {useChannelKind} from 'hooks/useChannelKind';
 import {focusElement} from 'utils/a11y_utils';
+import type {KindMessages} from 'utils/channel_kind';
 import Constants from 'utils/constants';
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
@@ -51,6 +49,13 @@ type ChannelSettingsModalProps = {
     onExited: () => void;
     isOpen: boolean;
     focusOriginElement?: string;
+
+    /**
+     * The tab to open on: a built-in tab ('info', 'configuration', …) or the id that
+     * registerChannelSettingsTab returned for a plugin's tab. A tab that isn't shown for the
+     * channel falls back to the first one, as a selection that becomes unavailable does.
+     */
+    initialTab?: string;
 };
 
 const BuiltInTabIds = {
@@ -93,10 +98,17 @@ function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab
     return visibleBuiltInTabs[0]?.name ?? visiblePluginTabs[0]?.name ?? BuiltInTabIds.INFO;
 }
 
-function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}: ChannelSettingsModalProps) {
+function initialTabName(initialTab: string | undefined): string {
+    if (!initialTab || isBuiltInTabId(initialTab)) {
+        return initialTab || BuiltInTabIds.INFO;
+    }
+    return getPluginTabName(initialTab);
+}
+
+function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement, initialTab}: ChannelSettingsModalProps) {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
+    const channelKind = useChannelKind(channel);
     const visiblePluginTabRegistrations = useSelector((state: GlobalState) => {
         const currentChannel = getChannel(state, channelId);
         if (!currentChannel) {
@@ -203,7 +215,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     // The user's selected tab. The tab actually shown is derived as `activeTab`
     // below so a selection that becomes unavailable falls back automatically.
-    const [selectedTab, setSelectedTab] = useState<string>(BuiltInTabIds.INFO);
+    const [selectedTab, setSelectedTab] = useState<string>(() => initialTabName(initialTab));
 
     // State for showing error in the save changes panel when trying to switch tabs with unsaved changes
     const [showTabSwitchError, setShowTabSwitchError] = useState(false);
@@ -249,7 +261,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             },
             {
                 name: BuiltInTabIds.ARCHIVE,
-                uiName: formatMessage({id: 'channel_settings.tab.archive', defaultMessage: 'Archive Channel'}),
+                uiName: formatMessage(messages.archiveTab[channelKind]),
                 icon: 'icon icon-archive-outline',
                 iconTitle: formatMessage({id: 'generic_icons.archive', defaultMessage: 'Archive Icon'}),
                 display: shouldShowArchiveTab,
@@ -257,6 +269,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         ];
     }, [
         formatMessage,
+        channelKind,
         shouldShowInfoTab,
         shouldShowAccessRulesTab,
         shouldShowPermissionsPolicyTab,
@@ -341,9 +354,6 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHideConfirm = () => {
-        // Reset preview states to false when closing the modal
-        dispatch(setShowPreviewOnChannelSettingsHeaderModal(false));
-        dispatch(setShowPreviewOnChannelSettingsPurposeModal(false));
         setShow(false);
     };
 
@@ -472,7 +482,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         );
     };
 
-    const modalTitle = formatMessage({id: 'channel_settings.modal.title', defaultMessage: 'Channel Settings'});
+    const modalTitle = formatMessage(messages.title[channelKind]);
 
     return (
         <GenericModal
@@ -495,5 +505,28 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         </GenericModal>
     );
 }
+
+const messages = {
+    archiveTab: {
+        channel: defineMessage({
+            id: 'channel_settings.tab.archive',
+            defaultMessage: 'Archive Channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.tab.archive.board',
+            defaultMessage: 'Archive Board',
+        }),
+    },
+    title: {
+        channel: defineMessage({
+            id: 'channel_settings.modal.title',
+            defaultMessage: 'Channel Settings',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.modal.title.board',
+            defaultMessage: 'Board Settings',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
 
 export default ChannelSettingsModal;

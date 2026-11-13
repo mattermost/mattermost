@@ -1,0 +1,26 @@
+diff --git a/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts b/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
+index 3711eed..664d607 100644
+--- a/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/Dropdown.d.ts
+@@ -22,7 +22,7 @@ declare namespace Dropdown {
+         role?: string | undefined;
+     }
+ 
+-    export type DropdownProps = Dropdown.DropdownBaseProps & React.HTMLProps<Dropdown>;
++    export type DropdownProps = Dropdown.DropdownBaseProps & Omit<React.HTMLProps<Dropdown>, "onToggle">;
+ }
+ 
+ declare class Dropdown extends React.Component<Dropdown.DropdownProps> {
+diff --git a/node_modules/@types/react-bootstrap/lib/Panel.d.ts b/node_modules/@types/react-bootstrap/lib/Panel.d.ts
+index 4f085a0..dace6ff 100644
+--- a/node_modules/@types/react-bootstrap/lib/Panel.d.ts
++++ b/node_modules/@types/react-bootstrap/lib/Panel.d.ts
+@@ -8,7 +8,7 @@ import PanelBody = require("./PanelBody");
+ import PanelFooter = require("./PanelFooter");
+ 
+ declare namespace Panel {
+-    export interface PanelProps extends TransitionCallbacks, React.HTMLProps<Panel> {
++    export interface PanelProps extends TransitionCallbacks, Omit<React.HTMLProps<Panel>, "onToggle"> {
+         bsClass?: string | undefined;
+         bsStyle?: string | undefined;
+         defaultExpanded?: boolean | undefined;

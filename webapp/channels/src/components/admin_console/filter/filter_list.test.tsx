@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {FilterOption} from './filter';
 import FilterList from './filter_list';
@@ -46,5 +45,27 @@ describe('admin_console/filter/FilterList', () => {
         expect(checkboxes).toHaveLength(2);
         expect(checkboxes[0]).toBeChecked();
         expect(checkboxes[1]).not.toBeChecked();
+    });
+
+    test('should update values when a checkbox is toggled', async () => {
+        const updateValues = jest.fn();
+        renderWithContext(
+            <FilterList
+                option={baseOption}
+                optionKey='test'
+                updateValues={updateValues}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('checkbox', {name: 'Option 2'}));
+
+        expect(updateValues).toHaveBeenCalledTimes(1);
+        expect(updateValues).toHaveBeenCalledWith(
+            {
+                opt1: {name: 'Option 1', value: true},
+                opt2: {name: 'Option 2', value: true},
+            },
+            'test',
+        );
     });
 });

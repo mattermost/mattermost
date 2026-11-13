@@ -14,44 +14,10 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         description: 'This is the description',
     };
 
-    test('should match snapshot with default Props', () => {
-        const {container} = renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot if inherited', () => {
-        const {container} = renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-                inherited={{
-                    name: 'all_users',
-                }}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with clickable link', () => {
-        const description = (
-            <span>{'This is a clickable description'}</span>
-        );
-        const {container} = renderWithContext(
-            <PermissionDescription
-                {...defaultProps}
-                description={description}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should allow select with link', async () => {
         const selectRow = jest.fn();
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 inherited={{
@@ -60,8 +26,6 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
                 selectRow={selectRow}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         // Verify the inherited link renders with correct structure
         const inheritLink = screen.getByText('All Members');

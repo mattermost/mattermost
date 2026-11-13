@@ -107,7 +107,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                 }
                 modalMessage={
                     <FormattedMessage
-                        id='installed_outgoing_oauth_connections.delete.wanring'
+                        id='installed_outgoing_oauth_connections.delete.warning'
                         defaultMessage='Deleting this connection will break any integrations using it'
                     />
                 }

@@ -445,5 +445,28 @@
   },
   "server": {
     "target": "сервер"
+  },
+  "health dashboard": {
+    "target": "Состояние сайта",
+    "note": "Name of the System Console page; quote it as a name in running text: «Состояние сайта» (e.g. 'функция «Состояние сайта»'). Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "замечание о состоянии сайта",
+    "note": "Shorten to 'замечание' inside the page itself (e.g. 'Нет скрытых замечаний'). Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "плагин Agents",
+    "note": "Inflect 'плагин' only: 'плагина Agents', 'в плагине Agents'. 'Mattermost Agents plugin' = 'плагин Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English; it does not decline, so carry the case on the head noun 'служба': 'служба Hosted Push Notification Service', 'службы Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English; carry the case on 'служба': 'служба Test Push Notification Service'. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

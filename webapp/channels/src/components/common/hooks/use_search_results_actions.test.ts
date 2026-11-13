@@ -39,6 +39,12 @@ describe('useSearchResultsActions', () => {
     const channel = TestHelper.getChannelMock({id: 'channel1', name: 'test-channel'});
     const initialState = {
         entities: {
+            general: {
+                config: {
+                    EnableFileAttachments: 'true',
+                    EnableFileSearch: 'true',
+                },
+            },
             channels: {
                 currentChannelId: channel.id,
                 channels: {
@@ -63,6 +69,7 @@ describe('useSearchResultsActions', () => {
     function callAction(
         callback: (actions: ReturnType<typeof useSearchResultsActions>) => void,
         rhsState?: string,
+        searchTeam?: string | null,
     ) {
         const state = {
             ...initialState,
@@ -70,6 +77,7 @@ describe('useSearchResultsActions', () => {
                 rhs: {
                     ...initialState.views.rhs,
                     rhsState: rhsState ?? initialState.views.rhs.rhsState,
+                    searchTeam: searchTeam === undefined ? initialState.views.rhs.searchTeam : searchTeam,
                 },
             },
         };
@@ -83,14 +91,37 @@ describe('useSearchResultsActions', () => {
         expect(jest.mocked(getMorePostsForSearch)).toHaveBeenCalledWith('team1');
     });
 
-    test('getMorePostsForSearch should dispatch with empty team for mention search', () => {
-        callAction((a) => a.getMorePostsForSearch(), 'mention');
+    test('getMorePostsForSearch should dispatch with empty team for an unscoped mention search', () => {
+        callAction((a) => a.getMorePostsForSearch(), 'mention', null);
         expect(jest.mocked(getMorePostsForSearch)).toHaveBeenCalledWith('');
+    });
+
+    test('getMorePostsForSearch should dispatch with search team for a mention search scoped to a team', () => {
+        callAction((a) => a.getMorePostsForSearch(), 'mention');
+        expect(jest.mocked(getMorePostsForSearch)).toHaveBeenCalledWith('team1');
+    });
+
+    test('getMoreFilesForSearch should dispatch with empty team for an unscoped mention search', () => {
+        callAction((a) => a.getMoreFilesForSearch(), 'mention', null);
+        expect(jest.mocked(getMoreFilesForSearch)).toHaveBeenCalledWith('');
     });
 
     test('getMoreFilesForSearch should dispatch with search team', () => {
         callAction((a) => a.getMoreFilesForSearch());
         expect(jest.mocked(getMoreFilesForSearch)).toHaveBeenCalledWith('team1');
+    });
+
+    test('getMoreFilesForSearch should not dispatch when file search is unavailable', () => {
+        const state = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {EnableFileAttachments: 'true', EnableFileSearch: 'false'}},
+            },
+        };
+        const {result} = renderHookWithContext(() => useSearchResultsActions(), state);
+        act(() => result.current.getMoreFilesForSearch());
+        expect(jest.mocked(getMoreFilesForSearch)).not.toHaveBeenCalled();
     });
 
     test('setSearchFilterType should dispatch filter and trigger search results', () => {

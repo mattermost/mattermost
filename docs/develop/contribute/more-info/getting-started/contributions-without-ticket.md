@@ -21,7 +21,7 @@ For pull requests greater than 20 lines of code, a `Help Wanted` ticket should b
 
 
 <Note title="Note">
-Please use [our translation server](https://translate.mattermost.com) to correct errors in translation.
+To correct a translation, follow the [localization](https://handbook.mattermost.com/contributors/ways-to-contribute/localization) page and submit a pull request with the preferred phrasing.
 </Note>
 
 

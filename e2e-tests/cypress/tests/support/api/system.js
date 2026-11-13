@@ -308,13 +308,6 @@ Cypress.Commands.add('shouldHaveClusterEnabled', () => {
     });
 });
 
-Cypress.Commands.add('shouldRunWithSubpath', () => {
-    return cy.apiGetConfig().then(({config}) => {
-        const isSubpath = Boolean(config.ServiceSettings.SiteURL.replace(/^https?:\/\//, '').split('/')[1]);
-        expect(isSubpath, isSubpath ? '' : 'Should run on server running with subpath only').to.equal(true);
-    });
-});
-
 Cypress.Commands.add('shouldHaveFeatureFlag', (key, expectedValue) => {
     return cy.apiGetConfig().then(({config}) => {
         const actualValue = config.FeatureFlags[key];

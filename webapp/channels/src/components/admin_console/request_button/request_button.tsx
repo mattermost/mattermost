@@ -7,12 +7,10 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
-import type {ButtonEmphasis} from '@mattermost/shared/components/button';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
 
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -251,21 +249,17 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                             emphasis={this.props.buttonEmphasis || 'tertiary'}
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
+                            loading={this.state.busy}
                         >
-                            <LoadingWrapper
-                                loading={this.state.busy}
-                                text={
-                                    this.props.loadingText ||
-                                    (
-                                        <FormattedMessage
-                                            id={'admin.requestButton.loading'}
-                                            defaultMessage={'Loading...'}
-                                        />
-                                    )
-                                }
-                            >
-                                {this.props.buttonText}
-                            </LoadingWrapper>
+                            {this.state.busy ? (
+                                this.props.loadingText ||
+                                (
+                                    <FormattedMessage
+                                        id={'admin.requestButton.loading'}
+                                        defaultMessage={'Loading...'}
+                                    />
+                                )
+                            ) : this.props.buttonText}
                         </Button>
                         {this.props.alternativeActionElement}
                         {message}

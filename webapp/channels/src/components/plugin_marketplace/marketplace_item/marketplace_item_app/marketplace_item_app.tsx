@@ -2,11 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
-
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import MarketplaceItem from '../marketplace_item';
 
@@ -41,28 +40,36 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
     getItemButton(): JSX.Element {
         if (this.props.installed && !this.props.installing && !this.props.error) {
             return (
-                <button
+                <Button
                     className='app-installed'
+                    emphasis='tertiary'
                     disabled={true}
                 >
                     <FormattedMessage
                         id='marketplace_modal.list.installed'
                         defaultMessage='Installed'
                     />
-                </button>
+                </Button>
             );
         }
 
-        let actionButton: JSX.Element;
-        if (this.props.error) {
-            actionButton = (
+        let actionLabel: JSX.Element;
+        if (this.props.installing) {
+            actionLabel = (
+                <FormattedMessage
+                    id='marketplace_modal.installing'
+                    defaultMessage='Installing...'
+                />
+            );
+        } else if (this.props.error) {
+            actionLabel = (
                 <FormattedMessage
                     id='marketplace_modal.list.try_again'
                     defaultMessage='Try Again'
                 />
             );
         } else {
-            actionButton = (
+            actionLabel = (
                 <FormattedMessage
                     id='marketplace_modal.list.install'
                     defaultMessage='Install'
@@ -71,19 +78,13 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
         }
 
         return (
-            <button
+            <Button
                 onClick={this.onInstall}
-                className='app-install always-show-enabled'
-                disabled={this.props.installing}
+                className='app-install'
+                loading={this.props.installing}
             >
-                <LoadingWrapper
-                    loading={this.props.installing}
-                    text={defineMessage({id: 'marketplace_modal.installing', defaultMessage: 'Installing...'})}
-                >
-                    {actionButton}
-                </LoadingWrapper>
-
-            </button>
+                {actionLabel}
+            </Button>
         );
     }
 
