@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 )
 
@@ -56,6 +57,35 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.th.TestLogger.Info(marker)
 		s.Require().NoError(s.th.TestLogger.Flush())
 		return marker
+	}
+
+	// startFollower runs a follower until stop is called, and returns once its first query has
+	// returned. stop returns the warnings it printed
+	startFollower := func(c client.Client, opts *logsOptions) (stdout *syncBuffer, stop func() ([]string, error)) {
+		queried := &queriedClient{Client: c, queried: make(chan struct{})}
+		stdout = &syncBuffer{}
+		var warnings []string
+		follower := newLogFollower(queried, opts, stdout)
+		follower.warn = func(msg string) { warnings = append(warnings, msg) }
+
+		ctx, cancel := context.WithCancel(s.T().Context())
+		done := make(chan error, 1)
+		go func() {
+			done <- follower.run(ctx)
+		}()
+
+		select {
+		case <-queried.queried:
+		case <-time.After(10 * time.Second):
+			cancel()
+			s.FailNow("the initial log query didn't return")
+		}
+		return stdout, func() ([]string, error) {
+			cancel()
+			err := <-done
+			// Only read after the follower stopped
+			return warnings, err
+		}
 	}
 
 	s.RunForSystemAdminAndLocal("Display single log line", func(c client.Client) {
@@ -116,23 +146,7 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 	s.RunForSystemAdminAndLocal("Follow new log entries", func(c client.Client) {
 		marker := "mmctl_logs_follow_" + model.NewId()
 		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, search: marker}
-		queried := &queriedClient{Client: c, queried: make(chan struct{})}
-		var stdout syncBuffer
-		var warnings []string
-		follower := newLogFollower(queried, opts, &stdout)
-		follower.warn = func(msg string) { warnings = append(warnings, msg) }
-
-		ctx, cancel := context.WithCancel(s.T().Context())
-		done := make(chan error, 1)
-		go func() {
-			done <- follower.run(ctx)
-		}()
-
-		select {
-		case <-queried.queried:
-		case <-time.After(10 * time.Second):
-			s.FailNow("the initial log query didn't return")
-		}
+		stdout, stop := startFollower(c, opts)
 		s.Empty(stdout.String(), "the marker isn't logged yet")
 
 		s.th.TestLogger.Info(marker)
@@ -143,10 +157,37 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 			return strings.Contains(stdout.String(), marker)
 		}, 3*opts.interval+time.Second, 50*time.Millisecond, "the followed logs should print the marker")
 
-		cancel()
-		s.Require().NoError(<-done)
-		// Only read after the follower stopped
+		warnings, err := stop()
+		s.Require().NoError(err)
 		s.Empty(warnings)
+	})
+
+	s.RunForSystemAdminAndLocal("Filter the logs by plugin", func(c client.Client) {
+		// Each entry holds the marker, so --search alone would print all of them
+		marker := "mmctl_logs_plugin_" + model.NewId()
+		pluginID := "com.example." + strings.ToLower(model.NewId())
+		s.th.TestLogger.Info(marker+"_kept", mlog.String("plugin_id", pluginID))
+		s.th.TestLogger.Info(marker+"_other", mlog.String("plugin_id", pluginID+"x"))
+		s.th.TestLogger.Info(marker+"_none", mlog.String("url", "https://example.com/plugins/"+pluginID))
+		s.Require().NoError(s.th.TestLogger.Flush())
+
+		cmd := newTestCmd(s.T(), LogsCmd)
+		s.Require().NoError(cmd.Flags().Set("plugin", pluginID))
+		s.Require().NoError(cmd.Flags().Set("search", marker))
+
+		data, _, err := testLogsCmdF(c, cmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], marker+"_kept")
+
+		// --follow prints the same entries first
+		opts := &logsOptions{number: DefaultPageSize, follow: true, interval: logsMinInterval, plugins: []string{pluginID}, search: marker}
+		stdout, stop := startFollower(c, opts)
+		_, err = stop()
+		s.Require().NoError(err)
+		lines := testLogMessages(stdout.String())
+		s.Require().Len(lines, 1)
+		s.Contains(lines[0], marker+"_kept")
 	})
 
 	s.RunForSystemAdminAndLocal("Refuse to follow plain-text log files", func(c client.Client) {

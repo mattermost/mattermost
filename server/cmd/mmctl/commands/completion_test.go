@@ -11,9 +11,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 )
 
 func TestFetchAndComplete(t *testing.T) {
@@ -154,4 +156,102 @@ func TestNoCompletion(t *testing.T) {
 	comp, directive := noCompletion(nil, nil, "any")
 	assert.Nil(t, comp)
 	assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
+}
+
+func TestPluginIDCompletion(t *testing.T) {
+	plugin := func(id, name string) *model.PluginInfo {
+		return &model.PluginInfo{Manifest: model.Manifest{Id: id, Name: name}}
+	}
+	plugins := &model.PluginsResponse{
+		Active: []*model.PluginInfo{
+			plugin("com.mattermost.calls", "Calls"),
+			plugin("github", "GitHub"),
+		},
+		Inactive: []*model.PluginInfo{
+			plugin("jira", "Jira\tCloud\nand Server"),
+			plugin("com.mattermost.nps", ""),
+		},
+	}
+
+	for name, tc := range map[string]struct {
+		toComplete string
+		flags      []string
+		expected   []string
+	}{
+		"nothing typed lists every plugin": {
+			toComplete: "",
+			expected:   []string{"com.mattermost.calls\tCalls", "github\tGitHub", "jira\tJira Cloud and Server", "com.mattermost.nps"},
+		},
+		"a prefix matches active and inactive plugins": {
+			toComplete: "com.",
+			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
+		},
+		"no match": {
+			toComplete: "zoom",
+			expected:   []string{},
+		},
+		"comma-separated input completes the last value": {
+			toComplete: "github,j",
+			expected:   []string{"github,jira\tJira Cloud and Server"},
+		},
+		"comma-separated input skips the IDs given before": {
+			toComplete: "github,",
+			expected:   []string{"github,com.mattermost.calls\tCalls", "github,jira\tJira Cloud and Server", "github,com.mattermost.nps"},
+		},
+		"skips the IDs of earlier flags": {
+			toComplete: "",
+			flags:      []string{"github", "jira"},
+			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
+		},
+		"skips the IDs of earlier flags, trimmed": {
+			toComplete: "",
+			flags:      []string{"github, jira"},
+			expected:   []string{"com.mattermost.calls\tCalls", "com.mattermost.nps"},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c := mocks.NewMockClient(gomock.NewController(t))
+			c.EXPECT().GetPlugins(gomock.Any()).Return(plugins, &model.Response{}, nil).Times(1)
+
+			cmd := &cobra.Command{}
+			cmd.Flags().StringSlice("plugin", nil, "")
+			for _, value := range tc.flags {
+				assert.NoError(t, cmd.Flags().Set("plugin", value))
+			}
+
+			comp, directive := pluginIDFlagCompletionF(context.Background(), c, cmd, nil, tc.toComplete)
+			assert.Equal(t, tc.expected, comp)
+			assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
+		})
+	}
+
+	t.Run("arguments skip the IDs given before, and aren't split at commas", func(t *testing.T) {
+		c := mocks.NewMockClient(gomock.NewController(t))
+		c.EXPECT().GetPlugins(gomock.Any()).Return(plugins, &model.Response{}, nil).Times(2)
+
+		comp, _ := pluginIDCompletionF(context.Background(), c, nil, []string{"com.mattermost.calls", "github"}, "")
+		assert.Equal(t, []string{"jira\tJira Cloud and Server", "com.mattermost.nps"}, comp)
+
+		comp, _ = pluginIDCompletionF(context.Background(), c, nil, nil, "github,")
+		assert.Empty(t, comp)
+	})
+
+	t.Run("an error returns nothing and no file completion", func(t *testing.T) {
+		c := mocks.NewMockClient(gomock.NewController(t))
+		c.EXPECT().GetPlugins(gomock.Any()).Return(nil, &model.Response{StatusCode: 403}, errors.New("forbidden")).Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice("plugin", nil, "")
+		comp, directive := pluginIDFlagCompletionF(context.Background(), c, cmd, nil, "")
+		assert.Empty(t, comp)
+		assert.Equal(t, cobra.ShellCompDirectiveNoFileComp, directive)
+	})
+
+	t.Run("is registered for the logs --plugin flag and the plugin commands", func(t *testing.T) {
+		_, ok := LogsCmd.GetFlagCompletionFunc("plugin")
+		assert.True(t, ok)
+		for _, cmd := range []*cobra.Command{PluginEnableCmd, PluginDisableCmd, PluginDeleteCmd} {
+			assert.NotNil(t, cmd.ValidArgsFunction, cmd.Name())
+		}
+	})
 }

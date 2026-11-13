@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -76,4 +77,55 @@ func fetchAndComplete[T any](f fetcher[T], m matcher[T]) validateArgsFn {
 
 		return res, cobra.ShellCompDirectiveNoFileComp
 	}
+}
+
+// pluginIDCompletionF completes plugin ID arguments, skipping the IDs already given.
+func pluginIDCompletionF(ctx context.Context, c client.Client, _ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return completePluginIDs(ctx, c, args, "", toComplete)
+}
+
+// pluginIDFlagCompletionF completes the comma-separated plugin IDs of a --plugin flag: the value
+// after the last comma, skipping the IDs given before in the value or in earlier uses of the flag.
+func pluginIDFlagCompletionF(ctx context.Context, c client.Client, cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var given []string
+	flagged, _ := cmd.Flags().GetStringSlice("plugin")
+	for _, id := range flagged {
+		given = append(given, strings.TrimSpace(id))
+	}
+	prefix := ""
+	if i := strings.LastIndex(toComplete, ","); i >= 0 {
+		prefix = toComplete[:i+1]
+		for id := range strings.SplitSeq(toComplete[:i], ",") {
+			given = append(given, strings.TrimSpace(id))
+		}
+		toComplete = toComplete[i+1:]
+	}
+	return completePluginIDs(ctx, c, given, prefix, toComplete)
+}
+
+// completePluginIDs completes plugin IDs, active and inactive, with the plugin's name as the
+// description, skipping the IDs given. Each completion starts with prefix.
+func completePluginIDs(ctx context.Context, c client.Client, given []string, prefix, toComplete string) ([]string, cobra.ShellCompDirective) {
+	plugins, _, err := c.GetPlugins(ctx)
+	if err != nil || plugins == nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	res := []string{}
+	for _, info := range slices.Concat(plugins.Active, plugins.Inactive) {
+		if info == nil || !strings.HasPrefix(info.Id, toComplete) || slices.Contains(given, info.Id) {
+			continue
+		}
+		completion := prefix + info.Id
+		// Shells split the description off at the tab, and show it on one line
+		if name := strings.Join(strings.Fields(info.Name), " "); name != "" {
+			completion += "\t" + name
+		}
+		res = append(res, completion)
+		if len(res) == shellCompletionMaxItems {
+			break
+		}
+	}
+
+	return res, cobra.ShellCompDirectiveNoFileComp
 }

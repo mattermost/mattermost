@@ -45,30 +45,33 @@ var PluginInstallURLCmd = &cobra.Command{
 }
 
 var PluginDeleteCmd = &cobra.Command{
-	Use:     "delete [plugins]",
-	Short:   "Delete plugins",
-	Long:    "Delete previously uploaded plugins from your Mattermost server.",
-	Example: `  plugin delete hovercardexample pluginexample`,
-	RunE:    withClient(pluginDeleteCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "delete [plugins]",
+	Short:             "Delete plugins",
+	Long:              "Delete previously uploaded plugins from your Mattermost server.",
+	Example:           `  plugin delete hovercardexample pluginexample`,
+	RunE:              withClient(pluginDeleteCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginEnableCmd = &cobra.Command{
-	Use:     "enable [plugins]",
-	Short:   "Enable plugins",
-	Long:    "Enable plugins for use on your Mattermost server.",
-	Example: `  plugin enable hovercardexample pluginexample`,
-	RunE:    withClient(pluginEnableCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "enable [plugins]",
+	Short:             "Enable plugins",
+	Long:              "Enable plugins for use on your Mattermost server.",
+	Example:           `  plugin enable hovercardexample pluginexample`,
+	RunE:              withClient(pluginEnableCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginDisableCmd = &cobra.Command{
-	Use:     "disable [plugins]",
-	Short:   "Disable plugins",
-	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
-	Example: `  plugin disable hovercardexample pluginexample`,
-	RunE:    withClient(pluginDisableCmdF),
-	Args:    cobra.MinimumNArgs(1),
+	Use:               "disable [plugins]",
+	Short:             "Disable plugins",
+	Long:              "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
+	Example:           `  plugin disable hovercardexample pluginexample`,
+	RunE:              withClient(pluginDisableCmdF),
+	Args:              cobra.MinimumNArgs(1),
+	ValidArgsFunction: validateArgsWithClient(pluginIDCompletionF),
 }
 
 var PluginListCmd = &cobra.Command{
