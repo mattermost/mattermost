@@ -25,6 +25,7 @@ const (
 )
 
 type matcher struct {
+	ref          Ref
 	id           string
 	typeID       string
 	pattern      *regexp.Regexp
@@ -36,7 +37,6 @@ type matcher struct {
 	boundary     string
 	scope        []string
 	skipBots     bool
-	pluginID     string
 	displayName  string
 }
 
@@ -96,7 +96,7 @@ func Detect(message string) (entities []*model.PostEntity, protected [][2]int) {
 			if strings.ContainsAny(value, markdownMeta) || strings.ContainsAny(scanned[start:end], markdownMeta) {
 				continue
 			}
-			if m.typeID == coreTimeTypeID {
+			if m.typeID == CoreTimeTypeID {
 				if _, err := parseCoreTime(value); err != nil {
 					continue
 				}

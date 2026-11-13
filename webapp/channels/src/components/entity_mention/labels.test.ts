@@ -9,10 +9,10 @@ const intl = createIntl({locale: 'en', messages: {}});
 
 describe('entityLabel', () => {
     it('returns the display name for known core types', () => {
-        expect(entityLabel('mm.time', intl.formatMessage)).toBe('Time');
+        expect(entityLabel('mm:time', intl.formatMessage)).toBe('Time');
     });
 
     it('falls back to the type id when no label is registered', () => {
-        expect(entityLabel('com.example.custom', intl.formatMessage)).toBe('com.example.custom');
+        expect(entityLabel('com.example:custom', intl.formatMessage)).toBe('com.example:custom');
     });
 });

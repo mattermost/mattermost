@@ -7,10 +7,12 @@ package model
 // API when the feature is off. A plugin that sees it keeps its own behavior.
 const EntitiesDisabledError = "app.entities.disabled.app_error"
 
-// EntityType is one named kind of entity. Core types use an mm. id. A plugin
-// type id is the plugin id, a dot, and a name.
+// EntityType is one named kind of entity. Name is local to the plugin that
+// registers it: lowercase letters, digits, "_" and "-", in dot-separated
+// segments. Everywhere else the type is known by its id, "owner:name", where
+// the owner is the plugin id. Built-in types are owned by "mm", such as "mm:time".
 type EntityType struct {
-	ID          string `json:"id"`
+	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 }
 
@@ -22,9 +24,11 @@ type EntityType struct {
 // Boundary is a preset: empty and "token" are the original neighbor rule.
 // Scope lists "team" or "team/channel" names. Empty means the whole server.
 // SkipBots leaves the match off a bot post. The zero value scans bots.
+// Name is local to the plugin, like EntityType.Name. Type is the name of one of
+// the plugin's own types, or the id of a built-in type, such as "mm:time".
 type EntityMatcher struct {
-	ID         string   `json:"id"`
-	TypeID     string   `json:"type_id"`
+	Name       string   `json:"name"`
+	Type       string   `json:"type"`
 	Pattern    string   `json:"pattern"`
 	ValueGroup int      `json:"value_group"`
 	SpanGroup  int      `json:"span_group,omitempty"`
@@ -44,23 +48,26 @@ const (
 )
 
 // EntityProvider is a plugin that can describe values of one or more types.
+// Name is local to the plugin, and each of Types is written as in EntityMatcher.Type.
 // HasCard means the server calls the plugin's EntityLookup hook. Cache selects
 // whether that card is stored: shared, user, or none. An empty Cache is none.
 // CacheTTLSeconds is the lifetime for a stored card. Zero uses the server default.
 type EntityProvider struct {
-	ID              string   `json:"id"`
-	TypeIDs         []string `json:"type_ids"`
+	Name            string   `json:"name"`
+	Types           []string `json:"types"`
 	HasCard         bool     `json:"has_card"`
 	Cache           string   `json:"cache,omitempty"`
 	CacheTTLSeconds int      `json:"cache_ttl_seconds,omitempty"`
 }
 
 // EntityLookupRequest is the value a provider is asked to describe. The
-// server fills it from a value that matched a registered pattern.
+// server fills it from a value that matched a registered pattern. Provider
+// and Type are written the way the plugin registered them: a bare name for
+// its own, and an id such as "mm:time" for a built-in type.
 type EntityLookupRequest struct {
-	ProviderID string `json:"provider_id"`
-	TypeID     string `json:"type_id"`
-	Value      string `json:"value"`
+	Provider string `json:"provider"`
+	Type     string `json:"type"`
+	Value    string `json:"value"`
 	// UserID is set when the card may differ by reader. A shared cache leaves it empty.
 	UserID string `json:"user_id,omitempty"`
 	// PostID and CreateAt identify the post the value was read from.

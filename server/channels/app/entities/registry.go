@@ -23,37 +23,28 @@ import (
 
 const (
 	maxPatternBytes    = 1000
-	maxPluginMatchers  = 50
+	maxOwnerMatchers   = 50
 	maxTerms           = 500
 	maxTermTitleRune   = 120
 	maxTermURLBytes    = 2048
 	maxDisplayNameRune = 64
-	coreOwner          = "core"
 )
 
-// Remote is a plugin provider that should describe a matched value.
+// Remote is a registered provider that should describe a matched value.
 type Remote struct {
-	PluginID   string
-	ProviderID string
-	Cache      string
-	CacheTTL   time.Duration
+	Provider Ref
+	Cache    string
+	CacheTTL time.Duration
 }
 
 type entityType struct {
-	id          string
+	ref         Ref
 	displayName string
-	owner       string
-}
-
-type storedMatcher struct {
-	matcher
-	owner string
 }
 
 type storedProvider struct {
-	id       string
+	ref      Ref
 	typeID   string
-	pluginID string
 	hasCard  bool
 	cache    string
 	cacheTTL time.Duration
@@ -71,7 +62,7 @@ type storedTerm struct {
 type registry struct {
 	mu               sync.RWMutex
 	types            map[string]entityType
-	matchers         []storedMatcher
+	matchers         []matcher
 	matcherIndex     map[string]int
 	providers        []storedProvider
 	terms            []storedTerm
@@ -100,9 +91,15 @@ func activeTerms() []storedTerm {
 	return out
 }
 
-// ReplaceTerms replaces every exact term a plugin has registered for one of its types.
+// ReplaceTerms replaces every exact term an owner has registered for one of its types.
+// typeRef is one of the owner's type names or its wire id.
 // The epoch is a hash of the dictionary. changed is false when the dictionary is the same.
-func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (string, bool, error) {
+func ReplaceTerms(owner, typeRef string, terms []model.EntityTerm) (string, bool, error) {
+	typ, ok := ResolveRef(owner, typeRef)
+	if !ok || typ.Owner != owner {
+		return "", false, fmt.Errorf("type is not available to this owner")
+	}
+	typeID := typ.String()
 	cleaned := make([]storedTerm, 0, len(terms))
 	seen := map[string]struct{}{}
 	for _, term := range terms {
@@ -122,7 +119,7 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (string, bo
 			return "", false, err
 		}
 		cleaned = append(cleaned, storedTerm{
-			owner:  pluginID,
+			owner:  owner,
 			typeID: typeID,
 			value:  term.Value,
 			title:  title,
@@ -132,16 +129,16 @@ func ReplaceTerms(pluginID, typeID string, terms []model.EntityTerm) (string, bo
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
 	t, ok := reg.types[typeID]
-	if !ok || t.owner != pluginID {
-		return "", false, fmt.Errorf("type is not available to this plugin")
+	if !ok {
+		return "", false, fmt.Errorf("type is not available to this owner")
 	}
 	kept := make([]storedTerm, 0, len(reg.terms))
 	count := 0
 	for _, existing := range reg.terms {
-		if existing.owner == pluginID && existing.typeID == typeID {
+		if existing.owner == owner && existing.typeID == typeID {
 			continue
 		}
-		if existing.owner == pluginID {
+		if existing.owner == owner {
 			count++
 		}
 		kept = append(kept, existing)
@@ -221,7 +218,7 @@ func activeMatchers() []matcher {
 	defer reg.mu.RUnlock()
 	out := make([]matcher, len(reg.matchers))
 	for i, stored := range reg.matchers {
-		out[i] = stored.matcher
+		out[i] = stored
 		if t, ok := reg.types[stored.typeID]; ok {
 			out[i].displayName = t.displayName
 		}
@@ -260,13 +257,13 @@ func (r *registry) rememberProviders() {
 	h := sha256.New()
 	ids := append([]storedProvider(nil), r.providers...)
 	slices.SortFunc(ids, func(a, b storedProvider) int {
-		if c := cmp.Compare(a.id, b.id); c != 0 {
+		if c := cmp.Compare(a.ref.String(), b.ref.String()); c != 0 {
 			return c
 		}
 		return cmp.Compare(a.typeID, b.typeID)
 	})
 	for _, provider := range ids {
-		fmt.Fprintf(h, "%s\n%s\n%t\n%s\n%d\n", provider.id, provider.typeID, provider.hasCard, provider.cache, int64(provider.cacheTTL/time.Second))
+		fmt.Fprintf(h, "%s\n%s\n%t\n%s\n%d\n", provider.ref, provider.typeID, provider.hasCard, provider.cache, int64(provider.cacheTTL/time.Second))
 	}
 	r.cachedProviders = hex.EncodeToString(h.Sum(nil))[:16]
 }
@@ -282,7 +279,7 @@ func (r *registry) rememberGeneration() {
 
 func (r *registry) generation() string {
 	h := sha256.New()
-	ids := append([]storedMatcher(nil), r.matchers...)
+	ids := append([]matcher(nil), r.matchers...)
 	sortMatchers(ids)
 	for _, stored := range ids {
 		name := ""
@@ -294,7 +291,7 @@ func (r *registry) generation() string {
 	return hex.EncodeToString(h.Sum(nil))[:16]
 }
 
-func sortMatchers(list []storedMatcher) {
+func sortMatchers(list []matcher) {
 	for i := 1; i < len(list); i++ {
 		for j := i; j > 0 && list[j].id < list[j-1].id; j-- {
 			list[j], list[j-1] = list[j-1], list[j]
@@ -302,8 +299,8 @@ func sortMatchers(list []storedMatcher) {
 	}
 }
 
-// Prepare reports who can describe value. A non-nil Remote means the plugin
-// is asked first. The card is the core description when no plugin provides it.
+// Prepare reports who can describe value. A non-nil Remote means the provider
+// is asked first. The card is the core description when no provider describes it.
 func Prepare(ctx context.Context, typeID, value string) (*model.EntityCard, *Remote, error) {
 	reg.mu.RLock()
 	known := reg.valueMatches(typeID, value)
@@ -334,16 +331,15 @@ func (r *registry) lookupPlan(typeID string) (*Remote, bool) {
 	for _, provider := range r.providers {
 		if provider.typeID == typeID && provider.hasCard {
 			remote = &Remote{
-				PluginID:   provider.pluginID,
-				ProviderID: provider.id,
-				Cache:      provider.cache,
-				CacheTTL:   provider.cacheTTL,
+				Provider: provider.ref,
+				Cache:    provider.cache,
+				CacheTTL: provider.cacheTTL,
 			}
 			break
 		}
 	}
 	t, ok := r.types[typeID]
-	return remote, ok && t.owner == coreOwner
+	return remote, ok && t.ref.Owner == CoreOwner
 }
 
 func (r *registry) valueMatches(typeID, value string) bool {
@@ -351,7 +347,7 @@ func (r *registry) valueMatches(typeID, value string) bool {
 		if stored.typeID != typeID {
 			continue
 		}
-		if matcherCovers(stored.matcher, value) {
+		if matcherCovers(stored, value) {
 			return true
 		}
 	}
@@ -493,29 +489,23 @@ func TermCard(typeID, value string) (*model.EntityCard, bool) {
 	return nil, false
 }
 
-// AddType registers a plugin-owned type. The same plugin may replace the display name.
-func AddType(pluginID string, t *model.EntityType) error {
+// AddType registers a type for owner. The same owner may replace the display name.
+func AddType(owner string, t *model.EntityType) error {
 	if t == nil {
 		return fmt.Errorf("type is required")
 	}
-	id := t.ID
+	ref := Ref{Owner: owner, Name: t.Name}
+	if !ref.valid() {
+		return fmt.Errorf("type name is not allowed")
+	}
+	id := ref.String()
 	name := strings.TrimSpace(t.DisplayName)
-	local, prefixed := strings.CutPrefix(id, pluginID+".")
-	if !prefixed || local == "" || strings.Contains(local, ".") {
-		return fmt.Errorf("type id must start with the plugin id")
-	}
-	if !typeNameOK(id) || !typeNameOK(pluginID) {
-		return fmt.Errorf("type id is not allowed")
-	}
 	if name == "" || utf8.RuneCountInString(name) > maxDisplayNameRune {
 		return fmt.Errorf("display name is not allowed")
 	}
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
-	if existing, ok := reg.types[id]; ok && existing.owner != pluginID {
-		return fmt.Errorf("type is owned by someone else")
-	}
-	reg.types[id] = entityType{id: id, displayName: name, owner: pluginID}
+	reg.types[id] = entityType{ref: ref, displayName: name}
 	renamed := false
 	for i := range reg.terms {
 		if reg.terms[i].typeID == id && reg.terms[i].displayName != name {
@@ -530,13 +520,18 @@ func AddType(pluginID string, t *model.EntityType) error {
 	return nil
 }
 
-// AddMatcher registers a plugin pattern for a core type or a type that plugin owns.
-func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
+// AddMatcher registers a pattern for a core type or one of the owner's types.
+func AddMatcher(owner string, spec *model.EntityMatcher) error {
 	if spec == nil {
 		return fmt.Errorf("matcher is required")
 	}
-	if !strings.HasPrefix(spec.ID, pluginID+".") || spec.ID == pluginID+"." {
-		return fmt.Errorf("matcher id must start with the plugin id")
+	ref := Ref{Owner: owner, Name: spec.Name}
+	if !ref.valid() {
+		return fmt.Errorf("matcher name is not allowed")
+	}
+	typ, ok := ResolveRef(owner, spec.Type)
+	if !ok {
+		return fmt.Errorf("type is not available to this owner")
 	}
 	if spec.Pattern == "" || len(spec.Pattern) > maxPatternBytes {
 		return fmt.Errorf("pattern length is not allowed")
@@ -567,19 +562,19 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 	}
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
-	t, ok := reg.types[spec.TypeID]
-	if !ok || (t.owner != coreOwner && t.owner != pluginID) {
-		return fmt.Errorf("type is not available to this plugin")
+	t, ok := reg.types[typ.String()]
+	if !ok || !mayUse(owner, t) {
+		return fmt.Errorf("type is not available to this owner")
 	}
-	if reg.matcherOwner(spec.ID) != "" && reg.matcherOwner(spec.ID) != pluginID {
-		return fmt.Errorf("matcher id is owned by someone else")
-	}
-	if reg.matcherOwner(spec.ID) == "" && reg.countMatchers(pluginID) >= maxPluginMatchers {
+	id := ref.String()
+	_, exists := reg.matcher(id)
+	if !exists && reg.countMatchers(owner) >= maxOwnerMatchers {
 		return fmt.Errorf("matcher quota is exhausted")
 	}
-	next := storedMatcher{owner: pluginID, matcher: matcher{
-		id:           spec.ID,
-		typeID:       spec.TypeID,
+	next := matcher{
+		ref:          ref,
+		id:           id,
+		typeID:       typ.String(),
 		pattern:      compiled,
 		valuePattern: valuePattern,
 		urlTemplate:  spec.URL,
@@ -589,11 +584,10 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 		boundary:     spec.Boundary,
 		scope:        append([]string(nil), spec.Scope...),
 		skipBots:     spec.SkipBots,
-		pluginID:     pluginID,
 		displayName:  t.displayName,
-	}}
+	}
 	for i, stored := range reg.matchers {
-		if stored.id == spec.ID {
+		if stored.id == id {
 			reg.matchers[i] = next
 			reg.rememberGeneration()
 			return nil
@@ -604,14 +598,19 @@ func AddMatcher(pluginID string, spec *model.EntityMatcher) error {
 	return nil
 }
 
-// UnregisterMatcher removes one matcher owned by the plugin.
-func UnregisterMatcher(pluginID, id string) error {
+// UnregisterMatcher removes one of the owner's matchers, given by name or wire id.
+func UnregisterMatcher(owner, matcherRef string) error {
+	ref, ok := ResolveRef(owner, matcherRef)
+	if !ok || ref.Owner != owner {
+		return fmt.Errorf("matcher is not available to this owner")
+	}
+	id := ref.String()
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
-	if reg.matcherOwner(id) != pluginID {
-		return fmt.Errorf("matcher is not available to this plugin")
+	if _, ok := reg.matcher(id); !ok {
+		return fmt.Errorf("matcher is not registered")
 	}
-	kept := make([]storedMatcher, 0, len(reg.matchers)-1)
+	kept := make([]matcher, 0, len(reg.matchers)-1)
 	for _, stored := range reg.matchers {
 		if stored.id == id {
 			continue
@@ -677,10 +676,10 @@ func ReadFlags(entities []*model.PostEntity) (scoped bool, bots bool) {
 	return scoped, bots
 }
 
-func (r *registry) matcher(id string) (storedMatcher, bool) {
+func (r *registry) matcher(id string) (matcher, bool) {
 	i, ok := r.matcherIndex[id]
 	if !ok || i < 0 || i >= len(r.matchers) || r.matchers[i].id != id {
-		return storedMatcher{}, false
+		return matcher{}, false
 	}
 	return r.matchers[i], true
 }
@@ -706,11 +705,11 @@ func (r *registry) typeHasCard(typeID string) bool {
 		}
 	}
 	t, ok := r.types[typeID]
-	return ok && t.owner == coreOwner && coreTypeHasCard(typeID)
+	return ok && t.ref.Owner == CoreOwner && coreTypeHasCard(typeID)
 }
 
 func coreTypeHasCard(typeID string) bool {
-	return typeID == coreTimeTypeID
+	return typeID == CoreTimeTypeID
 }
 
 func scopeAllows(scope []string, ctx ReadContext) bool {
@@ -741,13 +740,23 @@ func boundaryKnown(preset string) bool {
 	}
 }
 
-// AddProvider registers a plugin as the card source for types it may provide.
-func AddProvider(pluginID string, spec *model.EntityProvider) error {
-	if spec == nil || spec.ID == "" || len(spec.TypeIDs) == 0 {
+// AddProvider registers a card source for types the owner may provide.
+// Each entry in Types is one of the owner's type names or a wire id.
+func AddProvider(owner string, spec *model.EntityProvider) error {
+	if spec == nil || len(spec.Types) == 0 {
 		return fmt.Errorf("provider is required")
 	}
-	if !strings.HasPrefix(spec.ID, pluginID+".") {
-		return fmt.Errorf("provider id must start with the plugin id")
+	ref := Ref{Owner: owner, Name: spec.Name}
+	if !ref.valid() {
+		return fmt.Errorf("provider name is not allowed")
+	}
+	typeIDs := make([]string, 0, len(spec.Types))
+	for _, typeRef := range spec.Types {
+		typ, ok := ResolveRef(owner, typeRef)
+		if !ok {
+			return fmt.Errorf("type is not available to this owner")
+		}
+		typeIDs = append(typeIDs, typ.String())
 	}
 	cacheMode, cacheTTL, err := normalizeCache(spec.Cache, spec.CacheTTLSeconds)
 	if err != nil {
@@ -755,21 +764,19 @@ func AddProvider(pluginID string, spec *model.EntityProvider) error {
 	}
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
-	if reg.providerOwner(spec.ID) != "" && reg.providerOwner(spec.ID) != pluginID {
-		return fmt.Errorf("provider id is owned by someone else")
-	}
-	for _, typeID := range spec.TypeIDs {
+	for _, typeID := range typeIDs {
 		t, ok := reg.types[typeID]
-		if !ok || (t.owner != coreOwner && t.owner != pluginID) {
-			return fmt.Errorf("type is not available to this plugin")
+		if !ok || !mayUse(owner, t) {
+			return fmt.Errorf("type is not available to this owner")
 		}
 	}
-	reg.providers = dropProvider(reg.providers, spec.ID)
-	for _, typeID := range spec.TypeIDs {
+	reg.providers = slices.DeleteFunc(reg.providers, func(provider storedProvider) bool {
+		return provider.ref == ref
+	})
+	for _, typeID := range typeIDs {
 		reg.providers = append(reg.providers, storedProvider{
-			id:       spec.ID,
+			ref:      ref,
 			typeID:   typeID,
-			pluginID: pluginID,
 			hasCard:  spec.HasCard,
 			cache:    cacheMode,
 			cacheTTL: cacheTTL,
@@ -779,91 +786,42 @@ func AddProvider(pluginID string, spec *model.EntityProvider) error {
 	return nil
 }
 
-// RemovePlugin drops every type, matcher and provider that plugin registered.
-func RemovePlugin(pluginID string) {
+// RemoveOwner drops every type, matcher, provider and term the owner registered.
+func RemoveOwner(owner string) {
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
 	for id, t := range reg.types {
-		if t.owner == pluginID {
+		if t.ref.Owner == owner {
 			delete(reg.types, id)
 		}
 	}
-	kept := make([]storedMatcher, 0, len(reg.matchers))
-	for _, stored := range reg.matchers {
-		if stored.owner != pluginID {
-			kept = append(kept, stored)
-		}
-	}
-	reg.matchers = kept
+	reg.matchers = slices.DeleteFunc(reg.matchers, func(stored matcher) bool {
+		return stored.ref.Owner == owner
+	})
 	reg.rememberGeneration()
-	providers := make([]storedProvider, 0, len(reg.providers))
-	for _, provider := range reg.providers {
-		if provider.pluginID != pluginID {
-			providers = append(providers, provider)
-		}
-	}
-	reg.providers = providers
+	reg.providers = slices.DeleteFunc(reg.providers, func(provider storedProvider) bool {
+		return provider.ref.Owner == owner
+	})
 	reg.rememberProviders()
-	terms := make([]storedTerm, 0, len(reg.terms))
-	for _, term := range reg.terms {
-		if term.owner != pluginID {
-			terms = append(terms, term)
-		}
-	}
-	reg.terms = terms
+	reg.terms = slices.DeleteFunc(reg.terms, func(term storedTerm) bool {
+		return term.owner == owner
+	})
 	reg.rememberTerms()
 }
 
-func (r *registry) matcherOwner(id string) string {
-	for _, stored := range r.matchers {
-		if stored.id == id {
-			return stored.owner
-		}
-	}
-	return ""
-}
-
-func (r *registry) providerOwner(id string) string {
-	for _, provider := range r.providers {
-		if provider.id == id {
-			return provider.pluginID
-		}
-	}
-	return ""
+// mayUse reports whether owner may attach matchers and providers to t.
+func mayUse(owner string, t entityType) bool {
+	return t.ref.Owner == owner || t.ref.Owner == CoreOwner
 }
 
 func (r *registry) countMatchers(owner string) int {
 	n := 0
 	for _, stored := range r.matchers {
-		if stored.owner == owner {
+		if stored.ref.Owner == owner {
 			n++
 		}
 	}
 	return n
-}
-
-func dropProvider(list []storedProvider, id string) []storedProvider {
-	kept := make([]storedProvider, 0, len(list))
-	for _, provider := range list {
-		if provider.id != id {
-			kept = append(kept, provider)
-		}
-	}
-	return kept
-}
-
-func typeNameOK(id string) bool {
-	if id == "" || len(id) > 80 {
-		return false
-	}
-	for _, r := range id {
-		switch {
-		case r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '.', r == '-':
-		default:
-			return false
-		}
-	}
-	return true
 }
 
 func compileURL(template string) (func(string, map[string]string) string, error) {

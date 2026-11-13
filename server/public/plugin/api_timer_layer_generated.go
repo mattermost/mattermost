@@ -1917,9 +1917,9 @@ func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.A
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UnregisterEntityMatcher(id string) *model.AppError {
+func (api *apiTimerLayer) UnregisterEntityMatcher(name string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UnregisterEntityMatcher(id)
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(name)
 	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
 	return _returnsA
 }
@@ -1931,9 +1931,9 @@ func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model
 	return _returnsA
 }
 
-func (api *apiTimerLayer) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
+func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RegisterEntityTerms(typeID, terms)
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeName, terms)
 	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
 	return _returnsA
 }

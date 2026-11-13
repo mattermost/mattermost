@@ -10137,8 +10137,8 @@ type Z_UnregisterEntityMatcherReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) UnregisterEntityMatcher(id string) *model.AppError {
-	_args := &Z_UnregisterEntityMatcherArgs{id}
+func (g *apiRPCClient) UnregisterEntityMatcher(name string) *model.AppError {
+	_args := &Z_UnregisterEntityMatcherArgs{name}
 	_returns := &Z_UnregisterEntityMatcherReturns{}
 	if err := g.client.Call("Plugin.UnregisterEntityMatcher", _args, _returns); err != nil {
 		log.Printf("RPC call to UnregisterEntityMatcher API failed: %s", err.Error())
@@ -10148,7 +10148,7 @@ func (g *apiRPCClient) UnregisterEntityMatcher(id string) *model.AppError {
 
 func (s *apiRPCServer) UnregisterEntityMatcher(args *Z_UnregisterEntityMatcherArgs, returns *Z_UnregisterEntityMatcherReturns) error {
 	if hook, ok := s.impl.(interface {
-		UnregisterEntityMatcher(id string) *model.AppError
+		UnregisterEntityMatcher(name string) *model.AppError
 	}); ok {
 		returns.A = hook.UnregisterEntityMatcher(args.A)
 	} else {
@@ -10194,8 +10194,8 @@ type Z_RegisterEntityTermsReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
-	_args := &Z_RegisterEntityTermsArgs{typeID, terms}
+func (g *apiRPCClient) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	_args := &Z_RegisterEntityTermsArgs{typeName, terms}
 	_returns := &Z_RegisterEntityTermsReturns{}
 	if err := g.client.Call("Plugin.RegisterEntityTerms", _args, _returns); err != nil {
 		log.Printf("RPC call to RegisterEntityTerms API failed: %s", err.Error())
@@ -10205,7 +10205,7 @@ func (g *apiRPCClient) RegisterEntityTerms(typeID string, terms []model.EntityTe
 
 func (s *apiRPCServer) RegisterEntityTerms(args *Z_RegisterEntityTermsArgs, returns *Z_RegisterEntityTermsReturns) error {
 	if hook, ok := s.impl.(interface {
-		RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError
+		RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError
 	}); ok {
 		returns.A = hook.RegisterEntityTerms(args.A, args.B)
 	} else {

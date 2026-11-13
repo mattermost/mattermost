@@ -5275,9 +5275,9 @@ func (_m *API) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
 	return r0
 }
 
-// RegisterEntityTerms provides a mock function with given fields: typeID, terms
-func (_m *API) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *model.AppError {
-	ret := _m.Called(typeID, terms)
+// RegisterEntityTerms provides a mock function with given fields: typeName, terms
+func (_m *API) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	ret := _m.Called(typeName, terms)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RegisterEntityTerms")
@@ -5285,7 +5285,7 @@ func (_m *API) RegisterEntityTerms(typeID string, terms []model.EntityTerm) *mod
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []model.EntityTerm) *model.AppError); ok {
-		r0 = rf(typeID, terms)
+		r0 = rf(typeName, terms)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -6171,9 +6171,9 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	return r0
 }
 
-// UnregisterEntityMatcher provides a mock function with given fields: id
-func (_m *API) UnregisterEntityMatcher(id string) *model.AppError {
-	ret := _m.Called(id)
+// UnregisterEntityMatcher provides a mock function with given fields: name
+func (_m *API) UnregisterEntityMatcher(name string) *model.AppError {
+	ret := _m.Called(name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UnregisterEntityMatcher")
@@ -6181,7 +6181,7 @@ func (_m *API) UnregisterEntityMatcher(id string) *model.AppError {
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(id)
+		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
