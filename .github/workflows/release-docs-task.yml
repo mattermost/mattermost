@@ -70,7 +70,8 @@ name: Release Docs Task
 #   RELEASE_DOCS_ASANA_FORM_URL     (variable) the Marketing request form's URL (https). No default: when
 #                                              unset, the Asana form text has no link and says so
 #   RELEASE_DOCS_ANNOUNCEMENT_TIME_UTC  (variable) when the approved Announcements post goes out on
-#                                              Release Day, HH:MM in UTC, default 14:00
+#                                              Release Day, HH:MM in UTC, default 14:00, if its blog post
+#                                              link is live by then (otherwise once it is, that day)
 #   RELEASE_DOCS_GOOGLE_SA_KEY      (secret)   JSON key of a service account added to the Release Dates
 #                                              calendar with "Make changes to events"
 #   RELEASE_DATES_CALENDAR_ID       (variable) the Release Dates calendar's ID

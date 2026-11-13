@@ -124,20 +124,27 @@ class KeyDatesTest(unittest.TestCase):
 
 # ── Announcements ───────────────────────────────────────────────────────────────────
 
-TEXT = "#### Mattermost v12.2 is now available\n\n- Shared Drafts"
+BLOG = "https://mattermost.com/blog/mattermost-v12-2-is-now-available/"
+TEXT = f"#### Mattermost v12.2 is now available\n\n- Shared Drafts\n- Blog post: {BLOG}"
 
 
 class AnnouncementTest(unittest.TestCase):
     def setUp(self):
         self.hub = FakeHub([RELEASE_CHANNEL], playbook_run("release"))
         self.rendered = 0
+        self.blog_status, self.checked = 200, []
+
+    def link_status(self, url):
+        self.checked.append(url)
+        return self.blog_status
 
     def render(self):
         self.rendered += 1
         return TEXT, []
 
-    def run_at(self, now, live=True, dispatched=False):
-        return announcement.run(V12_2, RELEASE_DAY, self.render, self.hub, ENV, live, now, holidays(), dispatched)
+    def run_at(self, now, live=True, dispatched=False, env=ENV):
+        return announcement.run(V12_2, RELEASE_DAY, self.render, self.hub, env, live, now, holidays(), dispatched,
+                                self.link_status)
 
     def draft(self):
         return next(p for p in self.hub.posts.values() if p["props"].get("release_docs_marker", "").endswith("draft:v12.2"))
@@ -148,7 +155,8 @@ class AnnouncementTest(unittest.TestCase):
         draft = self.draft()
         self.assertEqual(draft["channel_id"], "release")
         self.assertTrue(draft["message"].startswith("@release.manager "))
-        self.assertIn("Wed, Dec 16, 2026 at 14:00 UTC in Announcements", draft["message"])
+        self.assertIn("to post this in Announcements on Wed, Dec 16, 2026 at 14:00 UTC, once its blog post link is live",
+                      draft["message"])
         self.assertTrue(draft["message"].endswith(TEXT))
 
     def test_no_reaction_means_nothing_is_scheduled_and_the_thread_says_it_waits(self):
@@ -174,8 +182,13 @@ class AnnouncementTest(unittest.TestCase):
         edited = draft["message"].replace("- Shared Drafts", "- Shared Drafts, now on mobile")
         self.hub.edit(draft["id"], edited)
         self.hub.react(draft["id"], OWNER)
-        self.run_at(at("2026-12-15", "16:00"))
-        self.run_at(at("2026-12-15", "17:00"))
+        self.assertIn("once its blog post link is live", self.run_at(at("2026-12-15", "16:00")).text)
+        self.assertEqual(self.hub.scheduled, [])  # approved, but scheduled only after the blog check on Release Day
+        self.run_at(at("2026-12-16", "13:23"))  # before the check window
+        self.assertEqual((self.hub.scheduled, self.checked), ([], []))
+        self.run_at(at("2026-12-16", "13:53"))
+        self.run_at(at("2026-12-16", "14:08"))
+        self.assertEqual(self.checked, [BLOG])
         self.assertEqual(len(self.hub.scheduled), 1)
         scheduled = self.hub.scheduled[0]
         self.assertEqual(scheduled["channel_id"], "announcements")
@@ -185,6 +198,58 @@ class AnnouncementTest(unittest.TestCase):
         self.assertEqual(len(replies), 1)
         self.assertIn("Scheduled in Announcements for Wed, Dec 16, 2026 at 14:00 UTC", replies[0]["message"])
         self.assertEqual(self.rendered, 1)
+
+    def approve(self):
+        self.run_at(at("2026-12-15"))
+        self.hub.react(self.draft()["id"], OWNER)
+        return self.draft()
+
+    def test_a_live_blog_post_means_the_post_goes_out_on_time(self):
+        self.approve()
+        self.run_at(at("2026-12-16", "13:53"))
+        scheduled, = self.hub.scheduled
+        self.assertEqual(scheduled["scheduled_at"], int(at("2026-12-16", "14:00").timestamp() * 1000))
+        self.assertEqual([p for p in self.hub.posts.values() if "Holding" in p["message"]], [])
+
+    def test_a_blog_post_not_live_holds_the_post_until_it_is_then_posts_it_once(self):
+        draft = self.approve()
+        self.blog_status = 404
+        for time in ("13:53", "14:08", "14:23"):
+            self.assertIn("Held", self.run_at(at("2026-12-16", time)).text)
+        self.assertEqual(self.hub.scheduled, [])  # never with a broken link
+        held = [p for p in self.hub.posts.values() if p["root_id"] == draft["id"]]
+        self.assertEqual(len(held), 1)  # said once
+        self.assertTrue(held[0]["message"].startswith("@release.manager Holding the Announcements post"))
+        self.assertIn(f"{BLOG} returned 404", held[0]["message"])
+        self.blog_status = 200
+        self.run_at(at("2026-12-16", "14:38"))
+        self.run_at(at("2026-12-16", "14:53"))
+        scheduled, = self.hub.scheduled  # never twice
+        self.assertEqual(scheduled["scheduled_at"], int(at("2026-12-16", "14:53").timestamp() * 1000))  # 15 minutes on
+
+    def test_a_blog_post_never_live_on_release_day_posts_nothing_and_says_so_once(self):
+        draft = self.approve()
+        self.blog_status = 0  # unreachable counts as not live
+        self.run_at(at("2026-12-16", "23:53"))
+        self.run_at(at("2026-12-17", "07:08"))
+        self.run_at(at("2026-12-17", "07:23"))
+        self.assertEqual(self.hub.scheduled, [])
+        replies = [p["message"] for p in self.hub.posts.values() if p["root_id"] == draft["id"]]
+        self.assertEqual(len(replies), 2)
+        self.assertIn("returned no answer", replies[0])
+        self.assertIn("Release Day ended and the blog post never went live", replies[1])
+
+    def test_a_dry_run_checks_the_blog_post_and_writes_nothing(self):
+        env = {**ENV, "REVIEW_CHANNEL_ID": "release"}  # so the dry run finds the live run's draft
+        self.run_at(at("2026-12-15"), env=env)
+        self.hub.react(self.draft()["id"], OWNER)
+        writes = len(self.hub.writes)
+        self.blog_status = 404
+        self.assertIn("would be held", self.run_at(at("2026-12-16", "13:53"), live=False, env=env).text)
+        self.blog_status = 200
+        self.assertIn("would have scheduled", self.run_at(at("2026-12-16", "13:53"), live=False, env=env).text)
+        self.assertEqual(self.checked, [BLOG, BLOG])
+        self.assertEqual(len(self.hub.writes), writes)
 
     def test_with_no_release_manager_nobody_is_mentioned_and_nobody_can_approve(self):
         self.hub = FakeHub([RELEASE_CHANNEL])  # no playbook run, so no owner

@@ -831,7 +831,8 @@ def run_hub_task(task: str, raw: str, env: dict, gh, read_gh, claude, fetch) -> 
                                           changelog.blog_url(entry or "", version), holder)
                 return text, holder.todos
 
-            result = announcement.run(version, day, render, hub, env, live, now, holidays, raw != SCHEDULED)
+            result = announcement.run(version, day, render, hub, env, live, now, holidays, raw != SCHEDULED,
+                                      lambda url: fetch(url, "GET")[0])
             return Run(result, "Announcements post.")
 
         if task == key_dates.TASK:
