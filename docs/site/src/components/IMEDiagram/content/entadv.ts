@@ -197,7 +197,7 @@ export const entadv: IMEContent = {
             'Scales to 200K+ concurrent users',
             'NATO & US PL3, IL4/5, 6/7 proven',
           ],
-          to: '/administration-guide/scale/high-availability-cluster-based-deployment',
+          to: '/deployment-guide/server/high-availability-cluster-based-deployment',
         },
       ],
     },

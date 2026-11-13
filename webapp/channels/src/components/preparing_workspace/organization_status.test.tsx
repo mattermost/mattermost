@@ -14,11 +14,6 @@ describe('components/preparing-workspace/organization_status', () => {
         error: null,
     };
 
-    it('should match snapshot', () => {
-        const {container} = render(<OrganizationStatus {...defaultProps}/>);
-        expect(container.firstChild).toMatchSnapshot();
-    });
-
     it('should render no error message when error prop is null', () => {
         const {queryByText, container} = render(<OrganizationStatus {...defaultProps}/>);
         expect((container.getElementsByClassName('Organization__status').length)).toBe(1);

@@ -13,7 +13,7 @@ Set up your development environment for building, running, and testing Mattermos
 </Note>
 
 
-# Prerequisites for Windows
+## Prerequisites for Windows
 
 If you're using Windows, we recommend using the Windows Subsystem for Linux (WSL) for Mattermost development. Go and Node must be run from within WSL, so you'll need to install them in WSL even if you already have the Windows versions of them installed.
 
@@ -21,7 +21,7 @@ If you're using Windows, we recommend using the Windows Subsystem for Linux (WSL
 2. [Install Docker Desktop for Windows](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers#install-docker-desktop) on your Windows machine. Alternatively, you can also [install](https://docs.docker.com/engine/install/) docker engine directly on your linux distribution.
 3. Perform the rest of the operations (except Docker installation) within the WSL environment and not in Windows.
 
-# Setup the Mattermost Server
+## Setup the Mattermost Server
 
 
 <Note title="Note">
@@ -129,11 +129,11 @@ The web app isn't exposed directly, it's exposed via the server. So if both serv
 
     Some behaviors can be customized such as running the server in the foreground as described in the `config.mk` file in the server directory. See that file for details.
 
-# Build the Mattermost Server
+## Build the Mattermost Server
 
 The `make package` command will package the application and place it under the `./dist` directory. You can distribute the .tar.gz file if you wish the run the application elsewhere. Note that you would need to run `make build` before this to build the binaries.
 
-# Develop Mattermost without Docker
+## Develop Mattermost without Docker
 1. Install `make`.
     - On Ubuntu, you can install `build essential` tools which will also take care of installing the `make`:
         ```sh

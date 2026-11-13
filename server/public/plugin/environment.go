@@ -163,6 +163,19 @@ func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
 }
 
+// IsStarting returns true while the server component of the plugin with the
+// given id is still in OnActivate. Its state is already running, so OnActivate
+// cannot re-enter activation, but it receives no hooks or inter-plugin requests
+// until OnActivate returns.
+func (env *Environment) IsStarting(id string) bool {
+	rp, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		return false
+	}
+	p := rp.(registeredPlugin)
+	return p.State == model.PluginStateRunning && p.supervisor == nil && p.BundleInfo.Manifest.HasServer()
+}
+
 func (env *Environment) SetPluginError(id string, err string) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
@@ -231,6 +244,9 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 		}
 
 		pluginState := env.GetPluginState(plugin.Manifest.Id)
+		if env.IsStarting(plugin.Manifest.Id) {
+			pluginState = model.PluginStateStarting
+		}
 
 		status := &model.PluginStatus{
 			PluginId:    plugin.Manifest.Id,

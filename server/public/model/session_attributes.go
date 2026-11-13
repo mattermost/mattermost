@@ -31,6 +31,7 @@ const (
 	SessionAttributesPropertyFieldOSVersion               = "os_version"
 	SessionAttributesPropertyFieldClientVersion           = "client_version"
 	SessionAttributesPropertyFieldJailbreakDetected       = "jailbreak_detected"
+	SessionAttributesPropertyFieldBiometricAuthenticated  = "biometric_authenticated"
 	SessionAttributesPropertyFieldServerFQDN              = "server_fqdn"
 	SessionAttributesPropertyFieldClientFQDN              = "client_fqdn"
 	SessionAttributesPropertyFieldUserAgentPlatform       = "user_agent_platform"
@@ -53,6 +54,7 @@ const (
 	SessionAttributesDisplayNameOSVersion               = "OS version"
 	SessionAttributesDisplayNameClientVersion           = "Client version"
 	SessionAttributesDisplayNameJailbreakDetected       = "Jailbreak detected"
+	SessionAttributesDisplayNameBiometricAuthenticated  = "Biometric authenticated"
 	SessionAttributesDisplayNameServerFQDN              = "Server FQDN"
 	SessionAttributesDisplayNameClientFQDN              = "Client FQDN"
 	SessionAttributesDisplayNameUserAgentPlatform       = "User agent platform"
@@ -292,6 +294,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, SessionAttributesDisplayNameMDMEnrolled, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, SessionAttributesDisplayNameJailbreakDetected, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldBiometricAuthenticated, SessionAttributesDisplayNameBiometricAuthenticated, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, SessionAttributesDisplayNameOSPlatform, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, StringInterface{
 			PropertyFieldAttributeOptions: []map[string]string{
 				{"name": "macos"},
