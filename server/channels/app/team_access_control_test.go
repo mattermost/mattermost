@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -880,6 +881,51 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, result)
 	})
+}
+
+func TestValidateTeamAdminPolicySelfInclusion_NormalizesStoredRules(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ch := th.CreatePrivateChannel(t, th.BasicTeam)
+	parentPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+	parentPolicy.Rules = []model.AccessControlPolicyRule{
+		{Expression: "user.attributes.field_id == 'x'", Actions: []string{"*"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+	require.NoError(t, err)
+
+	mockACS.ExpectedCalls = nil
+	mockACS.On("NormalizePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
+		Return(func(_ request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+			policy.Rules = []model.AccessControlPolicyRule{
+				{Expression: "user.attributes.department == 'x'", Actions: []string{"*"}},
+			}
+			return policy, nil
+		})
+	mockACS.On("QueryUsersForExpression", mock.AnythingOfType("*request.Context"),
+		"user.attributes.department == 'x'", mock.Anything).
+		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil)
+
+	included, appErr := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.Nil(t, appErr)
+	assert.True(t, included)
+}
+
+func TestValidateTeamAdminPolicySelfInclusion_NormalizeFailureFailsClosed(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ch := th.CreatePrivateChannel(t, th.BasicTeam)
+	parentPolicy, mockACS := createTestPolicyHierarchy(t, th, []*model.Channel{ch})
+	parentPolicy.Rules = []model.AccessControlPolicyRule{
+		{Expression: "user.attributes.department == 'x'", Actions: []string{"*"}},
+	}
+	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+	require.NoError(t, err)
+
+	included, appErr := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.NotNil(t, appErr)
+	assert.False(t, included)
+	mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestCreateOrUpdateAccessControlPolicy_AdvancedMembershipRule verifies that
