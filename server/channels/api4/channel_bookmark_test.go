@@ -4,13 +4,19 @@
 package api4
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -2134,4 +2140,508 @@ func TestChannelBookmarkWriteEndpointsFileInfoABAC(t *testing.T) {
 		require.NotNil(t, deleted.FileInfo)
 		assert.Equal(t, file.Id, deleted.FileInfo.Id)
 	})
+}
+
+func TestListChannelBookmarksSinceKeepsBookmarkIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	bookmarkByID := func(bookmarks []*model.ChannelBookmarkWithFileInfo, id string) *model.ChannelBookmarkWithFileInfo {
+		for _, bookmark := range bookmarks {
+			if bookmark != nil && bookmark.Id == id {
+				return bookmark
+			}
+		}
+		return nil
+	}
+
+	listChannelBookmarks := func(t *testing.T, client *model.Client4, channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, string) {
+		t.Helper()
+		endpoint := fmt.Sprintf("/channels/%s/bookmarks?bookmarks_since=%d", channelID, since)
+		resp, err := client.DoAPIGet(context.Background(), endpoint, "")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+
+		body, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var bookmarks []*model.ChannelBookmarkWithFileInfo
+		require.NoError(t, json.Unmarshal(body, &bookmarks))
+		return bookmarks, string(body)
+	}
+
+	requireBodyOmits := func(t *testing.T, body string, values []string) {
+		t.Helper()
+		var present []string
+		for _, value := range values {
+			require.NotEmpty(t, value)
+			if strings.Contains(body, value) {
+				present = append(present, value)
+			}
+		}
+		require.Empty(t, present, "response body contains %q", present)
+	}
+
+	createLinkBookmark := func(t *testing.T, channelID, displayName, linkURL, imageURL, emoji string) *model.ChannelBookmarkWithFileInfo {
+		t.Helper()
+		bookmark, resp, createErr := th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
+			ChannelId:   channelID,
+			DisplayName: displayName,
+			LinkUrl:     linkURL,
+			ImageUrl:    imageURL,
+			Emoji:       emoji,
+			Type:        model.ChannelBookmarkLink,
+		})
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, bookmark)
+		require.Equal(t, linkURL, bookmark.LinkUrl)
+		require.Equal(t, imageURL, bookmark.ImageUrl)
+		require.Equal(t, emoji, bookmark.Emoji)
+		require.Equal(t, displayName, bookmark.DisplayName)
+		return bookmark
+	}
+
+	deleteBookmark := func(t *testing.T, channelID, bookmarkID string) *model.ChannelBookmarkWithFileInfo {
+		t.Helper()
+		deleted, resp, deleteErr := th.Client.DeleteChannelBookmark(context.Background(), channelID, bookmarkID)
+		require.NoError(t, deleteErr)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, deleted)
+		require.Greater(t, deleted.DeleteAt, int64(0))
+		return deleted
+	}
+
+	// The listed row keeps its id and delete_at. Stored link, image, emoji, and display name are absent.
+	assertRemovedLinkFieldsAbsent := func(t *testing.T, client *model.Client4, channelID string, created *model.ChannelBookmarkWithFileInfo, since int64) {
+		t.Helper()
+		bookmarks, body := listChannelBookmarks(t, client, channelID, since)
+		listed := bookmarkByID(bookmarks, created.Id)
+		require.NotNil(t, listed)
+		require.Greater(t, listed.DeleteAt, int64(0))
+		require.Empty(t, listed.LinkUrl)
+		require.Empty(t, listed.ImageUrl)
+		require.Empty(t, listed.Emoji)
+		require.Empty(t, listed.DisplayName)
+		requireBodyOmits(t, body, []string{created.LinkUrl, created.ImageUrl, created.Emoji, created.DisplayName})
+	}
+
+	laterMemberClient := func(t *testing.T, channel *model.Channel) *model.Client4 {
+		t.Helper()
+		user := th.CreateUser(t)
+		require.NotNil(t, user)
+		client := th.CreateClient()
+		_, _, loginErr := client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, loginErr)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, channel)
+		return client
+	}
+
+	uploadBookmarkFile := func(t *testing.T, channelID, name string) *model.FileInfo {
+		t.Helper()
+		data := []byte("bookmark file " + name)
+		file, appErr := th.App.UploadFileX(th.Context, channelID, name, bytes.NewReader(data),
+			app.UploadFileSetTeamId(FileTeamId),
+			app.UploadFileSetUserId(model.BookmarkFileOwner),
+			app.UploadFileSetTimestamp(time.Now()),
+			app.UploadFileSetContentLength(int64(len(data))))
+		require.Nil(t, appErr)
+		return file
+	}
+
+	requireFileAvailable := func(t *testing.T, client *model.Client4, file *model.FileInfo, searchTerm string) {
+		t.Helper()
+		_, resp, err := client.GetFile(context.Background(), file.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		results, _, err := client.SearchFiles(context.Background(), th.BasicTeam.Id, searchTerm, false)
+		require.NoError(t, err)
+		require.Contains(t, results.Order, file.Id)
+	}
+
+	requireFileUnavailable := func(t *testing.T, client *model.Client4, file *model.FileInfo, searchTerm string) {
+		t.Helper()
+		_, resp, err := client.GetFile(context.Background(), file.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		_, resp, err = client.GetFileInfo(context.Background(), file.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		results, _, err := client.SearchFiles(context.Background(), th.BasicTeam.Id, searchTerm, false)
+		require.NoError(t, err)
+		require.NotContains(t, results.Order, file.Id)
+	}
+
+	testCases := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "removed link bookmark keeps id for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				linkURL := "https://bm-link-q7k2m9.example/target"
+				imageURL := "https://bm-image-r8n3w5.example/target"
+				emoji := "bmemoji-t6w2x9"
+				displayName := "bmname-s4p8v1"
+				created := createLinkBookmark(t, channel.Id, displayName, linkURL, imageURL, emoji)
+				deleteBookmark(t, channel.Id, created.Id)
+
+				client := laterMemberClient(t, channel)
+				assertRemovedLinkFieldsAbsent(t, client, channel.Id, created, 1)
+			},
+		},
+		{
+			name: "removed file bookmark keeps id for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				miniPreview := []byte{0xfb, 0x10, 0x21, 0x32, 0x43, 0x54, 0x65, 0x76, 0x87, 0x98, 0xa9, 0xba, 0xcb, 0xdc, 0xed, 0xfe}
+				file := &model.FileInfo{
+					Id:              model.NewId(),
+					ChannelId:       channel.Id,
+					CreatorId:       model.BookmarkFileOwner,
+					Path:            "somepath",
+					ThumbnailPath:   "thumbpath",
+					PreviewPath:     "prevPath",
+					Name:            "r8n3w5t1y6u2-file.bin",
+					Extension:       "ext-r8n3w5",
+					MimeType:        "application/x-s4p8v1w3c7d5",
+					Size:            873182,
+					Width:           3076,
+					Height:          2200,
+					HasPreviewImage: true,
+					MiniPreview:     &miniPreview,
+				}
+				_, saveErr := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+				require.NoError(t, saveErr)
+
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark q7k2",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      file.Id,
+				}, "")
+				require.Nil(t, appErr)
+				deleteBookmark(t, channel.Id, created.Id)
+
+				client := laterMemberClient(t, channel)
+				bookmarks, body := listChannelBookmarks(t, client, channel.Id, 1)
+
+				// The bookmark id is present and delete_at is set.
+				listed := bookmarkByID(bookmarks, created.Id)
+				require.NotNil(t, listed)
+				require.Equal(t, created.Id, listed.Id)
+				require.Greater(t, listed.DeleteAt, int64(0))
+				require.Nil(t, listed.FileInfo)
+				require.Empty(t, listed.FileId)
+				require.Empty(t, listed.DisplayName)
+				// File id, name, extension, mime type, size, width, height, mini preview, and display name are absent from the response body.
+				requireBodyOmits(t, body, []string{
+					file.Id,
+					file.Name,
+					file.Extension,
+					file.MimeType,
+					`"size":873182`,
+					`"width":3076`,
+					`"height":2200`,
+					base64.StdEncoding.EncodeToString(miniPreview),
+					created.DisplayName,
+				})
+			},
+		},
+		{
+			name: "bookmark edited by another member keeps both ids for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+
+				urlA := "https://bm-urla-u1y5z3.example/old"
+				urlB := "https://bm-urlb-v2a6b4.example/new"
+				created := createLinkBookmark(t, channel.Id, "bmname-c3d4e5", urlA, "https://bm-image-c3d4e5.example/icon", "bmemoji-c3d4e5")
+
+				editor := th.CreateClient()
+				th.LoginBasic2WithClient(t, editor)
+				edited, resp, updateErr := editor.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					LinkUrl: &urlB,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, edited)
+				require.NotNil(t, edited.Updated)
+				require.NotNil(t, edited.Deleted)
+				require.Equal(t, created.Id, edited.Deleted.Id)
+				require.NotEqual(t, created.Id, edited.Updated.Id)
+				require.Equal(t, urlB, edited.Updated.LinkUrl)
+
+				client := laterMemberClient(t, channel)
+				bookmarks, body := listChannelBookmarks(t, client, channel.Id, 1)
+
+				// The edited bookmark is present with its link_url.
+				updated := bookmarkByID(bookmarks, edited.Updated.Id)
+				require.NotNil(t, updated)
+				require.Equal(t, urlB, updated.LinkUrl)
+				require.Contains(t, body, urlB)
+				// The replacement row keeps image_url, emoji, and display_name, so those strings stay in the body.
+				require.Equal(t, created.ImageUrl, updated.ImageUrl)
+				require.Equal(t, created.Emoji, updated.Emoji)
+				require.Equal(t, created.DisplayName, updated.DisplayName)
+				require.Contains(t, body, created.ImageUrl)
+				require.Contains(t, body, created.Emoji)
+				require.Contains(t, body, created.DisplayName)
+				// The previous row id is present and delete_at is set.
+				removed := bookmarkByID(bookmarks, edited.Deleted.Id)
+				require.NotNil(t, removed)
+				require.Greater(t, removed.DeleteAt, int64(0))
+				require.Empty(t, removed.LinkUrl)
+				require.Empty(t, removed.ImageUrl)
+				require.Empty(t, removed.Emoji)
+				require.Empty(t, removed.DisplayName)
+				// The previous link_url is the value unique to the removed row, and it is absent from the response body.
+				requireBodyOmits(t, body, []string{urlA})
+			},
+		},
+		{
+			name: "file bookmark whose file another member replaced omits the previous file for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+
+				fileA := uploadBookmarkFile(t, channel.Id, "bmswapa k3m8 report.txt")
+				fileB := uploadBookmarkFile(t, channel.Id, "bmswapb p5q2 report.txt")
+
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark swap",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      fileA.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				editor := th.CreateClient()
+				th.LoginBasic2WithClient(t, editor)
+				edited, resp, updateErr := editor.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					FileId: &fileB.Id,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, edited.Updated)
+				require.NotNil(t, edited.Deleted)
+				require.Equal(t, created.Id, edited.Deleted.Id)
+				require.Equal(t, fileB.Id, edited.Updated.FileId)
+
+				client := laterMemberClient(t, channel)
+				bookmarks, body := listChannelBookmarks(t, client, channel.Id, 1)
+
+				updated := bookmarkByID(bookmarks, edited.Updated.Id)
+				require.NotNil(t, updated)
+				require.Equal(t, fileB.Id, updated.FileId)
+
+				removed := bookmarkByID(bookmarks, edited.Deleted.Id)
+				require.NotNil(t, removed)
+				require.Greater(t, removed.DeleteAt, int64(0))
+				require.Empty(t, removed.FileId)
+				require.Nil(t, removed.FileInfo)
+				requireBodyOmits(t, body, []string{fileA.Id, fileA.Name})
+
+				requireFileUnavailable(t, client, fileA, "bmswapa")
+				requireFileAvailable(t, client, fileB, "bmswapb")
+			},
+		},
+		{
+			name: "file bookmark whose file the owner replaced omits the previous file for a later channel member",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+
+				fileA := uploadBookmarkFile(t, channel.Id, "bmownera w2e6 report.txt")
+				fileB := uploadBookmarkFile(t, channel.Id, "bmownerb r9t3 report.txt")
+
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark owner swap",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      fileA.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				edited, resp, updateErr := th.Client.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					FileId: &fileB.Id,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.Equal(t, created.Id, edited.Updated.Id)
+				require.Equal(t, fileB.Id, edited.Updated.FileId)
+				require.Nil(t, edited.Deleted)
+
+				client := laterMemberClient(t, channel)
+				requireFileUnavailable(t, client, fileA, "bmownera")
+				requireFileAvailable(t, client, fileB, "bmownerb")
+			},
+		},
+		{
+			name: "file bookmark renamed by the owner and by another member keeps its file",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+
+				file := uploadBookmarkFile(t, channel.Id, "bmrename y4u8 report.txt")
+				created, appErr := th.App.CreateChannelBookmark(th.Context, &model.ChannelBookmark{
+					ChannelId:   channel.Id,
+					DisplayName: "File mark rename",
+					Type:        model.ChannelBookmarkFile,
+					FileId:      file.Id,
+				}, "")
+				require.Nil(t, appErr)
+
+				ownerName := "File mark renamed by owner"
+				ownerEdit, resp, updateErr := th.Client.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					DisplayName: &ownerName,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.Equal(t, file.Id, ownerEdit.Updated.FileId)
+
+				editor := th.CreateClient()
+				th.LoginBasic2WithClient(t, editor)
+				memberName := "File mark renamed by member"
+				memberEdit, resp, updateErr := editor.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					DisplayName: &memberName,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, memberEdit.Deleted)
+				require.Equal(t, file.Id, memberEdit.Updated.FileId)
+
+				client := laterMemberClient(t, channel)
+				requireFileAvailable(t, client, file, "bmrename")
+			},
+		},
+		{
+			name: "later channel member full list returns the active link bookmark",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				removed := createLinkBookmark(t, channel.Id, "bmname-gone-h1j2k3", "https://bm-gone-link-h1j2k3.example/old", "https://bm-gone-image-h1j2k3.example/old", "bmemoji-gone-h1j2k3")
+				deleteBookmark(t, channel.Id, removed.Id)
+				active := createLinkBookmark(t, channel.Id, "bmname-w4x5y6", "https://bm-live-link-m4n5p6.example/now", "https://bm-live-image-q7r8s9.example/now", "bmemoji-t1u2v3")
+
+				client := laterMemberClient(t, channel)
+				bookmarks, _ := listChannelBookmarks(t, client, channel.Id, 0)
+
+				// The removed bookmark id is absent from the list.
+				require.Nil(t, bookmarkByID(bookmarks, removed.Id))
+				// The active bookmark is present with the stored link_url, image_url, emoji, and display_name.
+				listed := bookmarkByID(bookmarks, active.Id)
+				require.NotNil(t, listed)
+				require.Equal(t, active.LinkUrl, listed.LinkUrl)
+				require.Equal(t, active.ImageUrl, listed.ImageUrl)
+				require.Equal(t, active.Emoji, listed.Emoji)
+				require.Equal(t, active.DisplayName, listed.DisplayName)
+			},
+		},
+		{
+			name: "member since list returns an owner edited link bookmark",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				th.AddUserToChannel(t, th.BasicUser2, channel)
+				created := createLinkBookmark(t, channel.Id, "bmname-owner-edit", "https://bm-before-a1b2c3.example/then", "https://bm-owner-image-g7h8i9.example/icon", "bmemoji-j1k2l3")
+				since := created.UpdateAt
+
+				updatedURL := "https://bm-after-d4e5f6.example/now"
+				edited, resp, updateErr := th.Client.UpdateChannelBookmark(context.Background(), channel.Id, created.Id, &model.ChannelBookmarkPatch{
+					LinkUrl: &updatedURL,
+				})
+				require.NoError(t, updateErr)
+				CheckOKStatus(t, resp)
+				require.NotNil(t, edited)
+				require.NotNil(t, edited.Updated)
+				require.Equal(t, created.Id, edited.Updated.Id)
+				require.Equal(t, updatedURL, edited.Updated.LinkUrl)
+
+				memberClient := th.CreateClient()
+				th.LoginBasic2WithClient(t, memberClient)
+				bookmarks, body := listChannelBookmarks(t, memberClient, channel.Id, since)
+
+				// The updated link_url is in the response body and on the decoded bookmark.
+				listed := bookmarkByID(bookmarks, created.Id)
+				require.NotNil(t, listed)
+				require.Equal(t, updatedURL, listed.LinkUrl)
+				require.Contains(t, body, updatedURL)
+			},
+		},
+		{
+			name: "owner since list keeps removed link bookmark id",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				created := createLinkBookmark(t, channel.Id, "bmname-owner-a9c2", "https://bm-owner-link-a9c2.example/target", "https://bm-owner-image-a9c2.example/target", "bmemoji-owner-a9c2")
+				deleteBookmark(t, channel.Id, created.Id)
+				assertRemovedLinkFieldsAbsent(t, th.Client, channel.Id, created, 1)
+			},
+		},
+		{
+			name: "guest added after removal sees removed link bookmark id",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				created := createLinkBookmark(t, channel.Id, "bmname-guest-b8d3", "https://bm-guest-link-b8d3.example/target", "https://bm-guest-image-b8d3.example/target", "bmemoji-guest-b8d3")
+				deleteBookmark(t, channel.Id, created.Id)
+
+				guest, guestClient := th.CreateGuestAndClient(t)
+				th.AddUserToChannel(t, guest, channel)
+				assertRemovedLinkFieldsAbsent(t, guestClient, channel.Id, created, 1)
+			},
+		},
+		{
+			name: "channel admin added after removal sees removed link bookmark id",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				created := createLinkBookmark(t, channel.Id, "bmname-admin-c7e4", "https://bm-admin-link-c7e4.example/target", "https://bm-admin-image-c7e4.example/target", "bmemoji-admin-c7e4")
+				deleteBookmark(t, channel.Id, created.Id)
+
+				user := th.CreateUser(t)
+				client := th.CreateClient()
+				_, _, loginErr := client.Login(context.Background(), user.Email, user.Password)
+				require.NoError(t, loginErr)
+				th.LinkUserToTeam(t, user, th.BasicTeam)
+				th.AddUserToChannel(t, user, channel)
+				resp, roleErr := th.Client.UpdateChannelRoles(context.Background(), channel.Id, user.Id, model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+				require.NoError(t, roleErr)
+				CheckOKStatus(t, resp)
+				assertRemovedLinkFieldsAbsent(t, client, channel.Id, created, 1)
+			},
+		},
+		{
+			name: "system admin added after removal sees removed link bookmark id",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				created := createLinkBookmark(t, channel.Id, "bmname-sys-d6f5", "https://bm-sys-link-d6f5.example/target", "https://bm-sys-image-d6f5.example/target", "bmemoji-sys-d6f5")
+				deleteBookmark(t, channel.Id, created.Id)
+
+				th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+				th.AddUserToChannel(t, th.SystemAdminUser, channel)
+				assertRemovedLinkFieldsAbsent(t, th.SystemAdminClient, channel.Id, created, 1)
+			},
+		},
+		{
+			name: "since equal to delete_at keeps removed link bookmark id",
+			run: func(t *testing.T) {
+				channel := th.CreatePrivateChannel(t)
+				created := createLinkBookmark(t, channel.Id, "bmname-bound-e5g6", "https://bm-bound-link-e5g6.example/target", "https://bm-bound-image-e5g6.example/target", "bmemoji-bound-e5g6")
+				deleted := deleteBookmark(t, channel.Id, created.Id)
+
+				client := laterMemberClient(t, channel)
+				// bookmarks_since equal to delete_at still returns the row with stored fields absent.
+				assertRemovedLinkFieldsAbsent(t, client, channel.Id, created, deleted.DeleteAt)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, tc.run)
+	}
 }
