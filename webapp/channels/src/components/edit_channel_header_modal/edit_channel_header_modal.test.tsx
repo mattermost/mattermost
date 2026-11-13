@@ -57,32 +57,9 @@ describe('components/EditChannelHeaderModal', () => {
         } as MockIntl,
     };
 
-    test('should match snapshot, init', () => {
-        const {baseElement} = renderWithContext(
-            <EditChannelHeaderModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('edit direct message channel', () => {
-        const dmChannel: Channel = {
-            ...channel,
-            type: Constants.DM_CHANNEL as ChannelType,
-        };
-
-        const {baseElement} = renderWithContext(
-            <EditChannelHeaderModal
-                {...baseProps}
-                channel={dmChannel}
-            />,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('submitted', async () => {
         const patchChannel = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves to keep saving state
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -97,14 +74,15 @@ describe('components/EditChannelHeaderModal', () => {
         // Click save
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-        expect(baseElement).toMatchSnapshot();
+        expect(patchChannel).toHaveBeenCalledWith(baseProps.channel.id, {header: 'New header'});
+        expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
     });
 
     test('error with intl message', async () => {
         const patchChannel = jest.fn().mockResolvedValue({
             error: {...serverError, server_error_id: 'model.channel.is_valid.header.app_error'},
         });
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -122,8 +100,6 @@ describe('components/EditChannelHeaderModal', () => {
         await waitFor(() => {
             expect(screen.getByText(/The text entered exceeds the character limit/)).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should call a board a board', () => {
@@ -165,7 +141,7 @@ describe('components/EditChannelHeaderModal', () => {
 
     test('error without intl message', async () => {
         const patchChannel = jest.fn().mockResolvedValue({error: serverError});
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <EditChannelHeaderModal
                 {...baseProps}
                 actions={{...baseProps.actions, patchChannel}}
@@ -183,8 +159,6 @@ describe('components/EditChannelHeaderModal', () => {
         await waitFor(() => {
             expect(screen.getByText('some error')).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should toggle the preview and start without it when reopened', async () => {

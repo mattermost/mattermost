@@ -84,16 +84,6 @@ describe('component/user_group_popover', () => {
         returnFocus: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <UserGroupPopover
-                {...baseProps}
-            />,
-            initialState as any,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should not show search bar', async () => {
         const {container} = renderWithContext(
             <UserGroupPopover

@@ -34,7 +34,11 @@ describe('components/admin_console/server_logs/LogRow', () => {
         searchTerm: '',
         wrapText: false,
         showNode: false,
+        timezone: 'UTC',
+        timeFormat: 'HH:mm:ss.SSS',
     };
+
+    const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
 
     const writeText = jest.fn();
 
@@ -69,22 +73,28 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             expect(screen.getByText('Info')).toBeInTheDocument();
 
-            // Only the time portion of the timestamp is displayed
+            // Only the time, in the format the list picked
             expect(screen.getByText('12:34:56.789')).toBeInTheDocument();
             expect(screen.getByText('Something happened')).toBeInTheDocument();
             expect(screen.getByText('app/server.go:123')).toBeInTheDocument();
         });
 
-        test('should show the full timestamp as a title attribute', () => {
-            renderLogRow();
+        test('should keep the raw timestamp as the title whatever the timezone and format', () => {
+            renderLogRow({timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
-            expect(screen.getByText('12:34:56.789')).toHaveAttribute('title', baseLog.timestamp);
+            expect(screen.getByText('2024-01-01 13:34:56.789')).toHaveAttribute('title', baseLog.timestamp);
         });
 
-        test('should fall back to the raw timestamp when no time can be extracted', () => {
-            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}});
+        test('should fall back to the raw timestamp when it does not parse', () => {
+            renderLogRow({log: {...baseLog, timestamp: 'not a timestamp'}, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
-            expect(screen.getByText('not a timestamp')).toBeInTheDocument();
+            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^not a timestamp$/);
+        });
+
+        test('should move to the next day in the admin\'s timezone', () => {
+            renderLogRow({log: {...baseLog, timestamp: '2023-12-31 23:30:00.000 +00:00'}, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
+
+            expect(document.querySelector('.LogRow__timestamp')).toHaveTextContent(/^2024-01-01 00:30:00\.000$/);
         });
 
         test.each([
@@ -310,7 +320,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
     describe('expanded details', () => {
         test('should render the core fields', () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             expect(screen.getByText('Timestamp')).toBeInTheDocument();
             expect(screen.getByText('Caller')).toBeInTheDocument();
@@ -432,8 +442,9 @@ describe('components/admin_console/server_logs/LogRow', () => {
     });
 
     describe('copying', () => {
+        // The admin's timezone and format only change what the row shows
         test('should copy the log as JSON', async () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             await userEvent.click(screen.getByText('Copy JSON'));
 
@@ -441,7 +452,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test('should copy the log line in the expected format', async () => {
-            renderLogRow({isExpanded: true});
+            renderLogRow({isExpanded: true, timezone: 'Europe/Berlin', timeFormat: DATE_TIME_FORMAT});
 
             await userEvent.click(screen.getByText('Copy log line'));
 

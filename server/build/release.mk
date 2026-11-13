@@ -200,7 +200,7 @@ package-prep: setup-go-work
 	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPServer": "localhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"SMTPPort": "10025",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 	chmod 600 $(DIST_PATH)/config/config.json
 
 	@# Package web app

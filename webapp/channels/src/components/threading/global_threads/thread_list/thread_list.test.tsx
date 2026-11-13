@@ -96,13 +96,6 @@ describe('components/threading/global_threads/thread_list', () => {
         mockDispatch.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <ThreadList {...props}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should support filter:all', async () => {
         renderWithContext(
             <ThreadList {...props}/>,

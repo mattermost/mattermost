@@ -1,7 +1,8 @@
 name: Docs Writer (Merged PR)
 
 # When a PR merges still carrying Docs/Needed, draft the missing pages in this
-# repo from the gap sticky comment, then open a draft PR. Closing that draft
+# repo from the gap sticky comment, then open a PR ready for review (not a GitHub
+# draft, so the editor-review label and any requested reviewer pick it up). Merging that PR
 # flips Docs/Needed → Docs/Done on the originating PR.
 #
 # Requires DOCS_AI_APP_CLIENT_ID (variable) + DOCS_AI_APP_PRIVATE_KEY (secret)
@@ -260,7 +261,7 @@ jobs:
             git push -u origin "HEAD:refs/heads/${BRANCH}"
           fi
 
-      - name: Open or update draft PR
+      - name: Open or update docs PR
         if: steps.gate.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -268,7 +269,7 @@ jobs:
           REVIEWER: ${{ steps.pr.outputs.reviewer }}
         run: |
           set -euo pipefail
-          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url,isDraft --jq 'first // empty')
           title_file=".docs-ai/writer/draft-title.txt"
           if [ ! -s "$title_file" ]; then
             echo "::error::Writer did not emit a draft title."
@@ -280,13 +281,16 @@ jobs:
             NUM=$(echo "$EXISTING" | jq -r .number)
             URL=$(echo "$EXISTING" | jq -r .url)
             gh pr edit "$NUM" --title "$TITLE" --body-file .docs-ai/writer/pr-body.md
+            # PRs opened before the writer stopped using GitHub drafts.
+            if [ "$(echo "$EXISTING" | jq -r .isDraft)" = "true" ]; then
+              gh pr ready "$NUM"
+            fi
           else
             URL=$(gh pr create \
               --base master \
               --head "$BRANCH" \
               --title "$TITLE" \
-              --body-file .docs-ai/writer/pr-body.md \
-              --draft)
+              --body-file .docs-ai/writer/pr-body.md)
             NUM=$(gh pr view "$BRANCH" --json number --jq .number)
             if [ -n "$REVIEWER" ]; then
               gh pr edit "$NUM" --add-reviewer "$REVIEWER" || true
@@ -296,7 +300,7 @@ jobs:
           {
             echo "## Docs writer"
             echo ""
-            echo "Draft PR: ${URL}"
+            echo "Docs PR: ${URL}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on source PR
@@ -308,7 +312,7 @@ jobs:
         run: |
           set -euo pipefail
           URL=$(gh pr view "$BRANCH" --json url --jq .url)
-          gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
+          gh pr comment "$PR_NUMBER" --body "Documentation PR opened: ${URL}"
 
       - name: Upload writer trail
         if: always() && steps.gate.outputs.run == 'true'

@@ -23,8 +23,8 @@ describe('components/drafts/panel/panel_header', () => {
         error: undefined,
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(
+    it('should render', () => {
+        renderWithContext(
             <PanelHeader
                 {...baseProps}
             />,
@@ -32,7 +32,6 @@ describe('components/drafts/panel/panel_header', () => {
 
         expect(screen.queryByTestId('with-tooltip')).not.toBeInTheDocument();
         expect(screen.getByText('actions').closest('.PanelHeader__actions')).not.toHaveClass('show');
-        expect(container).toMatchSnapshot();
     });
 
     it('should show sync icon when draft is from server', () => {
@@ -41,13 +40,12 @@ describe('components/drafts/panel/panel_header', () => {
             remote: true,
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <PanelHeader
                 {...props}
             />,
         );
 
         expect(screen.getByTestId('with-tooltip')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 });

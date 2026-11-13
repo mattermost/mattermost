@@ -15,9 +15,8 @@ import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {LogNodeKey} from '@mattermost/types/admin';
 
-import {General} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
+import {logEntryKey, logEntryTime, parseLogTimestamp} from 'mattermost-redux/utils/log_utils';
 
 import {isUseMilitaryTime} from 'selectors/preferences';
 
@@ -31,8 +30,8 @@ import {useLatest} from 'hooks/useLatest';
 import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
-import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, TimeRange} from './types';
-import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, newestLogTimes} from './utils';
+import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
+import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
 
 import './log_list.scss';
 
@@ -45,8 +44,11 @@ type Props = {
     loading: boolean;
     logs: LogObjectWithAdditionalInfo[];
 
-    // Nodes that returned a full page, leaving out their older entries
+    // Nodes that returned a full page, leaving out their older entries, so the total is a lower bound
     truncatedNodes: string[];
+
+    // Nodes whose search stopped at the server's time or size limit
+    scanLimitedNodes?: ScanLimitedLogNode[];
     onSearchChange: (term: string) => void;
     search: string;
 
@@ -227,8 +229,10 @@ function savePrefs(prefs: StoredPrefs) {
     }
 }
 
+const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
+
 export default function LogList({
-    loading, logs, truncatedNodes, onSearchChange, search,
+    loading, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
     plugins, selectedPlugins, onSelectedPluginsChange,
@@ -362,11 +366,42 @@ export default function LogList({
             map(({log}) => log);
     }, [scopedLogs, enabledLevels, sortAsc]);
 
+    // Every page shows the date or none does, so the time column keeps one width while paging.
+    // Today's entries become yesterday's at midnight, so the check runs again then, even when no new ones arrive.
+    // The midnight comes from the same clock reading as the check, so a render just before it can't skip a day.
+    const [dayChanges, setDayChanges] = useState(0);
+    const {showDate, nextDayAt} = useMemo(() => {
+        const now = Date.now();
+        return {showDate: logsNeedDate(processedLogs, timezone, now), nextDayAt: nextDayStart(timezone, now)};
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dayChanges marks a timer firing, which moves Date.now()
+    }, [processedLogs, timezone, dayChanges]);
+    useEffect(() => {
+        const recheck = () => setDayChanges((count) => count + 1);
+
+        // Re-armed by dayChanges too, in case the timer fires early and nextDayAt stays the same
+        const timer = setTimeout(recheck, Math.max(0, nextDayAt - Date.now()));
+
+        // The timer can stall while the computer sleeps, so recheck once the page is back if midnight passed
+        const onVisible = () => {
+            if (document.visibilityState === 'visible' && Date.now() >= nextDayAt) {
+                recheck();
+            }
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
+    }, [nextDayAt, dayChanges]);
+    const timeFormat = logRowTimeFormat(showDate, isMilitaryTime);
+
     // Only held entries the current filters would show are worth announcing
     const heldCount = useMemo(() => filterLogs(heldLogs, enabledLevels).length, [heldLogs, enabledLevels]);
 
     const matchCount = search ? processedLogs.length : null;
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
+    const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -377,7 +412,13 @@ export default function LogList({
     const {visibleLogs, rowKeys} = useMemo(() => {
         const pageLogs = processedLogs.slice(startIndex, endIndex);
         const keys = getRowKeys(pageLogs);
-        const rows = pageLogs.map((log, i) => rowsByKeyRef.current.get(keys[i]) ?? log);
+        const rows = pageLogs.map((log, i) => {
+            const cached = rowsByKeyRef.current.get(keys[i]);
+
+            // A failed-node entry keeps its key while its time and error change on every poll
+            const unchanged = cached && (log.failed_node !== true || logEntryKey(cached) === logEntryKey(log));
+            return unchanged ? cached : log;
+        });
         rowsByKeyRef.current = new Map(keys.map((key, i) => [key, rows[i]]));
         return {visibleLogs: rows, rowKeys: keys};
     }, [processedLogs, startIndex, endIndex]);
@@ -535,6 +576,48 @@ export default function LogList({
         timeZone: timezone,
     }) : intl.formatMessage(activePresetLabel ?? messages.allTime);
     const enabledLevelCount = LEVEL_GROUPS.filter((level) => enabledLevels.has(level)).length;
+
+    // The date is only shown when the scan reached back past today
+    const formatScanLimit = (node: string, scannedBackTo?: string) => {
+        const time = scannedBackTo === undefined ? NaN : parseLogTimestamp(scannedBackTo);
+        if (Number.isNaN(time)) {
+            return showNodes ? (
+                <FormattedMessage
+                    id='admin.logs.scanLimited.nodeStopped'
+                    defaultMessage='The search on {node} stopped at its limit.'
+                    values={{node}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='admin.logs.scanLimited.stopped'
+                    defaultMessage='The search stopped at its limit.'
+                />
+            );
+        }
+
+        const dayOf = (t: number) => intl.formatDate(t, {year: 'numeric', month: 'numeric', day: 'numeric', timeZone: timezone});
+        const formatted = intl.formatDate(time, {
+            month: dayOf(time) === dayOf(Date.now()) ? undefined : 'short',
+            day: dayOf(time) === dayOf(Date.now()) ? undefined : 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hourCycle: isMilitaryTime ? 'h23' : 'h12',
+            timeZone: timezone,
+        });
+        return showNodes ? (
+            <FormattedMessage
+                id='admin.logs.scanLimited.nodeBackTo'
+                defaultMessage='Searched {node} back to {time}.'
+                values={{node, time: formatted}}
+            />
+        ) : (
+            <FormattedMessage
+                id='admin.logs.scanLimited.backTo'
+                defaultMessage='Searched back to {time}.'
+                values={{time: formatted}}
+            />
+        );
+    };
 
     // One selector for on/off and the interval, so picking an interval turns polling on
     const setLiveTail = (interval: number | null) => {
@@ -941,40 +1024,50 @@ export default function LogList({
     return (
         <div
             className='LogViewer'
+
+            // Sizes the time column to the longest time this format gives
+            style={{'--log-timestamp-chars': logRowTimeLength(timeFormat)} as React.CSSProperties}
             onKeyDown={handleKeyDown}
         >
             {filters}
 
-            {truncated && (
+            {scanLimited.length > 0 && (
                 <SectionNotice
                     className='LogViewer__notice'
                     type='info'
-                    title={showNodes && !selectedNode ? (
+                    title={
                         <FormattedMessage
-                            id='admin.logs.truncated.titleNodes'
-                            defaultMessage='Only the latest {limit, number} entries from each node are shown'
-                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
+                            id='admin.logs.scanLimited.title'
+                            defaultMessage='The search stopped before reaching older entries'
                         />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.logs.truncated.title'
-                            defaultMessage='Only the latest {limit, number} entries are shown'
-                            values={{limit: General.LOGS_PAGE_SIZE_DEFAULT}}
-                        />
-                    )}
-                    description={showNodes ? (
-                        <FormattedMessage
-                            id='admin.logs.truncated.descriptionNodes'
-                            defaultMessage="Older entries aren't loaded or counted."
-                        />
-                    ) : (
+                    }
+                    description={
+                        <>
+                            {scanLimited.map(({node, scannedBackTo}) => (
+                                <p
+                                    key={node}
+                                    className='LogViewer__notice-line'
+                                >
+                                    {formatScanLimit(node, scannedBackTo)}
+                                </p>
+                            ))}
+                            <p className='LogViewer__notice-line'>
+                                {showNodes ? (
+                                    <FormattedMessage
+                                        id='admin.logs.scanLimited.descriptionNodes'
+                                        defaultMessage="Older entries weren't searched."
+                                    />
+                                ) : (
 
-                        // Download saves the log file of the node serving the request, so it's only offered with a single node
-                        <FormattedMessage
-                            id='admin.logs.truncated.description'
-                            defaultMessage="Older entries aren't loaded or counted. Download the log file to see them."
-                        />
-                    )}
+                                    // The scan always starts from the newest entry, so a narrower range wouldn't reach further
+                                    <FormattedMessage
+                                        id='admin.logs.scanLimited.description'
+                                        defaultMessage="Older entries weren't searched. Download the log file to search all of it."
+                                    />
+                                )}
+                            </p>
+                        </>
+                    }
                 />
             )}
 
@@ -1097,6 +1190,8 @@ export default function LogList({
                             searchTerm={search}
                             wrapText={wrapText}
                             showNode={showNodes}
+                            timezone={timezone}
+                            timeFormat={timeFormat}
                         />
                     ))}
                 </div>
@@ -1110,7 +1205,7 @@ export default function LogList({
                             defaultMessage='Refreshing…'
                         />
                     )}
-                    {!loading && matchCount !== null && (
+                    {!loading && matchCount !== null && !truncated && (
                         <FormattedMessage
                             id='admin.logs.showingMatches'
                             defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters'
@@ -1121,10 +1216,34 @@ export default function LogList({
                             }}
                         />
                     )}
-                    {!loading && matchCount === null && (
+
+                    {/* A node in view returned a full page, so older entries weren't loaded and the total is a lower bound */}
+                    {!loading && matchCount !== null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingMatchesCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number}+ entries matching your filters'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                matches: matchCount,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && !truncated && (
                         <FormattedMessage
                             id='admin.logs.showing'
                             defaultMessage='Showing {start, number} - {end, number} of {total, number}'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                total: processedLogs.length,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && truncated && (
+                        <FormattedMessage
+                            id='admin.logs.showingCapped'
+                            defaultMessage='Showing {start, number} - {end, number} of {total, number}+'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,

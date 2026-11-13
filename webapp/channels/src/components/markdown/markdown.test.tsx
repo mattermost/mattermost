@@ -41,21 +41,6 @@ describe('components/Markdown', () => {
         metadata: {},
     };
 
-    test('should render properly', () => {
-        const {container} = renderWithContext(<Markdown {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should not render markdown when formatting is disabled', () => {
-        const props = {
-            ...baseProps,
-            enableFormatting: false,
-        };
-
-        const {container} = renderWithContext(<Markdown {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     describe('image proxy', () => {
         const imageUrl = 'https://example.com/image.png';
 

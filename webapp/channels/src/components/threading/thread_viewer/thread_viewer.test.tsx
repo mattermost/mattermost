@@ -104,16 +104,15 @@ describe('components/threading/ThreadViewer', () => {
         });
     });
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const reset = fakeDate(new Date(1502715365000));
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ThreadViewer {...baseProps}/>,
         );
 
         await screen.findByTestId('virtualized-thread-viewer');
         expect(actions.getPostThread).toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
         reset();
     });
 

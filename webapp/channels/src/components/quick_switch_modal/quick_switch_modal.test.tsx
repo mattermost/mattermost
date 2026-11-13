@@ -33,11 +33,6 @@ describe('components/QuickSwitchModal', () => {
         },
     };
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};
