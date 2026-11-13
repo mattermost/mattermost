@@ -47,11 +47,15 @@ Installing from the Marketplace is the recommended method for pre-built plugins.
 
 The [Mattermost Marketplace](https://mattermost.com/marketplace/) website offers an expanded selection of community-supported integrations.
 
+Plugins your organization signs are installed from a Marketplace you run, after you configure the matching public key. See [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures).
+
 </Tip>
 
 ### Plugin upload
 
 Upload a plugin bundle when you're installing a custom or third-party plugin that isn't in the Marketplace, or when your server runs in an air-gapped or restricted environment. Uploading requires the **Upload Plugin** setting to be enabled and the **Require plugin signature** (`PluginSettings.RequirePluginSignature`) setting to be disabled.
+
+An uploaded bundle is installed without a signature check. `PluginSettings.SignaturePublicKeyFiles` is not used on this path. To install a plugin signed with your own key, use a [private Marketplace or the prepackaged plugins directory](/administration-guide/configure/custom-plugin-signatures).
 
 1.  Download the plugin bundle (a `.tar.gz` file), typically from the plugin's GitHub releases page. Many plugins offer a separate, smaller bundle for each platform (for example, `linux-amd64`) alongside a larger universal bundle that contains the binaries for all supported platforms. Download the bundle that matches your server's operating system and architecture; a bundle built for a different platform won't start. If you use the universal bundle instead, Mattermost automatically selects the correct binary for your server.
 2.  Log in to your Mattermost System Console as a system admin.
@@ -174,11 +178,12 @@ Mattermost doesn't provide a built-in way to fully delete a removed plugin's ret
 
 ## Air-gapped and restricted environments
 
-For deployments without internet access, set **Enable remote Marketplace** to **false** so the Marketplace shows only pre-packaged and installed plugins, and install plugins by uploading the bundle directly through the System Console. See the [air-gapped deployment](/deployment-guide/deployment-scenarios/air-gapped-deployment) documentation for details.
+For deployments without internet access, set **Enable remote Marketplace** to **false** so the Marketplace shows only pre-packaged and installed plugins, and install plugins by uploading the bundle directly through the System Console. A plugin you sign yourself can be placed in `prepackaged_plugins` with its `.sig` file and trusted through `PluginSettings.SignaturePublicKeyFiles`. See [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures#install-on-one-server-without-a-marketplace) and the [air-gapped deployment](/deployment-guide/deployment-scenarios/air-gapped-deployment) documentation.
 
 ## Related documentation
 
 - [Plugins overview](/integrations-guide/plugins) - Learn about pre-built and custom plugins.
 - [Pre-built integrations](/integrations-guide/popular-integrations) - Browse available pre-built plugins and how to get them.
 - [Plugins configuration settings](/administration-guide/configure/plugins-configuration-settings) - Review every plugin configuration setting.
+- [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures) - Trust your own signing key and serve those plugins from a private Marketplace.
 - [mmctl command line tool](/administration-guide/manage/mmctl-command-line-tool) - Manage plugins from the command line.

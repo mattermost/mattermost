@@ -106,13 +106,13 @@ While the server ships with a default public key used to verify plugins from the
 
 ### Configuration
 
-Configuring plugin signatures allows finer control over the verification process:
+`PluginSettings.RequirePluginSignature` controls whether plugins that are already stored for the cluster must pass signature verification when they are installed on a server.
 
-`PluginSettings.RequirePluginSignature = true`
+When it is `true`, plugin uploads are disabled. Install plugins from the Marketplace, which verifies every download. When it is `false`, an admin can upload a `.tar.gz`, and that upload is not signature-checked.
 
-This is used to enforce plugin signature verification. With flag on, only Marketplace plugins will be installed and verified. With flag off, customers will be able to install plugins manually without signature verification.
+Marketplace installs are signature-checked in either case. From Mattermost v10.11, plugins in `prepackaged_plugins` are signature-checked on startup in either case.
 
-Note that the Marketplace plugins will still be verified even if the flag is off.
+To trust a key your organization controls and publish plugins signed with it, see [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures).
 
 ### Key generation
 
@@ -193,21 +193,17 @@ This command will generate `com.mattermost.demo-plugin-0.1.0.tar.gz.sig`, which 
 
 ## Plugin verification
 
-Mattermost server will verify plugin signatures downloaded from the Marketplace. Plugins are verified against a hard-coded Mattermost public key, as well as any additional public keys configured on the server.
+Mattermost verifies a Marketplace download, and from v10.11 a pre-packaged bundle, against the public key built into the server and then against each public key in `PluginSettings.SignaturePublicKeyFiles`.
 
-To add custom public keys for plugin signature verification, add the key file names to the `PluginSettings.SignaturePublicKeyFiles` setting in your `config.json`:
+On a server that stores configuration in a file, each entry is a file name in the same directory as `config.json`, or an absolute path. The setting is a string array:
 
 ```json
 "PluginSettings": {
-    "SignaturePublicKeyFiles": ["my-pub-key-1", "my-pub-key-2"]
+    "SignaturePublicKeyFiles": ["my-pub-key"]
 }
 ```
 
-The key files themselves must be stored in the Mattermost server's config directory.
-
-### Implementation
-
-See the [implementation document](https://docs.google.com/document/d/1qABE7VEx4k_ZAeh6Ydn4pGbu6BQfZt65x68i2s65MOQ) for more information.
+The System Console and the config API do not change this list. Install the key file, sign bundles, and serve them from a private Marketplace using [Install plugins signed with a custom key](/administration-guide/configure/custom-plugin-signatures).
 
 ## Set up guide
 
@@ -236,8 +232,8 @@ With plugin uploads enabled, navigate to **System Console > Plugins > Management
 
 
 <Note title="Note">
-1. When `RequirePluginSignature` is `true`, plugin uploads cannot be enabled, and may only be installed via the Marketplace (which verifies Plugin Code Signatures).
-2. `EnableRemoteMarketplaceURL` also remains disabled as long as `EnableUploads` is disabled.
+1. When `RequirePluginSignature` is `true`, plugin uploads are disabled. Install plugins from the Marketplace, which verifies plugin signatures.
+2. While `EnableUploads` is `false`, the config API keeps the existing `PluginSettings.MarketplaceURL`. Change that URL in `config.json` or with `mmctl --local`. `PluginSettings.EnableRemoteMarketplace` is a separate setting.
 </Note>
 
 

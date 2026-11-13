@@ -447,6 +447,7 @@ const ADMIN_CONFIGURE_ORDER = [
   {group: 'branding'},
   {group: 'agents'},
   'manage-plugins',
+  'custom-plugin-signatures',
   'install-boards',
   {doc: 'administration-guide/manage/admin/autotranslation'},
   {doc: 'administration-guide/manage/admin/content-flagging', label: 'Set up content flagging'},
