@@ -259,7 +259,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	// Actions above), so it snaps back to enforced the moment the switch
 	// flips off again. Non-channel fields (post, user) are never gated by
 	// this flag, matching the value-enforcement side in validateValues.
-	if field.ObjectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
+	// An update is judged by its stored ObjectType: the store never writes a
+	// submitted one, so a fake type would otherwise skip the gate.
+	objectType := field.ObjectType
+	if existing != nil {
+		objectType = existing.ObjectType
+	}
+	if objectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
 		model.IsPropertyFieldRequired(field) && !prevRequired {
 		return newRequiredAttrDisabledError(field)
 	}
