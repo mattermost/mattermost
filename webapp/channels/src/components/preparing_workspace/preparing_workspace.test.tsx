@@ -71,10 +71,10 @@ describe('components/preparing_workspace/preparing_workspace', () => {
         },
     });
 
-    const renderWizard = (state = makeState()) => {
+    const renderWizard = (state = makeState(), createTeam = jest.fn().mockResolvedValue({data: {id: 'team1', invite_id: 'invite1'}})) => {
         const history = createMemoryHistory();
         const actions = {
-            createTeam: jest.fn().mockResolvedValue({data: {id: 'team1', invite_id: 'invite1'}}),
+            createTeam,
             updateTeam: jest.fn().mockResolvedValue({data: {id: 'team1'}}),
             checkIfTeamExists: jest.fn().mockResolvedValue({data: false}),
             getProfiles: jest.fn().mockResolvedValue({data: []}),
@@ -139,6 +139,27 @@ describe('components/preparing_workspace/preparing_workspace', () => {
             install_plugins: [],
             site_url: 'https://chat.example.com',
         });
+    });
+
+    test('keeps the entered URL when the new team is created after the admin has left the Organization step', async () => {
+        const state = makeState();
+        state.entities!.teams = {currentTeamId: '', teams: {}, myMembers: {}};
+        let resolveCreateTeam: (result: unknown) => void = () => {};
+        const createTeam = jest.fn(() => new Promise((resolve) => {
+            resolveCreateTeam = resolve;
+        }));
+        renderWizard(state, createTeam);
+        await waitForConfigs();
+        await completeOrganization();
+
+        await userEvent.clear(screen.getByRole('textbox'));
+        await userEvent.type(screen.getByRole('textbox'), 'https://chat.example.com');
+        await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+        expect(await screen.findByText(inviteTitle)).toBeInTheDocument();
+
+        await act(async () => resolveCreateTeam({data: {id: 'team1', invite_id: 'invite1'}}));
+
+        expect(screen.getByTestId('shareLinkInput')).toHaveValue('https://chat.example.com/signup_user_complete/?id=invite1');
     });
 
     test('shows the step when the Site URL is the default localhost URL', async () => {

@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import SiteUrl, {getHostHint, isValidSiteUrl, normalizeSiteUrl} from './site_url';
 import {Animations} from './steps';
@@ -44,6 +44,8 @@ describe('isValidSiteUrl', () => {
         'https://:8065',
         'https://chat.example.com:0',
         'https://chat.example.com:65536',
+        'https://chat.example.com:',
+        'https://exa%41mple.com',
         'https://chat example.com',
     ])('rejects %s', (url) => {
         expect(isValidSiteUrl(url)).toBe(false);
@@ -75,11 +77,11 @@ describe('components/preparing_workspace/site_url', () => {
     let testSiteURL: jest.SpyInstance;
 
     // Keeps the URL in state, like the wizard does.
-    const Wrapper = ({initialUrl}: {initialUrl: string}) => {
+    const Wrapper = ({initialUrl, show = true}: {initialUrl: string; show?: boolean}) => {
         const [url, setUrl] = useState(initialUrl);
         return (
             <SiteUrl
-                show={true}
+                show={show}
                 transitionDirection={Animations.Reasons.EnterFromBefore}
                 next={next}
                 skip={skip}
@@ -176,6 +178,47 @@ describe('components/preparing_workspace/site_url', () => {
         expect(screen.getByText('Testing URL')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Continue'})).toBeDisabled();
         expect(next).not.toHaveBeenCalled();
+    });
+
+    test('resets a running test when the admin leaves the step and comes back', async () => {
+        testSiteURL.mockReturnValue(new Promise(() => {}));
+        const {rerender} = renderStep();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+        expect(screen.getByText('Testing URL')).toBeInTheDocument();
+
+        rerender(<Wrapper initialUrl='https://chat.example.com'/>);
+        rerender(
+            <Wrapper
+                initialUrl='https://chat.example.com'
+                show={false}
+            />,
+        );
+        rerender(<Wrapper initialUrl='https://chat.example.com'/>);
+
+        expect(await screen.findByRole('button', {name: 'Continue'})).toBeEnabled();
+        expect(screen.queryByText('Testing URL')).not.toBeInTheDocument();
+    });
+
+    test('treats a test that takes too long as failed', async () => {
+        jest.useFakeTimers();
+        try {
+            testSiteURL.mockReturnValue(new Promise(() => {}));
+            renderStep();
+
+            fireEvent.click(screen.getByRole('button', {name: 'Continue'}));
+            expect(screen.getByText('Testing URL')).toBeInTheDocument();
+
+            await act(async () => {
+                jest.advanceTimersByTime(10000);
+            });
+
+            expect(screen.getByText('Test unsuccessful. This is not a valid URL.')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Use anyway'})).toBeInTheDocument();
+            expect(next).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('shows Use anyway when the test fails, and Use anyway advances', async () => {
