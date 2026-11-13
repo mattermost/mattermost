@@ -1,6 +1,6 @@
 {
   "name": "mattermost-redux",
-  "version": "12.1.0",
+  "version": "12.2.0",
   "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
   "keywords": [
     "mattermost"
@@ -39,11 +39,11 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
-    "@mattermost/client": "12.1.0",
-    "@mattermost/types": "12.1.0",
+    "@mattermost/client": "12.2.0",
+    "@mattermost/types": "12.2.0",
     "@redux-devtools/extension": "3.3.0",
     "lodash": "^4.17.21",
-    "moment-timezone": "^0.6.5",
+    "moment-timezone": "^0.6.6",
     "redux": "^5.0.0",
     "redux-batched-actions": "0.5.0",
     "redux-thunk": "^3.0.0",
@@ -52,7 +52,7 @@
     "timezones.json": "^1.7.2"
   },
   "peerDependencies": {
-    "typescript": "^4.3.0 || ^5.0.0"
+    "typescript": "^4.3.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -63,5 +63,8 @@
     "build": "tsc --build --verbose",
     "postbuild": "sh postbuild.sh",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@7.0.2"
   }
 }

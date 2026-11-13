@@ -1,12 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import classNames from 'classnames';
+import React, {useId, useMemo} from 'react';
+import type {FocusEventHandler, ReactElement} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {Combobox} from '@mattermost/compass-ui/components/combobox';
 import type {ComboboxOption} from '@mattermost/compass-ui/components/combobox';
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
+
+import {sortOptionsByRank} from 'mattermost-redux/utils/property_utils';
+
+import RankBadge from 'components/admin_console/system_properties/rank_badge';
+
+import {AttributeOptionSwatch, AttributeOptionVisualPlaceholder} from './attribute_option_swatch';
+
+import './attribute_combobox.scss';
 
 const messages = defineMessages({
     listbox: {
@@ -34,23 +45,39 @@ const messages = defineMessages({
         defaultMessage: 'Loading…',
         description: 'Shown in an attribute dropdown while options load.',
     },
+    rankedOption: {
+        id: 'property_fields.attribute_combobox.ranked_option',
+        defaultMessage: '{name}, Rank {rank}',
+        description: 'Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number.',
+    },
+    rank: {
+        id: 'property_fields.attribute_combobox.rank',
+        defaultMessage: 'Rank {rank}',
+        description: 'Accessible description of a rank attribute field, giving the selected option\'s rank number.',
+    },
 });
 
-type SingleProps = {
-    multiple?: false;
-    value: string;
-    onChange: (value: string) => void;
-};
+export type AttributeComboboxType = 'select' | 'multiselect' | 'rank';
 
-type MultiProps = {
-    multiple: true;
+export type AttributeComboboxProps = {
 
-    /** A lone id, e.g. one stored before the field became multiselect, is treated as a one-item list. */
+    /**
+     * select: one id, with a colour swatch on coloured options. multiselect: an
+     * id list shown as chips, with the swatch on coloured rows and their chips.
+     * rank: one id, highest rank first, with a swatch or a rank badge.
+     * Default: select.
+     */
+    type?: AttributeComboboxType;
+
+    /**
+     * Option ids, in either shape whatever the type, since a field's stored value
+     * can predate a change of its type: a multiselect treats a lone id as a
+     * one-item list, and a select or rank shows the first id of a list.
+     */
     value: string | string[];
-    onChange: (value: string[]) => void;
-};
 
-export type AttributeComboboxProps = (SingleProps | MultiProps) & {
+    /** Called with an id ('' when cleared), or with an id list for a multiselect. */
+    onChange: (value: string | string[]) => void;
 
     /** Field name: the input's accessible name, also used in the clear and selections labels. */
     label: string;
@@ -61,26 +88,97 @@ export type AttributeComboboxProps = (SingleProps | MultiProps) & {
     testId?: string;
     disabled?: boolean;
     invalid?: boolean;
+
+    /** Marks the input required for assistive tech (aria-required). Validation stays with the caller. */
+    required?: boolean;
     placeholder?: string;
 
     /** Stacking order for the portaled menu, e.g. ZIndex.MENU inside a modal. */
     zIndex?: number;
+
+    /** Class for the wrapper, the element a layout sizes. */
+    className?: string;
+    'aria-describedby'?: string;
+
+    /**
+     * When false, Enter with the menu closed can't submit a surrounding form or
+     * reach document listeners. Default: true.
+     */
+    submitOnEnter?: boolean;
+    onBlur?: FocusEventHandler<HTMLInputElement>;
 };
 
-function toComboboxOptions(options: readonly PropertyFieldOption[], testIdPrefix?: string): ComboboxOption[] {
-    return options.map((option) => {
+// Any field whose value is a list of option ids renders as a select unless it is
+// a multiselect or a rank.
+export function getAttributeComboboxType(field: {type: FieldType}): AttributeComboboxType {
+    return field.type === 'multiselect' || field.type === 'rank' ? field.type : 'select';
+}
+
+function optionRank(option: PropertyFieldOption, type: AttributeComboboxType): number | undefined {
+    return type === 'rank' && typeof option.rank === 'number' ? option.rank : undefined;
+}
+
+function optionVisual(option: PropertyFieldOption, type: AttributeComboboxType): ReactElement | undefined {
+    if (option.color) {
+        return <AttributeOptionSwatch color={option.color}/>;
+    }
+    const rank = optionRank(option, type);
+    if (rank !== undefined) {
+        return <RankBadge rank={rank}/>;
+    }
+    return undefined;
+}
+
+function toComboboxOptions(
+    options: readonly PropertyFieldOption[],
+    type: AttributeComboboxType,
+    formatMessage: IntlShape['formatMessage'],
+    testIdPrefix?: string,
+): ComboboxOption[] {
+    const visuals = options.map((option) => optionVisual(option, type));
+
+    // Compass reserves the leading slot per row, so rows without a visual need a placeholder to stay aligned.
+    // Not in a multiselect: Compass copies a row's visual into its chip, where a placeholder is an empty gap.
+    const reserveSlot = type !== 'multiselect' && visuals.some(Boolean);
+
+    return options.map((option, index) => {
         const comboboxOption: ComboboxOption = {value: option.id, label: option.name};
-        if (testIdPrefix) {
-            comboboxOption.menuItemProps = {'data-testid': `${testIdPrefix}-option-${option.id}`};
+
+        // Compass hides leading visuals from assistive tech, so the rank goes in the row's name instead.
+        const rank = optionRank(option, type);
+        comboboxOption.menuItemProps = {
+            'data-testid': testIdPrefix ? `${testIdPrefix}-option-${option.id}` : undefined,
+            'aria-label': rank === undefined ? undefined : formatMessage(messages.rankedOption, {name: option.name, rank}),
+        };
+        if (visuals[index]) {
+            comboboxOption.leadingVisual = visuals[index];
+        } else if (reserveSlot) {
+            comboboxOption.leadingVisual = <AttributeOptionVisualPlaceholder/>;
         }
         return comboboxOption;
     });
 }
 
-export function AttributeCombobox(props: AttributeComboboxProps) {
-    const {label, options, id, testId, disabled, invalid, placeholder, zIndex} = props;
-
+export function AttributeCombobox({
+    type = 'select',
+    value,
+    onChange,
+    label,
+    options,
+    id,
+    testId,
+    disabled,
+    invalid,
+    required,
+    placeholder,
+    zIndex,
+    className,
+    'aria-describedby': ariaDescribedBy,
+    submitOnEnter,
+    onBlur,
+}: AttributeComboboxProps) {
     const {formatMessage} = useIntl();
+    const multiple = type === 'multiselect';
     const labels = useMemo(() => ({
         listboxLabel: formatMessage(messages.listbox),
         clearLabel: formatMessage(messages.clear, {label}),
@@ -88,44 +186,78 @@ export function AttributeCombobox(props: AttributeComboboxProps) {
         emptyMessage: formatMessage(messages.empty),
         loadingMessage: formatMessage(messages.loading),
     }), [formatMessage, label]);
-    const comboboxOptions = useMemo(() => toComboboxOptions(options, testId), [options, testId]);
+    const orderedOptions = useMemo(() => (type === 'rank' ? sortOptionsByRank(options) : options), [options, type]);
+    const comboboxOptions = useMemo(
+        () => toComboboxOptions(orderedOptions, type, formatMessage, testId),
+        [orderedOptions, type, formatMessage, testId],
+    );
+    const rankDescriptionId = useId();
 
     const values = useMemo(() => {
-        if (Array.isArray(props.value)) {
-            return props.value;
+        if (Array.isArray(value)) {
+            return value;
         }
-        return props.value ? [props.value] : [];
-    }, [props.value]);
+        return value ? [value] : [];
+    }, [value]);
+
+    // A multiselect's chips carry their own visuals.
+    const selected = useMemo(
+        () => (multiple ? undefined : options.find((option) => option.id === values[0])),
+        [multiple, options, values],
+    );
+    const leadingIcon = useMemo(() => (selected ? optionVisual(selected, type) : undefined), [selected, type]);
+
+    // The leading icon is hidden from assistive tech too, so the closed field describes its rank.
+    const selectedRank = selected ? optionRank(selected, type) : undefined;
+    const describedBy = [ariaDescribedBy, selectedRank === undefined ? undefined : rankDescriptionId].
+        filter(Boolean).
+        join(' ') || undefined;
 
     // Values found in options resolve from there first; the rest (e.g. deleted
     // options) still render, labelled with their raw id.
-    const selectedOptions = useMemo(() => values.map((value) => ({value, label: value})), [values]);
+    const selectedOptions = useMemo(() => values.map((v) => ({value: v, label: v})), [values]);
 
     const handleChange = (next: string | string[] | null) => {
-        if (props.multiple) {
-            props.onChange(Array.isArray(next) ? next : []);
+        if (multiple) {
+            onChange(Array.isArray(next) ? next : []);
         } else {
-            props.onChange(typeof next === 'string' ? next : '');
+            onChange(typeof next === 'string' ? next : '');
         }
     };
 
     return (
-        <Combobox
-            id={id}
-            data-testid={testId}
-            aria-label={label}
-            options={comboboxOptions}
-            multiple={props.multiple}
-            value={props.multiple ? values : props.value}
-            selectedOptions={selectedOptions}
-            clearable={true}
-            clearButtonProps={{'data-testid': testId ? `${testId}-clear` : undefined}}
-            disabled={disabled}
-            invalid={invalid}
-            placeholder={placeholder}
-            zIndex={zIndex}
-            {...labels}
-            onChange={handleChange}
-        />
+        <>
+            <Combobox
+                id={id}
+                data-testid={testId}
+                aria-label={label}
+                aria-describedby={describedBy}
+                className={classNames('AttributeCombobox', className)}
+                options={comboboxOptions}
+                multiple={multiple}
+                value={multiple ? values : values[0] ?? ''}
+                selectedOptions={selectedOptions}
+                clearable={true}
+                clearButtonProps={{'data-testid': testId ? `${testId}-clear` : undefined}}
+                disabled={disabled}
+                invalid={invalid}
+                required={required}
+                leadingIcon={leadingIcon}
+                placeholder={placeholder}
+                zIndex={zIndex}
+                submitOnEnter={submitOnEnter}
+                onBlur={onBlur}
+                {...labels}
+                onChange={handleChange}
+            />
+            {selectedRank !== undefined && (
+                <span
+                    id={rankDescriptionId}
+                    hidden={true}
+                >
+                    {formatMessage(messages.rank, {rank: selectedRank})}
+                </span>
+            )}
+        </>
     );
 }

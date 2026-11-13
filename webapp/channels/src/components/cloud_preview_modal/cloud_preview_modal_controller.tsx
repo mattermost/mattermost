@@ -27,6 +27,9 @@ import './cloud_preview_modal.scss';
 
 const CLOUD_PREVIEW_MODAL_SHOWN_PREF = 'cloud_preview_modal_shown';
 
+// Teams without their own slides get this use case's slides.
+const DEFAULT_USE_CASE = 'mission-ops';
+
 // Lazy load the controller component and content data together
 const PreviewModalController = makeAsyncComponent(
     'PreviewModalController',
@@ -53,7 +56,8 @@ const CloudPreviewModal: React.FC = () => {
     const {data: dynamicModalContent, loading: contentLoading} = useGetCloudPreviewModalContent();
 
     const filteredContentByUseCase = React.useCallback((content: PreviewModalContentData[]) => {
-        return content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
+        const forTeam = content.filter((content) => content.useCase === team?.name.replace('-hq', ''));
+        return forTeam.length > 0 ? forTeam : content.filter((content) => content.useCase === DEFAULT_USE_CASE);
     }, [team?.name]);
 
     useEffect(() => {

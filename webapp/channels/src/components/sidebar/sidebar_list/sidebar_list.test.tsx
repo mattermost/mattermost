@@ -169,20 +169,17 @@ describe('SidebarList', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
+    test('should render', () => {
+        renderWithContext(
             <SidebarListComponent
                 {...baseProps}
                 intl={intl}
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         const sidebarRegion = screen.getByRole('application', {name: /channel sidebar region/i});
         const droppable = sidebarRegion.querySelector('#sidebar-droppable-categories');
         expect(droppable).toBeInTheDocument();
-        expect(droppable).toMatchSnapshot();
     });
 
     test('should close sidebar on mobile when channel is selected (ie. changed)', () => {

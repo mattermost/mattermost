@@ -351,10 +351,17 @@ database:
   type: postgres
   version: "15.8"
   master_connections_in_use: 1
+  posts_dead_tuples: 0
+  posts_estimated_rows: 1000
+  posts_vacuum_in_progress: false
+  posts_last_vacuum: 2026-09-25T09:00:00Z
 elastic:
   status: disabled
 file_store:
   file_status: OK
+  file_driver: local
+  total_mb: 102400
+  available_mb: 51200
 notifications:
   email:
     status: OK
@@ -414,6 +421,16 @@ func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *c
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
+	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  total_mb: 102400\n  available_mb: 51200\n",
+			"  total_mb: "+strconv.FormatUint(totalMB, 10)+"\n  available_mb: "+strconv.FormatUint(availableMB, 10)+"\n",
+			1,
+		)
+		return s.writeHealthTestPacket(files)
+	}
 
 	s.Run("runs with no server configured", func() {
 		printer.Clean()
@@ -454,7 +471,41 @@ Version
             Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
             → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
-2 critical`, s.printedHealthFindings())
+Could not evaluate
+  WARNING   GOMAXPROCS exceeds the container CPU limit on mm.example.com
+            Server diagnostics unavailable.
+  WARNING   Host memory is running low on mm.example.com
+            Server diagnostics unavailable.
+  INFO      Host load is high on mm.example.com
+            Server diagnostics unavailable.
+
+2 critical, 3 could not be evaluated`, s.printedHealthFindings())
+	})
+
+	s.Run("plain output localizes a full filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "CRITICAL  File storage disk is nearly full on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 4.0 GiB (4.00%) available of 100.0 GiB. File uploads and other file operations can fail when the volume fills.")
+		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
+	})
+
+	s.Run("plain output localizes a low filestore disk finding", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "WARNING   File storage disk space is low on mm.example.com")
+		s.Contains(output, "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.")
+		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
 	})
 
 	s.Run("an old packet is not reported as stopped evaluation", func() {
@@ -497,12 +548,97 @@ Version
 		s.Require().True(ok)
 		s.Equal(int64(healthTestPacketGeneratedAt), list.EvaluatedAt)
 		findings := list.Findings
-		s.Require().Len(findings, 2)
-		s.Equal("VERSION_EOL", findings[0].Code)
-		s.Equal("PUSH_BAD_SCHEME", findings[1].Code)
-		s.Equal("PushNotificationServer does not use https://", findings[1].Title)
-		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[1].FirstSeenAt)
+		s.Require().Len(findings, 5)
+		codes := make([]string, 0, len(findings))
+		for _, finding := range findings {
+			codes = append(codes, finding.Code)
+		}
+		s.ElementsMatch([]string{
+			"VERSION_EOL",
+			"PUSH_BAD_SCHEME",
+			"NODE_HOST_MEMORY_LOW",
+			"NODE_GOMAXPROCS_ABOVE_CPU_LIMIT",
+			"NODE_HOST_LOAD_HIGH",
+		}, codes)
+
+		pushIndex := slices.IndexFunc(findings, func(finding *model.HealthFinding) bool { return finding.Code == "PUSH_BAD_SCHEME" })
+		s.Require().NotEqual(-1, pushIndex)
+		s.Equal("PushNotificationServer does not use https://", findings[pushIndex].Title)
+		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[pushIndex].FirstSeenAt)
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+	})
+
+	s.Run("renders a Posts dead tuples finding after a stale vacuum", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_dead_tuples: 0\n",
+			"  posts_dead_tuples: 200001\n",
+			1,
+		)
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_last_vacuum: 2026-09-25T09:00:00Z\n",
+			"  posts_last_vacuum: 2026-09-10T10:00:00Z\n",
+			1,
+		)
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_estimated_rows: 1000\n",
+			"  posts_estimated_rows: 500000\n",
+			1,
+		)
+
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+		s.Require().NoError(healthCheckRunE(cmd, []string{}))
+		s.Require().Len(printer.GetLines(), 1)
+		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+		s.Require().True(ok)
+
+		index := slices.IndexFunc(list.Findings, func(f *model.HealthFinding) bool {
+			return f.Code == "DB_POSTS_DEAD_TUPLES"
+		})
+		s.Require().NotEqual(-1, index)
+		finding := list.Findings[index]
+		s.Equal("Posts table has many dead tuples", finding.Title)
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 rows), and its most recent vacuum was 15 days ago at 2026-09-10T10:00:00Z. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Contains(finding.Remediation, "verify autovacuum is enabled")
+	})
+
+	s.Run("renders a Posts dead tuples finding after a recent vacuum", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		files := healthTestPacketFiles()
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_dead_tuples: 0\n",
+			"  posts_dead_tuples: 200001\n",
+			1,
+		)
+		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
+			files[model.SupportPacketDiagnosticsFileName],
+			"  posts_estimated_rows: 1000\n",
+			"  posts_estimated_rows: 500000\n",
+			1,
+		)
+
+		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
+		s.Require().NoError(healthCheckRunE(cmd, []string{}))
+		s.Require().Len(printer.GetLines(), 1)
+		list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+		s.Require().True(ok)
+
+		index := slices.IndexFunc(list.Findings, func(f *model.HealthFinding) bool {
+			return f.Code == "DB_POSTS_DEAD_TUPLES"
+		})
+		s.Require().NotEqual(-1, index)
+		finding := list.Findings[index]
+		s.Equal("The Posts table has 200001 estimated dead tuples (40.0% of an estimated 500000 rows), even though it was last vacuumed at 2026-09-25T09:00:00Z. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.", finding.Message)
+		s.Contains(finding.Remediation, "pg_replication_slots")
 	})
 
 	s.Run("audit logging is judged by the server that generated the packet, not this machine", func() {

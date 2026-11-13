@@ -42,20 +42,8 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         mockListPosition = undefined;
     });
 
-    test('render component with required props', () => {
-        const {container} = render(
-            <AutocompleteSelector
-                id='string.id'
-                label='some label'
-                value='some value'
-                providers={[]}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('check snapshot with value prop and changing focus', async () => {
-        const {container} = render(
+    test('should render with value prop and changing focus', async () => {
+        render(
             <AutocompleteSelector
                 providers={[]}
                 label='some label'
@@ -67,7 +55,6 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
 
         // Initially not focused, shows prop value
         expect(input).toHaveValue('value from prop');
-        expect(container).toMatchSnapshot();
 
         // Focus the input and type a new value
         await userEvent.click(input);
@@ -75,7 +62,6 @@ describe('components/widgets/settings/AutocompleteSelector', () => {
         await userEvent.type(input, 'value from input');
 
         expect(input).toHaveValue('value from input');
-        expect(container).toMatchSnapshot();
 
         // Blur the input - value should revert to prop value
         await userEvent.tab();

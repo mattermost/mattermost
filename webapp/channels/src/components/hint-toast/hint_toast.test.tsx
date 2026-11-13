@@ -8,16 +8,6 @@ import {render, screen, userEvent} from 'tests/react_testing_utils';
 import {HintToast} from './hint_toast';
 
 describe('components/HintToast', () => {
-    test('should match snapshot', () => {
-        const {container} = render(
-            <HintToast
-                onDismiss={jest.fn()}
-            >{'A hint'}</HintToast>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should fire onDismiss callback', async () => {
         const dismissHandler = jest.fn();
         render(

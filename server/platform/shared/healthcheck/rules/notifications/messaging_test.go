@@ -186,27 +186,30 @@ func TestSMTPUnreachable(t *testing.T) {
 		s.Config, s.Sections = cfg.Config, cfg.Sections
 		return s
 	}
-	leaderWithEmail := func(status, smtpErr string) *healthcheck.NodeSnapshot {
+	nodeWithEmail := func(hostname, status, smtpErr string) *healthcheck.NodeSnapshot {
 		diag := &model.SupportPacketDiagnostics{}
 		diag.Notifications.Email.Status = status
 		diag.Notifications.Email.Error = smtpErr
 		return &healthcheck.NodeSnapshot{
-			Hostname:    "app-1",
-			IsLeader:    true,
+			Hostname:    hostname,
 			Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
 		}
+	}
+	leaderWithEmail := func(status, smtpErr string) *healthcheck.NodeSnapshot {
+		leader := nodeWithEmail("app-1", status, smtpErr)
+		leader.IsLeader = true
+		return leader
 	}
 
 	notCollected := messagingWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
 	probeFailed := leaderWithEmail(model.StatusFail, "dial tcp: connection refused")
 	probeErrored := leaderWithEmail(model.StatusOk, "")
 	probeErrored.Diagnostics.Errors = model.SectionErrors{model.SectionSMTPProbe: errors.New("probe timed out")}
-	follower := leaderWithEmail(model.StatusOk, "")
-	follower.IsLeader = false
+	follower := nodeWithEmail("app-2", model.StatusOk, "")
 	probeFailedWant := messagingWant{
 		state:     healthcheck.StateFiring,
 		messageID: "health.rule.smtp_unreachable.message",
-		details:   map[string]string{"error": "dial tcp: connection refused"},
+		details:   map[string]string{"nodes": "app-1", "error": "dial tcp: connection refused"},
 	}
 
 	testCases := []struct {
@@ -267,7 +270,43 @@ func TestSMTPUnreachable(t *testing.T) {
 		{name: "disabled", snapshot: withNodes(true, leaderWithEmail(model.StatusDisabled, "")), want: resolvedWant},
 		{name: "empty status", snapshot: withNodes(true, leaderWithEmail("", "")), want: notCollected},
 		{name: "no nodes", snapshot: withNodes(true), want: notCollected},
-		{name: "only a follower", snapshot: withNodes(true, follower), want: notCollected},
+		{name: "only a follower", snapshot: withNodes(true, follower), want: resolvedWant},
+		{
+			name: "every node fails",
+			snapshot: withNodes(true,
+				probeFailed,
+				nodeWithEmail("app-2", model.StatusFail, "dial tcp: connection refused"),
+				nodeWithEmail("app-3", model.StatusFail, "dial tcp: connection refused")),
+			want: messagingWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.smtp_unreachable.message",
+				details:   map[string]string{"nodes": "app-1, app-2, app-3", "error": "dial tcp: connection refused"},
+			},
+		},
+		{
+			name: "one node of three fails",
+			snapshot: withNodes(true,
+				leaderWithEmail(model.StatusOk, ""),
+				nodeWithEmail("app-2", model.StatusFail, "dial tcp: i/o timeout"),
+				nodeWithEmail("app-3", model.StatusOk, "")),
+			want: messagingWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.smtp_unreachable.message.partial",
+				details:   map[string]string{"nodes": "app-2", "error": "dial tcp: i/o timeout"},
+			},
+		},
+		{
+			name: "nodes without the probe are left out",
+			snapshot: withNodes(true,
+				probeFailed,
+				&healthcheck.NodeSnapshot{Hostname: "app-2", CollectErr: healthcheck.ErrNodeNoReply},
+				func() *healthcheck.NodeSnapshot {
+					n := nodeWithEmail("app-3", model.StatusOk, "")
+					n.Diagnostics.Errors = model.SectionErrors{model.SectionSMTPProbe: errors.New("probe timed out")}
+					return n
+				}()),
+			want: probeFailedWant,
+		},
 		{
 			name:     "leader without diagnostics",
 			snapshot: withNodes(true, &healthcheck.NodeSnapshot{Hostname: "app-1", IsLeader: true}),

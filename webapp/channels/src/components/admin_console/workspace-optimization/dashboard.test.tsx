@@ -100,9 +100,8 @@ describe('components/admin_console/workspace-optimization/dashboard', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Collapse section'}));
         expect(collapse).toHaveAttribute('aria-hidden', 'true');
 
-        // Only the chevron toggles (Compass behavior); clicking the title does not.
         await userEvent.click(screen.getByRole('heading', {name: 'Server updates'}));
-        expect(collapse).toHaveAttribute('aria-hidden', 'true');
+        expect(collapse).toHaveAttribute('aria-hidden', 'false');
     });
 
     test('should show loading screen while metrics load', () => {

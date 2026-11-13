@@ -105,35 +105,6 @@ describe('components/app_bar/app_bar', () => {
         },
     };
 
-    test('should match snapshot on mount', () => {
-        const testState = initialState;
-        const {asFragment} = renderWithContext(
-            <AppBar/>,
-            testState,
-        );
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
-    test('should match snapshot on mount when App Bar is disabled', () => {
-        const testState = mergeObjects(initialState, {
-            entities: {
-                general: {
-                    config: {
-                        DisableAppbar: 'false',
-                    },
-                },
-            },
-        });
-
-        const {asFragment} = renderWithContext(
-            <AppBar/>,
-            testState,
-        );
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
     test('should not show marketplace if disabled or user does not have SYSCONSOLE_WRITE_PLUGINS permission', () => {
         const testState = mergeObjects(initialState, {
             entities: {

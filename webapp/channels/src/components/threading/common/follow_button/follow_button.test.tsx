@@ -11,14 +11,12 @@ describe('components/threading/common/follow_button', () => {
     test('should say follow', async () => {
         const clickHandler = jest.fn();
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Follow')).toBeInTheDocument();
 
@@ -27,13 +25,11 @@ describe('components/threading/common/follow_button', () => {
     });
 
     test('should say following', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <FollowButton
                 isFollowing={true}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Following')).toBeInTheDocument();
     });

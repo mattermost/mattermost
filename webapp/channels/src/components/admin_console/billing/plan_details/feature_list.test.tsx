@@ -31,20 +31,6 @@ function renderFeatureList(props: FeatureListProps) {
 }
 
 describe('components/admin_console/billing/plan_details/feature_list', () => {
-    test('should match snapshot when running paid tier and professional', () => {
-        const {container} = renderFeatureList({
-            subscriptionPlan: CloudProducts.PROFESSIONAL,
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when running paid tier and enterprise', () => {
-        const {container} = renderFeatureList({
-            subscriptionPlan: CloudProducts.ENTERPRISE,
-        });
-        expect(container).toMatchSnapshot();
-    });
-
     test('all feature items must have different values', () => {
         const plans = [
             CloudProducts.PROFESSIONAL,

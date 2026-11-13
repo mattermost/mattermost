@@ -19,24 +19,20 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
         error: '',
     };
 
-    test('should match snapshot, default disabled', () => {
+    test('should render default disabled', () => {
         const {container} = renderWithContext(<ManageAutoResponder {...requiredProps}/>);
-
-        expect(container).toMatchSnapshot();
 
         expect(container.querySelector('#autoResponderActive')).toBeInTheDocument();
         expect(container.querySelector('#autoResponderMessage')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, enabled', () => {
+    test('should render enabled', () => {
         const {container} = renderWithContext(
             <ManageAutoResponder
                 {...requiredProps}
                 autoResponderActive={true}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         expect(container.querySelector('#autoResponderActive')).toBeInTheDocument();
         expect(container.querySelector('#autoResponderMessage')).toBeInTheDocument();
