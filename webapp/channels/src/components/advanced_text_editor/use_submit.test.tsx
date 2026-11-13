@@ -5,6 +5,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -270,5 +271,49 @@ describe('useSubmit', () => {
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
     });
-});
 
+    describe('scheduling', () => {
+        const schedulingInfo = {scheduled_at: Date.now() + 60000};
+
+        function renderUseSubmit() {
+            const {result} = renderHookWithContext(() => useSubmit(
+                mockDraft,
+                mockPostError,
+                'channel_id',
+                '',
+                mockServerError,
+                mockLastBlurAt,
+                mockFocusTextbox,
+                mockSetServerError,
+                mockSetShowPreview,
+                mockHandleDraftChange,
+                mockPrioritySubmitCheck,
+                mockAfterOptimisticSubmit,
+                mockAfterSubmit,
+                false,
+                false,
+                'post_id',
+            ), getBaseState());
+            return result.current[0];
+        }
+
+        it('should resolve without an error when the message is scheduled', async () => {
+            const handleSubmit = renderUseSubmit();
+
+            const response = await handleSubmit(mockDraft, schedulingInfo);
+
+            expect(response?.error).toBeUndefined();
+        });
+
+        it('should resolve with the server error message when scheduling fails', async () => {
+            const serverError = {server_error_id: 'model.scheduled_post.is_valid.scheduled_at.app_error', message: 'Invalid scheduled at time.'};
+            (onSubmit as jest.Mock).mockReturnValueOnce(() => Promise.resolve({error: serverError}));
+            const handleSubmit = renderUseSubmit();
+
+            const response = await handleSubmit(mockDraft, schedulingInfo);
+
+            expect(response).toEqual({error: 'Invalid scheduled at time.'});
+            expect(mockSetServerError).toHaveBeenCalledWith(expect.objectContaining({message: 'Invalid scheduled at time.'}));
+        });
+    });
+});
