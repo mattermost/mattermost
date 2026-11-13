@@ -911,10 +911,21 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		require.True(t, ok, appErr.DetailedError)
 		return strings.Split(list, ", ")
 	}
-	requireRefused := func(t *testing.T, err error, count string, examples ...string) {
+	assertFieldNames := func(t *testing.T, err error, names ...string) {
+		t.Helper()
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		got := appErr.SystemMessage(func(_ string, args ...any) string {
+			names, _ := args[0].(map[string]any)["FieldNames"].(string)
+			return names
+		})
+		assert.ElementsMatch(t, names, strings.Split(got, ", "))
+	}
+	requireRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
 		t.Helper()
 		requireAppErrorID(t, err, refusedID, http.StatusConflict)
 		assert.Contains(t, err.Error(), count+" locked values")
+		assertFieldNames(t, err, fieldName)
 		assert.Equal(t, examples, examplesOf(err))
 		assert.NotContains(t, err.Error(), "o2")
 	}
@@ -925,7 +936,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 			target := model.NewId()
 			seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
 
-			requireRefused(t, deleteOptions(f, "o2"), "1", target)
+			requireRefused(t, deleteOptions(f, "o2"), f.Name, "1", target)
 			assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
 
 			require.NoError(t, deleteOptions(f, "o1"))
@@ -937,7 +948,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		f := selectField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeChannel, once)
 		target := model.NewId()
 		seed(f, model.PropertyValueTargetTypeChannel, target, `["o1","o2"]`)
-		requireRefused(t, deleteOptions(f, "o2"), "1", target)
+		requireRefused(t, deleteOptions(f, "o2"), f.Name, "1", target)
 	})
 
 	t.Run("one held option refuses the whole request", func(t *testing.T) {
@@ -963,7 +974,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		linked := linkedTo(t, template, once)
 		target := model.NewId()
 		seed(linked, model.PropertyValueTargetTypeChannel, target, `"o2"`)
-		requireRefused(t, deleteOptions(template, "o2"), "1", target)
+		requireRefused(t, deleteOptions(template, "o2"), linked.Name, "1", target)
 		assert.Equal(t, []string{"o1", "o2"}, liveOptions(template))
 
 		// An unlocked linked field's value is left alone.
@@ -971,6 +982,17 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		linked = linkedTo(t, template, mutable)
 		seed(linked, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
 		require.NoError(t, deleteOptions(template, "o2"))
+	})
+
+	t.Run("every locked field linked to a template is named", func(t *testing.T) {
+		template := selectField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, "")
+		first, second := linkedTo(t, template, once), linkedTo(t, template, once)
+		seed(first, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		seed(second, model.PropertyValueTargetTypeChannel, model.NewId(), `"o2"`)
+		err := deleteOptions(template, "o2")
+		requireAppErrorID(t, err, refusedID, http.StatusConflict)
+		assert.Contains(t, err.Error(), "2 locked values")
+		assertFieldNames(t, err, first.Name, second.Name)
 	})
 
 	t.Run("a mutable field's values don't block the deletion", func(t *testing.T) {
@@ -985,7 +1007,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
 		require.NoError(t, err)
 		seed(f, model.PropertyValueTargetTypePost, post.Id, `"o2"`)
-		requireRefused(t, deleteOptions(f, "o2"), "1", post.Id)
+		requireRefused(t, deleteOptions(f, "o2"), f.Name, "1", post.Id)
 
 		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
 		require.NoError(t, deleteOptions(f, "o2"))
@@ -996,7 +1018,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		channel := th.CreateChannel(t, team.Id)
 		seed(f, model.PropertyValueTargetTypeChannel, channel.Id, `"o2"`)
 		require.NoError(t, th.dbStore.Channel().Delete(channel.Id, model.GetMillis()))
-		requireRefused(t, deleteOptions(f, "o2"), "1", channel.Id)
+		requireRefused(t, deleteOptions(f, "o2"), f.Name, "1", channel.Id)
 	})
 
 	t.Run("nothing is checked unless the license is Enterprise Advanced", func(t *testing.T) {
@@ -1040,7 +1062,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		target := model.NewId()
 		seed(f, model.PropertyValueTargetTypeChannel, target, `"o2"`)
 
-		requireRefused(t, save(freshWithout(f, "o2")), "1", target)
+		requireRefused(t, save(freshWithout(f, "o2")), f.Name, "1", target)
 		assert.Equal(t, []string{"o1", "o2"}, liveOptions(f))
 
 		require.NoError(t, save(freshWithout(f, "o1")))
@@ -1119,10 +1141,11 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 	// child field's parent rule compares against that value.
 	const containerRefusedID = "app.property_field.option_delete_container_values.app_error"
 	belowParent := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceParent}}
-	requireContainerRefused := func(t *testing.T, err error, count string, examples ...string) {
+	requireContainerRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
 		t.Helper()
 		requireAppErrorID(t, err, containerRefusedID, http.StatusConflict)
 		assert.Contains(t, err.Error(), count+" values")
+		assertFieldNames(t, err, fieldName)
 		assert.Equal(t, examples, examplesOf(err))
 		assert.NotContains(t, err.Error(), "optmid")
 	}
@@ -1138,7 +1161,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
 		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
 		create(model.PropertyFieldObjectTypeChannel, belowParent)
-		requireContainerRefused(t, dropMid(t, system), "1", model.PropertyValueSystemTargetID)
+		requireContainerRefused(t, dropMid(t, system), system.Name, "1", model.PropertyValueSystemTargetID)
 	})
 
 	t.Run("a system value nothing compares against doesn't block the deletion", func(t *testing.T) {
@@ -1154,7 +1177,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		system := create(model.PropertyFieldObjectTypeSystem, nil)
 		seed(system, model.PropertyValueTargetTypeSystem, model.PropertyValueSystemTargetID, `"optmid"`)
 		create(model.PropertyFieldObjectTypeUser, belowParent)
-		requireContainerRefused(t, dropMid(t, system), "1", model.PropertyValueSystemTargetID)
+		requireContainerRefused(t, dropMid(t, system), system.Name, "1", model.PropertyValueSystemTargetID)
 	})
 
 	t.Run("a channel value read by a post rule refuses the deletion", func(t *testing.T) {
@@ -1164,7 +1187,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		seed(channelField, model.PropertyValueTargetTypeChannel, channelID, `"optmid"`)
 
 		postField := create(model.PropertyFieldObjectTypePost, belowParent)
-		requireContainerRefused(t, dropMid(t, channelField), "1", channelID)
+		requireContainerRefused(t, dropMid(t, channelField), channelField.Name, "1", channelID)
 
 		// Without the rule the same deletion goes through.
 		postField.Bounds = model.PropertyBounds{} // nil would leave the rule as stored
@@ -1195,7 +1218,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 				inCall.Bounds = tc.callSet
 				_, _, _, err = th.service.UpdatePropertyFields(rctx, child.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
 				if tc.refused {
-					requireContainerRefused(t, err, "1", model.PropertyValueSystemTargetID)
+					requireContainerRefused(t, err, system.Name, "1", model.PropertyValueSystemTargetID)
 				} else {
 					require.NoError(t, err)
 				}
@@ -1213,6 +1236,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		err := dropMid(t, channelField)
 		requireAppErrorID(t, err, refusedID, http.StatusConflict)
 		assert.Equal(t, []string{channelID}, examplesOf(err))
+		assertFieldNames(t, err, channelField.Name)
 	})
 
 	t.Run("a capped value naming a deleted option is not a container case", func(t *testing.T) {
@@ -1228,10 +1252,11 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 	const selfRefusedID = "app.property_field.option_delete_self_rule_values.app_error"
 	raiseOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrAbove, Reference: model.PropertyBoundsReferenceSelf}}
 	lowerOnly := model.PropertyBounds{{Operator: model.PropertyBoundsOperatorAtOrBelow, Reference: model.PropertyBoundsReferenceSelf}}
-	requireSelfRefused := func(t *testing.T, err error, count string, examples ...string) {
+	requireSelfRefused := func(t *testing.T, err error, fieldName, count string, examples ...string) {
 		t.Helper()
 		requireAppErrorID(t, err, selfRefusedID, http.StatusConflict)
 		assert.Contains(t, err.Error(), count+" values of field")
+		assertFieldNames(t, err, fieldName)
 		assert.Equal(t, examples, examplesOf(err))
 		assert.NotContains(t, err.Error(), "optmid")
 	}
@@ -1243,7 +1268,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 			target := model.NewId()
 			seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
 
-			requireSelfRefused(t, dropMid(t, f), "1", target)
+			requireSelfRefused(t, dropMid(t, f), f.Name, "1", target)
 			live, err := th.dbStore.PropertyField().GetExistingOptionIDs(f, []string{"optmid"})
 			require.NoError(t, err)
 			assert.Equal(t, []string{"optmid"}, live)
@@ -1280,7 +1305,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 				inCall.Bounds = tc.callSet
 				_, _, _, err = th.service.UpdatePropertyFields(rctx, f.GroupID, []*model.PropertyField{freshWithout(template, "optmid"), inCall})
 				if tc.refused {
-					requireSelfRefused(t, err, "1", target)
+					requireSelfRefused(t, err, f.Name, "1", target)
 				} else {
 					require.NoError(t, err)
 				}
@@ -1294,7 +1319,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		create(model.PropertyFieldObjectTypePost, belowParent)
 		target := model.NewId()
 		seed(f, model.PropertyValueTargetTypeChannel, target, `"optmid"`)
-		requireSelfRefused(t, dropMid(t, f), "1", target)
+		requireSelfRefused(t, dropMid(t, f), f.Name, "1", target)
 	})
 
 	t.Run("a raise-only value on a deleted post doesn't block the deletion", func(t *testing.T) {
@@ -1304,7 +1329,7 @@ func TestRefuseDeletingHeldOptions(t *testing.T) {
 		post, err := th.dbStore.Post().Save(rctx, &model.Post{ChannelId: channel.Id, UserId: model.NewId(), Message: "m"})
 		require.NoError(t, err)
 		seed(f, model.PropertyValueTargetTypePost, post.Id, `"optmid"`)
-		requireSelfRefused(t, dropMid(t, f), "1", post.Id)
+		requireSelfRefused(t, dropMid(t, f), f.Name, "1", post.Id)
 
 		require.NoError(t, th.dbStore.Post().Delete(rctx, post.Id, model.GetMillis(), model.NewId()))
 		require.NoError(t, dropMid(t, f))

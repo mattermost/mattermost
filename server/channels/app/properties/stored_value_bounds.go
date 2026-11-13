@@ -34,6 +34,24 @@ func (b *storedValueBreaches) add(count int64, examples []string) {
 	}
 }
 
+// heldFields names the fields whose stored values were counted in one refusal, so the message can
+// tell the admin which field to change.
+type heldFields struct{ names, ids []string }
+
+func (h *heldFields) add(count int64, f *model.PropertyField) {
+	if count > 0 {
+		h.names = append(h.names, f.Name)
+		h.ids = append(h.ids, f.ID)
+	}
+}
+
+// join sorts first: GetLinkedFields has no ORDER BY, and the message should not change between runs.
+func (h *heldFields) join() (names, ids string) {
+	slices.Sort(h.names)
+	slices.Sort(h.ids)
+	return strings.Join(h.names, ", "), strings.Join(h.ids, ", ")
+}
+
 // allowedByRule returns the option IDs in ranks that pass op against refRank.
 func allowedByRule(ranks map[string]int, op model.PropertyBoundsOperator, refRank int) ([]string, error) {
 	var keep func(rank int) bool
@@ -302,7 +320,7 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 		return fmt.Errorf("field %s: failed to look up the fields linked to it: %w", owner.ID, err)
 	}
 	var locked, self, held storedValueBreaches
-	firstID, selfID, heldID := "", "", ""
+	var lockedIn, selfIn, heldIn heldFields
 	for _, field := range append([]*model.PropertyField{owner}, linked...) {
 		if inc, ok := incoming[field.ID]; ok && field.ID != owner.ID {
 			// A field this call unlinks takes over its own copy of owner's options before the
@@ -325,9 +343,7 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 				if err != nil {
 					return fmt.Errorf("field %s: failed to count the values of field %s that hold the options: %w", owner.ID, field.ID, err)
 				}
-				if count > 0 && heldID == "" {
-					heldID = field.ID
-				}
+				heldIn.add(count, field)
 				held.add(count, examples)
 			}
 		}
@@ -345,36 +361,35 @@ func (ps *PropertyService) refuseDeletingHeldOptions(rctx request.CTX, caller st
 		}
 		// A locked field is counted once, as locked, whatever rules it carries.
 		if field.Mutability.OrMutable() == model.PropertyFieldMutabilityMutable {
-			if count > 0 && selfID == "" {
-				selfID = field.ID
-			}
+			selfIn.add(count, field)
 			self.add(count, examples)
 			continue
 		}
-		if count > 0 && firstID == "" {
-			firstID = field.ID
-		}
+		lockedIn.add(count, field)
 		locked.add(count, examples)
 	}
 	if locked.Count > 0 {
 		examples := strings.Join(locked.Examples, ", ")
+		names, ids := lockedIn.join()
 		return model.NewAppError(caller, "app.property_field.option_delete_locked_values.app_error",
-			map[string]any{"Count": locked.Count, "Examples": examples},
-			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, firstID, examples),
+			map[string]any{"Count": locked.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d locked values of field %s hold them, e.g. %s", owner.ID, locked.Count, ids, examples),
 			http.StatusConflict)
 	}
 	if self.Count > 0 {
 		examples := strings.Join(self.Examples, ", ")
+		names, ids := selfIn.join()
 		return model.NewAppError(caller, "app.property_field.option_delete_self_rule_values.app_error",
-			map[string]any{"Count": self.Count, "Examples": examples},
-			fmt.Sprintf("field %s: deleting options: %d values of field %s are raise-only or lower-only, e.g. %s", owner.ID, self.Count, selfID, examples),
+			map[string]any{"Count": self.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are raise-only or lower-only, e.g. %s", owner.ID, self.Count, ids, examples),
 			http.StatusConflict)
 	}
 	if held.Count > 0 {
 		examples := strings.Join(held.Examples, ", ")
+		names, ids := heldIn.join()
 		return model.NewAppError(caller, "app.property_field.option_delete_container_values.app_error",
-			map[string]any{"Count": held.Count, "Examples": examples},
-			fmt.Sprintf("field %s: deleting options: %d values of field %s are compared against by a parent rule, e.g. %s", owner.ID, held.Count, heldID, examples),
+			map[string]any{"Count": held.Count, "Examples": examples, "FieldNames": names},
+			fmt.Sprintf("field %s: deleting options: %d values of field %s are compared against by a parent rule, e.g. %s", owner.ID, held.Count, ids, examples),
 			http.StatusConflict)
 	}
 	return nil
