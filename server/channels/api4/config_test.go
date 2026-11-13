@@ -556,7 +556,15 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	})
 }
 
+// unsetSMTPServerEnvOverride clears the CI-provided SMTP server override so the test can control that setting.
+func unsetSMTPServerEnvOverride(t *testing.T) {
+	t.Helper()
+	t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", "")
+	require.NoError(t, os.Unsetenv("MM_EMAILSETTINGS_SMTPSERVER"))
+}
+
 func TestUpdateConfigRecoveryEmailSettingsRequireManageSystem(t *testing.T) {
+	unsetSMTPServerEnvOverride(t)
 	th := Setup(t)
 	th.LoginSystemManager(t)
 
@@ -718,6 +726,7 @@ func TestUpdateConfigRecoveryEmailSettingsRequireManageSystem(t *testing.T) {
 }
 
 func TestUpdateConfigRecoveryEmailSettingsCustomRoleWithoutManageSystem(t *testing.T) {
+	unsetSMTPServerEnvOverride(t)
 	th := Setup(t).InitBasic(t)
 
 	for _, permissionID := range []string{
