@@ -3897,6 +3897,25 @@ func TestAccessControlAttributeValidationHookRequiredAttrCreationGuard(t *testin
 		requireDisabledErr(t, updateErr)
 	})
 
+	t.Run("a submitted ObjectType can't take a channel field past the switch", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		field.ObjectType = model.PropertyFieldObjectTypeUser
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		requireDisabledErr(t, updateErr)
+	})
+
 	t.Run("a channel field already required before the switch keeps its attrs editable", func(t *testing.T) {
 		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    group.ID,
