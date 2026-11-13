@@ -117,8 +117,22 @@ function renderAddGuestToChannelMessage(post: Post, hideGuestTags: boolean, kind
     );
 }
 
-function renderRemoveFromChannelMessage(post: Post, kind: ChannelKind): ReactNode {
+function renderRemoveFromChannelMessage(post: Post, kind: ChannelKind, channel?: Channel): ReactNode {
     const removedUsername = renderUsername(post.props.removedUsername);
+    const username = post.props.username ? renderUsername(post.props.username) : null;
+
+    if (channel?.type === General.GM_CHANNEL && username) {
+        return (
+            <FormattedMessage
+                id='api.channel.remove_member.removed_from_group'
+                defaultMessage='{removedUsername} was removed from the group message by {username}.'
+                values={{
+                    removedUsername,
+                    username,
+                }}
+            />
+        );
+    }
 
     return (
         <FormattedMessage
@@ -442,7 +456,6 @@ const systemMessageRenderers: Record<string, (post: Post, kind: ChannelKind) => 
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,
     [Posts.POST_TYPES.ADD_TO_CHANNEL]: renderAddToChannelMessage,
     [Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL]: renderAddToChannelMessage,
-    [Posts.POST_TYPES.REMOVE_FROM_CHANNEL]: renderRemoveFromChannelMessage,
     [Posts.POST_TYPES.JOIN_TEAM]: renderJoinTeamMessage,
     [Posts.POST_TYPES.LEAVE_TEAM]: renderLeaveTeamMessage,
     [Posts.POST_TYPES.ADD_TO_TEAM]: renderAddToTeamMessage,
@@ -513,6 +526,8 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         }
 
         return null;
+    } else if (post.type === Posts.POST_TYPES.REMOVE_FROM_CHANNEL) {
+        return renderRemoveFromChannelMessage(post, kind, channel);
     } else if (systemMessageRenderers[post.type]) {
         return systemMessageRenderers[post.type](post, kind);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {
@@ -528,6 +543,7 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
                 allUsernames={allUsernames}
                 messageData={messageData}
                 channelKind={kind}
+                channelType={channel?.type}
             />
         );
     } else if (post.type === Posts.POST_TYPES.GM_CONVERTED_TO_CHANNEL) {

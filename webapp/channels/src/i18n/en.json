@@ -18339,6 +18339,10 @@
     "defaultMessage": "{removedUsername} was removed from the board",
     "description": "System message posted when a user is removed from the channel; {removedUsername} is the removed user's name. This is the wording used when the channel is a board."
   },
+  "api.channel.remove_member.removed_from_group": {
+    "defaultMessage": "{removedUsername} was removed from the group message by {username}.",
+    "description": "System message when a user is removed from a group message; includes who removed them."
+  },
   "api.channel.restore_channel.unarchived": {
     "defaultMessage": "{username} unarchived the channel.",
     "description": "System message posted when a member restores (unarchives) the channel; {username} is that member."
@@ -19899,6 +19903,10 @@
     "defaultMessage": "Leave Board",
     "description": "Menu item in the channel dropdown menu (and members list, for yourself); removes the current user from the channel. This is the wording used when the channel is a board."
   },
+  "channel_header.leave_group_message": {
+    "defaultMessage": "Leave Group Message",
+    "description": "Channel header menu item that opens the leave confirmation for a group message."
+  },
   "channel_header.members": {
     "defaultMessage": "Members",
     "description": "Menu item in the channel name dropdown menu; opens the channel members panel."
@@ -20426,6 +20434,10 @@
   "channel_members_dropdown.remove_from_channel": {
     "defaultMessage": "Remove from Channel",
     "description": "Destructive menu item in a channel member's role dropdown; removes that user from the channel."
+  },
+  "channel_members_dropdown.remove_from_group_message": {
+    "defaultMessage": "Remove from Group Message",
+    "description": "Dropdown action to remove a member from a group message."
   },
   "channel_members_modal.addNew": {
     "defaultMessage": " Add Members",
@@ -22306,6 +22318,22 @@
   "combined_system_message.removed_from_channel.two.board": {
     "defaultMessage": "{firstUser} and {secondUser} were **removed from the board**.",
     "description": "System message shown when two users were removed from the channel; {firstUser} and {secondUser} are usernames; ** renders bold markdown. This is the wording used when the channel is a board."
+  },
+  "combined_system_message.removed_from_group.many_expanded": {
+    "defaultMessage": "{users} and {lastUser} were **removed from the group message** by {actor}.",
+    "description": "Expanded combined system message when multiple users were removed from a group message."
+  },
+  "combined_system_message.removed_from_group.one": {
+    "defaultMessage": "{firstUser} was **removed from the group message** by {actor}.",
+    "description": "Combined system message when one user was removed from a group message."
+  },
+  "combined_system_message.removed_from_group.one_you": {
+    "defaultMessage": "You were **removed from the group message** by {actor}.",
+    "description": "Combined system message when the current user was removed from a group message."
+  },
+  "combined_system_message.removed_from_group.two": {
+    "defaultMessage": "{firstUser} and {secondUser} were **removed from the group message** by {actor}.",
+    "description": "Combined system message when two users were removed from a group message."
   },
   "combined_system_message.removed_from_team.many_expanded": {
     "defaultMessage": "{users} and {lastUser} were **removed from the team**.",
@@ -26495,6 +26523,14 @@
     "defaultMessage": "were **removed from the board**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown. This is the wording used when the channel is a board."
   },
+  "last_users_message.removed_from_group.type": {
+    "defaultMessage": "were **removed from the group message** by {actor}.",
+    "description": "Collapsed combined system message suffix when multiple users were removed from a group message."
+  },
+  "last_users_message.removed_from_group.type.board": {
+    "defaultMessage": "were **removed from the group message** by {actor}.",
+    "description": "Board-kind variant of the collapsed combined system message suffix for group-message removals."
+  },
   "last_users_message.removed_from_team.type": {
     "defaultMessage": "were **removed from the team**.",
     "description": "Trailing fragment of a collapsed system message, concatenated after '{firstUser} and N others'; the plural subject is the user list; ** renders bold markdown."
@@ -26534,6 +26570,14 @@
   "learn_more_trial_modal.pretitle": {
     "defaultMessage": "With Enterprise, you can...",
     "description": "Introductory line shown above each feature title in the 'Learn more about trial' modal; grammatically continues into the feature titles (e.g. '...synchronize your LDAP groups'). 'Enterprise' is the paid plan name."
+  },
+  "leave_group_message_modal.message": {
+    "defaultMessage": "Are you sure you wish to leave the group message {channel}? You must be re-added in order to re-join this conversation in the future.",
+    "description": "Body of the leave confirmation modal for a group message; {channel} is the conversation display name."
+  },
+  "leave_group_message_modal.title": {
+    "defaultMessage": "Leave Group Message {channel}",
+    "description": "Title of the leave confirmation modal for a group message; {channel} is the conversation display name."
   },
   "leave_policy_channel_modal.leave": {
     "defaultMessage": "Leave channel",
@@ -30014,6 +30058,18 @@
   "remove_flag_post_confirm_modal.required_comment.title": {
     "defaultMessage": "Comment (required)",
     "description": "Label above the comment field in the keep/remove quarantined message modal when a comment is mandatory."
+  },
+  "remove_from_group_message_modal.confirm": {
+    "defaultMessage": "Yes, remove",
+    "description": "Confirm button on the modal that removes a member from a group message."
+  },
+  "remove_from_group_message_modal.message": {
+    "defaultMessage": "Are you sure you want to remove {user} from this group message?",
+    "description": "Body of the modal that removes a member from a group message; {user} is the target display name."
+  },
+  "remove_from_group_message_modal.title": {
+    "defaultMessage": "Remove from Group Message",
+    "description": "Title of the modal that removes a member from a group message."
   },
   "remove_group_confirm_button": {
     "defaultMessage": "Yes, Remove Group and {memberCount, plural, one {Member} other {Members}}",

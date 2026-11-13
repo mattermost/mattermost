@@ -16,6 +16,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     channel: Channel;
+    channelDisplayName?: string;
     currentUserId?: string;
     isMuted?: boolean;
     onExited: () => void;
@@ -26,9 +27,10 @@ type Props = {
     };
 };
 
-const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, onExited}: Props) => {
+const LeaveChannelModal = ({actions, channel, channelDisplayName, callback, currentUserId, isMuted, onExited}: Props) => {
     const [show, setShow] = useState(true);
     const channelKind = useChannelKind(channel);
+    const displayName = channelDisplayName || channel.display_name;
 
     const handleSubmit = () => {
         if (channel) {
@@ -154,23 +156,40 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
 
     let title;
     let message;
-    if (channel && channel.display_name) {
-        const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+    if (channel && displayName) {
         const values = {
-            channel: <b>{channel.display_name}</b>,
+            channel: <b>{displayName}</b>,
         };
-        title = (
-            <FormattedMessage
-                {...(isPrivate ? messages.privateTitle : messages.publicTitle)[channelKind]}
-                values={values}
-            />
-        );
-        message = (
-            <FormattedMessage
-                {...(isPrivate ? messages.privateMessage : messages.publicMessage)[channelKind]}
-                values={values}
-            />
-        );
+        if (channel.type === Constants.GM_CHANNEL) {
+            title = (
+                <FormattedMessage
+                    id='leave_group_message_modal.title'
+                    defaultMessage='Leave Group Message {channel}'
+                    values={values}
+                />
+            );
+            message = (
+                <FormattedMessage
+                    id='leave_group_message_modal.message'
+                    defaultMessage='Are you sure you wish to leave the group message {channel}? You must be re-added in order to re-join this conversation in the future.'
+                    values={values}
+                />
+            );
+        } else {
+            const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+            title = (
+                <FormattedMessage
+                    {...(isPrivate ? messages.privateTitle : messages.publicTitle)[channelKind]}
+                    values={values}
+                />
+            );
+            message = (
+                <FormattedMessage
+                    {...(isPrivate ? messages.privateMessage : messages.publicMessage)[channelKind]}
+                    values={values}
+                />
+            );
+        }
     }
 
     const button = <FormattedMessage {...messages.confirmLeave[channelKind]}/>;

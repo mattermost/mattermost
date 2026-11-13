@@ -61,6 +61,9 @@ export interface Props {
     membersCount: number;
     canManageMembers: boolean;
     editing: boolean;
+
+    // When true, group messages allow remove/leave from the Manage UI.
+    mutableGroupMessagesEnabled?: boolean;
     actions: {
         startEditing: () => void;
         stopEditing: () => void;
@@ -68,8 +71,8 @@ export interface Props {
     };
 }
 
-const ActionBar = ({className, channelType, membersCount, canManageMembers, editing, actions}: Props) => {
-    const showManageButton = channelType !== Constants.GM_CHANNEL && membersCount > 1;
+const ActionBar = ({className, channelType, membersCount, canManageMembers, editing, mutableGroupMessagesEnabled, actions}: Props) => {
+    const showManageButton = (channelType !== Constants.GM_CHANNEL || mutableGroupMessagesEnabled) && membersCount > 1;
 
     const handleShortcut = useCallback((e: KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.ESCAPE) && editing) {

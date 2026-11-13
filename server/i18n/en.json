@@ -852,6 +852,10 @@
     "description": "API error returned when trying to remove a user from the team's default channel; {{.Channel}} is that channel's name (e.g. town-square)."
   },
   {
+    "id": "api.channel.remove_channel_member.membership.app_error",
+    "translation": "You must be a member of the group message to remove members."
+  },
+  {
     "id": "api.channel.remove_channel_member.type.app_error",
     "translation": "Unable to remove user from a channel.",
     "description": "API error when removing a member from a channel type that does not allow it (e.g. a direct message channel)."
@@ -867,6 +871,10 @@
     "description": "System post message shown in a channel when a member is removed; %v is the removed user's @username. Clients usually render their own message, so this is mainly a fallback."
   },
   {
+    "id": "api.channel.remove_member.removed_from_group",
+    "translation": "%v was removed from the group message by %v."
+  },
+  {
     "id": "api.channel.remove_members.denied",
     "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}",
     "description": "API error returned when group-synced membership rules prevent removing users from a channel; {{.UserIDs}} is a list of the affected user IDs."
@@ -875,6 +883,10 @@
     "id": "api.channel.remove_user_from_channel.app_error",
     "translation": "Cannot remove user from this channel type.",
     "description": "API error returned when removing a user from a channel is not possible for that channel type (e.g. a direct or group message)."
+  },
+  {
+    "id": "api.channel.remove_user_from_group.shared.app_error",
+    "translation": "Members cannot be removed from shared group messages."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",

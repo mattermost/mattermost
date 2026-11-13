@@ -9,8 +9,10 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
+import ConfirmModalRedux from 'components/confirm_modal_redux';
 import LeaveChannelModal from 'components/leave_channel_modal';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
 import Menu from 'components/widgets/menu/menu';
@@ -30,6 +32,7 @@ export interface Props {
     channelMember: ChannelMembership;
     canChangeMemberRoles: boolean;
     canRemoveMember: boolean;
+    teammateNameDisplay: string;
     index: number;
     totalUsers: number;
     channelAdminLabel?: JSX.Element;
@@ -51,6 +54,7 @@ export default function ChannelMembersDropdown({
     channelMember,
     canChangeMemberRoles,
     canRemoveMember,
+    teammateNameDisplay,
     index,
     totalUsers,
     channelAdminLabel,
@@ -63,6 +67,7 @@ export default function ChannelMembersDropdown({
     const [removing, setRemoving] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const dispatch = useDispatch();
+    const userDisplayName = displayUsername(user, teammateNameDisplay);
 
     const handleRemoveFromChannel = async () => {
         if (removing) {
@@ -82,9 +87,54 @@ export default function ChannelMembersDropdown({
                     },
                 },
             }));
-        } else {
-            setRemoving(true);
-            const {error} = await actions.removeChannelMember(channel.id, user.id);
+            return;
+        }
+
+        if (channel.type === Constants.GM_CHANNEL) {
+            dispatch(actions.openModal({
+                modalId: ModalIdentifiers.REMOVE_FROM_GROUP_MESSAGE_MODAL,
+                dialogType: ConfirmModalRedux,
+                dialogProps: {
+                    title: (
+                        <FormattedMessage
+                            id='remove_from_group_message_modal.title'
+                            defaultMessage='Remove from Group Message'
+                        />
+                    ),
+                    message: (
+                        <FormattedMessage
+                            id='remove_from_group_message_modal.message'
+                            defaultMessage='Are you sure you want to remove {user} from this group message?'
+                            values={{
+                                user: <b>{userDisplayName}</b>,
+                            }}
+                        />
+                    ),
+                    confirmButtonText: (
+                        <FormattedMessage
+                            id='remove_from_group_message_modal.confirm'
+                            defaultMessage='Yes, remove'
+                        />
+                    ),
+                    confirmButtonVariant: 'destructive' as const,
+                    onConfirm: () => {
+                        confirmRemoveFromChannel();
+                    },
+                },
+            }));
+            return;
+        }
+
+        confirmRemoveFromChannel();
+    };
+
+    const confirmRemoveFromChannel = () => {
+        if (removing) {
+            return;
+        }
+
+        setRemoving(true);
+        actions.removeChannelMember(channel.id, user.id).then(({error}) => {
             setRemoving(false);
             if (error) {
                 setServerError(error.message);
@@ -92,7 +142,7 @@ export default function ChannelMembersDropdown({
             }
 
             actions.getChannelStats(channel.id);
-        }
+        });
     };
 
     const handleMakeChannelAdmin = () => {
@@ -161,7 +211,14 @@ export default function ChannelMembersDropdown({
     const canMakeUserChannelMember = canChangeMemberRoles && isChannelAdmin;
     const canMakeUserChannelAdmin = canChangeMemberRoles && isMember;
     const canRemoveUserFromChannel = canRemoveMember && (!channel.group_constrained || user.is_bot) && (!isDefaultChannel || isGuest);
-    const removeFromChannelText = user.id === currentUserId ? intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'}) : intl.formatMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
+    const isGroupMessage = channel.type === Constants.GM_CHANNEL;
+    let leaveText = intl.formatMessage({id: 'channel_header.leave', defaultMessage: 'Leave Channel'});
+    let removeText = intl.formatMessage({id: 'channel_members_dropdown.remove_from_channel', defaultMessage: 'Remove from Channel'});
+    if (isGroupMessage) {
+        leaveText = intl.formatMessage({id: 'channel_header.leave_group_message', defaultMessage: 'Leave Group Message'});
+        removeText = intl.formatMessage({id: 'channel_members_dropdown.remove_from_group_message', defaultMessage: 'Remove from Group Message'});
+    }
+    const removeFromChannelText = user.id === currentUserId ? leaveText : removeText;
     const removeFromChannelTestId = user.id === currentUserId ? 'leaveChannel' : 'removeFromChannel';
 
     if (canMakeUserChannelMember || canMakeUserChannelAdmin || canRemoveUserFromChannel) {

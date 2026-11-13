@@ -68,6 +68,16 @@ const channelTypeMessage = {
             defaultMessage: 'were **removed from the board**.',
         }),
     },
+    remove_from_group_message: {
+        channel: defineMessage({
+            id: 'last_users_message.removed_from_group.type',
+            defaultMessage: 'were **removed from the group message** by {actor}.',
+        }),
+        board: defineMessage({
+            id: 'last_users_message.removed_from_group.type.board',
+            defaultMessage: 'were **removed from the group message** by {actor}.',
+        }),
+    },
 } satisfies Record<string, KindMessages>;
 /* eslint-enable formatjs/enforce-placeholders */
 

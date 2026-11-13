@@ -7,7 +7,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants';
+import {General, Posts} from 'mattermost-redux/constants';
 import type {MessageData} from 'mattermost-redux/utils/post_list';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
@@ -23,6 +23,8 @@ const {
     JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL, JOIN_LEAVE_CHANNEL,
     JOIN_TEAM, ADD_TO_TEAM, REMOVE_FROM_TEAM, LEAVE_TEAM,
 } = Posts.POST_TYPES;
+
+const REMOVE_FROM_GROUP_MESSAGE_KEY = 'remove_from_group_message';
 
 type PostTypeMessageKey = 'one' | 'one_you' | 'two' | 'many_expanded';
 
@@ -318,6 +320,9 @@ const teamPostTypeMessage = {
 };
 
 function getPostTypeMessage(postType: string, kind: ChannelKind): Record<PostTypeMessageKey, MessageDescriptor> | undefined {
+    if (postType === REMOVE_FROM_GROUP_MESSAGE_KEY) {
+        return removeFromGroupPostTypeMessage;
+    }
     const byKind = secureGetFromRecord(channelPostTypeMessage, postType);
     if (byKind) {
         return {
@@ -330,10 +335,30 @@ function getPostTypeMessage(postType: string, kind: ChannelKind): Record<PostTyp
     return secureGetFromRecord(teamPostTypeMessage, postType);
 }
 
+const removeFromGroupPostTypeMessage = defineMessages({
+    one: {
+        id: 'combined_system_message.removed_from_group.one',
+        defaultMessage: '{firstUser} was **removed from the group message** by {actor}.',
+    },
+    one_you: {
+        id: 'combined_system_message.removed_from_group.one_you',
+        defaultMessage: 'You were **removed from the group message** by {actor}.',
+    },
+    two: {
+        id: 'combined_system_message.removed_from_group.two',
+        defaultMessage: '{firstUser} and {secondUser} were **removed from the group message** by {actor}.',
+    },
+    many_expanded: {
+        id: 'combined_system_message.removed_from_group.many_expanded',
+        defaultMessage: '{users} and {lastUser} were **removed from the group message** by {actor}.',
+    },
+});
+
 export type Props = {
     allUserIds: string[];
     allUsernames: string[];
     channelKind?: ChannelKind;
+    channelType?: string;
     currentUserId: string;
     currentUsername: string;
     intl: IntlShape;
@@ -447,7 +472,11 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
             singleline: true,
         };
 
-        const selectedPostTypeMessage = getPostTypeMessage(postType, channelKind);
+        let selectedPostTypeKey = postType;
+        if (postType === REMOVE_FROM_CHANNEL && this.props.channelType === General.GM_CHANNEL) {
+            selectedPostTypeKey = REMOVE_FROM_GROUP_MESSAGE_KEY;
+        }
+        const selectedPostTypeMessage = getPostTypeMessage(selectedPostTypeKey, channelKind);
         if (!selectedPostTypeMessage) {
             return <></>;
         }
@@ -459,7 +488,7 @@ export class CombinedSystemMessage extends React.PureComponent<Props> {
                     expandedLocale={selectedPostTypeMessage.many_expanded}
                     formatOptions={options}
                     channelKind={channelKind}
-                    postType={postType}
+                    postType={selectedPostTypeKey}
                     usernames={usernames}
                 />
             );
