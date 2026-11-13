@@ -125,29 +125,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         .status-wrapper {
             width: 36px;
             height: 36px;
-
-            .status {
-                right: -6px;
-                bottom: -5px;
-                width: 19px;
-                height: 19px;
-                background: var(--sidebar-header-bg);
-                color: var(--sidebar-header-text-color);
-
-                .offline--icon {
-                    fill: var(--offline-indicator);
-                }
-
-                svg {
-                    position: relative;
-                    z-index: 1;
-                    top: 0;
-                    left: 0;
-                    width: 13px;
-                    height: 13px;
-                    max-height: initial;
-                }
-            }
         }
     }
 
