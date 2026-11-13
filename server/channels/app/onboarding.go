@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -29,6 +30,21 @@ func (a *App) markAdminOnboardingComplete(rctx request.CTX) *model.AppError {
 	return nil
 }
 
+// isOrigin reports whether siteURL is an http(s) origin: a scheme, a hostname and an optional port.
+// A path is rejected because the server can't switch to a subpath without a restart, and a query,
+// fragment, or user info would break every link built from the Site URL.
+func isOrigin(siteURL string) bool {
+	u, err := url.ParseRequestURI(siteURL)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || siteURL != u.Scheme+"://"+u.Host {
+		return false
+	}
+	if port := u.Port(); port != "" {
+		n, err := strconv.Atoi(port)
+		return err == nil && n >= 1 && n <= 65535
+	}
+	return true
+}
+
 // saveOnboardingSiteURL saves the Site URL sent by the onboarding wizard, unless an admin or an
 // environment variable has already set one. Only an invalid URL is an error: a failed save is
 // logged, so that onboarding still completes.
@@ -37,12 +53,9 @@ func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) *model.App
 		return nil
 	}
 
-	// Accept only an origin: the server can't switch to a subpath without a restart, and a query,
-	// fragment, or user info would break every link built from the Site URL.
 	siteURL = strings.TrimSuffix(siteURL, "/")
-	u, err := url.ParseRequestURI(siteURL)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || siteURL != u.Scheme+"://"+u.Host {
-		return model.NewAppError("CompleteOnboarding", "api.error_invalid_site_url_provided_for_onboarding", nil, "", http.StatusBadRequest).Wrap(err)
+	if !isOrigin(siteURL) {
+		return model.NewAppError("CompleteOnboarding", "api.error_invalid_site_url_provided_for_onboarding", nil, "", http.StatusBadRequest)
 	}
 
 	// The config store re-applies environment overrides on save, so saving would be a no-op.

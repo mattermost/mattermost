@@ -100,6 +100,9 @@ func TestOnboardingSavesSiteURL(t *testing.T) {
 			"https://mattermost.example.com/#fragment",
 			"https://user:secret@mattermost.example.com",
 			" https://mattermost.example.com",
+			"https://:8065",
+			"https://mattermost.example.com:0",
+			"https://mattermost.example.com:99999",
 		} {
 			appErr := completeOnboarding(th, siteURL)
 			require.NotNil(t, appErr, siteURL)
