@@ -430,7 +430,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
-                        className={classNames('image-loading__placeholder', this.props.className)}
+                        className={classNames('image-loading__placeholder', this.props.className, {
+                            'small-image--inside-container': this.props.handleSmallImageContainer && this.state.isSmallImage,
+                        })}
                         src={emptyImageForDimensions(width, height)}
                         style={{
                             containIntrinsicSize: `${width}px ${height}px`,

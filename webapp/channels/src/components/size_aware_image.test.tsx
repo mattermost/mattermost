@@ -291,6 +291,32 @@ describe('components/SizeAwareImage', () => {
         expect(screen.getByRole('img')?.className).toBe(`${props.className} small-image--inside-container`);
     });
 
+    test('should style the placeholder of a small image like the loaded image so their boxes match', () => {
+        const props = {
+            ...baseProps,
+            handleSmallImageContainer: true,
+            dimensions: {height: 40, width: 400},
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        // Without this class the placeholder keeps the image border that the loaded small image removes
+        const placeholder = container.querySelector('.small-image__container img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder).toHaveClass('small-image--inside-container');
+    });
+
+    test.each([
+        ['the image is not small', {dimensions: {height: 200, width: 300}, handleSmallImageContainer: true}],
+        ['handleSmallImageContainer is not set', {dimensions: {height: 30, width: 30}}],
+    ])('should not add the small image class to the placeholder when %s', (_, overrides) => {
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, ...overrides}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder).not.toHaveClass('small-image--inside-container');
+    });
+
     test('should load download and copy link buttons when an image is mounted', () => {
         const fileURL = 'https://example.com/image.png';
         const props = {

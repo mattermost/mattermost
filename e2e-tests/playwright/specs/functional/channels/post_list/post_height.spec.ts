@@ -562,6 +562,52 @@ test.describe('Post height', () => {
         }
     }
 
+    // Small images are wrapped in a bordered container, and the image itself shouldn't add its own border
+    for (const file of ['small-image.png', 'image-400x40.jpg']) {
+        test(
+            `image placeholder should match the size of the loaded image (${file} small attachment)`,
+            {tag: '@post_list'},
+            async () => {
+                const post = await seedPost({message: `post with a ${file} attachment`, files: [file]});
+
+                // # Hold back the image so that its placeholder can be measured
+                let releaseImage = () => {};
+                const imageReleased = new Promise<void>((resolve) => {
+                    releaseImage = resolve;
+                });
+                await page.route(
+                    (url) => /\/api\/v4\/files\/[^/]+(\/preview)?$/.test(url.pathname),
+                    async (route) => {
+                        await imageReleased;
+                        await route.continue();
+                    },
+                );
+
+                const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
+
+                // # Measure the placeholder and then let the image load
+                const placeholder = postComponent.container.locator(
+                    '.small-image__container img.image-loading__placeholder',
+                );
+                await expect(placeholder).toBeAttached();
+                const placeholderBox = await placeholder.boundingBox();
+                releaseImage();
+
+                const image = postComponent.container.locator(
+                    '.small-image__container img:not(.image-loading__placeholder)',
+                );
+                await expect(image).toBeVisible();
+                await waitForImagesLoaded(postComponent.container);
+
+                // * Verify that the image has the size of the placeholder and the post's height didn't change
+                const imageBox = await image.boundingBox();
+                expect(imageBox?.width).toBeCloseTo(placeholderBox?.width ?? 0, 0);
+                expect(imageBox?.height).toBeCloseTo(placeholderBox?.height ?? 0, 0);
+                expect(await sizeWatcher.getObservations()).toHaveLength(1);
+            },
+        );
+    }
+
     test("a post changes height when it's replied to for the first time", {tag: '@post_list'}, async () => {
         // # Create a post with no replies or attachments
         const post = await seedPost({
