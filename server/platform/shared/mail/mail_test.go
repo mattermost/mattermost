@@ -1051,3 +1051,46 @@ func TestNewSMTPClientAdvancedDeadlineDuringGreeting(t *testing.T) {
 	_, err = conn.Write([]byte("QUIT\r\n"))
 	assert.ErrorIs(t, err, net.ErrClosed, "the connection should be closed when the deadline ends the greeting")
 }
+
+func TestStartTLSError(t *testing.T) {
+	for name, reply := range map[string]string{
+		"STARTTLS refused":       "454 TLS not available",
+		"STARTTLS not supported": "502 not implemented",
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := fakeSMTPServer(t, func(conn net.Conn) {
+				r := textproto.NewConn(conn)
+				_ = r.PrintfLine("220 localhost ESMTP")
+				for {
+					line, err := r.ReadLine()
+					if err != nil {
+						return
+					}
+					switch {
+					case strings.HasPrefix(line, "EHLO"):
+						_ = r.PrintfLine("250-localhost")
+						_ = r.PrintfLine("250 STARTTLS")
+					case strings.HasPrefix(line, "STARTTLS"):
+						_ = r.PrintfLine("%s", reply)
+					case strings.HasPrefix(line, "MAIL FROM"):
+						t.Errorf("mail transaction started: %s", line)
+						_ = r.PrintfLine("250 OK")
+					case strings.HasPrefix(line, "QUIT"):
+						_ = r.PrintfLine("221 bye")
+						return
+					default:
+						_ = r.PrintfLine("250 OK")
+					}
+				}
+			})
+			cfg.ConnectionSecurity = StartTLS
+			cfg.FeedbackEmail = "sender@example.com"
+
+			err := TestConnection(context.Background(), cfg)
+			require.ErrorContains(t, err, "unable to start TLS")
+
+			err = SendMailUsingConfig("recipient@example.com", "subject", "body", cfg, false, "", "", "", "", "")
+			require.ErrorContains(t, err, "unable to start TLS")
+		})
+	}
+}
