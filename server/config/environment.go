@@ -114,8 +114,16 @@ func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type
 		if filter != nil && !filter(rField) {
 			continue
 		}
-		if rField.Type.Kind() == reflect.Struct {
-			if val := generateEnvironmentMapWithBaseKey(env, rField.Type, base+"_"+rField.Name, filter); val != nil {
+
+		fieldType := rField.Type
+		// Recurse into pointer-to-struct fields (e.g. MessageExportSettings.GlobalRelaySettings)
+		// the same way applyEnvKey unwraps pointers before descending.
+		if fieldType.Kind() == reflect.Pointer && fieldType.Elem().Kind() == reflect.Struct {
+			fieldType = fieldType.Elem()
+		}
+
+		if fieldType.Kind() == reflect.Struct {
+			if val := generateEnvironmentMapWithBaseKey(env, fieldType, base+"_"+rField.Name, filter); val != nil {
 				mapRepresentation[rField.Name] = val
 			}
 		} else {
