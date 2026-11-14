@@ -525,3 +525,72 @@ func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
 		mockSharedChannelStore.AssertExpectations(t)
 	})
 }
+
+func TestSendChannelInvite_SyncCursorStartOnNewRemote(t *testing.T) {
+	channelID := model.NewId()
+	userID := model.NewId()
+	remoteID := model.NewId()
+	channel := &model.Channel{Id: channelID, Type: model.ChannelTypeDirect}
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", DisplayName: "Test Remote", PluginID: "com.example.plugin", LastPingAt: model.GetMillis()}
+
+	testCases := []struct {
+		name    string
+		options []InviteOption
+		// zero means the cursor is expected to start at the invite time
+		expectedCursor int64
+	}{
+		{
+			name:           "starts at the requested cursor when it is earlier than now",
+			options:        []InviteOption{WithSyncCursorStart(1000)},
+			expectedCursor: 1000,
+		},
+		{
+			name: "starts now without the option",
+		},
+		{
+			name:    "starts now when the requested cursor is not earlier than now",
+			options: []InviteOption{WithSyncCursorStart(model.GetMillis() + 60*60*1000)},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockServer := &MockServerIface{}
+			mockServer.On("Log").Return(mlog.CreateConsoleTestLogger(t))
+			mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+			mockApp := &MockAppIface{}
+			mockApp.On("Publish", mock.Anything).Return()
+			mockApp.On("GetSystemBot", mockTypeContext).Return(nil, model.NewAppError("GetSystemBot", "test", nil, "", http.StatusInternalServerError))
+			scs := &Service{server: mockServer, app: mockApp, tasks: make(map[string]syncTask)}
+
+			var saved *model.SharedChannelRemote
+			mockSharedChannelStore := mocks.SharedChannelStore{}
+			mockSharedChannelStore.On("Get", channelID).Return(&model.SharedChannel{ChannelId: channelID}, nil)
+			mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
+			mockSharedChannelStore.On("SaveRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+				saved = scr
+				return true
+			})).Return(nil, nil).Once()
+			mockStore := &mocks.Store{}
+			mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+			mockServer.On("GetStore").Return(mockStore)
+
+			before := model.GetMillis()
+			require.NoError(t, scs.SendChannelInvite(channel, userID, rc, tc.options...))
+			after := model.GetMillis()
+
+			require.NotNil(t, saved)
+			if tc.expectedCursor != 0 {
+				assert.Equal(t, tc.expectedCursor, saved.LastPostCreateAt)
+				assert.Equal(t, tc.expectedCursor, saved.LastPostUpdateAt)
+			} else {
+				assert.GreaterOrEqual(t, saved.LastPostCreateAt, before)
+				assert.LessOrEqual(t, saved.LastPostCreateAt, after)
+				assert.GreaterOrEqual(t, saved.LastPostUpdateAt, before)
+				assert.LessOrEqual(t, saved.LastPostUpdateAt, after)
+			}
+			assert.True(t, saved.IsInviteConfirmed)
+			mockSharedChannelStore.AssertExpectations(t)
+		})
+	}
+}
