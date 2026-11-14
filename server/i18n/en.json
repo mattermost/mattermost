@@ -4275,6 +4275,11 @@
     "description": "API error when the JSON patch body for updating a custom property field is invalid; 'patch' is a partial-update noun."
   },
   {
+    "id": "api.property_field.missing_values.deleted_field.app_error",
+    "translation": "This attribute has been deleted.",
+    "description": "API error when the System Console asks for the channels missing a value for a channel attribute, or tries to notify their admins, but the attribute was deleted, for example from another tab."
+  },
+  {
     "id": "api.property_field.missing_values.legacy_field.app_error",
     "translation": "Cannot look up compliance data for a v1 property field via this API.",
     "description": "API error when the System Console asks which channels are missing a value for a channel attribute, but the attribute is a legacy (v1) property field that this compliance lookup does not support."
@@ -4283,6 +4288,11 @@
     "id": "api.property_field.missing_values.no_permission.app_error",
     "translation": "You do not have permission to view this property field's compliance data.",
     "description": "API error when a user without permission asks which channels are missing a value for a channel attribute (the list of non-compliant channels and their admins is admin-only)."
+  },
+  {
+    "id": "api.property_field.missing_values.not_system_scoped.app_error",
+    "translation": "Only attributes that apply to every team can list or notify channels missing a value.",
+    "description": "API error when the System Console asks for the channels missing a value for a channel attribute scoped to a single team; Required is enforced only on attributes that apply server-wide."
   },
   {
     "id": "api.property_field.notify_missing_values.throttled.app_error",

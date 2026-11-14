@@ -15,6 +15,7 @@ import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-red
 import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
+import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
@@ -52,6 +53,16 @@ type Props = {
 // Types this page has an editor for. A required attribute of any other type
 // can't be filled in here, so it never blocks Save.
 const EDITABLE_FIELD_TYPES = new Set(['text', 'graph', 'select', 'multiselect', 'rank']);
+
+function samePropertyValue(a: unknown, b: unknown): boolean {
+    if (!isPropertyValueSet(a) || !isPropertyValueSet(b)) {
+        return !isPropertyValueSet(a) && !isPropertyValueSet(b);
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+        return a.length === b.length && [...a].sort().join('\n') === [...b].sort().join('\n');
+    }
+    return a === b;
+}
 
 function fieldOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
@@ -111,15 +122,30 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
 
     const attributes = useResolvedChannelAttributes(channelId);
 
+    // Same check Channel Info uses: source-managed fields and permission
+    // tiers above the viewer are shown read-only, since the server would
+    // refuse the write.
+    const canSet = useCanSetChannelAttributes(channelId);
+
     const [pending, setPending] = useState<Record<string, PendingChannelAttributeValue>>({});
 
+    const savedValues = useMemo(() => new Map(attributes.map(({field, value}) => [field.id, value?.value])), [attributes]);
+
+    // An edit that lands back on the saved value is dropped rather than
+    // sent: the server refuses some same-value writes (e.g. under a
+    // directional change policy), which would fail the whole save.
     const handleFieldChange = useCallback((fieldId: string, value: PendingChannelAttributeValue) => {
         setPending((prev) => {
-            const next = {...prev, [fieldId]: value};
+            const next = {...prev};
+            if (samePropertyValue(value, savedValues.get(fieldId))) {
+                Reflect.deleteProperty(next, fieldId);
+            } else {
+                next[fieldId] = value;
+            }
             onChange(next);
             return next;
         });
-    }, [onChange]);
+    }, [onChange, savedValues]);
 
     // Empty until the channel's values load, so a slow fetch never reads as
     // every required attribute being unset.
@@ -128,7 +154,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
             return [];
         }
         return attributes.flatMap(({field, value}) => {
-            if (!isPropertyFieldRequired(field) || !EDITABLE_FIELD_TYPES.has(field.type) || field.permission_values === 'none') {
+            if (!isPropertyFieldRequired(field) || !EDITABLE_FIELD_TYPES.has(field.type) || !canSet(field)) {
                 return [];
             }
             const savedSet = isPropertyValueSet(value?.value);
@@ -138,7 +164,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
             }
             return [{fieldId: field.id, label: getPropertyFieldLabel(field), cleared: savedSet}];
         });
-    }, [enabled, requiredEnforced, valuesLoaded, attributes, pending]);
+    }, [enabled, requiredEnforced, valuesLoaded, attributes, pending, canSet]);
 
     const missingRequiredKey = missingRequired.map((m) => `${m.fieldId}:${m.cleared}`).join(',');
     useEffect(() => {
@@ -175,7 +201,7 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                     const clearable = policy === 'any' || !hasValue;
                     const reachableOptions = options.filter((option) => option.id === currentOptionId || canMoveToOption(field, savedRaw, option.id));
                     const stuck = field.type !== 'text' && hasValue && !clearable && reachableOptions.every((option) => option.id === currentOptionId);
-                    const locked = field.permission_values === 'none' || (hasValue && (policy === 'never' || stuck));
+                    const locked = !canSet(field) || (hasValue && (policy === 'never' || stuck));
                     const disabled = Boolean(isDisabled) || locked || !valuesLoaded;
                     const showRequiredError = Boolean(showRequiredErrors) && missingRequiredIds.has(field.id);
 

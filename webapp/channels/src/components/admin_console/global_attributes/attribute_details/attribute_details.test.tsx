@@ -1512,6 +1512,22 @@ describe('AttributeDetails', () => {
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
         });
 
+        it("shows the server's own message when Required is refused for channels missing a value", async () => {
+            jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('api.property_field.required.channels_missing_values.app_error', 'Some active channels have no value yet.'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Some active channels have no value yet.');
+            expect(banner).not.toHaveTextContent('Please try again');
+        });
+
         it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
             const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
             jest.spyOn(Client4, 'createPropertyField').

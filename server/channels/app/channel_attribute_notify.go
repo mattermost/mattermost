@@ -16,19 +16,10 @@ import (
 )
 
 const (
-	// channelAttributeNotifyAssignmentLimit is an absolute ceiling on the
-	// number of (channel admin, affected channel) rows one notify run will
-	// accumulate across every page it fetches -- a backstop against a single
-	// pathologically large install, not the normal path. Below this, a run
-	// pages through every assignment rather than stopping at the first
-	// page, so "Notify all channel admins" is not a claim a truncated first
-	// page could falsify: a retry after the cooldown would otherwise always
-	// re-fetch the same first page (a stable, deterministic order) and
-	// re-notify the same admins forever, never reaching the rest.
+	// channelAttributeNotifyAssignmentLimit caps the (channel admin, affected
+	// channel) rows one notify run reads -- a backstop for a pathologically
+	// large install, not the normal path.
 	channelAttributeNotifyAssignmentLimit = 20000
-	// channelAttributeNotifyAssignmentPageSize is the page size used to walk
-	// up to channelAttributeNotifyAssignmentLimit rows.
-	channelAttributeNotifyAssignmentPageSize = 2000
 	// channelAttributeNotifyChannelsPerDM is the number of channels listed
 	// inline in a single admin's DM before collapsing to "and N more".
 	channelAttributeNotifyChannelsPerDM = 20
@@ -193,31 +184,20 @@ func (a *App) releaseChannelAttributeNotifyThrottle(rctx request.CTX, fieldID, t
 	}
 }
 
-// fetchAllChannelAdminAssignments pages through every (channel admin,
-// affected channel) row for field, up to channelAttributeNotifyAssignmentLimit
-// total, rather than a single capped query -- see that constant's doc comment
-// for why a single page is not good enough for a "notify all" action.
-// Reports whether the absolute ceiling was hit (channels beyond it are
-// simply never reached by this or any future run of this feature, an
-// accepted limit on a pathologically large install).
+// fetchAllChannelAdminAssignments reads every (channel admin, affected
+// channel) row for field in one query, so a write landing mid-run can't
+// shift rows between pages and skip or repeat someone. Reports whether the
+// ceiling was hit.
 func (a *App) fetchAllChannelAdminAssignments(groupID, fieldID string) ([]*model.ChannelAttributeAdminAssignment, bool, error) {
-	var all []*model.ChannelAttributeAdminAssignment
-	offset := 0
-	for {
-		page, err := a.Srv().Store().Channel().GetChannelAdminsForChannelsMissingPropertyValue(
-			groupID, fieldID, channelAttributeNotifyAssignmentPageSize, offset)
-		if err != nil {
-			return nil, false, err
-		}
-		all = append(all, page...)
-		if len(page) < channelAttributeNotifyAssignmentPageSize {
-			return all, false, nil
-		}
-		if len(all) >= channelAttributeNotifyAssignmentLimit {
-			return all, true, nil
-		}
-		offset += channelAttributeNotifyAssignmentPageSize
+	rows, err := a.Srv().Store().Channel().GetChannelAdminsForChannelsMissingPropertyValue(
+		groupID, fieldID, channelAttributeNotifyAssignmentLimit+1, 0)
+	if err != nil {
+		return nil, false, err
 	}
+	if len(rows) > channelAttributeNotifyAssignmentLimit {
+		return rows[:channelAttributeNotifyAssignmentLimit], true, nil
+	}
+	return rows, false, nil
 }
 
 // NotifyChannelAdminsOfMissingAttribute sends a batched system-bot DM to every

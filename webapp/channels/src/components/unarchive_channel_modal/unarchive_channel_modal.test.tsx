@@ -97,6 +97,22 @@ describe('components/unarchive_channel_modal', () => {
         expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
     });
 
+    test('Enter does nothing until the required attribute check has finished', async () => {
+        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: true, missing: []});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        renderWithContext(
+            <UnarchiveChannelModal
+                {...baseProps}
+                actions={{unarchiveChannel}}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Unarchive'})).toBeDisabled();
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).not.toHaveBeenCalled();
+    });
+
     test('names a missing attribute by its label, capitalizing classification', () => {
         mockUseMissingRequiredChannelAttributes.mockReturnValue({
             loading: false,

@@ -2354,9 +2354,13 @@ export default class Client4 {
         );
     };
 
+    // One target holds at most one value per field, and the access_control
+    // group caps its fields at 200 (AccessControlGroupFieldLimit), the
+    // server's per_page maximum -- so one page always holds every value. The
+    // default page of 60 would silently drop the rest.
     getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
         return this.doFetch<Array<PropertyValue<T>>>(
-            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}${buildQueryString({per_page: 200})}`,
             {method: 'get'},
         );
     };

@@ -125,6 +125,34 @@ func TestPropertyFieldComplianceEndpointsGating(t *testing.T) {
 			require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		})
 
+		t.Run(name+": 404 for a deleted field", func(t *testing.T) {
+			th, group := setupChannelComplianceTest(t)
+			field := newComplianceChannelField(t, th, group, model.PropertyFieldObjectTypeChannel)
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, false, ""))
+
+			resp, err := call(context.Background(), th, group.Name, field.ID)
+			require.Error(t, err)
+			require.Equal(t, http.StatusNotFound, resp.StatusCode)
+		})
+
+		t.Run(name+": 400 for a team-scoped field", func(t *testing.T) {
+			th, group := setupChannelComplianceTest(t)
+			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:       "a" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				GroupID:    group.ID,
+				ObjectType: model.PropertyFieldObjectTypeChannel,
+				TargetType: string(model.PropertyFieldTargetLevelTeam),
+				TargetID:   th.BasicTeam.Id,
+				Attrs:      model.StringInterface{"display_name": "Cost center"},
+			}, false, "")
+			require.Nil(t, appErr)
+
+			resp, err := call(context.Background(), th, group.Name, field.ID)
+			require.Error(t, err)
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		})
+
 		t.Run(name+": 400 for a legacy PSAv1 field", func(t *testing.T) {
 			th, group := setupChannelComplianceTest(t)
 			// ObjectType left empty: PSAv1 legacy fields predate the

@@ -133,6 +133,11 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
     // and turning it back on before saving is no change at all.
     const blockedByMissingValues = !value.required && !savedRequired && missingCount > 0;
 
+    // Until the counts arrive, "nothing missing" is only a fallback, so
+    // Required can't be turned on yet. A failed fetch leaves it to the
+    // server, which refuses the save with its own message.
+    const requiredStatusPending = !value.required && !missingValues.summary && !missingValues.failed;
+
     const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         if (blockedByMissingValues) {
             setAttentionKey((n) => n + 1);
@@ -264,7 +269,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                                     role='switch'
                                     className='ChannelsResourceSettings__switchInput'
                                     checked={value.required}
-                                    disabled={disabled}
+                                    disabled={disabled || requiredStatusPending}
                                     onChange={handleRequiredToggle}
                                     aria-label={formatMessage(messages.requiredLabel)}
                                     data-testid='channelsResourceRequired-button'

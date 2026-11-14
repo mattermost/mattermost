@@ -50,6 +50,10 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
     const enabled = attributesEnabled && requiredEnforced;
     const requiredFields = fields.filter(isPropertyFieldRequired);
 
+    // Keyed on the ids, not the count: one required field swapped for another
+    // must refetch too.
+    const requiredFieldsKey = requiredFields.map((field) => field.id).join(',');
+
     const [request, setRequest] = useState<RequestState>(IDLE);
 
     useEffect(() => {
@@ -106,7 +110,7 @@ export default function useMissingRequiredChannelAttributes(channelId: string): 
         };
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabled, channelId, requiredFields.length]);
+    }, [enabled, channelId, requiredFieldsKey]);
 
     // A request still in flight for this channelId (or one that hasn't
     // started yet after channelId just changed) reports loading with an

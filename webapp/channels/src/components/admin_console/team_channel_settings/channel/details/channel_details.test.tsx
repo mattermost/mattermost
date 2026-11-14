@@ -386,7 +386,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
                     isDisabled={false}
                 />,
             );
-            return {patchChannelAttributeValues, unarchiveChannel};
+            return {patchChannelAttributeValues, unarchiveChannel, patchChannel};
         };
 
         test('refuses to save a cleared required attribute', async () => {
@@ -425,6 +425,18 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
             await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
             expect(screen.queryByText(/before saving/)).not.toBeInTheDocument();
+        });
+
+        test('archiving then unarchiving before saving drops the attribute edits the section no longer shows', async () => {
+            const {patchChannelAttributeValues, patchChannel} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Archive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(patchChannel).toHaveBeenCalled());
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
         });
 
         test('does not hold up other edits on an active channel that never had the required value', async () => {

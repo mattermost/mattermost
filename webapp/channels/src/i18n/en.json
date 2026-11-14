@@ -6655,6 +6655,10 @@
     "defaultMessage": "An attribute with this name already exists. Please choose a different name.",
     "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when another attribute already uses the same unique name."
   },
+  "admin.global_attributes.attribute_details.save_error.required_channels_missing_values": {
+    "defaultMessage": "This attribute can't be made required while some channels have no value for it. Notify their channel admins, then try again.",
+    "description": "Red error banner on the attribute page (System Console > System Attributes > Attribute Management) when saving Required is refused because some channels have no value yet; shown only if the server sent no message of its own."
+  },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
     "description": "Red error banner on the New attribute page (System Console > System Attributes > Attribute Management) when the chosen unique name matches a word reserved by the system."

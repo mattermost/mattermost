@@ -38,7 +38,11 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
 
     const [loading, setLoading] = useState(false);
     const [failed, setFailed] = useState(false);
-    const [summary, setSummary] = useState<ChannelMissingValuesSummary | null>(null);
+
+    // Tagged with the field it was fetched for, so a switch to another field
+    // reads as not loaded yet rather than as the previous field's counts.
+    const [summary, setSummary] = useState<{fieldKey: string; value: ChannelMissingValuesSummary} | null>(null);
+    const fieldKey = fieldId ?? '';
     const [reloadNonce, setReloadNonce] = useState(0);
 
     // Guards against an out-of-order response: reload() or a fieldId change
@@ -64,6 +68,7 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
         }
 
         const mySeq = ++seqRef.current;
+        const fetchedFor = fieldId ?? '';
         setLoading(true);
         setFailed(false);
 
@@ -72,12 +77,15 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
                 return;
             }
             setSummary({
-                totalCount: data.missing_channel_count,
-                sharedCount: data.shared_channel_count,
-                uniqueAdminCount: data.unique_admin_count,
-                noAdminCount: data.channels_without_admin_count,
-                messagePreview: data.message_preview,
-                required: data.required,
+                fieldKey: fetchedFor,
+                value: {
+                    totalCount: data.missing_channel_count,
+                    sharedCount: data.shared_channel_count,
+                    uniqueAdminCount: data.unique_admin_count,
+                    noAdminCount: data.channels_without_admin_count,
+                    messagePreview: data.message_preview,
+                    required: data.required,
+                },
             });
             setLoading(false);
         }).catch(() => {
@@ -96,5 +104,5 @@ export default function useChannelMissingValues(args: {fieldId?: string; enabled
         };
     }, [enabled, fieldId, revision, reloadNonce]);
 
-    return {loading, failed, summary, reload};
+    return {loading, failed, summary: summary?.fieldKey === fieldKey ? summary.value : null, reload};
 }

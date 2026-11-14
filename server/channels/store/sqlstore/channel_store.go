@@ -1439,9 +1439,9 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	missingPropertyValueFilter := opts.MissingPropertyValueFieldID != "" && opts.MissingPropertyValueGroupID != ""
 
 	// The count skips the Teams join for every other caller; the missing-value
-	// filter keeps it so its count agrees with the list it paginates and with
-	// the other missing-value queries.
-	if !forCount || missingPropertyValueFilter {
+	// queries keep it, create mode (group but no field yet) included, so
+	// their counts agree with the list and with the Required check.
+	if !forCount || opts.MissingPropertyValueGroupID != "" {
 		query = query.Join("Teams ON Teams.Id = c.TeamId")
 	}
 

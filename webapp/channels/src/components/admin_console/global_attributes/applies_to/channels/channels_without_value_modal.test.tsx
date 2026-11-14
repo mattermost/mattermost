@@ -63,18 +63,25 @@ describe('ChannelsWithoutValueModal', () => {
             ],
         }));
 
-        renderWithContext(
-            <ChannelsWithoutValueModal
-                fieldId='field1'
-                attributeDisplayName='Cost center'
-                totalCount={2}
-                onExited={onExited}
-            />,
-        );
+        // Served under a subpath, the link must keep it.
+        const previousBasename = window.basename;
+        window.basename = '/mattermost';
+        try {
+            renderWithContext(
+                <ChannelsWithoutValueModal
+                    fieldId='field1'
+                    attributeDisplayName='Cost center'
+                    totalCount={2}
+                    onExited={onExited}
+                />,
+            );
 
-        await waitFor(() => expect(screen.getByText('ops-planning')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByText('ops-planning')).toBeInTheDocument());
 
-        expect(screen.getByRole('link', {name: /ops-planning/})).toHaveAttribute('href', '/admin_console/user_management/channels/c1');
+            expect(screen.getByRole('link', {name: /ops-planning/}).getAttribute('href')).toMatch(/\/mattermost\/admin_console\/user_management\/channels\/c1$/);
+        } finally {
+            window.basename = previousBasename;
+        }
         expect(screen.getByText('Maya Chen, Jonah Blake')).toBeInTheDocument();
         expect(screen.getByText('No channel admin')).toBeInTheDocument();
 

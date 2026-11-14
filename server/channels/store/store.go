@@ -1503,8 +1503,9 @@ type ChannelSearchOpts struct {
 	ParentAccessControlPolicyId        string
 
 	// MissingPropertyValueGroupID/FieldID restrict results to channels with no set
-	// value for the given field. Both must be set together. A row that exists but
-	// holds null/""/[] counts as missing, matching model.IsEmptyPropertyValue.
+	// value for the given field. A row that exists but holds null/""/[] counts as
+	// missing, matching model.IsEmptyPropertyValue. GroupID alone is create mode:
+	// no value can exist yet, so every channel in a team matches.
 	MissingPropertyValueGroupID string
 	MissingPropertyValueFieldID string
 }
