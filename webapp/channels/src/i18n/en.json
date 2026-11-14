@@ -28140,7 +28140,7 @@
     "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server reached the entered URL."
   },
   "onboarding_wizard.site_url.test_unsuccessful": {
-    "defaultMessage": "Test unsuccessful. This is not a valid URL.",
+    "defaultMessage": "Test unsuccessful. Mattermost couldn’t reach this URL.",
     "description": "Status under the URL field on the Site URL step of the workspace setup wizard after the server could not reach the entered URL."
   },
   "onboarding_wizard.site_url.testing": {

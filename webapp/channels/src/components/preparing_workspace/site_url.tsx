@@ -16,7 +16,7 @@ import Constants, {DocLinks} from 'utils/constants';
 import Description from './description';
 import PageBody from './page_body';
 import PageLine from './page_line';
-import SiteUrlStatus, {SiteUrlStatuses} from './site_url_status';
+import SiteUrlStatus, {SITE_URL_ERROR_ID, SiteUrlStatuses} from './site_url_status';
 import type {SiteUrlStatusType} from './site_url_status';
 import {Animations, mapAnimationReasonToClass} from './steps';
 import type {PreparingWorkspacePageProps} from './steps';
@@ -211,6 +211,8 @@ const SiteUrl = (props: Props) => {
                                     }}
                                     onKeyUp={onNext}
                                     autoFocus={true}
+                                    aria-invalid={status === SiteUrlStatuses.Invalid}
+                                    aria-describedby={status === SiteUrlStatuses.Invalid ? SITE_URL_ERROR_ID : undefined}
                                 />
                                 <div className='SiteUrl__help'>
                                     <FormattedMessage
@@ -236,7 +238,9 @@ const SiteUrl = (props: Props) => {
                                         />
                                     </div>
                                 )}
-                                <SiteUrlStatus status={status}/>
+                                <div role='status'>
+                                    <SiteUrlStatus status={status}/>
+                                </div>
                             </PageBody>
                             <div>
                                 <button

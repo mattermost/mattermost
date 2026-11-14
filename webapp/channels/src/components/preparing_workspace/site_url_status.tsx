@@ -16,6 +16,8 @@ export const SiteUrlStatuses = {
 
 export type SiteUrlStatusType = typeof SiteUrlStatuses[keyof typeof SiteUrlStatuses];
 
+export const SITE_URL_ERROR_ID = 'siteUrlError';
+
 export const invalidSiteUrlMessage = defineMessage({
     id: 'onboarding_wizard.site_url.invalid',
     defaultMessage: 'Enter only http:// or https://, a host name, and an optional port, such as https://chat.example.com.',
@@ -25,7 +27,10 @@ const SiteUrlStatus = ({status}: {status: SiteUrlStatusType}) => {
     switch (status) {
     case SiteUrlStatuses.Invalid:
         return (
-            <div className='SiteUrl__status SiteUrl__status--error'>
+            <div
+                id={SITE_URL_ERROR_ID}
+                className='SiteUrl__status SiteUrl__status--error'
+            >
                 <i className='icon icon-alert-outline'/>
                 <FormattedMessage {...invalidSiteUrlMessage}/>
             </div>
@@ -59,7 +64,7 @@ const SiteUrlStatus = ({status}: {status: SiteUrlStatusType}) => {
                 <i className='icon icon-alert-outline'/>
                 <FormattedMessage
                     id='onboarding_wizard.site_url.test_unsuccessful'
-                    defaultMessage='Test unsuccessful. This is not a valid URL.'
+                    defaultMessage='Test unsuccessful. Mattermost couldn’t reach this URL.'
                 />
             </div>
         );

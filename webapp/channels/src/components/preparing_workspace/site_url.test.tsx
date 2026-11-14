@@ -141,9 +141,16 @@ describe('components/preparing_workspace/site_url', () => {
         await replaceUrl('https://chat.example.com/mattermost');
         await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
-        expect(screen.getByText(/Enter only http:\/\/ or https:\/\/, a host name, and an optional port/)).toBeInTheDocument();
+        const error = /Enter only http:\/\/ or https:\/\/, a host name, and an optional port/;
+        expect(screen.getByRole('status')).toHaveTextContent(error);
+        expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+        expect(screen.getByRole('textbox')).toHaveAccessibleDescription(error);
         expect(testSiteURL).not.toHaveBeenCalled();
         expect(next).not.toHaveBeenCalled();
+
+        await userEvent.type(screen.getByRole('textbox'), 'x');
+        expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'false');
+        expect(screen.getByRole('textbox')).not.toHaveAccessibleDescription();
     });
 
     test('tests the URL once and advances when the test succeeds', async () => {
@@ -213,7 +220,7 @@ describe('components/preparing_workspace/site_url', () => {
                 jest.advanceTimersByTime(10000);
             });
 
-            expect(screen.getByText('Test unsuccessful. This is not a valid URL.')).toBeInTheDocument();
+            expect(screen.getByText('Test unsuccessful. Mattermost couldn’t reach this URL.')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Use anyway'})).toBeInTheDocument();
             expect(next).not.toHaveBeenCalled();
         } finally {
@@ -228,7 +235,8 @@ describe('components/preparing_workspace/site_url', () => {
         expect(screen.queryByRole('button', {name: 'Use anyway'})).not.toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
-        expect(await screen.findByText('Test unsuccessful. This is not a valid URL.')).toBeInTheDocument();
+        expect(await screen.findByText('Test unsuccessful. Mattermost couldn’t reach this URL.')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('Test unsuccessful. Mattermost couldn’t reach this URL.');
         expect(next).not.toHaveBeenCalled();
 
         await userEvent.click(screen.getByRole('button', {name: 'Use anyway'}));
@@ -245,7 +253,7 @@ describe('components/preparing_workspace/site_url', () => {
 
         await userEvent.type(screen.getByRole('textbox'), 'x');
         expect(screen.queryByRole('button', {name: 'Use anyway'})).not.toBeInTheDocument();
-        expect(screen.queryByText('Test unsuccessful. This is not a valid URL.')).not.toBeInTheDocument();
+        expect(screen.queryByText('Test unsuccessful. Mattermost couldn’t reach this URL.')).not.toBeInTheDocument();
     });
 
     test('always shows the skip button', async () => {
