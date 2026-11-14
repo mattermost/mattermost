@@ -1,0 +1,99 @@
+---
+# Validates, tests, and builds the Mattermost server on changes to server code.
+name: Group Mattermost CI
+
+"on":
+  push:
+    branches:
+      - master
+      - cicd-pipeline
+    paths:
+      - "server/**"
+      - ".github/workflows/group-mattermost-ci.yml"
+
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "server/**"
+      - ".github/workflows/group-mattermost-ci.yml"
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-test-build:
+    name: Validate, Test, and Build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      COMPOSE_PROJECT_NAME: mattermost-server
+      TEST_DATABASE_POSTGRESQL_DSN: postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6.3.0
+        with:
+          go-version-file: server/.go-version
+          cache-dependency-path: |
+            server/go.sum
+            server/public/go.sum
+
+      - name: Set up Go workspace
+        # Use this checkout's public/model types instead of the older published module.
+        run: make setup-go-work
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Start test dependencies
+        # App tests need PostgreSQL, S3-compatible storage, and a test mail server.
+        run: |
+          make start-docker ENABLED_DOCKER_SERVICES="postgres minio inbucket"
+          docker compose -f docker-compose.makefile.yml exec -T minio sh -c 'mkdir -p /data/mattermost-test'
+
+      - name: Test users, authentication, files, and content
+        run: |
+          go test ./channels/app \
+            -run 'Test.*(Authentication|Login|Session|User|File|Upload|Download)' \
+            -count=1 \
+            -timeout=20m
+
+      - name: Build Mattermost server
+        run: |
+          mkdir -p build
+          go build -o build/mattermost ./cmd/mattermost
+
+      - name: Upload server artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: mattermost-server-linux
+          path: server/build/mattermost
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Show test service logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.makefile.yml logs --no-color postgres minio inbucket
+
+      - name: Stop test dependencies
+        if: always()
+        run: docker compose -f docker-compose.makefile.yml down --volumes
