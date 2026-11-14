@@ -224,6 +224,13 @@ type PropertyFieldOptionPage struct {
 	NextCursorID       string                 `json:"next_cursor_id,omitempty"`
 }
 
+// PropertyFieldOptionsInUse names which of the options asked about are held by
+// a channel value. Deliberately no counts. OptionIDs should be non-nil so that
+// none in use serializes as [] rather than null.
+type PropertyFieldOptionsInUse struct {
+	OptionIDs []string `json:"option_ids"`
+}
+
 // PropertyFieldOptionPageFilter is the coverage filter a listing's page query
 // is narrowed by, decided once per listing by the hooks and consumed by the
 // store.

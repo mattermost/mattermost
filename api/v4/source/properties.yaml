@@ -1096,6 +1096,85 @@
                 $ref: "#/components/schemas/AppError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/options/in_use":
+    get:
+      tags:
+        - properties
+      summary: Get which property field options are in use
+      description: >
+        Report which of the given options are held by a value of any channel,
+        archived or not, on the field or on any channel field linking to it.
+        Only the options in use are returned: never how many channels hold
+        them, or which.
+
+
+        __Minimum server version__: 12.0
+
+
+        ##### Permissions
+
+
+        Reading the field's options (any authenticated user for a
+        system-level field, `view_team` on the team for a team-level field,
+        and `read_channel` on the channel for a channel-level field), plus
+        permission to manage the field's options, as deleting them requires.
+      operationId: GetPropertyFieldOptionsInUse
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: object_type
+          in: path
+          description: The object type of the property field
+          required: true
+          schema:
+            type: string
+        - name: field_id
+          in: path
+          description: Property field ID
+          required: true
+          schema:
+            type: string
+        - name: option_ids
+          in: query
+          description: >
+            A comma-separated list of option IDs to check. At least one is
+            required, and at most 200 are accepted.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Options in use retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  option_ids:
+                    type: array
+                    description: The requested options that are in use
+                    items:
+                      type: string
+        "400":
+          description: >
+            No option ID was sent, more than 200 were, or one is not a valid
+            ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/properties/groups/{group_name}/{object_type}/fields/{field_id}/missing_values":
     get:
       tags:

@@ -31,6 +31,38 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string,
 	return page, nil
 }
 
+// PropertyFieldOptionsInUse returns which of optionIDs are held by a live value
+// of a channel, archived or not, on the field or on any channel field linking to
+// it. Only the verdict is reported, never how many channels hold an option.
+func (a *App) PropertyFieldOptionsInUse(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]string, *model.AppError) {
+	field, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
+	if err != nil {
+		if appErr := mapPropertyServiceError("PropertyFieldOptionsInUse", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("PropertyFieldOptionsInUse", "app.property_field.options.in_use.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	var fieldIDs []string
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel {
+		fieldIDs = append(fieldIDs, field.ID)
+	}
+	for _, dependent := range dependents {
+		if dependent.ObjectType == model.PropertyFieldObjectTypeChannel {
+			fieldIDs = append(fieldIDs, dependent.ID)
+		}
+	}
+	if len(fieldIDs) == 0 {
+		return []string{}, nil
+	}
+
+	inUse, err := a.Srv().Store().PropertyValue().SelectOptionIDsInUse(groupID, fieldIDs, optionIDs)
+	if err != nil {
+		return nil, model.NewAppError("PropertyFieldOptionsInUse", "app.property_field.options.in_use.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return inUse, nil
+}
+
 // CreatePropertyFieldOptions adds options to a field.
 func (a *App) CreatePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
 	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, groupID, fieldID, options)

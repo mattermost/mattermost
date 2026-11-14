@@ -11422,6 +11422,11 @@
     "description": "Server error when reading the selectable options of a custom property field fails in the database."
   },
   {
+    "id": "app.property_field.options.in_use.app_error",
+    "translation": "Unable to determine which property field options are in use.",
+    "description": "Server error returned by the endpoint the System Console calls before removing a channel attribute option, when looking up which of the given options channels hold as values fails."
+  },
+  {
     "id": "app.property_field.options.invalid.app_error",
     "translation": "The property field options were rejected: {{.Reason}}.",
     "description": "API error when a request to change a property field's options is rejected as a whole. {{.Reason}} is an untranslated English explanation (e.g. 'field X has been deleted')."

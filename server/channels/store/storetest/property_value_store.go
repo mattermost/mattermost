@@ -30,6 +30,7 @@ func TestPropertyValueStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("DeleteForField", func(t *testing.T) { testDeleteForField(t, rctx, ss) })
 	t.Run("DeleteForTarget", func(t *testing.T) { testDeleteForTarget(t, rctx, ss) })
 	t.Run("GetReferencedOptionIDs", func(t *testing.T) { testGetReferencedOptionIDs(t, rctx, ss) })
+	t.Run("SelectOptionIDsInUse", func(t *testing.T) { testSelectOptionIDsInUse(t, rctx, ss) })
 }
 
 func testCreatePropertyValue(t *testing.T, _ request.CTX, ss store.Store) {
@@ -2224,5 +2225,81 @@ func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
 		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB, optD}, ids)
+	})
+}
+
+func testSelectOptionIDsInUse(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+	fieldID := model.NewId()
+	dependentID := model.NewId()
+	otherFieldID := model.NewId()
+
+	create := func(t *testing.T, targetType, fID, raw string) *model.PropertyValue {
+		t.Helper()
+		value, err := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: targetType,
+			GroupID:    groupID,
+			FieldID:    fID,
+			Value:      json.RawMessage(raw),
+		})
+		require.NoError(t, err)
+		return value
+	}
+
+	selectOpt, multiOpt, linkedOpt, deletedOpt, otherFieldOpt, userOpt, unusedOpt := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	all := []string{selectOpt, multiOpt, linkedOpt, deletedOpt, otherFieldOpt, userOpt, unusedOpt}
+
+	create(t, "channel", fieldID, `"`+selectOpt+`"`)
+	create(t, "channel", fieldID, `["`+multiOpt+`", "`+model.NewId()+`"]`)
+	create(t, "channel", dependentID, `["`+linkedOpt+`"]`)
+	deleted := create(t, "channel", fieldID, `"`+deletedOpt+`"`)
+	create(t, "channel", otherFieldID, `"`+otherFieldOpt+`"`)
+	create(t, "user", fieldID, `"`+userOpt+`"`)
+	create(t, "channel", fieldID, `null`)
+	create(t, "channel", fieldID, `""`)
+	require.NoError(t, ss.PropertyValue().Delete(groupID, deleted.ID))
+
+	t.Run("should return nothing for empty inputs", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(groupID, nil, all)
+		require.NoError(t, err)
+		require.NotNil(t, ids)
+		require.Empty(t, ids)
+
+		ids, err = ss.PropertyValue().SelectOptionIDsInUse(groupID, []string{fieldID}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, ids)
+		require.Empty(t, ids)
+	})
+
+	t.Run("should find select and multiselect options of the field", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(groupID, []string{fieldID}, all)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{selectOpt, multiOpt}, ids)
+	})
+
+	t.Run("should include values held on linked fields", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(groupID, []string{fieldID, dependentID}, all)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{selectOpt, multiOpt, linkedOpt}, ids)
+	})
+
+	t.Run("should only report the options asked about", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(groupID, []string{fieldID, dependentID}, []string{multiOpt, unusedOpt})
+		require.NoError(t, err)
+		require.Equal(t, []string{multiOpt}, ids)
+	})
+
+	t.Run("should return an empty slice when nothing is in use", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(groupID, []string{fieldID}, []string{unusedOpt, deletedOpt, userOpt, otherFieldOpt})
+		require.NoError(t, err)
+		require.NotNil(t, ids)
+		require.Empty(t, ids)
+	})
+
+	t.Run("should ignore other groups", func(t *testing.T) {
+		ids, err := ss.PropertyValue().SelectOptionIDsInUse(model.NewId(), []string{fieldID}, all)
+		require.NoError(t, err)
+		require.Empty(t, ids)
 	})
 }

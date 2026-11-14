@@ -12176,6 +12176,27 @@ func (s *RetryLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, op
 
 }
 
+func (s *RetryLayerPropertyValueStore) SelectOptionIDsInUse(groupID string, fieldIDs []string, optionIDs []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.SelectOptionIDsInUse(groupID, fieldIDs, optionIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 
 	tries := 0

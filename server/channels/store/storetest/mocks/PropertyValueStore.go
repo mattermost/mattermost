@@ -249,6 +249,36 @@ func (_m *PropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.
 	return r0, r1
 }
 
+// SelectOptionIDsInUse provides a mock function with given fields: groupID, fieldIDs, optionIDs
+func (_m *PropertyValueStore) SelectOptionIDsInUse(groupID string, fieldIDs []string, optionIDs []string) ([]string, error) {
+	ret := _m.Called(groupID, fieldIDs, optionIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SelectOptionIDsInUse")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, []string, []string) ([]string, error)); ok {
+		return rf(groupID, fieldIDs, optionIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, []string, []string) []string); ok {
+		r0 = rf(groupID, fieldIDs, optionIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, []string, []string) error); ok {
+		r1 = rf(groupID, fieldIDs, optionIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: groupID, values
 func (_m *PropertyValueStore) Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	ret := _m.Called(groupID, values)
