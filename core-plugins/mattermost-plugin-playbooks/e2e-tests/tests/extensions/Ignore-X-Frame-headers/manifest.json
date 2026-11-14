@@ -1,0 +1,17 @@
+{
+  "update_url": "https://clients2.google.com/service/update2/crx",
+  "manifest_version": 2,
+  "name": "Ignore X-Frame headers",
+  "description": "Drops X-Frame-Options and Content-Security-Policy HTTP response headers, allowing all pages to be iframed.",
+  "version": "1.1",
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ]
+}

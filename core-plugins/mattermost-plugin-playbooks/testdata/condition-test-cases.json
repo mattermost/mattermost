@@ -1,0 +1,1269 @@
+[
+  {
+    "name": "text field case-insensitive match",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "text1",
+        "value": "hello world"
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "text field mixed case match",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "text1",
+        "value": "HeLLo WoRLd"
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "text field no match",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "text1",
+        "value": "Goodbye"
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "text field isNot condition",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "isNot": {
+        "field_id": "text1",
+        "value": "goodbye"
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "text field rejects array values",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "text1",
+        "value": ["hello", "world"]
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "select field exact match",
+    "fields": [
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "select1",
+        "value": ["option1"]
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "select field case sensitive no match",
+    "fields": [
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "select1",
+        "value": ["OPTION1"]
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "select field isNot condition",
+    "fields": [
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "isNot": {
+        "field_id": "select1",
+        "value": ["option2"]
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "select field rejects string values",
+    "fields": [
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "select1",
+        "value": "option1"
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "multiselect any of logic match",
+    "fields": [
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"},
+            {"id": "cat_c", "name": "Category C"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "multi1",
+        "value": ["cat_a"]
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "multiselect multiple condition values match",
+    "fields": [
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"},
+            {"id": "cat_c", "name": "Category C"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_c"]
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "multiselect no match",
+    "fields": [
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"},
+            {"id": "cat_c", "name": "Category C"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "multi1",
+        "value": ["cat_z"]
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "multiselect isNot condition",
+    "fields": [
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"},
+            {"id": "cat_c", "name": "Category C"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "isNot": {
+        "field_id": "multi1",
+        "value": ["cat_z"]
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "multiselect rejects string values",
+    "fields": [
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"},
+            {"id": "cat_c", "name": "Category C"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "multi1",
+        "value": "cat_a"
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "AND condition all true",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      },
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "and": [
+        {
+          "is": {
+            "field_id": "text1",
+            "value": "hello world"
+          }
+        },
+        {
+          "is": {
+            "field_id": "select1",
+            "value": ["option1"]
+          }
+        }
+      ]
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "AND condition one false",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      },
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "and": [
+        {
+          "is": {
+            "field_id": "text1",
+            "value": "hello world"
+          }
+        },
+        {
+          "is": {
+            "field_id": "select1",
+            "value": ["option2"]
+          }
+        }
+      ]
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "OR condition one true",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      },
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "or": [
+        {
+          "is": {
+            "field_id": "text1",
+            "value": "goodbye"
+          }
+        },
+        {
+          "is": {
+            "field_id": "select1",
+            "value": ["option1"]
+          }
+        }
+      ]
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "OR condition all false",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "select1",
+        "group_id": "group1",
+        "name": "Select Field 1",
+        "type": "select",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "option1", "name": "Option 1"},
+            {"id": "option2", "name": "Option 2"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      },
+      {
+        "id": "value_select1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "select1",
+        "value": "option1",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "or": [
+        {
+          "is": {
+            "field_id": "text1",
+            "value": "goodbye"
+          }
+        },
+        {
+          "is": {
+            "field_id": "select1",
+            "value": ["option2"]
+          }
+        }
+      ]
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "nested conditions",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "multi1",
+        "group_id": "group1",
+        "name": "Multiselect Field 1",
+        "type": "multiselect",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": [
+            {"id": "cat_a", "name": "Category A"},
+            {"id": "cat_b", "name": "Category B"}
+          ],
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      },
+      {
+        "id": "value_multi1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "multi1",
+        "value": ["cat_a", "cat_b"],
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "and": [
+        {
+          "is": {
+            "field_id": "text1",
+            "value": "hello world"
+          }
+        },
+        {
+          "or": [
+            {
+              "is": {
+                "field_id": "select1",
+                "value": ["option2"]
+              }
+            },
+            {
+              "is": {
+                "field_id": "multi1",
+                "value": ["cat_a"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "non-existent field",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "nonexistent",
+        "value": "anything"
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "isNot with non-existent field",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "isNot": {
+        "field_id": "nonexistent",
+        "value": "anything"
+      }
+    },
+    "shouldPass": true
+  },
+  {
+    "name": "field without value",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      },
+      {
+        "id": "empty",
+        "group_id": "group1",
+        "name": "Empty Field",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "empty",
+        "value": "anything"
+      }
+    },
+    "shouldPass": false
+  },
+  {
+    "name": "empty condition",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "Hello World",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {},
+    "shouldPass": true
+  },
+  {
+    "name": "empty property value",
+    "fields": [
+      {
+        "id": "text1",
+        "group_id": "group1",
+        "name": "Text Field 1",
+        "type": "text",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0,
+        "attrs": {
+          "visibility": "default",
+          "sort_order": 0,
+          "options": null,
+          "parent_id": ""
+        }
+      }
+    ],
+    "values": [
+      {
+        "id": "value_text1",
+        "target_id": "target1",
+        "target_type": "playbook",
+        "group_id": "group1",
+        "field_id": "text1",
+        "value": "",
+        "create_at": 123456789,
+        "update_at": 123456789,
+        "delete_at": 0
+      }
+    ],
+    "condition": {
+      "is": {
+        "field_id": "text1",
+        "value": "anything"
+      }
+    },
+    "shouldPass": false
+  }
+]

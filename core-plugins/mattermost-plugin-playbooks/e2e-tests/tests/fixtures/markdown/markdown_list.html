@@ -1,0 +1,137 @@
+<h1 class="markdown__heading">Markdown List Testing</h1><p>Verify that all list types render as expected.</p>
+<h3 class="markdown__heading">Single-Item Ordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>7. Single Item</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 6;">
+<li><span>Single Item</span></li></ol><h3 class="markdown__heading">Multi-Item Ordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. One
+2. Two
+3. Three</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>One</span></li><li><span>Two</span></li><li><span>Three</span></li></ol><h3 class="markdown__heading">Nested Ordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. Alpha
+    1. Bravo
+2. Charlie
+3. Delta
+    1. Echo
+    2. Foxtrot</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Alpha<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Bravo</span></li></ol></span></li><li><span>Charlie</span></li><li><span>Delta<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Echo</span></li><li><span>Foxtrot</span></li></ol></span></li></ol><h3 class="markdown__heading">Single-Item Unordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• Single Item</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>Single Item</span></li></ul><h3 class="markdown__heading">Multi-Item Unordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• One
+• Two
+• Three</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>One</span></li><li><span>Two</span></li><li><span>Three</span></li></ul><h3 class="markdown__heading">Multi-Item Unordered List with Line Break (Break should not render)</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• Item A
+• Item B
+• Item C
+• Item D</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>Item A</span></li><li><span><p>Item B</p>
+</span></li><li><span><p>Item C</p>
+</span></li><li><span>Item D</span></li></ul><h3 class="markdown__heading">Nested Unordered List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• Alpha
+    • Bravo
+• Charlie
+• Delta
+    • Echo
+    • Foxtrot</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>Alpha<ul class="markdown__list">
+<li><span>Bravo</span></li></ul></span></li><li><span>Charlie</span></li><li><span>Delta<ul class="markdown__list">
+<li><span>Echo</span></li><li><span>Foxtrot</span></li></ul></span></li></ul><h3 class="markdown__heading">Mixed List Starting Ordered</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. One
+2. Two
+3. Three</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>One</span></li><li><span>Two</span></li><li><span>Three</span></li></ol><h3 class="markdown__heading">Mixed List Starting Unordered</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• Monday
+• Tuesday
+• Wednesday</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>Monday</span></li><li><span>Tuesday</span></li><li><span>Wednesday</span></li></ul><h3 class="markdown__heading">Nested Mixed List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>• Alpha
+    1. Bravo
+        • Charlie
+        • Delta
+• Echo
+• Foxtrot
+    • Golf
+        1. Hotel
+    • India
+        1. Juliet
+        2. Kilo
+    • Lima
+• Mike
+    1. November
+        4. Oscar
+            5. Papa</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li><span>Alpha<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Bravo<ul class="markdown__list">
+<li><span>Charlie</span></li><li><span>Delta</span></li></ul></span></li></ol></span></li><li><span>Echo</span></li><li><span>Foxtrot<ul class="markdown__list">
+<li><span>Golf<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Hotel</span></li></ol></span></li><li><span>India<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Juliet</span></li><li><span>Kilo</span></li></ol></span></li><li><span>Lima</span></li></ul></span></li><li><span>Mike<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>November<ol class="markdown__list" style="counter-reset: list 3;">
+<li><span>Oscar<ol class="markdown__list" style="counter-reset: list 4;">
+<li><span>Papa</span></li></ol></span></li></ol></span></li></ol></span></li></ul><h3 class="markdown__heading">Ordered Lists Separated by Carriage Returns</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. One
+  • Two
+2. Two
+3. Three</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span><p>One</p>
+<ul class="markdown__list">
+<li><span>Two</span></li></ul></span></li><li><span><p>Two</p>
+</span></li><li><span>Three</span></li></ol><h3 class="markdown__heading">New Line After a List</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. One
+2. Two
+
+This text should be on a new line.</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>One</span></li><li><span>Two</span></li></ol><p>This text should be on a new line.</p>
+<h3 class="markdown__heading">Task Lists</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>[ ] One
+  [ ] Subpoint one
+  - Normal Bullet
+[ ] Two
+[x] Completed item</code></div></div><p><strong>Actual:</strong></p>
+<ul class="markdown__list">
+<li class="list-item--task-list"><input type="checkbox" disabled=""> One<ul class="markdown__list">
+<li class="list-item--task-list"><input type="checkbox" disabled=""> Subpoint one</li><li><span>Normal Bullet</span></li></ul></li><li class="list-item--task-list"><input type="checkbox" disabled=""> Two</li><li class="list-item--task-list"><input type="checkbox" disabled="" checked=""> Completed item</li></ul><h3 class="markdown__heading">Numbered Task Lists</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>1. [ ] One
+2. [ ] Two
+3. [x] Completed item</code></div></div><p><strong>Actual:</strong></p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li class="list-item--task-list"><input type="checkbox" disabled=""> One</li><li class="list-item--task-list"><input type="checkbox" disabled=""> Two</li><li class="list-item--task-list"><input type="checkbox" disabled="" checked=""> Completed item</li></ol><h3 class="markdown__heading">Multiple Lists</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>List A:
+
+1. One
+
+List B:
+
+2. Two</code></div></div><p>List A:</p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>One</span></li></ol><p>List B:</p>
+<ol class="markdown__list" style="counter-reset: list 1;">
+<li><span>Two</span></li></ol><h3 class="markdown__heading">Lists with blank lines before and after</h3><p><strong>Expected:</strong></p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>Line with blank line after 
+
+Line with blank line after and before 
+
+1. Bullet 
+2. Bullet 
+3. Bullet 
+
+Line with blank line after and before 
+
+Line with blank line before</code></div></div><p>Line with blank line after </p>
+<p>Line with blank line after and before </p>
+<ol class="markdown__list" style="counter-reset: list 0;">
+<li><span>Bullet </span></li><li><span>Bullet </span></li><li><span>Bullet </span></li></ol><p>Line with blank line after and before </p>
+<p>Line with blank line before</p>

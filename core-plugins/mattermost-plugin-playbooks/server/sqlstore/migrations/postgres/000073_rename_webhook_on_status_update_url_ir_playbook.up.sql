@@ -1,0 +1,1 @@
+ALTER TABLE IR_Playbook RENAME COLUMN WebhookOnStatusUpdateURL TO ConcatenatedWebhookOnStatusUpdateURLs;

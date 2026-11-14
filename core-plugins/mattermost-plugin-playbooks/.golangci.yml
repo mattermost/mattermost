@@ -1,0 +1,77 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - copyloopvar
+    - errcheck
+    - gocheckcompilerdirectives
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - staticcheck
+    - unconvert
+    - unused
+  settings:
+    govet:
+      disable:
+        - fieldalignment
+        - unusedwrite
+      enable-all: true
+    revive:
+      rules:
+        - name: redefines-builtin-id
+          disabled: true
+    staticcheck:
+      checks: ["all", "-QF1008"]
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - goconst
+          - gosec
+          - unparam
+        path: _test\.go
+      - linters:
+          - gocritic
+          - revive
+        path: server/bot/logger.go
+      - linters:
+          - revive
+        text: unused-parameter
+      - linters:
+          - gosec
+        text: G115
+      - path: (.+)\.go$
+        text: G404
+      - path: (.+)\.go$
+        text: 'shadow: declaration of "err" shadows declaration at'
+    paths:
+      - example.*.go
+      - server/manifest.go
+      - build/
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+  exclusions:
+    generated: lax
+    paths:
+      - example.*.go
+      - server/manifest.go
+      - build/
+      - third_party$
+      - builtin$
+      - examples$

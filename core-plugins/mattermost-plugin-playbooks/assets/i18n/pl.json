@@ -1,0 +1,242 @@
+[
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Masz 0 przydzielonych zadań."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Masz {{.Count}} przydzielone zadanie, którego termin wykonania właśnie upływa:",
+            "few": "Masz {{.Count}} przydzielone zadania, których termin wykonania właśnie upływa:",
+            "many": "Masz {{.Count}} przydzielonych zadań, których termin wykonania właśnie upływa:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Masz {{.Count}} przydzielone zadanie:",
+            "few": "Masz {{.Count}} przydzielone zadania:",
+            "many": "Masz {{.Count}} przydzielonych zadań:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Twoje przydzielone zadania"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Termin na wczoraj"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Termin {{.Count}} dni temu"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Do zapłaty dzisiaj"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Termin płatności za {{.Count}} dzień",
+            "few": "Termin płatności za {{.Count}} dni",
+            "many": "Termin płatności za {{.Count}} dni"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Masz **{{.Count}} przydzielone zadanie, którego termin wykonania wypada po dzisiejszym dniu**.",
+            "few": "Masz **{{.Count}} przydzielone zadania, których termin wykonania wypada po dzisiejszym dniu**.",
+            "many": "Masz **{{.Count}} przydzielonych zadań, których termin wykonania wypada po dzisiejszym dniu**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Użyj `/playbook todo`, aby zobaczyć wszystkie swoje zadania."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Obecnie masz 0 uruchomień w trakcie."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Masz {{.Count}} uruchomienie w toku:",
+            "few": "Masz {{.Count}} uruchomienia w toku:",
+            "many": "Masz {{.Count}} uruchomień w toku:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Uruchomienia w Trakcie"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Masz 0 zaległych uruchomień."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Masz {{.Count}} zaległość w aktualizacji statusu:",
+            "few": "Masz {{.Count}} zaległości w aktualizacji statusu:",
+            "many": "Masz {{.Count}} zaległości w aktualizacji statusu:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Zaległe aktualizacje statusu"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Nie można wykonać polecenia."
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} zażądał aktualizacji statusu dla [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here - @{.Name}} chce wziąć udział w tym uruchomieniu. Aby uwzględnić ich jako uczestników, dodaj ich do tego kanału.\n"
+    },
+    {
+        "id": "app.user.run.retro_publish",
+        "translation": "@{.Name}} opublikował retrospektywę\n[Zobacz pełną retrospektywę]({{.URL}}).\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} dołączył do przebiegu. Nie zostali oni automatycznie dodani do tego prywatnego kanału, ale każdy członek kanału może ich zaprosić do przyłączenia się.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.Name}} został dodany do przebiegu przez @{{.RequesterName}}. Nie zostali oni automatycznie dodani do kanału, ponieważ @{{.RequesterName}} nie jest członkiem kanału, a kanał jest prywatny.\n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} jest uczestnikiem uruchomienia i chce dołączyć do tego kanału. Każdy członek kanału może go zaprosić.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} włączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} wyłączył aktualizacje statusu dla [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbok"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Aktualizacje statusu"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Post"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Przypomnienie o następnej aktualizacji"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Przedstaw aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanał.",
+            "few": "Przedstawić aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanały.",
+            "many": "Przedstawić aktualizację dla interesariuszy. Ten post będzie transmitowany na {{.Count}} kanałów."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Oznacz również uruchomienie jako zakończone"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Zakończ uruchomienie"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Zmiana od ostatniej aktualizacji"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Potwierdź zakończenie"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Zakończ"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Istnieje **{{.Count}} zaległe zadanie**. Czy na pewno chcesz ukończyć *{{.RunName}}* dla wszystkich uczestników?",
+            "few": "Istnieją **{{.Count}} zaległe zadania**. Czy na pewno chcesz ukończyć *{{.RunName}}* dla wszystkich uczestników?",
+            "many": "Istnieje **{{.Count}} zaległych zadań**. Czy na pewno chcesz ukończyć *{{.RunName}}* dla wszystkich uczestników?"
+        }
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Dodaj do osi czasu uruchomienia"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Krótkie podsumowanie widoczne na osi czasu"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Maksymalnie 64 znaki"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Podsumowanie"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Dodaj do osi czasu uruchomienia"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Uruchomienie Playbooka"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Dodaj nowe zadanie"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Dodaj zadanie"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Nazwa"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Opis"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Uruchom playbook"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Rozpocznij uruchomienie"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Nazwa uruchomienia"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "[Kliknij tutaj]({{.RunURL}}), aby stworzyć własny playbook."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Właściciel** {{.Username}}"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "ponieważ zadanie zostało zmodyfikowane"
+    }
+]
