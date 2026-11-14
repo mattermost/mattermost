@@ -67,6 +67,10 @@ const (
 	// reconnectFailureClusterLookupFailed means the other nodes could not be asked for the
 	// old connection.
 	reconnectFailureClusterLookupFailed = "cluster_lookup_failed"
+
+	// reconnectFailureSessionAttributesChanged means the old connection was found, but the
+	// session attributes its queued events were evaluated against no longer hold.
+	reconnectFailureSessionAttributesChanged = "session_attributes_changed"
 )
 
 const websocketMessagePluginPrefix = "custom_"
@@ -171,6 +175,9 @@ type WebConn struct {
 	// per minute.
 	lastLogTimeSlow time.Time
 	lastLogTimeFull time.Time
+
+	// Set by recordSessionAttributes when the connection goes inactive.
+	sessionAttributes *model.SessionAttributesRecord
 }
 
 // CheckConnResult indicates whether a connectionID was present in the hub or not.
@@ -182,6 +189,8 @@ type CheckConnResult struct {
 	DeadQueue        []*model.WebSocketEvent
 	DeadQueuePointer int
 	ReuseCount       int
+
+	SessionAttributes *model.SessionAttributesRecord
 }
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -203,6 +212,9 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 	}
 
 	res, reason, isRemote := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
+	if res != nil && ps.sessionAttributesChangedSince(s.Id, res.SessionAttributes) {
+		res, reason = nil, reconnectFailureSessionAttributesChanged
+	}
 	if res == nil {
 		ps.Log().Debug("Websocket resume failed, issuing new connection id",
 			mlog.String("user_id", s.UserId),
@@ -492,10 +504,15 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
+	wg.Go(func() {
+		wc.promptSessionAttributesRefresh()
+	})
+
 	defer func() {
 		close(wc.endWritePump)
 		close(wc.pluginPosted)
 		wg.Wait()
+		wc.recordSessionAttributes()
 		wc.Platform.HubUnregister(wc)
 		close(wc.pumpFinished)
 

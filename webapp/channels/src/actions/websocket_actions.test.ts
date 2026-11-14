@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {waitFor} from '@testing-library/react';
 import cloneDeep from 'lodash/cloneDeep';
+import nock from 'nock';
 import type {IntlShape} from 'react-intl';
 import type {AnyAction} from 'redux';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import type {DesktopAPI} from '@mattermost/desktop-api';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -25,6 +28,7 @@ import {
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -37,6 +41,7 @@ import store from 'stores/redux_store';
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
@@ -2349,5 +2354,38 @@ describe('handleJobUpdated', () => {
         expect(testStore.getActions()).not.toContainEqual(
             expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
         );
+    });
+});
+
+describe('handleSessionAttributesExpired', () => {
+    const originalDesktopAPI = window.desktopAPI;
+
+    afterEach(() => {
+        window.desktopAPI = originalDesktopAPI;
+        jest.restoreAllMocks();
+        nock.cleanAll();
+    });
+
+    test('has the Desktop App resend its session attributes on a request it then makes', async () => {
+        TestHelper.initBasic(Client4);
+        const fetchSpy = jest.spyOn(global, 'fetch');
+        let requestsBeforeResend: number | undefined;
+        window.desktopAPI = {
+            resendSessionAttributes: () => {
+                requestsBeforeResend = fetchSpy.mock.calls.length;
+            },
+        } as Partial<DesktopAPI> as DesktopAPI;
+
+        const refresh = nock(Client4.getBaseRoute()).
+            get('/users/sessions/attributes/manifest').
+            reply(200, []);
+
+        handleEvent(wsMessage<WebSocketMessages.SessionAttributesExpired>({
+            event: WebSocketEvents.SessionAttributesExpired,
+            data: {attributes: ['ip_address']},
+        }));
+
+        await waitFor(() => expect(refresh.isDone()).toBe(true));
+        expect(requestsBeforeResend).toBe(0);
     });
 });

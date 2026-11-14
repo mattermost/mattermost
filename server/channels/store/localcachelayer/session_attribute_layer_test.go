@@ -108,6 +108,21 @@ func TestSessionAttributeStoreCache(t *testing.T) {
 		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
 		require.NoError(t, err)
 		require.Equal(t, "4000", epoch)
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress: "198.51.100.7",
+		}, 4000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "4001", epoch, "a change within the same millisecond still advances the epoch")
+
+		require.NoError(t, cachedStore.SessionAttribute().Refresh(sessionID, map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Firefox",
+		}, 5000))
+		epoch, err = cachedStore.SessionAttribute().GetEpoch(sessionID)
+		require.NoError(t, err)
+		require.Equal(t, "5000", epoch, "several changes in one refresh advance the epoch once")
 	})
 
 	t.Run("cluster invalidation with session id removes single entry", func(t *testing.T) {

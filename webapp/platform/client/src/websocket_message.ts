@@ -107,6 +107,7 @@ export type WebSocketMessage = (
     Messages.FileDownloadRejected |
     Messages.FileUploadRejected |
     Messages.ShowToast |
+    Messages.SessionAttributesExpired |
 
     Messages.Plugin |
     Messages.PluginStatusesChanged |

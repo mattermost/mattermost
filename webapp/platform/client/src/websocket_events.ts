@@ -104,4 +104,5 @@ export const enum WebSocketEvents {
     SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
     ChannelJoinRequestCreated = 'channel_join_request_created',
     ChannelJoinRequestUpdated = 'channel_join_request_updated',
+    SessionAttributesExpired = 'session_attributes_expired',
 }
