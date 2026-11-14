@@ -8,6 +8,7 @@ sidebar_label: "Manual (tarball)"
 
 Install Mattermost Server on any 64-bit Linux distribution directly from the release tarball. This is the most flexible install method and usually the choice for:
 
+- Debian, which the Mattermost APT repository doesn't support
 - Distributions Mattermost doesn't package directly (Arch, SUSE, Gentoo, Alpine, …)
 - Air-gapped environments where tarballs are staged on an internal mirror
 - Custom paths, users, or systemd unit configurations
@@ -15,7 +16,7 @@ Install Mattermost Server on any 64-bit Linux distribution directly from the rel
 
 <Tip title="Use a packaged install if it fits">
 
-If you're on **Ubuntu / Debian**, use the [APT-based install](./deploy-ubuntu) for automatic security updates. If you're on **RHEL / Rocky / Alma / Oracle**, use the [RHEL install](./deploy-rhel) — it covers SELinux, firewalld, and fapolicyd configuration too.
+If you're on **Ubuntu**, use the [APT-based install](./deploy-ubuntu) for automatic security updates. If you're on **RHEL / Rocky / Alma / Oracle**, use the [RHEL install](./deploy-rhel) — it covers SELinux, firewalld, and fapolicyd configuration too.
 
 </Tip>
 
