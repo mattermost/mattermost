@@ -30,6 +30,7 @@ jobs:
     outputs:
       ref_branch: "${{ steps.check.outputs.ref_branch }}"
       fips_supported: "${{ steps.check.outputs.fips_supported }}"
+      previous_release_ref: "${{ steps.check.outputs.previous_release_ref }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -61,7 +62,32 @@ jobs:
             echo "fips_supported=false" >> $GITHUB_OUTPUT
           fi
 
+          MAJOR="${BASH_REMATCH[1]}"
+          MINOR="${BASH_REMATCH[2]}"
+          if [ "$MINOR" -ge 1 ]; then
+            PREV_REF="release-${MAJOR}.$((MINOR-1))"
+          else
+            PREV_REF="release-$((MAJOR-1)).9"
+          fi
+          if ! git ls-remote --heads origin "$PREV_REF" | grep -q .; then
+            PREV_REF=$(git describe --tags --abbrev=0 "${COMMIT_SHA}^" 2>/dev/null || echo "$BRANCH")
+          fi
+
           echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "previous_release_ref=${PREV_REF}" >> $GITHUB_OUTPUT
+
+  amqa-release:
+    needs: validate
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    uses: ./.github/workflows/release-manual-qa.yml
+    with:
+      base_ref: ${{ needs.validate.outputs.previous_release_ref }}
+      head_sha: ${{ inputs.commit_sha }}
+      rc_tag: ${{ inputs.server_image_tag }}
+      server_image_tag: ${{ inputs.server_image_tag }}
 
   # Enterprise Edition
   e2e-cypress:
