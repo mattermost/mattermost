@@ -455,12 +455,7 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 		return nil, err
 	}
 
-	// For redis, directly increment member count.
-	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
-		s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
-	} else {
-		s.InvalidateMemberCount(member.ChannelId)
-	}
+	s.InvalidateMemberCount(member.ChannelId)
 	return member, nil
 }
 
@@ -470,15 +465,7 @@ func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMemb
 		return nil, err
 	}
 	for _, member := range members {
-		// For redis, directly increment member count.
-		// It should be possible to group the members from the slice
-		// by channelID and increment it once per channel. But it depends
-		// on whether all members are part of the same channel or not.
-		if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
-			s.rootStore.doIncrementCache(externalCache, member.ChannelId, 1)
-		} else {
-			s.InvalidateMemberCount(member.ChannelId)
-		}
+		s.InvalidateMemberCount(member.ChannelId)
 	}
 	return members, nil
 }
@@ -544,12 +531,7 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 		return err
 	}
 
-	// For redis, directly decrement member count.
-	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
-		s.rootStore.doDecrementCache(externalCache, channelId, 1)
-	} else {
-		s.InvalidateMemberCount(channelId)
-	}
+	s.InvalidateMemberCount(channelId)
 	return nil
 }
 
@@ -558,11 +540,7 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
-	// For redis, directly decrement member count.
-	if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
-		s.rootStore.doDecrementCache(externalCache, channelId, len(userIds))
-	} else {
-		s.InvalidateMemberCount(channelId)
-	}
+
+	s.InvalidateMemberCount(channelId)
 	return nil
 }
