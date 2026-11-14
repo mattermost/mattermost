@@ -92,7 +92,6 @@
 
     .admin-console__content {
         display: flex;
-        max-width: 920px;
         flex-direction: column;
         gap: var(--spacing-xl);
 
@@ -328,7 +327,6 @@
     .banner {
         padding: 0.8em 1.5rem;
         border: variables.$border-gray;
-        margin: 4px 0 2em;
         background: variables.$white;
         font-size: 0.95em;
 
@@ -367,6 +365,10 @@
             background: #fcf8e3;
             color: #8a6d3b;
         }
+    }
+
+    .banner.info {
+        margin-bottom: 1em;
     }
 
     .popover {
