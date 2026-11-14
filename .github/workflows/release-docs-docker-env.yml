@@ -1,0 +1,41 @@
+name: Release Docs - Docker env.example
+
+# Playbook T-5, ESRs only: a draft PR in mattermost/docker setting MATTERMOST_IMAGE_TAG in
+# env.example to a new release on an ESR line (CHANGELOG_ESR_VERSIONS), vX.Y.0 or a dot
+# release. Never lowers the version. See release-docs-task.yml for modes and settings.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v11.7.15'
+        required: true
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-docker-env-${{ github.event.release.tag_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  docker-env:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: docker-env
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+    secrets: inherit
+    permissions:
+      contents: read

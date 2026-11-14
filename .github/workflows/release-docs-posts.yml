@@ -1,0 +1,27 @@
+name: Release Docs - Post Text
+
+# Renders the Announcements post for copy and paste from the run summary. The announcement
+# task in release-docs-hub.yml posts it in Hub for approval and schedules it. Key dates are
+# on the Release Dates calendar (key-dates), and ESR comms are a section of the monthly blog
+# and email (drafts). See release-docs-task.yml for settings.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  posts:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: posts
+      version: ${{ inputs.version }}
+      mode: dry_run
+    secrets: inherit
+    permissions:
+      contents: read

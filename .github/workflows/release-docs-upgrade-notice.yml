@@ -1,0 +1,47 @@
+name: Release Docs - Upgrade Notice
+
+# Playbook T-0: a draft PR in mattermost/notices replacing the server upgrade notice with
+# the new feature release, its highlights picked from the changelog. Runs when the release
+# becomes a full release (the Latest pipeline); skipped unless it is the latest release.
+# Dot releases are skipped: their notice states a security severity. See release-docs-task.yml.
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      release_date:
+        description: 'First day to show the notice (YYYY-MM-DD). Defaults to today.'
+        required: false
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-upgrade-notice-${{ github.event.release.tag_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  upgrade-notice:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: upgrade-notice
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+      release_date: ${{ inputs.release_date }}
+    secrets: inherit
+    permissions:
+      contents: read

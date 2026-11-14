@@ -1,0 +1,42 @@
+name: Release Docs - GitHub Release Text
+
+# Playbook T-0: sets the GitHub release description to one plain sentence, "Mattermost
+# Platform Release X.Y.Z contains ...", with highlights from the changelog's Improvements
+# section (master, or the open changelog PR). In dry_run it only shows the text. Runs when
+# the release becomes the latest full release. See release-docs-task.yml.
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, e.g. v12.2.0'
+        required: true
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+concurrency:
+  group: release-docs-github-release-${{ github.event.release.tag_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  github-release:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: github-release
+      version: ${{ inputs.version }}
+      mode: ${{ inputs.mode }}
+    secrets: inherit
+    permissions:
+      contents: read

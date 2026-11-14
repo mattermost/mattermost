@@ -1,0 +1,59 @@
+name: Release Docs - Dot Release
+
+# The dot release docs (vX.Y.Z with Z > 0), replacing the dot-release-docs skill: deploy
+# page download links, the server releases row, the changelog entry and the version archive
+# entries. Dot releases shipped together share one draft PR on
+# release-agent/dot-release-docs/<first version>; a later version is added to the open one.
+# Runs when the delivery pipeline publishes the vX.Y.Z GitHub release as a pre-release, and
+# again when it stops being one, to drop "Do Not Merge/Awaiting Next Release".
+# See release-docs-task.yml for modes and settings, and release_docs/dot_release.py.
+
+on:
+  release:
+    types: [published, released]
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: 'Dot release versions, e.g. v12.1.1, v11.7.15'
+        required: true
+        type: string
+      severity:
+        description: 'Security severity per version, e.g. "v12.1.1=Medium, v11.7.15=Low to Medium" (or one value for all; none for no security fixes). Empty writes <SEVERITY>.'
+        required: false
+        default: ''
+        type: string
+      release_date:
+        description: 'Release date (YYYY-MM-DD) for every version. Empty uses each tag''s commit date.'
+        required: false
+        default: ''
+        type: string
+      mode:
+        description: 'default uses PHASE3_MODE (dry_run unless set to live). dry_run changes nothing; live publishes.'
+        required: false
+        default: 'default'
+        type: choice
+        options:
+          - default
+          - dry_run
+          - live
+
+permissions: {}
+
+# One run at a time, so dot releases published together land in the same PR. Runs cancelled
+# while waiting are covered: a release event also picks up the other recent dot releases.
+concurrency:
+  group: release-docs-dot-release
+  cancel-in-progress: false
+
+jobs:
+  dot-release-docs:
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: dot-release-docs
+      version: ${{ inputs.versions }}
+      mode: ${{ inputs.mode }}
+      severity: ${{ inputs.severity }}
+      release_date: ${{ inputs.release_date }}
+    secrets: inherit
+    permissions:
+      contents: read
