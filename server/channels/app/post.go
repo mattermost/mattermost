@@ -225,6 +225,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	if flags.DeferNotification {
+		// A deferred post is saved silent until DeliverPostNotifications releases it once, so
+		// it cannot also be permanently silent, notify right away, repeat its notifications, or
+		// hide its content until read.
+		persistentNotification := post.GetPersistentNotification()
+		if flags.SilentNotification || flags.ForceNotification || (persistentNotification != nil && *persistentNotification) || post.Type == model.PostTypeBurnOnRead {
+			rctx.Logger().Warn("Rejected deferred notification post with conflicting notification options",
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_notification_conflict.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	// Validate recipients counts in case it's not DM
 	if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification && channel.Type != model.ChannelTypeDirect {
 		err := a.forEachPersistentNotificationPost(rctx, []*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
@@ -290,6 +304,29 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.silent_notification.app_error", nil, "", http.StatusForbidden)
 		}
 		post.AddProp(model.PostPropsSilentNotification, true)
+	}
+
+	if flags.DeferNotification {
+		if !a.isIntegrationPostAuthor(rctx, user, flags) {
+			rctx.Logger().Warn("Rejected deferred notification post from non-integration author",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.deferred_notification.app_error", nil, "", http.StatusForbidden)
+		}
+		if channel.IsShared() {
+			// The release is local to this server, so users on remote clusters would never be
+			// notified; shared channels notify on create instead.
+			rctx.Logger().Debug("Not deferring notifications for a post in a shared channel",
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id),
+			)
+		} else {
+			// silent_notification makes every existing suppression path, including shipped
+			// clients, treat the post as silent until DeliverPostNotifications releases it.
+			post.AddProp(model.PostPropsDeferredNotification, true)
+			post.AddProp(model.PostPropsSilentNotification, true)
+		}
 	}
 
 	if rctx.Session().IsOAuth {
@@ -724,7 +761,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 }
 
 // isIntegrationPostAuthor decides whether the caller may set integration-only
-// post markers (silent_notification, force_notification). It is deliberately
+// post markers (silent_notification, deferred_notification, force_notification). It is deliberately
 // narrower than model.Session.IsIntegration(): in particular, personal access
 // tokens (Session.IsUserAccessToken()) are NOT considered integrations here.
 //
@@ -758,32 +795,8 @@ func (a *App) isIntegrationPostAuthor(rctx request.CTX, user *model.User, flags 
 }
 
 func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
-	var team *model.Team
-	if channel.TeamId != "" {
-		t, err := a.Srv().Store().Team().Get(channel.TeamId)
-		if err != nil {
-			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-			a.Log().LogM(mlog.MlvlNotificationError, "Missing team",
-				mlog.String("post_id", post.Id),
-				mlog.String("status", model.NotificationStatusError),
-				mlog.String("reason", model.NotificationReasonFetchError),
-				mlog.Err(err),
-			)
-			return err
-		}
-		team = t
-	} else {
-		// Blank team for DMs
-		team = &model.Team{}
-	}
-
-	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	if post.IsPinned {
-		a.Srv().Store().Channel().InvalidatePinnedPostCount(channel.Id)
-	}
-	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
-
-	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
+	team, err := a.notifyAboutPost(rctx, post, user, channel, parentPostList, setOnline, nil)
+	if err != nil {
 		return err
 	}
 
@@ -805,6 +818,38 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	}
 
 	return nil
+}
+
+// notifyAboutPost looks up the post's team (blank for direct and group messages), refreshes the
+// channel's cached state and sends the post's notifications, to everyone or, with onlyUserIDs,
+// to those users alone. It returns the team.
+func (a *App) notifyAboutPost(rctx request.CTX, post *model.Post, sender *model.User, channel *model.Channel, parentPostList *model.PostList, setOnline bool, onlyUserIDs []string) (*model.Team, error) {
+	team := &model.Team{}
+	if channel.TeamId != "" {
+		t, err := a.Srv().Store().Team().Get(channel.TeamId)
+		if err != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			a.Log().LogM(mlog.MlvlNotificationError, "Missing team",
+				mlog.String("post_id", post.Id),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonFetchError),
+				mlog.Err(err),
+			)
+			return nil, err
+		}
+		team = t
+	}
+
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
+	if post.IsPinned {
+		a.Srv().Store().Channel().InvalidatePinnedPostCount(channel.Id)
+	}
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
+
+	if _, err := a.sendNotifications(rctx, post, team, channel, sender, parentPostList, setOnline, onlyUserIDs); err != nil {
+		return nil, err
+	}
+	return team, nil
 }
 
 // SendEphemeralPost broadcasts a transient, single-viewer post via WebSocket. It

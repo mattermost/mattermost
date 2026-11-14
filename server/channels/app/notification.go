@@ -43,6 +43,15 @@ func (a *App) canSendPushNotifications() bool {
 }
 
 func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
+	return a.sendNotifications(rctx, post, team, channel, sender, parentPostList, setOnline, nil)
+}
+
+// sendNotifications notifies the channel about post. With onlyUserIDs, it notifies only those
+// users, each as if explicitly mentioned, and does not announce the post to the rest of the
+// channel: it is already there, so their clients count the mention only.
+func (a *App) sendNotifications(rctx request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool, onlyUserIDs []string) ([]string, error) {
+	scoped := onlyUserIDs != nil
+
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -62,20 +71,20 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	pchan := make(chan store.StoreResult[map[string]*model.User], 1)
 	go func() {
-		props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
+		props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, !scoped)
 		pchan <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
 
 	cmnchan := make(chan store.StoreResult[map[string]model.StringMap], 1)
 	go func() {
-		props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, !scoped)
 		cmnchan <- store.StoreResult[map[string]model.StringMap]{Data: props, NErr: err}
 		close(cmnchan)
 	}()
 
 	var gchan chan store.StoreResult[map[string]*model.Group]
-	if !suppressNotifications && a.allowGroupMentions(rctx, post) {
+	if !suppressNotifications && !scoped && a.allowGroupMentions(rctx, post) {
 		gchan = make(chan store.StoreResult[map[string]*model.Group], 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
@@ -147,6 +156,9 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			return nil, tResult.NErr
 		}
 		for _, v := range tResult.Data {
+			if scoped && !slices.Contains(onlyUserIDs, v) {
+				continue
+			}
 			followers.Add(v)
 		}
 	}
@@ -185,7 +197,18 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	var allActivityPushUserIds []string
 
 	if !suppressNotifications {
-		if post.Type == model.PostTypeBurnOnRead {
+		if scoped {
+			mentions = &MentionResults{
+				Mentions:      make(map[string]MentionType, len(onlyUserIDs)),
+				GroupMentions: make(map[string]MentionType),
+			}
+			for _, userID := range onlyUserIDs {
+				if _, ok := profileMap[userID]; ok {
+					mentions.addMention(userID, KeywordMention)
+				}
+			}
+			removeSelfMention(post, mentions)
+		} else if post.Type == model.PostTypeBurnOnRead {
 			borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
 			if appErr != nil {
 				return nil, appErr
@@ -195,7 +218,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 		}
 
-		if channel.Type != model.ChannelTypeDirect {
+		if channel.Type != model.ChannelTypeDirect && !scoped {
 			// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
 			for groupID := range mentions.GroupMentions {
 				group := groups[groupID]
@@ -245,12 +268,15 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 		mentionedUsersList = make(model.StringArray, 0, len(mentions.Mentions))
 		mentionAutofollowChans := []chan *model.AppError{}
-		threadParticipants := map[string]bool{post.UserId: true}
+		threadParticipants := map[string]bool{}
+		if !scoped {
+			threadParticipants[post.UserId] = true
+		}
 		membershipsMutex := &sync.Mutex{}
 		followersMutex := &sync.Mutex{}
 		if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 			var rootMentions *MentionResults
-			if parentPostList != nil {
+			if parentPostList != nil && !scoped {
 				rootPost := parentPostList.Posts[parentPostList.Order[0]]
 				if rootPost.GetProp(model.PostPropsFromWebhook) != "true" {
 					if _, ok := profileMap[rootPost.UserId]; ok {
@@ -278,7 +304,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				threadParticipants[id] = true
 			}
 
-			if channel.Type != model.ChannelTypeDirect {
+			if channel.Type != model.ChannelTypeDirect && !scoped {
 				for id, propsMap := range channelMemberNotifyPropsMap {
 					if ok := followers.Has(id); !ok && propsMap[model.ChannelAutoFollowThreads] == model.ChannelAutoFollowThreadsOn {
 						threadParticipants[id] = true
@@ -487,7 +513,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		}
 
 		// Check for channel-wide mentions in channels that have too many members for those to work
-		if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		if !scoped && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 			a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypeAll, model.NotificationReasonTooManyUsersInChannel, model.NotificationNoPlatform)
 			rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Too many users to notify - will send ephemeral message",
 				mlog.String("sender_id", sender.Id),
@@ -758,17 +784,35 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	if appErr := a.publishWebsocketEventForPost(rctx, post, message); appErr != nil {
-		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
-		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
-			mlog.String("type", model.NotificationTypeWebsocket),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", model.NotificationStatusError),
-			mlog.String("reason", model.NotificationReasonFetchError),
-			mlog.String("sender_id", sender.Id),
-			mlog.Err(appErr),
-		)
-		return nil, appErr
+	events := []*model.WebSocketEvent{message}
+	if scoped {
+		events = make([]*model.WebSocketEvent, 0, len(mentionedUsersList))
+		for _, userID := range mentionedUsersList {
+			userEvent := message.DeepCopy()
+			userEvent.GetBroadcast().ChannelId = ""
+			userEvent.GetBroadcast().UserId = userID
+			userEvent.Add("notification_only", true)
+			events = append(events, userEvent)
+		}
+	}
+	for _, event := range events {
+		eventPost := post
+		if scoped {
+			// publishWebsocketEventForPost strips metadata from the post it is given.
+			eventPost = post.Clone()
+		}
+		if appErr := a.publishWebsocketEventForPost(rctx, eventPost, event); appErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
+			rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
+				mlog.String("type", model.NotificationTypeWebsocket),
+				mlog.String("post_id", post.Id),
+				mlog.String("status", model.NotificationStatusError),
+				mlog.String("reason", model.NotificationReasonFetchError),
+				mlog.String("sender_id", sender.Id),
+				mlog.Err(appErr),
+			)
+			return nil, appErr
+		}
 	}
 
 	// If this is a reply in a thread, notify participants
@@ -1174,13 +1218,18 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 			}
 		}
 
-		// Prevent the user from mentioning themselves
-		if post.GetProp(model.PostPropsFromWebhook) != "true" {
-			mentions.removeMention(post.UserId)
-		}
+		removeSelfMention(post, mentions)
 	}
 
 	return mentions, keywords
+}
+
+// removeSelfMention keeps the author from being notified about their own post, unless it was
+// posted through a webhook.
+func removeSelfMention(post *model.Post, mentions *MentionResults) {
+	if post.GetProp(model.PostPropsFromWebhook) != "true" {
+		mentions.removeMention(post.UserId)
+	}
 }
 
 func (a *App) userAllowsEmail(rctx request.CTX, user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {

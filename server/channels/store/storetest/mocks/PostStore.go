@@ -1407,6 +1407,36 @@ func (_m *PostStore) RefreshPostStats() error {
 	return r0
 }
 
+// ReleaseDeferredNotification provides a mock function with given fields: rctx, postID, releaseAt
+func (_m *PostStore) ReleaseDeferredNotification(rctx request.CTX, postID string, releaseAt int64) (*model.Post, error) {
+	ret := _m.Called(rctx, postID, releaseAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReleaseDeferredNotification")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64) (*model.Post, error)); ok {
+		return rf(rctx, postID, releaseAt)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64) *model.Post); ok {
+		r0 = rf(rctx, postID, releaseAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, int64) error); ok {
+		r1 = rf(rctx, postID, releaseAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RestoreContentFlaggedPost provides a mock function with given fields: post, statusFieldId, contentFlaggingManagedFieldId
 func (_m *PostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 	ret := _m.Called(post, statusFieldId, contentFlaggingManagedFieldId)
