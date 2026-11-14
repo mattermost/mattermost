@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
@@ -73,14 +74,16 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We initialize webconn with all the necessary data.
 	// If the queues are empty, they are initialized in the constructor.
 	cfg := &platform.WebConnConfig{
-		WebSocket:     ws,
-		Session:       *c.AppContext.Session(),
-		TFunc:         c.AppContext.T,
-		Locale:        "",
-		Active:        true,
-		PostedAck:     r.URL.Query().Get(postedAckParam) == "true",
-		RemoteAddress: c.AppContext.IPAddress(),
-		XForwardedFor: c.AppContext.XForwardedFor(),
+		WebSocket:               ws,
+		Session:                 *c.AppContext.Session(),
+		TFunc:                   c.AppContext.T,
+		Locale:                  "",
+		Active:                  true,
+		PostedAck:               r.URL.Query().Get(postedAckParam) == "true",
+		RemoteAddress:           c.AppContext.IPAddress(),
+		XForwardedFor:           c.AppContext.XForwardedFor(),
+		ProxyDeviceID:           app.ProxyDeviceID(c.AppContext),
+		ServerDerivedAttributes: app.ServerDerivedAttributes(c.AppContext),
 	}
 
 	disconnectErrCode := r.URL.Query().Get(disconnectErrCodeParam)

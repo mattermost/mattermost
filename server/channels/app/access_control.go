@@ -2925,7 +2925,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
+	attrs, appErr := a.getSessionAttributesForEvaluation(rctx)
 	if appErr != nil {
 		return nil, appErr
 	}

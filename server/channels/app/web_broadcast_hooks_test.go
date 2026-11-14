@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 	"github.com/stretchr/testify/assert"
@@ -744,6 +745,39 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		return &gotPost
 	}
 
+	t.Run("evaluates download access with the connection's proxy device ID", func(t *testing.T) {
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("HasPermissionToChannelAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).
+			Return(func(rctx request.CTX, _, _, _, _ string) bool { return ProxyDeviceID(rctx) == "managed-device" })
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:        userID,
+			Platform:      &platform.PlatformService{},
+			Suite:         mockSuite,
+			ProxyDeviceID: "managed-device",
+		}
+		wc.SetSession(&model.Session{UserId: userID, Roles: model.SystemUserRoleId})
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "photo.png", Extension: "png"}},
+		)
+		msg := makeMessage(makeOuterPostJSON(t))
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.Contains(t, gotJSON, fileID, "file ID should be present for the managed device")
+	})
+
 	t.Run("files stripped from embed when user denied download", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)
 		msg := makeMessage(postJSON)
@@ -1106,6 +1140,53 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		assert.Equal(t, 1, gotPost.Metadata.RedactedFileCount)
 		assert.NotNil(t, gotPost.Metadata.Images, "Images should be preserved when files are stripped")
 		assert.Contains(t, gotPost.Metadata.Images, "https://example.com/img.png")
+	})
+
+	t.Run("server-derived attributes are restored from WebSocket connection", func(t *testing.T) {
+		_, postJSON := makePostWithFiles(t, 1)
+		msg := makeMessage(channelID, postJSON)
+
+		// Create WebConn with server-derived attributes (IP address, user agent)
+		serverDerivedAttrs := map[string]any{
+			model.SessionAttributesPropertyFieldIPAddress:            "192.0.2.10",
+			model.SessionAttributesPropertyFieldUserAgentBrowserName: "Chrome",
+		}
+
+		mockSuite := &platform_mocks.SuiteIFace{}
+		// Mock should verify that the context has the server-derived attributes
+		mockSuite.On("HasPermissionToChannelAction",
+			mock.MatchedBy(func(rctx request.CTX) bool {
+				// Verify server-derived attributes are present in the context
+				attrs := ServerDerivedAttributes(rctx)
+				return attrs != nil &&
+					attrs[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10" &&
+					attrs[model.SessionAttributesPropertyFieldUserAgentBrowserName] == "Chrome"
+			}),
+			userID,
+			mock.AnythingOfType("string"),
+			channelID,
+			model.AccessControlPolicyActionDownloadFileAttachment,
+		).Return(true)
+
+		wc := &platform.WebConn{
+			UserId:                  userID,
+			Platform:                &platform.PlatformService{},
+			Suite:                   mockSuite,
+			ServerDerivedAttributes: serverDerivedAttrs,
+		}
+		session := &model.Session{UserId: userID, Roles: model.SystemUserRoleId}
+		wc.SetSession(session)
+
+		err := hook.Process(msg, wc, makeArgs(channelID, 1))
+		require.NoError(t, err)
+
+		// Verify the mock was called with the correct context
+		mockSuite.AssertExpectations(t)
+
+		// Files should be preserved since permission was granted
+		gotPost := extractPost(t, msg)
+		assert.Len(t, gotPost.Metadata.Files, 1)
+		assert.Len(t, gotPost.FileIds, 1)
 	})
 }
 
