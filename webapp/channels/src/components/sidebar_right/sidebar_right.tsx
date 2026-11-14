@@ -138,6 +138,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 }
             }
         }
+        if (isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+            if (this.props.isOpen) {
+                this.props.actions.closeRightHandSide();
+            }
+        }
     };
 
     handleRHSFocus(prevProps: Props) {
