@@ -309,7 +309,7 @@ function searchResultsType(state = '', action: MMAction) {
 function isSearchingFlaggedPost(state = false, action: MMAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
-        return true;
+        return !action.isGettingMore;
     case SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE:
     case SearchTypes.SEARCH_FLAGGED_POSTS_SUCCESS:
         return false;

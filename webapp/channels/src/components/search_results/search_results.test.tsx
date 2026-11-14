@@ -98,7 +98,6 @@ describe('components/SearchResults', () => {
         searchTerms: 'hello',
         searchSelectedType: 'messages',
         isSearchingTerm: false,
-        isSearchingFlaggedPost: false,
         isSearchingPinnedPost: false,
         isSearchGettingMore: false,
         isSearchAtEnd: true,
@@ -107,7 +106,6 @@ describe('components/SearchResults', () => {
         channelDisplayName: '',
         crossTeamSearchEnabled: false,
         isChannelFiles: false,
-        isFlaggedPosts: false,
         isMentionSearch: false,
         isOpened: true,
         isPinnedPosts: false,
@@ -145,12 +143,6 @@ describe('components/SearchResults', () => {
             clickPopout({isMentionSearch: true});
             expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
                 expect.any(String), team.name, 'hello', 'mention', 'messages', undefined, team.id, {},
-            );
-
-            jest.clearAllMocks();
-            clickPopout({isFlaggedPosts: true});
-            expect(jest.mocked(popoutRhsSearch)).toHaveBeenCalledWith(
-                expect.any(String), team.name, 'hello', 'flag', 'messages', undefined, team.id, undefined,
             );
 
             jest.clearAllMocks();

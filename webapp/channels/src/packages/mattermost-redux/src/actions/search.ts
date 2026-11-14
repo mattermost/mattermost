@@ -4,7 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
-import type {PostList, PostSearchResults} from '@mattermost/types/posts';
+import type {PaginatedPostList, PostList, PostSearchResults} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
@@ -241,16 +241,17 @@ export function getMoreFilesForSearch(teamId: string): ActionFuncAsync {
     };
 }
 
-export function getFlaggedPosts(): ActionFuncAsync<PostList> {
+export function getFlaggedPosts(page = 0): ActionFuncAsync<PaginatedPostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
+        const isGettingMore = page > 0;
 
-        dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST});
+        dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore});
 
         let posts;
         try {
-            posts = await Client4.getFlaggedPosts(userId);
+            posts = await Client4.getFlaggedPosts(userId, '', '', page);
 
             await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
         } catch (error) {
@@ -264,6 +265,8 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
             {
                 type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
                 data: posts,
+                page,
+                isGettingMore,
             },
             receivedPosts(posts),
             {

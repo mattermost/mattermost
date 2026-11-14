@@ -547,6 +547,12 @@
         from a channel, team, or all flagged posts by a user. Will only return
         posts from channels in which the user is member.
 
+
+        Keep requesting pages while `has_next` is `true`. A page can hold fewer
+        than `per_page` posts, or none, before the end of the list, because
+        posts the user can no longer read are removed after the page is
+        selected.
+
         ##### Permissions
 
         Must be user or have `manage_system` permission.
@@ -586,9 +592,7 @@
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PostList"
+                $ref: "#/components/schemas/PostList"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

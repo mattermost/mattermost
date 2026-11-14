@@ -3553,14 +3553,17 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.True(t, *r3.HasNext)
 
 	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
 	require.NoError(t, err)
 	require.Len(t, r3.Order, 1, "should have 1 post")
+	assert.False(t, *r3.HasNext)
 
 	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
 	require.NoError(t, err)
 	require.Empty(t, r3.Order, "should be empty")
+	assert.False(t, *r3.HasNext)
 
 	r4, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 	require.NoError(t, err)
@@ -3630,6 +3633,37 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, r4.Order, 3, "should have 3 posts")
+
+	// Post on a group message the user has left
+	gm, err := ss.Channel().Save(rctx, &model.Channel{
+		DisplayName: "GroupMessage",
+		Name:        "group" + model.NewId(),
+		Type:        model.ChannelTypeGroup,
+	}, -1)
+	require.NoError(t, err)
+
+	o7 := &model.Post{}
+	o7.ChannelId = gm.Id
+	o7.UserId = m2.UserId
+	o7.Message = NewTestID()
+	o7, err = ss.Post().Save(rctx, o7)
+	require.NoError(t, err)
+
+	preferences = model.Preferences{
+		{
+			UserId:   o1.UserId,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     o7.Id,
+			Value:    "true",
+		},
+	}
+	err = ss.Preference().Save(preferences)
+	require.NoError(t, err)
+
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, r4.Order, 3, "should have 3 posts")
+	assert.NotContains(t, r4.Order, o7.Id)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")

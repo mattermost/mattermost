@@ -2824,7 +2824,7 @@ export default class Client4 {
     };
 
     getFlaggedPosts = (userId: string, channelId = '', teamId = '', page = 0, perPage = PER_PAGE_DEFAULT) => {
-        return this.doFetch<PostList>(
+        return this.doFetch<PaginatedPostList>(
             `${this.getUserRoute(userId)}/posts/flagged${buildQueryString({channel_id: channelId, team_id: teamId, page, per_page: perPage})}`,
             {method: 'get'},
         );

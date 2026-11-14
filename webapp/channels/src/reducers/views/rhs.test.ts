@@ -260,6 +260,21 @@ describe('Reducers.RHS', () => {
         });
     });
 
+    test('should not set isSearchingFlaggedPost when loading more flagged posts', () => {
+        const nextState = rhsReducer(
+            {},
+            {
+                type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST,
+                isGettingMore: true,
+            },
+        );
+
+        expect(nextState).toEqual({
+            ...initialState,
+            isSearchingFlaggedPost: false,
+        });
+    });
+
     test('should match isSearchingFlaggedPost state to false', () => {
         const nextState = rhsReducer(
             {},

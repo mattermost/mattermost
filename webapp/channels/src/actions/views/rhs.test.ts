@@ -23,6 +23,7 @@ import {
     performSearch,
     showSearchResults,
     showFlaggedPosts,
+    getMoreFlaggedPosts,
     showPinnedPosts,
     showMentions,
     closeRightHandSide,
@@ -339,6 +340,53 @@ describe('rhs view actions', () => {
         });
     });
 
+    describe('getMoreFlaggedPosts', () => {
+        function savedPostsStore(paging: {page: number; isEnd: boolean}, isSearchGettingMore = false) {
+            const state = set(cloneDeep(initialState), 'entities.search', {flaggedPaging: paging, isSearchGettingMore});
+            return mockStore(state);
+        }
+
+        const page = {order: ['post1'], posts: {post1: {id: 'post1'}}, has_next: true};
+
+        test('does nothing at the end of the list', async () => {
+            const savedStore = savedPostsStore({page: 2, isEnd: true});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+            expect(savedStore.getActions()).toEqual([]);
+        });
+
+        test('does nothing while another page is loading', async () => {
+            const savedStore = savedPostsStore({page: 0, isEnd: false}, true);
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).not.toHaveBeenCalled();
+        });
+
+        test('fetches the next page', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue(() => ({data: page}));
+            const savedStore = savedPostsStore({page: 0, isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(1);
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledWith(1);
+        });
+
+        test('keeps loading past an empty page', async () => {
+            (SearchActions.getFlaggedPosts as jest.Mock).
+                mockReturnValueOnce(() => ({data: {order: [], posts: {}, has_next: true}})).
+                mockReturnValueOnce(() => ({data: page}));
+            const savedStore = savedPostsStore({page: 0, isEnd: false});
+
+            await savedStore.dispatch(getMoreFlaggedPosts());
+
+            expect(SearchActions.getFlaggedPosts).toHaveBeenCalledTimes(2);
+        });
+    });
+
     describe('showFlaggedPosts', () => {
         test('it dispatches the right actions', async () => {
             (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
@@ -360,24 +408,12 @@ describe('rhs view actions', () => {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
                 {
-                    type: 'BATCHING_REDUCER.BATCH',
-                    meta: {
-                        batch: true,
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
                     },
-                    payload: [
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                            data: 'data',
-                        },
-                        {
-                            type: SearchTypes.RECEIVED_SEARCH_TERM,
-                            data: {
-                                teamId: currentTeamId,
-                                terms: null,
-                                isOrSearch: false,
-                            },
-                        },
-                    ],
                 },
             ]);
         });
@@ -959,7 +995,14 @@ describe('rhs view actions', () => {
                 {
                     type: 'MOCK_GET_FLAGGED_POSTS',
                 },
-                batchingReducerBatch,
+                {
+                    type: SearchTypes.RECEIVED_SEARCH_TERM,
+                    data: {
+                        teamId: currentTeamId,
+                        terms: null,
+                        isOrSearch: false,
+                    },
+                },
             ]);
         });
 

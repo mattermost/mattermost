@@ -174,6 +174,10 @@ const state: GlobalState = {
             current: {},
             matches: {},
             flagged: [],
+            flaggedPaging: {
+                page: 0,
+                isEnd: true,
+            },
             pinned: {},
             isSearchingTerm: false,
             isSearchGettingMore: false,

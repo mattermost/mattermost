@@ -327,26 +327,36 @@ export function showFlaggedPosts(): ActionFuncAsync {
             state: RHSStates.FLAG,
         });
 
-        const results = await dispatch(getFlaggedPosts());
-        let data;
-        if ('data' in results) {
-            data = results.data;
+        await dispatch(getFlaggedPosts());
+
+        dispatch({
+            type: SearchTypes.RECEIVED_SEARCH_TERM,
+            data: {
+                teamId,
+                terms: null,
+                isOrSearch: false,
+            },
+        });
+
+        return {data: true};
+    };
+}
+
+export function getMoreFlaggedPosts(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const {flaggedPaging, isSearchGettingMore} = getState().entities.search;
+        if (flaggedPaging.isEnd || isSearchGettingMore) {
+            return {data: true};
         }
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
-                },
-            },
-        ]));
+        const result = await dispatch(getFlaggedPosts(flaggedPaging.page + 1));
+        if (!result.data) {
+            return {data: false};
+        }
+
+        if (result.data.order.length === 0) {
+            return dispatch(getMoreFlaggedPosts());
+        }
 
         return {data: true};
     };

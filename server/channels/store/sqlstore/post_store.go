@@ -602,7 +602,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 					WHERE UserId = ?
 				)
 				TEAM_FILTER
-            ORDER BY CreateAt DESC
+            ORDER BY A.CreateAt DESC, A.Id DESC
             LIMIT ? OFFSET ?`
 
 	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
@@ -616,16 +616,22 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
 	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
 
-	queryParams = append(queryParams, limit, offset)
+	queryParams = append(queryParams, limit+1, offset)
 
 	if err := s.GetReplica().Select(&posts, query, queryParams...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
+	}
+
+	hasNext := len(posts) > limit
+	if hasNext {
+		posts = posts[:limit]
 	}
 
 	for _, post := range posts {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}
+	pl.HasNext = &hasNext
 
 	return pl, nil
 }
@@ -635,7 +641,7 @@ func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryPara
 		return "", queryParams
 	}
 
-	return "AND B.TeamId = ? OR B.TeamId = ''", append(queryParams, teamId)
+	return "AND (B.TeamId = ? OR B.TeamId = '')", append(queryParams, teamId)
 }
 
 func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {

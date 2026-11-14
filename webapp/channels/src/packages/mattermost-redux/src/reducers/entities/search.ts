@@ -82,6 +82,9 @@ function matches(state: Record<string, string[]> = {}, action: MMReduxAction) {
 function flagged(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
+        if (action.isGettingMore) {
+            return [...new Set(state.concat(action.data.order))];
+        }
         return action.data.order;
     }
     case PostTypes.POST_REMOVED: {
@@ -135,6 +138,23 @@ function flagged(state: string[] = [], action: MMReduxAction) {
     case SearchTypes.REMOVE_SEARCH_POSTS:
     case UserTypes.LOGOUT_SUCCESS:
         return [];
+
+    default:
+        return state;
+    }
+}
+
+const initialFlaggedPaging = {page: 0, isEnd: true};
+
+function flaggedPaging(state = initialFlaggedPaging, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS:
+        return {
+            page: action.page,
+            isEnd: !action.data.has_next,
+        };
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialFlaggedPaging;
 
     default:
         return state;
@@ -240,8 +260,11 @@ function isSearchingTerm(state = false, action: MMReduxAction) {
 function isSearchGettingMore(state = false, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
-        return action.isGettingMore;
+    case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
+        return Boolean(action.isGettingMore);
     case SearchTypes.SEARCH_POSTS_SUCCESS:
+    case SearchTypes.SEARCH_FLAGGED_POSTS_SUCCESS:
+    case SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE:
         return false;
     default:
         return state;
@@ -298,6 +321,9 @@ export default combineReducers({
 
     // An ordered array with posts ids of flagged posts
     flagged,
+
+    // The last page of flagged posts fetched, and whether more follow
+    flaggedPaging,
 
     // An Object where every key is a channel id mapping to an ordered array with posts ids of pinned posts
     pinned,
