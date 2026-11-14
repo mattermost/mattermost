@@ -1482,6 +1482,7 @@ func TestBulkImportMaxUsersPerTeam(t *testing.T) {
 	})
 
 	t.Run("an import without a zip archive warns that the limit is not checked", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-71878")
 		team := newTeam(t)
 		jsonl := `{"type":"version","version":1}` + "\n" + `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","teams":[{"name":"` + team.Name + `"}]}}`
 
