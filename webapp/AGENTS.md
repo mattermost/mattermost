@@ -58,3 +58,11 @@ Each allowlist file contains a `ContractHonored` type + `AssertPublished*Contrac
 **Removing or changing an entry**
 
 Mark it `@deprecated` in the shared type for at least two minor releases before deletion, and call it out in the PR description. Do not silently change a field's type or rename an entry — either breaks plugins pinned to an older `min_server_version`.
+
+## Lessons from master failures
+
+Product code that E2E failures traced back to `webapp/`. PRs cite the ids; sources are in `e2e-tests/playwright/docs/lessons.md`.
+
+- **P-001** Code that acts on debounced input (submit, save, send) must not act on stale state: report the debounced update inside `flushSync` in the debounce callback, and unit-test that the debounce firing and the action with no render between them still send the typed text.
+- **P-002** Don't write a prop back into an uncontrolled input when the prop can lag the DOM: it overwrites what the user just typed (Korean IME input loses characters). Keep it uncontrolled and ignore prop values it already reported, or sync only on a real external change.
+- **P-003** No global element selectors in SCSS, nested ones included (for example `label { span { pointer-events: none } }` in `_mobile.scss`): they change unrelated components and break Playwright clicks. Scope styles to a component class.

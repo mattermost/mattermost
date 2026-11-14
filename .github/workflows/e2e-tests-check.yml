@@ -58,6 +58,9 @@ jobs:
         run: npm ci
       - name: ci/playwright/npm-check
         working-directory: e2e-tests/playwright
+        env:
+          # lint:lessons compares the files this PR changes against its base commit.
+          LESSONS_BASE: ${{ github.event.pull_request.base.sha }}
         run: npm run check
 
       # Shell check

@@ -164,7 +164,7 @@ Before running tests, a Mattermost server must be available. Two options:
 
 1. **Page Object Pattern**: Always use page/component objects from the library. No static UI selectors should be in test files.
 
-2. **Locator Priority**: Follow the Playwright recommended locator strategy (see [Playwright Locators Quick Guide](https://playwright.dev/docs/locators#quick-guide)). Use locators in this priority order:
+2. **Locator Priority**: Inside page and component objects (specs never build locators, see L-001 in `AGENTS.md`), follow the Playwright recommended locator strategy (see [Playwright Locators Quick Guide](https://playwright.dev/docs/locators#quick-guide)). Use locators in this priority order:
     1. `getByRole()` - Preferred. Locates by accessibility role and accessible name (e.g., `getByRole('button', {name: 'Submit'})`).
     2. `getByText()` - Locates by visible text content.
     3. `getByLabel()` - Locates form controls by their associated label text.
@@ -172,7 +172,7 @@ Before running tests, a Mattermost server must be available. Two options:
     5. `getByAltText()` - Locates elements (usually images) by alt text.
     6. `getByTitle()` - Locates by the `title` attribute.
     7. `getByTestId()` - Last resort. Locates by `data-testid` attribute.
-    - **Avoid** CSS selectors (`.class`, `#id`), XPath, and raw `locator()` calls unless none of the above locators can identify the element.
+    - Never use XPath (L-002 in `AGENTS.md`). **Avoid** CSS selectors (`.class`, `#id`) and raw `locator()` calls unless none of the above locators can identify the element.
     - Use `{exact: true}` when the accessible name might partially match other elements (e.g., `getByRole('button', {name: 'Invite', exact: true})`).
 
 3. **Visual Testing**: For visual tests:
