@@ -5,6 +5,9 @@ package app
 
 import (
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -27,12 +30,71 @@ func (a *App) markAdminOnboardingComplete(rctx request.CTX) *model.AppError {
 	return nil
 }
 
+// isOrigin reports whether siteURL is an http(s) origin: a scheme, a hostname and an optional port.
+// A path is rejected because the server can't switch to a subpath without a restart, and a query,
+// fragment, or user info would break every link built from the Site URL.
+func isOrigin(siteURL string) bool {
+	u, err := url.ParseRequestURI(siteURL)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || strings.HasSuffix(u.Host, ":") || siteURL != u.Scheme+"://"+u.Host {
+		return false
+	}
+	if port := u.Port(); port != "" {
+		n, err := strconv.Atoi(port)
+		return err == nil && n >= 1 && n <= 65535
+	}
+	return true
+}
+
+// saveOnboardingSiteURL saves the Site URL sent by the onboarding wizard, unless an admin or an
+// environment variable has already set one. Only an invalid URL is an error: a failed save is
+// logged, so that onboarding still completes.
+func (a *App) saveOnboardingSiteURL(rctx request.CTX, siteURL string) *model.AppError {
+	if siteURL == "" {
+		return nil
+	}
+
+	siteURL = strings.TrimSuffix(siteURL, "/")
+	if !isOrigin(siteURL) {
+		return model.NewAppError("CompleteOnboarding", "api.error_invalid_site_url_provided_for_onboarding", nil, "", http.StatusBadRequest)
+	}
+
+	// The config store re-applies environment overrides on save, so saving would be a no-op.
+	if serviceOverrides, ok := a.GetEnvironmentConfig(nil)["ServiceSettings"].(map[string]any); ok {
+		if _, overridden := serviceOverrides["SiteURL"]; overridden {
+			rctx.Logger().Debug("Site URL is set by an environment variable, ignoring the onboarding value")
+			return nil
+		}
+	}
+
+	cfg := a.Config().Clone()
+	// The Site URL is write-restricted, so a restricted system admin can't set it in the System Console either.
+	if *cfg.ExperimentalSettings.RestrictSystemAdmin {
+		rctx.Logger().Debug("System admins are restricted, ignoring the onboarding Site URL")
+		return nil
+	}
+	if current := *cfg.ServiceSettings.SiteURL; current != "" && current != model.ServiceSettingsDefaultSiteURL {
+		rctx.Logger().Debug("Site URL is already set, ignoring the onboarding value", mlog.String("site_url", current))
+		return nil
+	}
+
+	cfg.ServiceSettings.SiteURL = &siteURL
+	if _, _, appErr := a.SaveConfig(cfg, true); appErr != nil {
+		rctx.Logger().Warn("Failed to save the Site URL during onboarding", mlog.Err(appErr))
+	}
+
+	return nil
+}
+
 func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboardingRequest) *model.AppError {
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	if !isCloud && request.Organization == "" {
 		rctx.Logger().Error("No organization name provided for self hosted onboarding")
 		return model.NewAppError("CompleteOnboarding", "api.error_no_organization_name_provided_for_self_hosted_onboarding", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := a.saveOnboardingSiteURL(rctx, request.SiteURL); appErr != nil {
+		return appErr
 	}
 
 	if request.Organization != "" {
