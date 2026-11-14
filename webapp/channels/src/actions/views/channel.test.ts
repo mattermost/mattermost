@@ -129,6 +129,10 @@ describe('channel view actions', () => {
             },
             threads: {},
         },
+        websocket: {
+            connected: true,
+            lastDisconnectAt: 0,
+        },
     } as unknown as GlobalState;
 
     let store = mockStore(initialState);
