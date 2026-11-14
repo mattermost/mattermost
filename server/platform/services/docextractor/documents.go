@@ -39,7 +39,7 @@ func (de *documentExtractor) Match(filename string) bool {
 	return ok
 }
 
-func (de *documentExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64, _ *ExtractionBudget) (out string, outErr error) {
+func (de *documentExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
@@ -48,6 +48,12 @@ func (de *documentExtractor) Extract(_ context.Context, filename string, r io.Re
 	}()
 
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
+	// docx, pptx, and odt keep one read per part and stop at the retained-text cap.
+	switch extension {
+	case "docx", "pptx", "odt":
+		return extractOfficeText(ctx, extension, r, maxFileSize, budget)
+	}
+
 	converter, ok := doconvConverterByExtensions[extension]
 	if !ok {
 		return "", errors.New("unknown converter")

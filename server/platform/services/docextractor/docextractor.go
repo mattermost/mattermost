@@ -26,9 +26,9 @@ const (
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
 	// Ctx, when set, cancels the caller's wait for extraction to complete.
-	// Because the underlying converters are not context-aware, in-progress
-	// extraction continues on a detached goroutine; only the caller's wait is
-	// unblocked.
+	// Extractors that watch this context stop reading once it is cancelled.
+	// Other converters keep running on a detached goroutine; only the caller's
+	// wait is unblocked for those.
 	Ctx              context.Context
 	ArchiveRecursion bool
 	MaxFileSize      int64
@@ -39,10 +39,11 @@ type ExtractSettings struct {
 	MMPreviewSecret string
 	// Timeout bounds how long a caller waits for a single extraction. A value
 	// <= 0 disables it. NOTE: this bounds wall-clock wait time, not CPU work.
-	// The docconv converters are not context-aware, so on timeout the
-	// converter keeps running to completion on a detached goroutine. A global
-	// cap on concurrent extractions (including those detached goroutines)
-	// prevents sustained uploads from accumulating unbounded docconv work.
+	// On timeout the caller stops waiting. Extraction that watches the
+	// extraction context stops reading; other converters may continue on a
+	// detached goroutine. A global cap on concurrent extractions (including
+	// those goroutines) prevents sustained uploads from accumulating
+	// unbounded converter work.
 	// The per-extraction input bound is MaxFileSize.
 	Timeout time.Duration
 	// ReaderCloser, when set, transfers ownership of closing the input reader
@@ -94,15 +95,15 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 }
 
 // extractWithTimeout runs the extraction and stops waiting for it once
-// settings.Timeout elapses or settings.Ctx is cancelled. Because the underlying
-// docconv converters are not context-aware, the extraction runs on a detached
-// goroutine: on timeout or cancellation we stop waiting and return an error,
-// releasing the caller (and its worker slot) even though the converter keeps
-// running. A global concurrency cap applies to every in-flight extraction,
-// including detached goroutines, so timed-out work cannot accumulate beyond the
-// limit.
+// settings.Timeout elapses or settings.Ctx is cancelled. The extraction runs
+// on a goroutine so the caller can return on timeout or cancellation while
+// releasing its worker slot. Extractors that watch the extraction context
+// stop reading; others may keep running. A global concurrency cap applies to
+// every in-flight extraction, including those goroutines, so timed-out work
+// cannot accumulate beyond the limit.
 func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
-	if !tryAcquireExtractionSlot() {
+	releaseSlot, acquired := tryAcquireExtractionSlot()
+	if !acquired {
 		if settings.ReaderCloser != nil {
 			settings.ReaderCloser.Close()
 		}
@@ -118,7 +119,7 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 	// Use the fast synchronous path only when neither a timeout nor a
 	// cancellable context is in play.
 	if settings.Timeout <= 0 && settings.Ctx == nil {
-		defer releaseExtractionSlot()
+		defer releaseSlot()
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
@@ -142,7 +143,7 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 	}
 	resultCh := make(chan extractResult, 1)
 	go func() {
-		defer releaseExtractionSlot()
+		defer releaseSlot()
 		// This goroutine owns the reader for the lifetime of the extraction.
 		// After the timeout or cancellation fires the caller returns, but the
 		// converter may still be reading r here, so the reader is closed only
