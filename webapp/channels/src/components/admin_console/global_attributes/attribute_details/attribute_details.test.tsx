@@ -2109,6 +2109,71 @@ describe('AttributeDetails', () => {
 
         const waitForForm = () => waitFor(() => expect(screen.getByTestId('attributeDetails')).toBeInTheDocument());
 
+        describe('removing an option channels may use', () => {
+            const channelSelect = () => makeNonTemplate('channel', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}, {id: 'opt-2', name: 'Sales'}]},
+            });
+            const chipLabels = () => screen.getAllByTestId('attributeOptionsValues__chipLabel').map((chip) => chip.textContent);
+
+            it('asks the server first, and keeps an option channels use', async () => {
+                mockLoadedNonTemplateField(channelSelect());
+                const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: ['opt-1']});
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+                expect(await screen.findByTestId('optionInUseError-opt-1')).toHaveTextContent("This option is applied to channels and can't be deleted.");
+                expect(inUse).toHaveBeenCalledWith('access_control', 'channel', FIELD_ID, ['opt-1']);
+                expect(chipLabels()).toEqual(['Engineering', 'Sales']);
+            });
+
+            it('removes an option no channel uses', async () => {
+                mockLoadedNonTemplateField(channelSelect());
+                jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: []});
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+                await waitFor(() => expect(chipLabels()).toEqual(['Sales']));
+            });
+
+            it('makes no check when ChannelAttributesRequired is off', async () => {
+                mockLoadedNonTemplateField(channelSelect());
+                const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse');
+
+                renderEdit({entities: {general: {config: {FeatureFlagChannelAttributesRequired: 'false'}}}});
+                await waitForForm();
+                await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+
+                expect(inUse).not.toHaveBeenCalled();
+                expect(chipLabels()).toEqual(['Sales']);
+            });
+
+            it('shows the save error and restores the options when the save is refused for an option in use', async () => {
+                mockLoadedNonTemplateField(channelSelect());
+                jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: []});
+                jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new ClientError('https://example.com', {
+                    message: 'in use',
+                    server_error_id: 'api.property_field.options.delete.in_use.app_error',
+                    status_code: 409,
+                    url: 'https://example.com/api/v4/properties',
+                }));
+
+                renderEdit();
+                await waitForForm();
+                await userEvent.click(screen.getAllByRole('button', {name: 'Remove option'})[0]);
+                await waitFor(() => expect(chipLabels()).toEqual(['Sales']));
+                await userEvent.click(screen.getByTestId('saveSetting'));
+
+                expect(await screen.findByTestId('attributeSaveError')).toHaveTextContent("An option you removed is applied to channels and can't be deleted.");
+                await waitFor(() => expect(chipLabels()).toEqual(['Engineering', 'Sales']));
+                expect(mockHistoryPush).not.toHaveBeenCalled();
+            });
+        });
+
         it('prefills Definition and Applies-to from the loaded field without marking the page dirty', async () => {
             mockLoadedField(makeTemplate({
                 type: 'select',
@@ -3170,9 +3235,7 @@ describe('AttributeDetails', () => {
                 [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', ldap: 'oldDept'}})],
             );
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
-                Promise.resolve(objectType === 'user' ?
-                    makeLinked('user', 'user-field', {attrs: {ldap: 'newDept'}}) :
-                    makeTemplate({attrs: {display_name: 'Department', ldap: 'newDept'}}))
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: {ldap: 'newDept'}}) : makeTemplate({attrs: {display_name: 'Department', ldap: 'newDept'}}))
             ));
 
             renderEdit();
@@ -3202,9 +3265,7 @@ describe('AttributeDetails', () => {
                 [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Groups'}})],
             );
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
-                Promise.resolve(objectType === 'user' ?
-                    makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) :
-                    makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) : makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
             ));
 
             renderEdit({

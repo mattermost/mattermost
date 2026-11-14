@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX, type ReactNode} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 import type {Dispatch} from 'redux';
 
@@ -18,6 +18,7 @@ import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermis
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -51,6 +52,7 @@ import AttributeSelect from './attribute_select';
 import type {ExternalSource, ExternalSourceLinks} from './external_source';
 import {ALL_EXTERNAL_SOURCES, NO_EXTERNAL_SOURCE_LINKS, externalSourceLinksFromField, externalSourceMessages, hasExternalSourceLink, resolveExternalSource} from './external_source';
 import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
+import type {OptionUsageCheck} from './use_option_removal_guard';
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
@@ -144,6 +146,7 @@ type ErrorKind =
     'type_change_with_dependents' |
     'required_channels_missing_values' |
     'required_unfillable' |
+    'option_in_use' |
     'applies_to_failed' |
     'applies_to_remove_failed' |
     'applies_to_remove_partial_save' |
@@ -188,6 +191,8 @@ function errorKindFromError(error: unknown): ErrorKind {
         return 'required_channels_missing_values';
     case 'app.property_field.required_unfillable.app_error':
         return 'required_unfillable';
+    case 'api.property_field.options.delete.in_use.app_error':
+        return 'option_in_use';
     default:
         return 'generic';
     }
@@ -445,6 +450,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [externalLinks, setExternalLinks] = useState<ExternalSourceLinks>(NO_EXTERNAL_SOURCE_LINKS);
 
     const allowedResourceTypes = useAllowedResourceTypes();
+    const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
 
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
@@ -1061,6 +1067,26 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // mounted-check earlier, e.g. right after the template create, would skip
     // the linked-field loop and its rollback entirely if the admin navigated
     // away mid-save, leaving an orphaned template with no cleanup attempted.
+    // The server refused to drop an option channels use, so the editor goes
+    // back to the options it actually has instead of the list it was holding.
+    const reloadOptions = useCallback(async () => {
+        if (!fieldId) {
+            return;
+        }
+        try {
+            const field = await fetchAttributeField(fieldId, allowedResourceTypes);
+            if (!field || !isMountedRef.current) {
+                return;
+            }
+            const reloaded = field.type === 'graph' ? await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) : optionsFromField(field);
+            if (isMountedRef.current) {
+                setOptions(reloaded);
+            }
+        } catch {
+            // The save error is already shown; the list stays as the admin left it.
+        }
+    }, [fieldId, allowedResourceTypes]);
+
     const finalizeSave = useCallback((outcome: SaveOutcome) => {
         if (!isMountedRef.current) {
             return;
@@ -1079,7 +1105,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setServerErrorMessage(outcome.serverErrorMessage);
         setFailedResourceTypes(outcome.failedResourceTypes);
         setSaving(false);
-    }, [dispatch]);
+        if (outcome.errorKind === 'option_in_use') {
+            reloadOptions();
+        }
+    }, [dispatch, reloadOptions]);
 
     const handleSave = useCallback(async () => {
         if (!canSave) {
@@ -1517,6 +1546,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const linkedSourceTitle = linkedExternalSource ? formatMessage(externalSourceMessages[linkedExternalSource].title) : '';
 
+    // Only a saved field applied to channels can have options in use there.
+    const optionUsageCheck: OptionUsageCheck | undefined = requiredEnforcementEnabled && fieldId && (objectType === 'channel' || (!isNonTemplate && persistedLinkedFieldsRef.current.channel)) ? {objectType, fieldId} : undefined;
+
     let optionsEditor: JSX.Element | null = null;
     if (isHierarchical) {
         optionsEditor = (
@@ -1564,12 +1596,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <AttributeOptionsRankValues
                         options={options}
                         onOptionsChange={handleOptionsChange}
+                        usageCheck={optionUsageCheck}
                         disabled={saving || effectiveDisabled}
                     />
                 ) : (
                     <AttributeOptionsValues
                         options={options}
                         onOptionsChange={handleOptionsChange}
+                        usageCheck={optionUsageCheck}
                         disabled={saving || effectiveDisabled}
                     />
                 )}
@@ -2139,6 +2173,10 @@ const errorMessages = defineMessages({
     generic: {
         id: 'admin.global_attributes.attribute_details.save_error.generic',
         defaultMessage: 'Something went wrong while saving this attribute. Please try again.',
+    },
+    option_in_use: {
+        id: 'admin.global_attributes.attribute_details.save_error.option_in_use',
+        defaultMessage: "An option you removed is applied to channels and can't be deleted. The options were reloaded; remove only options no channel uses.",
     },
     required_unfillable: {
         id: 'admin.global_attributes.attribute_details.save_error.required_unfillable',

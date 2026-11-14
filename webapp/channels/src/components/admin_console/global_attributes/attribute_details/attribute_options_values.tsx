@@ -12,8 +12,10 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import * as Menu from 'components/menu';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
+import OptionRemovalErrors from './option_removal_errors';
 import {moveOptionByIndex} from './option_utils';
 import {useOptionChipEditor} from './use_option_chip_editor';
+import type {OptionUsageCheck} from './use_option_removal_guard';
 
 import './attribute_options_values.scss';
 
@@ -25,6 +27,10 @@ type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
+
+    // Set when the field is applied to channels: removing a saved option then
+    // first checks that no channel holds it.
+    usageCheck?: OptionUsageCheck;
 
     // Lists the options without any way to change them, for an attribute whose
     // options belong to its identity source sync.
@@ -42,14 +48,14 @@ const buildNewOption = (name: string): PropertyFieldOption => ({id: '', name});
 // reorder requirement needs the same keyboard-accessible popover Rank already
 // has, not a mouse-only drag surface. Shared add/remove/rename/duplicate logic
 // lives in use_option_chip_editor.ts, consumed by this and the Rank editor.
-const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, readOnly = false}: Props) => {
+const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, readOnly = false, usageCheck}: Props) => {
     const {formatMessage} = useIntl();
 
     const {
         query, setQuery, addInputRef, isDuplicate, nameCollidesWith,
-        handleRename, handleRemove, addValue, handleQueryKeyDown,
+        handleRename, handleRemove, removalGuard, addValue, handleQueryKeyDown,
         placeholderText, showPlaceholder, focusInput, maxOptionNameLength,
-    } = useOptionChipEditor({orderedOptions: options, onOptionsChange, buildNewOption});
+    } = useOptionChipEditor({orderedOptions: options, onOptionsChange, buildNewOption, usageCheck});
 
     const handleMoveToPosition = useCallback((index: number, targetIndex: number) => {
         onOptionsChange(moveOptionByIndex(options, index, targetIndex));
@@ -108,6 +114,7 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
                         onRename={handleRename}
                         onMoveToPosition={handleMoveToPosition}
                         onRemove={handleRemove}
+                        removing={removalGuard.isChecking(option.id)}
                         disabled={disabled}
                     />
                 ))}
@@ -131,6 +138,11 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
                     />
                 </span>
             </div>
+            <OptionRemovalErrors
+                options={options}
+                guard={removalGuard}
+                className='attribute-options-values__danger-text'
+            />
             {isDuplicate && (
                 <span
                     className='attribute-options-values__danger-text'
@@ -155,11 +167,12 @@ type OptionChipProps = {
     onRename: (index: number, name: string) => void;
     onMoveToPosition: (index: number, targetIndex: number) => void;
     onRemove: (index: number) => void;
+    removing?: boolean;
     disabled?: boolean;
 };
 
 // A single removable chip plus its inline rename/reorder popover.
-const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, disabled = false}: OptionChipProps) => {
+const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, removing = false, disabled = false}: OptionChipProps) => {
     const {formatMessage} = useIntl();
     const [label, setLabel] = useState(option.name);
 
@@ -284,7 +297,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 data-testid={`${chipId}-remove`}
                 onClick={() => onRemove(index)}
                 aria-label={removeLabel}
-                disabled={disabled}
+                disabled={disabled || removing}
             >
                 <CloseCircleIcon
                     size={12}

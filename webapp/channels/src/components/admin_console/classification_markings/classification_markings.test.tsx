@@ -2570,3 +2570,87 @@ describe('Save conflict error mapping', () => {
         expect(await screen.findByText(/Cannot disable classification markings while channel classifications exist/)).toBeInTheDocument();
     });
 });
+
+describe('Removing a level channels use', () => {
+    beforeEach(resetPropertyFieldMocks);
+
+    const template = makePropertyField({
+        attrs: {
+            options: [
+                {id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                {id: 'lvl2', name: 'SECRET', color: '#C8102E', rank: 2},
+            ],
+        },
+    });
+    const requiredOn = {entities: {...BASE_STATE.entities, general: {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}}}};
+
+    async function renderPage(state: typeof BASE_STATE | typeof requiredOn, withChannelField = true) {
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [template],
+            ...(withChannelField ? {[CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [makeChannelLinkedField()]} : {}),
+        });
+        renderWithContext(<ClassificationMarkings/>, state);
+        await screen.findByText('Classification levels');
+        return userEvent.setup();
+    }
+
+    test('keeps a level channels use and shows the error on its row', async () => {
+        const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: ['lvl1']});
+
+        const user = await renderPage(requiredOn);
+        await user.click(screen.getAllByRole('button', {name: /Delete level/i})[0]);
+
+        const error = await screen.findByTestId('optionInUseError-lvl1');
+        expect(error).toHaveAttribute('role', 'alert');
+        expect(error).toHaveTextContent("This option is applied to channels and can't be deleted.");
+        expect(inUse).toHaveBeenCalledWith(ACCESS_CONTROL_PROPERTY_GROUP, 'template', 'field1', ['lvl1']);
+        expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(2);
+    });
+
+    test('removes a level no channel uses', async () => {
+        jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: []});
+
+        const user = await renderPage(requiredOn);
+        await user.click(screen.getAllByRole('button', {name: /Delete level/i})[0]);
+
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(1));
+    });
+
+    test('does not check when the feature flag is off or no channel field exists', async () => {
+        const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse');
+
+        const user = await renderPage(BASE_STATE);
+        await user.click(screen.getAllByRole('button', {name: /Delete level/i})[0]);
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(1));
+        expect(inUse).not.toHaveBeenCalled();
+    });
+
+    test('does not check when channels do not use the levels', async () => {
+        const inUse = jest.spyOn(Client4, 'getPropertyFieldOptionsInUse');
+
+        const user = await renderPage(requiredOn, false);
+        await user.click(screen.getAllByRole('button', {name: /Delete level/i})[0]);
+
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(1));
+        expect(inUse).not.toHaveBeenCalled();
+    });
+
+    test('shows the save error and restores the levels when the save is refused for a level in use', async () => {
+        jest.spyOn(Client4, 'getPropertyFieldOptionsInUse').mockResolvedValue({option_ids: []});
+        jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new ClientError('https://example.com', {
+            message: 'in use',
+            server_error_id: 'api.property_field.options.delete.in_use.app_error',
+            status_code: 409,
+            url: '/api/v4/properties/groups/access_control/template/fields/field1',
+        }));
+
+        const user = await renderPage(requiredOn);
+        await user.click(screen.getAllByRole('button', {name: /Delete level/i})[0]);
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(1));
+        await user.click(await screen.findByText('Save'));
+
+        expect(await screen.findByText(/A level you removed is applied to channels and can't be deleted/)).toBeInTheDocument();
+        expect(screen.queryByText(/Cannot disable classification markings/)).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getAllByRole('button', {name: /Delete level/i})).toHaveLength(2));
+    });
+});

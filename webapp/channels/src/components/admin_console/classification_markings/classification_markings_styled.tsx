@@ -202,3 +202,14 @@ export const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-tran
         background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
     }
 `;
+
+export const LevelRemovalError = styled.div`
+    margin-top: 4px;
+    color: var(--error-text);
+    font-size: 12px;
+    line-height: 16px;
+
+    &:empty {
+        display: none;
+    }
+`;

@@ -14,7 +14,9 @@ import {moveOptionByAscIndex, nextRank, sortOptionsByRankAsc} from 'components/a
 import * as Menu from 'components/menu';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
+import OptionRemovalErrors from './option_removal_errors';
 import {useOptionChipEditor} from './use_option_chip_editor';
+import type {OptionUsageCheck} from './use_option_removal_guard';
 
 import './attribute_options_rank_values.scss';
 
@@ -26,6 +28,10 @@ type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
+
+    // Set when the field is applied to channels: removing a saved option then
+    // first checks that no channel holds it.
+    usageCheck?: OptionUsageCheck;
 };
 
 // Renders a ranked field's options as numbered chips in ascending rank order
@@ -36,7 +42,7 @@ type Props = {
 // to a brand-new, unsaved attribute draft. Shared add/remove/rename/duplicate
 // logic lives in use_option_chip_editor.ts, consumed by this and the
 // Select/Multiselect editor.
-const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false}: Props) => {
+const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false, usageCheck}: Props) => {
     const {formatMessage} = useIntl();
 
     const ascOptions = useMemo(() => sortOptionsByRankAsc(options), [options]);
@@ -49,9 +55,9 @@ const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false}
 
     const {
         query, setQuery, addInputRef, isDuplicate, nameCollidesWith,
-        handleRename, handleRemove, addValue, handleQueryKeyDown,
+        handleRename, handleRemove, removalGuard, addValue, handleQueryKeyDown,
         placeholderText, showPlaceholder, focusInput, maxOptionNameLength,
-    } = useOptionChipEditor({orderedOptions: ascOptions, onOptionsChange, buildNewOption});
+    } = useOptionChipEditor({orderedOptions: ascOptions, onOptionsChange, buildNewOption, usageCheck});
 
     const handleMoveToPosition = useCallback((ascIndex: number, targetAscIndex: number) => {
         onOptionsChange(moveOptionByAscIndex(options, ascIndex, targetAscIndex));
@@ -78,6 +84,7 @@ const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false}
                         onRename={handleRename}
                         onMoveToPosition={handleMoveToPosition}
                         onRemove={handleRemove}
+                        removing={removalGuard.isChecking(option.id)}
                         disabled={disabled}
                     />
                 ))}
@@ -101,6 +108,11 @@ const AttributeOptionsRankValues = ({options, onOptionsChange, disabled = false}
                     />
                 </span>
             </div>
+            <OptionRemovalErrors
+                options={options}
+                guard={removalGuard}
+                className='attribute-options-rank-values__danger-text'
+            />
             {isDuplicate && (
                 <span
                     className='attribute-options-rank-values__danger-text'
@@ -125,11 +137,12 @@ type RankChipProps = {
     onRename: (ascIndex: number, name: string) => void;
     onMoveToPosition: (ascIndex: number, targetAscIndex: number) => void;
     onRemove: (ascIndex: number) => void;
+    removing?: boolean;
     disabled?: boolean;
 };
 
 // A single ranked chip plus its inline editing popover.
-const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, disabled = false}: RankChipProps) => {
+const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameCollidesWith, onRename, onMoveToPosition, onRemove, removing = false, disabled = false}: RankChipProps) => {
     const {formatMessage} = useIntl();
     const total = sortedRanks.length;
     const [label, setLabel] = useState(option.name);
@@ -273,7 +286,7 @@ const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameColli
                 data-testid={`${chipId}-remove`}
                 onClick={() => onRemove(ascIndex)}
                 aria-label={removeLabel}
-                disabled={disabled}
+                disabled={disabled || removing}
             >
                 <CloseCircleIcon
                     size={12}
