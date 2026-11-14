@@ -373,6 +373,16 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// net/http only cleans up multipart temp files for the request it created,
+	// and the router hands handlers a copy, so remove them here.
+	defer func() {
+		if r.MultipartForm != nil {
+			if err := r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
+
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
