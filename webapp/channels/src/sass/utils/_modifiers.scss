@@ -29,11 +29,13 @@ $positions: 't'top,
     }
 
     .px-#{$i} {
-        padding: 0 #{$i * 4}px 0 #{$i * 4}px !important;
+        padding-right: #{$i * 4}px !important;
+        padding-left: #{$i * 4}px !important;
     }
 
     .py-#{$i} {
-        padding: #{$i * 4}px 0 #{$i * 4}px 0 !important;
+        padding-top: #{$i * 4}px !important;
+        padding-bottom: #{$i * 4}px !important;
     }
 
     .h-#{$i} {
