@@ -59,6 +59,7 @@ type PlatformService struct {
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
+	pluginCache   cache.Cache
 	sessionCache  cache.Cache
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
@@ -381,6 +382,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
+	}
+
+	ps.pluginCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+		Name:          "PluginCache",
+		Size:          pluginCacheSize,
+		DefaultExpiry: pluginCacheDefaultExpiry,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to create plugin cache: %w", err)
 	}
 
 	ps.sessionCache, err = cache.NewProvider().NewCache(&cache.CacheOptions{

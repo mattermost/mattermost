@@ -10541,6 +10541,21 @@
     "description": "Admin console error when enabling/disabling a plugin can't be saved automatically; 'ReadOnlyConfig' and 'config.json' are technical names to keep untranslated."
   },
   {
+    "id": "app.plugin.cache.delete.app_error",
+    "translation": "Unable to delete the plugin cache entry.",
+    "description": "Error returned to a plugin when a plugin cache delete operation fails."
+  },
+  {
+    "id": "app.plugin.cache.get.app_error",
+    "translation": "Unable to get the plugin cache entry.",
+    "description": "Error returned to a plugin when a plugin cache get operation fails."
+  },
+  {
+    "id": "app.plugin.cache.set.app_error",
+    "translation": "Unable to set the plugin cache entry.",
+    "description": "Error returned to a plugin when a plugin cache set operation fails."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error saving plugin state in config.",
     "description": "Admin console error when persisting a plugin's enabled/disabled state to the server configuration fails."
