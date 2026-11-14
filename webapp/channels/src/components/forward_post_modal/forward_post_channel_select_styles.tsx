@@ -129,6 +129,9 @@ const getBaseStyles = (bodyHeight: number): StylesConfig<ChannelOption, boolean>
             cursor: 'pointer',
             padding: '8px 20px',
             backgroundColor: state.isFocused ? 'rgba(var(--center-channel-color-rgb), 0.08)' : 'transparent',
+
+            // Keep the status badge circle matching the focused row background
+            ...(state.isFocused && {'--status-badge-bg': 'color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg))'}),
         }),
         menuPortal: (provided) => ({
             ...provided,

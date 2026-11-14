@@ -14,10 +14,10 @@ import theme from '@/fixtures/theme.json';
 
 describe('Status dropdown menu', () => {
     const statusTestCases = [
-        {text: 'Online', className: 'userAccountMenu_onlineMenuItem_icon'},
-        {text: 'Away', className: 'userAccountMenu_awayMenuItem_icon'},
-        {text: 'Do not disturb', className: 'userAccountMenu_dndMenuItem_icon'},
-        {text: 'Offline', className: 'userAccountMenu_offlineMenuItem_icon'},
+        {text: 'Online', className: 'userAccountMenu_onlineMenuItem_icon', badgeClassName: 'userAccountMenu_statusBadge--online'},
+        {text: 'Away', className: 'userAccountMenu_awayMenuItem_icon', badgeClassName: 'userAccountMenu_statusBadge--away'},
+        {text: 'Do not disturb', className: 'userAccountMenu_dndMenuItem_icon', badgeClassName: 'userAccountMenu_statusBadge--do-not-disturb'},
+        {text: 'Offline', className: 'userAccountMenu_offlineMenuItem_icon', badgeClassName: 'userAccountMenu_statusBadge--offline'},
     ];
 
     before(() => {
@@ -108,7 +108,7 @@ function stepThroughStatuses(statusTestCases = []) {
 
         // # Verify correct status icon is shown on user's profile picture
         cy.uiGetSetStatusButton().within(() => {
-            cy.get('svg').filter(`.${tc.className}`).should('have.length', 1);
+            cy.get(`.${tc.badgeClassName}`).should('have.length', 1);
         });
     });
 }

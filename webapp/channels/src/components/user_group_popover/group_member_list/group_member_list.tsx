@@ -11,6 +11,7 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -21,11 +22,11 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import ProfilePopover from 'components/profile_popover';
-import StatusIcon from 'components/status_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import Avatar from 'components/widgets/users/avatar';
 
 import {UserStatuses} from 'utils/constants';
+import {getStatusBadgeClassName, getStatusBadgeProps} from 'utils/status_badge';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -156,6 +157,7 @@ const GroupMemberList = (props: Props) => {
 
     const Item = ({index, style}: ListChildComponentProps) => {
         const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index]?.user?.id) || UserStatuses.OFFLINE);
+        const statusBadgeProps = getStatusBadgeProps(status, formatMessage, 'sm');
 
         // Remove explicit height provided by VariableSizeList
         style.height = undefined;
@@ -187,9 +189,12 @@ const GroupMemberList = (props: Props) => {
                                     className={'avatar-post-preview'}
                                     tabIndex={-1}
                                 />
-                                <StatusIcon
-                                    status={status}
-                                />
+                                {statusBadgeProps && (
+                                    <StatusBadge
+                                        className={getStatusBadgeClassName('sm')}
+                                        {...statusBadgeProps}
+                                    />
+                                )}
                             </span>
                             <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
                             <Gap className='group-member-list_gap'/>
@@ -329,6 +334,8 @@ const UserListItem = styled.div<{first?: boolean; last?: boolean}>`
     `}
 
     &:hover {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+
         background: rgba(var(--center-channel-color-rgb), 0.08);
     }
 
@@ -359,6 +366,11 @@ const UserButton = styled.button`
     background: unset;
     text-align: unset;
     align-items: center;
+
+    // The wrapper must match the 24px avatar so the status badge sits on the avatar's corner
+    .status-wrapper {
+        height: 24px;
+    }
 `;
 
 // A gap to make space for the DM button to be positioned on

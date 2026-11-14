@@ -2,9 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
-import StatusIcon from 'components/status_icon';
+import {StatusBadge} from '@mattermost/compass-ui/components/status-badge';
+
 import Avatar from 'components/widgets/users/avatar';
+
+import {getStatusBadgeProps} from 'utils/status_badge';
 
 type Props = {
     username?: string;
@@ -18,6 +22,11 @@ const ProfilePopoverAvatar = ({
     status,
     urlSrc,
 }: Props) => {
+    const {formatMessage} = useIntl();
+
+    // The popover avatar is 120px
+    const statusBadgeProps = getStatusBadgeProps(hideStatus ? undefined : status, formatMessage, '120');
+
     return (
         <div className='user-popover-image'>
             <Avatar
@@ -27,11 +36,12 @@ const ProfilePopoverAvatar = ({
                 url={urlSrc}
                 tabIndex={-1}
             />
-            <StatusIcon
-                className='status user-popover-status'
-                status={hideStatus ? undefined : status}
-                button={true}
-            />
+            {statusBadgeProps && (
+                <StatusBadge
+                    className='user-popover-status'
+                    {...statusBadgeProps}
+                />
+            )}
         </div>
     );
 };

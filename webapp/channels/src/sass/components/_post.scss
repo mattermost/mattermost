@@ -494,6 +494,8 @@
     word-wrap: break-word;
 
     &:not(.post--editing):not(.post--editing):hover {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 4%, var(--center-channel-bg));
+
         background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
 
         .PostAttachmentOpenGraph .remove-button {
@@ -501,11 +503,24 @@
         }
     }
 
+    // Keep the badge matching the highlight applied by applyTheme (utils.tsx) when a post menu is open
+    // (post--hovered, 8%) or the post has keyboard focus (a11y--active, 4%). Plain pointer hover also adds
+    // post--hovered, but the :hover rule above is more specific and sets both the background and badge to 4%.
+    &.post--hovered {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 8%, var(--center-channel-bg));
+    }
+
+    &.a11y--active {
+        --status-badge-bg: color-mix(in srgb, var(--center-channel-color) 4%, var(--center-channel-bg));
+    }
+
     .hide-element {
         display: none;
     }
 
     &.post--editing {
+        --status-badge-bg: color-mix(in srgb, var(--button-bg) 8%, var(--center-channel-bg));
+
         overflow: visible;
         background-color: rgba(var(--button-bg-rgb), 0.08);
 
@@ -641,7 +656,8 @@
         }
 
         &.post--system {
-            .status {
+            .status,
+            .user-status-badge {
                 visibility: hidden;
             }
 
@@ -727,18 +743,13 @@
         }
 
         .status-wrapper {
-            .status {
+            // Compact posts show the badge inline before the username, vertically centred on the name text
+            .user-status-badge {
                 position: relative;
-                top: 1px;
+                top: 5px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
-                width: 13px;
-                height: 13px;
-            }
-
-            svg {
-                top: 1px;
             }
 
             &::after {
@@ -2167,6 +2178,8 @@
 }
 
 .app__body .app__content .post.post--highlight {
+    --status-badge-bg: rgb(var(--mention-highlight-bg-mixed-rgb));
+
     animation-delay: 5s;
     animation-duration: 2s;
     animation-fill-mode: forwards;
@@ -2175,6 +2188,8 @@
 }
 
 .post--pinned-or-flagged {
+    --status-badge-bg: rgb(var(--pinned-highlight-bg-mixed-rgb));
+
     background-color: rgb(var(--pinned-highlight-bg-mixed-rgb));
 
     .post-collapse {

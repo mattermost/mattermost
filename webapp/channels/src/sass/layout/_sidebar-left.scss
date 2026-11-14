@@ -125,29 +125,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
         .status-wrapper {
             width: 36px;
             height: 36px;
-
-            .status {
-                right: -6px;
-                bottom: -5px;
-                width: 19px;
-                height: 19px;
-                background: var(--sidebar-header-bg);
-                color: var(--sidebar-header-text-color);
-
-                .offline--icon {
-                    fill: var(--offline-indicator);
-                }
-
-                svg {
-                    position: relative;
-                    z-index: 1;
-                    top: 0;
-                    left: 0;
-                    width: 13px;
-                    height: 13px;
-                    max-height: initial;
-                }
-            }
         }
     }
 
@@ -1016,6 +993,10 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarChannel .SidebarLink {
+        // The status badge circle must match whatever the avatar sits on, for every row state
+        --status-badge-bg: var(--sidebar-bg);
+        --status-badge-offline-color: rgba(var(--sidebar-text-rgb), 0.32);
+
         position: relative;
         display: flex;
         width: 100%;
@@ -1076,11 +1057,9 @@ $sidebarOpacityAnimationDuration: 0.15s;
     .SidebarChannel .SidebarLink:hover,
     .SidebarChannel .SidebarLink.menuOpen {
         padding-right: 5px;
-        background-color: var(--sidebar-text-hover-bg);
+        --status-badge-bg: var(--sidebar-text-hover-bg);
 
-        .DirectChannel__status-icon {
-            box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.12);
-        }
+        background-color: var(--sidebar-text-hover-bg);
 
         .SidebarMenu_menuButton {
             margin-right: 11px;
@@ -1108,17 +1087,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
     .SidebarChannel > .active.SidebarLink,
     .SidebarChannel.active .SidebarLink {
-        background: rgba(var(--sidebar-text-rgb), 0.08);
+        --status-badge-bg: color-mix(in srgb, var(--sidebar-text) 8%, var(--sidebar-bg));
 
-        .DirectChannel__profile-picture .DirectChannel__status-icon {
-            box-shadow: inset 0 0 14px rgba(255, 255, 255, 0.24);
-        }
+        background: rgba(var(--sidebar-text-rgb), 0.08);
 
         .SidebarChannelLinkLabel {
             color: var(--sidebar-text);
         }
 
         &.selected {
+            --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
             background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
 
             &:hover {
@@ -1128,10 +1107,15 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarLink.selected {
+        --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
         background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         color: rgba(var(--sidebar-text-rgb), 1);
 
         &:hover {
+            // Must be set here as well: `.SidebarLink:hover` above sets the hover colour at the same specificity
+            --status-badge-bg: color-mix(in srgb, var(--sidebar-text-active-border) 64%, var(--sidebar-bg));
+
             background: rgba(var(--sidebar-text-active-border-rgb), 0.64);
         }
     }
@@ -1178,15 +1162,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
         .DirectChannel__status-icon {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 9px;
+            left: 9px;
             display: flex;
-            width: 13px;
-            height: 13px;
             align-items: center;
             justify-content: center;
             border-radius: 100%;
-            background: var(--sidebar-bg);
+            background: var(--status-badge-bg, var(--sidebar-bg));
             font-size: 12px;
         }
     }

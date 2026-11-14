@@ -150,7 +150,7 @@ export default class ChannelsPost {
     async toBeSystemMessage() {
         await expect(this.container).toHaveClass(/post--system/);
         await expect(this.container).not.toHaveClass(/same--root|other--root|current--user|post--comment|post--root/);
-        await expect(this.container.locator('.status-wrapper .status svg')).not.toBeVisible();
+        await expect(this.container.locator('.status-wrapper .user-status-badge')).not.toBeVisible();
     }
 
     async toBeSystemMessageContaining(text: string | RegExp) {
