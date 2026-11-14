@@ -219,7 +219,9 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
             data-testid='attributeExternalSource'
         >
             {linkedSources.length === 0 && (
-                <Divider className='AttributeExternalSource__divider'/>
+                <div className='AttributeExternalSource__divider'>
+                    <Divider/>
+                </div>
             )}
             {linkedSources.length > 0 && (
                 <div
