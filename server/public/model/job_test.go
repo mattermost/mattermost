@@ -4,8 +4,14 @@
 package model
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"strconv"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -210,6 +216,44 @@ func TestIsValidJobType(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestAllJobTypesIsComplete(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "job.go", nil, parser.ParseComments)
+	require.NoError(t, err)
+
+	isDeprecated := func(doc *ast.CommentGroup) bool {
+		return strings.Contains(doc.Text(), "Deprecated:")
+	}
+
+	var declared []string
+	for _, decl := range file.Decls {
+		genDecl, ok := decl.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.CONST || isDeprecated(genDecl.Doc) {
+			continue
+		}
+		for _, spec := range genDecl.Specs {
+			valueSpec := spec.(*ast.ValueSpec)
+			if isDeprecated(valueSpec.Doc) {
+				continue
+			}
+			for i, name := range valueSpec.Names {
+				if !strings.HasPrefix(name.Name, "JobType") {
+					continue
+				}
+				require.Lessf(t, i, len(valueSpec.Values), "%s must have an explicit string value", name.Name)
+				lit, ok := valueSpec.Values[i].(*ast.BasicLit)
+				require.Truef(t, ok && lit.Kind == token.STRING, "%s must be a string literal", name.Name)
+				value, err := strconv.Unquote(lit.Value)
+				require.NoError(t, err)
+				declared = append(declared, value)
+			}
+		}
+	}
+
+	require.NotEmpty(t, declared)
+	assert.ElementsMatch(t, declared, AllJobTypes[:], "every non-deprecated JobType constant must be listed in AllJobTypes")
+	assert.Subset(t, AllJobTypes[:], CreatableJobTypes[:], "every creatable job type must be listed in AllJobTypes")
 }
 
 func TestIsValidJobStatus(t *testing.T) {
