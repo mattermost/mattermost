@@ -1176,7 +1176,7 @@ For more information, see [AD/LDAP Setup](/administration-guide/onboard/ad-ldap)
 </colgroup>
 <tbody>
 <tr>
-<td><p>The public authentication certificate issued by your Identity Provider.</p><p>String input.</p></td>
+<td><p>The public authentication certificate issued by your Identity Provider.</p><p>Must be a PEM-encoded X.509 certificate: a text file that starts with <code>-----BEGIN CERTIFICATE-----</code>. From Mattermost v12.2, certificates in other formats, such as DER, are rejected on upload. To convert a DER certificate, run <code>openssl x509 -inform der -in certificate.cer -out certificate.pem</code>.</p><p>String input.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>IdpCertificateFile</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_IDPCERTIFICATEFILE</code></li></ul></td>
 </tr>
 </tbody>
@@ -1263,7 +1263,7 @@ AES-192-GCM and AES-256-GCM support was introduced in Mattermost v10.9.
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting stores the private key used to decrypt SAML Assertions from the Identity Provider.</p><p>String input.</p></td>
+<td><p>This setting stores the private key used to decrypt SAML Assertions from the Identity Provider.</p><p>Must be a PEM-encoded, unencrypted RSA, ECDSA, or Ed25519 private key in PKCS #1, PKCS #8, or SEC 1 format: a text file that starts with a line such as <code>-----BEGIN PRIVATE KEY-----</code>. From Mattermost v12.2, private keys in other formats are rejected on upload.</p><p>String input.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>PrivateKeyFile</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_PRIVATEKEYFILE</code></li></ul></td>
 </tr>
 </tbody>
@@ -1278,7 +1278,7 @@ AES-192-GCM and AES-256-GCM support was introduced in Mattermost v10.9.
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting stores the certificate file used to sign a SAML request to the Identity Provider for a SAML login when Mattermost is initiating the login as the Service Provider.</p><p>String input.</p></td>
+<td><p>This setting stores the certificate file used to sign a SAML request to the Identity Provider for a SAML login when Mattermost is initiating the login as the Service Provider.</p><p>Must be a PEM-encoded X.509 certificate: a text file that starts with <code>-----BEGIN CERTIFICATE-----</code>. From Mattermost v12.2, certificates in other formats, such as DER, are rejected on upload. To convert a DER certificate, run <code>openssl x509 -inform der -in certificate.cer -out certificate.pem</code>.</p><p>String input.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; SAML 2.0</strong></li><li><code>config.json</code> setting: <code>SamlSettings</code> &gt; <code>PublicCertificateFile</code></li><li>Environment variable: <code>MM_SAMLSETTINGS_PUBLICCERTIFICATEFILE</code></li></ul></td>
 </tr>
 </tbody>

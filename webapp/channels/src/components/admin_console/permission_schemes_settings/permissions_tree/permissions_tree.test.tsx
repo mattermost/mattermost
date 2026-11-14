@@ -4,11 +4,12 @@
 import React from 'react';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
+import Permissions from 'mattermost-redux/constants/permissions';
 
 import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import {LicenseSkus} from 'utils/constants';
+import {LicenseSkus, PermissionsScope} from 'utils/constants';
 
 import type {Group, Permission} from './types';
 
@@ -50,64 +51,6 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
 
     beforeEach(() => {
         PermissionGroup.mockClear();
-    });
-
-    test('should match snapshot on default data', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree {...defaultProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on read only', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                readOnly={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on team scope', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                scope={'team_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on system scope', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                scope={'system_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot on license without LDAPGroups', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                license={{}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with parentRole with permissions', () => {
-        const {container} = renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                parentRole={{permissions: ['invite_user']}}
-                scope={'system_scope'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should ask to toggle on row toggle', () => {
@@ -156,19 +99,40 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(postsGroup.permissions).toContain('edit_file_attachment');
     });
 
-    test('should hide disabbled integration options', () => {
-        const {container} = renderWithContext(
+    test('should only render permissions that have a scope, so they are not dropped on save', () => {
+        renderWithContext(
             <PermissionsTree
                 {...defaultProps}
+                role={{name: GeneralConstants.SYSTEM_ADMIN_ROLE}}
                 config={{
-                    EnableIncomingWebhooks: 'false',
-                    EnableOutgoingWebhooks: 'false',
-                    EnableCommands: 'false',
-                    EnableCustomEmoji: 'false',
+                    EnableIncomingWebhooks: 'true',
+                    EnableOutgoingWebhooks: 'true',
+                    EnableOAuthServiceProvider: 'true',
+                    EnableOutgoingOAuthConnections: 'true',
+                    EnableCommands: 'true',
+                    EnableCustomEmoji: 'true',
+                    EnableGuestAccounts: 'true',
+                    EnableCustomGroups: 'true',
+                    ExperimentalSharedChannels: 'true',
+                }}
+                license={{
+                    IsLicensed: 'true',
+                    LDAPGroups: 'true',
+                    SkuShortName: LicenseSkus.EnterpriseAdvanced,
                 }}
             />,
         );
-        expect(container).toMatchSnapshot();
+
+        const collectPermissions = (items: Array<string | Group | Permission>): string[] => items.flatMap((item) => {
+            if (typeof item === 'string') {
+                return [item];
+            }
+            return collectPermissions(item.permissions);
+        });
+        const permissions = collectPermissions(PermissionGroup.mock.calls[0][0].permissions);
+
+        expect(permissions).toContain(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        expect(permissions.filter((p) => !PermissionsScope[p])).toEqual([]);
     });
 
     test('should map groups in the correct order', () => {

@@ -68,7 +68,7 @@ describe('components/new_search/NewSearch', () => {
 
         expect(screen.getByText('Messages')).toBeInTheDocument();
 
-        await userEvent.type(screen.getByPlaceholderText('Search messages'), '{escape}');
+        await userEvent.type(screen.getByPlaceholderText('Search messages by keyword'), '{escape}');
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
     });
@@ -82,7 +82,7 @@ describe('components/new_search/NewSearch', () => {
 
         expect(screen.getByText('Messages')).toBeInTheDocument();
 
-        await userEvent.type(screen.getByPlaceholderText('Search messages'), '{enter}');
+        await userEvent.type(screen.getByPlaceholderText('Search messages by keyword'), '{enter}');
 
         expect(screen.queryByText('Messages')).not.toBeInTheDocument();
         expect(mockDispatch).toHaveBeenCalledWith({searchType: 'messages', type: 'UPDATE_RHS_SEARCH_TYPE'});

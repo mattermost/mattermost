@@ -271,7 +271,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldGraph = true
 
-	f.PropertyFieldPermissionsV3 = false
+	f.PropertyFieldPermissionsV3 = true
 
 	f.ChannelAttributes = true
 

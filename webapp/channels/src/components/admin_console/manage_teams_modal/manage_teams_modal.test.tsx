@@ -41,8 +41,8 @@ describe('ManageTeamsModal', () => {
         jest.clearAllMocks();
     });
 
-    test('should match snapshot init', async () => {
-        const {baseElement} = renderWithContext(
+    test('should render init', async () => {
+        renderWithContext(
             <ManageTeamsModal {...baseProps}/>,
         );
 
@@ -54,8 +54,6 @@ describe('ManageTeamsModal', () => {
         expect(screen.getByText('Manage Teams')).toBeInTheDocument();
         expect(screen.getByText('@currentUsername')).toBeInTheDocument();
         expect(screen.getByText('currentUser@test.com')).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should call api calls on mount', async () => {

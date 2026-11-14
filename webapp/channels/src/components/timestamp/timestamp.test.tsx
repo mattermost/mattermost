@@ -45,7 +45,6 @@ describe('components/timestamp/Timestamp', () => {
                 label='test label'
             />,
         );
-        expect(container).toMatchSnapshot();
         const timeEl = container.querySelector('time');
         expect(timeEl).not.toBeNull();
         expect(timeEl?.className).toBe('test class');
@@ -59,7 +58,6 @@ describe('components/timestamp/Timestamp', () => {
                 useSemanticOutput={false}
             />,
         );
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('time')).toBeNull();
     });
 

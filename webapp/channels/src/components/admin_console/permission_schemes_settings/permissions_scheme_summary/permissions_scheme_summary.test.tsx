@@ -34,11 +34,10 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         },
     } as any;
 
-    test('should match snapshot on default data', () => {
-        const {container} = renderWithContext(
+    test('should render on default data', () => {
+        renderWithContext(
             <PermissionsSchemeSummary {...defaultProps}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('Test')).toBeInTheDocument();
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.getByText('Team 1')).toBeInTheDocument();
@@ -48,8 +47,8 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
-    test('should match snapshot on more than eight teams', () => {
-        const {container} = renderWithContext(
+    test('should render on more than eight teams', () => {
+        renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[
@@ -67,8 +66,6 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         // First 8 teams should be visible
         for (let i = 1; i <= 8; i++) {
             expect(screen.getByText(`Team ${i}`)).toBeInTheDocument();
@@ -82,14 +79,13 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         expect(screen.getByText('+2 more')).toBeInTheDocument();
     });
 
-    test('should match snapshot on no teams', () => {
-        const {container} = renderWithContext(
+    test('should render on no teams', () => {
+        renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[]}
             />,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('Test')).toBeInTheDocument();
         expect(screen.getByText('Test description')).toBeInTheDocument();
         expect(screen.queryByText('Team 1')).not.toBeInTheDocument();

@@ -43,7 +43,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     PostDeliveryTracking: 'false',
     ProductRail: 'false',
     PropertyFieldGraph: 'true',
-    PropertyFieldPermissionsV3: 'false',
+    PropertyFieldPermissionsV3: 'true',
     PropertyFieldRank: 'true',
     RecurringScheduledPosts: 'false',
     ResourceAttributesInPolicies: 'true',

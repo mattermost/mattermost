@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import {render, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -67,5 +67,34 @@ describe('components/widgets/settings/TextSetting', () => {
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', 'some valuex');
+    });
+
+    test('should keep a typed minus sign in a number input', async () => {
+        const onChange = jest.fn();
+
+        function StatefulNumberSetting() {
+            const [value, setValue] = useState<number>(0);
+            return (
+                <TextSetting
+                    id='number.id'
+                    label='some label'
+                    type='number'
+                    value={value}
+                    onChange={(id, newValue) => {
+                        onChange(id, newValue);
+                        setValue(newValue);
+                    }}
+                />
+            );
+        }
+
+        render(<StatefulNumberSetting/>);
+
+        const input = screen.getByTestId('number.idnumber');
+        await userEvent.clear(input);
+        await userEvent.type(input, '-1');
+
+        expect(input).toHaveValue(-1);
+        expect(onChange).toHaveBeenLastCalledWith('number.id', -1);
     });
 });

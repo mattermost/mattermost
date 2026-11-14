@@ -85,6 +85,30 @@ func (sd *syncData) setDataFromMsg(msg *model.SyncMsg) {
 	sd.statuses = msg.Statuses
 }
 
+// withStoredStatuses returns msg with each status replaced by the user's status in the store.
+// Status tasks queued on different nodes merge in the order they reach the leader, not the order
+// the statuses changed, so the status in the task can be older than the stored one.
+func (scs *Service) withStoredStatuses(msg *model.SyncMsg) *model.SyncMsg {
+	if len(msg.Statuses) == 0 {
+		return msg
+	}
+
+	stored := *msg
+	stored.Statuses = make([]*model.Status, 0, len(msg.Statuses))
+	for _, status := range msg.Statuses {
+		latest, err := scs.server.GetStore().Status().Get(status.UserId)
+		if err != nil {
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Failed to fetch status for sync, sending the queued status",
+				mlog.String("user_id", status.UserId),
+				mlog.Err(err),
+			)
+			latest = status
+		}
+		stored.Statuses = append(stored.Statuses, latest)
+	}
+	return &stored
+}
+
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
@@ -114,7 +138,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		}
 	}()
 
-	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIdsFromMaster(task.channelID, rc.RemoteId)
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
 		scr = &model.SharedChannelRemote{
@@ -152,7 +176,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 
 	// if this has an already existing msg, just send it right away
 	if task.existingMsg != nil {
-		sd.setDataFromMsg(task.existingMsg)
+		sd.setDataFromMsg(scs.withStoredStatuses(task.existingMsg))
 		return scs.sendSyncData(sd)
 	}
 
@@ -165,7 +189,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	// schedule another sync if the repeat flag is set at some point.
 	defer func(rpt *bool) {
 		if *rpt {
-			scs.addTask(newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil))
+			repeat := newSyncTask(task.channelID, task.userID, task.remoteID, nil, nil)
+			repeat.catchUp = task.catchUp
+			scs.addTask(repeat)
 		}
 	}(&sd.resultRepeat)
 
@@ -222,7 +248,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 			mlog.Bool("repeat", sd.resultRepeat),
 		)
 		if sd.isCursorChanged() {
-			scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+			scs.updateCursorForRemote(sd)
 		}
 		return nil
 	}
@@ -333,8 +359,9 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
-		posts = reducePostsSliceInCache(posts, cache)
+		// Count before dropping posts already fetched as new: nextCursor is past the whole page.
 		count += len(posts)
+		posts = reducePostsSliceInCache(posts, cache)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt, scs.server.Log())
 	}
 
@@ -813,7 +840,7 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 		// A repeat would re-send the held batch at once, bypassing SyncRetryDelay.
 		sd.resultRepeat = false
 	} else if sd.isCursorChanged() {
-		scs.updateCursorForRemote(sd.scr.Id, sd.rc, sd.resultNextCursor)
+		scs.updateCursorForRemote(sd)
 	}
 
 	// send statuses
