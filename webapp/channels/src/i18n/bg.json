@@ -2752,7 +2752,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Разрешаване на входящите webhook-ове да публикуват във всеки канал, без да се изисква заключен канал по подразбиране.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Заобикаляне на заключването на канала",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Преобразуване частен канал в публичен",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Преобразуване на канали",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Преобразуване в публичен",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Преобразуване публичен канал в частен",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Преобразуване на канали",
   "admin.permissions.permission.create_custom_group.description": "Създаване на потребителски групи.",

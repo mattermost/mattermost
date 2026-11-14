@@ -2755,7 +2755,7 @@
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.description": "Dozvoli dolaznim webhookovima objavljivanje u bilo kojem kanalu bez obveznog zaključanog zadanog kanala.",
   "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Zaobiđi zaključavanje kanala",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Pretvori privatne kanale u javne",
-  "admin.permissions.permission.convert_private_channel_to_public.name": "Pretvori kanale",
+  "admin.permissions.permission.convert_private_channel_to_public.name": "Pretvori u javne",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Pretvori javne kanale u privatne",
   "admin.permissions.permission.convert_public_channel_to_private.name": "Pretvori kanale",
   "admin.permissions.permission.create_custom_group.description": "Stvori prilagođene grupe.",
