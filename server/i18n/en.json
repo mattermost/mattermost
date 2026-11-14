@@ -11447,6 +11447,11 @@
     "description": "API error when an admin tries to mark a channel attribute as required while the server feature that enforces required attributes is turned off."
   },
   {
+    "id": "app.property_field.required_unfillable.app_error",
+    "translation": "Channel creators can't set this attribute, so it can't be required.",
+    "description": "API error, shown in the System Console under the Required toggle, when an admin tries to make a channel attribute required (or change who can set a required one) while the people creating channels can't set its value, because only system admins, nobody, a plugin or a sync source can set it, or its values are hidden from channel members."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields.",
     "description": "API error returned when a search query over property fields (custom attribute definitions) fails."

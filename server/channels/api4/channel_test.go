@@ -451,9 +451,13 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	t.Run("a required attribute the caller cannot set does not block creation", func(t *testing.T) {
 		// Otherwise one sysadmin-only required attribute makes channel creation
 		// impossible for everyone else, with a 400 they cannot act on.
-		createField(t, model.PropertyFieldTypeText, sysadminLevel, model.StringInterface{
-			model.PropertyFieldAttrRequired: true,
-		})
+		// Such a field can no longer be made required, so it is seeded as one
+		// configured before that rule: created optional, then marked required
+		// straight in the store.
+		field := createField(t, model.PropertyFieldTypeText, sysadminLevel, nil)
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		_, storeErr := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{field}, nil)
+		require.NoError(t, storeErr)
 
 		req, _ := newRequest()
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
