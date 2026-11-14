@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {AppField} from '@mattermost/types/apps';
 
-import DatePicker from 'components/date_picker/date_picker';
+import {DateRangePicker} from '@mattermost/compass-ui/components/date-range-picker';
 
-import {stringToDate, dateToString, resolveRelativeDate, formatDateForDisplay} from 'utils/date_utils';
+import {stringToDate, formatDateForDisplay} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -21,97 +21,71 @@ const AppsFormDateField: React.FC<Props> = ({
     field,
     value,
     onChange,
-    setIsInteracting,
 }) => {
     const intl = useIntl();
-    const [isPopperOpen, setIsPopperOpen] = useState(false);
 
-    const dateValue = useMemo(() => {
-        return stringToDate(value);
-    }, [value]);
+    const isoValue = value && stringToDate(value) ? value : undefined;
 
-    const displayValue = useMemo(() => {
-        if (!dateValue) {
+    const handleDateChange = useCallback((date: string) => {
+        onChange(field.name, date);
+    }, [field.name, onChange]);
+
+    const formatDate = useCallback((iso: string) => {
+        const date = stringToDate(iso);
+        if (!date) {
             return '';
         }
 
         try {
-            return formatDateForDisplay(dateValue, intl.locale);
+            return formatDateForDisplay(date, intl.locale);
         } catch {
             return '';
         }
-    }, [dateValue, intl.locale]);
+    }, [intl.locale]);
 
-    const handleDateChange = useCallback((date: Date | undefined) => {
-        if (!date) {
-            return;
-        }
+    const monthNames = useMemo(
+        () => Array.from({length: 12}, (_, month) => intl.formatDate(new Date(2020, month, 1), {month: 'long'})),
+        [intl],
+    );
 
-        // Convert Date to ISO string (YYYY-MM-DD)
-        const newValue = dateToString(date);
-        onChange(field.name, newValue);
-        setIsPopperOpen(false);
-    }, [field.name, onChange]);
-
-    const handlePopperOpenState = useCallback((isOpen: boolean) => {
-        setIsPopperOpen(isOpen);
-        setIsInteracting?.(isOpen);
-    }, [setIsInteracting]);
-
-    // Resolve effective min/max dates
-    const effectiveMinDate = field.datetime_config?.min_date;
-    const effectiveMaxDate = field.datetime_config?.max_date;
-
-    const disabledDays = useMemo(() => {
-        const disabled = [];
-
-        if (effectiveMinDate) {
-            const resolvedMinDate = resolveRelativeDate(effectiveMinDate);
-            const minDate = stringToDate(resolvedMinDate);
-            if (minDate) {
-                disabled.push({before: minDate});
-            }
-        }
-
-        if (effectiveMaxDate) {
-            const resolvedMaxDate = resolveRelativeDate(effectiveMaxDate);
-            const maxDate = stringToDate(resolvedMaxDate);
-            if (maxDate) {
-                disabled.push({after: maxDate});
-            }
-        }
-
-        return disabled.length > 0 ? disabled : undefined;
-    }, [effectiveMinDate, effectiveMaxDate]);
+    const weekdayNames = useMemo(
+        () => Array.from({length: 7}, (_, day) => intl.formatDate(new Date(2020, 0, 5 + day), {weekday: 'short'})),
+        [intl],
+    );
 
     const placeholder = field.hint || intl.formatMessage({
         id: 'apps_form.date_field.placeholder',
         defaultMessage: 'Select a date',
     });
 
-    const calendarIcon = (
-        <i className='icon-calendar-outline'/>
-    );
-
     return (
-        <div>
-            <DatePicker
-                isPopperOpen={isPopperOpen}
-                handlePopperOpenState={handlePopperOpenState}
-                locale={intl.locale}
-                datePickerProps={{
-                    mode: 'single',
-                    selected: dateValue || undefined,
-                    defaultMonth: dateValue || undefined,
-                    onSelect: handleDateChange,
-                    disabled: field.readonly ? true : disabledDays,
-                }}
-                value={displayValue || undefined}
-                icon={calendarIcon}
-            >
-                <span className='date-time-input__value'>{placeholder}</span>
-            </DatePicker>
-        </div>
+        <DateRangePicker
+            mode='date'
+            value={isoValue}
+            onChange={handleDateChange}
+            disabled={field.readonly}
+            placeholder={placeholder}
+            formatDate={formatDate}
+            monthNames={monthNames}
+            weekdayNames={weekdayNames}
+            zIndex={1100}
+            dialogLabel={intl.formatMessage({
+                defaultMessage: 'Date picker',
+                id: 'apps_form.date_field.dialog_label',
+            })}
+            todayLabel={intl.formatMessage({
+                defaultMessage: 'Today',
+                id: 'apps_form.date_field.today',
+            })}
+            previousMonthLabel={intl.formatMessage({
+                defaultMessage: 'Previous month',
+                id: 'apps_form.date_field.previous_month',
+            })}
+            nextMonthLabel={intl.formatMessage({
+                defaultMessage: 'Next month',
+                id: 'apps_form.date_field.next_month',
+            })}
+        />
     );
 };
 
