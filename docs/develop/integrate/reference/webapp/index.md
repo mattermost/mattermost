@@ -16,6 +16,9 @@ Visit the [Plugins](/developers/integrate/plugins) section to learn more about [
       - [`formatText(text, options)`](#formattexttext-options)
       - [`messageHtmlToComponent(html, isRHS, options)`](#messagehtmltocomponenthtml-isrhs-options)
       - [Usage Example](#usage-example)
+- [window.WebappUtils](#windowwebapputils)
+    + [window.WebappUtils.components](#windowwebapputilscomponents)
+    + [window.WebappUtils.modals — published modal IDs](#windowwebapputilsmodals--published-modal-ids)
 
 ## PluginClass
 
@@ -90,6 +93,42 @@ An instance of the plugin registry is passed to each plugin via the `initialize`
 
 
 <PluginJsDocs />
+
+### registerSidebarBrowseOrAddChannelMenuAction — placement
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], `registerSidebarBrowseOrAddChannelMenuAction` accepts an optional `placement` field on the action object.
+
+| Value | Behaviour |
+|---|---|
+| `'afterCreateChannel'` | Places the item immediately below "Create new channel" in the sidebar "+" menu. |
+| `'default'` (or omitted) | Places the item after all built-in items, as before. |
+
+```javascript
+registry.registerSidebarBrowseOrAddChannelMenuAction({
+    text: 'Create new board',
+    icon: BoardIcon,
+    action: (teamId) => { /* … */ },
+    placement: 'afterCreateChannel',
+});
+```
+
+### registerChannelTypeOption — showInNewChannelModal
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], `registerChannelTypeOption` accepts a `showInNewChannelModal` boolean. Set it to `false` to keep the option out of the standard "Create a new channel" modal. The option is still available when the `new_channel_modal` published modal is opened with `channelTypePluginId` set to your plugin's ID (see [new_channel_modal](#new_channel_modal) below).
+
+```javascript
+registry.registerChannelTypeOption({
+    id: 'public-board',
+    pluginId: 'com.example.boards',
+    label: 'Public board',
+    description: 'A board visible to all members.',
+    icon: BoardIcon,
+    isAvailable: (state) => true,
+    onCreate: async ({type, displayName, purpose, teamId}) => { /* … */ },
+    createButtonText: 'Create board',
+    showInNewChannelModal: false,
+});
+```
 
 ### Theme
 
@@ -207,4 +246,77 @@ export default class PostTypeFormatted extends React.PureComponent {
         );
     }
 }
+```
+
+## window.WebappUtils
+
+`window.WebappUtils` exposes stable, versioned namespaces for plugin use. Do not access other properties of this object — only the documented namespaces below are part of the public contract.
+
+### window.WebappUtils.components
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], `window.WebappUtils.components` exposes a curated set of core React components that plugins can render directly, so their UI matches core without bundling duplicate implementations.
+
+| Member | Description |
+|---|---|
+| `WithTooltip` | Wraps a child element and shows a core-styled tooltip on hover. Accepts a `title` prop (string or React node). |
+
+```jsx
+const {WithTooltip} = window.WebappUtils.components;
+
+function MyPluginButton() {
+    return (
+        <WithTooltip title="Open board">
+            <button>{'Board'}</button>
+        </WithTooltip>
+    );
+}
+```
+
+### window.WebappUtils.modals — published modal IDs
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], two additional modal IDs are available for use with `window.WebappUtils.modals.openModal`.
+
+#### new_channel_modal
+
+Opens the "Create a new channel" modal. When opened with `channelTypePluginId`, the modal shows only the channel types that plugin registered (hiding Public and Private Channel) and pre-selects the first available option. This lets a plugin present its own channel-creation flow (for example, "Create a new board") inside the standard modal shell.
+
+Props accepted alongside `channelTypePluginId`:
+
+| Prop | Type | Description |
+|---|---|---|
+| `channelTypePluginId` | `string` | Filters the modal to this plugin's registered channel types only. |
+| `modalHeaderText` | `string` | Replaces the default "Create a new channel" heading. |
+| `nameLabel` | `string` | Replaces the default "Channel name" field label. |
+| `namePlaceholder` | `string` | Replaces the default name field placeholder. |
+| `purposeLabel` | `string` | Replaces the default "Channel Purpose" label. |
+| `purposeHelpText` | `string` | Replaces the default purpose help text. |
+| `categoryHelpText` | `string` | Replaces the default category selector help text. |
+
+All props are optional. Omitting `channelTypePluginId` opens the standard modal with all built-in and plugin options.
+
+```javascript
+window.WebappUtils.modals.openModal('new_channel_modal', {
+    channelTypePluginId: 'com.example.boards',
+    modalHeaderText: 'Create a new board',
+    nameLabel: 'Board name',
+    namePlaceholder: 'Enter a name for your new board',
+    purposeLabel: 'Board description',
+    purposeHelpText: 'This will be displayed when browsing for boards and channels.',
+});
+```
+
+#### channel_settings
+
+Opens the Channel Settings modal for a given channel, pinned open like `team_settings`. Accepts `channelId` and an optional `initialTab`.
+
+| Prop | Type | Description |
+|---|---|---|
+| `channelId` | `string` | The channel to open settings for. |
+| `initialTab` | `string` | A built-in tab ID (`'info'`, `'configuration'`, …) or the ID returned by `registerChannelSettingsTab` for a plugin tab. If the tab is not shown for the channel, the modal falls back to the first available tab. |
+
+```javascript
+window.WebappUtils.modals.openModal('channel_settings', {
+    channelId: currentChannelId,
+    initialTab: myPluginTabId, // id returned by registry.registerChannelSettingsTab(…)
+});
 ```
