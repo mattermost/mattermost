@@ -8,7 +8,7 @@ import {test} from '@mattermost/playwright-lib';
  */
 test(
     'MM-T113 Delete a message during reply and show the other user a message deleted placeholder',
-    {tag: '@messaging'},
+    {tag: ['@messaging', '@core']},
     async ({pw}) => {
         const {adminClient, team, user} = await pw.initSetup();
         const [author] = await adminClient.createUsers(team.id, 1, 'deleted-reply-author');

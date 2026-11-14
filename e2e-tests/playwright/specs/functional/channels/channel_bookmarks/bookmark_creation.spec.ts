@@ -11,7 +11,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  *
  * MM-T5601 covers the same behavior as MM-T5600 and is covered by this test.
  */
-test('MM-T5600 MM-T5601 shows the Bookmarks Bar option in the channel menu', {tag: '@channels'}, async ({pw}) => {
+test('MM-T5600 MM-T5601 shows the Bookmarks Bar option in the channel menu', {tag: ['@channels', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
@@ -34,7 +34,7 @@ test('MM-T5600 MM-T5601 shows the Bookmarks Bar option in the channel menu', {ta
  * @objective Verify a user can add a link bookmark from the channel menu's Bookmarks Bar submenu and see it
  * in the channel bookmarks bar.
  */
-test('MM-T5602 adds a link bookmark to the channel bookmarks bar', {tag: '@channels'}, async ({pw}) => {
+test('MM-T5602 adds a link bookmark to the channel bookmarks bar', {tag: ['@channels', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
@@ -58,7 +58,7 @@ test('MM-T5602 adds a link bookmark to the channel bookmarks bar', {tag: '@chann
  * @objective Verify a user can add a file bookmark from the channel menu's Bookmarks Bar submenu and see it
  * in the channel bookmarks bar.
  */
-test('MM-T5603 adds a file bookmark to the channel bookmarks bar', {tag: '@channels'}, async ({pw}) => {
+test('MM-T5603 adds a file bookmark to the channel bookmarks bar', {tag: ['@channels', '@core']}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
     const {channelsPage, page} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
