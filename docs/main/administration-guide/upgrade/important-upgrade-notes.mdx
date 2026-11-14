@@ -23,6 +23,10 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
+<td>v12.1</td>
+<td><p>Mattermost Desktop App v6.4 (November 2026) requires Boards v9.4.0 or later on servers configured with a subpath in their Site URL. The Desktop App no longer strips the server subpath from paths sent by Boards, a workaround that caused &quot;Team not found&quot; errors when a team name matched the subpath, so older Boards versions may show navigation errors. Update the Boards plugin to v9.4.0 or later <em>before</em> updating the Desktop App, following the <a href={useBaseUrl('/administration-guide/configure/install-boards')}>Boards installation instructions</a>. Deployments without a subpath are unaffected. See the <a href="https://forum.mattermost.com/t/desktop-app-v6-4-requires-boards-v9-4-0-for-subpath-deployments/26064">forum post</a> for full details and migration options.</p></td>
+</tr>
+<tr>
 <td rowspan="27">v12.0</td>
 <td><p>Starting with v12.0.2, new installations support post messages of up to 262,144 characters, with the <code>message</code> column on <code>posts</code>, <code>drafts</code>, <code>scheduledposts</code> and <code>temporaryposts</code> created as <code>VARCHAR(1048576)</code>. Existing installations keep their current column sizes and maximum message length. The maximum message length is derived from the size of the <code>Posts.Message</code> column: a quarter of the column size, to allow for characters of up to four bytes. For example, a <code>VARCHAR(65535)</code> column allows 16,383 characters.</p></td>
 </tr>
