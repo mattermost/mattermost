@@ -9504,7 +9504,7 @@
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
   "admin.log.enableWebhookDebuggingPayloadDescription": {
-    "defaultMessage": "When true, failed incoming webhook requests are logged with their full payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting a webhook.",
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.",
     "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {

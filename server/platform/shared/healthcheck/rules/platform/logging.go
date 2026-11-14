@@ -4,12 +4,9 @@
 package platform
 
 import (
-	"encoding/json"
-	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
@@ -83,66 +80,7 @@ func fileLogging(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile })
 }
 
-func isDebugLevel(level string) bool {
-	return strings.EqualFold(level, "debug") || strings.EqualFold(level, "trace")
-}
-
-// debugTarget reports whether a log target writes debug entries. ok is false when either setting is unreadable.
-func debugTarget(s *healthcheck.Snapshot, enabledSetting func(*model.Config) *bool, levelSetting func(*model.Config) *string) (debug, ok bool) {
-	enabled, ok := s.ConfigBool(enabledSetting)
-	if !ok {
-		return false, false
-	}
-	if !enabled {
-		return false, true
-	}
-	level, ok := s.ConfigString(levelSetting)
-	return ok && isDebugLevel(level), ok
-}
-
-// advancedDebugTarget reports whether LogSettings.AdvancedLoggingJSON defines a target that writes debug entries.
-// Without the advanced logging license the server keeps only file and console targets; an unknown license
-// cannot rule out the others. ok is false when the setting is unreadable.
-func advancedDebugTarget(s *healthcheck.Snapshot) (debug, ok bool) {
-	cfg, ok := s.ConfigRoot()
-	if !ok {
-		return false, false
-	}
-	targets := make(mlog.LoggerConfiguration)
-	if err := json.Unmarshal(cfg.LogSettings.GetAdvancedLoggingConfig(), &targets); err != nil {
-		return false, false
-	}
-
-	licensed, licenseKnown := s.LicenseFeature(healthcheck.FeatureAdvancedLogging)
-	allTypes := !licenseKnown || licensed
-	for _, target := range targets {
-		if !allTypes && !strings.EqualFold(target.Type, "file") && !strings.EqualFold(target.Type, "console") {
-			continue
-		}
-		if slices.ContainsFunc(target.Levels, func(level mlog.Level) bool {
-			return level.ID == mlog.LvlDebug.ID || level.ID == mlog.LvlTrace.ID
-		}) {
-			return true, true
-		}
-	}
-	return false, true
-}
-
 func evalLogWebhookPayloads(s *healthcheck.Snapshot) healthcheck.Result {
-	fileDebug, fileOK := debugTarget(s,
-		func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile },
-		func(cfg *model.Config) *string { return cfg.LogSettings.FileLevel })
-	consoleDebug, consoleOK := debugTarget(s,
-		func(cfg *model.Config) *bool { return cfg.LogSettings.EnableConsole },
-		func(cfg *model.Config) *string { return cfg.LogSettings.ConsoleLevel })
-	advancedDebug, advancedOK := advancedDebugTarget(s)
-	if !fileDebug && !consoleDebug && !advancedDebug {
-		if !fileOK || !consoleOK || !advancedOK {
-			return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
-		}
-		return healthcheck.Resolved()
-	}
-
 	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableWebhookDebugging })
 	switch {
 	case !ok:
@@ -159,7 +97,7 @@ func evalLogDebugProd(s *healthcheck.Snapshot) healthcheck.Result {
 	switch {
 	case !ok:
 		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
-	case isDebugLevel(level):
+	case strings.EqualFold(level, "debug"), strings.EqualFold(level, "trace"):
 		return healthcheck.Firing(healthcheck.TranslationId("health.rule.log_debug_prod.message")).WithDetail("level", level)
 	default:
 		return healthcheck.Resolved()

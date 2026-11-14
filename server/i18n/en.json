@@ -15233,17 +15233,17 @@
   },
   {
     "id": "health.rule.log_webhook_payloads.message",
-    "translation": "LogSettings.EnableWebhookDebugging is true and a log target writes debug entries, so failed incoming webhook requests are logged with their full payload. Payloads can contain message text and other user-authored content, which is then kept by log files, log collectors, and Support Packets.",
+    "translation": "LogSettings.EnableWebhookDebugging is true, so failed incoming webhook requests are logged with their payload, which can contain message text.",
     "description": "Health dashboard finding detail when webhook debugging logs incoming webhook payloads; 'LogSettings.EnableWebhookDebugging' is a config setting path and should not be translated."
   },
   {
     "id": "health.rule.log_webhook_payloads.remediation",
-    "translation": "If you are not troubleshooting an incoming webhook, set LogSettings.EnableWebhookDebugging to false.",
+    "translation": "Set LogSettings.EnableWebhookDebugging to false unless you are troubleshooting a webhook.",
     "description": "Health dashboard fix-it step for webhook payload logging; 'LogSettings.EnableWebhookDebugging' is a config setting path and 'false' is a setting value; do not translate them."
   },
   {
     "id": "health.rule.log_webhook_payloads.title",
-    "translation": "Incoming webhook payloads written to logs",
+    "translation": "Webhook payloads are logged",
     "description": "Health dashboard finding title when failed incoming webhook requests are logged with their payload, which can include message content."
   },
   {
