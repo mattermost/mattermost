@@ -279,7 +279,6 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             await cleanDeleteBtn.scrollIntoViewIfNeeded();
             await expect(cleanDeleteBtn).toBeEnabled();
             await cleanDeleteBtn.click();
-            await page.waitForTimeout(500);
 
             const cleanModal = page.locator('[role="dialog"]').filter({hasText: /confirm|delete/i});
             await cleanModal.waitFor({state: 'visible', timeout: 5000});
@@ -440,10 +439,15 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // Dirty the form via the policy name so Save enables
             const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInput.fill(policyName + ' (edited)');
-            await page.waitForTimeout(300);
 
+            const saved = page.waitForResponse(
+                (resp) =>
+                    /\/api\/v4\/access_control_policies(\/[A-Za-z0-9]+)?$/.test(resp.url()) &&
+                    resp.request().method() === 'PUT' &&
+                    resp.ok(),
+            );
             await saveBtn.click();
-            await page.waitForLoadState('networkidle');
+            await saved;
 
             // Verify the stored policy directly — all hidden values must survive merge-on-save
             const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
@@ -536,7 +540,6 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // --- Switch to Advanced mode ---
             const toAdvanced = page.getByRole('button', {name: /switch to advanced mode/i});
             await toAdvanced.click();
-            await page.waitForTimeout(500);
 
             // Banner must persist across the toggle
             await expect(banner).toBeVisible();
@@ -545,7 +548,6 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // --- Switch back to Simple mode ---
             const toSimple = page.getByRole('button', {name: /switch to simple mode/i});
             await toSimple.click();
-            await page.waitForTimeout(1500);
 
             // All restrictions must STILL be in place after toggling back
             await expect(banner).toBeVisible();

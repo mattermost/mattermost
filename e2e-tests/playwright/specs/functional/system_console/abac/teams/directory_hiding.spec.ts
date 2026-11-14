@@ -248,8 +248,12 @@ test.describe('ABAC - Team directory hiding', {tag: ['@abac', '@team_membership'
         // UI: with the backend confirmed above, the team-selection directory hides it
         // for the admin too.
         const adminSession = await pw.testBrowser.login(adminUser);
+        const directoryLoaded = adminSession.page.waitForResponse(
+            (resp) => resp.url().includes('/api/v4/teams') && resp.url().includes('for_directory=true') && resp.ok(),
+        );
         await adminSession.page.goto('/select_team');
-        await adminSession.page.waitForLoadState('networkidle');
+        await directoryLoaded;
+        await expect(adminSession.page.locator('#teamsYouCanJoinContent')).toBeVisible();
         await expect(adminSession.page.getByText(governed.display_name, {exact: false})).toHaveCount(0);
     });
 

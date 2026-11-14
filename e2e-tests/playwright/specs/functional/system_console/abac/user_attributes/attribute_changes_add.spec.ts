@@ -81,10 +81,18 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
+        const policySearch3 = systemConsolePage.page.waitForResponse(
+            (resp) =>
+                /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+                resp.request().method() === 'POST' &&
+                (resp.request().postData() ?? '').includes(uniqueId) &&
+                resp.ok(),
+        );
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
+        await policySearch3;
 
         const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        await expect(policyRow).toContainText(uniqueId);
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
 
         if (policyId) {

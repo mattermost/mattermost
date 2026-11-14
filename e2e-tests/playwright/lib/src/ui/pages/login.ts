@@ -72,7 +72,6 @@ export default class LoginPage {
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
         await expect(this.title).toBeVisible();
         await expect(this.loginInput).toBeVisible();
         await expect(this.passwordInput).toBeVisible();
@@ -85,7 +84,8 @@ export default class LoginPage {
     async login(user: UserProfile, useUsername = true) {
         await this.loginInput.fill(useUsername ? user.username : user.email);
         await this.passwordInput.fill(user.password);
-        await Promise.all([this.page.waitForNavigation(), this.signInButton.click()]);
+        await this.signInButton.click();
+        await this.page.waitForURL((url) => !/\/login\/?$/.test(url.pathname));
     }
 
     async submitCredentials(loginId: string, password: string) {

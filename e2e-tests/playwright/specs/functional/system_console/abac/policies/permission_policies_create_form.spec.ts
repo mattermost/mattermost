@@ -25,7 +25,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Detail page heading and name input visible
         await expect(
@@ -43,7 +42,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Banner explains that permission policies override system permission schemes
         await expect(
@@ -62,7 +60,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         await expect(systemConsolePage.page.getByText('Who this policy applies to')).toBeVisible();
         await expect(
@@ -91,7 +88,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // # Open the role dropdown and select System administrators
         await systemConsolePage.page.locator('#pp-role-selector-btn').click();
@@ -110,7 +106,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         const switchToAdvanced = systemConsolePage.page.getByRole('button', {name: 'Switch to Advanced Mode'});
         await expect(switchToAdvanced).toBeVisible();
@@ -133,7 +128,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // # Type then clear the name to mark the form dirty, enabling the Save button
         const nameInput = systemConsolePage.page.getByPlaceholder('Add a unique policy name');
@@ -154,7 +148,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         await systemConsolePage.page
             .getByPlaceholder('Add a unique policy name')
@@ -174,7 +167,6 @@ test.describe('Permission Policies - Create Policy', () => {
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         await systemConsolePage.page
             .getByPlaceholder('Add a unique policy name')
@@ -186,11 +178,11 @@ test.describe('Permission Policies - Create Policy', () => {
         await monacoContainer.waitFor({state: 'visible', timeout: 5000});
         const editorLines = systemConsolePage.page.locator('.monaco-editor .view-lines').first();
         await editorLines.click({force: true});
-        await systemConsolePage.page.waitForTimeout(300);
+        await expect(systemConsolePage.page.locator('.monaco-editor textarea.inputarea').first()).toBeFocused();
         const isMac = process.platform === 'darwin';
         await systemConsolePage.page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-        await systemConsolePage.page.waitForTimeout(100);
         await systemConsolePage.page.keyboard.type('user.attributes.Department == "Engineering"', {delay: 10});
+        await expect(editorLines).toContainText('Department == "Engineering"');
 
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).last().click();
 

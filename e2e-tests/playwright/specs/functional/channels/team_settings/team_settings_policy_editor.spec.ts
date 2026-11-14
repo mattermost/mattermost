@@ -516,11 +516,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        // # Navigate and wait for all API calls to settle (custom profile attributes
-        // must be fetched before the self-inclusion check can validate the admin's Department)
+        // # Navigate. The channels shell must be up before opening team settings, where
+        // custom profile attributes are read for the self-inclusion check.
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -874,7 +873,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();

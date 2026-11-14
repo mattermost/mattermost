@@ -35,7 +35,6 @@ test.describe('Permission Policies - List Page', () => {
 
         // # Click Permission Policies in the sidebar
         await systemConsolePage.sidebar.systemAttributes.permissionPolicies.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Correct URL and heading
         await expect(systemConsolePage.page).toHaveURL(/permission_policies/);
@@ -106,7 +105,6 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
         await deleteOption.click();
 
         // # Deletion from the list fires immediately — no confirmation modal
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Policy no longer in list
         await expect(systemConsolePage.page.getByText(policyName)).not.toBeVisible();
@@ -134,7 +132,6 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
 
             // # Search by the exact name
             await systemConsolePage.page.getByPlaceholder('Search').fill(policyName);
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             // * Only the matching policy is visible
             await expect(systemConsolePage.page.getByText(policyName)).toBeVisible();

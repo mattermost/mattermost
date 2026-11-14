@@ -78,7 +78,6 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
             AccessControlSettings: {EnableAttributeBasedAccessControl: false},
         });
         await page.reload();
-        await page.waitForLoadState('networkidle');
         await channelsPage.toBeVisible();
         // Re-apply once more after the page has settled to prevent a WebSocket
         // CONFIG_CHANGED event (from a concurrent initSetup()) from flipping it back.

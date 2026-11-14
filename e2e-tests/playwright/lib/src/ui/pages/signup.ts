@@ -4,7 +4,6 @@
 import type {Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {duration, wait} from '@/util';
 import {testConfig} from '@/test_config';
 import {components} from '@/ui/components';
 
@@ -84,9 +83,6 @@ export default class SignupPage {
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
-        await this.page.waitForLoadState('domcontentloaded');
-        await wait(duration.half_sec);
         await expect(this.title).toBeVisible();
         await expect(this.emailInput).toBeVisible();
         await expect(this.usernameInput).toBeVisible();
@@ -105,7 +101,9 @@ export default class SignupPage {
         await this.createAccountButton.click();
 
         if (waitForRedirect) {
-            await this.page.waitForNavigation();
+            await this.page.waitForURL(
+                (url) => !url.pathname.startsWith(testConfig.withSubpath('/signup_user_complete')),
+            );
         }
     }
 

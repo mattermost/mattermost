@@ -183,8 +183,10 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const message = `Timer test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
-        // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
+        // # Login as receiver. Install the clock before the countdown starts so advancing
+        // it moves the chip, which reads Date.now() from the shared ticker.
+        const {channelsPage: receiverPage, page} = await pw.testBrowser.login(receiver);
+        await page.clock.install();
         await receiverPage.goto(team.name, `@${sender.username}`);
         await receiverPage.toBeVisible();
 
@@ -202,20 +204,21 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         // * Verify time format is correct (MM:SS or M:SS)
         expect(initialTime).toMatch(/^\d+:\d{2}$/);
 
-        // # Wait 2 seconds
-        await receiverPage.page.waitForTimeout(2000);
-
-        // * Get updated time
-        const updatedTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
+        // # Advance the client clock by the two seconds this countdown is measured across
+        await page.clock.fastForward(2000);
 
         // * Verify time has decreased
-        expect(updatedTime).toMatch(/^\d+:\d{2}$/);
-        // Parse times to compare
         const parseTime = (t: string) => {
             const [m, s] = t.split(':').map(Number);
             return m * 60 + s;
         };
-        expect(parseTime(updatedTime)).toBeLessThan(parseTime(initialTime));
+        await expect
+            .poll(async () => {
+                const updatedTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
+                expect(updatedTime).toMatch(/^\d+:\d{2}$/);
+                return parseTime(updatedTime);
+            })
+            .toBeLessThan(parseTime(initialTime));
     });
 
     test('MM-66742_13 message auto-deletes after timer expires', {tag: [BOR_TAG]}, async ({pw}, testInfo) => {

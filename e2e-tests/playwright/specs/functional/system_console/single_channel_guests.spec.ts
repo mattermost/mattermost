@@ -33,10 +33,20 @@ test.describe('Single-channel guests', () => {
 
     async function navigateWithGuestPatch(page: any, adminClient: any, url: string, guestEnabled: boolean) {
         await page.goto(url);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('admin-console-header')).toBeVisible();
         await patchGuestEnabled(adminClient, guestEnabled);
+        const configLoaded = page.waitForResponse(
+            (response: {url: () => string; ok: () => boolean; request: () => {method: () => string}}) => {
+                return (
+                    response.request().method() === 'GET' &&
+                    response.ok() &&
+                    /\/api\/v4\/config$/.test(new URL(response.url()).pathname)
+                );
+            },
+        );
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await configLoaded;
+        await expect(page.getByTestId('admin-console-header')).toBeVisible();
     }
 
     /**
@@ -96,7 +106,7 @@ test.describe('Single-channel guests', () => {
                         // hide the card and make the textContent call return null.
                         await patchGuestEnabled(adminClient, true);
                         await systemConsolePage.page.reload();
-                        await systemConsolePage.page.waitForLoadState('networkidle');
+                        await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible();
                         const text = await systemConsolePage.page
                             .getByTestId('singleChannelGuests')
                             .textContent()
@@ -180,8 +190,11 @@ test.describe('Single-channel guests', () => {
                 false,
             );
 
-            // * Verify the single-channel guests card is not in the DOM
-            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).not.toBeVisible();
+            // The header renders before the stat cards. Wait for a card from that same render.
+            await expect(systemConsolePage.page.getByTestId('totalTeams')).toBeVisible();
+
+            // * The single-channel guests card is omitted when guest accounts are disabled
+            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeHidden();
         },
     );
 
@@ -290,7 +303,7 @@ test.describe('Single-channel guests', () => {
         await systemConsolePage.toBeVisible();
         await patchGuestEnabled(adminClient, true);
         await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toBeVisible();
 
         // * Verify the guest limit banner is not visible (count is within limit)
         await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
@@ -438,7 +451,7 @@ test.describe('Single-channel guests', () => {
             const readGuestCount = async () => {
                 await patchGuestEnabled(adminClient, true);
                 await systemConsolePage.page.reload();
-                await systemConsolePage.page.waitForLoadState('networkidle');
+                await expect(singleChannelGuestsCard).toBeVisible();
                 const text = await singleChannelGuestsCard.textContent().catch(() => '');
                 return Number(text?.match(/(\d+)/)?.[1] ?? NaN);
             };

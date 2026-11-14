@@ -1,9 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
-
 import {expect, test} from '@mattermost/playwright-lib';
+
+async function scrollTopAfterMove(read: () => Promise<number>, previous: number, direction: 'up' | 'down') {
+    let observed = previous;
+    await expect
+        .poll(async () => {
+            observed = await read();
+            return direction === 'up' ? observed < previous : observed > previous;
+        })
+        .toBe(true);
+    return observed;
+}
 
 test('should be able to scroll the RHS with page up and down', async ({pw}) => {
     const {user} = await pw.initSetup();
@@ -20,47 +29,34 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
         await channelsPage.sidebarRight.postCreate.postMessage('a\n'.repeat(10));
     }
 
-    let lastScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
+    const threadList = page.locator('#threadViewerScrollContainer');
+    const readScrollTop = () => threadList.evaluate((el) => el.scrollTop);
+    let lastScrollTop = await readScrollTop();
 
-    // # Press the page up key with the post textbox focused
-    channelsPage.sidebarRight.postCreate.input.focus();
+    // Page Up in the reply box moves focus to the thread list. Send the key to the
+    // focused textbox; threadList.press() would focus the list first and skip that path.
+    await channelsPage.sidebarRight.postCreate.input.focus();
     await page.keyboard.press('PageUp');
-    await page.waitForTimeout(200); // Wait for the browser's page up/down animation
 
     // * Verify that the post list scrolled up by a page
-    let currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
-    expect(currentScrollTop).toBeLessThan(lastScrollTop);
-    lastScrollTop = currentScrollTop;
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
 
     // # Press the page up key with the post list focused
-    await page.keyboard.press('PageUp');
-    await page.waitForTimeout(200);
+    await threadList.press('PageUp');
 
     // * Verify that the post list scrolled up another page
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
-    expect(currentScrollTop).toBeLessThan(lastScrollTop);
-    lastScrollTop = currentScrollTop;
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'up');
 
     // # Press the page down key with the post list focused
-    await page.keyboard.press('PageDown');
-    await page.waitForTimeout(200);
+    await threadList.press('PageDown');
 
     // * Verify that the post list scrolled back down a page
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
-    expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
-    lastScrollTop = currentScrollTop;
+    lastScrollTop = await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
 
     // # Press the page down key with the post textbox focused
-    channelsPage.centerView.postCreate.input.focus();
+    await channelsPage.sidebarRight.postCreate.input.focus();
     await page.keyboard.press('PageDown');
-    await page.waitForTimeout(200);
 
-    // * Verify that the post list scrolled back to the bottom
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
-    expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
+    // * Verify that the post list scrolled back toward the bottom
+    await scrollTopAfterMove(readScrollTop, lastScrollTop, 'down');
 });
-
-async function getScrollTop(page: Page, selector: string): Promise<number> {
-    const locator = await page.locator(selector);
-    return locator?.evaluate((element) => element.scrollTop);
-}

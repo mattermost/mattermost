@@ -119,11 +119,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         // ============================================================
 
         // Navigate back to policy to test the access rule
-        await systemConsolePage.page.waitForTimeout(1000);
         const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             const testResult = await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
@@ -246,8 +244,17 @@ test.describe('ABAC Policies - Create Policies', () => {
         await adminClient.addToTeam(team.id, satisfyingUserInChannel.id);
         await adminClient.addToTeam(team.id, nonSatisfyingUserInChannel.id);
 
-        // Wait for user attributes to be indexed before creating policy
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await expect
+            .poll(async () => {
+                const fields = await adminClient.getCustomProfileAttributeFields();
+                const department = fields.find((field) => field.name === 'Department');
+                if (!department) {
+                    return undefined;
+                }
+                const values = await adminClient.getUserCustomProfileAttributesValues(satisfyingUserNotInChannel.id);
+                return values[department.id];
+            })
+            .toBe('Engineering');
 
         // Create private channel and add users 2 and 3 (but NOT user 1)
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
@@ -296,11 +303,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         // STEP 3: Test Access Rule (navigate back to policy to test)
         // ============================================================
 
-        await systemConsolePage.page.waitForTimeout(1000);
         const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             const testResult = await testAccessRule(systemConsolePage.page, {
                 expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
@@ -322,10 +327,18 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
         const uniqueId = idMatch ? idMatch[1] : policyName;
+        const policySearch5 = systemConsolePage.page.waitForResponse(
+            (resp) =>
+                /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+                resp.request().method() === 'POST' &&
+                (resp.request().postData() ?? '').includes(uniqueId) &&
+                resp.ok(),
+        );
         await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
+        await policySearch5;
 
         const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        await expect(policyRow).toContainText(uniqueId);
         const policyElementId = await policyRow.getAttribute('id');
         const policyId = policyElementId?.replace('customDescription-', '');
 

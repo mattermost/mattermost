@@ -217,7 +217,6 @@ test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
 
     // * Verify the text is selected but no quote button is shown
     await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe('Diam sapien pellentesque');
-    await page.waitForTimeout(500);
     await expect(page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
 });
 
