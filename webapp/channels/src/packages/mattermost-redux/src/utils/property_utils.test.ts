@@ -7,10 +7,13 @@ import {
     canMoveToOption,
     formatPropertyFieldLabel,
     getOptionRank,
+    getRestrictionsWithChannelAdminValueWrite,
     getPropertyFieldChangePolicy,
     getPropertyFieldLabel,
     getPropertyFieldOptions,
     getPropertyFieldSyncSources,
+    isChannelFieldFillableByCreators,
+    isChannelFieldLevelOnlyUnfillable,
     isPropertyFieldEditable,
     isPropertyFieldRequired,
     isPropertyFieldSourceManaged,
@@ -410,5 +413,111 @@ describe('canMoveToOption', () => {
         expect(canMoveToOption(field, 'low', 'odd')).toBe(false);
         expect(canMoveToOption(field, 'odd', 'high')).toBe(false);
         expect(canMoveToOption(field, 'low', 'high')).toBe(true);
+    });
+});
+
+describe('channel field fillability', () => {
+    const channelField = (overrides: Partial<PropertyField> = {}) => makeField({object_type: 'channel', ...overrides});
+
+    describe('legacy permission_values', () => {
+        it.each([
+            ['admin', true],
+            ['member', true],
+            ['sysadmin', false],
+            ['creator', false],
+            ['none', false],
+            ['', false],
+        ] as const)('permission_values %s is fillable=%s', (level, expected) => {
+            expect(isChannelFieldFillableByCreators(channelField({permission_values: level}))).toBe(expected);
+        });
+
+        it('treats a missing permission_values as the admin default', () => {
+            expect(isChannelFieldFillableByCreators(channelField())).toBe(true);
+        });
+    });
+
+    it('is never fillable for a field that is not a channel field', () => {
+        expect(isChannelFieldFillableByCreators(makeField({object_type: 'user', permission_values: 'admin'}))).toBe(false);
+        expect(isChannelFieldLevelOnlyUnfillable(makeField({object_type: 'user', permission_values: 'sysadmin'}))).toBe(false);
+    });
+
+    it.each([
+        ['managed by admin', {managed: 'admin'}],
+        ['owned', {owners: [{type: 'plugin', id: 'p'}]}],
+        ['protected', {protected: true}],
+        ['synced', {ldap: 'attr'}],
+        ['source_only access', {access_mode: 'source_only'}],
+        ['shared_only access (masked)', {access_mode: 'shared_only'}],
+    ])('a %s field is not fillable and not level-only', (_label, attrs) => {
+        const field = channelField({permission_values: 'admin', attrs});
+        expect(isChannelFieldFillableByCreators(field)).toBe(false);
+        expect(isChannelFieldLevelOnlyUnfillable(field)).toBe(false);
+    });
+
+    it('flags any value tier channel creators cannot fill as the only problem', () => {
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'sysadmin'}))).toBe(true);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'none'}))).toBe(true);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'creator'}))).toBe(true);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'admin'}))).toBe(false);
+        expect(isChannelFieldLevelOnlyUnfillable(channelField({permission_values: 'member'}))).toBe(false);
+    });
+
+    describe('permissions', () => {
+        const withRestrictions = (value: {read?: 'member' | 'everyone' | 'creator' | 'admin' | 'none'; write?: 'admin' | 'member' | 'everyone' | 'creator' | 'sysadmin' | 'none'}, optionRead: 'member' | 'everyone' | 'creator' | 'none' = 'everyone', masking?: Record<string, unknown>) => channelField({
+            permission_values: 'sysadmin',
+            permissions: {restrictions: {value, option: {read: optionRead}}, masking},
+        });
+
+        it.each([
+            ['admin', true],
+            ['member', true],
+            ['everyone', false],
+            ['creator', false],
+            ['sysadmin', false],
+            ['none', false],
+        ] as const)('value.write %s is fillable=%s and wins over the legacy keys', (write, expected) => {
+            expect(isChannelFieldFillableByCreators(withRestrictions({read: 'everyone', write}))).toBe(expected);
+        });
+
+        it('needs members to read the values and options', () => {
+            expect(isChannelFieldFillableByCreators(withRestrictions({read: 'member', write: 'admin'}, 'member'))).toBe(true);
+            expect(isChannelFieldFillableByCreators(withRestrictions({read: 'creator', write: 'admin'}))).toBe(false);
+            expect(isChannelFieldFillableByCreators(withRestrictions({read: 'everyone', write: 'admin'}, 'creator'))).toBe(false);
+            expect(isChannelFieldFillableByCreators(withRestrictions({write: 'admin'}))).toBe(false);
+        });
+
+        it('is not fillable when masked, and the level is not the only problem', () => {
+            const masked = withRestrictions({read: 'everyone', write: 'sysadmin'}, 'everyone', {mask_by_field_id: 'x'});
+            expect(isChannelFieldFillableByCreators(masked)).toBe(false);
+            expect(isChannelFieldLevelOnlyUnfillable(masked)).toBe(false);
+        });
+
+        it('reports a level-only problem for sysadmin and none, and not once reads are narrowed', () => {
+            expect(isChannelFieldLevelOnlyUnfillable(withRestrictions({read: 'everyone', write: 'sysadmin'}))).toBe(true);
+            expect(isChannelFieldLevelOnlyUnfillable(withRestrictions({read: 'everyone', write: 'none'}))).toBe(true);
+            expect(isChannelFieldLevelOnlyUnfillable(withRestrictions({read: 'admin', write: 'sysadmin'}))).toBe(false);
+        });
+    });
+
+    describe('getRestrictionsWithChannelAdminValueWrite', () => {
+        it('keeps the stored restrictions and only changes value.write', () => {
+            const field = channelField({
+                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'admin'}, field: {write: 'admin'}}},
+            });
+            expect(getRestrictionsWithChannelAdminValueWrite(field)).toEqual({
+                value: {read: 'everyone', write: 'admin'},
+                option: {read: 'everyone', write: 'admin'},
+                field: {write: 'admin'},
+            });
+        });
+
+        it('derives the restrictions from the legacy keys when there are no permissions', () => {
+            const field = channelField({permission_values: 'sysadmin', permission_field: 'sysadmin', permission_options: 'admin'});
+            expect(getRestrictionsWithChannelAdminValueWrite(field)).toEqual({
+                value: {read: 'everyone', write: 'admin'},
+                option: {read: 'everyone', write: 'admin'},
+                field: {write: 'sysadmin'},
+            });
+        });
     });
 });

@@ -14,7 +14,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
-import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+import {formatPropertyFieldLabel, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -289,6 +289,11 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
             if (isMountedRef.current) {
                 setSaveFailed(true);
                 setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
+                if ((error as ClientError | undefined)?.server_error_id === 'app.property_field.required_unfillable.app_error') {
+                    // Nothing was saved, so Required goes back to its stored value.
+                    const savedRequired = channelField ? isPropertyFieldRequired(channelField) : false;
+                    setChannelResource((prev) => (prev && prev.required !== savedRequired ? {...prev, required: savedRequired} : prev));
+                }
             }
         } finally {
             if (isMountedRef.current) {

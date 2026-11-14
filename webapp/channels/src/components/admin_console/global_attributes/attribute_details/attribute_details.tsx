@@ -143,6 +143,7 @@ type ErrorKind =
     'generic' |
     'type_change_with_dependents' |
     'required_channels_missing_values' |
+    'required_unfillable' |
     'applies_to_failed' |
     'applies_to_remove_failed' |
     'applies_to_remove_partial_save' |
@@ -185,6 +186,8 @@ function errorKindFromError(error: unknown): ErrorKind {
         return 'type_change_with_dependents';
     case 'api.property_field.required.channels_missing_values.app_error':
         return 'required_channels_missing_values';
+    case 'app.property_field.required_unfillable.app_error':
+        return 'required_unfillable';
     default:
         return 'generic';
     }
@@ -210,16 +213,17 @@ function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict'
     }
 }
 
-// The server refuses Required while channels still lack a value, with a
-// message that says what to do; it is shown as is wherever the channel
-// field is created or patched.
+// The server refuses Required while channels still lack a value, or while
+// channel creators cannot set one, with a message that says what to do; it is
+// shown as is wherever the channel field is created or patched.
 function requiredGateFailure(error: unknown): (SaveOutcome & {success: false}) | null {
-    if (errorKindFromError(error) !== 'required_channels_missing_values') {
+    const errorKind = errorKindFromError(error);
+    if (errorKind !== 'required_channels_missing_values' && errorKind !== 'required_unfillable') {
         return null;
     }
     return {
         success: false,
-        errorKind: 'required_channels_missing_values',
+        errorKind,
         serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
         failedResourceTypes: null,
     };
@@ -455,6 +459,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // appliesTo; Save diffs against this snapshot. Updated in place after each
     // successful DELETE/POST so a retry does not repeat a completed step.
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
+
+    // Required as stored on the channel field, restored when a save is refused.
+    const savedChannelRequiredRef = useRef(false);
     const originalNameRef = useRef('');
 
     // Template display_name as loaded (or last successfully saved). Used to decide
@@ -619,7 +626,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // so without this seed a rename would overwrite them with defaults.
                 const channelConfigSource = field.object_type === 'channel' ? field : linkedByType.channel;
                 if (channelConfigSource) {
-                    setChannelResource(parseChannelFieldConfig(channelConfigSource));
+                    const loadedChannelResource = parseChannelFieldConfig(channelConfigSource);
+                    savedChannelRequiredRef.current = loadedChannelResource.required;
+                    setChannelResource(loadedChannelResource);
                 }
                 setLoading(false);
             } catch {
@@ -1060,6 +1069,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             dispatch(setNavigationBlocked(false));
             getHistory().push(LIST_ROUTE);
             return;
+        }
+        if (outcome.errorKind === 'required_unfillable') {
+            // Nothing was saved, so Required goes back to its stored value.
+            const savedRequired = savedChannelRequiredRef.current;
+            setChannelResource((prev) => (prev.required === savedRequired ? prev : {...prev, required: savedRequired}));
         }
         setErrorKind(outcome.errorKind);
         setServerErrorMessage(outcome.serverErrorMessage);
@@ -1607,7 +1621,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             name: displayName,
             resources,
         }) : formatMessage(errorMessages.applies_to_template_rollback_failed, {name: displayName});
-    } else if ((errorKind === 'name_conflict' || errorKind === 'required_channels_missing_values') && serverErrorMessage) {
+    } else if ((errorKind === 'name_conflict' || errorKind === 'required_channels_missing_values' || errorKind === 'required_unfillable') && serverErrorMessage) {
         errorContent = serverErrorMessage;
     } else if (errorKind) {
         errorContent = formatMessage(errorMessages[errorKind]);
@@ -2125,6 +2139,10 @@ const errorMessages = defineMessages({
     generic: {
         id: 'admin.global_attributes.attribute_details.save_error.generic',
         defaultMessage: 'Something went wrong while saving this attribute. Please try again.',
+    },
+    required_unfillable: {
+        id: 'admin.global_attributes.attribute_details.save_error.required_unfillable',
+        defaultMessage: "Channel creators can't set this attribute, so it can't be required.",
     },
     required_channels_missing_values: {
         id: 'admin.global_attributes.attribute_details.save_error.required_channels_missing_values',

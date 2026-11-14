@@ -1528,6 +1528,25 @@ describe('AttributeDetails', () => {
             expect(banner).not.toHaveTextContent('Please try again');
         });
 
+        it("shows the server's own message and turns Required back off when channel creators can't set the attribute", async () => {
+            jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('app.property_field.required_unfillable.app_error', "Channel creators can't set this attribute, so it can't be required."));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            expect(screen.getByTestId('channelsResourceRequired-button')).toBeChecked();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent("Channel creators can't set this attribute, so it can't be required.");
+            expect(screen.getByTestId('channelsResourceRequired-button')).not.toBeChecked();
+        });
+
         it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
             const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
             jest.spyOn(Client4, 'createPropertyField').

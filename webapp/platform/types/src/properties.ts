@@ -38,6 +38,26 @@ export type FieldValueType =
 // default for the field's object type.
 export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | 'creator' | '';
 
+// The tiers a restriction leaf can hold: the permission levels plus everyone,
+// which admits any caller.
+export type PropertyRestrictionLevel = PropertyPermissionLevel | 'everyone';
+
+// An omitted leaf reads as none.
+export type PropertyRestrictions = {
+    value?: {read?: PropertyRestrictionLevel; write?: PropertyRestrictionLevel};
+    option?: {read?: PropertyRestrictionLevel; write?: PropertyRestrictionLevel};
+    field?: {write?: PropertyRestrictionLevel};
+};
+
+// Mirrors model.Permissions. Only restrictions are read or written by the
+// client; grants and masking are carried as the server sent them.
+export type PropertyFieldPermissions = {
+    restrictions?: PropertyRestrictions;
+    grants?: unknown[];
+    masking?: Record<string, unknown>;
+    filtered?: boolean;
+};
+
 export type PropertyField = {
     id: string;
     group_id: string;
@@ -58,6 +78,10 @@ export type PropertyField = {
     permission_field?: PropertyPermissionLevel;
     permission_values?: PropertyPermissionLevel;
     permission_options?: PropertyPermissionLevel;
+
+    // When present these are the field's effective permissions and the legacy
+    // permission_* keys no longer apply.
+    permissions?: PropertyFieldPermissions;
     create_at: number;
     update_at: number;
     delete_at: number;

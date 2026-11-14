@@ -3,11 +3,13 @@
 
 import React from 'react';
 
+import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {Client4} from 'mattermost-redux/client';
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -18,13 +20,15 @@ import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 import useChannelMissingValues from './use_channel_missing_values';
 import type {ChannelMissingValuesState} from './use_channel_missing_values';
 
-import {notifyChannelAdminsOfMissingValue} from '../../utils';
+import {listPropertyFields, notifyChannelAdminsOfMissingValue} from '../../utils';
 
 jest.mock('./use_channel_missing_values');
 jest.mock('./channels_without_value_modal');
 jest.mock('./notify_channel_admins_modal');
 jest.mock('../../utils', () => ({
     __esModule: true,
+    ...jest.requireActual('../../utils'),
+    listPropertyFields: jest.fn(),
     notifyChannelAdminsOfMissingValue: jest.fn(),
 }));
 
@@ -32,6 +36,7 @@ const mockUseChannelMissingValues = jest.mocked(useChannelMissingValues);
 const mockUseChannelsWithoutValueModal = jest.mocked(useChannelsWithoutValueModal);
 const mockUseNotifyChannelAdmins = jest.mocked(useNotifyChannelAdmins);
 const mockNotify = jest.mocked(notifyChannelAdminsOfMissingValue);
+const mockListPropertyFields = jest.mocked(listPropertyFields);
 
 function missingValuesState(overrides: Partial<ChannelMissingValuesState> = {}): ChannelMissingValuesState {
     return {
@@ -73,6 +78,7 @@ describe('ChannelsResourceSettings', () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState());
         mockUseChannelsWithoutValueModal.mockReturnValue(openViewList);
         mockUseNotifyChannelAdmins.mockReturnValue(promptNotify);
+        mockListPropertyFields.mockResolvedValue([]);
     });
 
     // Pass {} as state for the flag-off baseline: an explicit undefined would
@@ -87,6 +93,7 @@ describe('ChannelsResourceSettings', () => {
                 value={{...DEFAULT_CHANNEL_RESOURCE_CONFIG, ...props.value}}
                 onChange={onChange}
                 channelFieldId={props.channelFieldId}
+                channelFieldUpdateAt={props.channelFieldUpdateAt}
                 attributeDisplayName={props.attributeDisplayName}
                 disabled={props.disabled}
                 ordered={props.ordered}
@@ -521,5 +528,105 @@ describe('ChannelsResourceSettings', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
 
         expect(mockNotify).not.toHaveBeenCalled();
+    });
+    describe('required but not fillable by channel creators', () => {
+        const savedField = (overrides: Partial<PropertyField> = {}): PropertyField => ({
+            id: 'channel-field-1',
+            group_id: 'g',
+            name: 'attr',
+            type: 'text',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            attrs: {required: true},
+            permission_values: 'sysadmin',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            ...overrides,
+        });
+
+        const renderWithSavedField = async (field: PropertyField, state: DeepPartial<GlobalState> = requiredEnabledState) => {
+            mockListPropertyFields.mockResolvedValue([field]);
+            const result = renderComponent({channelFieldId: field.id, value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}}, state);
+            await waitFor(() => expect(mockListPropertyFields).toHaveBeenCalledWith('channel'));
+            return result;
+        };
+
+        it('warns and offers the level change when the value tier is the only problem', async () => {
+            await renderWithSavedField(savedField());
+
+            const warning = await screen.findByTestId('requiredUnfillableWarning');
+            expect(warning).toHaveTextContent("Channel creators can't set this attribute");
+            expect(warning).toHaveTextContent("It's required, but channel creators can't set its value, so new channels are created without it and flagged.");
+            expect(screen.getByRole('button', {name: 'Change to Channel admin'})).toBeInTheDocument();
+        });
+
+        it.each([
+            ['owned', {required: true, owners: [{type: 'plugin', id: 'p'}]}, 'admin'],
+            ['synced', {required: true, ldap: 'attr'}, 'admin'],
+            ['protected', {required: true, protected: true}, 'admin'],
+            ['admin-managed', {required: true, managed: 'admin'}, 'sysadmin'],
+            ['masked', {required: true, access_mode: 'shared_only'}, 'admin'],
+        ] as const)('asks for the owner instead of offering a button for an %s field', async (_label, attrs, level) => {
+            await renderWithSavedField(savedField({attrs, permission_values: level}));
+
+            const warning = await screen.findByTestId('requiredUnfillableWarning');
+            expect(warning).toHaveTextContent('Ask its owner to make it settable by channel admins, or turn Required off.');
+            expect(screen.queryByRole('button', {name: 'Change to Channel admin'})).not.toBeInTheDocument();
+        });
+
+        it('stays hidden for a fillable field', async () => {
+            await renderWithSavedField(savedField({permission_values: 'admin'}));
+            await act(async () => {});
+            expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument();
+        });
+
+        it('stays hidden when the saved field is not required', async () => {
+            await renderWithSavedField(savedField({attrs: {required: false}}));
+            await act(async () => {});
+            expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument();
+        });
+
+        it('renders nothing and does not fetch when ChannelAttributesRequired is off', async () => {
+            mockListPropertyFields.mockResolvedValue([savedField()]);
+            renderComponent({channelFieldId: 'channel-field-1'}, {});
+
+            expect(mockListPropertyFields).not.toHaveBeenCalled();
+            expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument();
+        });
+
+        it('patches only the permissions, keeping the stored restrictions, and clears the warning', async () => {
+            const field = savedField({
+                permission_values: undefined,
+                permissions: {restrictions: {value: {read: 'everyone', write: 'sysadmin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}},
+            });
+            const patched = savedField({
+                permissions: {restrictions: {value: {read: 'everyone', write: 'admin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}},
+            });
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(patched);
+            await renderWithSavedField(field);
+
+            await userEvent.click(await screen.findByRole('button', {name: 'Change to Channel admin'}));
+
+            await waitFor(() => expect(screen.queryByTestId('requiredUnfillableWarning')).not.toBeInTheDocument());
+            expect(patchSpy).toHaveBeenCalledTimes(1);
+            expect(patchSpy).toHaveBeenCalledWith('access_control', 'channel', 'channel-field-1', {
+                permissions: {restrictions: {value: {read: 'everyone', write: 'admin'}, option: {read: 'everyone', write: 'sysadmin'}, field: {write: 'sysadmin'}}},
+            });
+            expect(Object.keys(patchSpy.mock.calls[0][3])).toEqual(['permissions']);
+        });
+
+        it('keeps the warning and says so when the change fails', async () => {
+            jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(new Error('nope'));
+            await renderWithSavedField(savedField());
+
+            await userEvent.click(await screen.findByRole('button', {name: 'Change to Channel admin'}));
+
+            expect(await screen.findByTestId('requiredUnfillableChangeError')).toBeInTheDocument();
+            expect(screen.getByTestId('requiredUnfillableWarning')).toBeInTheDocument();
+        });
     });
 });

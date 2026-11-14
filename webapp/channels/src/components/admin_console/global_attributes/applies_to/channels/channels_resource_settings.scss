@@ -185,3 +185,11 @@
         transform: translateX(4px);
     }
 }
+
+.ChannelsResourceSettings__unfillable {
+    display: flex;
+    max-width: 600px;
+    flex-direction: column;
+    margin-top: 12px;
+    gap: 8px;
+}

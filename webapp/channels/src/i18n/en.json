@@ -5883,6 +5883,26 @@
     "defaultMessage": "Required",
     "description": "Field label (adjective) for the toggle that makes a value for this attribute mandatory when creating a channel, in an attribute's Channels settings in the System Console. Also used as the toggle's screen-reader label."
   },
+  "admin.global_attributes.applies_to.channels.required.unfillable_change_button": {
+    "defaultMessage": "Change to Channel admin",
+    "description": "Button in the warning under the Required toggle that moves who can set the attribute's value on channels to Channel admin."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_change_failed": {
+    "defaultMessage": "Couldn't change who can set this attribute. Try again.",
+    "description": "Error shown under the warning on a required channel attribute when changing who can set its value to Channel admin fails."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_owner_text": {
+    "defaultMessage": "Ask its owner to make it settable by channel admins, or turn Required off.",
+    "description": "Body of the warning shown for a required channel attribute whose value can't be set by channel creators because its owner controls it. The only remedies are asking the owner or turning Required off."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_text": {
+    "defaultMessage": "It's required, but channel creators can't set its value, so new channels are created without it and flagged.",
+    "description": "Body of the warning shown for a required channel attribute whose value channel creators can't set, explaining that new channels are created without a value and flagged."
+  },
+  "admin.global_attributes.applies_to.channels.required.unfillable_title": {
+    "defaultMessage": "Channel creators can't set this attribute",
+    "description": "Title of the warning shown in an attribute's Channels settings when the attribute is required but channel creators can't set its value."
+  },
   "admin.global_attributes.applies_to.channels.summary.display": {
     "defaultMessage": "Display: {locations}",
     "description": "Segment of the one-line summary on the collapsed/header Channels row of an attribute's 'Applies to' settings, e.g. 'Optional · Display: Header + Channel Info'. {locations} is the already-translated display location names joined with ' + '."
@@ -6650,6 +6670,10 @@
   "admin.global_attributes.attribute_details.save_error.required_channels_missing_values": {
     "defaultMessage": "This attribute can't be made required while some channels have no value for it. Notify their channel admins, then try again.",
     "description": "Red error banner on the attribute page (System Console > System Attributes > Attribute Management) when saving Required is refused because some channels have no value yet; shown only if the server sent no message of its own."
+  },
+  "admin.global_attributes.attribute_details.save_error.required_unfillable": {
+    "defaultMessage": "Channel creators can't set this attribute, so it can't be required.",
+    "description": "Fallback error shown next to the Save button when the server refuses to make a channel attribute Required because channel creators can't set its value. The server's own message is shown when present."
   },
   "admin.global_attributes.attribute_details.save_error.reserved_word": {
     "defaultMessage": "This name is a reserved word and cannot be used. Please choose a different name.",
