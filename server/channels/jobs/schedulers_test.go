@@ -72,11 +72,23 @@ func TestScheduler(t *testing.T) {
 	jobServer.RegisterJobType(model.JobTypeDataRetention, nil, new(MockScheduler))
 	jobServer.RegisterJobType(model.JobTypeMessageExport, nil, new(MockScheduler))
 
+	// allNextRunTimesSet returns true when all registered schedulers have a
+	// non-nil nextRunTime, indicating the scheduler goroutine has initialized.
+	allNextRunTimesSet := func() bool {
+		for _, element := range jobServer.schedulers.nextRunTimes {
+			if element == nil {
+				return false
+			}
+		}
+		return len(jobServer.schedulers.nextRunTimes) > 0
+	}
+
 	t.Run("Base", func(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		require.Eventually(t, allNextRunTimesSet, 10*time.Second, 50*time.Millisecond,
+			"scheduler goroutine did not populate nextRunTimes")
 
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
@@ -92,7 +104,8 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		require.Eventually(t, allNextRunTimesSet, 10*time.Second, 50*time.Millisecond,
+			"scheduler goroutine did not populate nextRunTimes")
 		jobServer.HandleClusterLeaderChange(false)
 
 		err = jobServer.StopSchedulers()
@@ -110,7 +123,20 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		// The goroutine first initializes nextRunTimes (non-nil via Enabled),
+		// then processes the queued clusterLeaderChanged(false) message which
+		// sets them all to nil. Wait for that second phase to complete.
+		allNextRunTimesNil := func() bool {
+			for _, element := range jobServer.schedulers.nextRunTimes {
+				if element != nil {
+					return false
+				}
+			}
+			return len(jobServer.schedulers.nextRunTimes) > 0
+		}
+		require.Eventually(t, allNextRunTimesNil, 10*time.Second, 50*time.Millisecond,
+			"scheduler did not process leader change to false")
+
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
 
@@ -126,7 +152,9 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		require.Eventually(t, allNextRunTimesSet, 10*time.Second, 50*time.Millisecond,
+			"scheduler goroutine did not populate nextRunTimes")
+
 		err = jobServer.StopSchedulers()
 		require.NoError(t, err)
 
@@ -140,7 +168,8 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		require.Eventually(t, allNextRunTimesSet, 10*time.Second, 50*time.Millisecond,
+			"scheduler goroutine did not populate nextRunTimes")
 		jobServer.HandleClusterLeaderChange(false)
 		// After running a config change, they should stay off
 		jobServer.schedulers.handleConfigChange(nil, nil)
@@ -157,7 +186,8 @@ func TestScheduler(t *testing.T) {
 		err := jobServer.StartSchedulers()
 		require.NoError(t, err)
 
-		time.Sleep(2 * time.Second)
+		require.Eventually(t, allNextRunTimesSet, 10*time.Second, 50*time.Millisecond,
+			"scheduler goroutine did not populate nextRunTimes")
 
 		var wg sync.WaitGroup
 		wg.Add(2)
