@@ -696,8 +696,17 @@
     overflow: clip;
     max-height: inherit;
 
+    // WebKit puts the baseline of an inline-block with overflow: clip at its bottom edge, which adds a
+    // descender below the placeholder that the loaded image doesn't have
+    vertical-align: top;
+
     .image-loading__placeholder {
-        box-sizing: content-box;
+        background-size: 100% 100%;
+
+        // Without contain-intrinsic-size, the placeholder is sized by its src instead once that's decoded
+        @supports (contain-intrinsic-size: 1px) {
+            contain: size;
+        }
     }
 }
 

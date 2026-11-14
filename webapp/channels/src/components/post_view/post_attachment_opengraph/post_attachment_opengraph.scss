@@ -154,6 +154,12 @@
             }
         }
 
+        // Keep in sync with the thumbnail branch of getScaledImageDimensions, which sizes the placeholder
+        &:not(.large) img {
+            max-width: var(--open-graph-thumbnail-size);
+            max-height: var(--open-graph-thumbnail-size);
+        }
+
         .preview-toggle {
             position: absolute;
             top: -4px;

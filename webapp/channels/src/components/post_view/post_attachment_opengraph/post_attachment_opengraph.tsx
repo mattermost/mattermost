@@ -108,6 +108,7 @@ export function getScaledImageDimensions(imageMetadata: ImageMetadata, large: bo
     const ratio = Math.min(
         OPEN_GRAPH_THUMBNAIL_SIZE / width,
         OPEN_GRAPH_THUMBNAIL_SIZE / height,
+        1,
     );
 
     return {

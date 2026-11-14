@@ -7,6 +7,8 @@ import type {MmImageBlock} from '@mattermost/types/mm_blocks';
 
 import {openModal} from 'actions/views/modals';
 
+import SizeAwareImage from 'components/size_aware_image';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -142,5 +144,31 @@ describe('ImageBlock', () => {
                 })],
             }),
         }));
+    });
+
+    // The style is applied to the placeholder over its own aspect ratio, so it mustn't contain an undefined one
+    it.each([
+        ['default', undefined, {objectFit: 'contain'}],
+        ['person', 'person' as const, {objectFit: 'cover', aspectRatio: '1'}],
+    ])('passes the size caps to SizeAwareImage as a style (%s image)', (_, imageStyle, expectedStyle) => {
+        renderWithContext(
+            <ImageBlock
+                block={{
+                    type: 'image',
+                    url: 'https://example.com/photo.png',
+                    size: 'small',
+                    image_style: imageStyle,
+                }}
+                postId='post-1'
+            />,
+        );
+
+        expect(jest.mocked(SizeAwareImage).mock.lastCall?.[0].style).toStrictEqual({
+            width: 'auto',
+            height: 'auto',
+            maxWidth: 204,
+            maxHeight: 120,
+            ...expectedStyle,
+        });
     });
 });

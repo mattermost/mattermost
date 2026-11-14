@@ -272,6 +272,27 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).not.toBeInTheDocument();
     });
+
+    test('should size the placeholder of a tall thumbnail to fit within the thumbnail box', () => {
+        const props = {
+            ...baseProps,
+            imageMetadata: {
+                ...baseProps.imageMetadata!,
+                height: 1200,
+                width: 600,
+            },
+        };
+
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...props}/>,
+            initialState,
+        );
+
+        const placeholder = container.querySelector<HTMLImageElement>('.PostAttachmentOpenGraph__image:not(.large) .image-loading__placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder!.style.containIntrinsicSize).toEqual('40px 80px');
+        expect(placeholder!.style.aspectRatio).toEqual('auto 40 / 80');
+    });
 });
 
 describe('PostAttachmentOpenGraphBody', () => {
@@ -469,6 +490,30 @@ describe('Helpers', () => {
             }, false)).toEqual({
                 height: OPEN_GRAPH_THUMBNAIL_SIZE,
                 width: OPEN_GRAPH_THUMBNAIL_SIZE,
+            });
+        });
+
+        test('should scale tall images to fit within the thumbnail box', () => {
+            expect(getScaledImageDimensions({
+                format: 'png',
+                frameCount: 0,
+                height: 1200,
+                width: 600,
+            }, false)).toEqual({
+                height: OPEN_GRAPH_THUMBNAIL_SIZE,
+                width: OPEN_GRAPH_THUMBNAIL_SIZE / 2,
+            });
+        });
+
+        test('should not upscale images smaller than the thumbnail box', () => {
+            expect(getScaledImageDimensions({
+                format: 'png',
+                frameCount: 0,
+                height: 30,
+                width: 60,
+            }, false)).toEqual({
+                height: 30,
+                width: 60,
             });
         });
 
