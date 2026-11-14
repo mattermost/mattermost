@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 
 import PaginationButtons from 'components/common/pagination_buttons';
 import LoadingScreen from 'components/loading_screen';
@@ -21,6 +22,7 @@ type Props = {
     addText?: ReactNode;
     addButtonId?: string;
     emptyText?: ReactNode;
+    emptyIllustration?: ReactNode;
     emptyTextSearch?: JSX.Element;
     helpText?: ReactNode;
     error?: ReactNode;
@@ -87,23 +89,29 @@ const BackstageList = (remainingProps: Props) => {
             if (!filterLowered) {
                 if (remainingProps.emptyText) {
                     children = [(
-                        <div
-                            className='backstage-list__item backstage-list__empty'
+                        <EmptyState
                             key='emptyText'
-                        >
-                            {remainingProps.emptyText}
-                        </div>
+                            className='backstage-list__emptyState'
+                            illustration={remainingProps.emptyIllustration ? {
+                                'aria-label': '',
+                                children: remainingProps.emptyIllustration,
+                            } : undefined}
+                            title={remainingProps.emptyText}
+                        />
                     )];
                 }
             } else if (remainingProps.emptyTextSearch) {
                 children = [(
-                    <div
-                        className='backstage-list__item backstage-list__empty'
-                        id='emptySearchResultsMessage'
+                    <EmptyState
                         key='emptyTextSearch'
-                    >
-                        {React.cloneElement(remainingProps.emptyTextSearch, {values: {...remainingProps.emptyTextSearch.props.values, searchTerm: filterLowered}})}
-                    </div>
+                        id='emptySearchResultsMessage'
+                        className='backstage-list__emptyState'
+                        illustration={remainingProps.emptyIllustration ? {
+                            'aria-label': '',
+                            children: remainingProps.emptyIllustration,
+                        } : undefined}
+                        title={React.cloneElement(remainingProps.emptyTextSearch, {values: {...remainingProps.emptyTextSearch.props.values, searchTerm: filterLowered}})}
+                    />
                 )];
             }
         } else {

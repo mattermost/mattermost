@@ -138,6 +138,7 @@ describe('components/BrowseChannels', () => {
         currentUserId: 'user-1',
         teamId: 'team_1',
         teamName: 'team_name',
+        canCreatePublicChannel: true,
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
         shouldHideArchivedChannels: true,
@@ -387,6 +388,31 @@ describe('components/BrowseChannels', () => {
         await waitFor(() => {
             expect(screen.getByText(/Try searching different keywords/)).toBeInTheDocument();
         });
+    });
+
+    test.each([
+        [true, 1],
+        [false, 0],
+    ])('canCreatePublicChannel=%s: renders %i Create New Channel action(s) in the no-results state', async (canCreatePublicChannel, expectedButtons) => {
+        const props = {...baseProps, canCreatePublicChannel};
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.type(screen.getByPlaceholderText('Search channels'), 'fail');
+
+        await act(async () => {
+            jest.runOnlyPendingTimers();
+            await Promise.resolve();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText(/Try searching different keywords/)).toBeInTheDocument();
+        });
+
+        expect(screen.queryAllByRole('button', {name: 'Create New Channel'})).toHaveLength(expectedButtons);
     });
 
     test('should perform search and set the correct state', async () => {

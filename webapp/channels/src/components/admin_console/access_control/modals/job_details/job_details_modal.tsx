@@ -383,6 +383,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     channelsPerPage={pageSize}
                     nextPage={() => {}}
                     isSearch={Boolean(searchTerm)}
+                    searchTerm={searchTerm}
                     search={setSearchTerm}
                     onViewDetails={handleViewChannelDetails}
                     noResultsText={noChannelResultsText}
@@ -395,6 +396,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     teamsPerPage={pageSize}
                     nextPage={() => {}}
                     isSearch={Boolean(teamSearchTerm)}
+                    searchTerm={teamSearchTerm}
                     search={setTeamSearchTerm}
                     onViewDetails={handleViewTeamDetails}
                     noResultsText={noTeamResultsText}

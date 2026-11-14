@@ -242,7 +242,41 @@
         display: flex;
         justify-content: center;
         padding-top: 0;
+
+        // Fill the sidebar so the empty state isn't sized to its minimum width.
+        > .files-or-messages-panel {
+            @include mixins.fill-height-column(1 1 auto);
+        }
+
+        // Stretch every level to the full panel height so the Compass
+        // EmptyState can center itself vertically.
+        .sidebar--right__subheader {
+            @include mixins.fill-height-column(1 1 auto);
+
+            padding-bottom: 0;
+            margin: 0;
+        }
+
+        .no-results__wrapper--compass {
+            @include mixins.fill-empty-state(1 1 auto);
+
+            margin: 0;
+        }
     }
+}
+
+// Let the empty state take the whole panel height instead of sizing to its content.
+.SearchResults > [data-simplebar]:has(.search-items-container.no-results) {
+    // SimpleBar's inner wrapper uses `height: inherit`, so the height has to be
+    // specified (not just flex-grown) for the empty state to fill the panel.
+    height: 100%;
+    flex: 1 1 auto;
+}
+
+.simplebar-content:has(> .search-items-container.no-results) {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
 }
 
 .search-items-container div.loading {

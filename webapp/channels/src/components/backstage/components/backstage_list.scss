@@ -22,3 +22,10 @@
         text-align: right;
     }
 }
+
+// The Compass EmptyState already pads its own bottom by --spacing-xxl, so the top gets double
+// that and the bottom one more, which leaves the same extra room above and below.
+.backstage-list__emptyState {
+    padding-top: calc(var(--spacing-xxl) * 2);
+    padding-bottom: var(--spacing-xxl);
+}

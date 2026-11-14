@@ -7,6 +7,7 @@ import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import {buttonClassNames, type ButtonEmphasis} from '@mattermost/shared/components/button';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
@@ -182,23 +183,18 @@ function AttributeAppliesTo({
                 button={headerAddResource}
             >
                 {appliesTo.length === 0 ? (
-                    <div
+                    <EmptyState
                         className='AttributeAppliesTo__emptyState'
                         data-testid='attributeAppliesToEmptyState'
-                    >
-                        <h5 className='AttributeAppliesTo__emptyStateHeading'>
-                            <FormattedMessage {...messages.emptyStateHeading}/>
-                        </h5>
-                        <p className='AttributeAppliesTo__emptyStateHelperText'>
-                            <FormattedMessage {...(hideAddResource ? messages.emptyStateHelperTextPluginOwned : messages.emptyStateHelperText)}/>
-                        </p>
-                        {availableTypes.length > 0 && !hideAddResource && renderAddResourceMenu(
+                        title={<FormattedMessage {...messages.emptyStateHeading}/>}
+                        description={<FormattedMessage {...(hideAddResource ? messages.emptyStateHelperTextPluginOwned : messages.emptyStateHelperText)}/>}
+                        actionSlot={availableTypes.length > 0 && !hideAddResource ? renderAddResourceMenu(
                             'attribute-applies-to-add-inline',
                             'attributeAppliesToAddResourceButtonInline',
                             formatMessage(messages.addResourceHeader),
                             'primary',
-                        )}
-                    </div>
+                        ) : undefined}
+                    />
                 ) : (
                     <>
                         <div className='AttributeAppliesTo__list'>

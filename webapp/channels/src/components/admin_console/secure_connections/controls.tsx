@@ -33,45 +33,12 @@ export const ModalBody = styled.div`
     gap: 20px;
 `;
 
-export const PlaceholderHeading = styled.h4`
-    && {
-        font-size: 20px;
-        font-family: 'Metropolis', sans-serif;
-        font-weight: 600;
-        line-height: 28px;
-        margin-bottom: 4px;
-        margin-top: 0;
-    }
-`;
-
-export const PlaceholderParagraph = styled.p`
-    && {
-        font-size: 14px;
-    }
-`;
-
 export const ModalParagraph = styled.p`
     && {
         font-size: 12px;
         line-height: 16px;
         font-weight: 400;
         color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-`;
-
-export const PlaceholderContainer = styled.div`
-    display: flex;
-    place-items: center;
-    flex-direction: column;
-    gap: 24px;
-
-    hgroup {
-        text-align: center;
-
-        p {
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            margin-bottom: 0;
-        }
     }
 `;
 

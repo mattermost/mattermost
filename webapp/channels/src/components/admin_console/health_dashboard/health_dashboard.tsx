@@ -7,6 +7,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import {BellOffOutlineIcon} from '@mattermost/compass-icons/components';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -20,7 +21,7 @@ import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {EmptyState, TabEmptyState} from './empty_state';
+import {TabEmptyState} from './empty_state';
 import FindingGroups from './finding_groups';
 import FindingTabs, {tabId} from './finding_tabs';
 import GroupByControl from './group_by_control';
@@ -109,13 +110,14 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     } else if (failed) {
         content = (
             <EmptyState
+                className='HealthDashboard__empty'
                 title={
                     <FormattedMessage
                         id='admin.health_dashboard.error.title'
                         defaultMessage='Health findings could not be loaded'
                     />
                 }
-                body={
+                description={
                     <FormattedMessage
                         id='admin.health_dashboard.error.body'
                         defaultMessage='Reload the page to try again.'
@@ -126,13 +128,14 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
     } else if (lastEvaluatedAt === 0) {
         content = (
             <EmptyState
+                className='HealthDashboard__empty'
                 title={
                     <FormattedMessage
                         id='admin.health_dashboard.empty.title'
                         defaultMessage='Not evaluated yet'
                     />
                 }
-                body={
+                description={
                     <FormattedMessage
                         id='admin.health_dashboard.empty.body'
                         defaultMessage='The first health check runs within an hour of enabling the feature.'

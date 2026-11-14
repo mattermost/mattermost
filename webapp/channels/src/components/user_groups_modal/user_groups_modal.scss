@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 .user-groups-modal-create,
 .user-groups-modal-update,
 .view-user-groups-modal,
@@ -170,9 +172,19 @@
         max-height: 100%;
         padding: 0;
 
+        // Center the empty state in the space below the filter. The empty states are children of
+        // GenericModal__body, so both it and .modal-body become height-filling columns.
+        &:has(> .GenericModal__body > .no-results__wrapper, > .GenericModal__body > .user-groups-list--empty) {
+            display: flex;
+            flex-direction: column;
+
+            > .GenericModal__body {
+                @include mixins.fill-height-column;
+            }
+        }
+
         .no-results__wrapper {
             max-width: 350px;
-            padding-bottom: 60px;
         }
 
         .user-groups-search {
@@ -246,6 +258,14 @@
 
         .user-groups-modal__content {
             overflow: auto;
+
+            // Search with no matches: fill the space below the filter so the empty state centers.
+            // Doubled class so max-height beats the 460px cap on `.user-groups-list` below.
+            &.user-groups-list.user-groups-list--empty {
+                @include mixins.fill-height-column;
+
+                max-height: none;
+            }
 
             &.user-groups-list {
                 position: relative;

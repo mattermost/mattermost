@@ -103,7 +103,7 @@ describe('Channel Switcher', () => {
         cy.findByRole('combobox', {name: 'quick switch input'}).type('there-is-no-spoon');
 
         // * Expect 'nothing found' message
-        cy.get('.no-results__title > span').should('be.visible');
+        cy.get('[data-testid="no-results-title"]').should('be.visible');
     });
 
     it('MM-T2031_4 - should close on esc and outside click', () => {

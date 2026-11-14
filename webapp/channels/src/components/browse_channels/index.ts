@@ -18,9 +18,11 @@ import {
     withdrawMyChannelJoinRequest,
 } from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
+import Permissions from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector, getMyPendingJoinRequestsByChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -72,6 +74,7 @@ function mapStateToProps(state: GlobalState) {
         currentUserId: getCurrentUserId(state),
         teamId: getCurrentTeamId(state),
         teamName: team?.name,
+        canCreatePublicChannel: haveITeamPermission(state, getCurrentTeamId(state), Permissions.CREATE_PUBLIC_CHANNEL),
         channelsRequestStarted: state.requests.channels.getChannels.status === RequestStatus.STARTED,
         myChannelMemberships: getMyChannelMemberships(state) || {},
         shouldHideJoinedChannels: getGlobalItem(state) === 'true',

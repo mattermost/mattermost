@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 #browseChannelsModal {
     .modal-content {
         width: 100%;
@@ -292,6 +294,18 @@
     .filter-controls {
         padding-top: 24px;
     }
+}
+
+// Give the empty state the full height of the list area so the Compass
+// EmptyState can center itself vertically.
+#moreChannelsList:has(> .browse-channels-empty-state) {
+    @include mixins.fill-height-column;
+
+    overflow: hidden;
+}
+
+.browse-channels-empty-state {
+    @include mixins.fill-empty-state;
 }
 
 #moreChannelsList {

@@ -454,7 +454,7 @@ context('ldap', () => {
 
                 // * Should open up suggestion list for channels
                 // * should no results after looking for channel
-                cy.get('.no-results__title').should('be.visible').and('contain.text', 'No results for');
+                cy.get('[data-testid="no-results-title"]').should('be.visible').and('contain.text', 'No results for');
             });
         });
 
