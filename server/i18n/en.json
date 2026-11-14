@@ -4328,6 +4328,11 @@
     "description": "API error when the property field's object type differs from the type segment in the request URL; developer-leaning register."
   },
   {
+    "id": "api.property_field.options.delete.in_use.app_error",
+    "translation": "This option is applied to channels and can't be deleted.",
+    "description": "Error returned when an attempt is made to delete, or remove through a field update, an option of a channel attribute (e.g. a select-type attribute) that is currently applied to one or more channels."
+  },
+  {
     "id": "api.property_field.options.empty_body.app_error",
     "translation": "No property field options were provided.",
     "description": "API error when a request to add, update or delete the selectable options of a custom property field (e.g. a select-type attribute) contains no options."

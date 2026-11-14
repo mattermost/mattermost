@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -992,9 +993,12 @@ func TestGetPropertyFieldOptionsInUse(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.IntegratedBoards = true
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 		// A request at the option cap is longer than the default URL limit.
 		cfg.ServiceSettings.MaximumURLLength = model.NewPointer(16384)
 	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_options_in_use", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
@@ -1133,6 +1137,9 @@ func TestGetPropertyFieldOptionsInUse(t *testing.T) {
 		require.Nil(t, appErr)
 		field := newField(t, acGroup.ID, channelObject, system, "")
 
+		th.App.Srv().SetLicense(nil)
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), acGroup.Name, channelObject, field.ID, 0, "", 100)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
@@ -1164,5 +1171,83 @@ func TestGetPropertyFieldOptionsInUse(t *testing.T) {
 		_, resp, err = th.SystemAdminClient.GetPropertyFieldOptionsInUse(context.Background(), group.Name, channelObject, field.ID, tooMany[:model.PropertyFieldOptionsMaxPerRequest])
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+	})
+}
+
+func TestDeletePropertyFieldOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	channelObject := model.PropertyFieldObjectTypeChannel
+	memberLevel := model.PermissionLevelMember
+
+	usedID, unusedID := model.NewId(), model.NewId()
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "a" + model.NewId(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: channelObject,
+		TargetType: "system",
+		Attrs: model.StringInterface{model.PropertyFieldAttributeOptions: []any{
+			map[string]any{"id": usedID, "name": "Used"},
+			map[string]any{"id": unusedID, "name": "Unused"},
+		}},
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
+	_, err := th.App.Srv().Store().PropertyValue().Create(&model.PropertyValue{
+		GroupID:    group.ID,
+		FieldID:    field.ID,
+		TargetType: "channel",
+		TargetID:   model.NewId(),
+		Value:      json.RawMessage(`"` + usedID + `"`),
+	})
+	require.NoError(t, err)
+
+	listed := func(t *testing.T) []string {
+		t.Helper()
+		page, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, channelObject, field.ID, 0, "", 100)
+		require.NoError(t, err)
+		ids := make([]string, 0, len(page.Options))
+		for _, option := range page.Options {
+			ids = append(ids, option.ID)
+		}
+		return ids
+	}
+
+	t.Run("deleting an option a channel holds is a conflict", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeletePropertyFieldOptions(context.Background(), group.Name, channelObject, field.ID, []string{usedID, unusedID})
+		require.Error(t, err)
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+		CheckErrorID(t, err, "api.property_field.options.delete.in_use.app_error")
+		require.ElementsMatch(t, []string{usedID, unusedID}, listed(t))
+	})
+
+	t.Run("patching the field so it drops an option a channel holds is a conflict", func(t *testing.T) {
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{map[string]any{"id": unusedID, "name": "Unused"}},
+		}}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, channelObject, field.ID, patch)
+		require.Error(t, err)
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+		CheckErrorID(t, err, "api.property_field.options.delete.in_use.app_error")
+		require.ElementsMatch(t, []string{usedID, unusedID}, listed(t))
+	})
+
+	t.Run("an option no channel holds is deleted", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeletePropertyFieldOptions(context.Background(), group.Name, channelObject, field.ID, []string{unusedID})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, []string{usedID}, listed(t))
 	})
 }

@@ -4,7 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -31,16 +34,26 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string,
 	return page, nil
 }
 
-// PropertyFieldOptionsInUse returns which of optionIDs are held by a live value
-// of a channel, archived or not, on the field or on any channel field linking to
-// it. Only the verdict is reported, never how many channels hold an option.
+// PropertyFieldOptionsInUse returns which of optionIDs can't be deleted because
+// a live value of a channel, archived or not, holds them on the field or on any
+// channel field linking to it. None are while that refusal is off or for a
+// field its source manages. Only the verdict is reported, never how many
+// channels hold an option.
 func (a *App) PropertyFieldOptionsInUse(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]string, *model.AppError) {
+	if !a.refusesOptionsInUse() {
+		return []string{}, nil
+	}
+
 	field, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
 	if err != nil {
 		if appErr := mapPropertyServiceError("PropertyFieldOptionsInUse", err); appErr != nil {
 			return nil, appErr
 		}
 		return nil, model.NewAppError("PropertyFieldOptionsInUse", "app.property_field.options.in_use.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if isPropertyFieldSourceManaged(field) {
+		return []string{}, nil
 	}
 
 	var fieldIDs []string
@@ -61,6 +74,84 @@ func (a *App) PropertyFieldOptionsInUse(rctx request.CTX, groupID, fieldID strin
 		return nil, model.NewAppError("PropertyFieldOptionsInUse", "app.property_field.options.in_use.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return inUse, nil
+}
+
+// refusesOptionsInUse reports whether removing an option that channels use is
+// refused on this server. Callers check it first so that a server without the
+// feature pays for no query.
+func (a *App) refusesOptionsInUse() bool {
+	return a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() && model.MinimumEnterpriseAdvancedLicense(a.License())
+}
+
+// isPropertyFieldSourceManaged reports whether a field's definition belongs to
+// the plugin or sync that owns it, which decides its options rather than an admin.
+func isPropertyFieldSourceManaged(field *model.PropertyField) bool {
+	return model.HasPropertyFieldOwners(field) || model.IsPropertyFieldProtected(field) || model.IsPropertyFieldSynced(field)
+}
+
+// refuseDeletingOptionsInUse refuses with a 409 when any of optionIDs is held by
+// a channel value, as PropertyFieldOptionsInUse judges it. The details carry
+// option IDs only.
+func (a *App) refuseDeletingOptionsInUse(rctx request.CTX, callerName, groupID, fieldID string, optionIDs []string) *model.AppError {
+	if len(optionIDs) == 0 {
+		return nil
+	}
+
+	inUse, appErr := a.PropertyFieldOptionsInUse(rctx, groupID, fieldID, optionIDs)
+	if appErr != nil {
+		return appErr
+	}
+	if len(inUse) == 0 {
+		return nil
+	}
+	return model.NewAppError(callerName, "api.property_field.options.delete.in_use.app_error", nil, "option_ids="+strings.Join(inUse, ","), http.StatusConflict)
+}
+
+// inlineOptionIDs returns the IDs of the options a field's attrs carry, and
+// whether the attrs carry an option list at all.
+func inlineOptionIDs(attrs model.StringInterface) ([]string, bool) {
+	raw, ok := attrs[model.PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil, false
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return nil, false
+	}
+	var options []struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return nil, false
+	}
+	ids := make([]string, 0, len(options))
+	for _, option := range options {
+		if option.ID != "" {
+			ids = append(ids, option.ID)
+		}
+	}
+	return ids, true
+}
+
+// refuseUpdateDroppingOptionsInUse refuses an update whose options leave out
+// saved options that channels use. An update that does not supply an option list
+// drops nothing.
+func (a *App) refuseUpdateDroppingOptionsInUse(rctx request.CTX, callerName, groupID string, existing, next *model.PropertyField) *model.AppError {
+	if model.PropertyFieldOptionsOmitted(next.Attrs) || model.PropertyFieldOptionsOmitted(existing.Attrs) {
+		return nil
+	}
+	kept, supplied := inlineOptionIDs(next.Attrs)
+	if !supplied {
+		return nil
+	}
+	saved, _ := inlineOptionIDs(existing.Attrs)
+	var dropped []string
+	for _, id := range saved {
+		if !slices.Contains(kept, id) {
+			dropped = append(dropped, id)
+		}
+	}
+	return a.refuseDeletingOptionsInUse(rctx, callerName, groupID, existing.ID, dropped)
 }
 
 // CreatePropertyFieldOptions adds options to a field.
@@ -96,6 +187,10 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
 func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	if appErr := a.refuseDeletingOptionsInUse(rctx, "DeletePropertyFieldOptions", groupID, fieldID, optionIDs); appErr != nil {
+		return nil, appErr
+	}
+
 	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, groupID, fieldID, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {

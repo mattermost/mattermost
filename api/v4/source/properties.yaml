@@ -683,8 +683,11 @@
           $ref: "#/components/responses/NotFound"
         "409":
           description: >
-            Name conflict with an existing field, or cannot change type of a
-            field that has active linked dependents.
+            Name conflict with an existing field, cannot change type of a
+            field that has active linked dependents, or the update drops
+            options that channels use. Such an option is applied to one or
+            more channels, archived ones included, and can't be removed; the
+            error ID is `api.property_field.options.delete.in_use.app_error`.
           content:
             application/json:
               schema:
@@ -1088,8 +1091,12 @@
           $ref: "#/components/responses/NotFound"
         "409":
           description: >
-            The field changed while the request was being processed. Retry the
-            request.
+            Either the field changed while the request was being processed,
+            and the request can be retried, or an option is applied to one or
+            more channels, archived ones included, and can't be deleted. The
+            second case has the error ID
+            `api.property_field.options.delete.in_use.app_error` and deletes
+            nothing.
           content:
             application/json:
               schema:
@@ -1102,10 +1109,12 @@
         - properties
       summary: Get which property field options are in use
       description: >
-        Report which of the given options are held by a value of any channel,
-        archived or not, on the field or on any channel field linking to it.
-        Only the options in use are returned: never how many channels hold
-        them, or which.
+        Report which of the given options can't be deleted because a value of
+        any channel, archived or not, holds them on the field or on any channel
+        field linking to it. Only those options are returned: never how many
+        channels hold them, or which. None are returned while required channel
+        attributes are not enforced, or for a field its plugin or sync source
+        manages, since their options can be deleted.
 
 
         __Minimum server version__: 12.0

@@ -593,6 +593,11 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		if appErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); appErr != nil {
 			return nil, nil, appErr
 		}
+		if a.refusesOptionsInUse() {
+			if appErr := a.refuseUpdateDroppingOptionsInUse(rctx, "UpdatePropertyFields", groupID, existing, f); appErr != nil {
+				return nil, nil, appErr
+			}
+		}
 	}
 
 	updated, propagated, clearedFieldIDs, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
