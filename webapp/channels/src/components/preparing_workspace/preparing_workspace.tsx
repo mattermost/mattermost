@@ -6,9 +6,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import type {RouterProps} from 'react-router-dom';
 
+import type {ClientError} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
+import {getConfig as getAdminConfig, getEnvironmentConfig} from 'mattermost-redux/actions/admin';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
 import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
@@ -32,6 +34,8 @@ import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace
 import Organization from './organization';
 import Plugins from './plugins';
 import Progress from './progress';
+import SiteUrl from './site_url';
+import {invalidSiteUrlMessage} from './site_url_status';
 import {
     WizardSteps,
     Animations,
@@ -98,9 +102,12 @@ const PreparingWorkspace = ({
     const configSiteUrl = config.SiteURL;
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';
+    const isConfigSiteUrlUnset = !configSiteUrl || isConfigSiteUrlDefault;
+    const [showSiteUrlStep, setShowSiteUrlStep] = useState(false);
 
     const stepOrder = [
         isSelfHosted && WizardSteps.Organization,
+        showSiteUrlStep && WizardSteps.SiteUrl,
         pluginsEnabled && WizardSteps.Plugins,
         WizardSteps.InviteMembers,
         WizardSteps.LaunchingWorkspace,
@@ -116,7 +123,32 @@ const PreparingWorkspace = ({
     const browserSiteUrl = useMemo(() => getSiteURL(), []);
     const [form, setForm] = useState({
         ...emptyForm,
+        url: browserSiteUrl,
     });
+
+    // Only send the Site URL if the admin saw the step and didn't skip it.
+    const siteUrlToSend = stepOrder.includes(WizardSteps.SiteUrl) && !form.urlSkipped ? form.url : undefined;
+
+    const currentStepRef = useRef(currentStep);
+    currentStepRef.current = currentStep;
+
+    // Show the Site URL step only if the admin can actually set the Site URL. It needs the admin and
+    // environment configs, so it is added once they load, and only while the admin is still on the
+    // Organization step, so that the steps never change behind the admin. If either request fails,
+    // the step stays hidden, and the admin can set the Site URL in the System Console later.
+    useEffect(() => {
+        if (!isSelfHosted || !isConfigSiteUrlUnset) {
+            return;
+        }
+        Promise.all([dispatch(getEnvironmentConfig()), dispatch(getAdminConfig())]).then(([envConfig, adminConfig]) => {
+            if (envConfig.error || adminConfig.error || currentStepRef.current !== WizardSteps.Organization) {
+                return;
+            }
+            const setByEnv = Boolean(envConfig.data?.ServiceSettings?.SiteURL);
+            const restricted = Boolean(adminConfig.data?.ExperimentalSettings?.RestrictSystemAdmin);
+            setShowSiteUrlStep(!setByEnv && !restricted);
+        });
+    }, []);
 
     // Apply denim theme on mount, restore user theme on unmount
     useEffect(() => {
@@ -235,12 +267,17 @@ const PreparingWorkspace = ({
         const completeSetupRequest = {
             organization: form.organization,
             install_plugins: pluginsToSetup,
+            site_url: siteUrlToSend,
         };
 
         try {
             await Client4.completeSetup(completeSetupRequest);
             dispatch({type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED, data: true});
-        } catch {
+        } catch (error) {
+            if ((error as ClientError).server_error_id === 'api.error_invalid_site_url_provided_for_onboarding') {
+                redirectWithError(WizardSteps.SiteUrl, intl.formatMessage(invalidSiteUrlMessage));
+                return;
+            }
             redirectWithError(WizardSteps.Plugins, genericSubmitError);
             return;
         }
@@ -393,17 +430,32 @@ const PreparingWorkspace = ({
                         });
                     }}
                     setInviteId={(inviteId: string) => {
-                        setForm({
-                            ...form,
+                        // Called after the team request returns, when the admin may have changed the form on the next steps.
+                        setForm((prev: Form) => ({
+                            ...prev,
                             teamMembers: {
-                                ...form.teamMembers,
+                                ...prev.teamMembers,
                                 inviteId,
                             },
-                        });
+                        }));
                     }}
                     className='child-page'
                     createTeam={createTeam}
                     updateTeam={updateTeam}
+                />
+
+                <SiteUrl
+                    show={shouldShowPage(WizardSteps.SiteUrl)}
+                    next={makeNext(WizardSteps.SiteUrl)}
+                    skip={() => {
+                        setForm((prev: Form) => ({...prev, urlSkipped: true}));
+                        makeNext(WizardSteps.SiteUrl)();
+                    }}
+                    previous={previous}
+                    transitionDirection={getTransitionDirection(WizardSteps.SiteUrl)}
+                    url={form.url}
+                    setUrl={(url: string) => setForm((prev: Form) => ({...prev, url, urlSkipped: false}))}
+                    className='child-page'
                 />
 
                 <Plugins
@@ -451,7 +503,7 @@ const PreparingWorkspace = ({
                     className='child-page'
                     teamInviteId={team?.invite_id || form.teamMembers.inviteId}
                     configSiteUrl={configSiteUrl}
-                    formUrl={form.url}
+                    formUrl={siteUrlToSend}
                     browserSiteUrl={browserSiteUrl}
                     emails={form.teamMembers.invites}
                     setEmails={(emails: string[]) => {
