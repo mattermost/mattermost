@@ -16,3 +16,16 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 
 Cursor Cloud Agents must follow `.cursor/AGENTS.md`, materialized by `.cursor/scripts/cloud-agent-start.sh`.
 
+## Access control (ABAC)
+
+Permission checks live in server/channels/app/authorization.go, and the
+handlers in server/channels/api4/ enforce them. Access control code also
+lives in server/channels/app/access_control*.go, server/einterfaces/,
+server/public/model/access_*.go and
+webapp/platform/types/src/render_permissions.ts, and in any code that asks
+for an access decision through AccessEvaluation.
+
+Before you change any of it, read the ABAC rules in the enterprise repo,
+checked out next to this one: ../enterprise/abac/rules/. Each rule's
+header lists the paths it covers. Follow every rule that covers your
+change. No exceptions, however small the change.
