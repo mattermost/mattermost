@@ -1402,6 +1402,20 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByTestId('reply_textbox')).toHaveFocus();
         });
 
+        it('should still focus a reply that is opened for editing in the thread', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                    isInEditMode={true}
+                />,
+                stateWithSelectedThread,
+            );
+
+            expect(screen.getByTestId('edit_textbox')).toHaveFocus();
+        });
+
         it('should still focus the thread textbox when selectedPostFocussedAt changes', () => {
             const {store} = renderWithContext(
                 <AdvancedTextEditor

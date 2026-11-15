@@ -678,10 +678,11 @@ const AdvancedTextEditor = ({
         }
     }, [showPreview]);
 
-    // Focus textbox when selectedPostFocussedAt changes. The RHS textbox skips this on mount, where
+    // Focus textbox when selectedPostFocussedAt changes. The RHS reply textbox skips this on mount, where
     // shouldFocusRHS decides instead (see useTextboxFocus): selectedPostFocussedAt still holds an earlier
     // selection when a thread is reopened together with its channel, and the channel textbox keeps the focus.
-    const skipFocusOnSelectedPost = useRef(isRHS);
+    // A reply opened for editing in the RHS has nothing else to focus it, so it does not skip.
+    const skipFocusOnSelectedPost = useRef(isRHS && !isInEditMode);
     useEffect(() => {
         if (selectedPostFocussedAt && !skipFocusOnSelectedPost.current) {
             focusTextbox();
