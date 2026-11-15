@@ -678,11 +678,15 @@ const AdvancedTextEditor = ({
         }
     }, [showPreview]);
 
-    // Focus textbox when selectedPostFocussedAt changes
+    // Focus textbox when selectedPostFocussedAt changes. The RHS textbox skips this on mount, where
+    // shouldFocusRHS decides instead (see useTextboxFocus): selectedPostFocussedAt still holds an earlier
+    // selection when a thread is reopened together with its channel, and the channel textbox keeps the focus.
+    const skipFocusOnSelectedPost = useRef(isRHS);
     useEffect(() => {
-        if (selectedPostFocussedAt) {
+        if (selectedPostFocussedAt && !skipFocusOnSelectedPost.current) {
             focusTextbox();
         }
+        skipFocusOnSelectedPost.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPostFocussedAt]);
 
