@@ -54,56 +54,77 @@ const AtMention = (props: Props) => {
 
     // Every mention is wrapped in a <bdi> so that its text is skipped when the browser picks the direction
     // of a dir='auto' message. A right-to-left message that starts with a mention then stays right-to-left.
+    // Punctuation that trails the mention stays outside the <bdi> so that it follows the direction of the message.
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
         const userDisplayName = displayUsername(user, props.teammateNameDisplay);
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
 
         return (
-            <bdi>
-                <ProfilePopover
-                    triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
-                    userId={user.id}
-                    src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                    channelId={props.channelId}
-                    returnFocus={returnFocus}
-                    triggerComponentAs='button'
-                >
-                    <span
-                        ref={ref}
-                        className='mention-link'
+            <>
+                <bdi>
+                    <ProfilePopover
+                        triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
+                        userId={user.id}
+                        src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                        channelId={props.channelId}
+                        returnFocus={returnFocus}
+                        triggerComponentAs='button'
                     >
-                        {'@' + userDisplayName}
-                    </span>
-                </ProfilePopover>
+                        <span
+                            ref={ref}
+                            className='mention-link'
+                        >
+                            {'@' + userDisplayName}
+                        </span>
+                    </ProfilePopover>
+                </bdi>
                 {userMentionNameSuffix}
-            </bdi>
+            </>
         );
     } else if (group) {
         const groupMentionNameSuffix = props.mentionName.substring(group.name.length);
         const groupDisplayName = group.name;
 
         return (
-            <bdi>
-                <UserGroupPopover
-                    group={group}
-                    returnFocus={returnFocus}
-                >
-                    <a
-                        ref={ref}
-                        className='group-mention-link'
-                        role='button'
-                        tabIndex={0}
+            <>
+                <bdi>
+                    <UserGroupPopover
+                        group={group}
+                        returnFocus={returnFocus}
                     >
-                        {'@' + groupDisplayName}
-                    </a>
-                </UserGroupPopover>
+                        <a
+                            ref={ref}
+                            className='group-mention-link'
+                            role='button'
+                            tabIndex={0}
+                        >
+                            {'@' + groupDisplayName}
+                        </a>
+                    </UserGroupPopover>
+                </bdi>
                 {groupMentionNameSuffix}
-            </bdi>
+            </>
         );
     }
 
-    return <bdi>{props.children}</bdi>;
+    const children = React.Children.toArray(props.children);
+    const lastChild = children.pop();
+    if (typeof lastChild !== 'string') {
+        return <bdi>{props.children}</bdi>;
+    }
+
+    const mentionText = lastChild.replace(/[._-]+$/, '');
+
+    return (
+        <>
+            <bdi>
+                {children}
+                {mentionText}
+            </bdi>
+            {lastChild.substring(mentionText.length)}
+        </>
+    );
 };
 
 export default memo(AtMention);

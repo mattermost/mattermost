@@ -81,6 +81,48 @@ describe('components/AtMention', () => {
         expect(screen.getByText('@all').closest('bdi')).toBeInTheDocument();
     });
 
+    test('should keep punctuation that trails a user mention outside the isolated mention', () => {
+        const {container} = render(
+            <AtMention
+                {...baseProps}
+                mentionName='user1.'
+            >
+                {'@user1.'}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@Nick$/);
+        expect(container).toHaveTextContent(/^@Nick\.$/);
+    });
+
+    test('should keep punctuation that trails a group mention outside the isolated mention', () => {
+        const {container} = renderWithContext(
+            <AtMention
+                {...baseProps}
+                mentionName='developers.'
+            >
+                {'@developers.'}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@developers$/);
+        expect(container).toHaveTextContent(/^@developers\.$/);
+    });
+
+    test('should keep punctuation that trails an unknown mention outside the isolated mention', () => {
+        const {container} = render(
+            <AtMention
+                {...baseProps}
+                mentionName='unknown.'
+            >
+                {['@unknown.']}
+            </AtMention>,
+        );
+
+        expect(container.querySelector('bdi')).toHaveTextContent(/^@unknown$/);
+        expect(container).toHaveTextContent(/^@unknown\.$/);
+    });
+
     describe('fetchMissingUsers', () => {
         test('when fetchMissingUsers is true, should fetch an unloaded user on mount', () => {
             render(
