@@ -40,6 +40,7 @@ const SiteUrlStatus = ({status}: {status: SiteUrlStatusType}) => {
             <div className='SiteUrl__status'>
                 <img
                     src={loadingIcon}
+                    alt=''
                     className='SiteUrl__status-spinner'
                 />
                 <FormattedMessage
