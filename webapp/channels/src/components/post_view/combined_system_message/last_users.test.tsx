@@ -54,7 +54,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         );
 
         expect(screen.getByText(getMentionKeyAt(0))).toBeInTheDocument();
-        expect(screen.getByText(getMentionKeyAt(0))).toHaveAttribute('data-mention', 'username2');
+        expect(screen.getByText(getMentionKeyAt(0)).closest('[data-mention]')).toHaveAttribute('data-mention', 'username2');
 
         expect(screen.getByText('and')).toBeInTheDocument();
 
@@ -72,7 +72,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
 
         //first key should be visible
         expect(screen.getByText(getMentionKeyAt(0))).toBeInTheDocument();
-        expect(screen.getByText(getMentionKeyAt(0))).toHaveAttribute('data-mention', 'username2');
+        expect(screen.getByText(getMentionKeyAt(0)).closest('[data-mention]')).toHaveAttribute('data-mention', 'username2');
 
         //other keys should be hidden
         expect(screen.queryByText(getMentionKeyAt(1))).not.toBeInTheDocument();
@@ -86,10 +86,10 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
 
         //hidden keys should be visible
         expect(screen.getByText(getMentionKeyAt(1))).toBeInTheDocument();
-        expect(screen.getByText(getMentionKeyAt(1))).toHaveAttribute('data-mention', 'username3');
+        expect(screen.getByText(getMentionKeyAt(1)).closest('[data-mention]')).toHaveAttribute('data-mention', 'username3');
 
         expect(screen.getByText(getMentionKeyAt(2))).toBeInTheDocument();
-        expect(screen.getByText(getMentionKeyAt(2))).toHaveAttribute('data-mention', 'username4');
+        expect(screen.getByText(getMentionKeyAt(2)).closest('[data-mention]')).toHaveAttribute('data-mention', 'username4');
 
         expect(screen.getByText('added to the channel')).toBeInTheDocument();
         expect(screen.getByText(`by ${baseProps.actor}`, {exact: false})).toBeInTheDocument();

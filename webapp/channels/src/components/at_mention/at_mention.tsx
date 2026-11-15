@@ -52,13 +52,15 @@ const AtMention = (props: Props) => {
         ));
     };
 
+    // Every mention is wrapped in a <bdi> so that its text is skipped when the browser picks the direction
+    // of a dir='auto' message. A right-to-left message that starts with a mention then stays right-to-left.
     if (user) {
         const userMentionNameSuffix = props.mentionName.substring(user.username.length);
         const userDisplayName = displayUsername(user, props.teammateNameDisplay);
         const highlightMention = !props.disableHighlight && user.id === props.currentUserId;
 
         return (
-            <>
+            <bdi>
                 <ProfilePopover
                     triggerComponentClass={classNames('style--none', {'mention--highlight': highlightMention})}
                     userId={user.id}
@@ -75,14 +77,14 @@ const AtMention = (props: Props) => {
                     </span>
                 </ProfilePopover>
                 {userMentionNameSuffix}
-            </>
+            </bdi>
         );
     } else if (group) {
         const groupMentionNameSuffix = props.mentionName.substring(group.name.length);
         const groupDisplayName = group.name;
 
         return (
-            <>
+            <bdi>
                 <UserGroupPopover
                     group={group}
                     returnFocus={returnFocus}
@@ -97,11 +99,11 @@ const AtMention = (props: Props) => {
                     </a>
                 </UserGroupPopover>
                 {groupMentionNameSuffix}
-            </>
+            </bdi>
         );
     }
 
-    return <>{props.children}</>;
+    return <bdi>{props.children}</bdi>;
 };
 
 export default memo(AtMention);
