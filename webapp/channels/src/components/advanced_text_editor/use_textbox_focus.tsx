@@ -32,6 +32,7 @@ const useTextboxFocus = (
     isRHS: boolean,
     canPost: boolean,
     wysiwygRef?: React.RefObject<WysiwygEditorHandle | null>,
+    isInEditMode = false,
 ) => {
     const dispatch = useDispatch();
 
@@ -68,6 +69,11 @@ const useTextboxFocus = (
     }, [canPost, getComposer]);
 
     const focusTextboxIfNecessary = useCallback((e: KeyboardEvent) => {
+        // Do not focus a message that is being edited, text typed outside of it is meant for the main textbox
+        if (isInEditMode) {
+            return;
+        }
+
         // Do not focus if the rhs is expanded and this is not the RHS
         if (!isRHS && rhsExpanded) {
             return;
@@ -93,7 +99,7 @@ const useTextboxFocus = (
         if (shouldFocusMainTextbox(e, document.activeElement)) {
             focusTextbox();
         }
-    }, [focusTextbox, rhsExpanded, rhsOpen, isRHS]);
+    }, [focusTextbox, rhsExpanded, rhsOpen, isRHS, isInEditMode]);
 
     // Register events for onkeydown
     useEffect(() => {

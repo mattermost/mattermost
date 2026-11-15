@@ -1356,4 +1356,47 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue(valueBefore);
         });
     });
+
+    describe('typing outside of a textbox', () => {
+        const typeOutsideOfTextboxes = () => {
+            act(() => (document.activeElement as HTMLElement).blur());
+            expect(document.body).toHaveFocus();
+
+            fireEvent.keyDown(document.body, {key: 'a'});
+        };
+
+        it('should focus the main textbox', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            typeOutsideOfTextboxes();
+
+            expect(screen.getByTestId('post_textbox')).toHaveFocus();
+        });
+
+        it('should focus the main textbox and not a message that is being edited', () => {
+            // The message being edited is rendered first, so its keydown listener runs first.
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        isInEditMode={true}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                </>,
+                initialState,
+            );
+
+            typeOutsideOfTextboxes();
+
+            expect(screen.getByTestId('post_textbox')).toHaveFocus();
+            expect(screen.getByTestId('edit_textbox')).not.toHaveFocus();
+        });
+    });
 });
