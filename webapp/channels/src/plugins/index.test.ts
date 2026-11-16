@@ -428,4 +428,78 @@ describe('plugin synchronization', () => {
         await ensureAuthenticatedPluginsLoaded();
         expect(getWebappPlugins).toHaveBeenCalledTimes(2);
     });
+
+    describe('load status tracking', () => {
+        const loadStatusActions = () => jest.mocked(store.dispatch).mock.calls.
+            map(([action]) => action as unknown as {type: string; data?: {syncedUserId?: string}}).
+            filter((action) => action?.type === ActionTypes.PLUGIN_LOADS_STARTED || action?.type === ActionTypes.PLUGIN_LOADS_FINISHED);
+
+        afterEach(() => {
+            jest.mocked(getConfig).mockImplementation(() => ({PluginsEnabled: 'true'}) as any);
+        });
+
+        test('loadPluginsIfNecessary brackets the synchronization and records the session user', async () => {
+            jest.spyOn(Client4, 'getWebappPlugins').mockResolvedValue([]);
+            setCurrentUserId('user1');
+
+            await loadPluginsIfNecessary();
+
+            expect(loadStatusActions()).toEqual([
+                {type: ActionTypes.PLUGIN_LOADS_STARTED},
+                {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: 'user1'}},
+            ]);
+        });
+
+        test('records the logged out session as an empty user id', async () => {
+            jest.spyOn(Client4, 'getWebappPlugins').mockResolvedValue([]);
+
+            await loadPluginsIfNecessary();
+
+            expect(loadStatusActions().at(-1)).toEqual({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: ''}});
+        });
+
+        test('finishes even when the plugin list cannot be fetched', async () => {
+            jest.spyOn(Client4, 'getWebappPlugins').mockRejectedValue(new Error('network error'));
+            setCurrentUserId('user1');
+
+            await loadPluginsIfNecessary();
+
+            expect(loadStatusActions()).toEqual([
+                {type: ActionTypes.PLUGIN_LOADS_STARTED},
+                {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: 'user1'}},
+            ]);
+        });
+
+        test('does not record a session when plugins are disabled and none were fetched before', async () => {
+            jest.mocked(getConfig).mockImplementation(() => ({PluginsEnabled: 'false'}) as any);
+
+            await loadPluginsIfNecessary();
+
+            expect(loadStatusActions()).toEqual([
+                {type: ActionTypes.PLUGIN_LOADS_STARTED},
+                {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: undefined}},
+            ]);
+        });
+
+        test('records the session when plugins became disabled after an earlier synchronization', async () => {
+            state = {...state, plugins: {...state.plugins, loadStatus: {inFlight: 0, syncedUserId: ''}}} as typeof state;
+            jest.mocked(getConfig).mockImplementation(() => ({PluginsEnabled: 'false'}) as any);
+            setCurrentUserId('user1');
+
+            await loadPluginsIfNecessary();
+
+            expect(loadStatusActions().at(-1)).toEqual({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: 'user1'}});
+        });
+
+        test('loadPlugin marks the load in progress without recording a session', async () => {
+            jest.mocked(getConfig).mockImplementation(() => ({PluginsEnabled: 'false'}) as any);
+
+            await loadPlugin({id: 'status-test', version: '1.0.0', webapp: {bundle_path: '/x.js'}} as PluginManifest);
+
+            expect(loadStatusActions()).toEqual([
+                {type: ActionTypes.PLUGIN_LOADS_STARTED},
+                {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: undefined}},
+            ]);
+        });
+    });
 });

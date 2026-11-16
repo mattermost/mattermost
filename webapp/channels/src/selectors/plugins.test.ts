@@ -8,6 +8,7 @@ import type {GlobalState} from 'types/store';
 import type {ChannelBookmarksMenuAction, ChannelHeaderAction, ChannelInfoMenuAction, ChannelSettingsTabComponent, MobileChannelHeaderButtonAction} from 'types/store/plugins';
 
 import {
+    arePluginsLoadedForSession,
     getChannelBookmarksMenuPluginComponents,
     getChannelHeaderMenuPluginComponents,
     getChannelInfoMenuPluginComponents,
@@ -326,6 +327,32 @@ describe('Selectors.Plugins', () => {
                 noPredicate,
             ]);
             expect(getChannelBookmarksMenuPluginComponents(makeState([shown]), 'other')).toEqual([]);
+        });
+    });
+
+    describe('arePluginsLoadedForSession', () => {
+        const makeStatusState = (loadStatus?: {inFlight: number; syncedUserId?: string}, currentUserId = 'user1') => ({
+            entities: {users: {currentUserId}},
+            plugins: {loadStatus},
+        }) as unknown as GlobalState;
+
+        it('is true when plugins were never fetched', () => {
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 0}))).toBe(true);
+            expect(arePluginsLoadedForSession(makeStatusState(undefined))).toBe(true);
+        });
+
+        it('is false while any plugin is loading', () => {
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 1, syncedUserId: 'user1'}))).toBe(false);
+        });
+
+        it('is false until the plugins are synchronized for the current user', () => {
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 0, syncedUserId: ''}))).toBe(false);
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 0, syncedUserId: 'other'}))).toBe(false);
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 0, syncedUserId: 'user1'}))).toBe(true);
+        });
+
+        it('is true for a logged out session synchronized while logged out', () => {
+            expect(arePluginsLoadedForSession(makeStatusState({inFlight: 0, syncedUserId: ''}, ''))).toBe(true);
         });
     });
 });

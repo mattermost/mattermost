@@ -531,6 +531,20 @@ function userSettings(state: PluginsState['userSettings'] = {}, action: MMAction
     }
 }
 
+function loadStatus(state: PluginsState['loadStatus'] = {inFlight: 0}, action: MMAction) {
+    switch (action.type) {
+    case ActionTypes.PLUGIN_LOADS_STARTED:
+        return {...state, inFlight: state.inFlight + 1};
+    case ActionTypes.PLUGIN_LOADS_FINISHED:
+        return {
+            inFlight: Math.max(0, state.inFlight - 1),
+            syncedUserId: action.data?.syncedUserId ?? state.syncedUserId,
+        };
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // object where every key is a plugin id and values are webapp plugin manifests
@@ -571,4 +585,8 @@ export default combineReducers({
     // array of normalized channel settings tab registrations shown in the
     // channel settings modal, validated via extractChannelSettingsTab
     channelSettingsTabs,
+
+    // number of plugin loads in progress and the user, or '' when logged out, whose session the
+    // last completed plugin synchronization used. Undefined until plugins have been fetched.
+    loadStatus,
 });

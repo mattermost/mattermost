@@ -127,6 +127,11 @@ export type PluginsState = {
     };
 
     channelSettingsTabs: ChannelSettingsTabComponent[];
+
+    loadStatus: {
+        inFlight: number;
+        syncedUserId?: string;
+    };
 };
 
 export type Menu = {

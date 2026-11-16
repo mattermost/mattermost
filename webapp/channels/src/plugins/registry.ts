@@ -1719,9 +1719,12 @@ export default class PluginRegistry {
      * URL remainder as `subpath` (e.g. `'pages/abc123'`), so the plugin can deep link into its view.
      * At the channel root `subpath` is `''`; it is only `undefined` without `handlesSubpaths`, so a
      * string value means the server supports sub-paths.
-     * A 26-character id after the channel is always treated as a permalink. Otherwise, once the
-     * channel has loaded, core redirects a sub-path URL to the channel root, so the matcher must
-     * already return true by then (load the state it depends on in `initialize`).
+     * A 26-character id after the channel is always treated as a permalink. Otherwise, core
+     * redirects a sub-path URL to the channel root, but only after the channel has loaded and
+     * plugin loading has finished for the session (including plugins loaded after login, enabled
+     * or upgraded while the app is open), so registering during `initialize` is always in time.
+     * The matcher must return true by then, so don't make it depend on data fetched after
+     * `initialize` resolves; load that state in `initialize` first.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
      *
@@ -1760,8 +1763,12 @@ export default class PluginRegistry {
      * have a view registered with `registerChannelViewComponent` and `handlesSubpaths: true`;
      * otherwise core redirects to the channel root.
      *
-     * `getItems` runs on every store update, so plugins should memoize it (e.g. with
-     * `createSelector`). Items from multiple registrations are concatenated in registration order
+     * `getItems` is called for each visible public or private channel whenever the store state
+     * changes, so keep it cheap: core only skips the call when the state is unchanged. Core
+     * keeps the previous result when the items are equal, so returning a new array each time does
+     * not re-render the sidebar. If you memoize, key the cache by channel (e.g. a selector factory
+     * per channel id); a single `createSelector` cache holds one channel and thrashes across
+     * channels. Items from multiple registrations are concatenated in registration order
      * (alphabetical pluginId, then insertion order). Items with an empty label or subpath, a
      * non-string id, label or subpath, or a subpath starting with a 26-character id segment (the
      * channel route reads it as a permalink) are dropped. An unknown `iconName` is ignored and the item is

@@ -154,8 +154,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     };
 
     redirectUnhandledSubpath = () => {
-        const {match, history, channelViewPluginComponent} = this.props;
-        if (match.params.subpath && !channelViewPluginComponent?.handlesSubpaths && this.isRouteChannelCurrent()) {
+        const {match, history, channelViewPluginComponent, pluginsLoaded} = this.props;
+        if (match.params.subpath && pluginsLoaded && !channelViewPluginComponent?.handlesSubpaths && this.isRouteChannelCurrent()) {
             history.replace(`/${match.params.team}/channels/${match.params.identifier}`);
         }
     };
