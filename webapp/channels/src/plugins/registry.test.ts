@@ -516,6 +516,46 @@ describe('PluginRegistry — registerPostHeaderComponent', () => {
     });
 });
 
+describe('PluginRegistry — registerPostFooterComponent', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    let registry: PluginRegistry;
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+        registry = new PluginRegistry(PLUGIN_ID);
+    });
+
+    function getComponents() {
+        return mockCurrentStore.getState().components.PostFooter;
+    }
+
+    it('adds an entry to the PostFooter list and returns its id', () => {
+        const id = registry.registerPostFooterComponent(() => null);
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].id).toBe(id);
+        expect(components[0].pluginId).toBe(PLUGIN_ID);
+    });
+
+    it('removes the plugin\'s components when the plugin is removed', () => {
+        const otherRegistry = new PluginRegistry('other_plugin');
+
+        registry.registerPostFooterComponent(() => null);
+        otherRegistry.registerPostFooterComponent(() => null);
+
+        mockCurrentStore.dispatch({
+            type: ActionTypes.REMOVED_WEBAPP_PLUGIN,
+            data: {id: PLUGIN_ID},
+        });
+
+        const components = getComponents();
+        expect(components).toHaveLength(1);
+        expect(components[0].pluginId).toBe('other_plugin');
+    });
+});
+
 describe('PluginRegistry — registerProductSwitcherMenuItem', () => {
     const PLUGIN_ID = 'test_plugin';
 

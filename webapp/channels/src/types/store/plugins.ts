@@ -81,6 +81,7 @@ export type PluginsState = {
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
         PostHeader: PostHeaderComponent[];
+        PostFooter: PostFooterComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
         FilesWillUploadHook: FilesWillUploadHook[];
@@ -541,6 +542,10 @@ export type ChannelViewRegistration = PluginComponent & {
 
 export type PostHeaderComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps & {post: Post}>;
+};
+
+export type PostFooterComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {post: Post; location: string}>;
 };
 
 export type ComposerPlaceholderRegistration = PluginComponent & {

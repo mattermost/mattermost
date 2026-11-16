@@ -18,7 +18,7 @@ jest.mock('utils/channel_utils', () => ({
 }));
 
 import {PostPriority} from '@mattermost/types/posts';
-import type {PostType} from '@mattermost/types/posts';
+import type {Post, PostType} from '@mattermost/types/posts';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -941,6 +941,94 @@ describe('PostComponent', () => {
             // Default archive icon is present in the fallback path
             expect(document.querySelector('[data-is-default-archive]')).toBeInTheDocument();
         });
+    });
+});
+
+describe('PostComponent — PostFooter plugin component render site', () => {
+    const currentTeam = TestHelper.getTeamMock();
+    const channel = TestHelper.getChannelMock({team_id: currentTeam.id});
+
+    const baseProps: Props = {
+        center: false,
+        currentTeam,
+        currentUserId: 'currentUserId',
+        displayName: '',
+        hasReplies: false,
+        isBot: false,
+        isCollapsedThreadsEnabled: true,
+        isFlagged: false,
+        isMobileView: false,
+        isPostAcknowledgementsEnabled: false,
+        isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
+        location: Locations.CENTER,
+        post: TestHelper.getPostMock({channel_id: channel.id}),
+        recentEmojis: [],
+        replyCount: 0,
+        team: currentTeam,
+        pluginActions: [],
+        burnOnReadDurationMinutes: 10,
+        actions: {
+            markPostAsUnread: jest.fn(),
+            emitShortcutReactToLastPostFrom: jest.fn(),
+            selectPost: jest.fn(),
+            selectPostFromRightHandSideSearch: jest.fn(),
+            removePost: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            selectPostCard: jest.fn(),
+            setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
+            highlightPostInChannelPopout: jest.fn(),
+        },
+        isChannelAutotranslated: false,
+    };
+
+    const PluginFooter = ({post, location}: {post: Post; location: string}) => (
+        <div data-testid='post-footer-plugin'>{`${post.id} ${location}`}</div>
+    );
+
+    function stateWithPluginFooter() {
+        return {
+            plugins: {
+                components: {
+                    PostFooter: [{
+                        id: 'footer-1',
+                        pluginId: 'test-plugin',
+                        component: PluginFooter,
+                    }],
+                },
+            },
+        } as any;
+    }
+
+    it('renders a registered PostFooter component with the post and location', () => {
+        renderWithContext(<PostComponent {...baseProps}/>, stateWithPluginFooter());
+        expect(screen.getByTestId('post-footer-plugin')).toHaveTextContent(`${baseProps.post.id} ${Locations.CENTER}`);
+    });
+
+    it('renders the component on a consecutive CENTER post', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                isConsecutivePost={true}
+            />,
+            stateWithPluginFooter(),
+        );
+        expect(screen.getByTestId('post-footer-plugin')).toBeInTheDocument();
+    });
+
+    it('does not render the component on a deleted post', () => {
+        renderWithContext(
+            <PostComponent
+                {...baseProps}
+                post={{...baseProps.post, state: Posts.POST_DELETED as 'DELETED'}}
+            />,
+            stateWithPluginFooter(),
+        );
+        expect(screen.queryByTestId('post-footer-plugin')).not.toBeInTheDocument();
     });
 });
 
