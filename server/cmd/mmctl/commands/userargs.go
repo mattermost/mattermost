@@ -33,10 +33,10 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 
 	if !checkSlash(userArg) {
 		if user == nil && model.IsValidId(userArg) {
-			user, _, _ = c.GetUser(context.TODO(), userArg, "")
-			if user == nil && strings.ToLower(userArg) != userArg {
-				// IDs are stored as given, so try the lowercase form only after the exact one misses.
-				user, _, _ = c.GetUser(context.TODO(), strings.ToLower(userArg), "")
+			var err error
+			user, _, err = getUserByIDArg(c, userArg)
+			if err != nil {
+				return nil
 			}
 		}
 
@@ -160,6 +160,9 @@ func getUserByIDArg(c client.Client, userArg string) (*model.User, *model.Respon
 		user, response, err = c.GetUser(context.TODO(), id, "")
 		if err == nil && user != nil {
 			return user, response, nil
+		}
+		if err != nil && response == nil {
+			return nil, nil, err
 		}
 		if err != nil {
 			nErr := ExtractErrorFromResponse(response, err)

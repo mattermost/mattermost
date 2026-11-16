@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -331,6 +332,31 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArg_PrefersIdWhenArgLooksLikeId() {
 		s.Require().NotNil(user)
 		s.Require().Equal(namedUser.Id, user.Id)
 	})
+
+	for _, tc := range []struct {
+		name     string
+		response *model.Response
+	}{
+		{name: "forbidden", response: &model.Response{StatusCode: http.StatusForbidden}},
+		{name: "a server error", response: &model.Response{StatusCode: http.StatusInternalServerError}},
+		{name: "a transport error", response: nil},
+	} {
+		s.Run("getUserFromUserArg does not fall back to username lookup when the id lookup fails with "+tc.name, func() {
+			targetID := model.NewId()
+
+			s.client.
+				EXPECT().
+				GetUser(context.TODO(), targetID, "").
+				Return(nil, tc.response, errors.New("lookup failed")).
+				Times(1)
+			s.client.
+				EXPECT().
+				GetUserByUsername(gomock.Any(), gomock.Any(), gomock.Any()).
+				Times(0)
+
+			s.Require().Nil(getUserFromUserArg(s.client, targetID))
+		})
+	}
 
 	for _, resolver := range resolvers {
 		s.Run(resolver.name+" tries the id as given before its lowercase form", func() {
