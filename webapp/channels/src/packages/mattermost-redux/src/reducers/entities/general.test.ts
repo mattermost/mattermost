@@ -147,6 +147,26 @@ describe('reducers.entities.general', () => {
             expect(actualState.clientConfigOverrides).toEqual({});
         });
 
+        it('keeps the existing overrides object when a push carries the same values', () => {
+            const populated = reducer(undefined, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {MobileEnableBiometrics: 'true'},
+            });
+
+            const repeated = reducer(populated, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {MobileEnableBiometrics: 'true'},
+            });
+            expect(repeated.clientConfigOverrides).toBe(populated.clientConfigOverrides);
+
+            const changed = reducer(repeated, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {MobileEnableBiometrics: 'false'},
+            });
+            expect(changed.clientConfigOverrides).not.toBe(populated.clientConfigOverrides);
+            expect(changed.clientConfigOverrides).toEqual({MobileEnableBiometrics: 'false'});
+        });
+
         it('clears overrides on LOGOUT_SUCCESS and CLIENT_CONFIG_RESET', () => {
             const populated = reducer(undefined, {
                 type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,

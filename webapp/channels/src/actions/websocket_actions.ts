@@ -2096,9 +2096,6 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
                 store.dispatch(clearRenderDecisions());
                 store.dispatch(refreshPostsAfterPolicyChange());
             }
-            if (isSystemSettingPoliciesEnabled(store.getState())) {
-                dispatch(getClientConfigOverrides());
-            }
         }
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -2691,14 +2688,9 @@ export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAVal
         // The current user's attribute values are an input to ABAC evaluation, so
         // their render decisions are now stale. Other users' updates do not affect
         // the current user's own decisions.
-        if (msg.data.user_id === getCurrentUserId(doGetState())) {
-            if (isPermissionPoliciesEnabled(doGetState())) {
-                doDispatch(clearRenderDecisions());
-                doDispatch(refreshPostsAfterPolicyChange());
-            }
-            if (isSystemSettingPoliciesEnabled(doGetState())) {
-                doDispatch(getClientConfigOverrides());
-            }
+        if (msg.data.user_id === getCurrentUserId(doGetState()) && isPermissionPoliciesEnabled(doGetState())) {
+            doDispatch(clearRenderDecisions());
+            doDispatch(refreshPostsAfterPolicyChange());
         }
     };
 }
