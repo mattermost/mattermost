@@ -49,6 +49,7 @@ import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_definition_helpers';
+import {searchableStrings as ldapWizardSearchableStrings} from './admin_definition_ldap_wizard';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
@@ -4694,6 +4695,7 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                searchableStrings: ldapWizardSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
