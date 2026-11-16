@@ -318,7 +318,7 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 			UserId:    systemBot.UserId,
 			Type:      model.PostTypeDefault,
 			Message: channelAttributeNotifyMessageHeader(attributeDisplayName, required, len(batch.channels), T) +
-				"\n" + channelAttributeNotifyChannelList(batch.channels, T),
+				"\n" + channelAttributeNotifyChannelList(batch.channels, a.GetSiteURL(), T),
 			Props: model.StringInterface{
 				"property_field_id": fieldID,
 				"attribute_name":    attributeDisplayName,
@@ -353,8 +353,9 @@ func escapeChannelAttributeMarkdownLinkText(displayName string) string {
 // only auto-links within the team currently being viewed, and one admin's
 // affected channels routinely span teams. Collapses beyond
 // channelAttributeNotifyChannelsPerDM so an admin of hundreds of channels
-// doesn't receive an unreadable wall of text.
-func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelRef, T i18n.TranslateFunc) string {
+// doesn't receive an unreadable wall of text. Links are absolute so they work
+// on a subpath install and in clients that can't resolve a relative link.
+func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelRef, siteURL string, T i18n.TranslateFunc) string {
 	shown := channels
 	var more int
 	if len(shown) > channelAttributeNotifyChannelsPerDM {
@@ -364,7 +365,7 @@ func channelAttributeNotifyChannelList(channels []channelAttributeNotifyChannelR
 
 	var b strings.Builder
 	for _, ref := range shown {
-		link := "/" + ref.teamName + "/channels/" + ref.channelName
+		link := siteURL + "/" + ref.teamName + "/channels/" + ref.channelName
 		b.WriteString(T("app.channel_attributes.notify_missing_value.dm_channel_line", model.StringInterface{
 			"ChannelDisplayName": escapeChannelAttributeMarkdownLinkText(ref.displayName),
 			"ChannelLink":        link,
