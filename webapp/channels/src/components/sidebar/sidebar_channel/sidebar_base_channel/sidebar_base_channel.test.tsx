@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
@@ -71,63 +71,6 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             openModal: jest.fn(),
         },
     };
-
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <SidebarBaseChannel {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when shared channel', () => {
-        const props = {
-            ...baseProps,
-            channel: {
-                ...baseProps.channel,
-                shared: true,
-            },
-        };
-
-        const {container} = renderWithContext(
-            <SidebarBaseChannel {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when private channel', () => {
-        const props = {
-            ...baseProps,
-            channel: {
-                ...baseProps.channel,
-                type: 'P' as ChannelType,
-            },
-        };
-
-        const {container} = renderWithContext(
-            <SidebarBaseChannel {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when shared private channel', () => {
-        const props = {
-            ...baseProps,
-            channel: {
-                ...baseProps.channel,
-                type: 'P' as ChannelType,
-                shared: true,
-            },
-        };
-
-        const {container} = renderWithContext(
-            <SidebarBaseChannel {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
 
     test('expect leaveChannel to be called when leave public channel ', async () => {
         const mockfn = jest.fn();

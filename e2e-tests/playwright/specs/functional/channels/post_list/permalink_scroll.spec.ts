@@ -164,7 +164,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 0; i < 60; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -176,7 +176,7 @@ test.describe('Post list scroll to permalink', () => {
                 for (let i = 60; i < 120; i++) {
                     await userClient.createTestPost({
                         channel_id: channel.id,
-                        message: `${testConfig.internalBaseURL}/${team.name}/pl/${firstPost.id}`,
+                        message: `${testConfig.siteURL}/${team.name}/pl/${firstPost.id}`,
                     });
                 }
             },
@@ -281,7 +281,6 @@ test.describe('Post list scroll to permalink', () => {
 
     async function waitForScrollToSettle(watcher: PostListScrollWatcher) {
         await channelsPage.centerView.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         // # Wait until the post list hasn't scrolled for 500ms before returning results
         return watcher.waitForObservations(500);

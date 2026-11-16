@@ -68,7 +68,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
     ...otherProps
 }: Props, ref) => {
     const height = useRef(0);
-    const textarea = useRef<HTMLTextAreaElement>();
+    const textarea = useRef<HTMLTextAreaElement>(undefined);
     const referenceRef = useRef<HTMLDivElement>(null);
     const [showScrollbar, setShowScrollbar] = useState(false);
 

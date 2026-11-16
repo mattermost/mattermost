@@ -6,7 +6,7 @@ import React from 'react';
 import type {MmStaticSelectBlock} from '@mattermost/types/mm_blocks';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -189,8 +189,7 @@ describe('StaticSelectElement', () => {
         expect(screen.getByTestId('autocomplete-select')).toBeDisabled();
 
         resolveAction();
-        await screen.findByTestId('autocomplete-select');
-        expect(screen.getByTestId('autocomplete-select')).not.toBeDisabled();
+        await waitFor(() => expect(screen.getByTestId('autocomplete-select')).not.toBeDisabled());
     });
 
     it('renders for users data_source without static options', () => {

@@ -144,6 +144,7 @@ class AboutCategory extends SidebarCategory {
 }
 
 class ReportingCategory extends SidebarCategory {
+    readonly siteHealth: SidebarSection;
     readonly workspaceOptimization: SidebarSection;
     readonly siteStatistics: SidebarSection;
     readonly teamStatistics: SidebarSection;
@@ -151,6 +152,7 @@ class ReportingCategory extends SidebarCategory {
 
     constructor(container: Locator) {
         super(container);
+        this.siteHealth = this.section('Site health');
         this.workspaceOptimization = this.section('Workspace Optimization');
         this.siteStatistics = this.section('System Statistics');
         this.teamStatistics = this.section('Team Statistics');
@@ -179,6 +181,7 @@ class UserManagementCategory extends SidebarCategory {
 
 class SystemAttributesCategory extends SidebarCategory {
     readonly userAttributes: SidebarSection;
+    readonly attributeManagement: SidebarSection;
     readonly sessionAttributes: SidebarSection;
     readonly boardAttributes: SidebarSection;
     readonly attributeBasedAccess: SidebarSection;
@@ -188,6 +191,7 @@ class SystemAttributesCategory extends SidebarCategory {
     constructor(container: Locator) {
         super(container);
         this.userAttributes = this.section('User Attributes');
+        this.attributeManagement = this.section('Attribute Management');
         this.sessionAttributes = this.section('Session Attributes');
         this.boardAttributes = this.section('Board Attributes');
         this.attributeBasedAccess = this.section('Attribute-Based Access');

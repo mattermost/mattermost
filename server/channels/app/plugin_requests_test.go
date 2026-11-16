@@ -362,7 +362,6 @@ func TestServePluginRequest(t *testing.T) {
 			}
 		}
 		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
-		assert.Contains(t, logOutput, "<redacted>")
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {
@@ -570,6 +569,31 @@ func TestServePluginRequest(t *testing.T) {
 		require.True(t, handlerCalled)
 	})
 
+	t.Run("oversized cookie auth POST without CSRF header returns 413 and is not forwarded", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPayloadSizeBytes = 1 })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPayloadSizeBytes = 300000 })
+		})
+
+		body := strings.NewReader(strings.Repeat("a", 2048))
+		req := httptest.NewRequest(http.MethodPost, "/plugins/testplugin/endpoint", body)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
+		req.AddCookie(&http.Cookie{
+			Name:  model.SessionCookieToken,
+			Value: session.Token,
+		})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, rr.Code)
+		assert.False(t, handlerCalled)
+	})
+
 	t.Run("third-party use of Authorization header preserved", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/plugins/testplugin/endpoint", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer 3rd-party-token")
@@ -590,12 +614,14 @@ func TestServePluginRequest(t *testing.T) {
 func TestValidateCSRFForPluginRequest(t *testing.T) {
 	th := Setup(t)
 
+	const testMaxBodyBytes = 1024 * 1024
+
 	t.Run("skip CSRF for non-cookie auth", func(t *testing.T) {
 		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
 		session.GenerateCSRF()
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, false, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, false, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -604,7 +630,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		session.GenerateCSRF()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -614,7 +640,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderCsrfToken, expectedToken)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -624,7 +650,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderCsrfToken, "invalid-token")
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.False(t, result)
 	})
 
@@ -635,8 +661,58 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(formData))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
+	})
+
+	t.Run("oversized form body is rejected as too large", func(t *testing.T) {
+		const smallMaxBodyBytes = 128
+
+		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
+		expectedToken := session.GenerateCSRF()
+		formData := "filler=" + strings.Repeat("a", smallMaxBodyBytes) + "&csrf=" + expectedToken
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(formData))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		valid, err := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, smallMaxBodyBytes)
+		assert.False(t, valid)
+		var maxBytesErr *http.MaxBytesError
+		assert.ErrorAs(t, err, &maxBytesErr)
+	})
+
+	t.Run("oversized form body with early csrf token is rejected, not accepted with truncated data", func(t *testing.T) {
+		const smallMaxBodyBytes = 64
+
+		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
+		expectedToken := session.GenerateCSRF()
+		// A valid token up front must not let an over-limit body through with truncated data.
+		formData := "csrf=" + expectedToken + "&filler=" + strings.Repeat("a", smallMaxBodyBytes)
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(formData))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		valid, err := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, smallMaxBodyBytes)
+		assert.False(t, valid)
+		var maxBytesErr *http.MaxBytesError
+		assert.ErrorAs(t, err, &maxBytesErr)
+	})
+
+	t.Run("oversized body with valid csrf header is not read or capped", func(t *testing.T) {
+		const smallMaxBodyBytes = 64
+
+		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
+		expectedToken := session.GenerateCSRF()
+		body := strings.Repeat("a", smallMaxBodyBytes*4)
+		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(body))
+		req.Header.Set(model.HeaderCsrfToken, expectedToken)
+
+		valid, err := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, smallMaxBodyBytes)
+		assert.True(t, valid)
+		require.NoError(t, err)
+
+		// The header path must leave the body untouched for the plugin to stream.
+		read, err := io.ReadAll(req.Body)
+		require.NoError(t, err)
+		assert.Len(t, read, smallMaxBodyBytes*4)
 	})
 
 	t.Run("XMLHttpRequest with strict enforcement disabled", func(t *testing.T) {
@@ -649,7 +725,7 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, false)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, false, testMaxBodyBytes)
 		assert.True(t, result)
 	})
 
@@ -663,7 +739,135 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, "/test", nil)
 		req.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 
-		result := validateCSRFForPluginRequest(th.Context, req, session, true, true)
+		result, _ := validateCSRFForPluginRequest(th.Context, httptest.NewRecorder(), req, session, true, true, testMaxBodyBytes)
 		assert.False(t, result)
 	})
+}
+
+// A plugin's state is already running while its OnActivate runs, but it can't
+// take inter-plugin requests yet. Status and inter-plugin requests must say so,
+// so callers wait instead of treating it as a missing plugin.
+func TestPluginStartingDuringOnActivate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+	token := model.NewId()
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"net/http"
+			"strconv"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			manifests, appErr := p.API.GetPlugins()
+			if appErr != nil || len(manifests) != 1 {
+				return appErr
+			}
+			id := manifests[0].Id
+
+			status, appErr := p.API.GetPluginStatus(id)
+			if appErr != nil {
+				return appErr
+			}
+			p.API.KVSet("state", []byte(strconv.Itoa(status.State)))
+
+			req, _ := http.NewRequest(http.MethodGet, "/"+id+"/ping?access_token=` + token + `", nil)
+			resp := p.API.PluginHTTP(req)
+			if resp != nil {
+				resp.Body.Close()
+				p.API.KVSet("request_status", []byte(strconv.Itoa(resp.StatusCode)))
+			}
+			return nil
+		}
+
+		func (p *MyPlugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Request) {
+			w.Write([]byte("pong"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := buffer.String()
+	require.Contains(t, logs, "still starting", "the starting-plugin request was never logged")
+	assert.NotContains(t, logs, token, "the query string can carry an access_token")
+
+	getKey := func(key string) string {
+		value, appErr := th.App.GetPluginKey(pluginID, key)
+		require.Nil(t, appErr)
+		return string(value)
+	}
+	assert.Equal(t, fmt.Sprint(model.PluginStateStarting), getKey("state"))
+	assert.Equal(t, fmt.Sprint(http.StatusServiceUnavailable), getKey("request_status"))
+
+	status, appErr := th.App.GetPluginStatus(pluginID)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.PluginStateRunning, status.State, "the plugin is running once OnActivate returns")
+}
+
+// MM-70121: a plugin id that does not resolve must not drag the request's query
+// string, which can carry an access_token, into the log.
+func TestServePluginRequestUnknownPluginDoesNotLogQueryString(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testCases := []struct {
+		name    string
+		path    string
+		wantLog string
+		serve   func(w http.ResponseWriter, r *http.Request)
+	}{
+		{
+			name:    "external request",
+			path:    "/plugins/unknownplugin/endpoint",
+			wantLog: "Access to route for non-existent plugin",
+			serve:   th.App.ch.ServePluginRequest,
+		},
+		{
+			name:    "internal request",
+			path:    "/endpoint",
+			wantLog: "Access to route for non-existent plugin in internal plugin request",
+			serve: func(w http.ResponseWriter, r *http.Request) {
+				th.App.ServeInternalPluginRequest("", w, r, "sourceplugin", "unknownplugin")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buffer := &mlog.Buffer{}
+			require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+			token := model.NewId()
+			req := httptest.NewRequest(http.MethodGet, tc.path+"?access_token="+token, nil)
+			req = mux.SetURLVars(req, map[string]string{"plugin_id": "unknownplugin"})
+			rr := httptest.NewRecorder()
+
+			tc.serve(rr, req)
+			require.Equal(t, http.StatusNotFound, rr.Code)
+			require.NoError(t, th.TestLogger.Flush())
+
+			logs := buffer.String()
+			require.Contains(t, logs, tc.wantLog, "the unresolved plugin id was never logged")
+			assert.Contains(t, logs, `"url":"`+tc.path+`"`)
+			assert.NotContains(t, logs, token)
+		})
+	}
 }

@@ -2,7 +2,7 @@ package cluster
 
 import (
 	"bytes"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -95,7 +95,7 @@ func (pluginAPI *mockPluginAPI) KVList(page, count int) ([]string, *model.AppErr
 	}
 
 	// have to sort, because we're paging below
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	start := min(page*count, len(keys))
 	end := min((page+1)*count, len(keys))

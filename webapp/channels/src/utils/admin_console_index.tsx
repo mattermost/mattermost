@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import FlexSearch from 'flexsearch/dist/flexsearch.es5';
+import type {JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
@@ -33,8 +34,19 @@ function pushText(texts: string[], value: string | MessageDescriptor | JSX.Eleme
     if (typeof value === 'string') {
         texts.push(value);
     } else if ('id' in value) {
-        texts.push(intl.formatMessage(value, values));
+        texts.push(values ? intl.formatMessage(value, values) : rawMessage(value, intl));
     }
+}
+
+// Many of these messages carry rich-text tags or placeholders whose values only
+// exist at render time, so formatting them here would fail. The index only
+// needs their words.
+function rawMessage(descriptor: MessageDescriptor, intl: IntlShape): string {
+    const message = intl.messages[descriptor.id as string];
+    if (typeof message === 'string') {
+        return message;
+    }
+    return descriptor.defaultMessage as string;
 }
 
 function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlShape) {

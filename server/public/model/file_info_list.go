@@ -4,7 +4,8 @@
 package model
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 )
 
 type FileInfoList struct {
@@ -12,7 +13,7 @@ type FileInfoList struct {
 	FileInfos      map[string]*FileInfo `json:"file_infos"`
 	NextFileInfoId string               `json:"next_file_info_id"`
 	PrevFileInfoId string               `json:"prev_file_info_id"`
-	// If there are inaccessible files, FirstInaccessibleFileTime is the time of the latest inaccessible file
+	// Deprecated: the server no longer filters inaccessible files, so this is always zero.
 	FirstInaccessibleFileTime int64 `json:"first_inaccessible_file_time"`
 }
 
@@ -85,8 +86,8 @@ func (o *FileInfoList) Extend(other *FileInfoList) {
 }
 
 func (o *FileInfoList) SortByCreateAt() {
-	sort.Slice(o.Order, func(i, j int) bool {
-		return o.FileInfos[o.Order[i]].CreateAt > o.FileInfos[o.Order[j]].CreateAt
+	slices.SortFunc(o.Order, func(a, b string) int {
+		return cmp.Compare(o.FileInfos[b].CreateAt, o.FileInfos[a].CreateAt)
 	})
 }
 

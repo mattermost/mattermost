@@ -2,15 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
 import EditTableRow from './edit_section_edit_table_row';
-import EditSectionHeader from './edit_section_header';
+import IPNotInRangeErrorPanel from './edit_section_ip_not_in_range_panel';
 import NoFiltersPanel from './edit_section_no_filters_panel';
 
 import './edit_sections.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.ip_filtering.allowed_ip_addresses', defaultMessage: 'Allowed IP Addresses'},
+});
 
 type EditSectionProps = {
     ipFilters: AllowedIPRange[] | null;
@@ -32,12 +39,46 @@ const EditSection = ({
     const {formatMessage} = useIntl();
     const [hoveredRow, setHoveredRow] = useState<number | null>(null);
     return (
-        <div className='EditSection'>
-            <EditSectionHeader
-                setShowAddModal={setShowAddModal}
-                currentIPIsInRange={currentIPIsInRange}
-                currentUsersIP={currentUsersIP}
-            />
+        <AdminPanel
+            id='ip_filtering_edit'
+            className='EditSection'
+            title={messages.title}
+            button={
+                <Button
+                    emphasis='primary'
+                    onClick={() => setShowAddModal(true)}
+                    type='button'
+                >
+                    <FormattedMessage
+                        id='admin.ip_filtering.add_filter'
+                        defaultMessage='Add Filter'
+                    />
+                </Button>
+            }
+        >
+            <div className='EditSection__description'>
+                <p>
+                    <FormattedMessage
+                        id='admin.ip_filtering.edit_section_description_line_1'
+                        defaultMessage='Create rules to allow access to the workspace for specified IP addresses only.'
+                    />
+                </p>
+                <p>
+                    <FormattedMessage
+                        id='admin.ip_filtering.edit_section_description_line_2'
+                        defaultMessage='<strong>NOTE:</strong> If no rules are added, all IP addresses will be allowed.'
+                        values={{
+                            strong: (msg) => <strong>{msg}</strong>,
+                        }}
+                    />
+                </p>
+            </div>
+            {!currentIPIsInRange && (
+                <IPNotInRangeErrorPanel
+                    setShowAddModal={setShowAddModal}
+                    currentUsersIP={currentUsersIP}
+                />
+            )}
             {Boolean(ipFilters?.length) && (
                 <div className='TableSectionContent'>
                     <div className='Table'>
@@ -71,7 +112,7 @@ const EditSection = ({
                 </div>
             )}
             {ipFilters?.length === 0 && <NoFiltersPanel setShowAddModal={setShowAddModal}/>}
-        </div>
+        </AdminPanel>
     );
 };
 

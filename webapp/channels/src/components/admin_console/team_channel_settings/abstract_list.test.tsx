@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AbstractList from './abstract_list';
@@ -40,7 +40,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             </div>
         </div>);
 
-    test('should match snapshot, no headers', async () => {
+    test('should render no headers', async () => {
         const testChannels: Channel[] = [];
 
         const actions = {
@@ -49,8 +49,9 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <AbstractList
+                data={[]}
                 onPageChangedCallback={jest.fn()}
                 total={0}
                 header={header}
@@ -63,14 +64,11 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('test');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
-    test('should match snapshot, with data', async () => {
+    test('should render with data', async () => {
         const testTeams: TeamWithMembership[] = [TestHelper.getTeamMock({
             id: '123',
             display_name: 'DN',
@@ -82,7 +80,7 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             removeGroup: jest.fn(),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <AbstractList
                 data={testTeams}
                 onPageChangedCallback={jest.fn()}
@@ -97,11 +95,8 @@ describe('admin_console/team_channel_settings/AbstractList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
     const renderRow = jest.fn((item) => {

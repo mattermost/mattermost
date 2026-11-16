@@ -5,6 +5,7 @@ import React from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -36,7 +37,7 @@ type State = {
 };
 
 export default class JoinLeaveSection extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);
@@ -100,39 +101,31 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
                                     defaultMessage='Enable Join/Leave Messages'
                                 />
                             </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='joinLeaveOn'
-                                        type='radio'
-                                        value={'true'}
-                                        name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'true'}
-                                        onChange={this.handleOnChange}
-                                    />
+                            <div className='settings-radio-group'>
+                                <Radio
+                                    id='joinLeaveOn'
+                                    value={'true'}
+                                    name={AdvancedSections.JOIN_LEAVE}
+                                    checked={joinLeaveState === 'true'}
+                                    onChange={this.handleOnChange}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.on'
                                         defaultMessage='On'
                                     />
-                                </label>
-                                <br/>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='joinLeaveOff'
-                                        type='radio'
-                                        value={'false'}
-                                        name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'false'}
-                                        onChange={this.handleOnChange}
-                                    />
+                                </Radio>
+                                <Radio
+                                    id='joinLeaveOff'
+                                    value={'false'}
+                                    name={AdvancedSections.JOIN_LEAVE}
+                                    checked={joinLeaveState === 'false'}
+                                    onChange={this.handleOnChange}
+                                >
                                     <FormattedMessage
                                         id='user.settings.advance.off'
                                         defaultMessage='Off'
                                     />
-                                </label>
-                                <br/>
+                                </Radio>
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage

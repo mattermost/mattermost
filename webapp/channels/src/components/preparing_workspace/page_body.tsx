@@ -6,7 +6,7 @@ import React from 'react';
 import './page_body.scss';
 
 type Props = {
-    children: React.ReactNode | React.ReactNodeArray;
+    children: React.ReactNode | readonly React.ReactNode[];
 };
 
 export default function PageBody(props: Props) {

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -16,6 +16,8 @@ import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+
+import {toFullListIndex} from 'selectors/views/product_rail';
 
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
@@ -61,6 +63,15 @@ type Props = WrappedComponentProps & {
     markAllAsReadWithoutConfirm: boolean;
     markAllAsReadShortcutEnabled: boolean;
 
+    // When the product rail is on it shows Threads, so the list doesn't repeat it.
+    isProductRailShown: boolean;
+
+    // The product rail is showing Boards and the team has none the user can see.
+    showNoBoards: boolean;
+
+    // Categories the product rail's Channels or Boards section leaves empty, which aren't shown.
+    categoryIdsHiddenByProductRail: Set<string>;
+
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
         moveCategory: (teamId: string, categoryId: string, newIndex: number) => void;
@@ -94,7 +105,7 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<HTMLDivElement>;
+    scrollbar: React.RefObject<HTMLDivElement | null>;
     animate: SpringSystem;
     scrollAnimation: Spring;
 
@@ -399,7 +410,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.channelRefs.forEach((ref) => ref.classList.remove('animating'));
 
         // Turn off scrolling temporarily so that dimensions can be captured
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = `${droppable[0].scrollHeight}px`;
 
         if (!this.props.multiSelectedChannelIds.find((id) => before.draggableId === id)) {
@@ -437,7 +448,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.setDraggingState({state: DraggingStates.DURING});
 
         // Re-enable scroll box resizing
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = '';
     };
 
@@ -448,7 +459,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
             if (result.type === 'SIDEBAR_CHANNEL') {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
             } else if (result.type === 'SIDEBAR_CATEGORY') {
-                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
+                // While the product rail hides categories, the shown ones are numbered among
+                // themselves, so a drop needs translating to a place in the full list.
+                let newIndex = result.destination.index;
+                if (this.props.categoryIdsHiddenByProductRail.size > 0) {
+                    const nonManagedCategoryIds = this.props.categories.filter((c) => c.type !== CategoryTypes.MANAGED).map((c) => c.id);
+                    const shownCategoryIds = nonManagedCategoryIds.filter((id) => !this.props.categoryIdsHiddenByProductRail.has(id));
+                    newIndex = toFullListIndex(shownCategoryIds, nonManagedCategoryIds, result.draggableId, result.destination.index);
+                }
+
+                this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, newIndex);
             }
         }
 
@@ -499,14 +519,26 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
-            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+            // Categories the product rail hides aren't rendered at all, so the ones shown are
+            // numbered without gaps, as dragging needs.
+            const shownCategories = categories.filter((c) => !this.props.categoryIdsHiddenByProductRail.has(c.id));
+            const managedCategories = shownCategories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = shownCategories.filter((c) => c.type !== CategoryTypes.MANAGED);
 
             const renderedManagedCategories = managedCategories.map(this.renderCategory);
             const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
+                    {this.props.showNoBoards && (
+                        <div className='SidebarProductRailEmpty'>
+                            <FormattedMessage
+                                id='sidebar.productRail.noBoards'
+                                defaultMessage='No boards in this team yet.'
+                                description='Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of.'
+                            />
+                        </div>
+                    )}
                     {unreadsCategory}
                     {renderedManagedCategories}
                     <DragDropContext
@@ -557,7 +589,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <GlobalThreadsLink/>
+                {!this.props.isProductRailShown && <GlobalThreadsLink/>}
                 <DraftsLink/>
                 <RecapsLink/>
                 <div

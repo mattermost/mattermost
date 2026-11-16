@@ -484,6 +484,152 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 }
 
+func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name      string
+		postType  string
+		published bool
+		// errorCode is the code the job must record when the post is not published. Reserved
+		// system types are rejected up front (ScheduledPostErrorInvalidPost), while case- and
+		// whitespace-based near-misses slip past that check but still fail post validation on
+		// publish (ScheduledPostErrorUnknownError). Empty when the post is expected to publish.
+		errorCode      string
+		repeatType     string
+		repeatTimezone string
+	}{
+		{
+			name:      "generic system post type",
+			postType:  model.PostTypeSystemGeneric,
+			published: false,
+			errorCode: model.ScheduledPostErrorInvalidPost,
+		},
+		{
+			name:           "recurring weekly system post type",
+			postType:       model.PostTypeSystemGeneric,
+			published:      false,
+			errorCode:      model.ScheduledPostErrorInvalidPost,
+			repeatType:     model.ScheduledPostRepeatTypeWeekly,
+			repeatTimezone: "UTC",
+		},
+		{
+			name:      "structured system post type",
+			postType:  model.PostTypeAddToTeam,
+			published: false,
+			errorCode: model.ScheduledPostErrorInvalidPost,
+		},
+		{
+			name:      "bare reserved prefix",
+			postType:  model.PostSystemMessagePrefix,
+			published: false,
+			errorCode: model.ScheduledPostErrorInvalidPost,
+		},
+		{
+			name:      "reserved system type with trailing whitespace",
+			postType:  model.PostTypeSystemGeneric + " ",
+			published: false,
+			errorCode: model.ScheduledPostErrorInvalidPost,
+		},
+		{
+			name:      "reserved prefix with different casing",
+			postType:  "System_generic",
+			published: false,
+			errorCode: model.ScheduledPostErrorUnknownError,
+		},
+		{
+			name:      "reserved prefix behind leading whitespace",
+			postType:  "  " + model.PostTypeSystemGeneric,
+			published: false,
+			errorCode: model.ScheduledPostErrorUnknownError,
+		},
+		{
+			name:      "default post type",
+			postType:  model.PostTypeDefault,
+			published: true,
+		},
+		{
+			name:      "attachment post type",
+			postType:  model.PostTypeMessageAttachment,
+			published: true,
+		},
+		{
+			name:      "custom type containing but not starting with the reserved prefix",
+			postType:  model.PostCustomTypePrefix + model.PostTypeSystemGeneric,
+			published: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+			message := "scheduled post: " + testCase.name
+			scheduledAt := model.GetMillis() - 1000
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   message,
+					Type:      testCase.postType,
+				},
+				ScheduledAt:    scheduledAt,
+				RepeatType:     testCase.repeatType,
+				RepeatTimezone: testCase.repeatTimezone,
+			}
+			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
+			require.NoError(t, err)
+			require.NotNil(t, created)
+
+			th.App.ProcessScheduledPosts(th.Context)
+
+			publishedPost := findPublishedPostByMessage(t, th, th.BasicChannel.Id, message)
+
+			if testCase.published {
+				require.NotNil(t, publishedPost, "scheduled post should have been published")
+				assert.Equal(t, testCase.postType, publishedPost.Type)
+				assert.False(t, publishedPost.IsSystemMessage(), "a published scheduled post must never be treated as a system message")
+				return
+			}
+
+			assert.Nil(t, publishedPost, "a scheduled post with a reserved system post type must not be published")
+
+			updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
+			if assert.NoError(t, err, "the scheduled post should have been kept with an error code instead of being published") {
+				assert.Equal(t, testCase.errorCode, updated.ErrorCode)
+				if testCase.repeatType != "" {
+					assert.Equal(t, created.ScheduledAt, updated.ScheduledAt, "a series that could not send must not advance to its next occurrence")
+				}
+			}
+
+			// A second job run must not resurrect the post and publish it later.
+			th.App.ProcessScheduledPosts(th.Context)
+			assert.Nil(t, findPublishedPostByMessage(t, th, th.BasicChannel.Id, message), "a scheduled post with a reserved system post type must not publish on a later job run")
+		})
+	}
+}
+
+// findPublishedPostByMessage returns the published post carrying the given message, or nil.
+// Scheduled posts are matched by message because the channel also contains membership system
+// messages created by InitBasic.
+func findPublishedPostByMessage(t *testing.T, th *TestHelper, channelID, message string) *model.Post {
+	t.Helper()
+
+	posts, appErr := th.App.GetPosts(th.Context, channelID, 0, 200)
+	require.Nil(t, appErr)
+
+	for _, post := range posts.Posts {
+		if post.Message == message {
+			return post
+		}
+	}
+
+	return nil
+}
+
 func TestHandleFailedScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

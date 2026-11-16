@@ -64,7 +64,7 @@ describe('Category sorting', () => {
     //     // # Move test channel to Favourites
     //     cy.get(`#sidebarItem_${testChannel.name}`).parent().then((element) => {
     //         // # Get id of the channel
-    //         const id = element[0].getAttribute('data-rbd-draggable-id');
+    //         const id = element[0].getAttribute('data-rfd-draggable-id');
     //         cy.get(`#sidebarItem_${testChannel.name}`).parent('li').within(() => {
     //             // # Open dropdown next to channel name
     //             cy.get('.SidebarMenu').invoke('show').get('.SidebarMenu_menuButton').should('be.visible').click({force: true});
@@ -111,7 +111,7 @@ describe('Category sorting', () => {
 //             // # Move to a new category
 //             cy.get(`#sidebarItem_${channel.name}`).parent().then((element) => {
 //                 // # Get id of the channel
-//                 const id = element[0].getAttribute('data-rbd-draggable-id');
+//                 const id = element[0].getAttribute('data-rfd-draggable-id');
 //                 cy.get(`#sidebarItem_${channel.name}`).parent('li').within(() => {
 //                     // # Open dropdown next to channel name
 //                     cy.get('.SidebarMenu').invoke('show').get('.SidebarMenu_menuButton').should('be.visible').click({force: true});

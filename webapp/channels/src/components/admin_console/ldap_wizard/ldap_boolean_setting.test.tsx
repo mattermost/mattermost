@@ -49,7 +49,7 @@ describe('components/admin_console/ldap_wizard/LDAPBooleanSetting', () => {
 
         expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
         expect(screen.getByText(WARNING_TEXT)).toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+        expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
         // The normal help text still renders alongside the callout.
         expect(screen.getByText('skip-cert-help-text')).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('components/admin_console/ldap_wizard/LDAPBooleanSetting', () => {
         const {container} = renderSetting(false);
 
         expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+        expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
         expect(screen.getByText('skip-cert-help-text')).toBeInTheDocument();
     });
 
@@ -67,6 +67,6 @@ describe('components/admin_console/ldap_wizard/LDAPBooleanSetting', () => {
         const {container} = renderSetting(true, true);
 
         expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-        expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+        expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
     });
 });

@@ -842,6 +842,18 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
+func (s *SqlThreadStore) PermanentDeleteMembershipsByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("ThreadMemberships").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete thread memberships with userid=%s", userId)
+	}
+
+	return nil
+}
+
 // MaintainMembership creates or updates a thread membership for the given user
 // and post. This method is used to update the state of a membership in response
 // to some events like:
@@ -1161,4 +1173,28 @@ func (s *SqlThreadStore) UpdateTeamIdForChannelThreads(channelId, teamId string)
 	}
 
 	return nil
+}
+
+func (s *SqlThreadStore) GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	userIDs := []string{}
+	channelFilter := "AND Channels.DeleteAt = 0"
+	if includeArchivedChannels {
+		channelFilter = ""
+	}
+	err := s.GetReplica().Select(&userIDs,
+		`SELECT DISTINCT ThreadMemberships.UserId
+		FROM ThreadMemberships
+		INNER JOIN Posts ON ThreadMemberships.PostId = Posts.Id
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		WHERE Teams.Name = ?
+		  AND Channels.Name = ?
+		  AND Posts.DeleteAt = 0
+		  `+channelFilter+`
+		  AND Teams.DeleteAt = 0`,
+		teamName, channelName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get thread follower IDs for channel")
+	}
+	return userIDs, nil
 }

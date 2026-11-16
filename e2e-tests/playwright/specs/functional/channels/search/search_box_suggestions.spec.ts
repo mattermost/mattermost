@@ -87,3 +87,42 @@ test('remove extra whitespace when selecting a user', async ({pw}) => {
     const expectedText = `from:${admin.username} `;
     await expect(searchInput).toHaveValue(expectedText);
 });
+
+/**
+ * @objective Verify that grouped search suggestions are trimmed to ten results and retain the selected channel's
+ * term/item pairing.
+ */
+test('limits grouped channel suggestions and preserves the selected channel', {tag: '@search'}, async ({pw}) => {
+    const {team, user, adminClient} = await pw.initSetup();
+    const prefix = `search-trim-${pw.random.id()}`;
+    const channels = [];
+
+    // The search endpoint returns up to 50 channels; the search UI trims the grouped results to 10.
+    for (let i = 0; i < 12; i++) {
+        const channel = await adminClient.createPublicChannel(team.id, `Search Trim ${i} ${prefix}`, `${prefix}-${i}`);
+        await adminClient.addToChannel(user.id, channel.id);
+        channels.push(channel);
+    }
+
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    await channelsPage.globalHeader.openSearch();
+    await channelsPage.searchBox.toBeVisible();
+    const {searchInput, container} = channelsPage.searchBox;
+    await searchInput.fill(`In:${prefix}`);
+
+    // * Verify trimResults applies across the grouped channel results
+    const suggestions = container.getByRole('option');
+    await expect(suggestions).toHaveCount(10);
+
+    // # Select a result that survived trimming and verify the term/item pairing updates the query correctly
+    const renderedText = (await suggestions.allInnerTexts()).join('\n');
+    const selectedChannel = channels.find((channel) => renderedText.includes(channel.display_name));
+    if (!selectedChannel) {
+        throw new Error('Expected at least one created channel to remain in the trimmed suggestions');
+    }
+    await suggestions.filter({hasText: selectedChannel.display_name}).first().click();
+    await expect(searchInput).toHaveValue(new RegExp(`In:${selectedChannel.name}\\s`));
+});

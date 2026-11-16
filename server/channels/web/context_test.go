@@ -4,6 +4,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -149,7 +150,7 @@ func TestMfaRequired(t *testing.T) {
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockUserStore.On("Get", mock.Anything, "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -175,7 +176,31 @@ func TestMfaRequired(t *testing.T) {
 		AppContext: th.Context,
 	}
 
-	c.MfaRequired()
+	c.MfaRequired(http.MethodGet)
 
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
+}
+
+func TestSetError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(nil)
+		assert.Nil(t, c.Err)
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		appErr := model.NewAppError("TestSetError", "message", nil, "", http.StatusNotFound)
+
+		c := &Context{}
+		c.SetError(appErr)
+		assert.Same(t, appErr, c.Err)
+	})
+
+	t.Run("plain error", func(t *testing.T) {
+		c := &Context{}
+		c.SetError(errors.New("plain"))
+		require.NotNil(t, c.Err)
+		assert.Equal(t, "model.app_error.internal_error", c.Err.Id)
+		assert.Equal(t, http.StatusInternalServerError, c.Err.StatusCode)
+	})
 }

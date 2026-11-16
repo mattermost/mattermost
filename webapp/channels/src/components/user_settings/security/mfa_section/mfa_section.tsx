@@ -5,7 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
@@ -37,7 +37,7 @@ type State = {
 };
 
 export default class MfaSection extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     public constructor(props: Props) {
         super(props);

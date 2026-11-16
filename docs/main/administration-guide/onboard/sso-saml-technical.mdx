@@ -15,7 +15,7 @@ Using this URL populates the SAML SSO URL and the Identity Provider Issuer URL f
 
 This is currently supported for Okta and Microsoft ADFS server 2012 and 2016.
 
-For detailed steps, view the [Configure SAML with Okta](/administration-guide/onboard/sso-saml-okta), [Configure SAML with Microsoft ADFS for Windows Server 2012](/administration-guide/onboard/sso-saml-adfs), and [Configure SAML with Microsoft ADFS using Microsoft Windows Server 2016](/administration-guide/onboard/sso-saml-adfs-msws2016) documentation. See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML, including AES-192-GCM and AES-256-GCM encryption support introduced in v10.9.
+For detailed steps, view the [Configure SAML with Okta](/administration-guide/onboard/sso-saml-okta), [Configure SAML with Microsoft ADFS for Windows Server 2012](/administration-guide/onboard/sso-saml-adfs), and [Configure SAML with Microsoft ADFS using Microsoft Windows Server 2016](/administration-guide/onboard/sso-saml-adfs-msws2016) documentation. See the [supported SAML encryption methods](/administration-guide/configure/authentication-configuration-settings#supported-saml-encryption-methods) in the authentication configuration settings documentation.
 
 ## SAML providers
 
@@ -39,7 +39,7 @@ AuthNRequests can also be signed by Mattermost, in which case the XML payload is
 
 <Note>
 
-From Mattermost v11, the default signature algorithm has been updated from SHA-1 to SHA-256 for improved security. The example below reflects the new default SHA-256 algorithm.
+From Mattermost v11, the default signature algorithm has been updated from SHA-1 to SHA-256 for improved security. The example below reflects the new default SHA-256 algorithm. From v12.2, FIPS builds reject SHA-1. See [key transport and SHA-1 in FIPS builds](/administration-guide/configure/authentication-configuration-settings#key-transport-and-sha-1-in-fips-builds).
 
 </Note>
 

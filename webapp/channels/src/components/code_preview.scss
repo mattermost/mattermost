@@ -1,0 +1,63 @@
+// The Markdown view of a file in the preview modal. Nested like the modal's own code preview rules so it keeps
+// their specificity.
+.modal .modal-image .modal-image__wrapper .code-preview {
+    // Markdown source is prose, so wrap it (each line's number is drawn once, beside its first row)
+    &.code-preview--wrap .hljs code {
+        white-space: pre-wrap;
+    }
+
+    @media screen and (min-width: 769px) {
+        &.code-preview--fixed-size {
+            width: min(90vw, 960px);
+            height: calc(100vh - 168px);
+
+            // Both Markdown views fill the same box with the same corner radius
+            > .hljs,
+            > .code-preview__markdown {
+                overflow: auto;
+                min-height: 0;
+                flex: 1;
+                border-radius: 8px;
+            }
+        }
+    }
+
+    .code-preview__markdown {
+        padding: var(--spacing-xxxxl);
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        overflow-y: auto;
+        text-align: left;
+
+        a {
+            color: var(--link-color);
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        // The wrapper sizes the file's own code and preformatted text; undo that for Markdown content
+        code {
+            display: inline;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .post-code {
+            .hljs {
+                margin: 5px 0;
+            }
+
+            .post-code__line-numbers {
+                padding: 0 8px 4px 4px;
+            }
+
+            code {
+                display: block;
+                width: auto;
+                padding: 0;
+            }
+        }
+    }
+}

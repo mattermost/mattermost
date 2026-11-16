@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {FormatXMLElementFn} from 'intl-messageformat';
+import type {JSX} from 'react';
 import type {
     MessageDescriptor,
     PrimitiveType,
@@ -9,7 +10,7 @@ import type {
     IntlShape,
 } from 'react-intl';
 
-import type {CloudState, Product} from '@mattermost/types/cloud';
+import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {JobType} from '@mattermost/types/jobs';
 
@@ -23,6 +24,7 @@ type AdminDefinitionConfigSchemaComponent = {
     id: string;
     component: Component;
     isBeta?: boolean;
+    stateKey?: string;
 };
 
 export type ConsoleAccess = {read: {[key: string]: boolean}; write: {[key: string]: boolean}};
@@ -106,7 +108,6 @@ export type AdminDefinitionSettingDropdownOption = {
 type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
     type: 'dropdown';
     options: AdminDefinitionSettingDropdownOption[];
-    isHelpHidden?: Check;
 };
 
 export type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
@@ -184,6 +185,7 @@ AdminDefinitionSettingExpandable;
 
 export type AdminDefinitionConfigSchemaSettings = {
     id: string;
+    stateKey?: string;
     name: string | MessageDescriptor;
     isBeta?: boolean;
     isHidden?: Check;
@@ -211,7 +213,7 @@ export type AdminDefinitionConfigSchemaSection = {
 
 type RestrictedIndicatorType = {
     value: (cloud: CloudState) => JSX.Element;
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product | undefined) => boolean;
+    shouldDisplay: () => boolean;
 };
 
 export type AdminDefinitionSubSectionSchema = AdminDefinitionConfigSchemaComponent | AdminDefinitionConfigSchemaSettings;

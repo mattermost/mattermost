@@ -6,7 +6,6 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -14,6 +13,7 @@ import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_m
 import type {Value} from 'components/multiselect/multiselect';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -81,11 +81,6 @@ describe('components/channel_invite_modal', () => {
         username: 'user-2',
         delete_at: 0,
     } as UserProfileValue];
-
-    const userStatuses = {
-        'user-1': 'online',
-        'user-2': 'offline',
-    } as RelationOneToOne<UserProfile, string>;
 
     const channel = {
         create_at: 1508265709607,
@@ -167,81 +162,6 @@ describe('components/channel_invite_modal', () => {
         Client4.getChannelsRoute.mockReturnValue('/api/v4/channels');
         Client4.getUrl.mockReturnValue('http://localhost:8065');
         Client4.getBaseRoute.mockReturnValue('/api/v4');
-    });
-
-    test('should match snapshot for channel_invite_modal with profiles', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={[]}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={[]}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={users}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with exclude and include users', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                profilesNotInCurrentTeam={[]}
-                profilesFromRecentDMs={[]}
-                includeUsers={
-                    {
-                        'user-3': {
-                            id: 'user-3',
-                            label: 'user-3',
-                            value: 'user-3',
-                            delete_at: 0,
-                        } as UserProfileValue,
-                    }
-                }
-                excludeUsers={
-                    {
-                        'user-1': {
-                            id: 'user-1',
-                            label: 'user-1',
-                            value: 'user-1',
-                            delete_at: 0,
-                        } as UserProfileValue,
-                    }
-                }
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for channel_invite_modal with userStatuses', () => {
-        const {container} = renderWithContext(
-            <ChannelInviteModal
-                {...baseProps}
-                profilesNotInCurrentChannel={users}
-                profilesInCurrentChannel={[]}
-                userStatuses={userStatuses}
-                profilesFromRecentDMs={[]}
-            />,
-        );
-
-        // Since renderOption is now an internal function in the component,
-        // we can't test it directly. Instead, we'll test the rendered component.
-        expect(container).toMatchSnapshot();
     });
 
     test('should hide modal when onHide is called', () => {
@@ -447,12 +367,9 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: true,
             emailInvitationsEnabled: true,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
-
-        // Check that the invite as guest link is rendered
-        expect(container).toMatchSnapshot();
 
         // Look for the invite link text
         expect(screen.getByText('Invite as a Guest')).toBeInTheDocument();
@@ -464,13 +381,12 @@ describe('components/channel_invite_modal', () => {
             canInviteGuests: false,
             emailInvitationsEnabled: false,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelInviteModal {...props}/>,
         );
 
         // The invite as guest link should not be present
         expect(screen.queryByText('Invite as a Guest')).not.toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should show AlertBanner when policy_enforced is true', () => {
@@ -490,6 +406,34 @@ describe('components/channel_invite_modal', () => {
 
         // Modal renders in a portal, so query from document instead of container
         expect(document.querySelector('.AlertBanner')).not.toBeNull();
+    });
+
+    test('should say board in the policy banner for a public board', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, policy_enforced: true}}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('This board has recommended members based on user attributes')).toBeInTheDocument();
+        expect(screen.getByText('A membership policy suggests who should be members of this board. You can still add anyone who can join a public board.')).toBeInTheDocument();
+        expect(screen.queryByText('This channel has recommended members based on user attributes')).not.toBeInTheDocument();
+    });
+
+    test('should say board in the policy banner for a private board', () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                channel={{...channel, type: 'P' as ChannelType, policy_enforced: true}}
+            />,
+            boardChannelsState(channel.id),
+        );
+
+        expect(screen.getByText('Board access is restricted by user attributes')).toBeInTheDocument();
+        expect(screen.getByText('Only people who match the specified access rules can be selected and added to this board.')).toBeInTheDocument();
+        expect(screen.queryByText('Channel access is restricted by user attributes')).not.toBeInTheDocument();
     });
 
     test('should show attribute tags in AlertBanner', () => {
@@ -660,6 +604,16 @@ describe('components/channel_invite_modal', () => {
             element?.tagName === 'SPAN' && text.trim() === user,
         ) as HTMLElement;
 
+    // Async variant for the private-ABAC search path. `Client4.searchUsers` resolving
+    // is two renders ahead of the option appearing: the resolution sets
+    // privateAbacSearchHits, and only the effect that mirrors the recomputed options
+    // into groupAndUserOptions actually feeds MultiSelect. Waiting on the call alone
+    // asserts against the pre-search DOM.
+    const findUserSpan = (user: string) =>
+        screen.findByText((text, element) =>
+            element?.tagName === 'SPAN' && text.trim() === user,
+        ) as Promise<HTMLElement>;
+
     test('should not include DM users when ABAC is enabled on a private channel', async () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
@@ -690,7 +644,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // now only one visible <span> should match "user-1"
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
 
         // and no <span> with "user-2"
         expect(screen.queryByText('user-2')).toBeNull();
@@ -897,7 +851,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // Should only show users, not groups when ABAC is enforced
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
 
         // Groups should not appear in the dropdown
         expect(screen.queryByText('Developers')).toBeNull();
@@ -959,7 +913,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // Should only show clean ABAC data
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
         expect(screen.queryByText('user-2')).toBeNull();
     });
 
@@ -1001,7 +955,7 @@ describe('components/channel_invite_modal', () => {
         // ...and is sorted to the top of the option list. compareDocumentPosition
         // returns DOCUMENT_POSITION_FOLLOWING (4) when the second arg is later
         // in the DOM than the first — so user-2 preceding user-1 yields 4.
-        // eslint-disable-next-line no-bitwise
+
         expect(user2Span.compareDocumentPosition(user1Span) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
         // The recommended-users endpoint was queried with an empty cursor

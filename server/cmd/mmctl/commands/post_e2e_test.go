@@ -327,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		post := findPostByMessage(s.th.BasicChannel.Id, msgArg)
 		s.Require().Len(post.FileIds, 1)
 
-		infos, _, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
+		infos, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
 		s.Require().Nil(appErr)
 		s.Require().Len(infos, 1)
 		s.Require().Equal("attachment.txt", infos[0].Name)
@@ -359,7 +359,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		post := findPostByMessage(s.th.BasicChannel.Id, msgArg)
 		s.Require().Len(post.FileIds, 2)
 
-		infos, _, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
+		infos, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
 		s.Require().Nil(appErr)
 		s.Require().Len(infos, 2)
 
@@ -393,7 +393,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		}
 		s.Require().Len(matched, 1, "expected exactly one message-less post with a single file attachment")
 
-		infos, _, appErr := s.th.App.GetFileInfosForPost(s.th.Context, matched[0], false, false)
+		infos, appErr := s.th.App.GetFileInfosForPost(s.th.Context, matched[0], false, false)
 		s.Require().Nil(appErr)
 		s.Require().Len(infos, 1)
 		s.Require().Equal("only.txt", infos[0].Name)
@@ -453,7 +453,7 @@ func (s *MmctlE2ETestSuite) TestPostCreateCmd() {
 		post := findPostByMessage(s.th.BasicChannel.Id, msgArg)
 		s.Require().Len(post.FileIds, 1)
 
-		infos, _, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
+		infos, appErr := s.th.App.GetFileInfosForPost(s.th.Context, post, false, false)
 		s.Require().Nil(appErr)
 		s.Require().Len(infos, 1)
 		s.Require().Equal("good.txt", infos[0].Name)

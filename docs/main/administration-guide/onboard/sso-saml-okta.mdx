@@ -9,7 +9,7 @@ import Inc2_sso_saml_faq from './sso-saml-faq.mdx';
 
 The following process provides steps to configure SAML 2.0 with Okta for Mattermost.
 
-See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+See the [supported SAML encryption methods](/administration-guide/configure/authentication-configuration-settings#supported-saml-encryption-methods) in the authentication configuration settings documentation.
 
 <Inc0_sso_saml_before_you_begin />
 
@@ -31,7 +31,7 @@ See the encryption options documentation for details on what [encryption methods
 
 6.  Enter **SAML Settings**, including:
 
-> - **Single sign on URL:** `https://&lt;your-mattermost-url&gt;/login/sso/saml` where `https://&lt;your-mattermost-url&gt;` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
+> - **Single sign on URL:** `https://<your-mattermost-url>/login/sso/saml` where `https://<your-mattermost-url>` should typically match the [Mattermost Site URL](/administration-guide/configure/environment-configuration-settings#site-url).
 >
 > - **Audience URI:** For instance, `mattermost`
 >

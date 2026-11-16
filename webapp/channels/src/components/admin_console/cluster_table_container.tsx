@@ -13,7 +13,7 @@ import ClusterTable from './cluster_table';
 import LoadingScreen from '../loading_screen';
 
 const ClusterTableContainer = () => {
-    const interval = useRef<NodeJS.Timeout>();
+    const interval = useRef<NodeJS.Timeout>(undefined);
     const [clusterInfos, setClusterInfos] = useState<ClusterInfo[] | null>(null);
 
     const load = useCallback(() => {

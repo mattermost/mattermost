@@ -5,6 +5,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     type CustomProfileAttribute,
+    deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
 } from './helpers';
@@ -33,24 +34,27 @@ test(
         }));
         // # Create ordered attributes and values
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
+        try {
+            await setupCustomProfileAttributeValues(userClient, attributes, fields);
+            const {channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, 'town-square');
 
-        await setupCustomProfileAttributeValues(userClient, attributes, fields);
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
+            // * Verify the order in profile settings
+            const profileModal = await channelsPage.openProfileModal();
+            const settingsHeadings = await profileModal.sectionHeadings.allTextContents();
+            expect(matchingOrder(settingsHeadings, labels)).toEqual(labels);
+            await profileModal.closeModal();
 
-        // * Verify the order in profile settings
-        const profileModal = await channelsPage.openProfileModal();
-        const settingsHeadings = await profileModal.sectionHeadings.allTextContents();
-        expect(matchingOrder(settingsHeadings, labels)).toEqual(labels);
-        await profileModal.closeModal();
-
-        // # Open the user's profile popover
-        await channelsPage.postMessage(`Attribute order ${suffix}`);
-        const post = await channelsPage.getLastPost();
-        const popover = await channelsPage.openProfilePopover(post);
-        // * Verify the same order in the profile popover
-        const popoverHeadings = await popover.attributeHeadings.allTextContents();
-        expect(matchingOrder(popoverHeadings, labels)).toEqual(labels);
+            // # Open the user's profile popover
+            await channelsPage.postMessage(`Attribute order ${suffix}`);
+            const post = await channelsPage.getLastPost();
+            const popover = await channelsPage.openProfilePopover(post);
+            // * Verify the same order in the profile popover
+            const popoverHeadings = await popover.attributeHeadings.allTextContents();
+            expect(matchingOrder(popoverHeadings, labels)).toEqual(labels);
+        } finally {
+            await deleteCustomProfileAttributes(adminClient, fields);
+        }
     },
 );
 
@@ -73,36 +77,40 @@ test(
         }));
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
 
-        // # Open a profile popover containing ten populated attributes
-        await setupCustomProfileAttributeValues(userClient, attributes, fields);
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.postMessage(`Popover scroll ${suffix}`);
-        const post = await channelsPage.getLastPost();
-        const popover = await channelsPage.openProfilePopover(post);
+        try {
+            // # Open a profile popover containing ten populated attributes
+            await setupCustomProfileAttributeValues(userClient, attributes, fields);
+            const {channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.postMessage(`Popover scroll ${suffix}`);
+            const post = await channelsPage.getLastPost();
+            const popover = await channelsPage.openProfilePopover(post);
 
-        // * Verify the popover is scrollable
-        expect(
-            await popover.container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
-        ).toBe(true);
-        const bottomBefore = await popover.bottomRow.boundingBox();
-        if (!bottomBefore) {
-            throw new Error('Expected the profile popover bottom row to have a bounding box');
-        }
+            // * Verify the popover is scrollable
+            expect(
+                await popover.container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
+            ).toBe(true);
+            const bottomBefore = await popover.bottomRow.boundingBox();
+            if (!bottomBefore) {
+                throw new Error('Expected the profile popover bottom row to have a bounding box');
+            }
 
-        // # Scroll to the bottom of the popover
-        await popover.container.evaluate((element: HTMLElement) => {
-            element.scrollTop = element.scrollHeight;
-        });
-        await expect
-            .poll(() => popover.container.evaluate((element: HTMLElement) => element.scrollTop))
-            .toBeGreaterThan(0);
-        // * Verify the bottom action row remains visible and fixed
-        await expect(popover.bottomRow).toBeVisible();
-        const bottomAfter = await popover.bottomRow.boundingBox();
-        if (!bottomAfter) {
-            throw new Error('Expected the profile popover bottom row to remain visible after scrolling');
+            // # Scroll to the bottom of the popover
+            await popover.container.evaluate((element: HTMLElement) => {
+                element.scrollTop = element.scrollHeight;
+            });
+            await expect
+                .poll(() => popover.container.evaluate((element: HTMLElement) => element.scrollTop))
+                .toBeGreaterThan(0);
+            // * Verify the bottom action row remains visible and fixed
+            await expect(popover.bottomRow).toBeVisible();
+            const bottomAfter = await popover.bottomRow.boundingBox();
+            if (!bottomAfter) {
+                throw new Error('Expected the profile popover bottom row to remain visible after scrolling');
+            }
+            expect(Math.abs(bottomAfter.y - bottomBefore.y)).toBeLessThan(2);
+        } finally {
+            await deleteCustomProfileAttributes(adminClient, fields);
         }
-        expect(Math.abs(bottomAfter.y - bottomBefore.y)).toBeLessThan(2);
     },
 );

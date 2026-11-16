@@ -4,21 +4,19 @@
 package api4
 
 import (
+	"cmp"
 	"context"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
-	"sort"
+	"slices"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
-
-var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func setupForSharedChannels(tb testing.TB) *TestHelper {
 	th := SetupConfig(tb, func(cfg *model.Config) {
@@ -152,7 +150,7 @@ func getIds(channels []*model.SharedChannel) []string {
 }
 
 func randomBool() bool {
-	return rnd.Intn(2) != 0
+	return rand.IntN(2) != 0
 }
 
 func TestGetRemoteClusterById(t *testing.T) {
@@ -438,8 +436,8 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, deleted)
 
-	sort.Slice(sharedChannelRemotesFromRC1, func(i, j int) bool {
-		return sharedChannelRemotesFromRC1[i].Id < sharedChannelRemotesFromRC1[j].Id
+	slices.SortFunc(sharedChannelRemotesFromRC1, func(a, b *model.SharedChannelRemote) int {
+		return cmp.Compare(a.Id, b.Id)
 	})
 
 	t.Run("should return the expected shared channels", func(t *testing.T) {

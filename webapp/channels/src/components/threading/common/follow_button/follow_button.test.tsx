@@ -11,14 +11,12 @@ describe('components/threading/common/follow_button', () => {
     test('should say follow', async () => {
         const clickHandler = jest.fn();
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <FollowButton
                 isFollowing={false}
                 onClick={clickHandler}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         expect(screen.getByText('Follow')).toBeInTheDocument();
 
@@ -27,15 +25,40 @@ describe('components/threading/common/follow_button', () => {
     });
 
     test('should say following', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <FollowButton
                 isFollowing={true}
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         expect(screen.getByText('Following')).toBeInTheDocument();
+    });
+
+    test('as an icon button, uses the Compass bell off/on glyphs', async () => {
+        const {rerender} = renderWithContext(
+            <FollowButton
+                isFollowing={false}
+                iconOnly={true}
+            />,
+        );
+
+        const offButton = screen.getByRole('button', {name: 'Follow'});
+        expect(offButton).toHaveAttribute('aria-pressed', 'false');
+        expect(offButton).not.toHaveAttribute('data-active');
+        expect(offButton.querySelector('svg')).toBeInTheDocument();
+        expect(screen.queryByText('Follow')).not.toBeInTheDocument();
+
+        rerender(
+            <FollowButton
+                isFollowing={true}
+                iconOnly={true}
+            />,
+        );
+
+        const onButton = screen.getByRole('button', {name: 'Following'});
+        expect(onButton).toHaveAttribute('aria-pressed', 'true');
+        expect(onButton).toHaveAttribute('data-active', 'true');
+        expect(onButton.querySelector('svg')).toBeInTheDocument();
     });
 
     test('should fire click handler', async () => {

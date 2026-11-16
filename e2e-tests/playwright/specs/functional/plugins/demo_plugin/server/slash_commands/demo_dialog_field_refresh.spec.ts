@@ -3,49 +3,34 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
-    // Plugin installation can take up to 60 s; extend the test timeout to avoid
-    // a premature timeout before the dialog even opens.
-    test.setTimeout(120000);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
-
-    // 2. Login
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to Town Square
+    // # Navigate to Town Square
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog field-refresh command (with one retry if the dialog doesn't appear).
-    // Re-apply guard: concurrent initSetup() resets PluginSettings (Plugins: {}) which
-    // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
-    // is already active (alreadyActive guard skips reinstall).
-    await setupDemoPlugin(adminClient, pw);
+    // # Send /dialog field-refresh command
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    await sendDemoSlashCommand(channelsPage.page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
         await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            // 5. Confirm dialog opens with title "Project Configuration"
-            await expect(dialog).toBeVisible({timeout: 15000});
-            break; // dialog appeared — proceed
-        } catch (err) {
-            if (attempt === 1) {
-                throw err; // exhausted retries — let the error surface naturally
-            }
-            // attempt 0 timed out — retry the slash command once
-        }
-    }
+    });
+    await expect(dialog).toBeVisible();
+
+    // * Verify dialog opens with title "Project Configuration"
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Project Configuration');
 
-    // 6. Verify initial state — only Project Type dropdown visible
+    // * Verify initial state — only Project Type dropdown visible
     await expect(dialog.getByText('Project Type *')).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Create Project'})).toBeVisible();
@@ -53,21 +38,23 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 7. Select "Web Application" — new fields should appear
+    // # Select "Web Application"
     // Click the react-select control (not the hidden input) to open the dropdown
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'Web Application'}).click();
 
+    // * Verify the new fields appear
     await expect(dialog.getByText('Frontend Framework *')).toBeVisible();
     await expect(dialog.getByText('Enable PWA')).toBeVisible();
     await expect(dialog.getByText('Project Name *')).toBeVisible();
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 8. Change to "Mobile Application" — fields update
+    // # Change to "Mobile Application"
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'Mobile Application'}).click();
 
+    // * Verify fields update
     await expect(dialog.getByText('Platform *')).toBeVisible();
     await expect(dialog.getByText('Minimum OS Version *')).toBeVisible();
     await expect(dialog.getByText('Project Name *')).toBeVisible();
@@ -75,10 +62,11 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Enable PWA')).not.toBeVisible();
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
-    // 9. Change to "API Service" — fields update again
+    // # Change to "API Service"
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
     await channelsPage.page.getByRole('option', {name: 'API Service'}).click();
 
+    // * Verify fields update again
     await expect(dialog.getByText('API Type *')).toBeVisible();
     await expect(dialog.getByRole('radio', {name: 'REST API'})).toBeVisible();
     await expect(dialog.getByRole('radio', {name: 'GraphQL API'})).toBeVisible();
@@ -88,7 +76,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('Platform')).not.toBeVisible();
     await expect(dialog.getByText('Minimum OS Version')).not.toBeVisible();
 
-    // 10. Fill required fields and submit
+    // # Fill required fields and submit
     await dialog.getByPlaceholder('Enter project name...').fill('Test Project');
     await dialog.getByRole('radio', {name: 'REST API'}).click();
 
@@ -96,10 +84,11 @@ test('should update form fields dynamically when project type changes via /dialo
     await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
     await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
 
+    // # Submit the dialog
     await dialog.getByRole('button', {name: 'Create Project'}).click();
-    await expect(dialog).not.toBeVisible();
 
-    // 11. Verify response post in the channel
+    // * Verify the dialog closed and the response post appears in the channel
+    await expect(dialog).not.toBeVisible();
     await expect(
         channelsPage.centerView.container.locator('p').filter({hasText: 'api project: Test Project'}),
     ).toBeVisible();

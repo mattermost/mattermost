@@ -5,6 +5,8 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -17,8 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -75,42 +80,42 @@ func TestImportImportLine(t *testing.T) {
 		Type: "gibberish",
 	}
 
-	err := th.App.importLine(th.Context, line, false)
+	err := th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
 	// Try import line with scheme type but nil scheme.
 	line.Type = "scheme"
-	err = th.App.importLine(th.Context, line, false)
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
 }
 
@@ -121,27 +126,51 @@ func TestStopOnError(t *testing.T) {
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
 
 	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
-	}))
+	}, false))
+
+	// Scoped migration (deactivateMissingUsers=true): email/username conflicts are non-fatal —
+	// the existing account on the destination will be linked when posts reference the username.
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, true))
+
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, true))
+
+	// Non-scoped import (deactivateMissingUsers=false): email/username conflicts are fatal —
+	// a duplicate user in a backup/restore import signals a genuine data conflict.
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, false))
+
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}, false))
 }
 
 func TestImportBulkImport(t *testing.T) {
@@ -707,6 +736,155 @@ func TestImportBulkImportWithNestedJsonl(t *testing.T) {
 	require.Nil(t, appErr)
 }
 
+func TestRewriteTeamName(t *testing.T) {
+	strPtr := func(s string) *string { return &s }
+
+	t.Run("rewrites team line name", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{Name: strPtr("source-team")},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Team.Name)
+	})
+
+	t.Run("does not rewrite non-matching team name", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{Name: strPtr("other-team")},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "other-team", *line.Team.Name)
+	})
+
+	t.Run("rewrites channel line team reference", func(t *testing.T) {
+		team := "source-team"
+		line := imports.LineImportData{
+			Type:    "channel",
+			Channel: &imports.ChannelImportData{Team: &team},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Channel.Team)
+	})
+
+	t.Run("rewrites user team membership", func(t *testing.T) {
+		teamName := "source-team"
+		teams := []imports.UserTeamImportData{{Name: &teamName}}
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: &teams},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *(*line.User.Teams)[0].Name)
+	})
+
+	t.Run("rewrites post team reference", func(t *testing.T) {
+		team := "source-team"
+		line := imports.LineImportData{
+			Type: "post",
+			Post: &imports.PostImportData{Team: &team},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "dest-team", *line.Post.Team)
+	})
+
+	t.Run("nil user teams — no panic", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: nil},
+		}
+		assert.NotPanics(t, func() {
+			rewriteTeamName(&line, "source-team", "dest-team")
+		})
+	})
+
+	t.Run("unrelated line type — no change", func(t *testing.T) {
+		name := "source-team"
+		line := imports.LineImportData{
+			Type:  "emoji",
+			Emoji: &imports.EmojiImportData{Name: &name},
+		}
+		rewriteTeamName(&line, "source-team", "dest-team")
+		assert.Equal(t, "source-team", *line.Emoji.Name)
+	})
+}
+
+func TestDeactivateMissingUsersMode(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Create a user that exists on this server.
+	existingUser := th.CreateUser(t)
+
+	// Build a channel-scoped import JSONL — the additional field in the
+	// version line triggers deactivateMissingUsers mode automatically.
+	teamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	newUsername := model.NewUsername() // does not exist on this server
+
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"` + teamName + `","channel_name":"` + channelName + `"}}}
+{"type":"team","team":{"type":"O","display_name":"Test Team","name":"` + teamName + `"}}
+{"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + teamName + `","name":"` + channelName + `"}}
+{"type":"user","user":{"username":"` + existingUser.Username + `","email":"` + existingUser.Email + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
+{"type":"user","user":{"username":"` + newUsername + `","email":"` + newUsername + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
+
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
+	require.Nil(t, appErr)
+
+	// The existing user should still exist.
+	_, err := th.App.Srv().Store().User().GetByUsername(existingUser.Username)
+	require.NoError(t, err, "existing user should still be present")
+
+	// The new user should have been created as a deactivated placeholder account.
+	u, err := th.App.Srv().Store().User().GetByUsername(newUsername)
+	require.NoError(t, err, "new user should have been created in deactivateMissingUsers mode")
+	assert.NotZero(t, u.DeleteAt, "newly-created user should be deactivated")
+	assert.Equal(t, "true", u.Props[model.UserPropsKeyImportedInactive], "shell account should have importedInactive prop set")
+}
+
+func TestRewriteTeamNameEndToEnd(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Create the destination team on this server.
+	destTeam := th.CreateTeam(t)
+
+	// Build a channel-scoped import that names a different source team.
+	// The --destination-team flag should remap all references to destTeam.
+	srcTeamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	username := model.NewUsername()
+
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"` + srcTeamName + `","channel_name":"` + channelName + `"}}}
+{"type":"team","team":{"type":"O","display_name":"Source Team","name":"` + srcTeamName + `"}}
+{"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + srcTeamName + `","name":"` + channelName + `"}}
+{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + srcTeamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
+
+	opts := model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeam.Name}
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	require.Nil(t, appErr)
+
+	// The channel should have been created under the destination team.
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, destTeam.Id, false)
+	require.Nil(t, appErr, "channel should exist under the destination team after name remapping")
+}
+
+func TestDestinationTeamRequiresSingleTeamExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// A version line with a comma-separated (multi-team) scope combined with
+	// --destination-team-name must be rejected immediately, as remapping to a single
+	// destination is ambiguous when the export spans multiple source teams.
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"team-a,team-b"}}}
+{"type":"team","team":{"type":"O","display_name":"Team A","name":"team-a"}}`
+
+	opts := model.BulkImportOpts{DestinationTeamName: "some-dest-team"}
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	require.NotNil(t, appErr, "should fail when --destination-team-name is used with a multi-team export")
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+}
+
 func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
 
@@ -738,4 +916,1022 @@ func TestDeleteImport(t *testing.T) {
 		delErr = th.App.DeleteImport("import.zip")
 		require.Nil(t, delErr)
 	})
+}
+
+func TestCheckSSOProviderConfig(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	// Enterprise license required to enable LDAP/SAML via UpdateConfig validation.
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	defer th.App.Srv().SetLicense(nil)
+
+	versionLine := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"acme"}}}`
+
+	makeJSONL := func(authService string) string {
+		userLine := `{"type":"user","user":{"username":"testuser","email":"test@example.com","auth_service":"` + authService + `","auth_data":"some-id"}}`
+		return versionLine + "\n" + userLine
+	}
+
+	t.Run("LDAP enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.LdapServer = model.NewPointer("localhost")
+			cfg.LdapSettings.BaseDN = model.NewPointer("dc=mm,dc=test,dc=com")
+			cfg.LdapSettings.BindUsername = model.NewPointer("cn=admin,dc=mm,dc=test,dc=com")
+			cfg.LdapSettings.BindPassword = model.NewPointer("mostest")
+			cfg.LdapSettings.EmailAttribute = model.NewPointer("mail")
+			cfg.LdapSettings.UsernameAttribute = model.NewPointer("uid")
+			cfg.LdapSettings.IdAttribute = model.NewPointer("uid")
+			cfg.LdapSettings.LoginIdAttribute = model.NewPointer("uid")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("LDAP disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("LDAP enabled but IdAttribute empty — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.IdAttribute = model.NewPointer("")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("SAML enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml/descriptor")
+			cfg.SamlSettings.AssertionConsumerServiceURL = model.NewPointer("http://localhost:8065/login/sso/saml")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+			cfg.SamlSettings.IdAttribute = model.NewPointer("id")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceSaml))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("SAML disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceSaml))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("skip-preflight bypasses disabled provider check", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, true)
+		require.Nil(t, appErr, "skip-preflight should suppress the error")
+	})
+
+	t.Run("email-only export — no error regardless of SSO config", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		emailOnlyJSONL := versionLine + "\n" +
+			`{"type":"user","user":{"username":"alice","email":"alice@example.com"}}`
+		zr := makeZipWithJSONL(t, emailOnlyJSONL)
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr, "email-only export should never trigger preflight failures")
+	})
+
+	t.Run("mixed SSO types — all checked, first failure returns error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.IdAttribute = model.NewPointer("uid")
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		mixed := versionLine + "\n" +
+			`{"type":"user","user":{"username":"ldap-user","email":"ldap@example.com","auth_service":"ldap","auth_data":"uid1"}}` + "\n" +
+			`{"type":"user","user":{"username":"saml-user","email":"saml@example.com","auth_service":"saml","auth_data":"saml-id"}}`
+		zr := makeZipWithJSONL(t, mixed)
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr, "should fail because SAML is disabled")
+	})
+
+	t.Run("no attachments reader (non-zip import) — preflight skipped silently", func(t *testing.T) {
+		// When attachmentsReader is nil the call site skips checkSSOProviderConfig entirely.
+		// This test documents that the function itself handles a nil-entry zip gracefully.
+		emptyZR := makeZipWithJSONL(t, "")
+		appErr := th.App.checkSSOProviderConfig(th.Context, emptyZR, false)
+		require.Nil(t, appErr, "empty JSONL should not trigger any failure")
+	})
+
+	t.Run("GitLab disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGitlab))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("GitLab enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGitlab))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Google disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GoogleSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGoogle))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("Google enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GoogleSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGoogle))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Office365 disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.Office365Settings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOffice365))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("Office365 enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.Office365Settings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOffice365))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("OpenID disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOpenid))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("OpenID enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOpenid))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("unknown auth_service — passes silently (default case)", func(t *testing.T) {
+		zr := makeZipWithJSONL(t, makeJSONL("some-custom-sso-provider"))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr, "unrecognised auth_service should not block import")
+	})
+}
+
+func TestCheckTeamMemberLimits(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	const versionLine = `{"type":"version","version":1}`
+	userLine := func(username, teamName string) string {
+		return `{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + teamName + `"}]}}`
+	}
+	setLimit := func(t *testing.T, limit int) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(limit) })
+	}
+	teamWithOneMember := func(t *testing.T) *model.Team {
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+		return team
+	}
+	requireLimitError := func(t *testing.T, appErr *model.AppError, expectedMessage string) {
+		t.Helper()
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.preflight.team_member_limit_exceeded.error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		assert.Equal(t, expectedMessage, appErr.Message)
+	}
+
+	t.Run("fails up front when new users take an existing team past the limit", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("passes when the team stays within the limit", func(t *testing.T) {
+		setLimit(t, 3)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("no limit configured", func(t *testing.T) {
+		setLimit(t, 0)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("skip-preflight proceeds despite the limit", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, true))
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT (skipped): import takes a team past TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set")
+	})
+
+	t.Run("counts users for a team the import creates", func(t *testing.T) {
+		setLimit(t, 1)
+		teamName := model.NewRandomTeamName()
+		zr := makeZipWithJSONL(t, strings.Join([]string{
+			versionLine,
+			`{"type":"team","team":{"type":"O","display_name":"New Team","name":"` + teamName + `"}}`,
+			userLine(model.NewUsername(), teamName),
+			userLine(model.NewUsername(), teamName),
+		}, "\n"))
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 2 users to team "+teamName+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("re-importing existing members adds nobody", func(t *testing.T) {
+		setLimit(t, 2)
+		team := th.CreateTeam(t)
+		member1 := th.CreateUser(t)
+		member2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, member1, team)
+		th.LinkUserToTeam(t, member2, team)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(member1.Username, team.Name), userLine(member2.Username, team.Name)}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("a team already over the limit gaining nobody passes", func(t *testing.T) {
+		setLimit(t, 0)
+		team := th.CreateTeam(t)
+		members := []*model.User{th.CreateUser(t), th.CreateUser(t), th.CreateUser(t)}
+		for _, member := range members {
+			th.LinkUserToTeam(t, member, team)
+		}
+		setLimit(t, 2)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(members[0].Username, team.Name)}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("existing non-members count as gained", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(th.CreateUser(t).Username, team.Name), userLine(th.CreateUser(t).Username, team.Name)}, "\n"))
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("users imported deactivated are not counted", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		deactivated := `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","delete_at":1700000000000,"teams":[{"name":"` + team.Name + `"}]}}`
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), deactivated}, "\n"))
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+	})
+
+	t.Run("new accounts are not counted when they are created inactive", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, true, false))
+
+		setLimit(t, 1)
+		existingUser := th.CreateUser(t)
+		zr = makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(existingUser.Username, team.Name), userLine(model.NewUsername(), team.Name)}, "\n"))
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, true, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("existing deactivated accounts count only when the file reactivates them", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		deactivated := th.CreateUser(t)
+		_, appErr := th.App.UpdateActive(th.Context, deactivated, false)
+		require.Nil(t, appErr)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), userLine(deactivated.Username, team.Name)}, "\n"))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+
+		reactivated := `{"type":"user","user":{"username":"` + deactivated.Username + `","email":"` + deactivated.Email + `","delete_at":0,"teams":[{"name":"` + team.Name + `"}]}}`
+		zr = makeZipWithJSONL(t, strings.Join([]string{versionLine, userLine(model.NewUsername(), team.Name), reactivated}, "\n"))
+		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 2 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("a deactivated member reactivated by the file counts as gained", func(t *testing.T) {
+		setLimit(t, 0)
+		team := teamWithOneMember(t)
+		deactivatedMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, deactivatedMember, team)
+		_, appErr := th.App.UpdateActive(th.Context, deactivatedMember, false)
+		require.Nil(t, appErr)
+		setLimit(t, 1)
+
+		reactivated := `{"type":"user","user":{"username":"` + deactivatedMember.Username + `","email":"` + deactivatedMember.Email + `","delete_at":0,"teams":[{"name":"` + team.Name + `"}]}}`
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, reactivated}, "\n"))
+		appErr = th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("counts memberships remapped to the destination team", func(t *testing.T) {
+		setLimit(t, 2)
+		destTeam := teamWithOneMember(t)
+		srcTeamName := model.NewRandomTeamName()
+		zr := makeZipWithJSONL(t, strings.Join([]string{
+			versionLine,
+			`{"type":"team","team":{"type":"O","display_name":"Source Team","name":"` + srcTeamName + `"}}`,
+			userLine(model.NewUsername(), srcTeamName),
+			userLine(model.NewUsername(), srcTeamName),
+		}, "\n"))
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", destTeam.Name, false, false, false)
+		requireLimitError(t, appErr, "This file adds 2 users to team "+destTeam.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	ssoUser := func(t *testing.T, authData string) *model.User {
+		user := th.CreateUser(t)
+		_, err := th.App.Srv().Store().User().UpdateAuthData(user.Id, model.UserAuthServiceSaml, &authData, user.Email, false)
+		require.NoError(t, err)
+		return user
+	}
+	ssoUserLine := func(username, authData, teamName string) string {
+		return `{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","auth_service":"saml","auth_data":"` + authData + `","teams":[{"name":"` + teamName + `"}]}}`
+	}
+
+	t.Run("SSO users are matched by auth_data rather than username", func(t *testing.T) {
+		setLimit(t, 2)
+		team := teamWithOneMember(t)
+		authData := model.NewId()
+		th.LinkUserToTeam(t, ssoUser(t, authData), team)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(model.NewUsername(), authData, team.Name)}, "\n"))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false))
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false))
+	})
+
+	t.Run("an SSO user whose auth_data matches a non-member counts as gained even if the username is a member", func(t *testing.T) {
+		setLimit(t, 2)
+		team := th.CreateTeam(t)
+		member := th.CreateUser(t)
+		th.LinkUserToTeam(t, member, team)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+		authData := model.NewId()
+		ssoUser(t, authData)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(member.Username, authData, team.Name)}, "\n"))
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 3 members, but TeamSettings.MaxUsersPerTeam is 2. Raise the limit or set it to 0 (no limit) before importing.")
+	})
+
+	t.Run("an unmatched SSO user falls back to username only in a full import", func(t *testing.T) {
+		setLimit(t, 1)
+		team := th.CreateTeam(t)
+		nonMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+
+		zr := makeZipWithJSONL(t, strings.Join([]string{versionLine, ssoUserLine(nonMember.Username, model.NewId(), team.Name)}, "\n"))
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		requireLimitError(t, appErr, "This file adds 1 users to team "+team.Name+", giving it 2 members, but TeamSettings.MaxUsersPerTeam is 1. Raise the limit or set it to 0 (no limit) before importing.")
+
+		// A scoped import can't create the account, as the username is taken.
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", true, false, false))
+	})
+
+	t.Run("an archive without a readable JSONL fails unless skip-preflight is set", func(t *testing.T) {
+		setLimit(t, 2)
+		var buf bytes.Buffer
+		zw := zip.NewWriter(&buf)
+		_, err := zw.Create("data/attachment.txt")
+		require.NoError(t, err)
+		require.NoError(t, zw.Close())
+		zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+		require.NoError(t, err)
+
+		appErr := th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.preflight.team_member_limit_read.error", appErr.Id)
+
+		require.Nil(t, th.App.checkTeamMemberLimits(th.Context, zr, "", "", false, false, true))
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT (skipped): unable to read the import file to check TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set")
+	})
+}
+
+func TestBulkImportMaxUsersPerTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewPointer(2) })
+
+	runImport := func(t *testing.T, team *model.Team, usernames []string, skipPreflight bool) *model.AppError {
+		t.Helper()
+		lines := []string{`{"type":"version","version":1}`}
+		for _, username := range usernames {
+			lines = append(lines, `{"type":"user","user":{"username":"`+username+`","email":"`+username+`@example.com","teams":[{"name":"`+team.Name+`"}]}}`)
+		}
+		zr := makeZipWithJSONL(t, strings.Join(lines, "\n"))
+		jsonlFile, err := zr.File[0].Open()
+		require.NoError(t, err)
+		defer jsonlFile.Close()
+
+		_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, jsonlFile, zr, false, false, 4, "", model.BulkImportOpts{SkipPreflight: skipPreflight})
+		return appErr
+	}
+	newTeam := func(t *testing.T) *model.Team {
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+		return team
+	}
+	usernames := func(n int) []string {
+		names := make([]string, n)
+		for i := range names {
+			names[i] = model.NewUsername()
+		}
+		return names
+	}
+
+	t.Run("an import that would exceed the limit fails before writing anything", func(t *testing.T) {
+		team := newTeam(t)
+		names := usernames(4)
+
+		appErr := runImport(t, team, names, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.preflight.team_member_limit_exceeded.error", appErr.Id)
+
+		count, err := th.App.Srv().Store().Team().GetActiveMemberCount(team.Id, nil)
+		require.NoError(t, err)
+		assert.EqualValues(t, 1, count)
+		for _, username := range names {
+			_, err := th.App.Srv().Store().User().GetByUsername(username)
+			assert.Error(t, err, "no account should be created for %s", username)
+		}
+	})
+
+	t.Run("a scoped import only counts new accounts when they are created active", func(t *testing.T) {
+		team := newTeam(t)
+		scopedImport := func(names []string, posture model.ImportedUsersPosture) *model.AppError {
+			lines := []string{`{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"` + team.Name + `"}}}`}
+			for _, username := range names {
+				lines = append(lines, `{"type":"user","user":{"username":"`+username+`","email":"`+username+`@example.com","teams":[{"name":"`+team.Name+`"}]}}`)
+			}
+			zr := makeZipWithJSONL(t, strings.Join(lines, "\n"))
+			jsonlFile, err := zr.File[0].Open()
+			require.NoError(t, err)
+			defer jsonlFile.Close()
+			_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, jsonlFile, zr, false, false, 4, "", model.BulkImportOpts{ImportedUsers: posture})
+			return appErr
+		}
+
+		appErr := scopedImport(usernames(2), model.ImportedUsersActive)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.import.preflight.team_member_limit_exceeded.error", appErr.Id)
+
+		require.Nil(t, scopedImport(usernames(2), model.ImportedUsersInactive))
+		count, err := th.App.Srv().Store().Team().GetActiveMemberCount(team.Id, nil)
+		require.NoError(t, err)
+		assert.EqualValues(t, 1, count)
+	})
+
+	t.Run("with skip-preflight every user joins the team despite the limit", func(t *testing.T) {
+		team := newTeam(t)
+		names := usernames(4)
+
+		require.Nil(t, runImport(t, team, names, true))
+
+		count, err := th.App.Srv().Store().Team().GetActiveMemberCount(team.Id, nil)
+		require.NoError(t, err)
+		assert.EqualValues(t, 5, count)
+		for _, username := range names {
+			user, err := th.App.Srv().Store().User().GetByUsername(username)
+			require.NoError(t, err)
+			_, err = th.App.Srv().Store().Team().GetMember(th.Context, team.Id, user.Id)
+			assert.NoError(t, err, "%s should be a member of the team", username)
+		}
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Imported team membership takes the team past TeamSettings.MaxUsersPerTeam")
+	})
+
+	t.Run("a former member rejoining past the limit is warned about", func(t *testing.T) {
+		team := newTeam(t)
+		former := th.CreateUser(t)
+		th.LinkUserToTeam(t, former, team)
+		require.Nil(t, th.App.RemoveUserFromTeam(th.Context, team.Id, former.Id, ""))
+		th.LinkUserToTeam(t, th.CreateUser(t), team)
+		require.NoError(t, th.TestLogger.Flush())
+		_, err := io.Copy(io.Discard, th.LogBuffer)
+		require.NoError(t, err)
+
+		require.Nil(t, runImport(t, team, []string{former.Username}, true))
+
+		count, err := th.App.Srv().Store().Team().GetActiveMemberCount(team.Id, nil)
+		require.NoError(t, err)
+		assert.EqualValues(t, 3, count)
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Imported team membership takes the team past TeamSettings.MaxUsersPerTeam")
+	})
+
+	t.Run("an import without a zip archive warns that the limit is not checked", func(t *testing.T) {
+		team := newTeam(t)
+		jsonl := `{"type":"version","version":1}` + "\n" + `{"type":"user","user":{"username":"` + model.NewUsername() + `","email":"` + model.NewId() + `@example.com","teams":[{"name":"` + team.Name + `"}]}}`
+
+		_, appErr := th.App.BulkImport(th.Context, strings.NewReader(jsonl), nil, false, 1)
+		require.Nil(t, appErr)
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "PREFLIGHT: TeamSettings.MaxUsersPerTeam is not checked before importing a JSONL file without its zip archive, so teams can end up past the limit")
+	})
+}
+
+func TestRewriteChannelName(t *testing.T) {
+	t.Run("rewrites channel line name", func(t *testing.T) {
+		name := "source-channel"
+		line := imports.LineImportData{
+			Type:    "channel",
+			Channel: &imports.ChannelImportData{Name: &name},
+		}
+		rewriteChannelName(&line, "source-channel", "dest-channel")
+		assert.Equal(t, "dest-channel", *line.Channel.Name)
+	})
+
+	t.Run("does not rewrite non-matching channel name", func(t *testing.T) {
+		name := "other-channel"
+		line := imports.LineImportData{
+			Type:    "channel",
+			Channel: &imports.ChannelImportData{Name: &name},
+		}
+		rewriteChannelName(&line, "source-channel", "dest-channel")
+		assert.Equal(t, "other-channel", *line.Channel.Name)
+	})
+
+	t.Run("rewrites user channel membership", func(t *testing.T) {
+		channelName := "source-channel"
+		teamName := "some-team"
+		channels := []imports.UserChannelImportData{{Name: &channelName}}
+		teams := []imports.UserTeamImportData{{Name: &teamName, Channels: &channels}}
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: &teams},
+		}
+		rewriteChannelName(&line, "source-channel", "dest-channel")
+		assert.Equal(t, "dest-channel", *(*(*line.User.Teams)[0].Channels)[0].Name)
+	})
+
+	t.Run("rewrites post channel reference", func(t *testing.T) {
+		channel := "source-channel"
+		line := imports.LineImportData{
+			Type: "post",
+			Post: &imports.PostImportData{Channel: &channel},
+		}
+		rewriteChannelName(&line, "source-channel", "dest-channel")
+		assert.Equal(t, "dest-channel", *line.Post.Channel)
+	})
+
+	t.Run("nil user teams — no panic", func(t *testing.T) {
+		line := imports.LineImportData{
+			Type: "user",
+			User: &imports.UserImportData{Teams: nil},
+		}
+		assert.NotPanics(t, func() {
+			rewriteChannelName(&line, "source-channel", "dest-channel")
+		})
+	})
+
+	t.Run("unrelated line type — no change", func(t *testing.T) {
+		name := "source-team"
+		line := imports.LineImportData{
+			Type: "team",
+			Team: &imports.TeamImportData{Name: &name},
+		}
+		rewriteChannelName(&line, "source-channel", "dest-channel")
+		assert.Equal(t, "source-team", *line.Team.Name)
+	})
+}
+
+func TestPreCreateSSOUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	authService := model.UserAuthServiceLdap
+	authData := func(s string) *string { return &s }
+
+	t.Run("no-op when user already exists by auth_data", func(t *testing.T) {
+		user := th.CreateUser(t)
+		ad := model.NewId()
+		_, err := th.App.Srv().Store().User().UpdateAuthData(user.Id, authService, &ad, user.Email, false)
+		require.NoError(t, err)
+
+		data := &imports.UserImportData{
+			Username:    &user.Username,
+			Email:       &user.Email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.Nil(t, appErr)
+
+		// Verify no duplicate was created.
+		users, err := th.App.Srv().Store().User().GetAllUsingAuthService(authService)
+		require.NoError(t, err)
+		count := 0
+		for _, u := range users {
+			if u.AuthData != nil && *u.AuthData == ad {
+				count++
+			}
+		}
+		assert.Equal(t, 1, count, "should not have created a duplicate user")
+	})
+
+	t.Run("attaches auth_data to existing email user matched by username", func(t *testing.T) {
+		user := th.CreateUser(t)
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &user.Username,
+			Email:       &user.Email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.Nil(t, appErr)
+
+		updated, err := th.App.Srv().Store().User().GetByUsername(user.Username)
+		require.NoError(t, err)
+		assert.Equal(t, authService, updated.AuthService)
+		require.NotNil(t, updated.AuthData)
+		assert.Equal(t, ad, *updated.AuthData)
+	})
+
+	t.Run("creates new user when no match found", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, authService, created.AuthService)
+		require.NotNil(t, created.AuthData)
+		assert.Equal(t, ad, *created.AuthData)
+	})
+
+	// A scoped import deactivates and tags every user it brings over, pending admin
+	// review. importUser only does that for users it creates itself, and this
+	// pre-pass makes it match an existing account instead — so the shell created here
+	// has to carry the policy or SSO users silently land active.
+	t.Run("scoped migration creates the shell deactivated and tagged", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.NotZero(t, created.DeleteAt, "scoped migration must not leave an SSO shell active")
+		tag, ok := created.GetProp(model.UserPropsKeyImportedInactive)
+		require.True(t, ok, "shell must be tagged so admins can find it for review")
+		assert.Equal(t, "true", tag)
+	})
+
+	t.Run("scoped migration preserves a source DeleteAt instead of stamping import time", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+		const millisPerDay = int64(24 * 60 * 60 * 1000)
+		historical := model.GetMillis() - 400*millisPerDay
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+			DeleteAt:    &historical,
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, historical, created.DeleteAt, "a user deactivated at the source keeps that timestamp")
+	})
+
+	t.Run("regular import leaves the shell active", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Zero(t, created.DeleteAt, "a non-scoped import must not deactivate anyone")
+		_, ok := created.GetProp(model.UserPropsKeyImportedInactive)
+		assert.False(t, ok, "a non-scoped import must not tag anyone as imported-inactive")
+	})
+
+	t.Run("returns error and does not panic on nil Username", func(t *testing.T) {
+		email := model.NewId() + "@example.com"
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    nil,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("returns error and does not panic on nil Email", func(t *testing.T) {
+		username := model.NewUsername()
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       nil,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("leaves existing user with conflicting auth_service untouched", func(t *testing.T) {
+		user := th.CreateUser(t)
+		samlService := model.UserAuthServiceSaml
+		samlData := model.NewId()
+		_, err := th.App.Srv().Store().User().UpdateAuthData(user.Id, samlService, &samlData, user.Email, false)
+		require.NoError(t, err)
+
+		ldapData := model.NewId()
+		data := &imports.UserImportData{
+			Username:    &user.Username,
+			Email:       &user.Email,
+			AuthService: &authService, // ldap
+			AuthData:    authData(ldapData),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
+		require.Nil(t, appErr)
+
+		// Auth_service should still be saml, not ldap.
+		unchanged, err := th.App.Srv().Store().User().GetByUsername(user.Username)
+		require.NoError(t, err)
+		assert.Equal(t, samlService, unchanged.AuthService)
+		require.NotNil(t, unchanged.AuthData)
+		assert.Equal(t, samlData, *unchanged.AuthData, "auth_data should not have been overwritten")
+	})
+
+	t.Run("scoped migration does not hijack an unrelated existing account matched only by username", func(t *testing.T) {
+		// The destination has its own, unrelated local-password user who happens to
+		// share a username with someone in the source export. In a scoped migration
+		// (deactivateMissingUsers=true), source and destination are different
+		// instances, so this username collision must NOT be treated as an identity
+		// match — doing so would silently convert a real, active destination
+		// account's auth method to the source's SSO identity.
+		destUser := th.CreateUser(t)
+		require.Equal(t, "", destUser.AuthService, "precondition: dest user must be local-password")
+
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    &destUser.Username,
+			Email:       new(model.NewId() + "@source.example.com"),
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
+		require.NotNil(t, appErr, "fresh identity creation should report the username collision")
+
+		unchanged, err := th.App.Srv().Store().User().GetByUsername(destUser.Username)
+		require.NoError(t, err)
+		assert.Equal(t, "", unchanged.AuthService, "unrelated dest account's auth_service must not be changed")
+		assert.Nil(t, unchanged.AuthData, "unrelated dest account must not gain the source's auth_data")
+	})
+
+	t.Run("creates fresh identity when deactivateMissingUsers is true", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, authService, created.AuthService)
+		require.NotNil(t, created.AuthData)
+		assert.Equal(t, ad, *created.AuthData)
+	})
+}
+
+func TestCheckpointResume(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	teamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	username := model.NewUsername()
+
+	// JSONL line numbers:
+	//  1: version
+	//  2: team
+	//  3: channel
+	//  4: user
+	//  5: post "before-checkpoint"  ← resumeFromLine=5 causes this to be skipped
+	//  6: post "after-checkpoint"   ← lineNumber 6 > resumeFromLine, so imported
+	data := strings.Join([]string{
+		`{"type":"version","version":1}`,
+		`{"type":"team","team":{"type":"O","display_name":"Resume Test","name":"` + teamName + `"}}`,
+		`{"type":"channel","channel":{"type":"O","display_name":"Resume Chan","team":"` + teamName + `","name":"` + channelName + `"}}`,
+		`{"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`,
+		`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + username + `","message":"before-checkpoint","create_at":100000000001}}`,
+		`{"type":"post","post":{"team":"` + teamName + `","channel":"` + channelName + `","user":"` + username + `","message":"after-checkpoint","create_at":200000000002}}`,
+	}, "\n")
+
+	var checkpoints []int
+	opts := model.BulkImportOpts{
+		ResumeFromLine: 5,
+		OnCheckpoint: func(lineNumber int) {
+			checkpoints = append(checkpoints, lineNumber)
+		},
+	}
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, checkpoints)
+	for _, checkpoint := range checkpoints {
+		assert.GreaterOrEqual(t, checkpoint, opts.ResumeFromLine, "resumed imports must not persist an earlier checkpoint")
+	}
+
+	// Non-post lines are always re-processed — team, channel, and user must exist.
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr)
+	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
+	require.Nil(t, appErr)
+	_, err := th.App.Srv().Store().User().GetByUsername(username)
+	require.NoError(t, err)
+
+	// Only the post after the checkpoint should have been imported.
+	pl, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{
+		ChannelId: channel.Id,
+		Page:      0,
+		PerPage:   100,
+	}, false, map[string]bool{})
+	require.NoError(t, err)
+
+	var messages []string
+	for _, p := range pl.Posts {
+		if p.Type == "" { // skip system posts
+			messages = append(messages, p.Message)
+		}
+	}
+	assert.NotContains(t, messages, "before-checkpoint", "post before checkpoint should have been skipped")
+	assert.Contains(t, messages, "after-checkpoint", "post after checkpoint should have been imported")
+}
+
+// TestScanErrorDoesNotAdvanceCheckpoint verifies that a scanner I/O error
+// does not cause onCheckpoint to be called, so a pre-existing checkpoint is
+// never replaced with a lower (or zero) value on resume.
+func TestScanErrorDoesNotAdvanceCheckpoint(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// errReader emits `good` bytes then returns `readErr` on the next Read.
+	type errReader struct {
+		data []byte
+		pos  int
+		err  error
+	}
+	readErr := errors.New("simulated scan error")
+	r := &errReader{
+		data: []byte(`{"type":"version","version":1}` + "\n"),
+		err:  readErr,
+	}
+	readFn := func(p []byte) (int, error) {
+		if r.pos < len(r.data) {
+			n := copy(p, r.data[r.pos:])
+			r.pos += n
+			return n, nil
+		}
+		return 0, r.err
+	}
+
+	checkpointCalled := false
+	opts := model.BulkImportOpts{
+		OnCheckpoint: func(_ int) { checkpointCalled = true },
+	}
+
+	_, _, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		readerFunc(readFn),
+		nil,
+		false, false, 1, "", opts,
+	)
+	require.NotNil(t, appErr, "expected an error from the scan failure")
+	require.False(t, checkpointCalled, "onCheckpoint must not be called when the scanner fails")
+}
+
+// readerFunc adapts a plain func([]byte)(int,error) into an io.Reader.
+type readerFunc func([]byte) (int, error)
+
+func (f readerFunc) Read(p []byte) (int, error) { return f(p) }
+
+// makeZipWithJSONL creates an in-memory zip containing a single import.jsonl
+// entry with the provided content, returning a *zip.Reader over it.
+func makeZipWithJSONL(t *testing.T, jsonl string) *zip.Reader {
+	t.Helper()
+	pr, pw := io.Pipe()
+	zw := zip.NewWriter(pw)
+	go func() {
+		f, err := zw.Create("import.jsonl")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := strings.NewReader(jsonl).WriteTo(f); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		pw.CloseWithError(zw.Close())
+	}()
+	raw, err := io.ReadAll(pr)
+	require.NoError(t, err)
+	r, err := zip.NewReader(strings.NewReader(string(raw)), int64(len(raw)))
+	require.NoError(t, err)
+	return r
 }

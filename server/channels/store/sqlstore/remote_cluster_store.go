@@ -85,6 +85,9 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 				:DeleteAt, :LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
 	if _, err := s.GetMaster().NamedExec(query, remoteCluster); err != nil {
+		if IsUniqueConstraintError(err, []string{"remoteclusters_pkey"}) {
+			return nil, store.NewErrConflict("RemoteCluster", err, "remote_id="+remoteCluster.RemoteId+" name="+remoteCluster.Name)
+		}
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
 	}
 	return remoteCluster, nil
@@ -169,6 +172,17 @@ func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+func (s sqlRemoteClusterStore) PermanentDelete(remoteId string, name string) error {
+	query := s.getQueryBuilder().
+		Delete("RemoteClusters").
+		Where(sq.Eq{"RemoteId": remoteId, "Name": name})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to permanently delete RemoteCluster with remoteId=%s", remoteId)
+	}
+	return nil
 }
 
 func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model.RemoteCluster, error) {

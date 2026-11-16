@@ -1,0 +1,298 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import {DotsHorizontalIcon, OpenInNewIcon, TextBoxOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Switch} from '@mattermost/compass-ui/components/switch';
+
+import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import BlockableLink from 'components/admin_console/blockable_link';
+import ConfirmModal from 'components/confirm_modal';
+import * as Menu from 'components/menu';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
+import {getHistory} from 'utils/browser_history';
+
+type Props = {
+    actions: {
+        disablePlugin: (pluginId: string) => Promise<ActionResult>;
+        enablePlugin: (pluginId: string) => Promise<ActionResult>;
+        removePlugin: (pluginId: string) => Promise<ActionResult>;
+    };
+    disabled: boolean;
+    homepageUrl?: string;
+    id: string;
+
+    // The plugin's entries in the server logs, for admins who can open them
+    logsPath?: string;
+    saveNeeded?: false | string;
+    value: boolean;
+};
+
+const PluginActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
+
+const pluginStatePrefix = 'PluginSettings.PluginStates.';
+const pluginStateSuffix = '.Enable';
+
+export function getPluginIdFromEnableSettingId(settingId: string) {
+    if (!settingId.startsWith(pluginStatePrefix) || !settingId.endsWith(pluginStateSuffix)) {
+        return '';
+    }
+
+    return settingId.slice(pluginStatePrefix.length, -pluginStateSuffix.length).replace(/\+/g, '.');
+}
+
+export function PluginEnableButton({actions, disabled, homepageUrl, id, logsPath, saveNeeded = false, value}: Props) {
+    const {formatMessage} = useIntl();
+    const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
+    const [showRemoveModal, setShowRemoveModal] = useState(false);
+    const [serverError, setServerError] = useState<React.ReactNode>('');
+    const pluginId = useMemo(() => getPluginIdFromEnableSettingId(id), [id]);
+    const pluginEnabled = Boolean(value);
+    const toggling = submittingAction === 'toggle';
+    const actionsDisabled = disabled || Boolean(submittingAction) || !pluginId;
+
+    const guardUnsavedChanges = useCallback(() => {
+        if (saveNeeded === false) {
+            return false;
+        }
+
+        setServerError(
+            <FormattedMessage
+                id='admin_settings.save_unsaved_changes'
+                defaultMessage='Please save unsaved changes first'
+            />,
+        );
+        return true;
+    }, [saveNeeded]);
+
+    const handleTogglePlugin = useCallback(async () => {
+        if (actionsDisabled) {
+            return;
+        }
+
+        if (guardUnsavedChanges()) {
+            return;
+        }
+
+        setSubmittingAction('toggle');
+        setServerError('');
+
+        const {error} = pluginEnabled ? await actions.disablePlugin(pluginId) : await actions.enablePlugin(pluginId);
+        if (error) {
+            setServerError(error.message);
+        }
+
+        setSubmittingAction('');
+    }, [actions, actionsDisabled, guardUnsavedChanges, pluginEnabled, pluginId]);
+
+    const handleShowRemoveModal = useCallback(() => {
+        if (actionsDisabled) {
+            return;
+        }
+
+        if (guardUnsavedChanges()) {
+            return;
+        }
+
+        setServerError('');
+        setShowRemoveModal(true);
+    }, [actionsDisabled, guardUnsavedChanges]);
+
+    const handleRemovePluginCancel = useCallback(() => {
+        setShowRemoveModal(false);
+    }, []);
+
+    const handleMoreAboutPlugin = useCallback(() => {
+        if (!homepageUrl) {
+            return;
+        }
+
+        window.open(homepageUrl, '_blank', 'noopener,noreferrer');
+    }, [homepageUrl]);
+
+    const handleRemovePlugin = useCallback(async () => {
+        if (actionsDisabled) {
+            return;
+        }
+
+        if (guardUnsavedChanges()) {
+            setShowRemoveModal(false);
+            return;
+        }
+
+        setShowRemoveModal(false);
+        setSubmittingAction('remove');
+        setServerError('');
+
+        const {error} = await actions.removePlugin(pluginId);
+        if (error) {
+            setServerError(error.message);
+            setSubmittingAction('');
+            return;
+        }
+
+        getHistory().push('/admin_console/plugins/plugin_management');
+    }, [actions, actionsDisabled, guardUnsavedChanges, pluginId]);
+
+    const toggleAriaLabel = pluginEnabled ? formatMessage({
+        id: 'admin.plugin.disable_plugin.button',
+        defaultMessage: 'Disable plugin',
+    }) : formatMessage({
+        id: 'admin.plugin.enable_plugin.button',
+        defaultMessage: 'Enable plugin',
+    });
+
+    const loadingLabel = pluginEnabled ? (
+        <FormattedMessage
+            id='admin.plugin.disabling.toggle'
+            defaultMessage='Disabling'
+        />
+    ) : (
+        <FormattedMessage
+            id='admin.plugin.enabling.toggle'
+            defaultMessage='Enabling'
+        />
+    );
+
+    const removePluginModal = showRemoveModal && (
+        <ConfirmModal
+            show={showRemoveModal}
+            title={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.title'
+                    defaultMessage='Remove plugin?'
+                />
+            }
+            message={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.desc'
+                    defaultMessage='Are you sure you would like to remove the plugin?'
+                />
+            }
+            destructive={true}
+            confirmButtonText={
+                <FormattedMessage
+                    id='admin.plugin.remove_modal.overwrite'
+                    defaultMessage='Remove'
+                />
+            }
+            onConfirm={handleRemovePlugin}
+            onCancel={handleRemovePluginCancel}
+        />
+    );
+
+    return (
+        <div className='PluginMetadataPanel__controls'>
+            <div className='PluginMetadataPanel__actions'>
+                <div className='PluginMetadataPanel__enable'>
+                    {toggling ? (
+                        <LoadingSpinner text={loadingLabel}/>
+                    ) : (
+                        <FormattedMessage
+                            id={pluginEnabled ? 'admin.plugin.enabled.toggle' : 'admin.plugin.disabled.toggle'}
+                            defaultMessage={pluginEnabled ? 'Enabled' : 'Disabled'}
+                        />
+                    )}
+                    <Switch
+                        id={id}
+                        size='medium'
+                        disabled={actionsDisabled}
+                        checked={pluginEnabled}
+                        onChange={handleTogglePlugin}
+                        data-testid={`${id}-button`}
+                        tabIndex={0}
+                        aria-label={toggleAriaLabel}
+                    />
+                </div>
+
+                {/* Viewing the logs changes nothing, so it stays available to admins who can't change the plugin */}
+                {logsPath && (
+                    <Button
+                        asChild={true}
+                        emphasis='tertiary'
+                        size='small'
+                        leadingIcon={<Icon glyph={<TextBoxOutlineIcon/>}/>}
+                    >
+                        <BlockableLink to={logsPath}>
+                            <FormattedMessage
+                                id='admin.plugin.viewLogs'
+                                defaultMessage='View logs'
+                            />
+                        </BlockableLink>
+                    </Button>
+                )}
+                <Menu.Container
+                    menuButton={{
+                        id: `plugin-actions-menu-button-${pluginId}`,
+                        as: PluginActionsMenuTrigger,
+                        disabled: actionsDisabled,
+                        'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
+                        children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+                    }}
+                    menuButtonTooltip={{
+                        text: formatMessage({id: 'admin.plugin.actions.menu.tooltip', defaultMessage: 'More plugin actions'}),
+                    }}
+                    menu={{
+                        id: `plugin-actions-menu-${pluginId}`,
+                        'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
+                    }}
+                >
+                    {homepageUrl && (
+                        <Menu.Item
+                            id={`plugin-actions-more-about-${pluginId}`}
+                            leadingElement={<OpenInNewIcon size={18}/>}
+                            labels={
+                                <FormattedMessage
+                                    id='admin.plugin.more_about.button'
+                                    defaultMessage='More about this plugin'
+                                />
+                            }
+                            onClick={handleMoreAboutPlugin}
+                        />
+                    )}
+                    <Menu.Item
+                        id={`plugin-actions-uninstall-${pluginId}`}
+                        isDestructive={true}
+                        leadingElement={<TrashCanOutlineIcon size={18}/>}
+                        labels={
+                            <FormattedMessage
+                                id='admin.plugin.uninstall_plugin.button'
+                                defaultMessage='Uninstall plugin'
+                            />
+                        }
+                        onClick={handleShowRemoveModal}
+                    />
+                </Menu.Container>
+            </div>
+            {serverError && (
+                <div className='PluginMetadataPanel__actionError'>
+                    <i className='fa fa-exclamation-circle'/>
+                    {serverError}
+                </div>
+            )}
+            {removePluginModal}
+        </div>
+    );
+}
+
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators({
+            disablePlugin,
+            enablePlugin,
+            removePlugin,
+        }, dispatch),
+    };
+}
+
+export default connect(null, mapDispatchToProps)(PluginEnableButton);

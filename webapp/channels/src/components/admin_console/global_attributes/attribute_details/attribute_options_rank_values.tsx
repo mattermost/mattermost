@@ -4,10 +4,9 @@
 import type {KeyboardEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {components} from 'react-select';
 import {css} from 'styled-components';
 
-import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronRightIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import RankBadge from 'components/admin_console/system_properties/rank_badge';
@@ -276,7 +275,10 @@ const RankChip = ({option, ascIndex, sortedRanks, maxOptionNameLength, nameColli
                 aria-label={removeLabel}
                 disabled={disabled}
             >
-                <components.CrossIcon size={14}/>
+                <CloseCircleIcon
+                    size={12}
+                    aria-hidden={true}
+                />
             </button>
         </span>
     );

@@ -4,7 +4,7 @@
 import type {ChartOptions} from 'chart.js';
 import Chart from 'chart.js/auto';
 import deepEqual from 'fast-deep-equal';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 type Props = {

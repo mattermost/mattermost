@@ -310,8 +310,7 @@ func (scs *Service) CheckChannelNotShared(channelID string) error {
 // or database error.
 func (scs *Service) CheckChannelIsShared(channelID string) error {
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
+		if errNotFound, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return fmt.Errorf("%w: %v", model.ErrChannelNotShared, errNotFound)
 		}
 		return fmt.Errorf("cannot check if channel %s is shared: %w", channelID, err)

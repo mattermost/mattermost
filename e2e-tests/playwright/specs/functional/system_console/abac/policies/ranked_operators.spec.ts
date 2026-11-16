@@ -9,6 +9,7 @@
  * (is exactly, is not, is at least, is greater than, is at most, is less than).
  */
 
+import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -16,6 +17,34 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 import {deleteCustomProfileAttributes} from '../../../channels/custom_profile_attributes/helpers';
+import {assertAccessControlAutocompleteContains} from '../support';
+
+// Filter + real click so an off-screen ranked field is selected; click the
+// policy name to dismiss a leftover MUI overlay (the filter swallows Escape).
+async function selectAttributeInEditor(page: Page, attributeName: string) {
+    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+    const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+
+    if (!(await attributeMenu.isVisible({timeout: 2000}).catch(() => false))) {
+        await attributeButton.click();
+    }
+    await expect(attributeMenu).toBeVisible();
+
+    const filterInput = attributeMenu.locator('.attribute-selector-search input');
+    await filterInput.waitFor({state: 'visible'});
+    await filterInput.fill(attributeName);
+
+    const option = attributeMenu.getByRole('menuitemradio', {name: attributeName, exact: true});
+    await expect(option).toBeVisible();
+    await option.click();
+
+    await expect(attributeButton).toContainText(attributeName);
+
+    if (await attributeMenu.isVisible().catch(() => false)) {
+        await page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName').click();
+    }
+    await expect(attributeMenu).toBeHidden();
+}
 
 test.describe('System Console - Membership Policy ranked operators', () => {
     let adminClient: Client4;
@@ -49,13 +78,15 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         } as any);
+
+        await assertAccessControlAutocompleteContains(adminClient, [field.name]);
     });
 
     test.afterEach(async () => {
         if (field) {
             await deleteCustomProfileAttributes(adminClient, {
                 [field.id]: field,
-                __ownedIds: new Set([field.id]),
+                ownedIds: new Set([field.id]),
             } as any);
             field = undefined;
         }
@@ -95,18 +126,7 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         }
         await addAttributeButton.click();
 
-        // # Select the ranked attribute by name
-        const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
-        if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
-            await attributeButton.click();
-        }
-        await page
-            .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
-            .first()
-            .click({force: true});
-
-        // # Let the attribute menu and its backdrop fully close before opening the next menu
-        await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+        await selectAttributeInEditor(page, field!.name);
 
         // * The row defaults to the canonical ranked operator, "is at least"
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
@@ -161,14 +181,8 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             }
             await addAttributeButton.click();
 
-            if (!(await page.locator('[id^="attribute-selector-menu"]').isVisible({timeout: 2000}))) {
-                await page.locator('[data-testid="attributeSelectorMenuButton"]').first().click();
-            }
-            await page
-                .locator(`[id^="attribute-selector-menu"] li:has-text("${field!.name}")`)
-                .first()
-                .click({force: true});
-            await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
+            // # Select the ranked attribute by name
+            await selectAttributeInEditor(page, field!.name);
 
             // * Defaults to "is at least"
             await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
@@ -184,11 +198,10 @@ test.describe('System Console - Membership Policy ranked operators', () => {
             await page.getByRole('button', {name: 'Save'}).last().click();
             await page.waitForLoadState('networkidle');
 
-            // # Reopen the policy from the list
+            // # Reopen the policy from the list, searching for it since it may not be on the first page
             await page.goto('/admin_console/system_attributes/membership_policies');
             await page.waitForLoadState('networkidle');
-            const policyRow = page.locator('.policy-name').filter({hasText: policyName}).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
+            const policyRow = await systemConsolePage.membershipPolicies.searchPolicy(policyName);
             const rowId = await policyRow.getAttribute('id');
             policyId = rowId?.replace('customDescription-', '') ?? null;
             await policyRow.click();

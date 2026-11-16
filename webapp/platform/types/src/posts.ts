@@ -4,6 +4,7 @@
 import type {Channel, ChannelType} from './channels';
 import type {CustomEmoji} from './emojis';
 import type {FileInfo} from './files';
+import type {PropertyValue} from './properties';
 import type {Reaction} from './reactions';
 import type {TeamType} from './teams';
 import type {UserProfile} from './users';
@@ -85,6 +86,8 @@ export type PostMetadata = {
     expire_at?: number;
     recipients?: string[];
     redacted_file_count?: number;
+    property_values?: Array<PropertyValue<unknown>>;
+    property_values_unavailable?: boolean;
 };
 
 export type Post = {

@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import React, {useState, useEffect, type JSX} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -13,13 +16,29 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
 
 import JobsTable from 'components/admin_console/jobs';
-import SectionNotice from 'components/section_notice';
+import Markdown from 'components/markdown';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import {JobTypes} from 'utils/constants';
 
 import JobDetailsModal from '../modals/job_details/job_details_modal';
 
 import './access_control_sync_job_table.scss';
+
+const panelMessages = defineMessages({
+    title: {
+        id: 'admin.access_control.sync_jobs.title',
+        defaultMessage: 'Membership Sync Jobs',
+    },
+    description: {
+        id: 'admin.access_control.sync_jobs.description',
+        defaultMessage: 'Apply membership policies to their assigned resources.',
+    },
+    descriptionChannelScope: {
+        id: 'admin.access_control.sync_jobs.description_channel_scope',
+        defaultMessage: 'Re-sync channel membership for channels assigned to a membership policy.',
+    },
+});
 
 type Props = {
     actions: {
@@ -105,40 +124,22 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
     };
 
     return (
-        <div className='AccessControlSyncJobTable'>
-            <div className='policy-header'>
-                <div className='policy-header-text'>
-                    <h1>
-                        <FormattedMessage
-                            id='admin.access_control.sync_jobs.title'
-                            defaultMessage='Membership Sync Jobs'
-                        />
-                    </h1>
-                    <p>
-                        {teamAbacEnabled ? (
-                            <FormattedMessage
-                                id='admin.access_control.sync_jobs.description_channel_scope'
-                                defaultMessage='Re-sync channel membership for channels assigned to a membership policy.'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.access_control.sync_jobs.description'
-                                defaultMessage='Apply membership policies to their assigned resources.'
-                            />
-                        )}
-                    </p>
-                </div>
+        <AdminPanel
+            id='membership_sync_jobs'
+            className='AccessControlSyncJobTable'
+            title={panelMessages.title}
+            subtitle={teamAbacEnabled ? panelMessages.descriptionChannelScope : panelMessages.description}
+            button={
                 <Button
                     emphasis='primary'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
-                    <i className='icon icon-plus'/>
-                    <span>
-                        {renderButtonLabel()}
-                    </span>
+                    {renderButtonLabel()}
                 </Button>
-            </div>
+            }
+        >
             {teamAbacEnabled && (
                 <div className='team-sync-note'>
                     <SectionNotice
@@ -147,10 +148,14 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                             id: 'admin.access_control.sync_jobs.team_sync_note.title',
                             defaultMessage: 'This syncs channel membership only',
                         })}
-                        text={formatMessage({
-                            id: 'admin.access_control.sync_jobs.team_sync_note',
-                            defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
-                        })}
+                        description={
+                            <Markdown
+                                message={formatMessage({
+                                    id: 'admin.access_control.sync_jobs.team_sync_note',
+                                    defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
+                                })}
+                            />
+                        }
                     />
                 </div>
             )}
@@ -173,7 +178,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     onExited={handleModalClose}
                 />
             )}
-        </div>
+        </AdminPanel>
     );
 }
 

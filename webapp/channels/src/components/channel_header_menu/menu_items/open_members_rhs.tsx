@@ -18,7 +18,7 @@ type Props = {
     channel: Channel;
     id: string;
     editMembers?: boolean;
-    text: React.ReactElement;
+    text: React.ReactElement<any>;
 };
 
 const OpenMembersRHS = ({

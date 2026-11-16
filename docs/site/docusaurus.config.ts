@@ -1,9 +1,9 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-// Active redirects (legacy Sphinx URLs → migrated MDX paths). Regenerated
-// by `node docs-site/scripts/gen-active-redirects.mjs` after content
-// changes; only entries whose target exists end up here.
+// Active redirects (legacy Sphinx URLs → migrated MDX paths). Bulk-extracted
+// during the docs migration, maintained by hand since — add entries directly
+// to the JSON when a page moves or is removed.
 import activeRedirects from './sidebars/active-redirects.json';
 
 // Multi-instance docs setup with three top-level navigations:
@@ -27,6 +27,13 @@ const algoliaThemeConfig =
           indexName: 'mattermost-docs',
           contextualSearch: true,
           searchPagePath: 'search',
+          searchParameters: {
+            optionalFilters: [
+              'docusaurus_tag:docs-documentation-current<score=3>',
+              'docusaurus_tag:docs-developers-current<score=2>',
+              'docusaurus_tag:docs-api-current<score=1>',
+            ],
+          },
         },
       }
     : {};
@@ -47,17 +54,16 @@ const config: Config = {
   organizationName: 'mattermost',
   projectName: 'mattermost',
 
-  // Broken-link / broken-image policy. During the Phase 4 (developer docs)
-  // and Phase 5 (main docs) migrations, content references images and
-  // anchors that haven't been migrated yet — `warn` keeps the build green
-  // while the unconverted set shows up as warnings we can grep for.
-  // Tighten to `throw` after each migration phase completes.
-  onBrokenLinks: 'warn',
+  // Only site-relative links are validated; absolute https://docs.mattermost.com
+  // links are checked separately by scripts/check-absolute-docs-links.mjs.
+  onBrokenLinks: 'throw',
+  // Tighten to `throw` once the remaining migrated-content anchors are fixed.
+  onBrokenAnchors: 'warn',
 
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
       onBrokenMarkdownImages: 'warn',
     },
   },
@@ -67,19 +73,7 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // Google Fonts: Inter (body) + Archivo Black (headings, free Trade Gothic Heavy fallback).
-  // Replace with Adobe Fonts kit once Trade Gothic Next licensing is confirmed
-  // — see PLAN.md §12 open items.
-  stylesheets: [
-    {
-      href: 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap',
-      type: 'text/css',
-    },
-  ],
-  headTags: [
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.googleapis.com'}},
-    {tagName: 'link', attributes: {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous'}},
-  ],
+  // Fonts are self-hosted from src/css/fonts (see the README there).
 
   // Use the classic preset for the default Documentation instance.
   // Developers and API are added as separate plugin instances below
@@ -97,7 +91,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: ['./src/css/tokens.css', './src/css/custom.css'],
+          customCss: ['./src/css/fonts.css', './src/css/tokens.css', './src/css/custom.css'],
         },
       } satisfies Preset.Options,
     ],

@@ -43,8 +43,8 @@ test(
         await expect(modalTitle).toContainText('Invite people to');
 
         // # Get the close button and verify accessibility
-        const closeButton = inviteModal.locator('button.icon-close');
-        await expect(closeButton).toHaveAttribute('aria-label', 'Close');
+        const closeButton = inviteModal.getByRole('button', {name: 'Close'});
+        await expect(closeButton).toBeVisible();
 
         // # Focus on close button and verify tab navigation works
         await closeButton.focus();
@@ -67,7 +67,11 @@ test(
         await pw.skipIfNoLicense();
 
         // # Initialize setup
-        const {team, user} = await pw.initSetup();
+        const {team, user, adminClient} = await pw.initSetup();
+
+        // # Turn off email invitations, which change the invite input's placeholder from
+        // # "Add members" to "Enter a name or email address" in the snapshot below
+        await adminClient.patchConfig({ServiceSettings: {EnableEmailInvitations: false}});
 
         // # Log in as user
         const {page, channelsPage} = await pw.testBrowser.login(user);

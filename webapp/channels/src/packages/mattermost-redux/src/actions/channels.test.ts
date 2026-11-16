@@ -3,7 +3,9 @@
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {TeamMembership} from '@mattermost/types/teams';
 
 import {ChannelTypes, UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/channels';
@@ -31,7 +33,7 @@ describe('Actions.Channels', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
             },
@@ -642,7 +644,7 @@ describe('Actions.Channels', () => {
                                 mention_count: 0,
                                 msg_count: 0,
                             },
-                        },
+                        } as unknown as Record<string, TeamMembership>,
                     },
                 },
             });
@@ -691,7 +693,7 @@ describe('Actions.Channels', () => {
                                 mention_count: 2,
                                 msg_count: 5,
                             },
-                        },
+                        } as unknown as Record<string, TeamMembership>,
                     },
                 },
             });
@@ -792,7 +794,7 @@ describe('Actions.Channels', () => {
                                 mention_count: 6,
                                 msg_count: 8,
                             },
-                        },
+                        } as unknown as Record<string, TeamMembership>,
                     },
                 },
             });
@@ -863,7 +865,7 @@ describe('Actions.Channels', () => {
                                 mention_count: 4,
                                 msg_count: 3,
                             },
-                        },
+                        } as unknown as Record<string, TeamMembership>,
                     },
                 },
             });

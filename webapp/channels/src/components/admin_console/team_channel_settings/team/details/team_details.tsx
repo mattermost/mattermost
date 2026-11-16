@@ -2,19 +2,21 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions, getAutoAddFromRules, autoAddModeForToggle} from '@mattermost/types/access_control';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {MASKED_VALUE_TOKEN_LITERAL} from 'components/admin_console/access_control/editors/shared';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
@@ -30,6 +32,7 @@ import TeamMembers from './team_members/index';
 import TeamMembershipSyncFooter from './team_membership_sync_footer';
 import {TeamModes} from './team_modes';
 import {TeamProfile} from './team_profile';
+import {teamRuleGuardErrorId} from './team_rule_guards';
 
 import SaveChangesPanel from '../../../save_changes_panel';
 import {NeedDomainsError, NeedGroupsError, UsersWillBeRemovedError} from '../../errors';
@@ -63,7 +66,6 @@ export type Props = {
         assignTeamToAccessControlPolicy: (policyId: string, teamId: string) => Promise<ActionResult>;
         unassignTeamsFromAccessControlPolicy: (policyId: string, teamIds: string[]) => Promise<ActionResult>;
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
-        updateAccessControlPoliciesActive: (states: Array<{id: string; active: boolean}>) => Promise<ActionResult>;
         createAccessControlTeamSyncJob: (data: {policy_id?: string}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => Promise<ActionResult>;
         getTeamMembers: (teamId: string, page?: number, perPage?: number) => Promise<ActionResult>;
@@ -118,6 +120,7 @@ type State = {
     teamRulesAutoSync: boolean;
     teamRulesOriginalAutoSync: boolean;
     teamRulesHaveChanges: boolean;
+    teamRulesValid: boolean;
     userAttributes: UserPropertyField[];
     attributesLoaded: boolean;
 };
@@ -166,6 +169,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             teamRulesAutoSync: false,
             teamRulesOriginalAutoSync: false,
             teamRulesHaveChanges: false,
+            teamRulesValid: true,
             userAttributes: [],
             attributesLoaded: false,
         };
@@ -258,7 +262,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             // Extract team-level rules and auto-sync from the child policy regardless of imports.
             const membershipRule = getMembershipRule(policy.rules);
             const rulesExpression = membershipRule?.expression || '';
-            const autoSync = policy.active ?? false;
+            const autoSync = getAutoAddFromRules(policy.rules);
 
             this.setState({
                 teamRulesExpression: rulesExpression,
@@ -312,6 +316,14 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             this.props.actions.setNavigationBlocked(true);
         }
     };
+
+    private handleTeamRulesValidityChange = (teamRulesValid: boolean) => {
+        if (teamRulesValid !== this.state.teamRulesValid) {
+            this.setState({teamRulesValid});
+        }
+    };
+
+    private teamRulesHaveMaskedValues = () => Boolean(getMembershipRule(this.state.teamRulesExistingRules)?.expression?.includes(MASKED_VALUE_TOKEN_LITERAL));
 
     setPolicyEnforced = (policyEnforced: boolean) => {
         this.setState({policyEnforced, saveNeeded: true});
@@ -649,7 +661,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
+            // Auto-add lives on the policy's membership rule, so a toggle-only change
+            // is saved through the same policy write as a rule edit.
+            const autoSyncChanged = teamRulesAutoSync !== this.state.teamRulesOriginalAutoSync;
+
+            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies || autoSyncChanged)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -657,39 +673,30 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                         type: 'team',
                         revision: 1,
                         created_at: Date.now(),
-                        active: false,
                         imports: accessControlPolicies.map((p) => p.id),
-                        rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression),
+                        rules: buildRulesWithMembership(teamRulesExistingRules, teamRulesExpression, autoAddModeForToggle(teamRulesAutoSync)),
                     };
 
                     const policyResult = await actions.saveTeamAccessPolicy(teamPolicy);
                     if ('error' in policyResult) {
-                        serverError = <FormError error={policyResult.error.message}/>;
+                        serverError = <FormError error={this.teamPolicySaveErrorMessage(policyResult.error)}/>;
                         saveNeeded = true;
                     } else {
-                        const activeResult = await actions.updateAccessControlPoliciesActive([{id: teamID, active: teamRulesAutoSync}]);
-                        if (activeResult.error) {
-                            serverError = <FormError error={activeResult.error?.message}/>;
-                            saveNeeded = true;
-                        }
-
                         // Reconcile now instead of waiting for the scheduler. A private
                         // team runs the removal pass regardless of auto-add, so any
                         // enforced save (custom rules or a parent policy) must fire a job
                         // even with auto-add off or non-qualifying members linger; public
                         // teams no-op.
-                        if (!saveNeeded && (hasTeamRules || hasParentPolicies || teamRulesAutoSync)) {
+                        if (hasTeamRules || hasParentPolicies || teamRulesAutoSync) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
 
-                        if (!saveNeeded) {
-                            this.setState({
-                                teamRulesOriginalExpression: teamRulesExpression,
-                                teamRulesOriginalAutoSync: teamRulesAutoSync,
-                                teamRulesHaveChanges: false,
-                                originalPolicyIds: accessControlPolicies.map((p) => p.id),
-                            });
-                        }
+                        this.setState({
+                            teamRulesOriginalExpression: teamRulesExpression,
+                            teamRulesOriginalAutoSync: teamRulesAutoSync,
+                            teamRulesHaveChanges: false,
+                            originalPolicyIds: accessControlPolicies.map((p) => p.id),
+                        });
                     }
                 } catch (error) {
                     const message = error instanceof Error ? error.message : String(error);
@@ -822,6 +829,91 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         return combineMembershipExpressions([teamExpression, ...parentExpressions]);
     };
 
+    private teamPolicySaveErrorMessage = (error: {server_error_id?: string; message?: string}): React.ReactNode => {
+        switch (error.server_error_id) {
+        case 'app.pap.save_policy.self_exclusion':
+            return (
+                <FormattedMessage
+                    id='admin.access_control.edit_policy.self_exclusion'
+                    defaultMessage='You do not satisfy one or more conditions in this policy. Contact a System Admin for assistance.'
+                />
+            );
+        case 'app.pap.save_policy.invalid_value':
+            return (
+                <FormattedMessage
+                    id='admin.access_control.edit_policy.invalid_value'
+                    defaultMessage='Invalid value.'
+                />
+            );
+        case 'app.pap.save_policy.forbidden':
+            return (
+                <FormattedMessage
+                    id='admin.access_control.edit_policy.forbidden'
+                    defaultMessage='You do not have permission to make this change to the policy. Contact a System Admin for assistance.'
+                />
+            );
+        case 'app.pap.save_policy.team_resource_attributes':
+        case 'app.pap.save_policy.resource_attributes_disabled': // checked before the team rule when the resource-attributes flag is off
+            // The server raises these for the team's own rule and for an imported parent.
+            if (teamRuleGuardErrorId(this.state.teamRulesExpression) === 'resource_attributes') {
+                return (
+                    <FormattedMessage
+                        id='admin.team_settings.team_detail.rules.error.resource_attributes'
+                        defaultMessage={'Team membership rules can\'t reference resource attributes.'}
+                    />
+                );
+            }
+            return (
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.rules.error.parent_resource_attributes'
+                    defaultMessage={'A linked membership policy references resource attributes, which team membership rules can\'t use.'}
+                />
+            );
+        case 'model.access_policy.is_valid.session_attribute_on_membership.app_error':
+            return (
+                <FormattedMessage
+                    id='admin.team_settings.team_detail.rules.error.session_attributes'
+                    defaultMessage={'Team membership rules can\'t reference session attributes.'}
+                />
+            );
+        default:
+            return error.message;
+        }
+    };
+
+    private validateTeamRulesExpression = async (rawExpression: string): Promise<JSX.Element | undefined> => {
+        const invalid = (
+            <FormError
+                error={
+                    <FormattedMessage
+                        id='admin.team_settings.team_detail.rules.error.invalid_expression'
+                        defaultMessage='Fix the errors in the team-specific membership rules before saving.'
+                    />
+                }
+            />
+        );
+
+        // Already accepted by the server; don't let it block unrelated saves.
+        const expression = rawExpression.trim();
+        if (!expression || expression === this.state.teamRulesOriginalExpression.trim()) {
+            return undefined;
+        }
+        if (!this.state.teamRulesValid) {
+            return invalid;
+        }
+
+        // /cel/check accepts resource attributes, but the team policy save rejects them.
+        if (teamRuleGuardErrorId(expression)) {
+            return invalid;
+        }
+        try {
+            const errors = await Client4.checkAccessControlExpression(expression, undefined, this.props.teamID, true);
+            return errors.length ? invalid : undefined;
+        } catch {
+            return invalid;
+        }
+    };
+
     onSave = async () => {
         const nameError = this.getTeamNameError();
         if (nameError) {
@@ -834,6 +926,33 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             this.setState({showArchiveConfirmModal: true});
             return;
         }
+
+        // SaveButton keeps accepting clicks while it shows the saving spinner.
+        if (this.state.saving) {
+            return;
+        }
+
+        // Must run before anything is written: handleSubmit links parent policies before
+        // saving the team policy, so a rejection there would half-apply the save. The
+        // editor's own check is debounced and can lag the latest edit.
+        if (this.props.abacSupported && this.state.policyEnforced) {
+            this.setState({saving: true});
+            const checkedExpression = this.state.teamRulesExpression;
+            const invalidRulesError = await this.validateTeamRulesExpression(checkedExpression);
+            if (invalidRulesError) {
+                this.setState({serverError: invalidRulesError, saveNeeded: true, saving: false});
+                this.props.actions.setNavigationBlocked(true);
+                return;
+            }
+
+            // Edited while the check was in flight: validate what will actually be saved.
+            if (this.state.teamRulesExpression !== checkedExpression) {
+                this.setState({saving: false}, this.onSave);
+                return;
+            }
+            this.setState({saving: false, serverError: undefined});
+        }
+
         if (this.state.usersToRemoveCount > 0) {
             this.setState({showRemoveConfirmation: true});
             return;
@@ -1023,6 +1142,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             initialAutoSync={this.state.teamRulesAutoSync}
                             isDisabled={this.props.isDisabled}
                             hasParentPolicies={this.state.accessControlPolicies.length > 0}
+                            hasMaskedRows={this.teamRulesHaveMaskedValues()}
+                            onValidityChange={this.handleTeamRulesValidityChange}
+                            attributesLoaded={this.state.attributesLoaded}
                             syncFooter={
                                 <TeamMembershipSyncFooter
                                     teamId={this.props.teamID}
@@ -1088,7 +1210,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             onToggleArchive={this.onToggleArchive}
                             isArchived={isLocalArchived}
                             isDisabled={this.props.isDisabled}
-                            saveNeeded={this.state.saveNeeded}
                         />
                         <ConfirmModal
                             show={showArchiveConfirmModal}
@@ -1101,7 +1222,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             message={
                                 <FormattedMessage
                                     id='admin.team_settings.team_detail.archive_confirm.message'
-                                    defaultMessage={'Archiving will remove the team from the user interface but it\'s contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?'}
+                                    defaultMessage={'Archiving will remove the team from the user interface but its contents remain in the database and may still be accessible with the API. Are you sure you wish to save and archive this team?'}
                                 />
                             }
                             confirmButtonText={

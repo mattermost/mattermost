@@ -6,11 +6,12 @@ import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {KeyboardEvent, MouseEvent} from 'react';
+import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import * as Menu from 'components/menu';
 
@@ -22,9 +23,10 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
-import {IconContainer} from './formatting_bar/formatting_icon';
 import type {RewriteMenuProps} from './rewrite_menu';
 import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
+
+const AIActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 interface AIActionsMenuProps {
     draft: PostDraft;
@@ -141,23 +143,13 @@ const AIActionsMenu = ({
             <Menu.Container
                 menuButton={{
                     id: 'ai-actions-button',
-                    as: 'div',
-                    children: (
-                        <IconContainer
-                            id='aiActionsMenu'
-                            className={classNames('control', {active: isMenuOpen})}
-                            type='button'
-                            aria-label={formatMessage({
-                                id: 'texteditor.ai_actions',
-                                defaultMessage: 'AI Actions',
-                            })}
-                        >
-                            <CreationOutlineIcon
-                                size={18}
-                                color='currentColor'
-                            />
-                        </IconContainer>
-                    ),
+                    as: AIActionsMenuTrigger,
+                    class: 'control',
+                    'aria-label': formatMessage({
+                        id: 'texteditor.ai_actions',
+                        defaultMessage: 'AI Actions',
+                    }),
+                    children: <Icon glyph={<CreationOutlineIcon/>}/>,
                 }}
                 menuButtonTooltip={{
                     text: formatMessage({

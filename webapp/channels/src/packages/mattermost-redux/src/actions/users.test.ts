@@ -5,6 +5,7 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -30,7 +31,7 @@ describe('Actions.Users', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
             },
@@ -1794,5 +1795,154 @@ describe('Actions.Users', () => {
         expect(Object.keys(customProfileAttributeValues).length).toEqual(2);
         expect(customProfileAttributeValues.field1).toEqual('value1');
         expect(customProfileAttributeValues.field2).toEqual('value2');
+    });
+
+    describe('updateUserCustomProfileAttributeValues', () => {
+        const userID = 'bot_user_id';
+
+        test('should send the batch and merge returned values into a loaded profile', async () => {
+            const values = {field1: 'new', field3: ['opt1', 'opt2']};
+            const scope = nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+                patch('', values).
+                query(true).
+                reply(200, values);
+
+            store = configureStore({
+                entities: {
+                    users: {
+                        profiles: {
+                            [userID]: {id: userID, custom_profile_attributes: {field1: 'old', field2: 'keep'}},
+                        },
+                    },
+                },
+            });
+
+            const result = await store.dispatch(Actions.updateUserCustomProfileAttributeValues(userID, values));
+
+            expect(scope.isDone()).toBe(true);
+            expect(result).toEqual({data: values});
+            expect(store.getState().entities.users.profiles[userID].custom_profile_attributes).toEqual({
+                field1: 'new',
+                field2: 'keep',
+                field3: ['opt1', 'opt2'],
+            });
+        });
+
+        test('should store cleared values returned by the server', async () => {
+            const values = {field1: '', field3: []};
+            nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+                patch('', values).
+                query(true).
+                reply(200, values);
+
+            store = configureStore({
+                entities: {
+                    users: {
+                        profiles: {
+                            [userID]: {id: userID, custom_profile_attributes: {field1: 'old', field2: 'keep', field3: ['opt1']}},
+                        },
+                    },
+                },
+            });
+
+            await store.dispatch(Actions.updateUserCustomProfileAttributeValues(userID, values));
+
+            expect(store.getState().entities.users.profiles[userID].custom_profile_attributes).toEqual({
+                field1: '',
+                field2: 'keep',
+                field3: [],
+            });
+        });
+
+        test('should return data without adding a profile when the user is not loaded', async () => {
+            const values = {field1: 'new'};
+            nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+                patch('', values).
+                query(true).
+                reply(200, values);
+
+            store = configureStore({
+                entities: {
+                    users: {
+                        profiles: {},
+                    },
+                },
+            });
+            const profilesBefore = store.getState().entities.users.profiles;
+
+            const result = await store.dispatch(Actions.updateUserCustomProfileAttributeValues(userID, values));
+
+            expect(result).toEqual({data: values});
+            expect(store.getState().entities.users.profiles[userID]).toBeUndefined();
+            expect(store.getState().entities.users.profiles).toBe(profilesBefore);
+        });
+
+        test('should return and log the error and leave the profile unchanged when the request fails', async () => {
+            const scope = nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+                patch('').
+                query(true).
+                reply(403, {
+                    id: 'api.context.permissions.app_error',
+                    message: 'You do not have the appropriate permissions.',
+                    status_code: 403,
+                });
+
+            const originalAttributes = {field1: 'old'};
+            store = configureStore({
+                entities: {
+                    users: {
+                        profiles: {
+                            [userID]: {id: userID, custom_profile_attributes: originalAttributes},
+                        },
+                    },
+                },
+            });
+
+            const result = await store.dispatch(Actions.updateUserCustomProfileAttributeValues(userID, {field1: 'new'}));
+
+            expect(scope.isDone()).toBe(true);
+            expect(result.data).toBeUndefined();
+            expect(result.error).toMatchObject({
+                server_error_id: 'api.context.permissions.app_error',
+                status_code: 403,
+                message: 'You do not have the appropriate permissions.',
+            });
+            expect(store.getState().entities.users.profiles[userID].custom_profile_attributes).toEqual(originalAttributes);
+            expect(store.getState().errors).toHaveLength(1);
+            expect(store.getState().errors[0].error).toMatchObject({
+                server_error_id: 'api.context.permissions.app_error',
+                status_code: 403,
+            });
+        });
+
+        test('should log out the current user when the request is unauthorized', async () => {
+            const scope = nock(Client4.getUserRoute(userID) + '/custom_profile_attributes').
+                patch('').
+                query(true).
+                reply(401, {
+                    id: 'api.context.session_expired.app_error',
+                    message: 'Invalid or expired session, please login again.',
+                    status_code: 401,
+                });
+
+            store = configureStore({
+                entities: {
+                    users: {
+                        currentUserId: 'current_user_id',
+                        profiles: {
+                            current_user_id: {id: 'current_user_id'},
+                            [userID]: {id: userID, custom_profile_attributes: {field1: 'old'}},
+                        },
+                    },
+                },
+            });
+
+            const result = await store.dispatch(Actions.updateUserCustomProfileAttributeValues(userID, {field1: 'new'}));
+
+            expect(scope.isDone()).toBe(true);
+            expect(result.error).toMatchObject({status_code: 401});
+            expect(store.getState().entities.users.currentUserId).toBe('');
+            expect(store.getState().entities.users.profiles).toEqual({});
+        });
     });
 });

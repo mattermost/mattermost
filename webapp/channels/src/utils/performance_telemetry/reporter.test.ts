@@ -357,6 +357,24 @@ describe.skip('PerformanceReporter', () => {
     });
 });
 
+describe('PerformanceReporter.disconnect', () => {
+    test('should stop reporting web vitals once disconnected', () => {
+        const {reporter, sendBeacon} = newTestReporter();
+        reporter.observe();
+
+        const onCLSCallback = (onCLS as jest.Mock).mock.calls.at(-1)[0];
+
+        reporter.disconnect();
+
+        // web-vitals has no way to unregister a callback, so a reporter left behind by an unmounted
+        // component keeps being handed metrics after it has been disconnected.
+        onCLSCallback({name: 'CLS', value: 100});
+        reporter.maybeSendReport();
+
+        expect(sendBeacon).not.toHaveBeenCalled();
+    });
+});
+
 describe('PerformanceReporter.sendReport content-type', () => {
     const sampleReport = {
         version: '0.1.0' as const,
@@ -415,12 +433,42 @@ describe('PerformanceReporter.sendReport content-type', () => {
     });
 });
 
+describe('PerformanceReporter INP labels', () => {
+    function reportINP(attribution?: {interactionType?: string}) {
+        const {reporter} = newTestReporter();
+        const internals = reporter as unknown as {
+            handleWebVital: (metric: unknown) => void;
+            histogramMeasures: Array<{metric: string; value: number; labels?: Record<string, string>}>;
+        };
+
+        internals.handleWebVital({name: 'INP', value: 200, attribution});
+
+        return internals.histogramMeasures;
+    }
+
+    test('should label INP with the interaction type when it is available', () => {
+        const measures = reportINP({interactionType: 'pointer'});
+
+        expect(measures).toHaveLength(1);
+        expect(measures[0]).toMatchObject({metric: 'INP', value: 200, labels: {interaction: 'pointer'}});
+    });
+
+    test.each([
+        ['attribution is missing', undefined],
+        ['interactionType is undefined', {}],
+    ])('should not add labels to INP when %s', (_, attribution) => {
+        const measures = reportINP(attribution);
+
+        expect(measures).toHaveLength(1);
+        expect(measures[0].metric).toBe('INP');
+        expect(measures[0].labels).toBeUndefined();
+    });
+});
+
 class TestPerformanceReporter extends PerformanceReporter {
     public sendBeacon: jest.Mock = jest.fn(() => true);
     public reportPeriodBase = 10;
     public reportPeriodJitter = 0;
-
-    public disconnect = super.disconnect;
 
     public handleObservations = jest.fn(super.handleObservations);
 

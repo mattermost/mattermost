@@ -209,6 +209,12 @@ type Manifest struct {
 	// Minimum server version: 5.6
 	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
 
+	// RequiredAddOn names the add-on the server license must grant before this plugin
+	// can be enabled or activated, matched case-insensitively against License.AddOns.
+	//
+	// Minimum server version: 12.0
+	RequiredAddOn string `json:"required_add_on,omitempty" yaml:"required_add_on,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 
@@ -243,6 +249,11 @@ type ManifestWebapp struct {
 	// location of the manifest file.
 	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
 
+	// PreAuth indicates the webapp bundle must also be delivered to unauthenticated clients, such
+	// as the login page. When PluginSettings.RestrictUnauthenticatedWebappPlugins is enabled, only
+	// plugins setting this field are exposed to clients without a session.
+	PreAuth bool `json:"pre_auth,omitempty" yaml:"pre_auth,omitempty"`
+
 	// BundleHash is the 64-bit FNV-1a hash of the webapp bundle, computed when the plugin is loaded
 	BundleHash []byte `json:"-"`
 }
@@ -260,7 +271,28 @@ func (m *Manifest) ClientManifest() *Manifest {
 	if cm.Webapp != nil {
 		cm.Webapp = new(ManifestWebapp)
 		*cm.Webapp = *m.Webapp
-		cm.Webapp.BundlePath = "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+		cm.Webapp.BundlePath = m.clientBundlePath()
+	}
+	return cm
+}
+
+func (m *Manifest) clientBundlePath() string {
+	return "/static/" + m.Id + "/" + fmt.Sprintf("%s_%x_bundle.js", m.Id, m.Webapp.BundleHash)
+}
+
+// PreAuthClientManifest returns the minimal manifest needed by an unauthenticated client to load
+// the plugin's webapp bundle.
+func (m *Manifest) PreAuthClientManifest() *Manifest {
+	cm := &Manifest{
+		Id:      m.Id,
+		Name:    m.Name,
+		Version: m.Version,
+	}
+	if m.Webapp != nil {
+		cm.Webapp = &ManifestWebapp{
+			BundlePath: m.clientBundlePath(),
+			PreAuth:    m.Webapp.PreAuth,
+		}
 	}
 	return cm
 }

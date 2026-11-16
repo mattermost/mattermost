@@ -1,11 +1,12 @@
 ---
 title: "Connect Microsoft 365, Teams, and Outlook with Mattermost"
+sidebar_label: "Microsoft 365 and Outlook"
 ---
 <PlanAvailability slug="entry-ent" />
 
 Mattermost Mission Collaboration for Microsoft extends Microsoft for mission-critical coordination, command and control, incident response, and DevSecOps workflows in demanding environments, including air-gapped and classified networks by embedding Mattermost inside Teams. Use data-sovereign tools like secure chat, Playbooks, and Calls directly within M365, Teams, and Outlook.
 
-This app is designed to work with Microsoft 365, Teams, and Outlook and is currently in [Beta](/administration-guide/manage/feature-labels#beta). From Mattermost v10.7.1, this integration supports Entra ID-based Single Sign-On (SSO) for automatic authentication. Users must exist in both Mattermost and Microsoft with matching email addresses; the integration handles authentication but does not automatically provision new users. See the [user provisioning](/administration-guide/manage/admin/user-provisioning) product documentation for details on setting up SSO.
+This app is designed to work with Microsoft 365, Teams, and Outlook and is currently in [Beta](/administration-guide/manage/feature-labels#beta). From Mattermost v10.7.1, this integration supports Entra ID-based Single Sign-On (SSO) for automatic authentication. Users must exist in both Mattermost and Microsoft with matching email addresses; the integration handles authentication but does not automatically provision new users. See the [single sign-on](/administration-guide/onboard/corporate-directory-integration) product documentation for details on setting up SSO.
 
 ![Mattermost embedded as a Microsoft Teams app.](/images/mattermost-in-msteams-2.png)
 
@@ -46,7 +47,7 @@ An application must be registered in Microsoft Azure to enable secure authentica
 
 7.  Go to **Expose an API** to complete the following steps:
 
-> - Add/edit a **Application ID URI** and set the value to `api://&#123;&#123;Mattermost Site URL Hostname&#125;&#125;/&#123;&#123;Application (client) ID&#125;&#125;`.
+> - Add/edit a **Application ID URI** and set the value to `api://{{Mattermost Site URL Hostname}}/{{Application (client) ID}}`.
 >
 > - Add the `access_as_user` scope by selecting **Add a scope** and setting the following values:
 >
@@ -135,7 +136,7 @@ The integration automatically configures Content Security Policy (CSP) and Frame
 
 In air-gapped environments or during business continuity disruptions, users who can't join Microsoft Teams, can continue to access Mattermost using their Mattermost credentials by opening Mattermost in a separate app (e.g., in a new browser window). Alternatively, a Mattermost admin can pre-distribute the Mattermost desktop app using Windows MSI or the mobile app via EMM.
 
-![Mattermost embedded in a Microsoft Teams tab.](/images/mattermost-in-msteams.png)
+![Mattermost embedded in a Microsoft Teams tab.](/images/mattermost-in-msteams.webp)
 
 ### Activity Feed notifications
 

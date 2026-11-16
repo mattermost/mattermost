@@ -5,6 +5,7 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
+import {duration} from '@/util';
 
 /**
  * System Console -> Plugins -> Plugin Management
@@ -12,12 +13,41 @@ import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 export default class PluginManagement {
     readonly container: Locator;
 
+    readonly pluginFileInput: Locator;
+    readonly uploadButton: Locator;
+    readonly saveButton: Locator;
+
+    readonly restrictUnauthenticatedWebappPluginsTrue: Locator;
+    readonly restrictUnauthenticatedWebappPluginsFalse: Locator;
+    readonly restrictUnauthenticatedWebappPluginsHelpText: Locator;
+
     constructor(container: Locator) {
         this.container = container;
+
+        // A plain <input type="file">, no testid/id — exactly one on this page.
+        this.pluginFileInput = container.locator('input[type="file"]');
+        this.uploadButton = container.locator('#uploadPlugin');
+        this.saveButton = container.getByRole('button', {name: 'Save'});
+
+        this.restrictUnauthenticatedWebappPluginsTrue = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginstrue',
+        );
+        this.restrictUnauthenticatedWebappPluginsFalse = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginsfalse',
+        );
+        this.restrictUnauthenticatedWebappPluginsHelpText = container.getByTestId(
+            'restrictUnauthenticatedWebappPluginshelp-text',
+        );
     }
 
     async toBeVisible() {
         await expect(this.container.getByText('Plugin Management', {exact: true})).toBeVisible();
+    }
+
+    async save() {
+        await expect(this.saveButton).toBeEnabled();
+        await this.saveButton.click();
+        await expect(this.saveButton).toBeDisabled();
     }
 
     /**
@@ -43,5 +73,38 @@ export default class PluginManagement {
         const confirmModal = new ConfirmModal(this.container.page().getByRole('dialog', {name: 'Remove plugin?'}));
         await confirmModal.toBeVisible();
         await confirmModal.confirm();
+    }
+
+    /**
+     * Uploads a plugin bundle (.tar.gz) via the real <input type="file">, then clicks "Upload".
+     * If a plugin with the same id is already installed, confirms the "Overwrite existing
+     * plugin?" dialog that appears instead of failing.
+     */
+    async uploadPlugin(filePath: string) {
+        await this.pluginFileInput.setInputFiles(filePath);
+        await expect(this.uploadButton).toBeEnabled();
+        await this.uploadButton.click();
+
+        const overwriteDialog = this.container.page().getByRole('dialog', {name: 'Overwrite existing plugin?'});
+        const sawOverwriteDialog = await overwriteDialog
+            .waitFor({state: 'visible', timeout: duration.ten_sec})
+            .then(() => true)
+            .catch(() => false);
+        if (sawOverwriteDialog) {
+            await new ConfirmModal(overwriteDialog).confirm();
+        }
+    }
+
+    /**
+     * Clicks "Enable" on an already-installed plugin's row. Uploading a plugin does not
+     * auto-enable it — this is always a separate step.
+     */
+    async enablePlugin(pluginId: string) {
+        const row = this.pluginRow(pluginId);
+        await row.getByText('Enable', {exact: true}).click();
+    }
+
+    async toBeEnabled(pluginId: string) {
+        await expect(this.pluginRow(pluginId).getByText('Enable', {exact: true})).not.toBeVisible();
     }
 }

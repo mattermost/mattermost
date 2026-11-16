@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,9 +17,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -197,6 +202,311 @@ func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookDirectMessageTeamScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	// teamA holds the webhook and its channel. hookOwner is also a member of teamB, which is
+	// where outsideUser lives, so the two users share a team without sharing the webhook's team.
+	teamA := th.BasicTeam
+	teamB := th.CreateTeam(t)
+	channelA := th.BasicChannel
+	hookOwner := th.BasicUser
+	teamAUser := th.BasicUser2
+	th.LinkUserToTeam(t, hookOwner, teamB)
+
+	outsideUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsideUser, teamB)
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(hookOwner.Id, channelA, &model.IncomingWebhook{ChannelId: channelA.Id, ChannelLocked: false})
+	require.Nil(t, appErr)
+	require.Equal(t, teamA.Id, hook.TeamId)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	setRestrictDirectMessage := func(value string) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictDirectMessage = value })
+	}
+
+	// directMessages returns the messages in the direct channel between the two users, and an
+	// empty slice when that channel was never created.
+	directMessages := func(t *testing.T, userID1, userID2 string) []string {
+		t.Helper()
+
+		channel, err := th.App.GetChannelByName(th.Context, model.GetDMNameFromIds(userID1, userID2), "", true)
+		if err != nil {
+			require.Equal(t, http.StatusNotFound, err.StatusCode)
+			return nil
+		}
+
+		list, err := th.App.GetPosts(th.Context, channel.Id, 0, 60)
+		require.Nil(t, err)
+
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		return messages
+	}
+
+	// requireNoDirectChannel asserts that no direct channel exists for the two users, which is
+	// what a request refused by username must leave behind: resolving the target by username is
+	// what would otherwise create the channel on the way to the post.
+	requireNoDirectChannel := func(t *testing.T, userID1, userID2 string) {
+		t.Helper()
+
+		channel, err := th.App.GetChannelByName(th.Context, model.GetDMNameFromIds(userID1, userID2), "", true)
+		assert.Nil(t, channel)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	}
+
+	t.Run("refuses a DM to a user outside the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "restricted dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + outsideUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, outsideUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows a DM to a member of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + teamAUser.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, teamAUser.Id), message)
+	})
+
+	t.Run("allows a DM to a user outside the webhook team when direct messages are unrestricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "unrestricted dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + outsideUser.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, outsideUser.Id), message)
+	})
+
+	t.Run("allows posting to a channel of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "channel post " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "#" + channelA.Name,
+		})
+		require.Nil(t, err)
+
+		list, err := th.App.GetPosts(th.Context, channelA.Id, 0, 60)
+		require.Nil(t, err)
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		assert.Contains(t, messages, message)
+	})
+
+	t.Run("allows a DM to the webhook owner when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "own dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + hookOwner.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, hookOwner.Id), message)
+	})
+
+	t.Run("refuses a DM to a user removed from the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		// departedUser keeps teamB, so the only thing that changes with the removal from teamA
+		// is the membership row the webhook's team scope looks at, which is left behind soft
+		// deleted rather than dropped.
+		departedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, departedUser, teamA)
+		th.LinkUserToTeam(t, departedUser, teamB)
+		th.RemoveUserFromTeam(t, departedUser, teamA)
+
+		message := "departed dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + departedUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, departedUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a DM to a user outside the webhook team when the target username case differs", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		// A user of teamB only, so the refusal can be read from the absence of the channel the
+		// username would resolve to.
+		upperCaseTarget := th.CreateUser(t)
+		th.LinkUserToTeam(t, upperCaseTarget, teamB)
+
+		message := "upper case dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + strings.ToUpper(upperCaseTarget.Username),
+		})
+		requireNoDirectChannel(t, hookOwner.Id, upperCaseTarget.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a DM to a user outside an archived webhook team when direct messages are team restricted", func(t *testing.T) {
+		// teamC is archived after the webhook is created, while its member also belongs to
+		// teamB, so the webhook owner still shares a live team with them.
+		teamC := th.CreateTeam(t)
+		channelC := th.CreateChannel(t, teamC)
+		th.LinkUserToTeam(t, hookOwner, teamC)
+		teamCUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamCUser, teamC)
+		th.LinkUserToTeam(t, teamCUser, teamB)
+
+		hookC, appErr := th.App.CreateIncomingWebhookForChannel(hookOwner.Id, channelC, &model.IncomingWebhook{ChannelId: channelC.Id, ChannelLocked: false})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.DeleteIncomingWebhook(hookC.Id))
+		}()
+		require.Nil(t, th.App.SoftDeleteTeam(teamC.Id))
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "archived team dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hookC.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + teamCUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, teamCUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a direct channel outside the webhook team targeted by its channel name", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, hookOwner.Id, outsideUser.Id)
+		require.Nil(t, appErr)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "named direct channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: directChannel.Name,
+		})
+		assert.NotContains(t, directMessages(t, hookOwner.Id, outsideUser.Id), message)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	// channelMessages returns the messages of any channel, including the direct and group
+	// channels that GetPosts is reached for by channel id rather than by member ids.
+	channelMessages := func(t *testing.T, channelID string) []string {
+		t.Helper()
+
+		list, err := th.App.GetPosts(th.Context, channelID, 0, 60)
+		require.Nil(t, err)
+
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		return messages
+	}
+
+	t.Run("allows a direct channel of the webhook team targeted by its channel name when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, hookOwner.Id, teamAUser.Id)
+		require.Nil(t, appErr)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team named direct channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: directChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, directChannel.Id), message)
+	})
+
+	t.Run("refuses a group channel with a member outside the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		groupChannel := th.CreateGroupChannel(t, teamAUser, outsideUser)
+		require.Equal(t, model.GetGroupNameFromUserIds([]string{hookOwner.Id, teamAUser.Id, outsideUser.Id}), groupChannel.Name)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "outside group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		assert.NotContains(t, channelMessages(t, groupChannel.Id), message)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows a group channel of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		teamAUser2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAUser2, teamA)
+		groupChannel := th.CreateGroupChannel(t, teamAUser, teamAUser2)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, groupChannel.Id), message)
+	})
+
+	t.Run("allows a group channel with a member outside the webhook team when direct messages are unrestricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+
+		groupChannel := th.CreateGroupChannel(t, teamAUser, outsideUser)
+
+		message := "unrestricted group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, groupChannel.Id), message)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -327,6 +637,19 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("rejects a direct channel because incoming webhooks require a team id", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, directChannel.TeamId)
+
+		createdHook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, directChannel, &model.IncomingWebhook{ChannelId: directChannel.Id})
+		assert.Nil(t, createdHook)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.incoming_hook.team_id.app_error", appErr.Id)
+	})
 }
 
 func TestUpdateIncomingWebhook(t *testing.T) {
@@ -474,7 +797,7 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, DisplayName: "TestHook"})
 	require.Nil(t, appErr)
 	defer func() {
 		appErr = th.App.DeleteIncomingWebhook(hook.Id)
@@ -497,6 +820,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsAttachments, "missing attachments prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsWebhookDisplayName, "missing webhook_display_name prop")
+	assert.Equal(t, "TestHook", post.GetProp(model.PostPropsWebhookDisplayName), "webhook_display_name should be re-injected from CreatePostFlags")
 
 	_, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil, false)
 	require.NotNil(t, appErr, "Should have failed - bad post type")
@@ -1506,6 +1830,113 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
+// deadlineRecorder records the deadline carried by the request reaching the transport, which is
+// the effective limit on the request: the earlier of the client timeout and the context deadline.
+type deadlineRecorder struct {
+	next        http.RoundTripper
+	deadline    time.Time
+	hasDeadline bool
+}
+
+func (r *deadlineRecorder) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.deadline, r.hasDeadline = req.Context().Deadline()
+
+	return r.next.RoundTrip(req)
+}
+
+// Outgoing webhooks and slash commands share Srv().outgoingWebhookClient and give every request a
+// deadline of OutgoingIntegrationRequestsTimeout, so a timeout on the client itself would cap a
+// value configured above httpservice.RequestTimeout.
+func TestOutgoingWebhookRequestDeadline(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(60))
+	})
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	client := th.App.Srv().outgoingWebhookClient
+	recorder := &deadlineRecorder{next: client.Transport}
+	client.Transport = recorder
+	t.Cleanup(func() { client.Transport = recorder.next })
+
+	resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.NotNil(t, resp.Text)
+	assert.Equal(t, "Hello, World!", *resp.Text)
+
+	require.True(t, recorder.hasDeadline, "the request should carry the configured deadline")
+	assert.Greater(t, time.Until(recorder.deadline), httpservice.RequestTimeout,
+		"the configured timeout must not be capped by a client timeout")
+
+	// Clients that are not used for outgoing integration requests keep the default timeout.
+	assert.Equal(t, httpservice.RequestTimeout, th.App.Srv().pushNotificationClient.Timeout)
+}
+
+// The shared outgoingWebhookClient no longer imposes a client timeout, so shutdown must cancel
+// in-flight outgoing integration requests through their context instead of blocking on the full
+// configured OutgoingIntegrationRequestsTimeout.
+func TestOutgoingIntegrationRequestCancelledOnShutdown(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		// Large enough that shutdown would visibly hang if the request were not cancelled.
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(3600))
+	})
+	require.NoError(t, err)
+	require.NoError(t, s.Start())
+
+	app := New(ServerConnector(s.Channels()))
+
+	started := make(chan struct{})
+	// release unblocks the handler if the request is never cancelled, so a test failure reports
+	// cleanly instead of leaving blocking.Close() waiting until the go test timeout.
+	release := make(chan struct{})
+	blocking := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		close(started)
+		select {
+		case <-r.Context().Done():
+		case <-release:
+		}
+	}))
+	defer blocking.Close()
+	defer close(release)
+
+	// Mimic the real outgoing webhook dispatch, which runs inside Srv().Go and is waited on by
+	// Shutdown.
+	requestReturned := make(chan struct{})
+	s.Go(func() {
+		defer close(requestReturned)
+		_, _ = app.doOutgoingWebhookRequest(blocking.URL, strings.NewReader(""), "application/json", nil)
+	})
+
+	<-started
+
+	done := make(chan struct{})
+	go func() {
+		s.Shutdown()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		require.Fail(t, "Shutdown blocked on an in-flight outgoing integration request instead of cancelling it")
+	}
+
+	<-requestReturned
+}
+
 func TestDoOutgoingWebhookRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -1630,5 +2061,291 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, `Bearer test`, *resp.Text)
+	})
+}
+
+func TestWebhookStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+	*th.App.Config().ServiceSettings.EnableIncomingWebhooks = true
+	*th.App.Config().ServiceSettings.EnableOutgoingWebhooks = true
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	notFound := func() error {
+		return fmt.Errorf("query: %w", store.NewErrNotFound("Webhook", model.NewId()))
+	}
+	invalidInput := func() error {
+		return fmt.Errorf("query: %w", store.NewErrInvalidInput("Webhook", "Id", "x"))
+	}
+	plain := func() error {
+		return errors.New("db down")
+	}
+	storeAppErr := func() *model.AppError {
+		return model.NewAppError("store", "store.app_error", nil, "", http.StatusConflict)
+	}
+
+	bindings := map[string]*mock.Call{}
+	bind := func(name string, s any) {
+		if previous := bindings[name]; previous != nil {
+			previous.Unset()
+		}
+		bindings[name] = mockStore.On(name).Return(s)
+	}
+
+	type expectation struct {
+		id     string
+		status int
+	}
+
+	t.Run("incoming webhook store errors", func(t *testing.T) {
+		channel := &model.Channel{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.webhooks.save_incoming.existing.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.webhooks.save_incoming.app_error", http.StatusInternalServerError}},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("SaveIncoming", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.CreateIncomingWebhookForChannel(model.NewId(), channel, &model.IncomingWebhook{ChannelId: channel.Id})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+		webhookStore := &storemocks.WebhookStore{}
+		webhookStore.On("SaveIncoming", mock.Anything).Return(nil, cause).Once()
+		bind("Webhook", webhookStore)
+		_, got := th.App.CreateIncomingWebhookForChannel(model.NewId(), channel, &model.IncomingWebhook{ChannelId: channel.Id})
+		assert.Same(t, cause, got)
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetIncoming", mock.Anything, mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.GetIncomingWebhook(model.NewId())
+			require.NotNil(t, got)
+			assert.Equal(t, "app.webhooks.get_incoming.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+	})
+
+	t.Run("outgoing webhook store errors", func(t *testing.T) {
+		teamID := model.NewId()
+		channelID := model.NewId()
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.channel.get.existing.app_error", http.StatusNotFound}},
+			{plain(), expectation{"app.channel.get.find.app_error", http.StatusInternalServerError}},
+		} {
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", channelID, mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			_, got := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{ChannelId: channelID, TeamId: teamID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		channelStore := &storemocks.ChannelStore{}
+		channelStore.On("Get", channelID, mock.Anything).Return(&model.Channel{Id: channelID, TeamId: teamID, Type: model.ChannelTypeOpen}, nil)
+		bind("Channel", channelStore)
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.webhooks.save_outgoing.override.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.webhooks.save_outgoing.app_error", http.StatusInternalServerError}},
+			{cause, expectation{cause.Id, cause.StatusCode}},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetOutgoingByTeam", teamID, -1, -1).Return([]*model.OutgoingWebhook{}, nil)
+			webhookStore.On("SaveOutgoing", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{ChannelId: channelID, TeamId: teamID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetOutgoing", mock.Anything).Return(nil, tc.err).Once()
+			bind("Webhook", webhookStore)
+			_, got := th.App.GetOutgoingWebhook(model.NewId())
+			require.NotNil(t, got)
+			assert.Equal(t, "app.webhooks.get_outgoing.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+	})
+
+	t.Run("command webhook store errors", func(t *testing.T) {
+		args := &model.CommandArgs{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		cause := storeAppErr()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.command_webhook.create_command_webhook.existing", http.StatusBadRequest}},
+			{cause, expectation{cause.Id, cause.StatusCode}},
+			{plain(), expectation{"app.command_webhook.create_command_webhook.internal_error", http.StatusInternalServerError}},
+		} {
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Save", mock.Anything).Return(nil, tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			_, got := th.App.CreateCommandWebhook(model.NewId(), args)
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.command_webhook.get.missing", http.StatusNotFound}},
+			{plain(), expectation{"app.command_webhook.get.internal_error", http.StatusInternalServerError}},
+		} {
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Get", mock.Anything).Return(nil, tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			got := th.App.HandleCommandWebhook(th.Context, model.NewId(), &model.CommandResponse{})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		hook := &model.CommandWebhook{Id: model.NewId(), CommandId: model.NewId(), UserId: model.NewId(), ChannelId: model.NewId()}
+		commandWebhookStore := &storemocks.CommandWebhookStore{}
+		commandWebhookStore.On("Get", mock.Anything).Return(hook, nil)
+		bind("CommandWebhook", commandWebhookStore)
+
+		commandStore := &storemocks.CommandStore{}
+		commandStore.On("Get", hook.CommandId).Return(nil, cause).Once()
+		bind("Command", commandStore)
+		got := th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+		assert.Same(t, cause, got)
+
+		commandStore = &storemocks.CommandStore{}
+		commandStore.On("Get", hook.CommandId).Return(nil, plain()).Once()
+		bind("Command", commandStore)
+		got = th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+		require.NotNil(t, got)
+		assert.Equal(t, "web.command_webhook.command.app_error", got.Id)
+		assert.Equal(t, http.StatusBadRequest, got.StatusCode)
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{invalidInput(), expectation{"app.command_webhook.try_use.invalid", http.StatusBadRequest}},
+			{plain(), expectation{"app.command_webhook.try_use.internal_error", http.StatusInternalServerError}},
+		} {
+			commandStore := &storemocks.CommandStore{}
+			commandStore.On("Get", hook.CommandId).Return(&model.Command{Id: hook.CommandId, TeamId: model.NewId()}, nil)
+			bind("Command", commandStore)
+			commandWebhookStore := &storemocks.CommandWebhookStore{}
+			commandWebhookStore.On("Get", mock.Anything).Return(hook, nil)
+			commandWebhookStore.On("TryUse", hook.Id, 5).Return(tc.err).Once()
+			bind("CommandWebhook", commandWebhookStore)
+			got := th.App.HandleCommandWebhook(th.Context, hook.Id, &model.CommandResponse{})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+	})
+
+	t.Run("HandleIncomingWebhook store errors", func(t *testing.T) {
+		hook := &model.IncomingWebhook{Id: model.NewId(), UserId: model.NewId(), TeamId: model.NewId(), ChannelId: model.NewId()}
+		namedHook := &model.IncomingWebhook{Id: model.NewId(), UserId: hook.UserId, TeamId: hook.TeamId}
+		channel := &model.Channel{Id: hook.ChannelId, TeamId: hook.TeamId, Type: model.ChannelTypeOpen}
+
+		userStore := &storemocks.UserStore{}
+		userStore.On("Get", mock.Anything, hook.UserId).Return(&model.User{Id: hook.UserId}, nil)
+		userStore.On("GetProfileByIds", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, nil)
+		bind("User", userStore)
+
+		setupHook := func(h *model.IncomingWebhook) {
+			webhookStore := &storemocks.WebhookStore{}
+			webhookStore.On("GetIncoming", h.Id, mock.Anything).Return(h, nil)
+			bind("Webhook", webhookStore)
+		}
+
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"app.channel.get.existing.app_error", http.StatusNotFound}},
+			{plain(), expectation{"app.channel.get.find.app_error", http.StatusInternalServerError}},
+		} {
+			setupHook(hook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", hook.ChannelId, mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			got := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "hello"})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
+
+		for _, tc := range []struct {
+			err    error
+			status int
+		}{
+			{notFound(), http.StatusNotFound},
+			{plain(), http.StatusInternalServerError},
+		} {
+			setupHook(namedHook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("GetByName", namedHook.TeamId, "town-square", mock.Anything).Return(nil, tc.err).Once()
+			bind("Channel", channelStore)
+			got := th.App.HandleIncomingWebhook(th.Context, namedHook.Id, &model.IncomingWebhookRequest{Text: "hello", ChannelName: "#town-square"})
+			require.NotNil(t, got)
+			assert.Equal(t, "web.incoming_webhook.channel.app_error", got.Id)
+			assert.Equal(t, tc.status, got.StatusCode)
+		}
+
+		rootID := model.NewId()
+		for _, tc := range []struct {
+			err      error
+			expected expectation
+		}{
+			{notFound(), expectation{"api.post.create_post.root_id.app_error", http.StatusBadRequest}},
+			{plain(), expectation{"app.post.get.app_error", http.StatusInternalServerError}},
+		} {
+			setupHook(hook)
+			channelStore := &storemocks.ChannelStore{}
+			channelStore.On("Get", hook.ChannelId, mock.Anything).Return(channel, nil)
+			bind("Channel", channelStore)
+			postStore := &storemocks.PostStore{}
+			postStore.On("GetSingle", mock.Anything, rootID, false).Return(nil, tc.err).Once()
+			bind("Post", postStore)
+			got := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{Text: "hello", RootId: rootID})
+			require.NotNil(t, got)
+			assert.Equal(t, tc.expected.id, got.Id)
+			assert.Equal(t, tc.expected.status, got.StatusCode)
+		}
 	})
 }

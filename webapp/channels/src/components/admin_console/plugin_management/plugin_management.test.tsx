@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, createEvent, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -106,475 +105,109 @@ describe('components/PluginManagement', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const props = {...defaultProps};
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
+    const makeConflictProps = (versionDirection: string, existingVersion = '1.0.0', uploadedVersion = '2.0.0'): Record<string, string> => ({
+        plugin_id: 'com.mattermost.test-plugin',
+        plugin_name: 'Test Plugin',
+        existing_version: existingVersion,
+        uploaded_version: uploadedVersion,
+        version_direction: versionDirection,
     });
 
-    test('should match snapshot, disabled', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: false,
-                },
+    const renderWithUploadConflict = async (conflictProps: Record<string, string>) => {
+        const uploadPlugin = jest.fn().mockResolvedValueOnce({
+            error: {
+                server_error_id: 'app.plugin.install_id.app_error',
+                props: conflictProps,
+                message: 'A plugin with this ID already exists.',
             },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when `Enable Plugins` is hidden', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                ExperimentalSettings: {
-                    RestrictSystemAdmin: true,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when `Require Signature Plugin` is true', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    RequirePluginSignature: true,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when `Enable Marketplace` is false', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    EnableMarketplace: false,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when `Enable Remote Marketplace` is false', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    EnableRemoteMarketplace: false,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, upload disabled', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    EnableUploads: false,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, allow insecure URL enabled', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    AllowInsecureDownloadURL: true,
-                },
-            },
-        };
-        const {container} = renderWithContext(<PluginManagement {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, text entered into the URL install text box', () => {
-        const props = defaultProps;
-
-        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
-            <PluginManagement
-                {...props}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({pluginDownloadUrl: 'https://pluginsite.com/plugin.tar.gz'} as any);
         });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, No installed plugins', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: true,
-                    EnableUploads: true,
-                    AllowInsecureDownloadURL: false,
-                },
-            },
-            pluginStatuses: {},
-            plugins: {},
-            appsFeatureFlagEnabled: false,
-            actions: {
-                uploadPlugin: jest.fn(),
-                installPluginFromUrl: jest.fn(),
-                removePlugin: jest.fn(),
-                getPlugins: jest.fn().mockResolvedValue([]),
-                getPluginStatuses: jest.fn().mockResolvedValue([]),
-                enablePlugin: jest.fn(),
-                disablePlugin: jest.fn(),
-            },
-        };
+        const file = new File(['plugin'], 'plugin.tar.gz', {type: 'application/gzip'});
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
-            <PluginManagement
-                {...props}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({loading: false} as any);
-        });
-        expect(container).toMatchSnapshot();
-    });
 
-    test('should match snapshot, with installed plugins', () => {
-        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+        renderWithContext(
             <PluginManagement
                 {...defaultProps}
                 ref={ref}
+                actions={{
+                    ...defaultProps.actions,
+                    uploadPlugin,
+                }}
             />,
         );
+
         act(() => {
-            ref.current!.setState({loading: false} as any);
+            ref.current!.setState({file, fileSelected: true} as any);
         });
-        expect(container).toMatchSnapshot();
+        await act(async () => {
+            await ref.current!.helpSubmitUpload(file, false);
+        });
+
+        return {file, ref, uploadPlugin};
+    };
+
+    test.each([
+        ['upgrade', '1.0.0', '2.0.0', 'This upload upgrades the existing plugin.'],
+        ['same', '1.0.0', '1.0.0', 'This upload has the same version as the existing plugin.'],
+        ['downgrade', '2.0.0', '1.0.0', 'This upload downgrades the existing plugin. Downgrades can remove fixes or features.'],
+        ['unknown', '1.0.0', 'not-semver', 'Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'],
+    ])('should render overwrite review panel for %s uploads', async (direction, existingVersion, uploadedVersion, message) => {
+        await renderWithUploadConflict(makeConflictProps(direction, existingVersion, uploadedVersion));
+
+        expect(screen.getByTestId('plugin-upload-overwrite-review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
+        expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
+        expect(screen.getByText(message)).toBeInTheDocument();
+        expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.test-plugin')).toBeInTheDocument();
+        expect(document.getElementById('confirmModalButton')).toBeInTheDocument();
     });
 
-    test('should match snapshot, with installed plugins and not settings link should set hasSettings to false', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: true,
-                    EnableUploads: true,
-                    AllowInsecureDownloadURL: false,
+    test('should retry upload with force when overwrite is confirmed', async () => {
+        const uploadPlugin = jest.fn().
+            mockResolvedValueOnce({
+                error: {
+                    server_error_id: 'app.plugin.install_id.app_error',
+                    props: makeConflictProps('upgrade'),
+                    message: 'A plugin with this ID already exists.',
                 },
-            },
-            pluginStatuses: {
-                plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
-                    state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
-                    active: false,
-                    instances: [
-                        {
-                            cluster_id: 'cluster_id_1',
-                            state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
-                        },
-                    ],
-                },
-                plugin_1: {
-                    id: 'plugin_1',
-                    version: '0.0.1',
-                    state: PluginState.PLUGIN_STATE_STOPPING,
-                    name: 'Plugin 1',
-                    description: 'The plugin.',
-                    active: true,
-                    instances: [
-                        {
-                            cluster_id: 'cluster_id_1',
-                            state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.0.1',
-                        },
-                        {
-                            cluster_id: 'cluster_id_2',
-                            state: PluginState.PLUGIN_STATE_RUNNING,
-                            version: '0.0.2',
-                        },
-                    ],
-                },
-            },
-            plugins: {
-                plugin_0: {
-                    active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
-                    settings_schema: {},
-                    webapp: {},
-                },
-                plugin_1: {
-                    active: true,
-                    description: 'The plugin 1.',
-                    id: 'plugin_1',
-                    name: 'Plugin 1',
-                    version: '0.1.0',
-                    settings_schema: {},
-                    webapp: {},
-                },
-            },
-            appsFeatureFlagEnabled: false,
-            actions: {
-                uploadPlugin: jest.fn(),
-                installPluginFromUrl: jest.fn(),
-                removePlugin: jest.fn(),
-                getPlugins: jest.fn().mockResolvedValue([]),
-                getPluginStatuses: jest.fn().mockResolvedValue([]),
-                enablePlugin: jest.fn(),
-                disablePlugin: jest.fn(),
-            },
-        };
+            }).
+            mockResolvedValueOnce({data: {}});
+        const getPlugins = jest.fn().mockResolvedValue([]);
+        const file = new File(['plugin'], 'plugin.tar.gz', {type: 'application/gzip'});
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
+
+        renderWithContext(
             <PluginManagement
-                {...props}
+                {...defaultProps}
                 ref={ref}
+                actions={{
+                    ...defaultProps.actions,
+                    getPlugins,
+                    uploadPlugin,
+                }}
             />,
         );
+
         act(() => {
-            ref.current!.setState({loading: false} as any);
+            ref.current!.setState({file, fileSelected: true} as any);
         });
-        expect(container).toMatchSnapshot();
+        await act(async () => {
+            await ref.current!.helpSubmitUpload(file, false);
+        });
+
+        await userEvent.click(document.getElementById('confirmModalButton')!);
+
+        await waitFor(() => expect(uploadPlugin).toHaveBeenLastCalledWith(file, true));
+        await waitFor(() => expect(getPlugins).toHaveBeenCalled());
+        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot, with installed plugins and just header should set hasSettings to true', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: true,
-                    EnableUploads: true,
-                    AllowInsecureDownloadURL: false,
-                },
-            },
-            pluginStatuses: {
-                plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
-                    state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
-                    active: false,
-                    instances: [
-                        {
-                            cluster_id: 'cluster_id_1',
-                            state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
-                        },
-                    ],
-                },
-            },
-            plugins: {
-                plugin_0: {
-                    active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
-                    settings_schema: {
-                        header: 'This is a header',
-                    },
-                    webapp: {},
-                },
-            },
-            appsFeatureFlagEnabled: false,
-            actions: {
-                uploadPlugin: jest.fn(),
-                installPluginFromUrl: jest.fn(),
-                removePlugin: jest.fn(),
-                getPlugins: jest.fn().mockResolvedValue([]),
-                getPluginStatuses: jest.fn().mockResolvedValue([]),
-                enablePlugin: jest.fn(),
-                disablePlugin: jest.fn(),
-            },
-        };
-        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
-            <PluginManagement
-                {...props}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({loading: false} as any);
-        });
-        expect(container).toMatchSnapshot();
-    });
+    test('should clear overwrite review when upload overwrite is cancelled', async () => {
+        const {uploadPlugin} = await renderWithUploadConflict(makeConflictProps('downgrade', '2.0.0', '1.0.0'));
 
-    test('should match snapshot, with installed plugins and just footer should set hasSettings to true', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: true,
-                    EnableUploads: true,
-                    AllowInsecureDownloadURL: false,
-                },
-            },
-            pluginStatuses: {
-                plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
-                    state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
-                    active: false,
-                    instances: [
-                        {
-                            cluster_id: 'cluster_id_1',
-                            state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
-                        },
-                    ],
-                },
-            },
-            plugins: {
-                plugin_0: {
-                    active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
-                    settings_schema: {
-                        footer: 'This is a footer',
-                    },
-                    webapp: {},
-                },
-            },
-            appsFeatureFlagEnabled: false,
-            actions: {
-                uploadPlugin: jest.fn(),
-                installPluginFromUrl: jest.fn(),
-                removePlugin: jest.fn(),
-                getPlugins: jest.fn().mockResolvedValue([]),
-                getPluginStatuses: jest.fn().mockResolvedValue([]),
-                enablePlugin: jest.fn(),
-                disablePlugin: jest.fn(),
-            },
-        };
-        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
-            <PluginManagement
-                {...props}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({loading: false} as any);
-        });
-        expect(container).toMatchSnapshot();
-    });
+        await userEvent.click(document.getElementById('cancelModalButton')!);
 
-    test('should match snapshot, with installed plugins and just settings should set hasSettings to true', () => {
-        const props = {
-            ...defaultProps,
-            config: {
-                ...defaultProps.config,
-                PluginSettings: {
-                    ...defaultProps.config.PluginSettings,
-                    Enable: true,
-                    EnableUploads: true,
-                    AllowInsecureDownloadURL: false,
-                },
-            },
-            pluginStatuses: {
-                plugin_0: {
-                    id: 'plugin_0',
-                    version: '0.1.0',
-                    state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                    name: 'Plugin 0',
-                    description: 'The plugin 0.',
-                    active: false,
-                    instances: [
-                        {
-                            cluster_id: 'cluster_id_1',
-                            state: PluginState.PLUGIN_STATE_NOT_RUNNING,
-                            version: '0.1.0',
-                        },
-                    ],
-                },
-            },
-            plugins: {
-                plugin_0: {
-                    active: false,
-                    description: 'The plugin 0.',
-                    id: 'plugin_0',
-                    name: 'Plugin 0',
-                    version: '0.1.0',
-                    settings_schema: {
-                        settings: [
-                            {bla: 'test', xoxo: 'test2'},
-                        ],
-                    },
-                    webapp: {},
-                },
-            },
-            appsFeatureFlagEnabled: false,
-            actions: {
-                uploadPlugin: jest.fn(),
-                installPluginFromUrl: jest.fn(),
-                removePlugin: jest.fn(),
-                getPlugins: jest.fn().mockResolvedValue([]),
-                getPluginStatuses: jest.fn().mockResolvedValue([]),
-                enablePlugin: jest.fn(),
-                disablePlugin: jest.fn(),
-            },
-        };
-        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
-        const {container} = renderWithContext(
-            <PluginManagement
-                {...props}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({loading: false} as any);
-        });
-        expect(container).toMatchSnapshot();
+        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
+        expect(uploadPlugin).toHaveBeenCalledTimes(1);
     });
 
     test('uploads the selected plugin bundle immediately', async () => {
@@ -814,5 +447,134 @@ describe('components/PluginManagement', () => {
         });
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
+
+    describe('plugins forced off by a state override', () => {
+        // getPluginStateOverride holds a plugin at NotRunning with Enable still
+        // true in config.
+        const renderWithPluginState = (configEnabled: boolean) => {
+            const props = {
+                ...defaultProps,
+                config: {
+                    ...defaultProps.config,
+                    PluginSettings: {
+                        ...defaultProps.config.PluginSettings,
+                        PluginStates: configEnabled ? {plugin_0: {Enable: true}} : {},
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('offers Disable when config says enabled but the plugin is not running', () => {
+            renderWithPluginState(true);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Disable');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('still offers Enable when config says disabled and the plugin is not running', () => {
+            renderWithPluginState(false);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Disable');
+        });
+    });
+
+    describe('unlicensed add-on plugins', () => {
+        const renderAddOn = (license: Record<string, string>) => {
+            const props = {
+                ...defaultProps,
+                license,
+                plugins: {
+                    plugin_0: {
+                        ...defaultProps.plugins.plugin_0,
+                        required_add_on: 'crossguard',
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('replaces the Enable link with an explanation when the license lacks the add-on', () => {
+            renderAddOn({IsLicensed: 'true'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Not included in your license');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('offers Enable when the license grants the add-on', () => {
+            renderAddOn({IsLicensed: 'true', AddOns: 'crossguard'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Not included in your license');
+        });
+    });
+
+    describe('server logs links', () => {
+        const renderWithLogs = (canReadLogs: boolean, restrictSystemAdmin = false, fileJson = true) => {
+            const props = {
+                ...defaultProps,
+                config: {...defaultProps.config, ExperimentalSettings: {RestrictSystemAdmin: restrictSystemAdmin}, LogSettings: {FileJson: fileJson}},
+                consoleAccess: {read: {'reporting.server_logs': canReadLogs}, write: {}},
+                pluginStatuses: {
+                    ...defaultProps.pluginStatuses,
+                    plugin_0: {...defaultProps.pluginStatuses.plugin_0, state: PluginState.PLUGIN_STATE_FAILED_TO_START},
+                    plugin_1: {...defaultProps.pluginStatuses.plugin_1, state: PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING},
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('links each plugin to its entries, including failed ones', () => {
+            renderWithLogs(true);
+
+            for (const id of ['plugin_0', 'plugin_1']) {
+                const row = within(screen.getByTestId(id));
+                expect(row.getAllByRole('link', {name: 'View logs'})).toHaveLength(1);
+                expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=${id}`);
+            }
+        });
+
+        test.each([
+            ['without access to the server logs', false, false, true],
+            ['when system admins are restricted', true, true, true],
+            ['when the server only writes plain text logs', true, false, false],
+        ])('leaves the links out %s', (_, canReadLogs, restrictSystemAdmin, fileJson) => {
+            renderWithLogs(canReadLogs, restrictSystemAdmin, fileJson);
+
+            expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
+        });
     });
 });

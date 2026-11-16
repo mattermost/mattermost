@@ -19,7 +19,8 @@ type Props = {
     prefetchQueueObj: Record<string, string[]>;
     prefetchRequestStatus: Record<string, string>;
 
-    // Whether or not the categories in the sidebar have been loaded for the current team
+    // Whether or not the data the sidebar renders from has been loaded: the categories for the
+    // current team, plus the user's channels and channel memberships
     sidebarLoaded: boolean;
 
     unreadChannels: Channel[];

@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Draggable, Droppable} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
-import {Draggable, Droppable} from 'react-beautiful-dnd';
+import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -36,6 +39,9 @@ type Props = {
     category: ChannelCategory;
     categoryIndex: number;
     channelIds: string[];
+
+    // Hidden because the product rail's section left it with nothing to show.
+    hiddenByProductRail?: boolean;
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     isNewCategory: boolean;
@@ -55,8 +61,8 @@ type State = {
 };
 
 export default class SidebarCategory extends React.PureComponent<Props, State> {
-    categoryTitleRef: React.RefObject<HTMLButtonElement>;
-    newDropBoxRef: React.RefObject<HTMLDivElement>;
+    categoryTitleRef: React.RefObject<HTMLButtonElement | null>;
+    newDropBoxRef: React.RefObject<HTMLDivElement | null>;
 
     a11yKeyDownRegistered: boolean;
 
@@ -199,7 +205,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                     index={0}
                 >
                     {(provided) => {
-                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure react-beautiful-dnd will not try and place the first channel
+                        // NEW_CHANNEL_SPACER here is used as a spacer to ensure @hello-pangea/dnd will not try and place the first channel
                         // on the header. This acts as a space filler for the header so that the first channel dragged in will float below it.
                         return (
                             <li
@@ -267,6 +273,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return null;
         }
 
+        if (this.props.hiddenByProductRail) {
+            return null;
+        }
+
         const renderedChannels = channelIds.map(this.renderChannel);
 
         let categoryMenu: JSX.Element;
@@ -305,14 +315,15 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             </>
                         }
                     >
-                        <button
+                        <IconButton
                             id='newDirectMessageButton'
+                            style='inverted'
+                            size='x-small'
                             className='SidebarChannelGroupHeader_addButton'
+                            icon={<Icon glyph={<PlusIcon/>}/>}
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
-                        >
-                            <i className='icon-plus'/>
-                        </button>
+                        />
                     </WithTooltip>
                 </>
             );

@@ -18,7 +18,7 @@ describe('PostEmoji', () => {
         renderWithContext(<PostEmoji {...baseProps}/>);
 
         expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toBeInTheDocument();
-        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toHaveStyle(`backgroundImage: url(${baseProps.imageUrl})}`);
+        expect(screen.queryByTestId('postEmoji.:' + baseProps.name + ':')).toHaveStyle({backgroundImage: `url(${baseProps.imageUrl})`});
     });
 
     test('should render shortcode text within span when imageUrl is provided', () => {

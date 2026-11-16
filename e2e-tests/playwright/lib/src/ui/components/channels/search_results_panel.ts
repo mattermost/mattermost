@@ -4,6 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import MentionFilters from './mention_filters';
 import SearchTeamSelector from './search_team_selector';
 
 /**
@@ -14,11 +15,13 @@ export default class SearchResultsPanel {
     readonly container: Locator;
     readonly filesTab: Locator;
     readonly teamSelector: SearchTeamSelector;
+    readonly mentionFilters: MentionFilters;
 
     constructor(container: Locator) {
         this.container = container;
         this.filesTab = container.getByRole('tab', {name: /^Files/});
         this.teamSelector = new SearchTeamSelector(container.getByTestId('searchResultsTeamSelector'));
+        this.mentionFilters = new MentionFilters(container);
     }
 
     async toBeVisible() {
@@ -52,6 +55,13 @@ export default class SearchResultsPanel {
      */
     getHighlightedTerms() {
         return this.container.getByTestId('search-highlight');
+    }
+
+    /**
+     * The button that pops the panel out into its own window.
+     */
+    getPopoutButton() {
+        return this.container.getByRole('button', {name: 'Open in new window'});
     }
 
     async toContainText(text: string) {

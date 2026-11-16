@@ -393,7 +393,11 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 			message.Add("team_id", team.Id)
 
-			if len(post.FileIds) != 0 {
+			// otherFile/image are recipient-visible hints that a file is attached; gate them on
+			// the same per-recipient ABAC download_file_attachment check the "post" field's
+			// own file metadata is stripped by (via setupBroadcastHookForAbacFiles below), so a
+			// denied recipient doesn't learn a file exists (or that it's an image) here either.
+			if len(post.FileIds) != 0 && a.hasFileAttachmentAccess(request.EmptyContext(a.Log()), u, post.ChannelId) {
 				message.Add("otherFile", "true")
 
 				infos, err := a.Srv().Store().FileInfo().GetForPost(post.Id, false, false, true)
@@ -410,6 +414,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			}
 
 			message.Add("mentions", model.ArrayToJSON(desktopUsers))
+			a.setupBroadcastHookForAbacFiles(post, message)
 			a.Publish(message)
 		}
 	}

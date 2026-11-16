@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import isNil from 'lodash/isNil';
-import React from 'react';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import React, {type JSX} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
 import {Permissions, Roles} from 'mattermost-redux/constants';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 
 import type {ChannelModerationRoles} from './types';
 
@@ -250,6 +249,14 @@ const channelModerationHeaderMessages = defineMessages({
         id: 'admin.channel_settings.channel_moderation.subtitleMembers',
         defaultMessage: 'Manage the actions available to channel members.',
     },
+    guests: {
+        id: 'admin.channel_settings.channel_moderation.guests',
+        defaultMessage: 'Guests',
+    },
+    members: {
+        id: 'admin.channel_settings.channel_moderation.members',
+        defaultMessage: 'Members',
+    },
 });
 
 interface ChannelModerationTableRow {
@@ -265,6 +272,7 @@ interface ChannelModerationTableRow {
 }
 
 export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
+    const {formatMessage} = useIntl();
     const channelModerationPermissionMessages = getChannelModerationRowsMessages(props.name);
     let descriptionId = channelModerationPermissionMessages?.description.id;
     let descriptionDefaultMessage = channelModerationPermissionMessages?.description.defaultMessage;
@@ -272,6 +280,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
         descriptionId = channelModerationPermissionMessages.descriptionMembers?.id ?? '';
         descriptionDefaultMessage = channelModerationPermissionMessages?.descriptionMembers?.defaultMessage ?? '';
     }
+    const permissionTitle = channelModerationPermissionMessages?.title ? formatMessage(channelModerationPermissionMessages.title) : props.name;
     return (
         <tr>
             <td>
@@ -297,41 +306,25 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
             {props.guestAccountsEnabled &&
                 <td>
                     {!isNil(props.guests) &&
-                        <button
-                            type='button'
+                        <Checkbox
                             data-testid={`${props.name}-${Roles.GUESTS}`}
-                            className={classNames(
-                                'checkbox',
-                                {
-                                    checked: props.guests && !props.guestsDisabled,
-                                    disabled: props.guestsDisabled,
-                                },
-                            )}
-                            onClick={() => props.onClick(props.name, Roles.GUESTS as ChannelModerationRoles)}
-                            disabled={props.guestsDisabled || props.readOnly}
-                        >
-                            {props.guests && !props.guestsDisabled && <CheckboxCheckedIcon/>}
-                        </button>
+                            aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.guests)}`}
+                            checked={Boolean(props.guests && !props.guestsDisabled)}
+                            disabled={Boolean(props.guestsDisabled || props.readOnly)}
+                            onChange={() => props.onClick(props.name, Roles.GUESTS as ChannelModerationRoles)}
+                        />
                     }
                 </td>
             }
             <td>
                 {!isNil(props.members) &&
-                    <button
-                        type='button'
+                    <Checkbox
                         data-testid={`${props.name}-${Roles.MEMBERS}`}
-                        className={classNames(
-                            'checkbox',
-                            {
-                                checked: props.members && !props.membersDisabled,
-                                disabled: props.membersDisabled,
-                            },
-                        )}
-                        onClick={() => props.onClick(props.name, Roles.MEMBERS as ChannelModerationRoles)}
-                        disabled={props.membersDisabled || props.readOnly}
-                    >
-                        {props.members && !props.membersDisabled && <CheckboxCheckedIcon/>}
-                    </button>
+                        aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.members)}`}
+                        checked={Boolean(props.members && !props.membersDisabled)}
+                        disabled={Boolean(props.membersDisabled || props.readOnly)}
+                        onChange={() => props.onClick(props.name, Roles.MEMBERS as ChannelModerationRoles)}
+                    />
                 }
             </td>
         </tr>
@@ -480,9 +473,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 id='channel_moderation'
                 title={channelModerationHeaderMessages.titleMessage}
                 subtitle={
-                    guestAccountsEnabled ?
-                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
-                        channelModerationHeaderMessages.subtitleMessageForMembers
+                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests : channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>
@@ -502,17 +493,11 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                                     </th>
                                     {guestAccountsEnabled &&
                                         <th>
-                                            <FormattedMessage
-                                                id='admin.channel_settings.channel_moderation.guests'
-                                                defaultMessage='Guests'
-                                            />
+                                            <FormattedMessage {...channelModerationHeaderMessages.guests}/>
                                         </th>
                                     }
                                     <th>
-                                        <FormattedMessage
-                                            id='admin.channel_settings.channel_moderation.members'
-                                            defaultMessage='Members'
-                                        />
+                                        <FormattedMessage {...channelModerationHeaderMessages.members}/>
                                     </th>
                                 </tr>
                             </thead>

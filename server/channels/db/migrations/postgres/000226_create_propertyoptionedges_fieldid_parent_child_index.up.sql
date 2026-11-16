@@ -1,0 +1,14 @@
+-- morph:nontransactional
+-- The downward walk, and the check that an option still has children (which is
+-- what stops an interior option from being deleted).
+--
+-- FieldID leads for correctness, not just for selectivity: option IDs are not
+-- unique across fields -- unlinking a field from its template deliberately
+-- duplicates them, since the field takes over the options it was deriving under
+-- the identifiers its property values already point at -- so a walk keyed on
+-- ParentOptionID alone would pull in another field's edges. Every query here is
+-- field-scoped, and this key has to lead with FieldID for that predicate to be
+-- usable.
+-- CONCURRENTLY cannot run inside a transaction, so this must be the only
+-- statement in the file.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyoptionedges_fieldid_parent_child ON PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID);

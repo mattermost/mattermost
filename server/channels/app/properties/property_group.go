@@ -68,6 +68,13 @@ func (ps *PropertyService) RegisterPropertyGroup(group *model.PropertyGroup) (*m
 	return registered, nil
 }
 
+// CacheGroup replaces the cached copy of a group whose row was changed
+// directly through the store.
+func (ps *PropertyService) CacheGroup(group *model.PropertyGroup) {
+	ps.groupCache.Store(group.Name, group)
+	ps.groupIDCache.Store(group.ID, group)
+}
+
 func (ps *PropertyService) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
 	return ps.groupStore.Get(name)
 }

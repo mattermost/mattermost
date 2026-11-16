@@ -22,7 +22,11 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 				return nil, model.NewAppError("app.processPostFileChanges", "app.file_info.undelete_for_post_ids.app_error", map[string]any{"post_id": newPost.Id}, "", 0).Wrap(err)
 			}
 		} else {
-			a.attachNewFilesToPost(rctx, newPost, addedFileIDs, unchangedFileIDs)
+			fileCreatorID := ""
+			if updatePostOptions != nil {
+				fileCreatorID = updatePostOptions.FileCreatorID
+			}
+			a.attachNewFilesToPost(rctx, newPost, addedFileIDs, unchangedFileIDs, fileCreatorID)
 		}
 	}
 
@@ -42,17 +46,16 @@ func (a *App) processPostFileChanges(rctx request.CTX, newPost, oldPost *model.P
 	return newPost.FileIds, nil
 }
 
-func (a *App) attachNewFilesToPost(rctx request.CTX, post *model.Post, addedFileIDs, unchangedFileIDs []string) {
+func (a *App) attachNewFilesToPost(rctx request.CTX, post *model.Post, addedFileIDs, unchangedFileIDs []string, fileCreatorID string) {
 	// for newly added files, we need to attach them to the post
 
-	// intentionally using UserID from session instead of post.UserID
-	// to support admin attaching files in someone else's post.
-	// Admins can edit other's posts, including message, removing existing files,
-	// and attaching new files.
-	// When an admin uploads new files, they are associated with their user ID. So, when attaching
-	// these file to a post, we need to search for their FileInfo entry
-	// by the admin's user ID and not the post author's user ID.
+	// Use the session user, not the post author, so an admin can attach
+	// files they uploaded to someone else's post. FileCreatorID is the same
+	// lookup for a plugin call, which has no session user.
 	userId := rctx.Session().UserId
+	if fileCreatorID != "" {
+		userId = fileCreatorID
+	}
 	attachedFileIDs := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, userId, addedFileIDs)
 	if len(attachedFileIDs) != len(addedFileIDs) {
 		// if not all files could be attached, the final list of files

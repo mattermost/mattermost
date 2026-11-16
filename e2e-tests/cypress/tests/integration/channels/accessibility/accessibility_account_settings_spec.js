@@ -50,6 +50,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'message_display', label: 'Message Display', type: 'radio'},
             {key: 'click_to_reply', label: 'Click to open threads', type: 'radio'},
             {key: 'channel_display_mode', label: 'Channel Display', type: 'radio'},
+            {key: 'collapse_category_with_unreads', label: 'Collapse category with unread channels', type: 'radio'},
             {key: 'one_click_reactions_enabled', label: 'Quick reactions on messages', type: 'radio'},
             {key: 'renderEmoticonsAsEmoji', label: 'Render emoticons as emojis', type: 'radio'},
             {key: 'languages', label: 'Language', type: 'dropdown'},
@@ -176,13 +177,20 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('#changeInterfaceLanguageLabel').should('be.visible').and('have.text', 'Change interface language');
 
         // # When space key is pressed on dropdown, it should expand and should collapse when esc key is pressed
-        cy.get('@inputEl').typeWithForce(' ');
-        cy.findByRole('listbox').should('have.class', 'react-select__menu-list').as('listBox');
+        // Menu is portaled to document.body (outside the aria-modal dialog), so query by class
+        // and assert role=listbox rather than findByRole (inaccessible outside the modal).
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').
+            should('be.visible').
+            and('have.attr', 'role', 'listbox').
+            and('have.class', 'react-select__menu-list').
+            as('listBox');
         cy.get('@inputEl').typeWithForce('{esc}');
         cy.get('@listBox').should('not.exist');
 
         // # Press down arrow twice and check aria label
-        cy.get('@inputEl').typeWithForce(' ');
+        cy.get('@inputEl').focus().typeWithForce(' ');
+        cy.get('.react-select__menu-list').should('be.visible');
         cy.get('@inputEl').typeWithForce('{downarrow}{downarrow}');
         cy.get('#displayLanguage').within(($el) => {
             cy.wrap($el).findByRole('log').should('have.attr', 'aria-live', 'assertive').as('ariaEl');
@@ -246,9 +254,11 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
         // # Option to Remove Profile picture should be present
-        cy.findByTestId('removeSettingPicture').within(() => {
-            cy.get('.sr-only').should('have.text', 'Remove Profile Picture');
-        });
+        cy.findByTestId('removeSettingPicture').should(
+            'have.attr',
+            'aria-label',
+            'Remove Profile Picture',
+        );
 
         // # Check tab behavior
         cy.findByTestId('removeSettingPicture').focus().tab({shift: true}).tab();
@@ -276,7 +286,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // * Check Tab behavior in MFA section
         cy.get('#mfaEdit').click();
         cy.get('#passwordEdit').focus().tab({shift: true}).tab().tab();
-        cy.get('.setting-list button.btn').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.get('.setting-list').findByRole('button', {name: /Add|Remove/i}).should('have.class', 'a11y--active a11y--focused').tab();
         cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
 
         // * Check Tab behavior in Sign-In Method if its available
@@ -284,7 +294,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             if (el.find('#signinEdit').length) {
                 cy.get('#signinEdit').click();
                 cy.get('#mfaEdit').focus().tab({shift: true}).tab().tab();
-                cy.get('.setting-list a.btn').should('have.class', 'a11y--active a11y--focused').tab();
+                cy.get('.setting-list').findByRole('link').should('have.class', 'a11y--active a11y--focused').tab();
                 cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
             }
         });

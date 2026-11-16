@@ -135,10 +135,19 @@ func importDirectChannelMembersFromChannelMembers(members []*model.ChannelMember
 }
 
 func importLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {
-	// Bulk Importer doesn't accept "empty string" for AuthService.
+	// Bulk Importer doesn't accept "empty string" for AuthService, and doesn't
+	// recognise "magic_link" (tokens are ephemeral and meaningless on the
+	// destination). Magic-link users are exported without an auth service so
+	// the importer treats them as password-based accounts.
 	var authService *string
-	if user.AuthService != "" {
+	if user.AuthService != "" && user.AuthService != model.UserAuthServiceMagicLink {
 		authService = &user.AuthService
+	}
+
+	// Magic-link auth_data is a one-time token — never export it.
+	authData := user.AuthData
+	if user.AuthService == model.UserAuthServiceMagicLink {
+		authData = nil
 	}
 
 	return &imports.LineImportData{
@@ -147,7 +156,7 @@ func importLineFromUser(user *model.User, exportedPrefs map[string]*string) *imp
 			Username:                 &user.Username,
 			Email:                    &user.Email,
 			AuthService:              authService,
-			AuthData:                 user.AuthData,
+			AuthData:                 authData,
 			Nickname:                 &user.Nickname,
 			FirstName:                &user.FirstName,
 			LastName:                 &user.LastName,

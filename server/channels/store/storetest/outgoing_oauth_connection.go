@@ -4,13 +4,15 @@
 package storetest
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/stretchr/testify/require"
 )
 
 func newValidOutgoingOAuthConnection() *model.OutgoingOAuthConnection {
@@ -361,8 +363,8 @@ func testGetOutgoingOAuthConnections(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	connections := []*model.OutgoingOAuthConnection{connection1, connection2, connection3}
-	sort.Slice(connections, func(i, j int) bool {
-		return connections[i].Id < connections[j].Id
+	slices.SortFunc(connections, func(a, b *model.OutgoingOAuthConnection) int {
+		return cmp.Compare(a.Id, b.Id)
 	})
 
 	t.Run("get all", func(t *testing.T) {

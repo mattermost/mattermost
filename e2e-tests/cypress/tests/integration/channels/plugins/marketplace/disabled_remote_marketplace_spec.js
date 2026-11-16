@@ -41,7 +41,7 @@ describe('Plugin Marketplace', () => {
         cy.visit(townsquareLink);
 
         // # Open up marketplace
-        cy.uiOpenProductMenu('Marketplace');
+        cy.uiOpenSwitchProductMenu('Marketplace');
     });
 
     it('not display any plugins and no error bar', () => {

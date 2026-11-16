@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -66,7 +68,12 @@ func (ls SqlLicenseStore) Get(rctx request.CTX, id string) (*model.LicenseRecord
 
 	license := &model.LicenseRecord{}
 	if err := ls.DBXFromContext(rctx.Context()).Get(license, queryString, args...); err != nil {
-		return nil, store.NewErrNotFound("License", id)
+		// Callers clear the active license on ErrNotFound, so a store failure must
+		// not be reported as an absent license.
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("License", id)
+		}
+		return nil, errors.Wrapf(err, "failed to get License with id=%s", id)
 	}
 	return license, nil
 }

@@ -31,6 +31,7 @@ const (
 	SessionAttributesPropertyFieldOSVersion               = "os_version"
 	SessionAttributesPropertyFieldClientVersion           = "client_version"
 	SessionAttributesPropertyFieldJailbreakDetected       = "jailbreak_detected"
+	SessionAttributesPropertyFieldBiometricAuthenticated  = "biometric_authenticated"
 	SessionAttributesPropertyFieldServerFQDN              = "server_fqdn"
 	SessionAttributesPropertyFieldClientFQDN              = "client_fqdn"
 	SessionAttributesPropertyFieldUserAgentPlatform       = "user_agent_platform"
@@ -53,6 +54,7 @@ const (
 	SessionAttributesDisplayNameOSVersion               = "OS version"
 	SessionAttributesDisplayNameClientVersion           = "Client version"
 	SessionAttributesDisplayNameJailbreakDetected       = "Jailbreak detected"
+	SessionAttributesDisplayNameBiometricAuthenticated  = "Biometric authenticated"
 	SessionAttributesDisplayNameServerFQDN              = "Server FQDN"
 	SessionAttributesDisplayNameClientFQDN              = "Client FQDN"
 	SessionAttributesDisplayNameUserAgentPlatform       = "User agent platform"
@@ -70,14 +72,16 @@ const (
 	SAAttrDisplayName        = "display_name"
 )
 
+const SessionAttributeMinDurationSeconds = 60
+
 const (
-	SessionAttributeDefaultTTLNetworkIdentity = 15
+	SessionAttributeDefaultTTLNetworkIdentity = 60
 	SessionAttributeDefaultTTLPosture         = 60
 	SessionAttributeDefaultTTLIdentity        = 300
 )
 
 const (
-	SessionAttributeDefaultGraceNetworkIdentity = 15
+	SessionAttributeDefaultGraceNetworkIdentity = 60
 	SessionAttributeDefaultGracePosture         = 60
 	SessionAttributeDefaultGraceIdentity        = 300
 )
@@ -183,6 +187,14 @@ func (f *SAField) EnabledForPlatform(platform string) bool {
 }
 
 // IsValidSessionAttributeValue checks an incoming session attribute value against the field schema.
+//
+// The select case rejects the value when the field carries no option list, which
+// would be wrong for a field whose list was withheld for exceeding
+// PropertyFieldMaxHydratedOptions. No session attribute field can be in that
+// state: the schema is the fixed set SessionAttributeSystemFields declares,
+// whose largest option list has 19 entries, nothing but the seeding code writes
+// those lists, and an API caller may only change enabled, ttl_seconds, and
+// grace_period_seconds on a seeded field.
 func IsValidSessionAttributeValue(field *PropertyField, value any) bool {
 	if field == nil || value == nil {
 		return false
@@ -282,6 +294,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldMDMEnrolled, SessionAttributesDisplayNameMDMEnrolled, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldJailbreakDetected, SessionAttributesDisplayNameJailbreakDetected, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, boolSelectOptions),
+		sessionAttributeField(groupID, SessionAttributesPropertyFieldBiometricAuthenticated, SessionAttributesDisplayNameBiometricAuthenticated, PropertyFieldTypeSelect, mobileOnly, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, boolSelectOptions),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldOSPlatform, SessionAttributesDisplayNameOSPlatform, PropertyFieldTypeSelect, clientsOnly, SessionAttributeDefaultTTLPosture, SessionAttributeDefaultGracePosture, StringInterface{
 			PropertyFieldAttributeOptions: []map[string]string{
 				{"name": "macos"},

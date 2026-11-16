@@ -13,12 +13,12 @@ import (
 	"io"
 	"maps"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -237,8 +237,14 @@ type AppError struct {
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
-	params          map[string]any
-	wrapped         error
+
+	// Props carries caller-authored context to API clients, like the Props fields on Users and
+	// Posts. Unlike DetailedError it is always returned to clients regardless of developer mode, so
+	// it must only hold flat strings that are safe for any client to see - never internal details.
+	Props StringMap `json:"props,omitempty"`
+
+	params  map[string]any
+	wrapped error
 }
 
 const maxErrorLength = 1024
@@ -373,6 +379,22 @@ func NewAppError(where string, id string, params map[string]any, details string,
 	}
 	ap.Translate(translateFunc)
 	return ap
+}
+
+// AsAppError returns the *AppError in err's chain, or wraps err in a generic internal error
+// when there is none. Use it where an error must cross a boundary that still requires an
+// *AppError, such as an API handler or a caller not yet migrated to return error.
+func AsAppError(err error) *AppError {
+	if err == nil {
+		return nil
+	}
+
+	var appErr *AppError
+	if errors.As(err, &appErr) {
+		return appErr
+	}
+
+	return NewAppError("", "model.app_error.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
@@ -799,6 +821,24 @@ func IsValidHTTPURL(rawURL string) bool {
 	return true
 }
 
+// DecodeId returns the 16 bytes that an ID made by NewId encodes; ok is false for any string NewId could not have produced.
+func DecodeId(id string) (b [16]byte, ok bool) {
+	if len(id) != 26 {
+		return [16]byte{}, false
+	}
+	// Decode may have written part of b before failing, so return a fresh zero value.
+	if n, err := encoding.Decode(b[:], []byte(id)); err != nil || n != len(b) {
+		return [16]byte{}, false
+	}
+	// The decoder ignores the last character's two unused bits, so check that b encodes back to id.
+	var check [26]byte
+	encoding.Encode(check[:], b[:])
+	if string(check[:]) != id {
+		return [16]byte{}, false
+	}
+	return b, true
+}
+
 func IsValidId(value string) bool {
 	if len(value) != 26 {
 		return false
@@ -821,7 +861,7 @@ func RemoveDuplicateStrings(in []string) []string {
 	if len(in) == 0 {
 		return in
 	}
-	sort.Strings(in)
+	slices.Sort(in)
 	j := 0
 	for i := 1; i < len(in); i++ {
 		if in[j] == in[i] {

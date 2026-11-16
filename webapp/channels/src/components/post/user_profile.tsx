@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
@@ -108,6 +108,7 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                     channelId={post.channel_id}
                     hideStatus={true}
                     hideGuestTag={hideGuestTag}
+                    fromWebhook={true}
                     overwriteName={overwriteName}
                     colorize={colorize}
                     overwriteIcon={overwriteIcon}

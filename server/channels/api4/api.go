@@ -22,7 +22,7 @@ type Routes struct {
 
 	Users          *mux.Router // 'api/v4/users'
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
-	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
+	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.:]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
 
 	Bots *mux.Router // 'api/v4/bots'
@@ -98,6 +98,8 @@ type Routes struct {
 
 	DataRetention *mux.Router // 'api/v4/data_retention'
 
+	EphemeralMode *mux.Router // 'api/v4/ephemeral_mode'
+
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -144,10 +146,6 @@ type Routes struct {
 
 	Permissions *mux.Router // 'api/v4/permissions'
 
-	Usage *mux.Router // 'api/v4/usage'
-
-	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
-
 	Drafts *mux.Router // 'api/v4/drafts'
 
 	IPFiltering *mux.Router // 'api/v4/ip_filtering'
@@ -166,22 +164,29 @@ type Routes struct {
 
 	AuditLogs *mux.Router // 'api/v4/audit_logs'
 
-	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
-	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlPolicies  *mux.Router // 'api/v4/access_control_policies'
+	AccessControlPolicy    *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+	AccessControlDecisions *mux.Router // 'api/v4/access_control/decisions'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+
+	DeliveryTracking *mux.Router // 'api/v4/delivery_tracking'
+
+	HealthFindings *mux.Router // 'api/v4/health/findings'
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
 
 	Boards *mux.Router // 'api/v4/boards'
 
-	Properties           *mux.Router // 'api/v4/properties'
-	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
-	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
-	PropertyFieldsSearch *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
-	PropertyValues       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
-	PropertySystemValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
+	Properties             *mux.Router // 'api/v4/properties'
+	PropertyFields         *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField          *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyFieldOptions   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}/options'
+	PropertyFieldsSearch   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
+	GlobalAttributesSearch *mux.Router // 'api/v4/properties/groups/access_control/attributes/search'
+	PropertyValues         *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	PropertySystemValues   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
 }
 
 type API struct {
@@ -201,7 +206,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.APIRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.:]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
@@ -281,6 +286,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ScheduledRecap = api.BaseRoutes.ScheduledRecaps.PathPrefix("/{scheduled_recap_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
+	api.BaseRoutes.EphemeralMode = api.BaseRoutes.APIRoot.PathPrefix("/ephemeral_mode").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.APIRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.APIRoot.PathPrefix("/emoji/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -310,10 +316,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
-	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
-
-	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
-
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
 
 	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
@@ -334,8 +336,13 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.AccessControlDecisions = api.BaseRoutes.APIRoot.PathPrefix("/access_control/decisions").Subrouter()
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
+
+	api.BaseRoutes.DeliveryTracking = api.BaseRoutes.APIRoot.PathPrefix("/delivery_tracking").Subrouter()
+
+	api.BaseRoutes.HealthFindings = api.BaseRoutes.APIRoot.PathPrefix("/health/findings").Subrouter()
 
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
@@ -345,7 +352,9 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
 	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()
 	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
+	api.BaseRoutes.GlobalAttributesSearch = api.BaseRoutes.Properties.PathPrefix("/groups/access_control/attributes/search").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
@@ -368,6 +377,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLdap()
 	api.InitElasticsearch()
 	api.InitDataRetention()
+	api.InitEphemeralMode()
 	api.InitBrand()
 	api.InitJob()
 	api.InitRecap()
@@ -391,8 +401,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
-	api.InitUsage()
-	api.InitHostedCustomer()
 	api.InitDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
@@ -407,6 +415,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitDeliveryTracking()
+	api.InitHealthDashboard()
 	api.InitAgents()
 	api.InitProperties()
 
@@ -433,7 +443,7 @@ func InitLocal(srv *app.Server) *API {
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.:]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
@@ -500,6 +510,8 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.HealthFindings = api.BaseRoutes.APIRoot.PathPrefix("/health/findings").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -523,6 +535,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitCustomProfileAttributesLocal()
 	api.InitAccessControlPolicyLocal()
 	api.InitStatusLocal()
+	api.InitHealthDashboardLocal()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

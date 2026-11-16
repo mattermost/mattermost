@@ -9,7 +9,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
-import {langFiles, langIDs, langLabels} from './imports';
+import {langFiles} from './imports';
 
 export interface Language {
     value: string;
@@ -152,31 +152,58 @@ export const languages = {
         order: 21,
         url: langFiles.ja,
     },
+    da: {
+        value: 'da',
+        name: 'Dansk',
+        order: 22,
+        url: langFiles.da,
+    },
+    cs: {
+        value: 'cs',
+        name: 'Čeština (Experimental)',
+        order: 23,
+        url: langFiles.cs,
+    },
+    hr: {
+        value: 'hr',
+        name: 'Hrvatski (Experimental)',
+        order: 24,
+        url: langFiles.hr,
+    },
+    lt: {
+        value: 'lt',
+        name: 'Lietuvių (Experimental)',
+        order: 25,
+        url: langFiles.lt,
+    },
+    'nb-NO': {
+        value: 'nb-NO',
+        name: 'Norsk bokmål (Experimental)',
+        order: 26,
+        url: langFiles['nb-NO'],
+    },
+    pt: {
+        value: 'pt',
+        name: 'Português (Portugal) (Experimental)',
+        order: 27,
+        url: langFiles.pt,
+    },
+    fi: {
+        value: 'fi',
+        name: 'Suomi (Experimental)',
+        order: 28,
+        url: langFiles.fi,
+    },
 };
 
-export function getAllLanguages(includeExperimental = false): Record<string, Language> {
-    if (includeExperimental) {
-        let order = Object.keys(languages).length;
-        return {
-            ...langIDs.reduce<Record<string, Language>>((out, id) => {
-                out[id] = {
-                    value: id,
-                    name: langLabels[id as keyof typeof langLabels] + ' (Experimental)',
-                    url: langFiles[id],
-                    order: order++,
-                };
-                return out;
-            }, {}),
-            ...languages,
-        };
-    }
+export function getAllLanguages(): Record<string, Language> {
     return languages;
 }
 
 export function getLanguages(state: GlobalState) {
     const config = getConfig(state);
     if (!config.AvailableLocales) {
-        return getAllLanguages(config.EnableExperimentalLocales === 'true');
+        return getAllLanguages();
     }
     return config.AvailableLocales.split(',').reduce<Record<string, Language>>((result, l) => {
         if (Object.hasOwn(languages, l)) {
@@ -187,7 +214,7 @@ export function getLanguages(state: GlobalState) {
 }
 
 export function getLanguageInfo(locale: string) {
-    return getAllLanguages(true)[locale];
+    return languages[locale as keyof typeof languages];
 }
 
 export function isLanguageAvailable(state: GlobalState, locale: string) {

@@ -17,7 +17,11 @@ import {
 } from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
-import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {
+    deleteCustomProfileAttributes,
+    setupCustomProfileAttributeFields,
+} from '../../../channels/custom_profile_attributes/helpers';
+import {deleteParentPolicy} from '../resource_attributes/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
@@ -47,6 +51,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     let user2: Awaited<ReturnType<typeof createUserWithAttributes>>; // qualifying, IN channel
     let user3: Awaited<ReturnType<typeof createUserWithAttributes>>; // non-qualifying, IN channel
     let privateChannel: any;
+    let createdPolicyId: string | undefined;
     let licensed = true;
 
     test.beforeAll(async ({browser}) => {
@@ -127,6 +132,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
                 throw new Error('Could not get policy ID');
             }
             await searchInput.clear();
+            createdPolicyId = policyId;
 
             await activatePolicy(adminClient, policyId);
             await waitForPolicySyncJob(adminClient, policyId);
@@ -148,6 +154,16 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             }
         } finally {
             await tb.close().catch(() => {});
+        }
+    });
+
+    test.afterAll(async () => {
+        // The policy list the System Console pages through fills up with policies
+        // left behind by earlier runs, and a spec that finds its own policy by
+        // scanning that list starts failing once a newer one is off the first page.
+        if (createdPolicyId) {
+            await deleteParentPolicy(sharedAdminClient, createdPolicyId, [privateChannel?.id].filter(Boolean));
+            createdPolicyId = undefined;
         }
     });
 
@@ -207,6 +223,11 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
     let engineerUser: Awaited<ReturnType<typeof createUserForABAC>>;
     let salesUser: Awaited<ReturnType<typeof createUserForABAC>>;
     let deptFieldName: string;
+    let sharedAttributeFieldsMap: Awaited<ReturnType<typeof setupCustomProfileAttributeFields>> | undefined;
+    // Policies this describe created, torn down after each test so the paginated
+    // policy list does not fill up with them: a spec that finds its own policy by
+    // scanning that list starts failing once a newer one is off the first page.
+    const policyCleanups: Array<() => Promise<void>> = [];
     let systemConsolePage: {page: Page};
     let sharedTestBrowser: TestBrowser | null = null;
     let licensed = true;
@@ -240,6 +261,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
             {name: deptFieldName, type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
         ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
+        sharedAttributeFieldsMap = attributeFieldsMap;
         await assertAccessControlAutocompleteContains(adminClient, [deptFieldName]);
 
         engineerUser = await createUserForABAC(adminClient, attributeFieldsMap, [
@@ -267,7 +289,22 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         await enableABAC(systemConsolePage.page);
     });
 
+    test.afterEach(async () => {
+        for (const cleanup of policyCleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        policyCleanups.length = 0;
+    });
+
     test.afterAll(async () => {
+        // The access_control group allows at most 20 user-object fields, so fields
+        // left behind here eventually fail every later spec's setup rather than this
+        // one's. deleteCustomProfileAttributes only removes what this run created,
+        // so a field it reused instead survives.
+        if (sharedAttributeFieldsMap) {
+            await deleteCustomProfileAttributes(sharedAdminClient, sharedAttributeFieldsMap).catch(() => {});
+            sharedAttributeFieldsMap = undefined;
+        }
         await sharedTestBrowser?.close().catch(() => {});
     });
 
@@ -312,6 +349,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
             .toBe(true);
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
         if (policyId) {
+            policyCleanups.push(() => deleteParentPolicy(sharedAdminClient, policyId, [channel.id]));
             await activatePolicy(sharedAdminClient, policyId);
             const jobId3 = await runSyncJob(systemConsolePage.page);
             await waitForLatestSyncJob(systemConsolePage.page, 15, jobId3);
@@ -372,6 +410,17 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
  * the single sync-job cycle completes.
  */
 test.describe('ABAC Policies - Advanced Policies', () => {
+    // Fixtures this test created, torn down afterwards; see the note in the
+    // MM-T5786 afterAll for why leaked fields are not a local problem.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('MM-T5787 Test policy with complex rules in Advanced Mode', async ({pw}) => {
         test.setTimeout(120000);
 
@@ -398,6 +447,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             },
         ]);
         await assertAccessControlAutocompleteContains(adminClient, [deptFieldName, locationFieldName]);
+        cleanups.push(() => deleteCustomProfileAttributes(adminClient, attributeFieldsMap));
 
         const engineerUser = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: deptFieldName, value: 'Engineering', type: 'text'},
@@ -455,6 +505,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             .toBe(true);
         const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
         expect(policyId, 'policy row should expose id').toBeTruthy();
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId!, [channel.id]));
         await activatePolicy(adminClient, policyId!);
         const jobId4 = await runSyncJob(systemConsolePage.page);
         await waitForLatestSyncJob(systemConsolePage.page, 5, jobId4);

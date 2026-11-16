@@ -1,0 +1,16 @@
+.apps-form-action-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    &__description {
+        min-width: 0;
+        flex: 1;
+        overflow-wrap: anywhere;
+    }
+
+    > button {
+        flex-shrink: 0;
+    }
+}

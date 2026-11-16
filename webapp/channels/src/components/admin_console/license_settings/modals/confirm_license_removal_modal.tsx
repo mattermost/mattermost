@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button} from '@mattermost/shared/components/button';
 
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';

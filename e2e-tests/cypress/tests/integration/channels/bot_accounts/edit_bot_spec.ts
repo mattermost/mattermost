@@ -71,7 +71,7 @@ describe('Edit bot', () => {
 
     function createBot(userName: string, teamName: string) {
         // # Go to bot integrations page
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('a.integration-option[href$="/bots"]').click();
         cy.get('#addBotAccount').click();
 
@@ -82,7 +82,7 @@ describe('Edit bot', () => {
         // * Verify confirmation page
         cy.url().
             should('include', `/${teamName}/integrations/confirm`).
-            should('match', /token=[a-zA-Z0-9]{26}/);
+            should('not.match', /[?&]token=/);
 
         // * Verify confirmation form/token
         cy.get('div.backstage-form').

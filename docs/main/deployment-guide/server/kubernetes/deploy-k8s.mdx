@@ -15,7 +15,7 @@ Before you begin, ensure you have the following:
 - A functioning Kubernetes cluster (see the [Kubernetes setup guide](https://kubernetes.io/docs/setup/)). Your cluster should be running a [supported Kubernetes version](https://kubernetes.io/releases/).
 - The <code>kubectl</code> command-line tool installed on your local machine (see the [kubectl installation guide](https://kubernetes.io/docs/reference/kubectl/)).
 - A fundamental understanding of Kubernetes concepts, such as deployments, pods, and applying manifests.
-- Sufficient Kubernetes resources allocated based on your expected user load. Consult the [scaling for Enterprise](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#available-reference-architectures) documentation for resource requirements at different scales.
+- Sufficient Kubernetes resources allocated based on your expected user load. Consult the [scaling for Enterprise](/deployment-guide/scale/scaling-for-enterprise#available-reference-architectures) documentation for resource requirements at different scales.
 
 ## Installation steps
 
@@ -66,7 +66,7 @@ The Mattermost Kubernetes Operator can be installed using Helm.
 <Note>
 
 - A Mattermost Enterprise license is required for multi-server deployments.
-- For single-server deployments without an Enterprise license, add `Replicas: 1` to the `spec` section in step 2 below. See the [high availability documentation](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) for more on highly-available deployments.
+- For single-server deployments without an Enterprise license, add `Replicas: 1` to the `spec` section in step 2 below. See the [high availability documentation](/deployment-guide/server/high-availability-cluster-based-deployment) for more on highly-available deployments.
 
 </Note>
 
@@ -297,7 +297,7 @@ This command can be used to review the Mattermost Operator or Mattermost server 
 - While using managed cloud services is generally simpler to maintain and our recommended approach for production deployments, using self-managed S3-compatible storage services and CloudNative PG for PostgreSQL are also valid options if you have the expertise to manage them.
 - If you choose to use self-managed components, you'll need to adapt the instructions accordingly, pointing to your internal services instead.
 - To customize your production deployment, refer to the [configuration settings documentation](/administration-guide/configure/configuration-settings).
-- If you encounter issues during deployment, consult the [deployment troubleshooting guide](/deployment-guide/deployment-troubleshooting).
+- If you encounter issues during deployment, consult the [deployment troubleshooting guide](/deployment-guide/server/troubleshooting).
 
 </Note>
 

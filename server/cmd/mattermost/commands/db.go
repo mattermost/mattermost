@@ -110,7 +110,7 @@ func initDbCmdF(command *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "error loading custom configuration defaults")
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
+	configStore, err := newCommandConfigStore(dsn, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -167,7 +167,7 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 	savePlan, _ := command.Flags().GetBool("save-plan")
 	dryRun, _ := command.Flags().GetBool("dry-run")
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	cfgStore, err := newCommandConfigStore(cfgDSN, true, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -237,7 +237,7 @@ func downgradeCmdF(command *cobra.Command, args []string) error {
 	defer logger.Shutdown()
 
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
-	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	cfgStore, err := newCommandConfigStore(cfgDSN, true, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}

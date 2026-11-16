@@ -56,7 +56,7 @@ export default class MarketplaceModal {
         }
 
         await installButton.click();
-        await expect(this.pluginRow(pluginId).getByRole('button', {name: 'Configure'})).toBeVisible({
+        await expect(this.pluginRow(pluginId).getByRole('link', {name: 'Configure'})).toBeVisible({
             timeout: duration.one_min,
         });
 
@@ -67,6 +67,6 @@ export default class MarketplaceModal {
      * Clicks "Configure" for the given plugin, which navigates to its System Console settings page.
      */
     async clickConfigure(pluginId: string) {
-        await this.pluginRow(pluginId).getByRole('button', {name: 'Configure'}).click();
+        await this.pluginRow(pluginId).getByRole('link', {name: 'Configure'}).click();
     }
 }

@@ -40,7 +40,7 @@ describe('Incoming webhook', () => {
         cy.visit(`${testTeam.name}/channels/town-square`);
         cy.wait('@channels');
         cy.wait('@networkCalls');
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Verify that it redirects to integrations URL. Then, click "Incoming Webhooks"
         cy.url().should('include', `${testTeam.name}/integrations`);

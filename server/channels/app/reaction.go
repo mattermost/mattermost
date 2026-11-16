@@ -126,34 +126,6 @@ func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppE
 	return reactions, nil
 }
 
-func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError) {
-	reactions := make(map[string][]*model.Reaction)
-
-	allReactions, err := a.Srv().Store().Reaction().BulkGetForPosts(postIDs)
-	if err != nil {
-		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	for _, reaction := range allReactions {
-		reactionsForPost := reactions[reaction.PostId]
-		reactionsForPost = append(reactionsForPost, reaction)
-
-		reactions[reaction.PostId] = reactionsForPost
-	}
-
-	reactions = populateEmptyReactions(postIDs, reactions)
-	return reactions, nil
-}
-
-func populateEmptyReactions(postIDs []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
-	for _, postID := range postIDs {
-		if _, present := reactions[postID]; !present {
-			reactions[postID] = []*model.Reaction{}
-		}
-	}
-	return reactions
-}
-
 func (a *App) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError {
 	reaction.EmojiName = strings.ToLower(reaction.EmojiName)
 	post, err := a.GetSinglePost(rctx, reaction.PostId, false)

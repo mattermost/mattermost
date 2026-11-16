@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {ChannelAttributeLabels} from './channel_attributes';
+
 export default class ChannelsHeader {
     readonly container: Locator;
 
@@ -11,6 +13,9 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    // The attribute chip strip. Header and info designations share it.
+    readonly attributes: ChannelAttributeLabels;
+    readonly addChannelHeaderButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +24,11 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.attributes = new ChannelAttributeLabels(
+            container.getByTestId('channelAttributeLabels-info-header'),
+            'info-header',
+        );
+        this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 
     async toBeVisible() {
@@ -48,5 +58,26 @@ export default class ChannelsHeader {
     async openPinnedMessages() {
         await expect(this.pinnedMessagesButton).toBeVisible();
         await this.pinnedMessagesButton.click();
+    }
+
+    async openAddChannelHeader() {
+        await this.container.hover();
+        await this.addChannelHeaderButton.click();
+    }
+
+    getHeaderText(text: string) {
+        return this.container.getByText(text, {exact: false});
+    }
+
+    getHeaderLink(name: string) {
+        return this.container.getByRole('link', {name});
+    }
+
+    getHeaderMention(name: string) {
+        return this.container.getByRole('button', {name});
+    }
+
+    getHeaderTooltip(text: string) {
+        return this.container.page().getByRole('tooltip').filter({hasText: text});
     }
 }

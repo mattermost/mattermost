@@ -4,6 +4,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
 import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
@@ -24,7 +25,7 @@ type MarketplaceListProps = {
         onClick: () => void;
     };
     filter?: string;
-    listRef?: React.RefObject<HTMLDivElement>;
+    listRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const MarketplaceList = ({
@@ -95,13 +96,13 @@ const MarketplaceList = ({
                 {getNoResultsMessage()}
             </div>
             {noResultsAction && (
-                <button
+                <Button
                     className='no_plugins__action'
                     onClick={noResultsAction.onClick}
                     data-testid='Install-Plugins-button'
                 >
                     {noResultsAction.label}
-                </button>
+                </Button>
             )}
         </div>
     ) : (

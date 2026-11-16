@@ -3,59 +3,45 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
-    test.setTimeout(120000);
-    // 1. Setup
-    const {adminClient, user, team} = await pw.initSetup();
-    await setupDemoPlugin(adminClient, pw);
+    // # Setup
+    const {user, team} = await pw.initSetup();
+    await pw.ensureDemoPlugin();
 
-    // 2. Login
+    // # Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // 3. Navigate to Town Square
+    // # Navigate to Town Square
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // Re-apply setupDemoPlugin: concurrent initSetup() resets PluginSettings.Plugins = {}
-    await setupDemoPlugin(adminClient, pw);
-
-    // 4. Send /interactive command (retry once if plugin not yet ready)
+    // # Send /interactive command
     const interactivePost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Test interactive button'})
         .last();
-    for (let attempt = 0; attempt < 4; attempt++) {
-        await sendDemoSlashCommand(channelsPage.page, async () => {
-            await channelsPage.centerView.postCreate.input.fill('/interactive');
-            await channelsPage.centerView.postCreate.sendMessage();
-        });
-        try {
-            await expect(interactivePost).toBeVisible({timeout: 15000});
-            break;
-        } catch (err) {
-            if (attempt === 3) {
-                throw err;
-            }
-            await setupDemoPlugin(adminClient, pw);
-        }
-    }
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/interactive');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
 
-    // 5. Confirm post appears with 'Test interactive button' and an 'Interactive Button' button
+    // * Verify post appears with 'Test interactive button' and an 'Interactive Button' button
     await expect(interactivePost).toBeVisible();
     await expect(interactivePost.getByRole('button', {name: 'Interactive Button'})).toBeVisible();
 
-    // 6. Click the Interactive Button
+    // # Click the Interactive Button
     await interactivePost.getByRole('button', {name: 'Interactive Button'}).click();
+    const replyButton = interactivePost.getByRole('button', {name: /\d+ repl(y|ies)/});
+    await expect(replyButton).toBeVisible();
 
-    // 7. Wait for thread reply indicator and open the thread
-    await expect(interactivePost.getByRole('button', {name: /1 reply/})).toBeVisible();
-    await interactivePost.getByRole('button', {name: /1 reply/}).click();
+    // # Open the thread
+    await replyButton.click();
 
-    // 8. Confirm bot response in the thread panel
+    // * Verify bot response in the thread panel
     const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
     await expect(threadPanel).toBeVisible();
 

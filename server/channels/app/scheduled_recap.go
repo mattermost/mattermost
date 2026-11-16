@@ -74,8 +74,7 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 	if model.IsLimitEnabled(limits.MaxScheduledRecaps) {
 		savedRecap, storeErr = a.Srv().Store().ScheduledRecap().SaveIfUnderLimit(recap, limits.MaxScheduledRecaps)
 		if storeErr != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(storeErr, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](storeErr); ok {
 				return nil, model.NewAppError("CreateScheduledRecap",
 					"app.scheduled_recap.max_scheduled_reached.app_error",
 					map[string]any{"Limit": limits.MaxScheduledRecaps},
@@ -97,8 +96,7 @@ func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 func (a *App) GetScheduledRecap(rctx request.CTX, id string) (*model.ScheduledRecap, *model.AppError) {
 	recap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return nil, model.NewAppError("GetScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -124,8 +122,7 @@ func (a *App) GetScheduledRecapsForUser(rctx request.CTX, page, perPage int) ([]
 func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap) (*model.ScheduledRecap, *model.AppError) {
 	existingRecap, getErr := a.Srv().Store().ScheduledRecap().Get(recap.Id)
 	if getErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(getErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](getErr); ok {
 			return nil, model.NewAppError("UpdateScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
 		}
 		return nil, model.NewAppError("UpdateScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
@@ -233,15 +230,14 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		err        error
 	)
 	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
-		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(sr.UserId)
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(rctx, sr.UserId)
 		if dayErr != nil {
 			return nil, dayErr
 		}
 
 		savedRecap, err = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
 		if err != nil {
-			var limitErr *store.ErrLimitExceeded
-			if errors.As(err, &limitErr) {
+			if _, ok := errors.AsType[*store.ErrLimitExceeded](err); ok {
 				return nil, recapMaxRecapsReachedError("CreateRecapFromSchedule", limits.MaxRecapsPerDay)
 			}
 			return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.save_recap.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -321,8 +317,7 @@ func (a *App) PauseScheduledRecap(rctx request.CTX, id string) (*model.Scheduled
 	// Fetch and return updated recap
 	updatedRecap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return nil, model.NewAppError("PauseScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -337,8 +332,7 @@ func (a *App) ResumeScheduledRecap(rctx request.CTX, id string) (*model.Schedule
 	// Get existing recap to compute next run
 	recap, err := a.Srv().Store().ScheduledRecap().Get(id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 		return nil, model.NewAppError("ResumeScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

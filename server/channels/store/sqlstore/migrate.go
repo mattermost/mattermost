@@ -4,22 +4,24 @@
 package sqlstore
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"path"
-	"sort"
+	"slices"
 	"strconv"
 	"sync"
 
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/morph"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	"github.com/mattermost/morph/models"
 	mbindata "github.com/mattermost/morph/sources/embedded"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/db"
 )
 
 type Migrator struct {
@@ -202,8 +204,8 @@ func (m *Migrator) DowngradeMigrations(dryRun bool, versions ...string) error {
 		}
 	}
 
-	sort.Slice(migrationsToDowngrade, func(i, j int) bool {
-		return migrationsToDowngrade[i].Version > migrationsToDowngrade[j].Version
+	slices.SortFunc(migrationsToDowngrade, func(a, b *models.Migration) int {
+		return cmp.Compare(b.Version, a.Version)
 	})
 
 	if len(migrationsToDowngrade) != len(versions) {

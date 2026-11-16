@@ -20,6 +20,7 @@ import Constants from 'utils/constants';
 import {DangerText} from './controls';
 import RankBadge from './rank_badge';
 import {moveOptionByAscIndex, nextRank, sortOptionsByRankAsc} from './rank_utils';
+import {isLinkedField} from './user_properties_utils';
 
 import './user_properties_rank_values.scss';
 
@@ -48,7 +49,9 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
     const ascOptions = useMemo(() => sortOptionsByRankAsc(options), [options]);
     const sortedRanks = useMemo(() => ascOptions.map((option) => option.rank ?? 0), [ascOptions]);
 
-    const isDisabled = field.delete_at !== 0;
+    // Linked fields inherit their options from the template they link to; the
+    // server rejects an options change on them.
+    const isDisabled = field.delete_at !== 0 || isLinkedField(field);
 
     const addInputRef = useRef<HTMLInputElement>(null);
 

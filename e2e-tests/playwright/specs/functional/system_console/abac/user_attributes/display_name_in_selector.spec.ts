@@ -11,7 +11,7 @@ import {
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';
-import {getPolicyIdByName} from '../support';
+import {fillSingleConditionValue, getPolicyIdByName} from '../support';
 
 type FieldsMap = Record<string, UserPropertyField>;
 
@@ -154,10 +154,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await operatorMenu.waitFor({state: 'visible', timeout: 5000});
                 await operatorMenu.locator('li:has-text("is")').first().click();
 
-                const valueInput = page.locator('.values-editor__simple-input').first();
-                await valueInput.waitFor({state: 'visible', timeout: 10000});
-                await valueInput.fill('engineering');
-                await valueInput.press('Tab');
+                await fillSingleConditionValue(page, 'engineering');
 
                 const saveButton = page.getByRole('button', {name: 'Save'});
                 await expect(saveButton).toBeEnabled({timeout: 10000});

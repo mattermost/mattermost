@@ -3,18 +3,19 @@
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
-import classNames from 'classnames';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
-import FormattingIcon, {IconContainer} from './formatting_icon';
+import FormattingIcon from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
 import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
@@ -124,7 +125,7 @@ interface FormattingBarProps {
      * controls that enhance the message,
      * e.g: message priority picker
      */
-    additionalControls?: React.ReactNodeArray;
+    additionalControls?: readonly React.ReactNode[];
 
     /**
      * AI actions menu rendered at the far left of the formatting bar
@@ -233,12 +234,13 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
 
-    const {x, y, strategy, update, context, refs: {setReference, setFloating}} = useFloating<HTMLButtonElement>({
+    const {x, y, strategy, update, context, refs} = useFloating<HTMLButtonElement>({
         open: showHiddenControls,
         onOpenChange: setShowHiddenControls,
         placement: 'top',
         middleware: [offset({mainAxis: 4})],
     });
+    const {setReference, setFloating} = refs;
 
     const click = useClick(context);
     const {getReferenceProps: getClickReferenceProps, getFloatingProps: getClickFloatingProps} = useInteractions([
@@ -341,20 +343,20 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
                         })}
                         disabled={showHiddenControls}
                     >
-                        <IconContainer
+                        <IconButton
                             id={'HiddenControlsButton' + location}
                             ref={setReference}
-                            className={classNames({active: showHiddenControls})}
+                            size='small'
+                            active={showHiddenControls}
                             aria-label={HiddenControlsButtonAriaLabel}
-                            type='button'
+                            icon={
+                                <Icon
+                                    glyph={<DotsHorizontalIcon color='currentColor'/>}
+                                />
+                            }
                             {...getClickReferenceProps()}
                             {...getDismissReferenceProps()}
-                        >
-                            <DotsHorizontalIcon
-                                color={'currentColor'}
-                                size={18}
-                            />
-                        </IconContainer>
+                        />
                     </WithTooltip>
                 </>
             )}
@@ -363,6 +365,7 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                nodeRef={refs.floating}
                 unmountOnExit={true}
             >
                 <HiddenControlsContainer

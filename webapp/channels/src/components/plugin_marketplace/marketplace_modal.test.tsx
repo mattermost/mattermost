@@ -116,64 +116,20 @@ describe('components/marketplace/', () => {
     });
 
     test('should render default', async () => {
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             mockState,
         );
 
         expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
 
-        expect(baseElement).toMatchSnapshot();
-
         await waitForListingToLoad();
-    });
-
-    test('should render with no plugins available', async () => {
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-            mockState,
-        );
-
-        await waitForListingToLoad();
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should render with plugins available', async () => {
-        mockState.views.marketplace.plugins = [
-            samplePlugin,
-        ];
-
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-            mockState,
-        );
-
-        await waitForListingToLoad();
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should render with plugins installed', async () => {
-        mockState.views.marketplace.plugins = [
-            samplePlugin,
-            sampleInstalledPlugin,
-        ];
-
-        const {baseElement} = renderWithContext(
-            <MarketplaceModal/>,
-            mockState,
-        );
-
-        await waitForListingToLoad();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should render with error banner', async () => {
         mockFetchListingError();
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             mockState,
         );
@@ -181,8 +137,6 @@ describe('components/marketplace/', () => {
         await waitForListingToLoad();
 
         expect(screen.getByText('System Console', {exact: false})).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('hides search and shows web marketplace banner', async () => {
@@ -200,14 +154,12 @@ describe('components/marketplace/', () => {
 
         expect(baseElement.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
         expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test("doesn't show web marketplace banner for Cloud", async () => {
         mockState.entities.general.license.Cloud = 'true';
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             mockState,
         );
@@ -215,7 +167,5 @@ describe('components/marketplace/', () => {
         await waitForListingToLoad();
 
         expect(document.querySelector('.WebMarketplaceBanner')).not.toBeInTheDocument();
-
-        expect(baseElement).toMatchSnapshot();
     });
 });

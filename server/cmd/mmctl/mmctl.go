@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	_ "github.com/golang/mock/mockgen/model"
+	_ "go.uber.org/mock/mockgen/model"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/commands"
 )

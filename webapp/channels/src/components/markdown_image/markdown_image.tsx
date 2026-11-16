@@ -42,6 +42,8 @@ export type Props = {
 type State = {
     loadFailed: boolean;
     loaded: boolean;
+    loadedHeight: number;
+    loadedSrc: string;
 };
 
 export default class MarkdownImage extends PureComponent<Props, State> {
@@ -55,6 +57,8 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         this.state = {
             loadFailed: false,
             loaded: false,
+            loadedHeight: 0,
+            loadedSrc: '',
         };
     }
 
@@ -65,21 +69,25 @@ export default class MarkdownImage extends PureComponent<Props, State> {
             width,
         } = this.props;
 
-        if (!imageMetadata) {
-            return 0;
+        if (height && height !== 'auto') {
+            return parseInt(height, 10);
         }
 
-        if (!height) {
-            return imageMetadata.height;
-        }
-
-        if (height === 'auto') {
+        if (height === 'auto' && imageMetadata?.height && imageMetadata?.width) {
             const widthNumber = parseInt(width, 10);
 
             return (imageMetadata.height / imageMetadata.width) * widthNumber;
         }
 
-        return parseInt(height, 10);
+        // Fall back to the natural height once the image loads. Inline images from the GIF
+        // picker often arrive over the websocket before the server has their dimensions, so
+        // without this the collapse control never mounts and the image ignores the user's
+        // collapsed-preview preference until the channel is reloaded. The loaded height is
+        // only trusted while it still belongs to the current src, otherwise a swapped-in
+        // dimensionless image would inherit the previous image's height until it loads.
+        const loadedHeight = this.state.loadedSrc === this.props.src ? this.state.loadedHeight : 0;
+
+        return imageMetadata?.height || loadedHeight;
     };
 
     getFileExtensionFromUrl = (url: string) => {
@@ -132,6 +140,8 @@ export default class MarkdownImage extends PureComponent<Props, State> {
     handleImageLoaded = ({height, width}: {height: number; width: number}) => {
         this.setState({
             loaded: true,
+            loadedHeight: height,
+            loadedSrc: this.props.src,
         }, () => { // Call onImageLoaded prop only after state has already been set
             if (this.props.onImageLoaded) {
                 this.props.onImageLoaded({height, width});

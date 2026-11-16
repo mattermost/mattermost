@@ -1,0 +1,40 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributePluginSource {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.AttributePluginSource__managedBy {
+    display: flex;
+    min-height: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    gap: 8px;
+    line-height: 20px;
+}
+
+.AttributePluginSource__link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--link-color);
+    font-size: 14px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 20px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.AttributePluginSource__helperText {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    line-height: 16px;
+}

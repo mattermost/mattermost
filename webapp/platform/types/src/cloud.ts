@@ -7,7 +7,6 @@ export type CloudState = {
     subscription?: Subscription;
     products?: Record<string, Product>;
     customer?: CloudCustomer;
-    invoices?: Record<string, Invoice>;
     limits: {
         limitsLoaded: boolean;
         limits: Limits;
@@ -16,7 +15,6 @@ export type CloudState = {
         subscription?: true;
         products?: true;
         customer?: true;
-        invoices?: true;
         limits?: true;
         trueUpReview?: true;
     };

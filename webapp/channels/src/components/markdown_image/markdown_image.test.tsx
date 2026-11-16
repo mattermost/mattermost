@@ -31,33 +31,6 @@ describe('components/MarkdownImage', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps, src: '/images/logo.png'};
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for broken link', () => {
-        const props = {
-            ...baseProps,
-            imageMetadata: {
-                format: 'png',
-                height: 10,
-                width: 10,
-                frameCount: 0,
-            },
-            src: 'brokenLink',
-        };
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle load failure properly', () => {
         const props = {
             ...baseProps,
@@ -114,13 +87,12 @@ describe('components/MarkdownImage', () => {
 
     test('should render a link if the source is unsafe', () => {
         const props = {...baseProps, src: ''};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
         const img = screen.getByRole('img', {hidden: true});
         expect(img).toHaveAttribute('alt', props.alt);
         expect(img).toHaveClass('broken-image');
-        expect(container).toMatchSnapshot();
     });
 
     test('should handle not loaded state properly', () => {
@@ -169,13 +141,13 @@ describe('components/MarkdownImage', () => {
         expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 1041});
     });
 
-    it('should match snapshot for SizeAwareImage dimensions', () => {
+    it('should render for SizeAwareImage dimensions', () => {
         const props = {
             ...baseProps,
             imageMetadata: {format: 'jpg', frameCount: 0, width: 100, height: 90},
             src: 'path/image',
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -187,12 +159,12 @@ describe('components/MarkdownImage', () => {
 
         fireEvent.load(img!);
 
-        expect(container).toMatchSnapshot();
+        expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 100});
     });
 
     test('should render an image with preview modal if the source is safe', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -208,12 +180,11 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveClass('markdown-inline-img--hover');
         expect(img).toHaveClass('cursor--pointer');
         expect(img).toHaveClass('a11y--active');
-        expect(container).toMatchSnapshot();
     });
 
     test('should render an image with no preview if the source is safe and the image is a link', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', imageIsLink: true};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -228,7 +199,6 @@ describe('components/MarkdownImage', () => {
         // When imageIsLink, should not have cursor--pointer
         expect(img).toHaveClass('markdown-inline-img--hover');
         expect(img).not.toHaveClass('cursor--pointer');
-        expect(container).toMatchSnapshot();
     });
 
     test('should call openModal when showModal is called', async () => {
@@ -325,35 +295,7 @@ describe('components/MarkdownImage', () => {
 
         fireEvent.load(img!);
 
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', () => {
-        const props = {
-            ...baseProps,
-            alt: '',
-            title: 'test title',
-            className: 'markdown-inline-img',
-            postId: 'post_id',
-            src: 'https://example.com/image.png',
-            imageIsLink: false,
-            height: '250',
-            width: '50',
-        };
-
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
-
-        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
-        Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
-        Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
-
-        fireEvent.load(img!);
-
-        expect(container).toMatchSnapshot();
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
     });
 
     test('should render a alt text if the link is unsafe', () => {
@@ -362,5 +304,80 @@ describe('components/MarkdownImage', () => {
             <MarkdownImage {...props}/>,
         );
         expect(screen.getByText(props.alt)).toBeInTheDocument();
+    });
+
+    test('should mount the expand control once a dimensionless image loads tall enough', () => {
+        // GIF picker posts are inline Markdown images without dimensions, and a post arriving
+        // live over the websocket often has no server image metadata yet, so the expand control
+        // must be driven by the height reported when the image loads.
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/abc/giphy.gif'};
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+        );
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+
+        const img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
+    });
+
+    test('should not reuse a previous dimensionless image height after the source changes', () => {
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/tall/giphy.gif'};
+        const {container, rerender} = renderWithContext(
+            <MarkdownImage {...props}/>,
+        );
+
+        let img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
+
+        // Swapping to another dimensionless image must not carry over the previous image's height
+        const nextProps = {...props, src: 'https://media.giphy.com/media/short/giphy.gif'};
+        rerender(<MarkdownImage {...nextProps}/>);
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+
+        // Once the replacement image reports its own (short) height, it stays uncollapsed
+        img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 40, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 40, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+    });
+
+    test('should collapse a dimensionless image on load when previews are collapsed', () => {
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/abc/giphy.gif'};
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--collapse_previews': {
+                                category: 'display_settings',
+                                name: 'collapse_previews',
+                                value: 'true',
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        const img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand__expand-button')).toBeInTheDocument();
+        expect(container.querySelector('.markdown-image-expand--expanded')).not.toBeInTheDocument();
     });
 });

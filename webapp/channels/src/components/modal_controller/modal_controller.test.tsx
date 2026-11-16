@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
@@ -48,7 +49,7 @@ class TestModal extends React.PureComponent<TestModalProps, TestModalState> {
 describe('components/ModalController', () => {
     const modalId = 'test_modal';
 
-    test('component should match snapshot without any modals', () => {
+    test('component should render without any modals', () => {
         const state = {
             views: {
                 modals: {
@@ -62,8 +63,6 @@ describe('components/ModalController', () => {
             state,
             {useMockedStore: true},
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.childElementCount).toBe(0);
         expect(document.getElementsByClassName('modal-dialog').length).toBeFalsy();
     });
@@ -117,8 +116,7 @@ describe('components/ModalController', () => {
         expect(document.getElementsByClassName('modal-dialog').length).toBe(1);
 
         // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
-        const closeButton = document.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for the modal's exit transition to complete and fire onExited
         await act(async () => {
@@ -161,8 +159,7 @@ describe('components/ModalController', () => {
         expect(onExited).not.toHaveBeenCalled();
 
         // Click the close button to trigger modal close flow (onHide -> setState show:false -> onExited)
-        const closeButton = document.querySelector('.close') as HTMLElement;
-        await userEvent.click(closeButton);
+        await userEvent.click(screen.getByRole('button', {name: 'Close'}));
 
         // Wait for the modal's exit transition to complete and fire onExited
         await act(async () => {

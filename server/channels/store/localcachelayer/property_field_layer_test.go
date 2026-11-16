@@ -75,6 +75,27 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
 
+	t.Run("MutateOptions invalidates the group cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
+
+		// This wrapper invalidates the group on any call the store below it
+		// accepts, regardless of what changed -- the empty lists keep the test
+		// to that one behaviour.
+		err = cachedStore.PropertyField().MutateOptions(groupID, fakeField.ID, 0, nil, nil, nil)
+		require.NoError(t, err)
+
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
+		require.NoError(t, err)
+		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
+	})
+
 	t.Run("Delete invalidates the group cache", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()

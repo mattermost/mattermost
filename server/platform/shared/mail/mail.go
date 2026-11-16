@@ -116,31 +116,37 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 }
 
 func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
-	var conn net.Conn
-	var err error
+	return connectToSMTPServer(context.Background(), config)
+}
 
+// connectToSMTPServer dials the SMTP server, completing the TLS handshake for TLS connections.
+// ServerTimeout bounds the dial and ctx can cancel it.
+func connectToSMTPServer(ctx context.Context, config *SMTPConfig) (net.Conn, error) {
 	smtpAddress := config.Server + ":" + config.Port
 	dialer := &net.Dialer{
 		Timeout: time.Duration(config.ServerTimeout) * time.Second,
 	}
 
 	if config.ConnectionSecurity == TLS {
-		tlsconfig := &tls.Config{
-			InsecureSkipVerify: config.SkipServerCertificateVerification,
-			ServerName:         config.ServerName,
+		tlsDialer := &tls.Dialer{
+			NetDialer: dialer,
+			Config: &tls.Config{
+				InsecureSkipVerify: config.SkipServerCertificateVerification,
+				ServerName:         config.ServerName,
+			},
 		}
 
-		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
+		conn, err := tlsDialer.DialContext(ctx, "tcp", smtpAddress)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the SMTP server through TLS")
 		}
-	} else {
-		conn, err = dialer.Dial("tcp", smtpAddress)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
-		}
+		return conn, nil
 	}
 
+	conn, err := dialer.DialContext(ctx, "tcp", smtpAddress)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
+	}
 	return conn, nil
 }
 
@@ -148,29 +154,16 @@ func ConnectToSMTPServer(config *SMTPConfig) (net.Conn, error) {
 	return ConnectToSMTPServerAdvanced(config)
 }
 
+// NewSMTPClientAdvanced reads the server greeting and runs Hello, StartTLS and Auth. If ctx ends while it
+// waits for the greeting, it closes conn and returns ctx's error. The later steps are not bounded by ctx.
 func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smtp.Client, error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	var c *smtp.Client
-	ec := make(chan error)
-	go func() {
-		var err error
-		c, err = smtp.NewClient(conn, config.ServerName+":"+config.Port)
-		if err != nil {
-			ec <- err
-			return
-		}
-		cancel()
-	}()
-
-	select {
-	case <-ctx.Done():
-		err := ctx.Err()
-		if err != nil && err.Error() != "context canceled" {
-			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
-		}
-	case err := <-ec:
+	// smtp.NewClient takes no context; closing conn is the only way to unblock its read of the greeting.
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	c, err := smtp.NewClient(conn, config.ServerName+":"+config.Port)
+	if !stop() {
+		return nil, errors.Wrap(ctx.Err(), "unable to connect to the SMTP server")
+	}
+	if err != nil {
 		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 	}
 
@@ -205,22 +198,35 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smt
 	)
 }
 
-func TestConnection(config *SMTPConfig) error {
-	conn, err := ConnectToSMTPServer(config)
+// TestConnection connects to the SMTP server and runs the handshake up to authentication. ServerTimeout
+// bounds the whole test, and ctx can cancel it.
+func TestConnection(ctx context.Context, config *SMTPConfig) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(config.ServerTimeout)*time.Second)
+	defer cancel()
+
+	conn, err := connectToSMTPServer(ctx, config)
 	if err != nil {
 		return errors.Wrap(err, "unable to connect")
 	}
 	defer conn.Close()
 
-	sec := config.ServerTimeout
-
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
-	defer cancel()
+	// net/smtp's Hello, StartTLS and Auth take no context; closing the connection is the only way to unblock them.
+	stop := context.AfterFunc(ctx, func() { conn.Close() })
+	defer stop()
 
 	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
+		// Closing the connection surfaces as a network error; report the deadline or cancellation behind it.
+		if ctxErr := ctx.Err(); ctxErr != nil && !errors.Is(err, ctxErr) {
+			return errors.Wrapf(ctxErr, "unable to connect: %v", err)
+		}
 		return errors.Wrap(err, "unable to connect")
+	}
+	// NewSMTPClient ignores a failed StartTLS, so a handshake that ctx cut short can still return a client.
+	// TODO: MM-71213 remove this check once NewSMTPClient returns the StartTLS error; the error branch above
+	// then reports the deadline.
+	if !stop() {
+		return errors.Wrap(ctx.Err(), "unable to connect")
 	}
 	c.Close()
 	c.Quit()

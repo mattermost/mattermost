@@ -10,7 +10,9 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {joinChannel} from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
+import {Permissions} from 'mattermost-redux/constants';
 import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/channels';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
@@ -159,14 +161,18 @@ export async function sendGuestInviteForUser(
     teamId: string,
     channels: Channel[],
     members: RelationOneToOne<Channel, Record<string, ChannelMembership>>,
+    canAddMembers: boolean,
 ): Promise<({sent: InviteResult} | {notSent: InviteResult})> {
     if (!isGuest(user.roles)) {
         return {
             notSent: {
                 user,
-                reason: defineMessage({
+                reason: canAddMembers ? defineMessage({
                     id: 'invite.members.user-is-not-guest',
                     defaultMessage: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                }) : defineMessage({
+                    id: 'invite.members.user-is-not-guest-no-permission',
+                    defaultMessage: 'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
                 }),
             },
         };
@@ -254,7 +260,8 @@ export function sendGuestsInvites(
         const sent = [];
         const notSent = [];
         const members = getChannelMembersInChannels(state);
-        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members)));
+        const canAddMembers = haveITeamPermission(state, teamId, Permissions.ADD_USER_TO_TEAM);
+        const results = await Promise.all(users.map((user) => sendGuestInviteForUser(dispatch, user, teamId, channels, members, canAddMembers)));
 
         for (const result of results) {
             if ('sent' in result && result.sent) {

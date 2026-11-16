@@ -23,7 +23,7 @@ type FocusTrapOptions = {
  */
 export function useFocusTrap(
     isActive: boolean,
-    containerRef: React.RefObject<HTMLElement>,
+    containerRef: React.RefObject<HTMLElement | null>,
     options: FocusTrapOptions = {initialFocus: false, restoreFocus: false},
 ): void {
     const previousFocusRef = useRef<HTMLElement | null>(null);

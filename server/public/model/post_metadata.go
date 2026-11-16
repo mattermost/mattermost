@@ -44,6 +44,18 @@ type PostMetadata struct {
 
 	ExpireAt   int64    `json:"expire_at,omitempty"`
 	Recipients []string `json:"recipients,omitempty"`
+
+	// PropertyValues holds the post's property values for the group requested via
+	// propertyGroup. Transient: populated on read, never persisted on the post.
+	PropertyValues []*PropertyValue `json:"property_values,omitempty"`
+
+	// PropertyValuesUnavailable is nil when hydration was not requested for this post, false
+	// when it was requested and the values loaded, and true when the lookup failed. True
+	// distinguishes "this post has no values" from "the values could not be loaded", so a
+	// client never renders a post as unmarked when the marking is merely missing. A response
+	// without the flag says nothing about the values, so a client should only change what it
+	// stored for this flag on a response that carries it.
+	PropertyValuesUnavailable *bool `json:"property_values_unavailable,omitempty"`
 }
 
 // PostTranslation represents a translation of a post in a specific language
@@ -74,6 +86,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"acknowledgements":    p.Acknowledgements,
 		"translations":        p.Translations,
 		"redacted_file_count": p.RedactedFileCount,
+		"property_values":     p.PropertyValues,
 	}
 }
 
@@ -108,6 +121,17 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
 	copy(acknowledgementsCopy, p.Acknowledgements)
 
+	var propertyValuesCopy []*PropertyValue
+	if p.PropertyValues != nil {
+		propertyValuesCopy = make([]*PropertyValue, len(p.PropertyValues))
+		copy(propertyValuesCopy, p.PropertyValues)
+	}
+
+	var propertyValuesUnavailableCopy *bool
+	if p.PropertyValuesUnavailable != nil {
+		propertyValuesUnavailableCopy = NewPointer(*p.PropertyValuesUnavailable)
+	}
+
 	translationsCopy := map[string]*PostTranslation{}
 	maps.Copy(translationsCopy, p.Translations)
 
@@ -123,14 +147,16 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	}
 
 	return &PostMetadata{
-		Embeds:            embedsCopy,
-		Emojis:            emojisCopy,
-		Files:             filesCopy,
-		Images:            imagesCopy,
-		Reactions:         reactionsCopy,
-		Priority:          postPriorityCopy,
-		Acknowledgements:  acknowledgementsCopy,
-		Translations:      translationsCopy,
-		RedactedFileCount: p.RedactedFileCount,
+		Embeds:                    embedsCopy,
+		Emojis:                    emojisCopy,
+		Files:                     filesCopy,
+		Images:                    imagesCopy,
+		Reactions:                 reactionsCopy,
+		Priority:                  postPriorityCopy,
+		Acknowledgements:          acknowledgementsCopy,
+		Translations:              translationsCopy,
+		RedactedFileCount:         p.RedactedFileCount,
+		PropertyValues:            propertyValuesCopy,
+		PropertyValuesUnavailable: propertyValuesUnavailableCopy,
 	}
 }

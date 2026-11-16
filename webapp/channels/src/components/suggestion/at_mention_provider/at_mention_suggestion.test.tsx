@@ -46,8 +46,6 @@ describe('at mention suggestion', () => {
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         const ellipsis = container.querySelector('.suggestion-list__ellipsis');
         expect(ellipsis?.textContent).toContain('a b');
         expect(ellipsis?.textContent).not.toContain('a b (c)');
@@ -60,8 +58,6 @@ describe('at mention suggestion', () => {
                 item={userid2}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         const ellipsis = container.querySelector('.suggestion-list__ellipsis');
         expect(ellipsis?.textContent).toContain('a b (c)');
@@ -136,5 +132,33 @@ describe('at mention suggestion', () => {
                 expect(suggestion).toHaveAccessibleDescription(testCase.expectedDescription);
             });
         }
+    });
+
+    test('should render ImportedInactiveTag for imported inactive user', () => {
+        const item = {
+            ...TestHelper.getUserMock({username: 'inactive-user'}),
+            isCurrentUser: false,
+            props: {importedInactive: 'true'},
+        } as Item;
+
+        renderWithContext(
+            <AtMentionSuggestion
+                {...baseProps}
+                item={item}
+            />,
+        );
+
+        expect(screen.getByText('IMPORTED - INACTIVE')).toBeInTheDocument();
+    });
+
+    test('should not render ImportedInactiveTag for regular user', () => {
+        renderWithContext(
+            <AtMentionSuggestion
+                {...baseProps}
+                item={userid2}
+            />,
+        );
+
+        expect(screen.queryByText('IMPORTED - INACTIVE')).not.toBeInTheDocument();
     });
 });

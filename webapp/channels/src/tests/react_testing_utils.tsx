@@ -42,7 +42,7 @@ export type FullContextOptions = {
 };
 
 export const renderWithContext = (
-    component: React.ReactElement,
+    component: React.ReactElement<any>,
     initialState: DeepPartial<GlobalState> = {},
     partialOptions?: FullContextOptions,
 ) => {
@@ -73,7 +73,7 @@ export const renderWithContext = (
 
     return {
         ...results,
-        rerender: (newComponent: React.ReactElement) => {
+        rerender: (newComponent: React.ReactElement<any>) => {
             renderState.component = newComponent;
 
             results.rerender(renderState.component);
@@ -221,13 +221,4 @@ export function runPostRenderAct(microtaskRounds: number = 1) {
         };
         await drainMicrotasks(rounds);
     });
-}
-
-/**
- * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
- *
- * This should only be used in those cases.
- */
-export function waitForEnzymeSnapshot() {
-    return act(async () => {});
 }

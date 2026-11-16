@@ -3,6 +3,6 @@
 
 import ThemeProvider from './theme_provider';
 
-export {useUserTheme, WithUserTheme} from './theme_context';
+export {useAppBodyClass, useUserTheme, WithUserTheme} from './theme_context';
 
 export default ThemeProvider;

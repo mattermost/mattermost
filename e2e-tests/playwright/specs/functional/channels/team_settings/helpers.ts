@@ -165,7 +165,7 @@ export async function setUserAttribute(adminClient: Client4, userId: string, fie
  *
  * Why this exists: ABAC queries (validateExpressionAgainstRequester,
  * calculateMembershipChanges) read from a Postgres materialized view
- * (`AttributeView`). The enterprise access-control service refreshes that view
+ * (`UserAttributeView`). The enterprise access-control service refreshes that view
  * at most once every 30 seconds — so freshly-written CPA values are not visible
  * until the next refresh tick. A test that writes a brand-new CPA value and
  * then immediately clicks "Save" on a rule referencing that value will hit
@@ -206,7 +206,7 @@ export async function waitForAttributeViewToInclude(
     }
     const missing = expectedUserIds.filter((id) => !lastSeen.has(id));
     throw new Error(
-        `AttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
+        `UserAttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
     );
 }
 
@@ -240,7 +240,7 @@ export async function waitForAttributeViewToExclude(
     }
     const stillPresent = excludedUserIds.filter((id) => lastSeen.has(id));
     throw new Error(
-        `AttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
+        `UserAttributeView still includes users [${stillPresent.join(', ')}] for expression "${expression}" after ${timeoutMs}ms`,
     );
 }
 
@@ -328,16 +328,18 @@ export async function enableTeamMembershipABACConfig(client: Client4) {
     } as any);
 }
 
-export async function createTeamMembershipPolicy(client: Client4, teamId: string, expression: string, active = false) {
+export async function createTeamMembershipPolicy(client: Client4, teamId: string, expression: string, autoAdd = false) {
     return (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
         method: 'put',
         body: JSON.stringify({
             id: teamId,
             name: `team-policy-${teamId}`,
             type: 'team',
-            active,
             revision: 0,
-            rules: [{expression, actions: ['membership']}],
+
+            // Auto-add lives on the membership rule as a mode; the policy-level
+            // `active` field no longer drives the sync job's add pass.
+            rules: [{expression, actions: ['membership'], metadata: {auto_add: autoAdd ? 'always' : ''}}],
             imports: [],
         }),
     });
@@ -357,6 +359,19 @@ export async function assignTeamToParentPolicy(client: Client4, policyId: string
 
 export async function getTeamAccessControlPolicy(client: Client4, teamId: string) {
     return (client as any).doFetch(`${client.getBaseRoute()}/teams/${teamId}/access_control/policy`, {method: 'GET'});
+}
+
+/**
+ * Reads the auto-add mode off the team child policy's membership rule, which is
+ * where the setting lives. Returns undefined when auto-add is off, since the key
+ * is absent rather than empty once stored.
+ */
+export async function getTeamAutoAddMode(client: Client4, teamId: string): Promise<string | undefined> {
+    const response: any = await getTeamAccessControlPolicy(client, teamId);
+    const membershipRule = response?.policy?.rules?.find(
+        (rule: any) => rule.actions?.includes('membership') && !rule.name,
+    );
+    return membershipRule?.metadata?.auto_add;
 }
 
 export async function createPublicTeam(client: Client4, suffix: string) {

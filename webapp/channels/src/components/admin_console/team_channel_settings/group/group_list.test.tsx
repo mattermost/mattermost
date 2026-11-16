@@ -5,13 +5,13 @@ import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupList from './group_list';
 
 describe('admin_console/team_channel_settings/group/GroupList', () => {
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const testGroups: Group[] = [TestHelper.getGroupMock({
             id: '123',
             display_name: 'DN',
@@ -22,7 +22,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(testGroups),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <GroupList
                 data={testGroups}
                 groups={testGroups}
@@ -38,14 +38,11 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
-    test('should match snapshot with paging', async () => {
+    test('should render with paging', async () => {
         const testGroups: Group[] = [];
         for (let i = 0; i < 30; i++) {
             testGroups.push(TestHelper.getGroupMock({
@@ -58,7 +55,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(Promise.resolve(testGroups)),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <GroupList
                 data={testGroups}
                 groups={testGroups}
@@ -74,10 +71,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN0');
+        expect(actions.getData).toHaveBeenCalled();
     });
 });

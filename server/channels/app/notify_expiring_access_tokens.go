@@ -27,24 +27,26 @@ var expiringAccessTokenThresholds = []int{1, 3, 7}
 // are approaching expiry, on a fixed 7 / 3 / 1 day cascade. It is invoked
 // hourly by the notify_expiring_access_tokens job.
 //
-// Bot tokens and tokens owned by deactivated users are excluded by the store
-// query. For each remaining token this computes the current warning bucket,
-// sends a single system-bot DM, and records the per-token LastNotifiedAt marker
-// so the same (or a less urgent) warning is never re-sent. Because only
+// Plugin-owned bot tokens and tokens without an active human recipient are
+// excluded by the store query. User-owned bot tokens notify the bot owner. For
+// each remaining token this computes the current warning bucket, sends a single
+// system-bot DM, and records the per-token LastNotifiedAt marker so the same
+// (or a less urgent) warning is never re-sent. Because only
 // the most urgent applicable bucket is ever sent, a token that first becomes
 // visible already inside the window (e.g. created with a short lifetime, or owned
 // by a just-reactivated user) gets a single warning rather than a catch-up burst
 // of every threshold it has already passed.
 func (a *App) NotifyExpiringAccessTokens() error {
-	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
-		return nil
-	}
-
 	rctx := request.EmptyContext(a.Log().With(mlog.String("component", "notify_expiring_access_tokens")))
 
 	now := model.GetMillis()
 
-	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(now, expiringAccessTokenThresholds, expiringAccessTokenBatchLimit)
+	tokens, err := a.Srv().Store().UserAccessToken().GetExpiringTokens(
+		now,
+		expiringAccessTokenThresholds,
+		expiringAccessTokenBatchLimit,
+		*a.Config().ServiceSettings.EnableUserAccessTokens,
+	)
 	if err != nil {
 		return model.NewAppError("NotifyExpiringAccessTokens", "app.user_access_token.get_expiring.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -73,12 +75,16 @@ func (a *App) NotifyExpiringAccessTokens() error {
 			continue
 		}
 
-		if appErr := a.sendAccessTokenExpiryNotification(rctx, systemBot, token, bucket); appErr != nil {
+		sent, appErr := a.sendAccessTokenExpiryNotification(rctx, systemBot, token, bucket)
+		if appErr != nil {
 			rctx.Logger().Error("Failed to send personal access token expiry notification",
 				mlog.String("token_id", token.Id),
 				mlog.String("user_id", token.UserId),
 				mlog.Err(appErr),
 			)
+			continue
+		}
+		if !sent {
 			continue
 		}
 
@@ -111,18 +117,21 @@ func accessTokenExpiryBucket(expiresAt int64, now int64) int {
 	return 0
 }
 
-func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *model.Bot, token *model.UserAccessToken, bucket int) *model.AppError {
-	channel, appErr := a.GetOrCreateDirectChannel(rctx, token.UserId, systemBot.UserId)
+func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *model.Bot, token *model.UserAccessToken, bucket int) (bool, *model.AppError) {
+	recipient, bot, appErr := a.resolveAccessTokenNotificationRecipient(rctx, token)
 	if appErr != nil {
-		return appErr
+		return false, appErr
+	}
+	if recipient == nil {
+		return false, nil
 	}
 
-	user, appErr := a.GetUser(token.UserId)
+	channel, appErr := a.GetOrCreateDirectChannel(rctx, recipient.Id, systemBot.UserId)
 	if appErr != nil {
-		return appErr
+		return false, appErr
 	}
 
-	T := i18n.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(recipient.Locale)
 
 	description := token.Description
 	if description == "" {
@@ -133,10 +142,21 @@ func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *mod
 	// plural day count (7 or 3), and the 1-day bucket uses a dedicated "24 hours"
 	// message, so neither string needs an awkward "day(s)" plural.
 	var message string
-	if bucket <= 1 {
-		message = T("app.notify_expiring_access_tokens.dm_final", map[string]any{
-			"Description": description,
-		})
+	if bot != nil {
+		if bucket <= 1 {
+			message = T("app.notify_expiring_access_tokens.bot_dm_final", map[string]any{
+				"BotUsername": bot.Username,
+				"Description": description,
+			})
+		} else {
+			message = T("app.notify_expiring_access_tokens.bot_dm", map[string]any{
+				"BotUsername": bot.Username,
+				"Description": description,
+				"Days":        bucket,
+			})
+		}
+	} else if bucket <= 1 {
+		message = T("app.notify_expiring_access_tokens.dm_final", map[string]any{"Description": description})
 	} else {
 		message = T("app.notify_expiring_access_tokens.dm", map[string]any{
 			"Description": description,
@@ -152,8 +172,8 @@ func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *mod
 	}
 
 	if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: false}); err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }

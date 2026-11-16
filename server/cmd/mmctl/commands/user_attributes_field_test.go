@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/mock/gomock"
 )
 
 func (s *MmctlUnitTestSuite) TestCPAFieldListCmd() {

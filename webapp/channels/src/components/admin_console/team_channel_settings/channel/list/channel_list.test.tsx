@@ -7,7 +7,7 @@ import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelList from './channel_list';
@@ -15,7 +15,7 @@ import ChannelList from './channel_list';
 describe('admin_console/team_channel_settings/channel/ChannelList', () => {
     const channel: Channel = Object.assign(TestHelper.getChannelMock({id: 'channel-1'}));
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const testChannels = [{
             ...channel,
             id: '123',
@@ -30,7 +30,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={testChannels.length}
@@ -38,14 +38,11 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
-    test('should match snapshot with shared channel', async () => {
+    test('should render with shared channel', async () => {
         const testChannels = [{
             ...channel,
             shared: true,
@@ -61,7 +58,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={testChannels.length}
@@ -69,14 +66,11 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
-    test('should match snapshot with paging', async () => {
+    test('should render with paging', async () => {
         const testChannels: ChannelWithTeamData[] = [];
         for (let i = 0; i < 30; i++) {
             testChannels.push({
@@ -93,7 +87,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(testChannels),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelList
                 data={testChannels}
                 total={30}
@@ -101,11 +95,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('DN0');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
     test('should render correct icon for archived public channel', async () => {
@@ -125,7 +116,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(archivedPublicChannel),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelList
                 data={archivedPublicChannel}
                 total={1}
@@ -133,11 +124,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('Archived Public');
+        expect(actions.getData).toHaveBeenCalled();
     });
 
     test('should render correct icon for archived private channel', async () => {
@@ -157,7 +145,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             searchAllChannels: jest.fn().mockResolvedValue(archivedPrivateChannel),
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <ChannelList
                 data={archivedPrivateChannel}
                 total={1}
@@ -165,10 +153,7 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
-
-        expect(container).toMatchSnapshot();
+        await screen.findByText('Archived Private');
+        expect(actions.getData).toHaveBeenCalled();
     });
 });

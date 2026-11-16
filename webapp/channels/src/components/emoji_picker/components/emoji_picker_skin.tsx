@@ -83,6 +83,8 @@ type State = {
 };
 
 export class EmojiPickerSkin extends React.PureComponent<Props, State> {
+    private nodeRef = React.createRef<HTMLDivElement>();
+
     constructor(props: Props) {
         super(props);
 
@@ -204,11 +206,15 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
         return (
             <CSSTransition
                 in={this.state.pickerExtended}
+                nodeRef={this.nodeRef}
                 onExited={this.handleSkinToneHidden}
                 classNames='skin-tones-animation'
                 timeout={200}
             >
-                <div className={classNames('skin-tones', {'skin-tones--active': this.state.pickerMounted})}>
+                <div
+                    ref={this.nodeRef}
+                    className={classNames('skin-tones', {'skin-tones--active': this.state.pickerMounted})}
+                >
                     <div
                         className={classNames('skin-tones__content', {'skin-tones__content__single': !this.state.pickerMounted}, {'skin-tones__close': this.state.pickerMounted})}
                         aria-orientation='horizontal'

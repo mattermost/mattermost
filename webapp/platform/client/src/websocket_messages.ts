@@ -4,7 +4,7 @@
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import type {Limits, Subscription} from '@mattermost/types/cloud';
+import type {Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
@@ -269,6 +269,11 @@ export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.C
     channel: JsonEncodedValue<Channel>;
 }>;
 
+// Emitted after a system-scoped (TypePermission) permission policy is created, updated,
+// deleted, or toggled active. No payload — the policy is global so the client reconciles
+// the currently visible channel only.
+export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated, Record<string, never>>;
+
 export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
     team: JsonEncodedValue<TeamType>;
 }>;
@@ -442,18 +447,12 @@ export type LicenseChanged = BaseWebSocketMessage<WebSocketEvents.LicenseChanged
 }>;
 
 export type CloudSubscriptionChanged = BaseWebSocketMessage<WebSocketEvents.CloudSubscriptionChanged, {
-    limits?: Limits;
     subscription: Subscription;
 }>;
 
 export type FirstAdminVisitMarketplaceStatusReceived =
     BaseWebSocketMessage<WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived, {
         firstAdminVisitMarketplaceStatus: JsonEncodedValue<boolean>;
-    }>;
-
-export type HostedCustomerSignupProgressUpdated =
-    BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
-        progress: string;
     }>;
 
 // Custom properties messages
@@ -473,7 +472,7 @@ export type CPAFieldDeleted = BaseWebSocketMessage<WebSocketEvents.CPAFieldDelet
 
 export type CPAValuesUpdated = BaseWebSocketMessage<WebSocketEvents.CPAValuesUpdated, {
     user_id: string;
-    values: Array<PropertyValue<unknown>>;
+    values: Record<string, unknown>;
 }>;
 
 // Content flagging messages

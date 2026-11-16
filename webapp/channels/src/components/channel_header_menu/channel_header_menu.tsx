@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
@@ -27,6 +27,8 @@ import {getChannelHeaderMenuPluginComponents} from 'selectors/plugins';
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
 
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {Constants} from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
@@ -49,11 +51,25 @@ type Props = {
     isMobile?: boolean;
 };
 
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const menuAriaLabels: KindMessages = {
+    channel: defineMessage({
+        id: 'channel_header.otherchannel',
+        defaultMessage: '{displayName} Channel Menu',
+    }),
+    board: defineMessage({
+        id: 'channel_header.otherchannel.board',
+        defaultMessage: '{displayName} Board Menu',
+    }),
+};
+/* eslint-enable formatjs/enforce-placeholders */
+
 export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archivedIcon, sharedIcon}: Props): JSX.Element | null {
     const intl = useIntl();
 
     const user = useSelector(getCurrentUser);
     const channel = useSelector(getCurrentChannel);
+    const channelKind = useChannelKind(channel);
     const isDefault = useSelector(isCurrentChannelDefault);
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const isMuted = useSelector(isCurrentChannelMuted);
@@ -61,8 +77,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
-
-    const isReadonly = false;
 
     if (!channel) {
         return null;
@@ -72,10 +86,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const isGroup = (channel.type === Constants.GM_CHANNEL);
 
     let channelTitle: ReactNode = channel.display_name;
-    let ariaLabel = intl.formatMessage({
-        id: 'channel_header.otherchannel',
-        defaultMessage: '{displayName} Channel Menu',
-    }, {
+    let ariaLabel = intl.formatMessage(menuAriaLabels[channelKind], {
         displayName: channel.display_name,
     });
     if (isDirect && dmUser) {
@@ -181,7 +192,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
                     isDefault={isDefault}
-                    isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
                     isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}

@@ -1,0 +1,7 @@
+.UnsetValueIndicator {
+    display: inline-flex;
+    align-items: center;
+
+    // A shade lighter than the text it sits beside: a note on the item, not a warning.
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}

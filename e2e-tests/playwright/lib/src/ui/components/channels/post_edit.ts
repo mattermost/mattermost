@@ -18,6 +18,8 @@ export default class ChannelsPostEdit {
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
+    readonly suggestionList;
+    readonly suggestionOptions;
     readonly deleteConfirmationDialog;
     readonly restorePostConfirmationDialog;
 
@@ -29,6 +31,8 @@ export default class ChannelsPostEdit {
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');
         this.sendMessageButton = container.getByRole('button', {name: 'Save'});
+        this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
+        this.suggestionOptions = this.suggestionList.getByRole('option');
         this.deleteConfirmationDialog = new DeletePostConfirmationDialog(container.page().locator('#deletePostModal'));
         this.restorePostConfirmationDialog = new RestorePostConfirmationDialog(
             container.page().locator('#restorePostModal'),

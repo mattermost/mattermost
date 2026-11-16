@@ -96,29 +96,6 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// On a cloud license, we must check limits before allowing to create
-	if c.App.Channels().License().IsCloud() {
-		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
-		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			teamsUsage, appErr := c.App.GetTeamsUsage()
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			// if the number of active teams is greater than or equal to the limit, return 400
-			if teamsUsage.Active >= int64(*limits.Teams.Active) {
-				c.Err = model.NewAppError("Api4.createTeam", "api.cloud.teams_limit_reached.create", nil, "", http.StatusBadRequest)
-				return
-			}
-		}
-	}
-
 	if team.SchemeId != nil && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
@@ -534,28 +511,6 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
-	// On a cloud license, we must check limits before allowing to restore
-	if c.App.Channels().License().IsCloud() {
-		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
-		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
-			teamsUsage, appErr := c.App.GetTeamsUsage()
-			if appErr != nil {
-				c.Err = appErr
-				return
-			}
-			// if the number of active teams is greater than or equal to the limit, return 400
-			if teamsUsage.Active >= int64(*limits.Teams.Active) {
-				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
-				return
-			}
-		}
-	}
 
 	err := c.App.RestoreTeam(c.Params.TeamId)
 	if err != nil {
@@ -703,7 +658,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 			err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 		} else {
-			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			user, usrErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if usrErr == nil && user != nil && user.IsSystemAdmin() {
 				// More verbose error message for system admins
 				err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.for_admin.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
@@ -879,7 +834,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
 		c.SetPermissionError(model.PermissionReadOtherUsersTeams)
 		return
 	}
@@ -1028,7 +983,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		canInviteGuests := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest)
 		if !canInviteGuests {
-			user, err := c.App.GetUser(member.UserId)
+			user, err := c.App.GetUser(c.AppContext, member.UserId)
 			if err != nil {
 				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
 				return
@@ -1203,7 +1158,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// if user cannot invite guests, check if any users are guest users.
 		if !canInviteGuests {
-			user, err := c.App.GetUser(member.UserId)
+			user, err := c.App.GetUser(c.AppContext, member.UserId)
 			if err != nil {
 				c.Err = model.NewAppError("addTeamMembers", "api.team.user.missing_account", nil, "", http.StatusNotFound).Wrap(err)
 				return
@@ -1290,7 +1245,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1317,7 +1272,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1375,7 +1330,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
-	if !model.IsValidUserRoles(newRoles) {
+	if !model.IsValidTeamMemberRoles(newRoles) {
 		c.SetInvalidParam("team_member_roles")
 		return
 	}

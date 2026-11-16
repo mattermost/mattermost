@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {isValidElement} from 'react';
+import React, {isValidElement, type JSX} from 'react';
 import {NavLink} from 'react-router-dom';
 
 type Props = {
@@ -13,10 +12,9 @@ type Props = {
     definitionKey?: string;
     name?: string;
     parentLink?: string;
-    sectionClass?: string;
 };
 
-const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = '', sectionClass}: Props) => {
+const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = ''}: Props) => {
     let link = parentLink;
     let titleDiv = (
         <div
@@ -46,11 +44,10 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     }
 
     let clonedChildren = null;
-    const sectionsClassName = classNames('sections', sectionClass);
     if (children) {
         clonedChildren = (
             <ul
-                className={sectionsClassName}
+                className='sections'
                 data-testid='sidebar-category-sections'
             >
                 {

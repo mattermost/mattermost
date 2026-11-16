@@ -10,8 +10,6 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
-
 describe('Settings > Display > Message Display', () => {
     before(() => {
         // # Login as new user and visit off-topic
@@ -34,18 +32,24 @@ describe('Settings > Display > Message Display', () => {
 function verifyLineBreaksRemainIntact(display) {
     cy.uiChangeMessageDisplaySetting(display);
 
-    const firstLine = 'First line';
+    const firstLine = `First line ${Date.now()}`;
     const secondLine = 'Second line';
 
     // # Enter in text
-    cy.uiGetPostTextBox().
-        clear().
-        type(firstLine).
-        type('{shift}{enter}{enter}').
-        type(`${secondLine}{enter}`);
+    cy.uiGetPostTextBox().clear();
+    cy.uiGetPostTextBox().type(firstLine);
+    cy.uiGetPostTextBox().type('{shift}{enter}{enter}');
+    cy.uiGetPostTextBox().type(secondLine);
+    cy.uiGetPostTextBox().should('contain.value', firstLine).and('contain.value', secondLine);
+
+    // # Send the message
+    cy.intercept('POST', '**/api/v4/posts').as('createPost');
+    cy.findByTestId('SendMessageButton').should('be.enabled').click();
+    cy.wait('@createPost').its('response.statusCode').should('eq', 201);
 
     // # Get last postId
-    cy.getLastPostId().then((postId) => {
+    cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
+        const postId = (rawId || '').replace(/^post_/, '');
         const postMessageTextId = `#postMessageText_${postId}`;
 
         // * Verify text still includes new line
@@ -55,21 +59,21 @@ function verifyLineBreaksRemainIntact(display) {
         cy.clickPostDotMenu(postId);
 
         // # click edit post
-        cy.get(`#edit_post_${postId}`).scrollIntoView().should('be.visible').click();
+        cy.get(`#edit_post_${postId}`).should('exist').click({force: true});
 
         // # Add ",edited" to the text
         const editMessage = ',edited';
-        cy.get('#edit_textbox').type(editMessage);
+        cy.get('#edit_textbox').should('be.visible').type(editMessage);
+        cy.get('#edit_textbox').should('contain.value', editMessage);
 
         // # finish editing
-        cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        cy.get('[data-testid="post-edit-container"] button.save').should('be.visible').click();
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);
 
         // * Post should have "Edited"
-        cy.get(`#postEdited_${postId}`).
-            should('be.visible').
-            should('contain', 'Edited');
+        cy.get(`#post_${postId}`).scrollIntoView();
+        cy.get(`#postEdited_${postId}`).should('exist').and('contain', 'Edited');
     });
 }

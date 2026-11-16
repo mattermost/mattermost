@@ -1,0 +1,65 @@
+name: Docs Editor Review Label
+
+# Auto-apply "2: Editor Review" when a non-draft PR changes the product docs
+# structure: it edits the Documentation TOC (sidebar config) or adds a page
+# under docs/main/. Edits to existing pages, API docs (docs/api/) and developer
+# docs (docs/develop/) do not need an editor. Drafts are skipped until
+# ready_for_review. The label is only ever added here, never removed.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "docs/main/**"
+      - "docs/site/scripts/gen-documentation-sidebar.mjs"
+      - "docs/site/sidebars/documentation.ts"
+
+permissions: {}
+
+concurrency:
+  group: docs-editor-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    if: |
+      github.event.pull_request.draft == false
+      && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Add Editor Review label when the TOC changes or a page is added
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Product docs pages (docs/main, minus the vendored Agents docs) count as
+          # new pages; docs/api and docs/develop never match.
+          REASONS=$(gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files?per_page=100" --jq '
+            .[]
+            | if (.filename == "docs/site/scripts/gen-documentation-sidebar.mjs"
+                  or .filename == "docs/site/sidebars/documentation.ts")
+              then "TOC: \(.filename)"
+              elif (.status == "added"
+                  and (.filename | startswith("docs/main/"))
+                  and (.filename | startswith("docs/main/agents/docs/") | not)
+                  and (.filename | test("\\.mdx?$")))
+              then "New page: \(.filename)"
+              else empty
+              end
+          ')
+
+          if [ -z "$REASONS" ]; then
+            echo "No TOC change or new docs page; leaving the label alone." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          {
+            echo "Applying \"2: Editor Review\":"
+            echo '```'
+            echo "$REASONS"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "2: Editor Review"

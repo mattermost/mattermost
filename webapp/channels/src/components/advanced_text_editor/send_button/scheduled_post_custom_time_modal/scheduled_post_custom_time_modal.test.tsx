@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
 
@@ -18,14 +19,22 @@ describe('ScheduledPostCustomTimeModal', () => {
         onConfirm.mockClear();
     });
 
-    function renderModal({recurringEnabled = true, initialRepeatWeekly = false, allowRecurring = true} = {}) {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function renderModal({recurringEnabled = true, initialRepeatWeekly = false, repeatDisabledReason = undefined}: {
+        recurringEnabled?: boolean;
+        initialRepeatWeekly?: boolean;
+        repeatDisabledReason?: RepeatDisabledReason;
+    } = {}) {
         return renderWithContext(
             <ScheduledPostCustomTimeModal
                 channelId='channel_id'
                 onExited={jest.fn()}
                 onConfirm={onConfirm}
                 initialRepeatWeekly={initialRepeatWeekly}
-                allowRecurring={allowRecurring}
+                repeatDisabledReason={repeatDisabledReason}
             />,
             {
                 entities: {
@@ -57,10 +66,44 @@ describe('ScheduledPostCustomTimeModal', () => {
         expect(screen.queryByLabelText('Repeat weekly')).not.toBeInTheDocument();
     });
 
+    it('should enable the repeat weekly checkbox when nothing prevents recurrence', () => {
+        renderModal();
+
+        expect(screen.getByLabelText('Repeat weekly')).toBeEnabled();
+    });
+
     it('should disable the repeat weekly checkbox when the message has attachments', () => {
-        renderModal({allowRecurring: false});
+        renderModal({repeatDisabledReason: 'attachments'});
 
         expect(screen.getByLabelText('Repeat weekly')).toBeDisabled();
+    });
+
+    it('should disable the repeat weekly checkbox for a burn-on-read message', () => {
+        renderModal({repeatDisabledReason: 'burn_on_read'});
+
+        expect(screen.getByLabelText('Repeat weekly')).toBeDisabled();
+    });
+
+    it('should explain that attachments are what prevents recurrence', async () => {
+        jest.useFakeTimers();
+        renderModal({repeatDisabledReason: 'attachments'});
+
+        await userEvent.hover(screen.getByLabelText('Repeat weekly'), {advanceTimers: jest.advanceTimersByTime});
+
+        await waitFor(() => {
+            expect(screen.getByText("Messages with attachments can't repeat")).toBeInTheDocument();
+        });
+    });
+
+    it('should explain that burn-on-read is what prevents recurrence', async () => {
+        jest.useFakeTimers();
+        renderModal({repeatDisabledReason: 'burn_on_read'});
+
+        await userEvent.hover(screen.getByLabelText('Repeat weekly'), {advanceTimers: jest.advanceTimersByTime});
+
+        await waitFor(() => {
+            expect(screen.getByText("Burn-on-read messages can't repeat")).toBeInTheDocument();
+        });
     });
 
     it('should preserve existing recurrence when recurring scheduled posts are disabled', async () => {

@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import Tag from 'components/widgets/tag/tag';
@@ -55,14 +55,6 @@ export const PlanDetailsTopElements = ({
             <FormattedMessage
                 id='admin.billing.subscription.planDetails.productName.cloudEnterprise'
                 defaultMessage='Cloud Enterprise'
-            />
-        );
-        break;
-    case CloudProducts.STARTER:
-        productName = (
-            <FormattedMessage
-                id='admin.billing.subscription.planDetails.productName.cloudFree'
-                defaultMessage='Cloud Free'
             />
         );
         break;
@@ -117,11 +109,6 @@ export const PlanDetailsTopElements = ({
     );
 
     const getBadge = () => {
-        // no badges to show if the plan is Cloud Free
-        if (subscriptionPlan === CloudProducts.STARTER) {
-            return null;
-        }
-
         if (isFreeTrial) {
             return trialBadge;
         }

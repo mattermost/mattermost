@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {it} from './admin_definition_helpers';
 import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass, getConfigFromState} from './schema_admin_settings';
@@ -382,6 +381,41 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Plugin section'));
         expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
+    });
+
+    test('should stack schema sections in admin-console__schema-sections for content gap', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                sections: [
+                    {
+                        key: 'section-a',
+                        title: 'Section A',
+                        description: 'Description A',
+                        settings: [],
+                    },
+                    {
+                        key: 'section-b',
+                        title: 'Section B',
+                        description: 'Description B',
+                        settings: [],
+                    },
+                ],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const stack = container.querySelector('.admin-console__schema-sections');
+
+        expect(stack).toBeInTheDocument();
+        expect(stack?.querySelectorAll(':scope > .AdminPanel.AdminSectionPanel')).toHaveLength(2);
+        expect(screen.getByRole('heading', {name: 'Section A'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Section B'})).toBeInTheDocument();
     });
 
     test('should render top-level settings and sections between the schema header and footer', () => {
@@ -923,7 +957,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             // The danger SectionNotice renders with its title and body copy.
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
             expect(screen.getByText(WARNING_TEXT)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // The normal help text still renders alongside the callout.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -934,7 +968,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
             expect(screen.queryByText(WARNING_TEXT)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
 
             // The normal help text is unaffected.
             expect(screen.getByText('danger-help-text')).toBeInTheDocument();
@@ -1031,7 +1065,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.getByText(WARNING_TITLE)).toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
         });
 
         test('does not render the callout when the setting is disabled even at the insecure value', () => {
@@ -1066,7 +1100,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             );
 
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();
-            expect(container.querySelector('.sectionNoticeContainer.danger')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="section-notice--type-danger"]')).not.toBeInTheDocument();
         });
     });
 
@@ -1116,6 +1150,69 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         // patchConfig should be called
         await waitFor(() => {
             expect(mockPatchConfig).toHaveBeenCalled();
+        });
+    });
+
+    describe('fileupload setting', () => {
+        const renderFileUpload = (uploadAction: jest.Mock) => {
+            const fileUploadSchema = {
+                id: 'Config',
+                name: 'config',
+                name_default: 'Configuration',
+                settings: [
+                    {
+                        key: 'SamlSettings.IdpCertificateFile',
+                        label: 'label-file',
+                        label_default: 'Certificate',
+                        type: 'fileupload',
+                        remove_button_text: 'Remove Certificate',
+                        upload_action: uploadAction,
+                        remove_action: jest.fn(),
+                    },
+                ],
+            } as unknown as AdminDefinitionSubSectionSchema;
+
+            const {container} = renderWithContext(
+                <SchemaAdminSettings
+                    {...DefaultProps}
+                    config={config}
+                    environmentConfig={environmentConfig}
+                    schema={fileUploadSchema}
+                    patchConfig={jest.fn()}
+                />,
+            );
+
+            return container.querySelector('input[type="file"]') as HTMLInputElement;
+        };
+
+        test('should show the server error when an upload is rejected', async () => {
+            const uploadAction = jest.fn((file, success, error) => error({message: 'Invalid certificate'}));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(uploadAction).toHaveBeenCalled();
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Remove Certificate'})).not.toBeInTheDocument();
+        });
+
+        test('should clear the error after a successful upload', async () => {
+            const uploadAction = jest.fn().
+                mockImplementationOnce((file, success, error) => error({message: 'Invalid certificate'})).
+                mockImplementationOnce((file, success) => success('saml-idp.crt'));
+            const fileInput = renderFileUpload(uploadAction);
+
+            await userEvent.upload(fileInput, new File(['junk'], 'junk.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+            expect(screen.getByText('Invalid certificate')).toBeInTheDocument();
+
+            await userEvent.upload(fileInput, new File(['cert'], 'valid.crt'));
+            await userEvent.click(screen.getByRole('button', {name: 'Upload'}));
+
+            expect(screen.queryByText('Invalid certificate')).not.toBeInTheDocument();
+            expect(screen.getByText('saml-idp.crt')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Remove Certificate'})).toBeInTheDocument();
         });
     });
 });

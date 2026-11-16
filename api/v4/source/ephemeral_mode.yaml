@@ -1,0 +1,206 @@
+  /api/v4/ephemeral_mode/cleanup:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode cleanup run
+      description: >
+        Records the outcome of a client-side ephemeral mode auto cache cleanup run as an
+        audit event.
+
+        __Minimum server version__: 11.10
+
+        ##### Permissions
+
+        Must be logged in.
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogCleanup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                posts_deleted:
+                  description: >
+                    The number of posts deleted by the cleanup run. Required unless
+                    error_reason is provided, since a successful run with no counts
+                    records no evidence of what was deleted. If omitted, no posts_deleted
+                    value is recorded on the audit event.
+                  type: integer
+                  format: int64
+                  nullable: true
+                playbook_runs_deleted:
+                  description: >
+                    The number of playbook runs deleted by the cleanup run. Required
+                    unless error_reason is provided. If omitted, no playbook_runs_deleted
+                    value is recorded on the audit event.
+                  type: integer
+                  format: int64
+                  nullable: true
+                cleanup_at:
+                  description: >
+                    The time in milliseconds the cleanup run completed. Always optional;
+                    it does not satisfy the requirement for the deleted record counts. If
+                    omitted, no cleanup_at value is recorded on the audit event; the
+                    server-observed time is always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+                  nullable: true
+                error_reason:
+                  description: >
+                    A reason describing why the cleanup run failed. Its presence alone
+                    marks the audit event as a failure, so clients must omit this field
+                    entirely (or send null) when the run succeeded; sending an empty
+                    string records a failure with no description attached. Reasons
+                    longer than 400 characters are truncated to 400 with a trailing
+                    ellipsis rather than rejected.
+                  type: string
+                  nullable: true
+        required: true
+      responses:
+        "200":
+          description: Cleanup logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ephemeral_mode/purge:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode offline purge
+      description: >
+        Records the outcome of a client-side ephemeral mode offline purge as
+        an audit event.
+
+        __Minimum server version__: 11.10
+
+        ##### Permissions
+
+        Must be logged in.
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogOfflinePurge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offline_time_minutes:
+                  description: >
+                    The number of minutes the client was offline before the purge.
+                    Required unless error_reason is provided, since a successful purge
+                    with no offline time records no evidence of why it ran. If omitted,
+                    no offline_time_minutes value is recorded on the audit event.
+                  type: integer
+                  format: int64
+                  nullable: true
+                purge_at:
+                  description: >
+                    The time in milliseconds the purge completed. Always optional; it
+                    does not satisfy the requirement for offline_time_minutes. If
+                    omitted, no purge_at value is recorded on the audit event; the
+                    server-observed time is always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+                  nullable: true
+                error_reason:
+                  description: >
+                    A reason describing why the offline purge failed. Its presence alone
+                    marks the audit event as a failure, so clients must omit this field
+                    entirely (or send null) when the purge succeeded; sending an empty
+                    string records a failure with no description attached. Reasons
+                    longer than 400 characters are truncated to 400 with a trailing
+                    ellipsis rather than rejected.
+                  type: string
+                  nullable: true
+        required: true
+      responses:
+        "200":
+          description: Offline purge logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/ephemeral_mode/wipe:
+    post:
+      tags:
+        - ephemeral mode
+      summary: Log an ephemeral mode session wipe
+      description: >
+        Records a client-side ephemeral mode wipe confirming that a session
+        revoked by the server has completed its local wipe. Sent without a
+        session, since the session being confirmed is already revoked by the
+        time the client can report it.
+
+        __Minimum server version__: 11.10
+
+        ##### License
+
+        Requires an Enterprise Advanced license.
+      operationId: LogSessionWipe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signature:
+                  description: >
+                    The `signature` field of the session wipe push notification that
+                    triggered this wipe, echoed back verbatim. The server verifies it and
+                    takes the actor, device and ack id of the audit event from its claims.
+                    Always required, including on failure reports: this endpoint accepts
+                    unauthenticated requests, so an unattributable audit record is not
+                    accepted.
+                  type: string
+                wipe_at:
+                  description: >
+                    The time in milliseconds the wipe completed. Optional. If omitted, no
+                    wipe_at value is recorded on the audit event; the server-observed time
+                    is always recorded separately as server_ts.
+                  type: integer
+                  format: int64
+                  nullable: true
+                error_reason:
+                  description: >
+                    A reason describing why the session wipe failed. Its presence alone
+                    marks the audit event as a failure, so clients must omit this field
+                    entirely (or send null) when the wipe succeeded; sending an empty
+                    string records a failure with no description attached. Reasons
+                    longer than 400 characters are truncated to 400 with a trailing
+                    ellipsis rather than rejected.
+                  type: string
+                  nullable: true
+              required:
+                - signature
+        required: true
+      responses:
+        "200":
+          description: Session wipe logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

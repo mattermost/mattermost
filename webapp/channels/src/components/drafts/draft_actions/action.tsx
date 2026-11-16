@@ -13,7 +13,7 @@ type Props = {
     id: string;
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    tooltipText: React.ReactElement | string;
+    tooltipText: React.ReactElement<any> | string;
 };
 
 function Action({

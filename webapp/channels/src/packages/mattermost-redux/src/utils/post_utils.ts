@@ -250,6 +250,31 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
+        // A policy change strips or restores file metadata without touching update_at. Both sides
+        // must carry metadata: a response that omits it entirely (some endpoints do) must not
+        // clobber what's stored, which is what the check above guards in the other direction.
+        if (storedPost.metadata && receivedPost.metadata &&
+            (storedPost.metadata.redacted_file_count ?? 0) !== (receivedPost.metadata.redacted_file_count ?? 0)
+        ) {
+            return true;
+        }
+
+        // Same shape of problem: hydration can fail on one fetch and succeed on the next
+        // without the post changing, so update_at cannot tell them apart. Without this a
+        // post that failed once keeps saying its attributes are unavailable until it is
+        // edited, and one that recovers keeps rendering the values it had when it broke.
+        // The server sends the flag only on responses that asked for hydration: true when
+        // the lookup failed, false when it worked. A response without it (search, pinned,
+        // flagged, getPostsByIds) says nothing about the values, so it must not replace a
+        // stored post over this flag, least of all clear a stored true. A post stored
+        // without the flag counts as false.
+        const receivedUnavailable = receivedPost.metadata?.property_values_unavailable;
+        if (storedPost.metadata && receivedUnavailable !== undefined &&
+            (storedPost.metadata.property_values_unavailable ?? false) !== receivedUnavailable
+        ) {
+            return true;
+        }
+
         // The stored post is the same as the one we've received
         return false;
     }

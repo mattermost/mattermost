@@ -40,7 +40,7 @@ function VirtualizedThreadList({
     isLoading,
     addNoMoreResultsItem,
 }: Props) {
-    const infiniteLoaderRef = React.useRef<any>();
+    const infiniteLoaderRef = React.useRef<any>(undefined);
     const startIndexRef = React.useRef<number>(0);
     const stopIndexRef = React.useRef<number>(0);
 

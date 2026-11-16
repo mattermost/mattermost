@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -514,5 +515,55 @@ func TestRecapStore(t *testing.T) {
 			var nfErr *store.ErrNotFound
 			require.ErrorAs(t, err, &nfErr)
 		})
+	})
+}
+
+func TestRecapStorePermanentDeleteByUser(t *testing.T) {
+	StoreTestWithSqlStore(t, func(t *testing.T, rctx request.CTX, ss store.Store, s storetest.SqlStore) {
+		userID := model.NewId()
+		otherUserID := model.NewId()
+
+		saveRecap := func(userID string, deleteAt int64) {
+			recap, err := ss.Recap().SaveRecap(&model.Recap{
+				Id:       model.NewId(),
+				UserId:   userID,
+				Title:    "Test Recap",
+				CreateAt: model.GetMillis(),
+				UpdateAt: model.GetMillis(),
+				DeleteAt: deleteAt,
+				Status:   model.RecapStatusCompleted,
+			})
+			require.NoError(t, err)
+			require.NoError(t, ss.Recap().SaveRecapChannel(&model.RecapChannel{
+				Id:          model.NewId(),
+				RecapId:     recap.Id,
+				ChannelId:   model.NewId(),
+				ChannelName: "channel",
+				CreateAt:    model.GetMillis(),
+			}))
+		}
+		saveRecap(userID, 0)
+		saveRecap(userID, model.GetMillis())
+		saveRecap(otherUserID, 0)
+
+		count := func(userID string) (recaps, channels int) {
+			require.NoError(t, s.GetMaster().Get(&recaps, "SELECT COUNT(*) FROM Recaps WHERE UserId = ?", userID))
+			require.NoError(t, s.GetMaster().Get(&channels, "SELECT COUNT(*) FROM RecapChannels rc JOIN Recaps r ON r.Id = rc.RecapId WHERE r.UserId = ?", userID))
+			return recaps, channels
+		}
+
+		require.NoError(t, ss.Recap().PermanentDeleteByUser(userID))
+
+		recaps, _ := count(userID)
+		assert.Zero(t, recaps, "soft-deleted recaps must be removed too")
+		var orphanedChannels int
+		require.NoError(t, s.GetMaster().Get(&orphanedChannels, "SELECT COUNT(*) FROM RecapChannels rc WHERE NOT EXISTS (SELECT 1 FROM Recaps r WHERE r.Id = rc.RecapId)"))
+		assert.Zero(t, orphanedChannels)
+
+		recaps, channels := count(otherUserID)
+		assert.Equal(t, 1, recaps)
+		assert.Equal(t, 1, channels)
+
+		require.NoError(t, ss.Recap().PermanentDeleteByUser(userID), "deleting again must succeed")
 	})
 }

@@ -43,16 +43,6 @@ export const getBurnOnReadDurationMinutes = (state: GlobalState): number => {
 };
 
 /**
- * Returns whether the current user has permission to send Burn-on-Read messages.
- * In the current MVP implementation, all users can send BoR messages when the feature is enabled.
- * Future versions may implement user/group-level restrictions.
- */
-export const canUserSendBurnOnRead = (state: GlobalState): boolean => {
-    // For MVP: All users can send BoR when feature is enabled
-    return isBurnOnReadEnabled(state);
-};
-
-/**
  * Returns whether the current user has already seen the Burn-on-Read feature tour tip.
  * Used to determine if the tour tip pulsating dot should be displayed.
  */

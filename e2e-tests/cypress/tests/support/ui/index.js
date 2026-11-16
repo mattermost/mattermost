@@ -7,7 +7,6 @@ import './boards';
 import './channel';
 import './channel_header';
 import './channel_sidebar';
-import './cloud_billing';
 import './common';
 import './compliance_export';
 import './data_retention';

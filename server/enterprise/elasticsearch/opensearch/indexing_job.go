@@ -18,7 +18,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
+
+// createIndexerClient bounds each request attempt, since the bulk indexer
+// flushes with an uncancellable context and a stalled connection would
+// otherwise block its worker forever.
+func createIndexerClient(logger mlog.LoggerIFace, cfg *model.Config, fileBackend filestore.FileBackend) (*opensearchapi.Client, *model.AppError) {
+	osCfg, appErr := createClientConfig(logger, cfg, fileBackend, true)
+	if appErr != nil {
+		return nil, appErr
+	}
+	osCfg.Client.RequestTimeout = time.Duration(*cfg.ElasticsearchSettings.RequestTimeoutSeconds) * time.Second
+
+	client, err := opensearchapi.NewClient(*osCfg)
+	if err != nil {
+		return nil, model.NewAppError("Opensearch.createIndexerClient", "ent.elasticsearch.create_client.connect_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return client, nil
+}
 
 type OpensearchIndexerInterfaceImpl struct {
 	Server        *app.Server
@@ -32,7 +51,7 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 	logger := esi.Server.Jobs.Logger().With(mlog.String("worker_name", workerName))
 
 	// Creating the client
-	client, appErr := createClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend(), true)
+	client, appErr := createIndexerClient(logger, esi.Server.Jobs.Config(), esi.Server.Platform().FileBackend())
 	if appErr != nil {
 		logger.Error("Worker: Failed to Create Client", mlog.Err(appErr))
 		return nil

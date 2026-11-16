@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {FloatingPortal} from '@floating-ui/react';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {PlaylistCheckIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {isAnyModalOpen} from 'selectors/views/modals';
@@ -78,12 +79,13 @@ export default function FeatureToast({
                     <p>{message}</p>
                     <div className='feature_toast__actions'>
                         {showButton && (
-                            <button
-                                className='btn btn-primary'
+                            <Button
+                                type='button'
+                                emphasis='primary'
                                 onClick={handleDismiss}
                             >
                                 {buttonText}
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

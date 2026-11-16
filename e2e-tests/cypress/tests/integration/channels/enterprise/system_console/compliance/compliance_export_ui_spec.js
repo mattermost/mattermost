@@ -120,7 +120,7 @@ describe('Compliance Export', () => {
             cy.get('td:eq(0)').should('have.text', 'Success');
             cy.get('td:eq(2)').contains('seconds');
             cy.get('td:eq(3)').should('have.text', 'Download');
-            cy.get('td:eq(4)').should('have.text', '1 messages exported.');
+            cy.get('td:eq(4)').should('have.text', '1 message exported.');
         });
     });
 

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {Fragment} from 'react';
-import type {ReactNode, HTMLAttributes} from 'react';
+import type {HTMLAttributes, JSX, ReactNode} from 'react';
 
 import './header.scss';
 

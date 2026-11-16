@@ -1,12 +1,12 @@
 ---
-title: "Bulk export tool"
+title: "Bulk export data"
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 <PlanAvailability slug="all-commercial" />
 
-Moving data from one Mattermost instance into another begins with exporting data to a [JSONL](https://jsonlines.org) file using the [bulk loading feature](/administration-guide/onboard/bulk-loading-data). This tool is useful if you have created a server for a proof of concept, have created another server for production use, and now want to retain the history from the proof of concept instance.
+Moving data from one Mattermost instance into another begins with exporting data to a [JSONL](https://jsonlines.org) file, in the same format used to [bulk import data](/administration-guide/onboard/bulk-loading-data). This is useful if you have created a server for a proof of concept, have created another server for production use, and now want to retain the history from the proof of concept instance.
 
 You can export the following data types:
 
@@ -540,7 +540,7 @@ This object is a member of the ChannelMembership object.
   <tr class="row-odd">
     <td valign="middle">props</td>
     <td valign="middle">object</td>
-    <td>The props for a post. Contains additional formatting information used by integrations and bot posts. For a more detailed explanation see the <a href="https://docs.mattermost.com/developer/message-attachments.html">message attachments documentation</a>.</td>
+    <td>The props for a post. Contains additional formatting information used by integrations and bot posts. For a more detailed explanation see the <a href="https://docs.mattermost.com/developers/integrate/reference/message-attachments">message attachments documentation</a>.</td>
   </tr>
   <tr class="row-odd">
     <td valign="middle">create_at</td>
