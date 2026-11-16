@@ -977,6 +977,8 @@ endif
 install-govet:
 	cd ../tools/mattermost-govet && $(GO) install .
 
+APP_ERROR_BASELINE = $(CURDIR)/channels/app/apperror_baseline.txt
+
 .PHONY: vet
 vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
@@ -995,12 +997,23 @@ vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 		-concurrentIndex.path=./channels/db/migrations/ \
 		-concurrentIndex.minMigration=166 \
 		-sortSlices \
+		-appErrorReturn \
+		-appErrorReturn.baseline=$(APP_ERROR_BASELINE) \
+		-appErrorReturn.baselineDigest=$$( (sha256sum $(APP_ERROR_BASELINE) 2>/dev/null || shasum -a 256 $(APP_ERROR_BASELINE)) | cut -d' ' -f1) \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -sortSlices -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
+
+.PHONY: update-apperror-baseline
+update-apperror-baseline: setup-go-work install-govet ## Regenerate the baseline of channels/app functions still allowed to return *model.AppError
+	@out=$$($(GO) vet -vettool=$(GOBIN)/mattermost-govet -appErrorReturn -appErrorReturn.list ./channels/app/... 2>&1); \
+	if printf '%s\n' "$$out" | grep -v -e '^#' -e ': appErrorReturn baseline entry: ' | grep -q .; then \
+		printf '%s\n' "$$out"; exit 1; \
+	fi; \
+	printf '%s\n' "$$out" | sed -n 's/.*: appErrorReturn baseline entry: //p' | LC_ALL=C sort -u > $(APP_ERROR_BASELINE)
 
 .PHONY: vet-fix
 vet-fix: setup-go-work ## Apply the suggested fixes from mattermost go vet checks
