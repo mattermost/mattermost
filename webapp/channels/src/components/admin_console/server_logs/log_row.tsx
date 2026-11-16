@@ -21,7 +21,7 @@ import type {GlobalState} from 'types/store';
 
 import type {LogObjectWithAdditionalInfo} from './types';
 import useClipboardCopy from './use_clipboard_copy';
-import {formatLogValue, levelGroup} from './utils';
+import {formatLogRowTime, formatLogValue, levelGroup} from './utils';
 
 import './log_list.scss';
 
@@ -37,6 +37,12 @@ type Props = {
     searchTerm: string;
     wrapText: boolean;
     showNode: boolean;
+
+    // The admin's display timezone
+    timezone: string;
+
+    // From logRowTimeFormat, shared by every row so the time column keeps one width
+    timeFormat: string;
 };
 
 const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}> = {
@@ -66,25 +72,6 @@ function isUserIdField(key: string): boolean {
 
 // Mattermost IDs are always 26 lowercase alphanumeric characters
 const MM_ID_PATTERN = /^[a-z0-9]{26}$/;
-
-function formatTimestampShort(timestamp: string): string {
-    // Extract time directly from the raw string to preserve original wall-clock timezone
-    const match = timestamp.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/);
-    if (match) {
-        return match[1];
-    }
-
-    // Fallback: try Date parsing for non-standard formats
-    try {
-        const date = new Date(timestamp);
-        if (!isNaN(date.getTime())) {
-            return date.toISOString().slice(11, 23);
-        }
-    } catch {
-        // ignore
-    }
-    return timestamp.slice(0, 23);
-}
 
 function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode {
     if (!searchTerm) {
@@ -208,7 +195,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
     );
 }
 
-function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode}: Props) {
+function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, searchTerm, wrapText, showNode, timezone, timeFormat}: Props) {
     const [copyJsonStatus, copyJson] = useClipboardCopy();
     const [copyLineStatus, copyLine] = useClipboardCopy();
     const copyJsonSuccess = copyJsonStatus === 'copied';
@@ -300,7 +287,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     className='LogRow__timestamp'
                     title={log.timestamp}
                 >
-                    {formatTimestampShort(log.timestamp)}
+                    {formatLogRowTime(log, timezone, timeFormat)}
                 </span>
                 {showNode && (
                     <span

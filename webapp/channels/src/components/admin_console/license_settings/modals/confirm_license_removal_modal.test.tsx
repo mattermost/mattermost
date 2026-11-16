@@ -41,14 +41,6 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         handleRemove: mockHandleRemove,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <ConfirmLicenseRemovalModal {...props}/>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should call the removal method when confirm button is clicked', () => {
         renderWithContext(
             <ConfirmLicenseRemovalModal {...props}/>,

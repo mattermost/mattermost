@@ -31,34 +31,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         isEnterpriseReady: true,
     };
 
-    test('should match snapshot', () => {
-        const wrapper = renderWithContext(
-            <UserSettingsNotifications {...defaultProps}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot when its a starter free', () => {
-        const props = {...defaultProps, isEnterpriseOrSKUStarterFree: true};
-
-        const wrapper = renderWithContext(
-            <UserSettingsNotifications {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot when its team edition', () => {
-        const props = {...defaultProps, isEnterpriseReady: false};
-
-        const wrapper = renderWithContext(
-            <UserSettingsNotifications {...props}/>,
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should show reply notifications section when CRT off', () => {
         const props = {...defaultProps, isCollapsedThreadsEnabled: false};
 

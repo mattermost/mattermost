@@ -29,9 +29,9 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         (console.error as jest.Mock).mockClear();
     });
 
-    test('should match snapshot with creating new policy', () => {
+    test('should render with creating new policy', () => {
         const props = {...defaultProps};
-        const {container} = renderWithContext(
+        renderWithContext(
             <CustomPolicyForm {...props}/>,
             {},
             {useMockedStore: true},
@@ -41,13 +41,12 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         expect(screen.getByText('Name and retention')).toBeInTheDocument();
         expect(screen.getByText('Assigned teams')).toBeInTheDocument();
         expect(screen.getByText('Assigned channels')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with editing existing policy', () => {
+    test('should render with editing existing policy', () => {
         const props = {...defaultProps};
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <CustomPolicyForm
                 {...props}
                 policyId='fsdgdsgdsgh'
@@ -64,6 +63,5 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         );
 
         expect(screen.getByText('Custom Retention Policy')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 });

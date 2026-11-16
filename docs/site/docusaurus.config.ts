@@ -54,17 +54,16 @@ const config: Config = {
   organizationName: 'mattermost',
   projectName: 'mattermost',
 
-  // Broken-link / broken-image policy. During the Phase 4 (developer docs)
-  // and Phase 5 (main docs) migrations, content references images and
-  // anchors that haven't been migrated yet — `warn` keeps the build green
-  // while the unconverted set shows up as warnings we can grep for.
-  // Tighten to `throw` after each migration phase completes.
-  onBrokenLinks: 'warn',
+  // Only site-relative links are validated; absolute https://docs.mattermost.com
+  // links are checked separately by scripts/check-absolute-docs-links.mjs.
+  onBrokenLinks: 'throw',
+  // Tighten to `throw` once the remaining migrated-content anchors are fixed.
+  onBrokenAnchors: 'warn',
 
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
       onBrokenMarkdownImages: 'warn',
     },
   },

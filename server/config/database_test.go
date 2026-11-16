@@ -1109,8 +1109,12 @@ func TestDatabaseStoreString(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				_, _, parseErr := parseDSN(tc.dsn)
+				driverName, dataSourceName, parseErr := parseDSN(tc.dsn)
 				assert.Equal(t, tc.accepted, parseErr == nil)
+				if tc.accepted {
+					assert.Equal(t, model.DatabaseDriverPostgres, driverName)
+					assert.Equal(t, tc.dsn, dataSourceName)
+				}
 				assert.Equal(t, tc.accepted, IsDatabaseDSN(tc.dsn))
 
 				// A store is only ever built from an accepted connection string,

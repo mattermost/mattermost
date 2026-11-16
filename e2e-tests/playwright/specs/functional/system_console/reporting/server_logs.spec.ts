@@ -346,6 +346,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
                 .toEqual({
                     search: marker,
                     levels: 'error',
+                    node: '',
                     range: '1440',
                 });
 

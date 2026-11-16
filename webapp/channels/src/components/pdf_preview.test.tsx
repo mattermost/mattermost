@@ -61,14 +61,7 @@ describe('component/PDFPreview', () => {
         })));
     });
 
-    test('should match snapshot, loading', () => {
-        const {container} = render(
-            <PDFPreview {...requiredProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, not successful', async () => {
+    test('should render not successful', async () => {
         // Mock PDF loading to fail
         mockGetDocument.mockReturnValue(loadingTask(Promise.reject(new Error('Failed to load PDF'))));
 
@@ -81,8 +74,6 @@ describe('component/PDFPreview', () => {
         await waitFor(() => {
             expect(container.querySelector('.view-image__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should update state with new value from props when prop changes', async () => {

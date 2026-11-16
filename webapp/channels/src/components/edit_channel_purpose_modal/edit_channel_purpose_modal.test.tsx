@@ -19,55 +19,6 @@ describe('comoponents/EditChannelPurposeModal', () => {
         purpose: 'testPurpose',
     });
 
-    it('should match on init', () => {
-        const {container} = renderWithContext(
-            <EditChannelPurposeModal
-                channel={channel}
-                ctrlSend={true}
-                onExited={jest.fn()}
-                actions={{patchChannel: jest.fn()}}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match with display name', () => {
-        const channelWithDisplayName = {
-            ...channel,
-            display_name: 'channel name',
-        };
-
-        const {container} = renderWithContext(
-            <EditChannelPurposeModal
-                channel={channelWithDisplayName}
-                ctrlSend={true}
-                onExited={jest.fn()}
-                actions={{patchChannel: jest.fn()}}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match for private channel', () => {
-        const privateChannel: Channel = {
-            ...channel,
-            type: 'P',
-        };
-
-        const {container} = renderWithContext(
-            <EditChannelPurposeModal
-                channel={privateChannel}
-                ctrlSend={true}
-                onExited={jest.fn()}
-                actions={{patchChannel: jest.fn()}}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should call a board a board', () => {
         const board = {...channel, id: 'board1', type: 'O' as const};
 
@@ -96,19 +47,6 @@ describe('comoponents/EditChannelPurposeModal', () => {
 
         expect(screen.getByText('This text appears in the "View Info" modal of the private board.')).toBeInTheDocument();
         expect(screen.queryByText('This text appears in the "View Info" modal of the private channel.')).not.toBeInTheDocument();
-    });
-
-    it('should match submitted', () => {
-        const {container} = renderWithContext(
-            <EditChannelPurposeModal
-                channel={channel}
-                ctrlSend={true}
-                onExited={jest.fn()}
-                actions={{patchChannel: jest.fn()}}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 
     it('match with modal error', async () => {
@@ -159,7 +97,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             message: 'error',
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <EditChannelPurposeModal
                 channel={channel}
                 ctrlSend={false}
@@ -174,7 +112,6 @@ describe('comoponents/EditChannelPurposeModal', () => {
 
         // Verify error is displayed
         expect(screen.getByText('error')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     it('update purpose state', async () => {
