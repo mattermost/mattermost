@@ -1,0 +1,334 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit configuration for mattermost/mattermost
+# Goal: keep the findings (most are acted on), cut the packaging around them,
+# stop review loops, and give the reviewer the context it was missing.
+# Based on an audit of all 1,557 PRs merged 2026-08-14 .. 2026-11-14
+# (1,034 non-cherry-pick, 899 reviewed, 1,436 inline findings).
+
+language: en-US
+
+# Max 250 characters. Changes how comments are written, not how many are posted.
+tone_instructions: >-
+  Be brief. Comment only on problems this PR introduces in its changed lines.
+  Skip what linters/CI catch. Do not suggest scope expansion or speculative
+  hardening. If code follows an existing pattern in the repo, do not flag it.
+
+reviews:
+  # chill = default. With request-changes on, the profile decides what blocks a
+  # merge. Keep chill: 46% of Minor findings were real defects that should block.
+  # `quiet` would collapse them; the nit "do not post" list below removes what
+  # shouldn't block instead.
+  profile: chill
+
+  # --- Summary comment: keep the walkthrough, drop the extras -----------------
+  high_level_summary: true
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  poem: false
+  in_progress_fortune: false
+  # Keep status notices: "Reviews paused", "Review skipped" and rate-limit notices
+  # are the only signal on the PR that CodeRabbit has stopped reviewing.
+  review_status: true
+  review_info: false          # removes "Review info" / run-configuration blocks
+  # "CodeRabbit" check run on each commit. Its title shows Finished / Review paused /
+  # Review rate limited. Do not make it a required check: paused and rate-limited
+  # runs report as passing, so it would not block anyway.
+  review_progress: true
+  # Agents (Cursor, Claude Code) are fixing findings on this repo, so keep the
+  # per-comment agent prompt. Set to false if humans find it distracting.
+  enable_prompt_for_ai_agents: true
+
+  # --- Pre-merge checks ------------------------------------------------------
+  pre_merge_checks:
+    docstrings:
+      mode: "off"             # warned (80% threshold) on 507 of 845 summaries; not a repo convention
+    # title / description / issue_assessment stay at the default `warning`:
+    # they passed on ~99% of sampled PRs, so they cost nothing.
+
+  finishing_touches:
+    unit_tests:
+      enabled: false          # removes "Generate unit tests" block from summaries
+
+  # --- When to review ----------------------------------------------------------
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    # Auto-pause is the main reason CodeRabbit "gets stuck": 257 of 898 reviewed PRs
+    # paused at the default of 5, and 133 merged with code CodeRabbit never saw while
+    # its earlier approval or change request stood. Raising to 10 would have paused
+    # about 94 PRs instead of 257. Loops are cut by nit suppression and the agent
+    # rule to batch fixes into one push per round, not by pausing earlier.
+    # After a pause, use `@coderabbitai resume` (not `review`).
+    auto_pause_after_reviewed_commits: 10
+    ignore_title_keywords:
+      - "Automated cherry pick"
+      - "WIP"
+      - "DO NOT MERGE"
+    ignore_usernames:
+      - "mattermost-build"
+      - "mattermost-code"
+
+  # --- What to review ----------------------------------------------------------
+  path_filters:
+    - "!server/**/mocks/**"
+    - "!webapp/**/mocks/**"
+    - "!**/*_generated.go"
+    - "!**/*_serial_gen.go"
+    - "!server/channels/app/oembed/providers_gen.go"
+    - "!server/channels/store/retrylayer/**"
+    - "!server/channels/store/timerlayer/**"
+    - "!**/__snapshots__/**"
+    - "!i18n/glossary/**"
+
+  # --- Repository context the reviewer was missing -----------------------------
+  path_instructions:
+    - path: "**/*"
+      instructions: |
+        Review scope rules for this repository:
+        - Only raise issues introduced or made worse by this PR's diff. Code that predates
+          the PR is out of scope; if it is truly severe, mention it once in the summary,
+          not as an inline or outside-diff finding.
+        - Do not re-raise a finding the author has answered with a reason. Accept the
+          reason unless it is factually wrong, and if so say exactly why with a file:line.
+        - On incremental reviews, comment only on lines changed since the last review.
+          Do not introduce new findings on unchanged lines of earlier commits.
+        - Before claiming a behavior (ordering, error propagation, caching), trace the
+          callee. Several declined findings were wrong because the callee already handled it.
+        - Prefer consistency with existing patterns in the same package over a "safer"
+          one-off. Do not suggest try/catch, extra validation, or defensive checks that
+          the equivalent existing code paths do not have.
+        - Severity: Major means a user-visible bug, data loss, security issue, or a
+          crash/hang. Edge cases with no realistic trigger are Minor at most.
+        - Post a Minor finding only if it is a defect someone would hit: wrong behavior,
+          a security or privacy gap, data loss, a crash or hang, a realistic race, a flaky
+          or falsely passing test, a docs command or step that fails as written, a wrong
+          fact, or a control unusable by keyboard or screen reader.
+        - Do not post these (52% of sampled Minor findings were these, and agents fixed
+          70% of them anyway): typos, grammar, hyphenation or wording; requests to
+          qualify, clarify or expand statements that are already accurate; formatting
+          or lint issues CI already checks; reminders to run i18n-extract or add a
+          release note; extra or stronger test assertions where no gap lets a bug pass;
+          defensive checks for inputs with no realistic trigger; log, error-message or
+          comment polish; refactors for consistency; small layout tweaks.
+
+    - path: "server/**/*.go"
+      instructions: |
+        - Local mode (`api4/*_local.go`, `localRouter`) is a trusted, socket-only admin
+          interface. Do not raise requester-privilege findings for local-mode handlers.
+        - Files ending in `_generated.go` and the store retry/timer layers are generated
+          from `server/channels/store/layer_generators` and plugin API templates. If a fix
+          belongs in generated code, point at the generator, and only if the PR touches it.
+        - Store methods take `request.CTX`, not `context.Context` (see server/AGENTS.md).
+        - Do not flag premature optimizations or allocation micro-tuning unless the code is
+          on a hot path (post creation, websocket broadcast, permission checks).
+        - Dependency-bump PRs (go.mod/go.sum only): review only for breaking API changes
+          and known CVEs, not upstream library design.
+
+    - path: "server/**/*_test.go"
+      instructions: |
+        Only flag tests that can pass while the code is broken, are flaky (timing, shared
+        global state, ordering), or leak resources. Do not suggest extra assertions,
+        table-driven refactors, or naming changes.
+
+    - path: "webapp/**/*.{ts,tsx}"
+      instructions: |
+        - Plugin registry and plugin component selectors should behave like the existing
+          channel-header registrations. Do not request validation or error handling that
+          those existing paths lack.
+        - Formatting, import order, and lint rules are enforced by ESLint/Prettier in CI.
+          Do not comment on them.
+
+    - path: "e2e-tests/**"
+      instructions: |
+        Playwright runs one worker per server and CI parallelizes across servers (see
+        e2e-tests/playwright/AGENTS.md). Do not flag test isolation or worker races as
+        cross-test interference. Follow e2e-tests/playwright/AGENTS.md for whether tests
+        must restore server config they change. Do not comment on formatting. Focus on flaky waits,
+        missing assertions, and tests that can pass without exercising the feature.
+
+    - path: "docs/**"
+      instructions: |
+        Documentation review. Flag only: technically wrong statements, commands or config
+        that will fail or are unsafe as written, broken links, and missing steps that make a
+        procedure fail. Do not expand the page's scope into adjacent systems (for example
+        connection-pooler or proxy configuration a page does not set out to cover), do not
+        reword for style, and do not request extra qualifications on accurate statements.
+
+    - path: ".github/**"
+      instructions: |
+        CI and automation code. Flag only issues that would break the workflow, produce a
+        wrong pass/fail result, or expose secrets/tokens (injection via untrusted
+        `github.event` fields, over-broad permissions). Do not review edge-case text
+        handling in helper scripts beyond that.
+
+    - path: "tools/**"
+      instructions: |
+        Internal developer tooling, not shipped to customers. Flag only data-destructive
+        behavior and correctness bugs that would give wrong results. Skip robustness
+        polish (timeouts, retries, logging) unless it can hang CI.
+
+    - path: "api/**/*.yaml"
+      instructions: |
+        Check that the OpenAPI spec matches the server handler in this PR: parameters,
+        response codes, and required fields. Ignore wording.
+
+  # Tools: ALL OFF. Linting, security and secret scanning run in CI, which is the
+  # single source for those results. Every tool defaults to enabled and there is no
+  # global switch, so each is turned off here (59 keys, schema v2 as of Nov 2026).
+  # New tools CodeRabbit adds later default to on: re-check this list when it grows.
+  tools:
+    ast-grep:
+      enabled: false
+    shellcheck:
+      enabled: false
+    ruff:
+      enabled: false
+    markdownlint:
+      enabled: false
+    github-checks:
+      enabled: false
+    languagetool:
+      enabled: false
+    biome:
+      enabled: false
+    hadolint:
+      enabled: false
+    swiftlint:
+      enabled: false
+    phpstan:
+      enabled: false
+    phpmd:
+      enabled: false
+    phpcs:
+      enabled: false
+    golangci-lint:
+      enabled: false
+    yamllint:
+      enabled: false
+    gitleaks:
+      enabled: false
+    trufflehog:
+      enabled: false
+    checkov:
+      enabled: false
+    tflint:
+      enabled: false
+    detekt:
+      enabled: false
+    eslint:
+      enabled: false
+      e18e:
+        enabled: false
+    flake8:
+      enabled: false
+    fbinfer:
+      enabled: false
+    fortitudeLint:
+      enabled: false
+    rubocop:
+      enabled: false
+    buf:
+      enabled: false
+    regal:
+      enabled: false
+    actionlint:
+      enabled: false
+    zizmor:
+      enabled: false
+    pmd:
+      enabled: false
+    clang:
+      enabled: false
+    cppcheck:
+      enabled: false
+    vale:
+      enabled: false
+    verilator:
+      enabled: false
+    opengrep:
+      enabled: false
+    semgrep:
+      enabled: false
+    circleci:
+      enabled: false
+    clippy:
+      enabled: false
+    sqlfluff:
+      enabled: false
+    squawk:
+      enabled: false
+    trivy:
+      enabled: false
+    prismaLint:
+      enabled: false
+    pylint:
+      enabled: false
+    oxc:
+      enabled: false
+    shopifyThemeCheck:
+      enabled: false
+    luacheck:
+      enabled: false
+    brakeman:
+      enabled: false
+    dotenvLint:
+      enabled: false
+    htmlhint:
+      enabled: false
+    stylelint:
+      enabled: false
+    checkmake:
+      enabled: false
+    osvScanner:
+      enabled: false
+    oasdiff:
+      enabled: false
+    reactDoctor:
+      enabled: false
+    presidio:
+      enabled: false
+    blinter:
+      enabled: false
+    smartyLint:
+      enabled: false
+    emberTemplateLint:
+      enabled: false
+    skillspector:
+      enabled: false
+    psscriptanalyzer:
+      enabled: false
+
+  # Request-changes / automatic approval: KEEP. CodeRabbit's approval is one of the
+  # two approvals master requires. It is on today only via the org UI, and this key
+  # defaults to false, so set it explicitly here.
+  # Do not also set the legacy `request_changes_workflow` key: if the two disagree,
+  # CodeRabbit disables approvals.
+  auto_approvals:
+    enabled: true
+    # 49 of 65 `@coderabbitai approve` commands came from the PR's own author, which
+    # let authors supply one of the two required approvals. Another developer can
+    # still use the command.
+    allow_author_approval: false
+
+chat:
+  auto_reply: true
+  allow_non_org_members: false
+
+knowledge_base:
+  opt_out: false
+  code_guidelines:
+    enabled: true             # already reads AGENTS.md / CLAUDE.md files by default
+  learnings:
+    scope: local              # public repo: `auto` already behaves as local; explicit for clarity
+    # New learnings wait 7 days and an admin can reject them before they apply.
+    # Learning-based findings were declined 38% of the time vs 17% overall, and
+    # 15 learnings were created from agent-written replies.
+    approval_delay: 7
