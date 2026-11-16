@@ -3,10 +3,8 @@
 
 /* eslint-disable formatjs/enforce-placeholders -- Admin wizard uses help_text_values for placeholders, which ESLint cannot statically analyze */
 
-import React, {isValidElement} from 'react';
-import type {JSX} from 'react';
+import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
 import type {Job} from '@mattermost/types/jobs';
 
@@ -32,7 +30,6 @@ import * as DefinitionConstants from './admin_definition_constants';
 import {it} from './admin_definition_helpers';
 import CustomProfileAttributes from './custom_profile_attributes/custom_profile_attributes';
 import type {LDAPAdminDefinitionConfigSchemaSettings} from './ldap_wizard/ldap_wizard';
-import type {AdminDefinitionSetting, SearchableStrings} from './types';
 
 const ASTERISK_PASSWORD_PATTERN = /^\*+$/;
 
@@ -806,22 +803,3 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
         ],
     }],
 };
-
-function isSearchable(value: string | JSX.Element | MessageDescriptor | undefined): value is string | MessageDescriptor {
-    return Boolean(value) && !isValidElement(value);
-}
-
-function getSettingsSearchableStrings(settings: AdminDefinitionSetting[]): SearchableStrings {
-    return settings.flatMap((setting) => {
-        const strings: SearchableStrings = [setting.label, setting.help_text].filter(isSearchable);
-        if (setting.type === 'expandable_setting') {
-            strings.push(...getSettingsSearchableStrings(setting.settings));
-        }
-        return strings;
-    });
-}
-
-export const searchableStrings: SearchableStrings = (ldapWizardAdminDefinition.sections ?? []).flatMap((section) => [
-    ...[section.title, section.subtitle, section.sectionTitle].filter(isSearchable),
-    ...getSettingsSearchableStrings(section.settings),
-]);
