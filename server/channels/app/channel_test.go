@@ -659,12 +659,17 @@ func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
 	}, th.BasicUser.Id, newValues("first"))
 	require.Nil(t, appErr)
 
-	var fieldCalls []recordedUpsert
-	for _, c := range hook.recorded() {
-		if slices.Contains(c.fields, field.ID) {
-			fieldCalls = append(fieldCalls, c)
+	callsForField := func() []recordedUpsert {
+		var fieldCalls []recordedUpsert
+		for _, c := range hook.recorded() {
+			if slices.Contains(c.fields, field.ID) {
+				fieldCalls = append(fieldCalls, c)
+			}
 		}
+		return fieldCalls
 	}
+
+	fieldCalls := callsForField()
 	require.Len(t, fieldCalls, 1)
 	assert.Equal(t, properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id}, fieldCalls[0].marker)
 	for _, target := range fieldCalls[0].targets {
@@ -678,9 +683,9 @@ func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
 	_, appErr = th.App.UpsertPropertyValues(rctx, second, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	require.Nil(t, appErr)
 
-	calls := hook.recorded()
-	require.Greater(t, len(calls), 1)
-	assert.Equal(t, properties.WriteMarker{}, calls[len(calls)-1].marker)
+	fieldCalls = callsForField()
+	require.Len(t, fieldCalls, 2)
+	assert.Equal(t, properties.WriteMarker{}, fieldCalls[1].marker)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
