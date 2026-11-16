@@ -750,8 +750,8 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	if appErr := a.validateCommandTriggerUniqueness(cmd.TeamId, cmd.Trigger, ""); appErr != nil {
-		return nil, appErr
+	if err := a.validateCommandTriggerUniqueness(cmd.TeamId, cmd.Trigger, ""); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	command, nErr := a.Srv().Store().Command().Save(cmd)
@@ -765,7 +765,7 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 	return command, nil
 }
 
-func (a *App) validateCommandTriggerUniqueness(teamID, trigger, excludeCommandID string) *model.AppError {
+func (a *App) validateCommandTriggerUniqueness(teamID, trigger, excludeCommandID string) error {
 	trigger = strings.ToLower(trigger)
 
 	for _, builtInProvider := range commandProviders {
@@ -819,8 +819,8 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.PluginId = oldCmd.PluginId
 	updatedCmd.TeamId = oldCmd.TeamId
 
-	if appErr := a.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
-		return nil, appErr
+	if err := a.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	command, err := a.Srv().Store().Command().Update(updatedCmd)
@@ -837,8 +837,8 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
-	if appErr := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); appErr != nil {
-		return appErr
+	if err := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); err != nil {
+		return model.AsAppError(err)
 	}
 
 	command.TeamId = team.Id

@@ -229,9 +229,9 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 
 	mode := storedAutoAdd
 	if raw, specified := rule.Metadata[model.AccessControlRuleMetadataAutoAdd]; specified {
-		requested, appErr := requestedAutoAddMode(raw)
-		if appErr != nil {
-			return appErr
+		requested, err := requestedAutoAddMode(raw)
+		if err != nil {
+			return model.AsAppError(err)
 		}
 		mode = requested
 	}
@@ -254,7 +254,7 @@ func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.A
 // empty string is how a client turns auto-adding off; any other unrecognized
 // value is a client error rather than a silent downgrade to off, so a client
 // asking for a mode this server does not implement hears about it.
-func requestedAutoAddMode(raw any) (string, *model.AppError) {
+func requestedAutoAddMode(raw any) (string, error) {
 	mode, ok := raw.(string)
 	if !ok {
 		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
@@ -550,8 +550,8 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 			}
 		}
 
-		if appErr := rejectMaskedTokens(policy); appErr != nil {
-			return nil, appErr
+		if err := rejectMaskedTokens(policy); err != nil {
+			return nil, model.AsAppError(err)
 		}
 	}
 
