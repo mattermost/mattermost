@@ -106,8 +106,30 @@ function arePluginsEnabled(state: GlobalState): boolean {
     return true;
 }
 
+// trackPluginLoads marks plugin loading as in progress while fn runs, so views can hold decisions that
+// depend on plugin registrations. Passing syncSession also records the user whose session the plugin
+// list was synchronized for, mirroring lastFetchedForUserId. That lets views wait for an authenticated
+// synchronization that ensureAuthenticatedPluginsLoaded starts only after they have mounted. A client
+// that never fetches plugins records nothing, because ensureAuthenticatedPluginsLoaded would never run.
+async function trackPluginLoads(fn: () => Promise<void>, syncSession = false): Promise<void> {
+    const state = store.getState();
+    const recordSession = syncSession && (arePluginsEnabled(state) || state.plugins?.loadStatus?.syncedUserId !== undefined);
+    const syncedUserId = recordSession ? getCurrentUserId(state) || '' : undefined;
+
+    store.dispatch({type: ActionTypes.PLUGIN_LOADS_STARTED});
+    try {
+        await fn();
+    } finally {
+        store.dispatch({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId}});
+    }
+}
+
 // initializePlugins queries the server for all enabled plugins and loads each in turn.
-export async function initializePlugins(): Promise<void> {
+export function initializePlugins(): Promise<void> {
+    return trackPluginLoads(fetchAndLoadPlugins, true);
+}
+
+async function fetchAndLoadPlugins(): Promise<void> {
     if (!arePluginsEnabled(store.getState())) {
         return;
     }
@@ -165,6 +187,10 @@ const describePlugin = (manifest: PluginManifest): string => (
 // loadPlugin fetches the web app bundle described by the given manifest, waits for the bundle to
 // load, and then ensures the plugin has been initialized.
 export function loadPlugin(manifest: PluginManifest): Promise<void> {
+    return trackPluginLoads(() => loadPluginBundle(manifest));
+}
+
+function loadPluginBundle(manifest: PluginManifest): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!arePluginsEnabled(store.getState()) || failedPlugins.has(manifest.id)) {
             resolve();
@@ -314,7 +340,11 @@ export function removePlugin(manifest: PluginManifest): void {
 
 // loadPluginsIfNecessary synchronizes the current state of loaded plugins with that of the server,
 // loading any newly added plugins and unloading any removed ones.
-export async function loadPluginsIfNecessary(): Promise<void> {
+export function loadPluginsIfNecessary(): Promise<void> {
+    return trackPluginLoads(synchronizePlugins, true);
+}
+
+async function synchronizePlugins(): Promise<void> {
     if (!arePluginsEnabled(store.getState())) {
         return;
     }

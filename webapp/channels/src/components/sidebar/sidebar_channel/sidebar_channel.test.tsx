@@ -9,8 +9,11 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
+
+// The global mock replaces useHistory, but these tests navigate a real memory history.
+jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
 
 jest.mock('components/tours/onboarding_tour', () => ({
     ChannelsAndDirectMessagesTour: () => null,
@@ -454,6 +457,35 @@ describe('components/sidebar/sidebar_channel', () => {
             const tabbable = Array.from(container.querySelectorAll('[tabindex="0"]'));
             expect(tabbable).toHaveLength(1);
             expect(tabbable[0]).toHaveAttribute('id', 'sidebarItem_town-square');
+        });
+
+        test('should toggle with the Space key on the chevron', async () => {
+            renderChannel({isDraggable: true});
+
+            act(() => getToggle().focus());
+            await userEvent.keyboard(' ');
+
+            expect(getToggle()).toHaveAttribute('aria-expanded', 'true');
+            expect(screen.getAllByRole('listitem')[0]).not.toHaveClass('dragging');
+        });
+
+        test('should not lift the channel with the Space key on the chevron', () => {
+            renderChannel({isDraggable: true});
+
+            act(() => getToggle().focus());
+            fireEvent.keyDown(getToggle(), {key: ' ', code: 'Space', keyCode: 32});
+
+            expect(screen.getAllByRole('listitem')[0]).not.toHaveClass('dragging');
+        });
+
+        test('should lift the channel with the Space key on the drag handle', async () => {
+            const {container} = renderChannel({isDraggable: true});
+            const channelItem = screen.getAllByRole('listitem')[0];
+            const handle = container.querySelector<HTMLElement>('[data-rfd-drag-handle-draggable-id]')!;
+            act(() => handle.focus());
+            fireEvent.keyDown(handle, {key: ' ', code: 'Space', keyCode: 32});
+
+            await waitFor(() => expect(channelItem).toHaveClass('dragging'));
         });
 
         test('should not render a drag handle when the channel is not draggable', () => {

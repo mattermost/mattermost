@@ -21,6 +21,7 @@ import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {loadPostAttributeFields} from 'actions/post_attributes';
 import {goToLastViewedChannel} from 'actions/views/channel';
 import {getChannelViewPluginComponent} from 'selectors/channel_view_plugin';
+import {arePluginsLoadedForSession} from 'selectors/plugins';
 
 import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
@@ -58,6 +59,7 @@ function mapStateToProps(state: GlobalState) {
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
         missingChannelRole,
         channelViewPluginComponent: getChannelViewPluginComponent(state, channel),
+        pluginsLoaded: arePluginsLoadedForSession(state),
         channelKind: getChannelKind(state, channel),
     };
 }

@@ -20,6 +20,7 @@ import {
     getChannelSidebarSubItems,
     getChannelSidebarSubItemsRegistration,
     isChannelSidebarSubItemDescendant,
+    makeGetChannelSidebarSubItems,
 } from './channel_sidebar_sub_items';
 import type {ResolvedChannelSidebarSubItem} from './channel_sidebar_sub_items';
 
@@ -237,6 +238,33 @@ describe('selectors/getChannelSidebarSubItems', () => {
         expect(items[2]).not.toHaveProperty('iconName');
     });
 
+    describe('permalink-shaped sub-paths', () => {
+        const subpathsKept = (subpaths: string[]) => {
+            const items = subpaths.map((subpath, i) => makeItem({id: `item-${i}`, subpath}));
+            const state = makeState([makeRegistration(items)]);
+            return getChannelSidebarSubItems(state, makeChannel()).map((item) => item.subpath);
+        };
+
+        it('drops a 26-character id first segment whatever its case, since the route is case-insensitive', () => {
+            expect(subpathsKept([
+                'abcdefghijklmnopqrstuvwxyz',
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                'AbCdEfGhIjKlMnOpQrStUvWxYz',
+                'aBcdefghijklmnopqrstuvwx12/details',
+                'MixedCase26CharacterIdAbcd/views/a',
+            ])).toEqual([]);
+        });
+
+        it('keeps segments that are not exactly 26 characters or that only contain an id later on', () => {
+            expect(subpathsKept([
+                'Abcdefghijklmnopqrstuvwxy',
+                'Abcdefghijklmnopqrstuvwxyz1',
+                'views/abcdefghijklmnopqrstuvwxyz',
+                'Abcdefghijklmnopqrstuvwxy-',
+            ])).toHaveLength(4);
+        });
+    });
+
     describe('nesting', () => {
         const resolve = (items: ChannelSidebarSubItem[], partial: Partial<ChannelSidebarSubItemsRegistration> = {}) => {
             return getChannelSidebarSubItems(makeState([makeRegistration(items, partial)]), makeChannel());
@@ -369,6 +397,79 @@ describe('selectors/getChannelSidebarSubItems', () => {
             const withoutDrop = getChannelSidebarSubItems(makeState([makeRegistration(items)]), makeChannel());
             expect(withoutDrop.map((i) => i.draggable)).toEqual([false, false, false, false]);
         });
+    });
+});
+
+describe('selectors/makeGetChannelSidebarSubItems', () => {
+    beforeEach(() => {
+        clearLoggedChannelSidebarSubItemsErrors();
+    });
+
+    it('calls getItems once per state and channel', () => {
+        const getItems = jest.fn(() => [makeItem()]);
+        const select = makeGetChannelSidebarSubItems();
+        const state = makeState([makeRegistration(null, {getItems})]);
+        const channel = makeChannel();
+
+        const first = select(state, channel);
+        expect(select(state, channel)).toBe(first);
+        expect(getItems).toHaveBeenCalledTimes(1);
+
+        select({...state}, channel);
+        expect(getItems).toHaveBeenCalledTimes(2);
+
+        select({...state}, makeChannel({id: 'channel-2'}));
+        expect(getItems).toHaveBeenCalledTimes(3);
+    });
+
+    it('keeps the previous array while the items stay equal and returns a new one when they change', () => {
+        let label = 'Item A';
+        const getItems = () => [makeItem({label}), makeItem({id: 'b', subpath: 'views/b', parentId: 'a'})];
+        const select = makeGetChannelSidebarSubItems();
+        const channel = makeChannel();
+
+        const first = select(makeState([makeRegistration(null, {getItems})]), channel);
+        expect(select(makeState([makeRegistration(null, {getItems})]), channel)).toBe(first);
+
+        label = 'Renamed';
+        const renamed = select(makeState([makeRegistration(null, {getItems})]), channel);
+        expect(renamed).not.toBe(first);
+        expect(renamed[0].label).toBe('Renamed');
+        expect(renamed[1]).toMatchObject({parentKey: 'test-plugin:a', depth: 1});
+        expect(first[0].hasChildren).toBe(true);
+    });
+
+    it('keeps instances independent', () => {
+        const getItems = jest.fn(() => [makeItem()]);
+        const state = makeState([makeRegistration(null, {getItems})]);
+        const channel = makeChannel();
+
+        makeGetChannelSidebarSubItems()(state, channel);
+        makeGetChannelSidebarSubItems()(state, channel);
+
+        expect(getItems).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips plugins entirely for DMs and channels without registrations', () => {
+        const getItems = jest.fn(() => [makeItem()]);
+        const select = makeGetChannelSidebarSubItems();
+
+        expect(select(makeState([makeRegistration(null, {getItems})]), makeChannel({type: 'D'}))).toEqual([]);
+        expect(select(makeState([]), makeChannel())).toEqual([]);
+        expect(getItems).not.toHaveBeenCalled();
+    });
+
+    it('still drops duplicate keys across registrations', () => {
+        const select = makeGetChannelSidebarSubItems();
+        const state = makeState([
+            makeRegistration([makeItem(), makeItem({label: 'Duplicate'})]),
+            makeRegistration([makeItem({id: 'z', subpath: 'views/z'})], {id: 'reg-2', pluginId: 'other-plugin'}),
+        ]);
+
+        expect(select(state, makeChannel()).map((item) => `${item.key}:${item.label}`)).toEqual([
+            'test-plugin:a:Item A',
+            'other-plugin:z:Item A',
+        ]);
     });
 });
 

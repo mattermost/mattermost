@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore} from 'react';
 import {useDispatch, useSelector, useStore} from 'react-redux';
-import {useLocation} from 'react-router-dom';
+import {useHistory} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -14,7 +14,7 @@ import {setGlobalItem} from 'actions/storage';
 import {
     areChannelSidebarSubItemsEqual,
     getChannelSidebarSubItemAncestorKeys,
-    getChannelSidebarSubItems,
+    makeGetChannelSidebarSubItems,
 } from 'selectors/channel_sidebar_sub_items';
 import type {ResolvedChannelSidebarSubItem} from 'selectors/channel_sidebar_sub_items';
 import {getGlobalItem} from 'selectors/storage';
@@ -70,11 +70,22 @@ export type ChannelSidebarSubItemsState = {
     toggle: () => void;
 };
 
+const NO_PATHNAME = '';
+const noop = () => {};
+
+// Reads the pathname only while enabled, so rows without sub-items don't re-render on navigation.
+function usePathname(enabled: boolean): string {
+    const history = useHistory();
+    const subscribe = useCallback((onChange: () => void) => (enabled ? history.listen(onChange) : noop), [enabled, history]);
+    return useSyncExternalStore(subscribe, () => (enabled ? history.location.pathname : NO_PATHNAME));
+}
+
 export function useChannelSidebarSubItems(channel: Channel | undefined, teamName: string | undefined): ChannelSidebarSubItemsState {
     const dispatch = useDispatch();
     const store = useStore<GlobalState>();
-    const {pathname} = useLocation();
-    const items = useSelector((state: GlobalState) => getChannelSidebarSubItems(state, channel), areChannelSidebarSubItemsEqual);
+    const getSubItems = useMemo(() => makeGetChannelSidebarSubItems(), []);
+    const items = useSelector((state: GlobalState) => getSubItems(state, channel), areChannelSidebarSubItemsEqual);
+    const pathname = usePathname(items.length > 0);
     const userId = useSelector(getCurrentUserId);
     const teamId = useSelector(getCurrentTeamId);
 

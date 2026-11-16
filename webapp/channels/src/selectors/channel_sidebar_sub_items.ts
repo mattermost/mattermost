@@ -78,8 +78,8 @@ type ResolvedItemDraft = {
     children: ResolvedItemDraft[];
 };
 
-// The channel route reads a 26-character first segment as a permalink post id before it considers a subpath.
-const POST_ID_SHAPED_FIRST_SEGMENT = /^[a-z0-9]{26}(\/|$)/;
+// The channel route reads a 26-character first segment, in any case, as a permalink post id before it considers a subpath.
+const POST_ID_SHAPED_FIRST_SEGMENT = /^[a-z0-9]{26}(\/|$)/i;
 
 function isValidIcon(iconName: unknown): iconName is IconGlyphTypes {
     return typeof iconName === 'string' && compassIconForName(iconName as IconGlyphTypes) !== null;
@@ -185,8 +185,8 @@ function flattenDepthFirst(drafts: ResolvedItemDraft[], out: ResolvedChannelSide
  * of a parent cycle (every item in the cycle becomes a root).
  *
  * Not memoized: getItems receives the full Redux state, so the slices it depends on can't be
- * known here. The result is a new array on each call, so use `areChannelSidebarSubItemsEqual`
- * with useSelector.
+ * known here. The result is a new array on each call; use `makeGetChannelSidebarSubItems` for
+ * rendering.
  */
 export function getChannelSidebarSubItems(
     state: GlobalState,
@@ -226,6 +226,34 @@ export function getChannelSidebarSubItems(
     }
 
     return result.length ? result : EMPTY as ResolvedChannelSidebarSubItem[];
+}
+
+/**
+ * Creates a selector for one channel's sub-items, for use with useSelector in a component that
+ * renders a single channel. Create one per component instance so each keeps its own cache.
+ *
+ * It calls `getChannelSidebarSubItems` at most once per (state, channel) pair, and returns the
+ * previous array when the new one is equal, so an unrelated store update neither re-renders the
+ * row nor changes the array's identity. getItems still runs again on every store update that
+ * changes the state, because it can read any slice; plugins must keep it cheap.
+ */
+export function makeGetChannelSidebarSubItems() {
+    let lastState: GlobalState | undefined;
+    let lastChannel: Channel | undefined;
+    let lastResult: ResolvedChannelSidebarSubItem[] = EMPTY as ResolvedChannelSidebarSubItem[];
+
+    return (state: GlobalState, channel?: Channel): ResolvedChannelSidebarSubItem[] => {
+        if (state === lastState && channel === lastChannel) {
+            return lastResult;
+        }
+        const next = getChannelSidebarSubItems(state, channel);
+        lastState = state;
+        lastChannel = channel;
+        if (!areChannelSidebarSubItemsEqual(lastResult, next)) {
+            lastResult = next;
+        }
+        return lastResult;
+    };
 }
 
 export function areChannelSidebarSubItemsEqual(

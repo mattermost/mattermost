@@ -1309,6 +1309,12 @@ describe('handleCloudSubscriptionChanged', () => {
 });
 
 describe('handlePluginEnabled/handlePluginDisabled', () => {
+    // The load status bookkeeping is covered with the plugin loader, not by these tests.
+    const pluginDispatchCalls = () => jest.mocked(store.dispatch).mock.calls.filter(([action]) => {
+        const type = (action as unknown as AnyAction)?.type;
+        return type !== ActionTypes.PLUGIN_LOADS_STARTED && type !== ActionTypes.PLUGIN_LOADS_FINISHED;
+    });
+
     const windowWithPlugins = window as unknown as {plugins: Record<string, {initialize: jest.Mock}>};
 
     const origError = console.error;
@@ -1367,18 +1373,18 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             expect((document.getElementsByTagName as jest.Mock)()[0].appendChild).toHaveBeenCalledTimes(1);
             expect(mockScript.dataset.pluginVersion).toBe(manifest.version);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(1);
+            expect(pluginDispatchCalls()).toHaveLength(1);
 
-            let dispatchArg = jest.mocked(store.dispatch).mock.calls[0][0] as unknown as AnyAction;
+            let dispatchArg = pluginDispatchCalls()[0][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
             // Assert handlePluginEnabled is idempotent
             handlePluginEnabled(wsMessage<WebSocketMessages.Plugin>({data: {manifest}}));
 
-            expect(store.dispatch).toHaveBeenCalledTimes(2);
+            expect(pluginDispatchCalls()).toHaveLength(2);
 
-            dispatchArg = jest.mocked(store.dispatch).mock.calls[1][0] as unknown as AnyAction;
+            dispatchArg = pluginDispatchCalls()[1][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
@@ -1408,7 +1414,7 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
             expect((document.getElementsByTagName as jest.Mock)()[0].appendChild).toHaveBeenCalledTimes(1);
 
-            let dispatchArg = jest.mocked(store.dispatch).mock.calls[0][0] as unknown as AnyAction;
+            let dispatchArg = pluginDispatchCalls()[0][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
@@ -1422,21 +1428,21 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
 
             expect(document.createElement).toHaveBeenCalledTimes(2);
 
-            dispatchArg = jest.mocked(store.dispatch).mock.calls[1][0] as unknown as AnyAction;
+            dispatchArg = pluginDispatchCalls()[1][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifestv2);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(4);
-            const dispatchRemovedArg = jest.mocked(store.dispatch).mock.calls[2][0] as unknown as (dispatch: typeof store.dispatch) => void;
+            expect(pluginDispatchCalls()).toHaveLength(4);
+            const dispatchRemovedArg = pluginDispatchCalls()[2][0] as unknown as (dispatch: typeof store.dispatch) => void;
             expect(typeof dispatchRemovedArg).toBe('function');
             dispatchRemovedArg(store.dispatch);
 
-            dispatchArg = jest.mocked(store.dispatch).mock.calls[3][0] as unknown as AnyAction;
+            dispatchArg = pluginDispatchCalls()[3][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifestv2);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(6);
-            const dispatchReceivedArg4 = jest.mocked(store.dispatch).mock.calls[5][0] as unknown as AnyAction;
+            expect(pluginDispatchCalls()).toHaveLength(6);
+            const dispatchReceivedArg4 = pluginDispatchCalls()[5][0] as unknown as AnyAction;
 
             expect(dispatchReceivedArg4.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
             expect(dispatchReceivedArg4.data).toBe(manifestv2);
@@ -1502,19 +1508,19 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
             // Assert handlePluginDisabled is idempotent
             handlePluginDisabled(wsMessage<WebSocketMessages.Plugin>({data: {manifest}}));
 
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
+            expect(pluginDispatchCalls()).toHaveLength(3);
 
-            const dispatchArg = jest.mocked(store.dispatch).mock.calls[0][0] as unknown as AnyAction;
+            const dispatchArg = pluginDispatchCalls()[0][0] as unknown as AnyAction;
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            const dispatchRemovedArg = jest.mocked(store.dispatch).mock.calls[1][0] as unknown as (dispatch: typeof store.dispatch) => void;
+            const dispatchRemovedArg = pluginDispatchCalls()[1][0] as unknown as (dispatch: typeof store.dispatch) => void;
 
             expect(typeof dispatchRemovedArg).toBe('function');
             dispatchRemovedArg(store.dispatch);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(5);
-            const dispatchReceivedArg3 = jest.mocked(store.dispatch).mock.calls[4][0] as unknown as AnyAction;
+            expect(pluginDispatchCalls()).toHaveLength(5);
+            const dispatchReceivedArg3 = pluginDispatchCalls()[4][0] as unknown as AnyAction;
             expect(dispatchReceivedArg3.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
             expect(dispatchReceivedArg3.data).toBe(manifest);
 

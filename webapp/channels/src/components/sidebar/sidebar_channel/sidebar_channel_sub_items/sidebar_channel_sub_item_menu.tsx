@@ -46,10 +46,13 @@ export default function SidebarChannelSubItemMenu({channel, item, onMenuToggle}:
     const store = useStore<GlobalState>();
     const [actions, setActions] = useState<ChannelSidebarSubItemAction[]>([]);
 
-    // Actions are read from fresh state when the user starts interacting with the button, so they
-    // are in place before the click that opens the menu is handled.
-    const refreshActions = useCallback(() => {
-        setActions(getChannelSidebarSubItemActions(store.getState(), channel, item));
+    // Read once per open, from fresh state, in the capture phase of the click that opens the menu so
+    // the actions are in place before the menu renders. React bubbles events from the menu's portal
+    // through this wrapper, so clicks inside the open menu are ignored by checking the DOM.
+    const readActions = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+        if (event.currentTarget.contains(event.target as Node)) {
+            setActions(getChannelSidebarSubItemActions(store.getState(), channel, item));
+        }
     }, [store, channel, item]);
 
     const idSuffix = `${channel.id}-${item.key}`.replace(/\s+/g, '_');
@@ -79,9 +82,7 @@ export default function SidebarChannelSubItemMenu({channel, item, onMenuToggle}:
     return (
         <div
             className='SidebarChannelSubItem__menu'
-            onPointerDownCapture={refreshActions}
-            onFocusCapture={refreshActions}
-            onClickCapture={refreshActions}
+            onClickCapture={readActions}
         >
             <Menu.Container
                 menuButton={{
