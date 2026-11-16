@@ -60,8 +60,8 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
 	if cwsLogin {
-		if err = checkUserNotDisabled(user); err != nil {
-			return nil, err
+		if err := checkUserNotDisabled(user); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if err := checkUserNotBot(user); err != nil {
 			return nil, model.AsAppError(err)
@@ -151,7 +151,7 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 
 func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, opts model.LoginOptions) (*model.Session, *model.AppError) {
 	if err := checkUserNotDisabled(user); err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	if err := checkUserNotBot(user); err != nil {

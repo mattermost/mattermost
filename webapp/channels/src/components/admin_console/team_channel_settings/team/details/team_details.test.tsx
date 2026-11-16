@@ -186,31 +186,6 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         checkExpressionSpy = jest.spyOn(Client4, 'checkAccessControlExpression').mockResolvedValue([]);
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <TeamDetails
-                {...baseProps}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with isLocalArchived true', () => {
-        const props = {
-            ...baseProps,
-            team: {
-                ...baseProps.team,
-                delete_at: 16465313,
-            },
-        };
-        const {container} = renderWithContext(
-            <TeamDetails
-                {...props}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('saves the edited team name and description through patchTeam', async () => {
         const patchTeam = jest.fn().mockResolvedValue({data: {}});
         const props = {

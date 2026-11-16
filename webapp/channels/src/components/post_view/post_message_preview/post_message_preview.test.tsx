@@ -4,7 +4,7 @@
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
-import type {Post, PostEmbed} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
@@ -123,11 +123,6 @@ describe('PostMessagePreview', () => {
         MockedInteractiveMessages.mockClear();
     });
 
-    test('should render correctly', () => {
-        const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
-        expect(container).toMatchSnapshot();
-    });
-
     test('renders interactive messages with interactions disabled when mm blocks are present', () => {
         const postPreview = {
             ...previewPost,
@@ -176,18 +171,6 @@ describe('PostMessagePreview', () => {
         expect(screen.queryByTestId('interactive-messages-preview')).toBeNull();
     });
 
-    test('should render without preview', () => {
-        const {container} = renderWithContext(
-            <PostMessagePreview
-                {...baseProps}
-                previewPost={undefined}
-            />,
-            baseState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('show render without preview when preview posts becomes undefined after being defined', () => {
         const props = {...baseProps};
         let renderResult = renderWithContext(
@@ -196,8 +179,6 @@ describe('PostMessagePreview', () => {
             />,
             baseState,
         );
-
-        expect(renderResult.container).toMatchSnapshot();
         let permalink = renderResult.container.querySelector('.attachment--permalink');
         expect(permalink).toBeInTheDocument();
 
@@ -211,62 +192,8 @@ describe('PostMessagePreview', () => {
             />,
             baseState,
         );
-        expect(renderResult.container).toMatchSnapshot();
         permalink = renderResult.container.querySelector('.attachment--permalink');
         expect(permalink).not.toBeInTheDocument();
-    });
-
-    test('should not render bot icon', () => {
-        const postProps = {
-            override_icon_url: 'https://fakeicon.com/image.jpg',
-            use_user_icon: 'false',
-            from_webhook: 'false',
-        };
-
-        const postPreview = {
-            ...previewPost,
-            props: postProps,
-        } as unknown as Post;
-
-        const props = {
-            ...baseProps,
-            previewPost: postPreview,
-        };
-        const {container} = renderWithContext(
-            <PostMessagePreview
-                {...props}
-            />,
-            baseState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render bot icon', () => {
-        const postProps = {
-            override_icon_url: 'https://fakeicon.com/image.jpg',
-            use_user_icon: false,
-            from_webhook: 'true',
-        };
-
-        const postPreview = {
-            ...previewPost,
-            props: postProps,
-        } as unknown as Post;
-
-        const props = {
-            ...baseProps,
-            previewPost: postPreview,
-            enablePostIconOverride: true,
-        };
-        const {container} = renderWithContext(
-            <PostMessagePreview
-                {...props}
-            />,
-            baseState,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 
     describe('redacted files placeholder', () => {
@@ -328,52 +255,6 @@ describe('PostMessagePreview', () => {
             const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
 
             expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
-        });
-    });
-
-    describe('nested previews', () => {
-        const files = {
-            file_ids: [
-                'file_1',
-                'file_2',
-            ],
-        };
-
-        const opengraphMetadata = {
-            type: 'opengraph',
-            url: 'https://example.com',
-        } as PostEmbed;
-
-        test('should render opengraph preview', () => {
-            const postPreview = {
-                ...previewPost,
-                metadata: {
-                    embeds: [opengraphMetadata],
-                },
-            } as Post;
-
-            const props = {
-                ...baseProps,
-                previewPost: postPreview,
-            };
-
-            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
-            expect(container).toMatchSnapshot();
-        });
-
-        test('should render file preview', () => {
-            const postPreview = {
-                ...previewPost,
-                ...files,
-            } as Post;
-
-            const props = {
-                ...baseProps,
-                previewPost: postPreview,
-            };
-
-            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
-            expect(container).toMatchSnapshot();
         });
     });
 

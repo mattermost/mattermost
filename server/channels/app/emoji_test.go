@@ -5,6 +5,8 @@ package app
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -13,8 +15,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -182,4 +187,74 @@ func TestUploadEmojiImage_RespectsDecoderConcurrencyLimit(t *testing.T) {
 		require.Nil(t, appErr)
 	}
 	require.EqualValues(t, concurrentUploads, completed.Load())
+}
+
+func TestEmojiStoreErrorClassification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomEmoji = true
+		*cfg.FileSettings.DriverName = model.ImageDriverLocal
+	})
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	emojiMock := &storemocks.EmojiStore{}
+	mockStore.On("Emoji").Return(emojiMock)
+
+	notFound := fmt.Errorf("query: %w", store.NewErrNotFound("Emoji", model.NewId()))
+	plain := errors.New("db down")
+
+	emojiMock.On("Delete", mock.Anything, mock.Anything).Return(notFound).Once()
+	appErr := th.App.DeleteEmoji(th.Context, &model.Emoji{Id: model.NewId()})
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.emoji.delete.no_results", appErr.Id)
+	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	emojiMock.On("Delete", mock.Anything, mock.Anything).Return(plain).Once()
+	appErr = th.App.DeleteEmoji(th.Context, &model.Emoji{Id: model.NewId()})
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.emoji.delete.app_error", appErr.Id)
+	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+
+	for _, tc := range []struct {
+		err    error
+		id     string
+		status int
+	}{
+		{notFound, "app.emoji.get.no_result", http.StatusNotFound},
+		{plain, "app.emoji.get.app_error", http.StatusInternalServerError},
+	} {
+		emojiMock.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil, tc.err).Twice()
+
+		_, appErr = th.App.GetEmoji(th.Context, model.NewId())
+		require.NotNil(t, appErr)
+		assert.Equal(t, tc.id, appErr.Id)
+		assert.Equal(t, tc.status, appErr.StatusCode)
+
+		_, _, appErr = th.App.GetEmojiImage(th.Context, model.NewId())
+		require.NotNil(t, appErr)
+		assert.Equal(t, tc.id, appErr.Id)
+		assert.Equal(t, tc.status, appErr.StatusCode)
+	}
+
+	for _, tc := range []struct {
+		err    error
+		id     string
+		status int
+	}{
+		{notFound, "app.emoji.get_by_name.no_result", http.StatusNotFound},
+		{plain, "app.emoji.get_by_name.app_error", http.StatusInternalServerError},
+	} {
+		emojiMock.On("GetByName", mock.Anything, mock.Anything, mock.Anything).Return(nil, tc.err).Twice()
+
+		_, appErr = th.App.GetEmojiByName(th.Context, "custom")
+		require.NotNil(t, appErr)
+		assert.Equal(t, tc.id, appErr.Id)
+		assert.Equal(t, tc.status, appErr.StatusCode)
+
+		_, appErr = th.App.GetEmojiStaticURL(th.Context, "custom")
+		require.NotNil(t, appErr)
+		assert.Equal(t, tc.id, appErr.Id)
+		assert.Equal(t, tc.status, appErr.StatusCode)
+	}
 }

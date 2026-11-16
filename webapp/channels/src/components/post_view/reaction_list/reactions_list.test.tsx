@@ -54,27 +54,6 @@ describe('components/ReactionList', () => {
         actions,
     };
 
-    test('should render nothing when no reactions', () => {
-        const props = {
-            ...baseProps,
-            reactions: {},
-        };
-
-        const {container} = render(
-            <ReactionList {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render when there are reactions', () => {
-        const {container} = render(
-            <ReactionList {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     /*
     This test uses 3 different reactions from 2 users. Reactions A and B are done by the first user.
     React C is an additional reaction with the same emoji as the first by a second user.

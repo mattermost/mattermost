@@ -197,7 +197,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
 ### API Changes
  - Added new API endpoints to manage remote clusters.
  - Added two new query parameters to ``GET /api/v4/jobs, job_type`` and status.
- - Added a new endpoint ``PATCH /api/v4/jobs/&#123;job_id&#125;/status``.
+ - Added a new endpoint ``PATCH /api/v4/jobs/{job_id}/status``.
  - Updated ``AddChannelMember`` to accept a list of userIds.
  - Added six new permissions to manage the status of particular jobs:
      - ``PermissionManagePostBleveIndexesJob``
@@ -488,12 +488,12 @@ See [this walkthrough video](https://mattermost.com/video/mattermost-v9-8-change
  - A new flag (``extract-content``) was added to the mmctl import process that allows the server to skip content extraction during the import phase.
 
 ### API Changes
- - Added a create channel bookmark endpoint at ``/api/v4/channels/&#123;channel_id&#125;/bookmarks``.
+ - Added a create channel bookmark endpoint at ``/api/v4/channels/{channel_id}/bookmarks``.
  - Added additional query params to channel endpoints to include channel bookmarks.
- - Added update channel bookmark endpoint at ``/api/v4/channels/&#123;channel_id&#125;/bookmarks/&#123;bookmark_id&#125;``.
- - Added list channel bookmarks endpoint at ``/api/v4/channels/&#123;channel_id&#125;/bookmarks``.
- - Added delete channel bookmark endpoint at ``/api/v4/channels/&#123;channel_id&#125;/bookmarks/&#123;bookmark_id&#125;``.
- - Added update channel bookmark sort order endpoint at ``/api/v4/channels/&#123;channel_id&#125;/bookmarks/&#123;bookmark_id&#125;/sort_order``.
+ - Added update channel bookmark endpoint at ``/api/v4/channels/{channel_id}/bookmarks/{bookmark_id}``.
+ - Added list channel bookmarks endpoint at ``/api/v4/channels/{channel_id}/bookmarks``.
+ - Added delete channel bookmark endpoint at ``/api/v4/channels/{channel_id}/bookmarks/{bookmark_id}``.
+ - Added update channel bookmark sort order endpoint at ``/api/v4/channels/{channel_id}/bookmarks/{bookmark_id}/sort_order``.
  - Exposed a local-mode only API for reattaching plugins, primarily to facilitate mock-free unit testing.
  - Exposed ``UpdateUserRoles`` in ``pluginapi``.
  - Exposed ``pluginapi.ProfileImageBytes`` to simplify bot setup from a plugin.
@@ -1445,7 +1445,7 @@ If you upgrade from a release earlier than v8.1, please read the other [Importan
  - Disabled ``PluginSettings.EnableRemoteMarketplace`` functionality.
 
 ### Bug Fixes
- - Fixed the error returned by ``PUT /api/v4/channels/&#123;channelid&#125;`` when the provided name already existed in the team.
+ - Fixed the error returned by ``PUT /api/v4/channels/{channelid}`` when the provided name already existed in the team.
  - Fixed an issue where CRLF line endings passed to mmctl commands were not being stripped from commands.
  - Fixed an issue where text copied from Microsoft OneNote is pasted as an image.
  - Fixed an issue preventing successful activation of trial licenses.
@@ -2647,7 +2647,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 
 ### API Changes
  - Added a new response-header ``First-Inaccessible-File-Time`` to the APIs fetching single file information.
- - Added a new query parameter to include deleted posts as long as it's requested by a system admin in ``/api/v4/channels/&#123;channel_id&#125;/posts``.
+ - Added a new query parameter to include deleted posts as long as it's requested by a system admin in ``/api/v4/channels/{channel_id}/posts``.
  - Added new plugin endpoints to ``PermissionService`` interface.
 
 ### Go Version
@@ -2859,7 +2859,7 @@ If you upgrade from a release earlier than v7.2, please read the other [Importan
 	  - ``GET /api/v4/teams/:team_id/top/team_members``
 	  - ``GET /api/v4/teams/:team_id:/top/threads``
  - Added ``first_inaccessible_post_time`` to post API responses.
- - Adds query parameter ``include_deleted`` to endpoint: ``&#123;&#123;[http://your-mattermost-url.com/api/v4/posts/&#123;post_id&#125;/files/info&#125;&#125;](http://your-mattermost-url.com/api/v4/posts/%7Bpost_id%7D/files/info%7D%7D)``.
+ - Adds query parameter ``include_deleted`` to endpoint: ``{{[http://your-mattermost-url.com/api/v4/posts/{post_id}/files/info}}](http://your-mattermost-url.com/api/v4/posts/%7Bpost_id%7D/files/info%7D%7D)``.
 
 ### Go Version
  - v7.3 is built with Go ``v1.18.1``.
@@ -3387,7 +3387,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
     - Elasticsearch (Enterprise subscription) and Bleve indexing have been revamped to be much more efficient and faster. The config parameter ``BulkIndexingTimeWindowSeconds`` for both Elasticsearch and Bleve is now deprecated and no longer used. A new config parameter called ``BatchSize`` has been introduced instead. This parameter controls the number of objects that can be indexed in a single batch. This makes things more efficient and maintains a constant workload.
 
 #### API Changes
- - Added a new API endpoint ``POST /api/v4/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads/&#123;thread_id&#125;/set_unread/&#123;post_id&#125;`` to set a thread as unread by post id.
+ - Added a new API endpoint ``POST /api/v4/users/{user_id}/teams/{team_id}/threads/{thread_id}/set_unread/{post_id}`` to set a thread as unread by post id.
  - Added new API endpoints ``GET /api/v4/teams/:team_id/top/reactions`` and ``GET /api/v4/users/me/top/reactions`` to get top reactions for a team and user.
  - Fixed an issue where the ``UpdateUser`` API endpoint required a ``create_at`` field.
  - ``api/v4/file/s3_test`` now requires ``FileSettings`` to be all set to run.
@@ -3681,7 +3681,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Added new endpoint GET /api/v4/users/invalid_emails. This endpoint will return a list of non-guest users who are not in your whitelisted domains on a server where EnableOpenServer is false.
  - Added new API endpoint ``POST /system/onboarding/complete`` to complete onboarding.
  - Added a new API endpoint ``GET api/v4/latest_version`` to fetch the latest Mattermost version.
- - Modified an existing API endpoint ``$&#123;baseUrl&#125;/api/v4/channels/search?system_console=false`` and added additional parameters ``$&#123;baseUrl&#125;/api/v4/users/me/channels`` to fetch all the channel across teams and ``$&#123;baseUrl&#125;/api/v4/users/$&#123;userId/channel_members`` to fetch all the channel_members across teams).
+ - Modified an existing API endpoint ``${baseUrl}/api/v4/channels/search?system_console=false`` and added additional parameters ``${baseUrl}/api/v4/users/me/channels`` to fetch all the channel across teams and ``${baseUrl}/api/v4/users/${userId/channel_members`` to fetch all the channel_members across teams).
 
 #### Websocket Changes
  - Refactored `user-update` websocket event handler to prevent extra get request to server for unsanitized user.
@@ -4406,7 +4406,7 @@ If you upgrade from a release earlier than v5.39, please read the other [Importa
  - Added the ability for Team Edition to edit role permissions.
  - Removed a hard-coded override of ``TeamSettings.MaxNotificationsPerChannel`` on unlicensed servers (e.g. Team Edition).
  - Migrated the extraction command to mmctl.
- - Removed the convert channel endpoint to use ``/channels/&#123;channel_id&#125;/privacy`` instead.
+ - Removed the convert channel endpoint to use ``/channels/{channel_id}/privacy`` instead.
  - Removed deprecated ``Posts.ParentId`` in favor of the semantically equivalent ``Posts.RootId``. Also removed ``CommandWebhook.ParentId`` and ``CompliancePost.ParentId`` for the same reason.
  - Added a field to each of the compliance export formats (CSV, Global Relay, and Actiance) to indicate that a post was viewable via the new permalink preview feature.
  - Removed the following deprecated CLI commands in favor of [mmctl](https://docs.mattermost.com/manage/mmctl-command-line-tool.html):
@@ -4939,7 +4939,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Removed several redundant Database indexes.
 
 ### API Changes
- - Added a new field, team_id, to the response of ``POST api/v4/groups/&#123;group_id&#125;/channels/&#123;channel_id&#125;/link`` to add a team ID to the response when linking a channel to a group.
+ - Added a new field, team_id, to the response of ``POST api/v4/groups/{group_id}/channels/{channel_id}/link`` to add a team ID to the response when linking a channel to a group.
  - Added an optional ``collapsed_threads_supported`` parameter to /channels/members/&#123;userId&#125;/view to indicate that the client supports collapsed threads.
  - Added an optional ``collapsed_threads_supported`` parameter to /users/&#123;userId&#125;/posts/&#123;postId&#125;/set_unread to indicate that the client supports collapsed threads.
  - Updated the webapp to pass ``collapsed_threads_supported`` parameters to the server to indicate that the webapp supports collapsed reply threads.
@@ -5118,19 +5118,19 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
     - ``GET    /data_retention/policies``
     - ``GET    /data_retention/policies_count``
     - ``POST   /data_retention/policies``
-    - ``GET    /data_retention/policies/&#123;policy_id&#125;``
-    - ``PATCH  /data_retention/policies/&#123;policy_id&#125;``
-    - ``DELETE /data_retention/policies/&#123;policy_id&#125;``
-    - ``GET    /data_retention/policies/&#123;policy_id&#125;/teams``
-    - ``POST   /data_retention/policies/&#123;policy_id&#125;/teams``
-    - ``DELETE /data_retention/policies/&#123;policy_id&#125;/teams``
-    - ``POST   /data_retention/policies/&#123;policy_id&#125;/teams/search``
-    -  ``GET    /data_retention/policies/&#123;policy_id&#125;/channels``
-    - ``POST   /data_retention/policies/&#123;policy_id&#125;/channels``
-    - ``DELETE /data_retention/policies/&#123;policy_id&#125;/channels``
-    - ``POST   /data_retention/policies/&#123;policy_id&#125;/channels/search``
-    - ``GET    /users/&#123;user_id&#125;/data_retention/team_policies``
-    - ``GET    /users/&#123;user_id&#125;/data_retention/channel_policies``
+    - ``GET    /data_retention/policies/{policy_id}``
+    - ``PATCH  /data_retention/policies/{policy_id}``
+    - ``DELETE /data_retention/policies/{policy_id}``
+    - ``GET    /data_retention/policies/{policy_id}/teams``
+    - ``POST   /data_retention/policies/{policy_id}/teams``
+    - ``DELETE /data_retention/policies/{policy_id}/teams``
+    - ``POST   /data_retention/policies/{policy_id}/teams/search``
+    -  ``GET    /data_retention/policies/{policy_id}/channels``
+    - ``POST   /data_retention/policies/{policy_id}/channels``
+    - ``DELETE /data_retention/policies/{policy_id}/channels``
+    - ``POST   /data_retention/policies/{policy_id}/channels/search``
+    - ``GET    /users/{user_id}/data_retention/team_policies``
+    - ``GET    /users/{user_id}/data_retention/channel_policies``
 
 ### Go Version
  - v5.36 is built with Go ``1.15.5``.
@@ -5315,7 +5315,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Added ``TotalMsgCountRoot`` to ``Channels`` table and ``MsgCountRoot`` column to ``ChannelMembers`` table. Please note that the migration can take several minutes to complete on large MySQL instances.
 
 ### API Changes
- - Added ``/teams/&#123;team_id&#125;/files/search`` API endpoint for files search.
+ - Added ``/teams/{team_id}/files/search`` API endpoint for files search.
  - For LDAP and SAML users, the following fields cannot be changed via the API if the corresponding LDAP/SAML attributes have been set: first name, last name, position, nickname, email, profile picture. For OAuth users (i.e., GitLab, Google, Office365, and OpenID), the following fields cannot be changed via the API: first name, last name. All users who authenticate via a method other than email cannot change their username via the API.
 
 ### Go Version
@@ -5560,15 +5560,15 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Removed ``isomorphic-fetch`` from https://github.com/mattermost/mattermost-redux.
 
 ### API Changes
- - Added a new ``GET /&#123;team_id&#125;/threads/&#123;thread_id&#125;`` API method for retrieving single threads.
+ - Added a new ``GET /{team_id}/threads/{thread_id}`` API method for retrieving single threads.
  - Added a new ``/exports`` API endpoint to generate and manage export files.
- - Added a new ``/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads/mention_counts`` API endpoint.
+ - Added a new ``/users/{user_id}/teams/{team_id}/threads/mention_counts`` API endpoint.
  - Added a new ``GET /api/v4/cloud/subscription/stats`` API endpoint.
  - Added a new ``GET /api/v4/cloud/subscription/limitreached/invite`` API endpoint.
  - Added new ``PUT /api/v4/users/<id>/status/custom``, ``DELETE /api/v4/users/<id>/status/custom``, and ``DELETE /api/v4/users/<id>/status/custom/recent`` API endpoints.
  - The ``/api/v4/users/me/auth`` API endpoint can no longer be used to change passwords. This was a hidden feature that was not documented, but was nevertheless possible. We have removed this hidden feature.
- - Updated ``/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads`` API to support the ``unread=true`` query parameter.
- - The ``/api/v4/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads`` API endpoint now accepts "before" and "after" parameters instead of a page index.
+ - Updated ``/users/{user_id}/teams/{team_id}/threads`` API to support the ``unread=true`` query parameter.
+ - The ``/api/v4/users/{user_id}/teams/{team_id}/threads`` API endpoint now accepts "before" and "after" parameters instead of a page index.
  - Removed the session required restriction from the ``GET api/v4/subscription/stats`` API endpoint.
 
 ### Websocket Event Changes
@@ -5690,9 +5690,9 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Thread related API routes now include ``teamId`` path parameter.
  - Changed output of ``Get Threads API`` to include ``total_unread_threads`` instead of ``total_unread_replies``.
  - Added ``collapsedThreads`` and ``collapsedThreadsExtended`` query parameters to:
-    - ``api/v4/channels/&#123;channel_id:[A-Za-z0-9]+&#125;/posts``
-    - ``api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/channels/&#123;channel_id:[A-Za-z0-9]+&#125;/posts/unread``
-    - ``api/v4/posts/&#123;post_id:[A-Za-z0-9]+&#125;/thread``
+    - ``api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts``
+    - ``api/v4/users/{user_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}/posts/unread``
+    - ``api/v4/posts/{post_id:[A-Za-z0-9]+}/thread``
 
 ### Database Changes
  - Added a new ``Shared`` column to the ``Channels`` table.
@@ -6575,7 +6575,7 @@ Mattermost v5.24.0 contains low level security fixes. [Upgrading](https://docs.m
 
 ### Breaking Changes
  - A new configuration setting, ``ExtendSessionLengthWithActivity`` automatically extends sessions to keep users logged in if they are active in their Mattermost apps. It is recommended to enable this setting to improve user experience if compliant with your organizations policies. [Learn more here](https://mattermost.com/blog/session-expiry-experience).
- - The ``mattermost_http_request_duration_seconds`` histogram metric (in Enterprise Edition) has been removed. This information was already captured by ``mattermost_api_time``, which also contains the api handler name, HTTP method, and the response code. As an example, if you are using ``rate(mattermost_http_request_duration_seconds_sum&#123;server=~"$var"&#125;[5m]) /   rate(mattermost_http_request_duration_seconds_count&#123;server=~"$var"&#125;[5m])`` to measure average call duration, it needs to be replaced with ``sum(rate(mattermost_api_time_sum&#123;server=~"$var"&#125;[5m])) by (instance) /   sum(rate(mattermost_api_time_count&#123;server=~"$var"&#125;[5m])) by (instance)``.
+ - The ``mattermost_http_request_duration_seconds`` histogram metric (in Enterprise Edition) has been removed. This information was already captured by ``mattermost_api_time``, which also contains the api handler name, HTTP method, and the response code. As an example, if you are using ``rate(mattermost_http_request_duration_seconds_sum{server=~"$var"}[5m]) /   rate(mattermost_http_request_duration_seconds_count{server=~"$var"}[5m])`` to measure average call duration, it needs to be replaced with ``sum(rate(mattermost_api_time_sum{server=~"$var"}[5m])) by (instance) /   sum(rate(mattermost_api_time_count{server=~"$var"}[5m])) by (instance)``.
  - Due to fixing performance issues related to emoji reactions, the performance of the upgrade has been affected in that the schema upgrade now takes more time in environments with lots of reactions in their database. These environments are recommended to perform the schema migration during low usage times and potentially in advance of the upgrade. Since this migration happens before the Mattermost Server is fully launched, non-High Availability installs will be unreachable during this time. Please see the [Important Upgrade Notes](https://docs.mattermost.com/administration/important-upgrade-notes.html) for full details.
  - On mobile apps, users will not be able to see LDAP group mentions (E20 feature) in the autocomplete dropdown. Users will still receive notifications if they are part of an LDAP group. However, the group mention keyword will not be highlighted.
  
@@ -7222,7 +7222,7 @@ Mattermost v5.18.0 contains low to high level security fixes. [Upgrading](https:
 ### Breaking Changes
  - The Go module path of ``mattermost-server`` was changed to comply with the Go module version specification. Developers using Go modules with ``mattermost-server`` as a dependency must change the module and import paths to ``github.com/mattermost/mattermost-server/v5`` when upgrade this dependency to `v5.18`. See https://go.dev/blog/v2-go-modules for further information.
  - Removed ``Team.InviteId`` from the related Websocket event and sanitized it on all team API endpoints for users without invite permissions.
- - Removed the ability to change the type of a channel using the ``PUT /channels/&#123;channel_id&#125;`` API endpoint. The new ``PUT /channels/&#123;channel_id&#125;/privacy`` endpoint should be used for that purpose.
+ - Removed the ability to change the type of a channel using the ``PUT /channels/{channel_id}`` API endpoint. The new ``PUT /channels/{channel_id}/privacy`` endpoint should be used for that purpose.
  
 <Important>
 
@@ -8187,7 +8187,7 @@ Mattermost v5.11.0 contains low level security fixes. [Upgrading](https://docs.m
 
 ### Breaking changes since last release
 
- - If your integration uses ``Update.Props == nil`` to clear ``Props``, this will no longer work in 5.11+. Instead, use ``Update.Props == &#123;&#125;`` to clear properties. This change was made because ``Update.Props == nil`` unintentionally cleared all ``Props``, such as the profile picture, instead of preserving them.
+ - If your integration uses ``Update.Props == nil`` to clear ``Props``, this will no longer work in 5.11+. Instead, use ``Update.Props == {}`` to clear properties. This change was made because ``Update.Props == nil`` unintentionally cleared all ``Props``, such as the profile picture, instead of preserving them.
 
 <Important>
 
@@ -8339,12 +8339,12 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 ### RESTful API Changes
  - Added ``GetUsers`` API method to add the ability to list users.
  - Added ``POST /bots`` to create a bot accounts.
- - Added ``PUT /bots/&#123;bot_user_id&#125;`` to partially update a bot by providing only the fields you want to update.
- - Added ``GET /bots/&#123;bot_user_id&#125;`` to get a bot specified by its bot id.
+ - Added ``PUT /bots/{bot_user_id}`` to partially update a bot by providing only the fields you want to update.
+ - Added ``GET /bots/{bot_user_id}`` to get a bot specified by its bot id.
  - Added ``GET /bots`` to get a page of a list of bots.
- - Added ``POST /bots/&#123;bot_user_id&#125;/disable`` to disable a bot.
- - Added ``POST /bots/&#123;bot_user_id&#125;/enable`` to enable a bot.
- - Added ``POST /bots/&#123;bot_user_id&#125;/assign/&#123;user_id&#125;`` to assign a bot to the specified user.
+ - Added ``POST /bots/{bot_user_id}/disable`` to disable a bot.
+ - Added ``POST /bots/{bot_user_id}/enable`` to enable a bot.
+ - Added ``POST /bots/{bot_user_id}/assign/{user_id}`` to assign a bot to the specified user.
 
 ### Plugin API Changes
  - Added the ``SearchPostsInTeam`` method to add the ability to search posts in a team.
@@ -8761,9 +8761,9 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 ### API Changes
 
 #### RESTful API v4 Changes
- - Added ``GET /channels/&#123;channel_id&#125;/timezones`` to get a list of timezones for the users who are in the specified channel.
- - Added ``page`` and ``per_page`` properties to ``POST /teams/&#123;team_id&#125;/posts/search`` call for Elasticsearch paging.
- - Added ``DELETE /users/&#123;user_id&#125;/image`` to remove a user's profile picture.
+ - Added ``GET /channels/{channel_id}/timezones`` to get a list of timezones for the users who are in the specified channel.
+ - Added ``page`` and ``per_page`` properties to ``POST /teams/{team_id}/posts/search`` call for Elasticsearch paging.
+ - Added ``DELETE /users/{user_id}/image`` to remove a user's profile picture.
  - Added ``DELETE /brand/image`` to remove a custom branding image.
  - Added ``POST /actions/dialogs/open`` and ``POST /actions/dialogs/submit`` to open and submit requests via interactive dialogs.
 
@@ -9315,7 +9315,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 #### RESTful API v4 Changes
 
- - A new ``matches`` field was added to ``POST teams/&#123;team_id&#125;/posts/search`` to return a list of matched terms within the post. This field will only be populated on servers running version v5.1 or greater with Elasticsearch enabled.
+ - A new ``matches`` field was added to ``POST teams/{team_id}/posts/search`` to return a list of matched terms within the post. This field will only be populated on servers running version v5.1 or greater with Elasticsearch enabled.
 
 ### Known Issues
 
@@ -9571,8 +9571,8 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 ##### RESTful API v4 Changes
 
  - Support was added to RESTful API for sending ephemeral messages to users.
- - An APIv4 endpoint of ``POST /channels/&#123;channel_id&#125;/convert`` was added to convert a channel from public to private and to restrict this setting to ``team_admin``.
- - An APIv4 endpoint of ``DELETE /teams/&#123;team_id&#125;/image`` was added to remove team icon and restrict it to ``team_admin``.
+ - An APIv4 endpoint of ``POST /channels/{channel_id}/convert`` was added to convert a channel from public to private and to restrict this setting to ``team_admin``.
+ - An APIv4 endpoint of ``DELETE /teams/{team_id}/image`` was added to remove team icon and restrict it to ``team_admin``.
 
 #### Database Changes
 
@@ -10033,7 +10033,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 - All API v3 endpoints have been deprecated, and scheduled for removal in Mattermost v5.0.
 - The `mentionKeys` prop in post type plugins is now removed to fix case sensitive mention highlighting. Plugins can retrieve the `mentionKeys` prop from the store as needed.
-- The permanent query parameter of the DELETE `/teams/&#123;team_id&#125;` APIv4 endpoint is not removed as previously announced, given customer and community feedback.
+- The permanent query parameter of the DELETE `/teams/{team_id}` APIv4 endpoint is not removed as previously announced, given customer and community feedback.
 - As Mattermost moves to a role based permissions system in v4.8, a number of configuration settings will be migrated to roles in the database, and changing their `config.json` values will no longer take effect. These permissions can still be modified by their respective System Console settings. The `config.json` settings to be migrated are:
   - RestrictPublicChannelManagement
   - RestrictPrivateChannelManagement
@@ -10071,7 +10071,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 #### RESTful API v4 Changes
 
  - Added `GetChannelByName` and `GetTeamByName` to auto lowercase team and channel names in API requests. This ensures that the channel name is automatically lowercased for endpoints taking team or channel names as URL parameters.
- - Added `POST /emoji/search`, `GET /emojis/name/&#123;emoji_name&#125;`, and `GET /emoji/autocomplete` to add consistency with user search/autocomplete endpoints. These API endpoints ensure that the benefits of `GET` for important performance related actions such as autocompleting are included.
+ - Added `POST /emoji/search`, `GET /emojis/name/{emoji_name}`, and `GET /emoji/autocomplete` to add consistency with user search/autocomplete endpoints. These API endpoints ensure that the benefits of `GET` for important performance related actions such as autocompleting are included.
  - Added `/users/tokens/search` to allow System Admin to be able to find, manage and revoke personal access tokens as needed. This endpoint gets all tokens for all users if one has the `manage_system` permission.
 
 ### WebSocket Event Changes
@@ -10191,7 +10191,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 #### Removed and Deprecated Features
 
 - All API v3 endpoints are now deprecated, and scheduled for removal in Mattermost v5.0.
-- The permanent query parameter of the DELETE `/teams/&#123;team_id&#125;` APIv4 endpoint for permanently deleting a team is scheduled for removal in Mattermost v4.7.
+- The permanent query parameter of the DELETE `/teams/{team_id}` APIv4 endpoint for permanently deleting a team is scheduled for removal in Mattermost v4.7.
 
 For a list of past and upcoming deprecated features, see the [removed and deprecated features](https://docs.mattermost.com/about/deprecated-features.html) documentation for details.
 
@@ -10219,11 +10219,11 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 - It is required that any new integrations use API v4 endpoints. For more details, and for a complete list of available endpoints, see [https://api.mattermost.com/](https://api.mattermost.com/).
 - All API v3 endpoints are now deprecated, and scheduled for removal in Mattermost v5.0.
-- The permanent query parameter of the DELETE `/teams/&#123;team_id&#125;` APIv4 endpoint for permanently deleting a team is scheduled for removal in Mattermost v4.7.
+- The permanent query parameter of the DELETE `/teams/{team_id}` APIv4 endpoint for permanently deleting a team is scheduled for removal in Mattermost v4.7.
 
 #### RESTful API v4 Changes
 
-- Added `/users/&#123;user_id&#125;/auth` to update a user's authentication method. This can be used to change them to/from LDAP authentication, for example.
+- Added `/users/{user_id}/auth` to update a user's authentication method. This can be used to change them to/from LDAP authentication, for example.
 
 #### Plugin API Changes (Beta)
 
@@ -10609,8 +10609,8 @@ Multiple setting options were added to `config.json`. Below is a list of the add
   - Added `"Enable": true` to set whether plugins are enabled on the server.
   - Added `"EnableUploads": false` to set whether manual plugin uploads are enabled on the server. Disabling will keep existing plugins, including pre-packaged Mattermost plugins, installed on the server.
   - Added `"Directory": "./plugins"` to specify the directory of where plugins are stored.
-  - Added `"Plugins": &#123;&#125;` to list installed plugins on the Mattermost server.
-  - Added `"PluginStates": &#123;&#125;` to set whether an installed plugin is active or inactive on the Mattermost server.
+  - Added `"Plugins": {}` to list installed plugins on the Mattermost server.
+  - Added `"PluginStates": {}` to set whether an installed plugin is active or inactive on the Mattermost server.
 
 **Additional Changes to Enterprise Edition**:
 
@@ -10642,17 +10642,17 @@ Multiple setting options were added to `config.json`. Below is a list of the add
   - Re-enables a personal access token that was previously disabled.
 - `POST` at `/users/token/disable`
   - Disables a personal access token and deletes any sessions that uses the token. The token can be re-enabled using `/users/tokens/enable.`
-- `POST` at `/users/&#123;user_id&#125;/sessions/revoke/all`
+- `POST` at `/users/{user_id}/sessions/revoke/all`
   - Revokes all user sessions from the provided user id and session id strings.
 - `POST` at `/plugins`
   - Uploads a plugin in a compressed .tar.gz.
 - `GET` at `/plugins`
   - Gets a list of active and inactive plugins.
-- `DELETE` at `/plugins/&#123;plugin_id&#125;`
+- `DELETE` at `/plugins/{plugin_id}`
   - Removes a previously uploaded plugin.
-- `POST` at `/plugins/&#123;plugin_id&#125;/activate`
+- `POST` at `/plugins/{plugin_id}/activate`
   - Activates an installed plugin.
-- `POST` at `/plugins/&#123;plugin_id&#125;/deactivate`
+- `POST` at `/plugins/{plugin_id}/deactivate`
   - Deactivates an active plugin.
 - `GET` at `/plugins/webapp`
   - Gets a list of plugin manifests for active plugins with webapp components.
@@ -10837,13 +10837,13 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - All APIv3 endpoints are scheduled for removal on January 16, 2018.
 
 **Added routes (API v4)**
-- `PUT` at `/oauth/apps/&#123;app_id&#125;`
+- `PUT` at `/oauth/apps/{app_id}`
   - Update an OAuth 2.0 client application.
 - `GET` at `/data_retention/policy`
   - Gets the current data retention policy details from the server, including what data should be purged and the cutoff times for each data type that should be purged.
 
 **Modified routes (API v4)**
-- `POST` at `/channels/members/&#123;user_id&#125;/view`
+- `POST` at `/channels/members/{user_id}/view`
   - Response includes `last_viewed_at_times` for Mattermost server 4.3 and newer.
 
 ### Known Issues
@@ -11072,7 +11072,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - All APIv3 endpoints are scheduled for removal on January 16, 2018.
 
 **Added routes (API v4)**
-- `POST` at `/posts/&#123;post_id&#125;/actions/&#123;action_id&#125;`
+- `POST` at `/posts/{post_id}/actions/{action_id}`
   - To perform a post action, which allows users to interact with integrations through messages.
 
 ### Known Issues
@@ -11311,14 +11311,14 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 See [api.mattermost.com](https://api.mattermost.com/) for more details:
 - `GET` at `api/v4/jobs`
 - `POST` at `api/v4/jobs`
-- `GET` at `api/v4/jobs/&#123;job_id:[A-Za-z0-9]+&#125;`
-- `POST` at `api/v4/jobs/&#123;job_id:[A-Za-z0-9]+&#125;/cancel`
-- `GET` at `api/v4/jobs/type/&#123;job_type:[A-Za-z0-9_-]+&#125;`
+- `GET` at `api/v4/jobs/{job_id:[A-Za-z0-9]+}`
+- `POST` at `api/v4/jobs/{job_id:[A-Za-z0-9]+}/cancel`
+- `GET` at `api/v4/jobs/type/{job_type:[A-Za-z0-9_-]+}`
 - `POST` at `api/v4/elasticsearch/purge_indexes`
-- `POST` at `api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/tokens`
-- `GET` at `api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/tokens`
-- `GET` at `api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/tokens/&#123;token_id:[A-Za-z0-9]+&#125;`
-- `POST` at `api/v4/users/&#123;user_id:[A-Za-z0-9]+&#125;/tokens/revoke`
+- `POST` at `api/v4/users/{user_id:[A-Za-z0-9]+}/tokens`
+- `GET` at `api/v4/users/{user_id:[A-Za-z0-9]+}/tokens`
+- `GET` at `api/v4/users/{user_id:[A-Za-z0-9]+}/tokens/{token_id:[A-Za-z0-9]+}`
+- `POST` at `api/v4/users/{user_id:[A-Za-z0-9]+}/tokens/revoke`
 
 ### Known Issues
 
@@ -11519,7 +11519,7 @@ Many thanks to all our contributors. In alphabetical order:
 
 #### Breaking Changes
 
-- If you are using NGINX as a proxy for the Mattermost Server, replace the `location /api/v3/users/websocket &#123;` line with `location ~ /api/v[0-9]+/(users/)?websocket$ &#123;` in the `/etc/nginx/sites-available/mattermost` NGINX configuration file.
+- If you are using NGINX as a proxy for the Mattermost Server, replace the `location /api/v3/users/websocket {` line with `location ~ /api/v[0-9]+/(users/)?websocket$ {` in the `/etc/nginx/sites-available/mattermost` NGINX configuration file.
 - If you are upgrading a High Availability Cluster: When upgrading from 3.10 or earlier to 4.0 or later, you must manually add new items to the *ClusterSettings* section of your existing ``config.json``. For more information about this, see the *Upgrading to Version 4.0 and Later* section of :doc:`../deployment/cluster`.
  - Microsoft Edge v39 and earlier (EdgeHTML v14 and earlier) has an issue that may case errors during account creation, login and if MFA is enforced. We recommend upgrading to Edge v40 (or EdgeHTML v15).
 
@@ -11575,17 +11575,17 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - All APIv3 endpoints are scheduled for removal on January 16, 2018.
 
 **Added routes (API v4)**
-- `GET` at `/teams/invite/&#123;invite_id&#125;`
+- `GET` at `/teams/invite/{invite_id}`
   - To retrieve information about a team (including the name and id) corresponding to an invite_id.
 
 **Modified routes (API v4)**
-- `DELETE` at `/teams/&#123;team_id&#125;`
+- `DELETE` at `/teams/{team_id}`
   - Added an optional query parameter, `permanent`, to permanently delete a team for compliance reasons.
 - `GET` at `/users`
   - Added the `sort` query parameter to add basic sorting when selecting users on a team.
 - `GET` at `/emoji`
   - Added paging to the `/emoji` call for increased performance.
-- `POST` at `/teams/&#123;team_id&#125;/import`
+- `POST` at `/teams/{team_id}/import`
    - Updated to return a JSON body with the import results under a `results` JSON field to allow more data to be returned in the future without breaking changes.
 
 ### Websocket Event Changes
@@ -11791,7 +11791,7 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 - All APIv3 endpoints are scheduled for removal six months after APIv4 is stable.
 
 **Modified routes (APIv4)**
-- `/system/ping` updated to return `500 Internal Server Error` with `&#123;"status": "unhealthy"&#125;` in the response body when `GoroutineHealthThreshold` is set in config.json and the number of goroutines on the server exceeds that threshold. If the number of goroutines is below the threshold or `GoroutineHealthThreshold` is not set in config.json, `200 OK` is returned with no response body.
+- `/system/ping` updated to return `500 Internal Server Error` with `{"status": "unhealthy"}` in the response body when `GoroutineHealthThreshold` is set in config.json and the number of goroutines on the server exceeds that threshold. If the number of goroutines is below the threshold or `GoroutineHealthThreshold` is not set in config.json, `200 OK` is returned with no response body.
 
 ### Known Issues
 
@@ -11991,7 +11991,7 @@ Many thanks to all our contributors. In alphabetical order:
 
 #### Breaking changes:
 
-- If you're using NGINX as a proxy for the Mattermost Server, replace the `location /api/v3/users/websocket &#123;` line with `location ~ /api/v[0-9]+/(users/)?websocket$ &#123;` in the `/etc/nginx/sites-available/mattermost` NGINX configuration file.
+- If you're using NGINX as a proxy for the Mattermost Server, replace the `location /api/v3/users/websocket {` line with `location ~ /api/v[0-9]+/(users/)?websocket$ {` in the `/etc/nginx/sites-available/mattermost` NGINX configuration file.
 - Existing email invite links, password reset links, and email verification links in emails generated by your Mattermost server will be invalidated after upgrading to v3.9.0.
 - Firefox ESR 45 has an [end-of-life scheduled for June 13](https://en.wikipedia.org/wiki/Firefox_version_history) and is therefore no longer supported. We recommend upgrading to [Firefox ESR 52](https://www.mozilla.org/en-US/firefox/52.0esr/releasenotes/).
 
@@ -12226,7 +12226,7 @@ Many thanks to all our contributors. In alphabetical order:
 #### Removed and deprecated features
 - Backwards compatibility with the old CLI tool is removed in v3.8. See [documentation to learn more about the new CLI tool](https://docs.mattermost.com/administration/command-line-tools.html).
 - Deprecated APIv3 routes removed in v3.8:
-   - `GET` at `/channels/more` (replaced by /`channels/more/&#123;offset&#125;/&#123;limit&#125;`)
+   - `GET` at `/channels/more` (replaced by /`channels/more/{offset}/{limit}`)
    - `POST` at `/channels/update_last_viewed_at` (replaced by `/channels/view`)
    - `POST` at `/channels/set_last_viewed_at` (replaced by `/channels/view`)
    - `POST` at `/users/status/set_active_channel` (replaced by `/channels/view`)
@@ -12256,15 +12256,15 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 ### API Changes
 
 **New routes (APIv3):**
-- `GET` at `/channels/&#123;channel_id&#125;/pinned`
+- `GET` at `/channels/{channel_id}/pinned`
   - Returns the pinned posts in a channel
-- `POST` at `/channels/&#123;channel_id&#125;/posts/&#123;post_id&#125;/pin`
+- `POST` at `/channels/{channel_id}/posts/{post_id}/pin`
   - Pins a post to a channel
-- `POST` at `/channels/&#123;channel_id&#125;/posts/&#123;post_id&#125;/unpin`
+- `POST` at `/channels/{channel_id}/posts/{post_id}/unpin`
   - Unpins a post from a channel
 
 **Removed routes (APIv3):**
-- `GET` at `/channels/more` (replaced by /`channels/more/&#123;offset&#125;/&#123;limit&#125;`)
+- `GET` at `/channels/more` (replaced by /`channels/more/{offset}/{limit}`)
 - `POST` at `/channels/update_last_viewed_at` (replaced by `/channels/view`)
 - `POST` at `/channels/set_last_viewed_at` (replaced by `/channels/view`)
 - `POST` at `/users/status/set_active_channel` (replaced by `/channels/view`)
@@ -12516,7 +12516,7 @@ Many thanks to all our contributors. In alphabetical order:
  - Removed `ServiceSettings: "SegmentDeveloperKey"` setting in `config.json`
  - Backwards compatibility with the old CLI tool will be removed in Mattermost v3.8 April/2017 release. See [documentation to learn more about the new CLI tool](https://docs.mattermost.com/administration/command-line-tools.html).
  - Deprecated APIv3 routes to be removed in Mattermost v3.8 April/2017 release:
-   - `GET` at `/channels/more` (replaced by /`channels/more/&#123;offset&#125;/&#123;limit&#125;`)
+   - `GET` at `/channels/more` (replaced by /`channels/more/{offset}/{limit}`)
    - `POST` at `/channels/update_last_viewed_at` (replaced by `/channels/view`)
    - `POST` at `/channels/set_last_viewed_at` (replaced by `/channels/view`)
    - `POST` at `/users/status/set_active_channel` (replaced by `/channels/view`)
@@ -12559,9 +12559,9 @@ Multiple setting options were added to `config.json`. Below is a list of the add
   - Updates an incoming webhook
 - `POST` at `/hooks/outgoing/update`
   - Updates an outgoing webhook
-- `GET` at `/teams/&#123;team_id&#125;/...`
+- `GET` at `/teams/{team_id}/...`
   - Returns a post list, based on the provided channel and post ID.
-- `POST` at `/channels/&#123;channel_id&#125;/update_member_roles`
+- `POST` at `/channels/{channel_id}/update_member_roles`
   - Updates the user's roles in a channel
 
 ### Websocket Event Changes from v3.6 to v3.7
@@ -12817,33 +12817,33 @@ The following config settings will only work on servers with an Enterprise Licen
 **New routes:**
 - Added `POST` at `/commands/update`
   - Updates a slash command
-- Added `GET` at `/users/name/&#123;username&#125;`
+- Added `GET` at `/users/name/{username}`
   - Returns a user matching the given username
-- Added `GET` at `/users/email/&#123;email&#125;`
+- Added `GET` at `/users/email/{email}`
   - Returns a user matching the given email
 - Added `GET` at `/users/autocomplete`
   - Returns a list of users on the system that have a username, full name, or nickname that match against the provided term
-- Added `GET` at `/teams/name/&#123;team_name&#125;`
+- Added `GET` at `/teams/name/{team_name}`
   - Returns team object for a given team name
-- Added `GET` at `/teams/&#123;team_id&#125;/channels/name/&#123;channel_name&#125;`
+- Added `GET` at `/teams/{team_id}/channels/name/{channel_name}`
   - Returns a channel for a given channel name
-- Added `POST` at `/teams/&#123;team_id&#125;/channels/&#123;channel_id&#125;/members/ids`
+- Added `POST` at `/teams/{team_id}/channels/{channel_id}/members/ids`
   - Returns channel member objects for the channel and user IDs specified
 - Added `GET` at `/teams/members`
   - Returns an array with the teams the current user belongs to
 - Added `GET` at `/teams/unread`
   - Returns an array containing the amount of unread messages and mentions for the teams the current user belongs to
-- Added `POST` at `/teams/&#123;team_id&#125;/channels/view`
+- Added `POST` at `/teams/{team_id}/channels/view`
   - Performs all actions related to viewing a channel, including marking channels as read, clearing push notifications, and updating the active channel
-- Added `POST` at `/teams/&#123;team_id&#125;/channels/&#123;channel_id&#125;/posts/&#123;post_id&#125;/reactions/save`
+- Added `POST` at `/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions/save`
   - Saves an emoji reaction for a post, returns the saved reaction if successful
-- Added `POST` at `/teams/&#123;team_id&#125;/channels/&#123;channel_id&#125;/posts/&#123;post_id&#125;/reactions/delete`
+- Added `POST` at `/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions/delete`
   - Removes an emoji reaction for a post in the given channel, returns nil if successful
-- Added `GET` at `/teams/&#123;team_id&#125;/channels/&#123;channel_id&#125;/posts/&#123;post_id&#125;/reactions'`
+- Added `GET` at `/teams/{team_id}/channels/{channel_id}/posts/{post_id}/reactions'`
   - Returns a list of all emoji reactions for a post
 - Added `GET` at `/admin/invalidate_all_caches`
   - Purge all the in-memory caches for things like sessions, accounts, channels; deployments using High Availability will attempt to purge all the servers in the cluster (this may adversely impact performance)
-- Added `GET` at `/channels/more/&#123;offset&#125;/&#123;limit&#125;`
+- Added `GET` at `/channels/more/{offset}/{limit}`
   - Returns a page of public channels the user is not in based on the provided offset and limit
 -  Added `POST` at `/channels/more/search`
   - Returns a list of public channels the user is not in that match the search criteria
@@ -12851,7 +12851,7 @@ The following config settings will only work on servers with an Enterprise Licen
   - Returns a list of public channels that match the provided string
 
 **Deprecated routes:**
-- `GET` at `/channels/more` (replaced by /`channels/more/&#123;offset&#125;/&#123;limit&#125;`) to be removed in v3.7
+- `GET` at `/channels/more` (replaced by /`channels/more/{offset}/{limit}`) to be removed in v3.7
 - `POST` at `/channels/update_last_viewed_at` (replaced by `/channels/view`) to be removed in v3.8
 - `POST` at `/channels/set_last_viewed_at` (replaced by `/channels/view`) to be removed in v3.8
 - `POST` at `/users/status/set_active_channel` (replaced by `/channels/view`) to be removed in v3.8
@@ -12861,7 +12861,7 @@ The following config settings will only work on servers with an Enterprise Licen
 - `POST` at `/teams/signup`
 
 **Changed routes:**
- - Updated `teams/&#123;team_id&#125;/commands/execute` endpoint request body field from `channelId` to `channel_id`
+ - Updated `teams/{team_id}/commands/execute` endpoint request body field from `channelId` to `channel_id`
 
 ### Websocket Event Changes from v3.5 to v3.6
 
@@ -13138,65 +13138,65 @@ Multiple setting options were added to `config.json`. Below is a list of the add
 
 - Added `POST` at `/users/search`
     - Search for user profiles based on username, full name and optionally team id.
-- Added `GET` at `/users/&#123;offset&#125;/&#123;limit&#125;`
+- Added `GET` at `/users/{offset}/{limit}`
     - Retrieves a page of system-wide users
-- Added `POST` at `/teams/&#123;team_id&#125;/update_member_roles`
+- Added `POST` at `/teams/{team_id}/update_member_roles`
     - Update a user's roles for the specified team.
-- Added `GET` at `/teams/&#123;team_id&#125;/channels/&#123;channel_id&#125;/members/&#123;user_id&#125;`
+- Added `GET` at `/teams/{team_id}/channels/{channel_id}/members/{user_id}`
     - Retrieves the channel member for the specified user. Useful for fetching the channel member after updates are made to it. If the channel member does not exist, then return an error.
-- Added `GET` at `/teams/&#123;team_id&#125;/stats`
+- Added `GET` at `/teams/{team_id}/stats`
     - Returns stats for teams which includes total user count and total active user count.
-- Added `GET` at `/teams/&#123;team_id&#125;/members/&#123;offset&#125;/&#123;limit&#125;`
+- Added `GET` at `/teams/{team_id}/members/{offset}/{limit}`
     - To page through team members
-- Added `POST` at `/teams/&#123;team_id&#125;/members/ids`
+- Added `POST` at `/teams/{team_id}/members/ids`
     - Retrieves a list of team members based on user ids
-- Added `GET` at `/teams/&#123;team_id&#125;/members/&#123;user_id&#125;`
+- Added `GET` at `/teams/{team_id}/members/{user_id}`
     - Retrieves a single team member
-- Added `GET` at `/teams/&#123;team_id&#125;/posts/&#123;post_id&#125;/get_file_infos`
+- Added `GET` at `/teams/{team_id}/posts/{post_id}/get_file_infos`
     - Retrieves file attachment info for a post
-- Added `GET` at `/channels/&#123;channel_id&#125;/users/&#123;offset&#125;/&#123;limit&#125;`
+- Added `GET` at `/channels/{channel_id}/users/{offset}/{limit}`
     - Retrieves profiles for users in the channel
-- Added `GET` at `/channels/&#123;channel_id&#125;/users/not_in_channel/&#123;offset&#125;/&#123;limit&#125;`
+- Added `GET` at `/channels/{channel_id}/users/not_in_channel/{offset}/{limit}`
     - Retrieves profiles for users not in the channel
 - Added `POST` at `/webrtc/token`
     - Retrieves a valid token and servers to establish a webrtc connection between the peers
 
 **Moved routes:**
 
-- Updated `GET` at `/channels/&#123;channel_id&#125;/extra_info` to `/channels/&#123;channel_id&#125;/stats`
+- Updated `GET` at `/channels/{channel_id}/extra_info` to `/channels/{channel_id}/stats`
     - No longer returns a list of channel members and only returns the member count
-- Updated `POST` at `/users/profiles/&#123;team_id&#125;` to `/teams/&#123;team_id&#125;/users/&#123;offset&#125;/&#123;limit&#125;`
+- Updated `POST` at `/users/profiles/{team_id}` to `/teams/{team_id}/users/{offset}/{limit}`
     - Functionally performs the same, just moves it to match our other APIs that need a team ID.
-- Updated `GET` at `/members/&#123;team_id&#125;` to `/teams/&#123;team_id&#125;/members/&#123;offset&#125;/&#123;limit&#125;`
+- Updated `GET` at `/members/{team_id}` to `/teams/{team_id}/members/{offset}/{limit}`
     - Allows paging through team members
 
 **Removed routes:**
 
 - Removed `GET` at `/users/direct_profiles`
-- Removed `GET` at `/users/profiles_for_dm_list/&#123;team_id&#125;/&#123;offset&#125;/&#123;limit&#125;`
+- Removed `GET` at `/users/profiles_for_dm_list/{team_id}/{offset}/{limit}`
 
 **Modified Routes**
 
-- Added `POST` at `/users/&#123;user_id&#125;/update_roles`
-    - Only allows updating of system wide roles. If you want to update team wide roles, please use the new route `/teams/&#123;team_id&#125;/update_member_roles`
+- Added `POST` at `/users/{user_id}/update_roles`
+    - Only allows updating of system wide roles. If you want to update team wide roles, please use the new route `/teams/{team_id}/update_member_roles`
 
 **Changes to File Routes:**
 
 Routes used to get files and their metadata from the server have been changed substantially in 3.5 so that each file will be given a unique identifier to make them easier to use through the API. In addition, the `Filenames` field of each post has been deprecated in favor of the new `FileIds` field.
 
-- The response type of `GET` at `/teams/&#123;team_id&#125;/files/upload` has been changed to return more information about the uploaded file. See [the documentation for this route on api.mattermost.com](https://api.mattermost.com/#tag/files%2Fpaths%2F~1teams~1%7Bteam_id%7D~1files~1upload%2Fpost) for more information
-- Split `GET` at `/teams/&#123;team_id&#125;/files/get/&#123;channel_id&#125;/&#123;user_id&#125;/&#123;filename&#125;` into:
-    - `GET` at `/files/&#123;file_id&#125;/get`
+- The response type of `GET` at `/teams/{team_id}/files/upload` has been changed to return more information about the uploaded file. See [the documentation for this route on api.mattermost.com](https://api.mattermost.com/#tag/files%2Fpaths%2F~1teams~1%7Bteam_id%7D~1files~1upload%2Fpost) for more information
+- Split `GET` at `/teams/{team_id}/files/get/{channel_id}/{user_id}/{filename}` into:
+    - `GET` at `/files/{file_id}/get`
         - Get a file
-    - `GET` at `/files/&#123;file_id&#125;/get_thumbnail`
+    - `GET` at `/files/{file_id}/get_thumbnail`
         - Get a small thumbnail for image files
-    - `GET` at `/files/&#123;file_id&#125;/get_preview`
+    - `GET` at `/files/{file_id}/get_preview`
         - Get a medium-sized preview image for image files
-- Updated `GET` at `/teams/&#123;team_id&#125;/files/get_info/&#123;channel_id&#125;/&#123;user_id&#125;/&#123;filename&#125;` to `/files/&#123;file_id&#125;/get_info`
-- Updated `GET` at `/teams/&#123;team_id&#125;/files/get_public_link` to `/files/&#123;file_id&#125;/get_public_link`
-- Added `GET` at `/public/files/&#123;file_id&#125;/get`
+- Updated `GET` at `/teams/{team_id}/files/get_info/{channel_id}/{user_id}/{filename}` to `/files/{file_id}/get_info`
+- Updated `GET` at `/teams/{team_id}/files/get_public_link` to `/files/{file_id}/get_public_link`
+- Added `GET` at `/public/files/{file_id}/get`
     - Get a file without logging in
-    - The previous route `GET` at `/public/files/get/&#123;team_id&#125;/&#123;channel_id&#125;/&#123;user_id&#125;/filename` has been deprecated, but will remain available for files that were uploaded prior to 3.5
+    - The previous route `GET` at `/public/files/get/{team_id}/{channel_id}/{user_id}/filename` has been deprecated, but will remain available for files that were uploaded prior to 3.5
 
 ### Known Issues
 
@@ -13376,7 +13376,7 @@ The following config settings will only work on servers with an Enterprise Licen
      - Will run a connection test on the current LDAP settings. It will return the standard OK response if settings work. Otherwise it will return an appropriate error.
  - Added `POST` at `/users/status/set_active_channel`
      - Sets the Status.ActiveChannel field which is used to tell if the user is actively viewing a channel or not.
- - Added `GET` at `/admin/recently_active_users/&#123;teamId&#125;`
+ - Added `GET` at `/admin/recently_active_users/{teamId}`
      - Returns a list of recent active users.
 
 ### Known Issues
@@ -13617,13 +13617,13 @@ The following config settings will only work on servers with an Enterprise Licen
  - Changed `users/status` from `POST` to `GET`
 
 **New admin routes:**
- - Added `GET` at `/posts/flagged/&#123;offset:[0-9]+&#125;/&#123;limit:[0-9]+&#125;`
+ - Added `GET` at `/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}`
      - Returns a list of posts that have been flagged by the user; `offset` is the offset to start the page at; `limit` is the max number of posts to return.
  - Added `GET` at `/admin/cluster_status`
      - Returns a json with a status of each of the reachable nodes in the cluster
  - Added `GET` at `/oauth/list`
      - Returns a list of OAuth 2.0 apps registered by the user
- - Added `GET` at `/oauth/app/&#123;clientId:""&#125;`
+ - Added `GET` at `/oauth/app/{clientId:""}`
      - Returns a Sanitized OAuth 2.0 application where `clientId` corresponds to the application
  - Added `POST` at `/oauth/delete`
      - Returns status = OK if the OAuth 2.0 application owned by the current user was successfully deleted.
@@ -15175,7 +15175,7 @@ The following is for informational purposes only, no action needed. Mattermost a
 
 ##### ChannelMembers Table
 1. Removed `NotifyLevel` column
-2. Added `NotifyProps` column with type `varchar(2000)` and default value `&#123;&#125;`
+2. Added `NotifyProps` column with type `varchar(2000)` and default value `{}`
 
 ### Contributors
 
@@ -15301,7 +15301,7 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
   - Removed: `"UseSSL": false` boolean replaced by `"ConnectionSecurity": ""` under `Security` with new options: _None_ (`""`), _TLS_ (`"TLS"`) and _StartTLS_ ('"StartTLS"`)
   - Renamed: `"Port": "8065"` to `"ListenAddress": ":8065"` to define address on which to listen. Must be prepended with a colon.
   - Removed: `"Version": "developer"` removed and version information now stored in `model/version.go`
-  - Removed: `"Shards": &#123;&#125;` which was not used
+  - Removed: `"Shards": {}` which was not used
   - Moved: `"InviteSalt": "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"` to `EmailSettings`
   - Moved: `"PublicLinkSalt": "TO3pTyXIZzwHiwyZgGql7lM7DG3zeId4"` to `FileSettings`
   - Renamed and Moved `"ResetSalt": "IPxFzSfnDFsNsRafZxz8NaYqFKhf9y2t"` to `"PasswordResetSalt": "vZ4DcKyVVRlKHHJpexcuXzojkE5PZ5eL"` and moved to `EmailSettings`
@@ -15369,7 +15369,7 @@ Prior to upgrading the Mattermost binaries from the previous versions, the below
 The following is for informational purposes only, no action needed. Mattermost automatically upgrades database tables from the previous version's schema using only additions. Sessions table is dropped and rebuilt, no team data is affected by this.
 
 ##### Users Table
-1. Added `ThemeProps` column with type `varchar(2000)` and default value `&#123;&#125;`
+1. Added `ThemeProps` column with type `varchar(2000)` and default value `{}`
 
 ##### Teams Table
 1. Removed `AllowValet` column

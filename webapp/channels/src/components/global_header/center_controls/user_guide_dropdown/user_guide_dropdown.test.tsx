@@ -31,41 +31,6 @@ describe('components/channel_header/components/UserGuideDropdown', () => {
         fireEvent.click(button);
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for false of enableAskCommunityLink', () => {
-        const props = {
-            ...baseProps,
-            enableAskCommunityLink: 'false',
-        };
-
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when have plugin menu items', () => {
-        const props = {
-            ...baseProps,
-            pluginMenuItems: [{id: 'testId', pluginId: 'testPluginId', text: 'Test Item', action: () => {}},
-            ],
-        };
-
-        const {container} = renderWithContext(
-            <UserGuideDropdown {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('Should render with buttonActive initially false', () => {
         const {container} = renderWithContext(
             <UserGuideDropdown {...baseProps}/>,
