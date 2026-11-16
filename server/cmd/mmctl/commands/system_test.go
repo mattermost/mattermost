@@ -523,7 +523,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 				}))
 				s.T().Cleanup(server.Close)
 
-				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+				cmd := SystemSupportPacketCmd
 
 				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
 				s.Require().NoFileExists(filepath.Join(workDir, tc.filename))
@@ -550,7 +550,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 				}))
 				s.T().Cleanup(server.Close)
 
-				cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
+				cmd := SystemSupportPacketCmd
 
 				err := systemSupportPacketCmdF(model.NewAPIv4Client(server.URL), cmd, []string{})
 				s.Require().NoError(err)
