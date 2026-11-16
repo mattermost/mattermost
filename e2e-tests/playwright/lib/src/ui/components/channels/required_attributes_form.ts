@@ -24,12 +24,25 @@ export default class RequiredAttributesForm {
     }
 
     /**
-     * Opens a select attribute and picks one of its options. The menu renders in
-     * a portal outside the dialog, so the option is looked up on the page.
+     * Opens a select attribute's combobox and picks one of its options by its exact
+     * label. The menu is portaled outside the dialog, so it is reached through the
+     * input's aria-controls; the label span is matched rather than the option's
+     * accessible name, so a name that is a substring of another can't match both.
      */
     async select(name: string, option: string) {
-        await this.field(name).click();
-        await this.container.page().getByText(option, {exact: true}).click();
-        await expect(this.field(name)).toContainText(option);
+        const combobox = this.field(name);
+        await combobox.click();
+        await expect(combobox).toHaveAttribute('aria-expanded', 'true');
+        const listboxId = await combobox.getAttribute('aria-controls');
+        if (!listboxId) {
+            throw new Error(`Attribute combobox "${name}" has no aria-controls`);
+        }
+        const listbox = this.container.page().locator(`#${listboxId}`);
+        await listbox
+            .getByRole('option')
+            .filter({has: listbox.page().getByText(option, {exact: true})})
+            .click();
+        await expect(combobox).toHaveAttribute('aria-expanded', 'false');
+        await expect(combobox).toHaveValue(option);
     }
 }
