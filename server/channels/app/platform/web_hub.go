@@ -72,9 +72,9 @@ type webConnCheckResult struct {
 	// the client can resume it. It is nil when there was no inactive connection to resume.
 	conn *CheckConnResult
 
-	// active is true when conn is nil because the connection is still registered to the user and
+	// active is set when conn is nil because the connection is still registered to the user and
 	// marked active, typically because the server is still waiting out its pong deadline.
-	active bool
+	active *WebConn
 }
 
 type webConnCountMessage struct {
@@ -397,7 +397,7 @@ func (ps *PlatformService) checkLocalWebConn(userID, connectionID string) (res *
 		return nil, reconnectFailureConnNotFound
 	}
 
-	res, active := hub.CheckConn(userID, connectionID)
+	res, active := ps.checkHubConn(hub, userID, connectionID)
 	switch {
 	case res != nil:
 		return res, ""
@@ -405,6 +405,31 @@ func (ps *PlatformService) checkLocalWebConn(userID, connectionID string) (res *
 		return nil, reconnectFailureOldConnStillOpen
 	}
 	return nil, reconnectFailureConnNotFound
+}
+
+// checkHubConn removes and returns a connection from the hub so it can be resumed. A
+// connection still marked active has been abandoned by the client now resuming it, so it is
+// closed and taken over. active is true only if it could not be closed in time.
+func (ps *PlatformService) checkHubConn(hub *Hub, userID, connectionID string) (res *CheckConnResult, active bool) {
+	res, activeConn := hub.CheckConn(userID, connectionID)
+	if activeConn == nil {
+		return res, false
+	}
+
+	if !activeConn.closeWithin(webConnTakeoverTimeout) {
+		ps.Log().Warn("Websocket resume timed out closing the old connection",
+			mlog.String("user_id", userID),
+			mlog.String("connection_id", connectionID))
+		return nil, true
+	}
+
+	res, activeConn = hub.CheckConn(userID, connectionID)
+	if res != nil {
+		ps.Log().Debug("Websocket resume took over the old connection",
+			mlog.String("user_id", userID),
+			mlog.String("connection_id", connectionID))
+	}
+	return res, activeConn != nil
 }
 
 // WebConnCountForUser returns the number of active websocket connections
@@ -455,8 +480,8 @@ func (h *Hub) IsRegistered(userID, sessionToken string) bool {
 }
 
 // CheckConn removes and returns an inactive connection so it can be resumed. If the
-// connection is instead still active, it is left in place and active is true.
-func (h *Hub) CheckConn(userID, connectionID string) (res *CheckConnResult, active bool) {
+// connection is instead still active, it is left in place and returned as active.
+func (h *Hub) CheckConn(userID, connectionID string) (res *CheckConnResult, active *WebConn) {
 	req := &webConnCheckMessage{
 		userID:       userID,
 		connectionID: connectionID,
@@ -468,7 +493,7 @@ func (h *Hub) CheckConn(userID, connectionID string) (res *CheckConnResult, acti
 		return result.conn, result.active
 	case <-h.stop:
 	}
-	return nil, false
+	return nil, nil
 }
 
 func (h *Hub) WebConnCountForUser(userID string) int {
@@ -662,8 +687,8 @@ func (h *Hub) Start() {
 						DeadQueuePointer: conn.deadQueuePointer,
 						ReuseCount:       conn.reuseCount + 1,
 					}
-				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID {
-					res.active = conn.Active.Load()
+				} else if conn := connIndex.ForConnection(req.connectionID); conn != nil && conn.UserId == req.userID && conn.Active.Load() {
+					res.active = conn
 				}
 				req.result <- res
 			case req := <-h.connCount:

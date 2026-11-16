@@ -582,6 +582,23 @@ func TestReliableWebSocketSend(t *testing.T) {
 // registerResumableWebConn registers a pumped connection with its own connection ID.
 // Closing it leaves it in the hub as inactive, ready to be resumed.
 func registerResumableWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string, deadQueue ...*model.WebSocketEvent) *WebConn {
+	wc := newRegisteredWebConn(t, th, addr, userID, deadQueue...)
+	go wc.Pump()
+	return wc
+}
+
+// registerUnpumpedWebConn registers an active connection whose pumps don't run until the
+// test ends, so it cannot finish closing before then.
+func registerUnpumpedWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string) *WebConn {
+	wc := newRegisteredWebConn(t, th, addr, userID)
+	t.Cleanup(func() {
+		go wc.Pump()
+		wc.Close()
+	})
+	return wc
+}
+
+func newRegisteredWebConn(t *testing.T, th *TestHelper, addr net.Addr, userID string, deadQueue ...*model.WebSocketEvent) *WebConn {
 	c, _, err := (&websocket.Dialer{}).Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
 
@@ -594,7 +611,6 @@ func registerResumableWebConn(t *testing.T, th *TestHelper, addr net.Addr, userI
 		wc.addToDeadQueue(ev)
 	}
 	require.NoError(t, th.Service.HubRegister(wc))
-	go wc.Pump()
 	return wc
 }
 
@@ -628,8 +644,20 @@ func TestCheckWebConn(t *testing.T) {
 			assert.False(t, isRemote)
 		})
 
-		t.Run("should report a connection still active on this node", func(t *testing.T) {
+		t.Run("should take over a connection still active on this node", func(t *testing.T) {
 			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
+
+			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
+			require.NotNil(t, res)
+			assert.Equal(t, wc.GetConnectionID(), res.ConnectionID)
+			assert.Equal(t, 1, res.ReuseCount)
+			assert.Empty(t, reason)
+			assert.False(t, isRemote)
+			assert.False(t, wc.Active.Load())
+		})
+
+		t.Run("should report a connection still active on this node that could not be closed in time", func(t *testing.T) {
+			wc := registerUnpumpedWebConn(t, th, s.Listener.Addr(), model.NewId())
 
 			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
 			assert.Nil(t, res)
@@ -683,7 +711,7 @@ func TestCheckWebConn(t *testing.T) {
 			assert.True(t, isRemote)
 		})
 
-		t.Run("should prefer a connection active on this node over a remote failure", func(t *testing.T) {
+		t.Run("should take over a connection active on this node despite a remote failure", func(t *testing.T) {
 			cluster.queues = map[string]*model.WSQueues{
 				"node1": {Status: model.WSQueuesStatusMissedEventsEvicted},
 			}
@@ -691,8 +719,9 @@ func TestCheckWebConn(t *testing.T) {
 			wc := registerResumableWebConn(t, th, s.Listener.Addr(), model.NewId())
 
 			res, reason, isRemote := th.Service.CheckWebConn(wc.UserId, wc.GetConnectionID(), 5)
-			assert.Nil(t, res)
-			assert.Equal(t, reconnectFailureOldConnStillOpen, reason)
+			require.NotNil(t, res)
+			assert.Equal(t, wc.GetConnectionID(), res.ConnectionID)
+			assert.Empty(t, reason)
 			assert.False(t, isRemote)
 		})
 
