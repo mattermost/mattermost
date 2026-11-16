@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -80,6 +81,67 @@ func validForeignTypePolicy(id string) *model.AccessControlPolicy {
 			Expression: "true",
 		}},
 	}
+}
+
+// breakSubjectBuild fails the CPA property-group lookup so
+// BuildAccessControlSubject fails; the fallback existence read uses a different
+// store and is unaffected.
+func breakSubjectBuild(t *testing.T, th *TestHelper) {
+	t.Helper()
+	mockGroupStore := &storemocks.PropertyGroupStore{}
+	mockGroupStore.
+		On("Get", model.AccessControlPropertyGroupName).
+		Return((*model.PropertyGroup)(nil), errors.New("simulated store failure"))
+	ps, err := properties.New(properties.ServiceConfig{
+		PropertyGroupStore: mockGroupStore,
+		PropertyFieldStore: &storemocks.PropertyFieldStore{},
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+		CallerIDExtractor:  func(rctx request.CTX) string { return "" },
+	})
+	require.NoError(t, err)
+	originalPS := th.App.Srv().propertyService
+	th.App.Srv().propertyService = ps
+	t.Cleanup(func() { th.App.Srv().propertyService = originalPS })
+}
+
+// policyStoreSpy wraps the real store so a test can fail GetTypesByIDs and
+// detect any use of the replica-backed SearchPolicies.
+type policyStoreSpy struct {
+	store.AccessControlPolicyStore
+	typesErr       error
+	searchCalls    int
+	getTypesCalled int
+}
+
+func (p *policyStoreSpy) GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error) {
+	p.getTypesCalled++
+	if p.typesErr != nil {
+		return nil, p.typesErr
+	}
+	return p.AccessControlPolicyStore.GetTypesByIDs(rctx, ids)
+}
+
+func (p *policyStoreSpy) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
+	p.searchCalls++
+	return p.AccessControlPolicyStore.SearchPolicies(rctx, opts)
+}
+
+type policyStoreSpyStore struct {
+	store.Store
+	policies *policyStoreSpy
+}
+
+func (s policyStoreSpyStore) AccessControlPolicy() store.AccessControlPolicyStore {
+	return s.policies
+}
+
+func spyOnPolicyStore(t *testing.T, th *TestHelper) *policyStoreSpy {
+	t.Helper()
+	original := th.App.Srv().Store()
+	spy := &policyStoreSpy{AccessControlPolicyStore: original.AccessControlPolicy()}
+	th.App.Srv().SetStore(policyStoreSpyStore{Store: original, policies: spy})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	return spy
 }
 
 // TestEvaluatePluginAccessRequest pins the fail-closed contract: a request is
@@ -173,23 +235,7 @@ func TestEvaluatePluginAccessRequest(t *testing.T) {
 				mockACS := &mocks.AccessControlServiceInterface{}
 				th.App.Srv().ch.AccessControl = mockACS
 
-				// Break the CPA property-group lookup so
-				// BuildAccessControlSubject fails; the fallback existence
-				// read uses a different store and is unaffected.
-				mockGroupStore := &storemocks.PropertyGroupStore{}
-				mockGroupStore.
-					On("Get", model.AccessControlPropertyGroupName).
-					Return((*model.PropertyGroup)(nil), errors.New("simulated store failure"))
-				ps, err := properties.New(properties.ServiceConfig{
-					PropertyGroupStore: mockGroupStore,
-					PropertyFieldStore: &storemocks.PropertyFieldStore{},
-					PropertyValueStore: &storemocks.PropertyValueStore{},
-					CallerIDExtractor:  func(rctx request.CTX) string { return "" },
-				})
-				require.NoError(t, err)
-				originalPS := th.App.Srv().propertyService
-				th.App.Srv().propertyService = ps
-				t.Cleanup(func() { th.App.Srv().propertyService = originalPS })
+				breakSubjectBuild(t, th)
 				return userID, mockACS
 			}},
 			{"evaluator AppError", func(t *testing.T) (string, *mocks.AccessControlServiceInterface) {
@@ -411,12 +457,12 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
-	t.Run("engine decisions are keyed by ID and failures are omitted", func(t *testing.T) {
+	t.Run("engine decisions are keyed by ID", func(t *testing.T) {
 		enablePluginAccessControl(t, th)
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		allowID, denyID, noPolicyID, errID := model.NewId(), model.NewId(), model.NewId(), model.NewId()
+		allowID, denyID, noPolicyID := model.NewId(), model.NewId(), model.NewId()
 		matchID := func(id string) any {
 			return mock.MatchedBy(func(req model.AccessRequest) bool {
 				return req.Resource.ID == id &&
@@ -428,11 +474,9 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, matchID(allowID)).Return(model.AccessDecision{Decision: true}, nil).Once()
 		mockACS.On("AccessEvaluation", mock.Anything, matchID(denyID)).Return(model.AccessDecision{Decision: false}, nil).Once()
 		mockACS.On("AccessEvaluation", mock.Anything, matchID(noPolicyID)).Return(model.NewNoPolicyAccessDecision(), nil).Once()
-		mockACS.On("AccessEvaluation", mock.Anything, matchID(errID)).
-			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "boom", http.StatusInternalServerError)).Once()
 
 		// allowID is passed twice; the duplicate must not cost a second call.
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{allowID, denyID, allowID, noPolicyID, errID})
+		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{allowID, denyID, allowID, noPolicyID})
 		require.Nil(t, appErr)
 		require.Len(t, decisions, 3)
 		require.True(t, decisions[allowID].Decision)
@@ -440,12 +484,83 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		require.False(t, decisions[denyID].Decision)
 		require.True(t, decisions[noPolicyID].Decision)
 		require.True(t, decisions[noPolicyID].IsNoPolicy())
-		_, present := decisions[errID]
-		require.False(t, present, "an ID the engine could not evaluate must be omitted")
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("ABAC unavailable resolves existence with one type-filtered search", func(t *testing.T) {
+	t.Run("exactly the cap of IDs is evaluated", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		ids := make([]string, 0, pluginAccessControlBatchMax)
+		for range pluginAccessControlBatchMax {
+			ids = append(ids, model.NewId())
+		}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, nil).Times(pluginAccessControlBatchMax)
+
+		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, ids)
+		require.Nil(t, appErr)
+		require.Len(t, decisions, pluginAccessControlBatchMax)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", pluginAccessControlBatchMax)
+	})
+
+	// An evaluator error is handled like the single-ID call: existence decides,
+	// so an ID with a policy of the caller's type is omitted (deny) while one
+	// with no policy, or only a foreign-type row, is the no-policy allow.
+	t.Run("evaluator errors resolve existence per ID", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		okID := model.NewId()
+		gated := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, gated)
+		foreign := validForeignTypePolicy(model.NewId())
+		savePluginPolicyRow(t, th, foreign)
+		absentID := model.NewId()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool { return req.Resource.ID == okID })).
+			Return(model.AccessDecision{Decision: false}, nil).Once()
+		evalErr := model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "boom", http.StatusInternalServerError)
+		for _, id := range []string{gated.ID, foreign.ID, absentID} {
+			mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool { return req.Resource.ID == id })).
+				Return(model.AccessDecision{}, evalErr).Once()
+		}
+
+		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, gated.ID, foreign.ID, absentID})
+		require.Nil(t, appErr)
+		require.Len(t, decisions, 3)
+		require.False(t, decisions[okID].Decision)
+		_, present := decisions[gated.ID]
+		require.False(t, present, "an ID with a policy the engine could not evaluate must be omitted")
+		require.True(t, decisions[foreign.ID].IsNoPolicy())
+		require.True(t, decisions[absentID].IsNoPolicy())
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("evaluator errors with an unreadable store omit the failed IDs", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		spy := spyOnPolicyStore(t, th)
+		spy.typesErr = errors.New("simulated store failure")
+
+		okID, failedID := model.NewId(), model.NewId()
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool { return req.Resource.ID == okID })).
+			Return(model.AccessDecision{Decision: true}, nil).Once()
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool { return req.Resource.ID == failedID })).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "boom", http.StatusInternalServerError)).Once()
+
+		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, failedID})
+		require.Nil(t, appErr)
+		require.Len(t, decisions, 1)
+		require.True(t, decisions[okID].Decision)
+		_, present := decisions[failedID]
+		require.False(t, present, "existence is unknown, so the ID must fail closed")
+	})
+
+	t.Run("ABAC unavailable resolves existence with one primary-backed read", func(t *testing.T) {
 		enablePluginAccessControl(t, th)
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
@@ -453,6 +568,7 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
 		})
 
+		spy := spyOnPolicyStore(t, th)
 		gated := validPluginPolicy(model.NewId())
 		savePluginPolicyRow(t, th, gated)
 		foreign := validForeignTypePolicy(model.NewId())
@@ -461,6 +577,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 
 		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{gated.ID, foreign.ID, absentID})
 		require.Nil(t, appErr)
+		assert.Equal(t, 1, spy.getTypesCalled)
+		assert.Zero(t, spy.searchCalls, "the replica-backed search could miss a just-saved policy and fail open")
 		require.Len(t, decisions, 2)
 		_, present := decisions[gated.ID]
 		require.False(t, present, "a resource with a policy of the caller's type cannot be evaluated and must be omitted")
@@ -469,32 +587,47 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
-	t.Run("unknown user falls back to the existence probe", func(t *testing.T) {
-		enablePluginAccessControl(t, th)
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
+	fallbackBranches := []struct {
+		name    string
+		arrange func(t *testing.T) string
+	}{
+		{"unknown user", func(t *testing.T) string { return model.NewId() }},
+		{"subject build failure", func(t *testing.T) string {
+			breakSubjectBuild(t, th)
+			return userID
+		}},
+	}
+	for _, br := range fallbackBranches {
+		t.Run(br.name+" falls back to the existence probe", func(t *testing.T) {
+			enablePluginAccessControl(t, th)
+			mockACS := &mocks.AccessControlServiceInterface{}
+			th.App.Srv().ch.AccessControl = mockACS
+			spy := spyOnPolicyStore(t, th)
+			evalUserID := br.arrange(t)
 
-		gated := validPluginPolicy(model.NewId())
-		savePluginPolicyRow(t, th, gated)
-		absentID := model.NewId()
+			gated := validPluginPolicy(model.NewId())
+			savePluginPolicyRow(t, th, gated)
+			absentID := model.NewId()
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, model.NewId(), resourceType, action, []string{gated.ID, absentID})
-		require.Nil(t, appErr)
-		require.Len(t, decisions, 1)
-		require.True(t, decisions[absentID].IsNoPolicy())
-		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
-	})
+			decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, evalUserID, resourceType, action, []string{gated.ID, absentID})
+			require.Nil(t, appErr)
+			require.Len(t, decisions, 1)
+			require.True(t, decisions[absentID].IsNoPolicy())
+			assert.Zero(t, spy.searchCalls)
+			mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+		})
+	}
 }
 
 // TestEvaluatePluginAccessRequestBatchStoreError pins that a failing existence
-// search is a whole-batch error, never a partial no-policy map.
+// read is a whole-batch error, never a partial no-policy map.
 func TestEvaluatePluginAccessRequestBatchStoreError(t *testing.T) {
 	th := SetupWithStoreMock(t)
 
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockACPStore := &storemocks.AccessControlPolicyStore{}
-	mockACPStore.On("SearchPolicies", mock.Anything, mock.AnythingOfType("model.AccessControlPolicySearch")).
-		Return(nil, int64(0), errors.New("simulated store failure"))
+	mockACPStore.On("GetTypesByIDs", mock.Anything, mock.Anything).
+		Return(nil, errors.New("simulated store failure"))
 	mockStore.On("AccessControlPolicy").Return(mockACPStore)
 
 	require.Nil(t, th.App.Srv().ch.AccessControl)
@@ -505,6 +638,7 @@ func TestEvaluatePluginAccessRequestBatchStoreError(t *testing.T) {
 	assert.Equal(t, "app.access_control.plugin.evaluation_unavailable.app_error", appErr.Id)
 	assert.Equal(t, http.StatusServiceUnavailable, appErr.StatusCode)
 	mockACPStore.AssertExpectations(t)
+	mockACPStore.AssertNotCalled(t, "SearchPolicies", mock.Anything, mock.Anything)
 }
 
 // TestEvaluatePluginAccessRequestStoreError pins that when the fallback store
@@ -764,6 +898,23 @@ func TestGetPluginAccessControlPolicy(t *testing.T) {
 				}
 			})
 		}
+	})
+
+	// The fallback skips enterprise normalization, so CPA references come back
+	// id-encoded exactly as stored. That form is not valid authoring input
+	// (SavePolicy compiles against `user.attributes.<name>`), which is why the
+	// API documents the fallback policy as read-only.
+	t.Run("ABAC unavailable returns CPA references as stored, unnormalized", func(t *testing.T) {
+		th.App.Srv().ch.AccessControl = nil
+		t.Cleanup(func() { enablePluginAccessControl(t, th) })
+
+		stored := validPluginPolicy(model.NewId())
+		stored.Rules[0].Expression = "user.id_" + model.NewId() + ".id_" + model.NewId() + ` == "eng"`
+		savePluginPolicyRow(t, th, stored)
+
+		policy, appErr := th.App.GetPluginAccessControlPolicy(th.Context, testAgentsPluginID, stored.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, stored.Rules[0].Expression, policy.Rules[0].Expression)
 	})
 
 	t.Run("type owned by the caller returns the normalized policy", func(t *testing.T) {
@@ -1438,7 +1589,7 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("delete: service unavailable still audits as fail", func(t *testing.T) {
+	t.Run("delete: unknown policy with service unavailable audits as fail", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
 		rec := assertNextRecord(t, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusFail, func() {
 			appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, model.NewId())
@@ -1446,6 +1597,29 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		})
 		assert.Equal(t, "delete", auditParam(t, rec, "operation"))
 		assert.Equal(t, actingUserID, auditParam(t, rec, "actor"))
+	})
+
+	t.Run("delete: success via the store fallback audits as success", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+		t.Cleanup(func() { enablePluginAccessControl(t, th) })
+
+		p := validPluginPolicy(model.NewId())
+		savePluginPolicyRow(t, th, p)
+		mockACS.On("InvalidateAllPolicyCaches", mock.Anything).Return().Once()
+
+		rec := assertNextRecord(t, model.AuditEventDeletePluginAccessControlPolicy, model.AuditStatusSuccess, func() {
+			appErr := th.App.DeletePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, resourceType, p.ID)
+			require.Nil(t, appErr)
+		})
+		assert.Equal(t, p.ID, auditParam(t, rec, "policy_id"))
+		assert.Equal(t, "delete", auditParam(t, rec, "operation"))
+		mockACS.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("delete: malformed policy ID audits as fail", func(t *testing.T) {

@@ -1873,8 +1873,12 @@ type API interface {
 	// filtering a list of resources for a single user.
 	//
 	// Each decision has the same semantics as EvaluateAccessControl, including
-	// IsNoPolicy(). A resource ID that is missing from the returned map could
-	// not be evaluated and the plugin MUST treat it as a deny. The returned
+	// IsNoPolicy(), and failures resolve the same way: when a resource could not
+	// be evaluated, the server checks whether a policy of resourceType exists
+	// for it and reports IsNoPolicy() only if none does. A resource ID that is
+	// missing from the returned map has a policy that could not be evaluated, or
+	// its existence could not be determined, and the plugin MUST treat it as a
+	// deny. The returned
 	// error covers failures that affect the whole batch (invalid arguments,
 	// more than 500 distinct resource IDs, or the store being unreachable while
 	// the access control engine is unavailable); the plugin MUST treat it as a
@@ -1896,6 +1900,16 @@ type API interface {
 	// not-found error if no policy exists OR the stored policy's type is not
 	// owned by the calling plugin (fail closed, no existence leak).
 	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the stored policy is still
+	// returned, read straight from the store, so a plugin can show its
+	// restrictions after a license lapse. In that case CPA attribute references
+	// in rule expressions are returned as stored (id-encoded, not
+	// "user.attributes.<name>"), so the policy is for display only and must not
+	// be passed back to SaveAccessControlPolicy; re-read it once the engine is
+	// available. Servers before 12.3 return a not-implemented error instead,
+	// which plugins can use to detect the older behavior.
+	//
 	// @tag AccessControl
 	// Minimum server version: 11.10
 	GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError)
@@ -1903,6 +1917,13 @@ type API interface {
 	// DeleteAccessControlPolicy deletes the policy stored under id after
 	// verifying the stored policy's type equals resourceType and is owned by
 	// the calling plugin. Type mismatches return a not-found error (fail closed).
+	//
+	// Since server version 12.3, when the access control engine is unavailable
+	// (not licensed, disabled, or not registered) the policy is deleted straight
+	// from the store, so a plugin can always clear a restriction; only the
+	// delete is available then, as SaveAccessControlPolicy still requires the
+	// engine. Servers before 12.3 return a not-implemented error instead, which
+	// plugins can use to detect the older behavior.
 	//
 	// @tag AccessControl
 	// Minimum server version: 11.10

@@ -186,6 +186,36 @@ func (_m *AccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, field
 	return r0, r1
 }
 
+// GetTypesByIDs provides a mock function with given fields: rctx, ids
+func (_m *AccessControlPolicyStore) GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error) {
+	ret := _m.Called(rctx, ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTypesByIDs")
+	}
+
+	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) (map[string]string, error)); ok {
+		return rf(rctx, ids)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) map[string]string); ok {
+		r0 = rf(rctx, ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InvalidateEtagForChannel provides a mock function with given fields: channelID
 func (_m *AccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
 	_m.Called(channelID)

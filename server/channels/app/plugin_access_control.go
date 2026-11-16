@@ -25,8 +25,8 @@ const (
 )
 
 // pluginAccessControlBatchMax caps the distinct resource IDs a single
-// EvaluatePluginAccessRequestBatch call may evaluate. It stays under the store
-// search page cap so the unavailable-path existence probe is a single query.
+// EvaluatePluginAccessRequestBatch call may evaluate, bounding the existence
+// probe to a single query.
 const pluginAccessControlBatchMax = 500
 
 // pluginAccessControlScopeCheck validates resourceType's format and that its
@@ -171,11 +171,11 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 // too large, store unreachable while the engine is unavailable) are returned
 // as an AppError and likewise mean deny-all.
 //
-// When evaluation is impossible, existence is resolved for the whole batch
-// with one store search filtered to the caller's type: IDs without a row of
-// that type are no_policy, IDs with one are omitted (fail closed), matching
-// resolvePluginPolicyExistence. That probe reads the replica, so it is only
-// used on this path; when the engine is available every ID goes through it.
+// Failures are handled like the single-ID call: when evaluation is impossible
+// for the whole batch, or the engine errors for some IDs, existence is
+// resolved with one primary-backed store read filtered to the caller's type.
+// IDs without a row of that type are no_policy; IDs with one are omitted (fail
+// closed), matching resolvePluginPolicyExistence.
 func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
 	const where = "EvaluatePluginAccessRequestBatch"
 
@@ -232,6 +232,7 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 	}
 
 	acs := a.Srv().ch.AccessControl
+	var failed []string
 	for _, id := range ids {
 		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 			Subject:  *subject,
@@ -239,43 +240,67 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 			Action:   action,
 		})
 		if evalErr != nil {
-			// Omitting the key is the batch form of the single call's
-			// error: the caller must deny this resource.
-			rctx.Logger().Warn("Plugin access batch evaluation: evaluator error; resource omitted",
+			rctx.Logger().Warn("Plugin access batch evaluation: evaluator error; resolving policy existence",
 				mlog.String("plugin_id", pluginID),
 				mlog.String("resource_id", id),
 				mlog.Err(evalErr))
+			failed = append(failed, id)
 			continue
 		}
 		d := decision
 		decisions[id] = &d
 	}
 
+	if len(failed) > 0 {
+		// Leaving the IDs out on a failed probe is the deny the single-ID
+		// call returns as an error.
+		if gated, err := a.pluginGatedResourceIDs(rctx, resourceType, failed); err != nil {
+			rctx.Logger().Warn("Plugin access batch evaluation: existence fallback store read failed after evaluator errors",
+				mlog.String("plugin_id", pluginID), mlog.Int("resource_count", len(failed)), mlog.Err(err))
+		} else {
+			for _, id := range failed {
+				if _, ok := gated[id]; !ok {
+					decision := model.NewNoPolicyAccessDecision()
+					decisions[id] = &decision
+				}
+			}
+		}
+	}
+
 	return decisions, nil
 }
 
-// resolvePluginPolicyExistenceBatch is the batch form of
-// resolvePluginPolicyExistence: one store search filtered to resourceType
-// decides which IDs are policy-gated. Those are omitted from the result (the
-// caller fails closed); every other ID is the vacuous no-policy allow. A
-// failing search makes existence unknown for the whole batch, so it is an
-// error rather than a partial map.
-func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginID, resourceType string, ids []string, reason string) (map[string]*model.AccessDecision, *model.AppError) {
-	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
-		Type:  resourceType,
-		IDs:   ids,
-		Limit: len(ids),
-	})
+// pluginGatedResourceIDs returns the subset of ids that have a stored policy of
+// resourceType. A row of any other type is not the caller's policy and never
+// gates the ID (see resolvePluginPolicyExistence). The read is primary-backed:
+// a replica could miss a just-saved restriction and report it as ungated.
+func (a *App) pluginGatedResourceIDs(rctx request.CTX, resourceType string, ids []string) (map[string]struct{}, error) {
+	types, err := a.Srv().Store().AccessControlPolicy().GetTypesByIDs(rctx, ids)
 	if err != nil {
-		rctx.Logger().Warn("Plugin access batch evaluation: existence fallback store search failed",
+		return nil, err
+	}
+
+	gated := make(map[string]struct{}, len(types))
+	for id, policyType := range types {
+		if policyType == resourceType {
+			gated[id] = struct{}{}
+		}
+	}
+	return gated, nil
+}
+
+// resolvePluginPolicyExistenceBatch is the batch form of
+// resolvePluginPolicyExistence for a whole batch that cannot be evaluated.
+// Gated IDs are omitted from the result (the caller fails closed); every other
+// ID is the vacuous no-policy allow. A failing read makes existence unknown for
+// the whole batch, so it is an error rather than a partial map.
+func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginID, resourceType string, ids []string, reason string) (map[string]*model.AccessDecision, *model.AppError) {
+	gated, err := a.pluginGatedResourceIDs(rctx, resourceType, ids)
+	if err != nil {
+		rctx.Logger().Warn("Plugin access batch evaluation: existence fallback store read failed",
 			mlog.String("plugin_id", pluginID), mlog.Int("resource_count", len(ids)),
 			mlog.String("reason", reason), mlog.Err(err))
 		return nil, model.NewAppError(where, "app.access_control.plugin.evaluation_unavailable.app_error", nil, "reason="+reason, http.StatusServiceUnavailable)
-	}
-
-	gated := make(map[string]struct{}, len(policies))
-	for _, p := range policies {
-		gated[p.ID] = struct{}{}
 	}
 
 	decisions := make(map[string]*model.AccessDecision, len(ids))

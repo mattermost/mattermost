@@ -1288,6 +1288,13 @@ type AccessControlPolicyStore interface {
 	Delete(rctx request.CTX, id string) error
 	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
+
+	// GetTypesByIDs returns the Type of each stored policy among ids, keyed by
+	// ID. Missing IDs are absent from the map. It reads the primary so a policy
+	// saved moments ago is never missed, which callers deciding whether a
+	// resource is policy-gated rely on. Empty input returns an empty map and
+	// fires no SQL.
+	GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
 
