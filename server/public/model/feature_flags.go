@@ -63,6 +63,9 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// Enable system setting policies (session-scoped ClientConfig overrides).
+	SystemSettingPolicies bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -229,6 +232,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.SystemSettingPolicies = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
