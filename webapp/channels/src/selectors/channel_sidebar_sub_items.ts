@@ -78,6 +78,9 @@ type ResolvedItemDraft = {
     children: ResolvedItemDraft[];
 };
 
+// The channel route reads a 26-character first segment as a permalink post id before it considers a subpath.
+const POST_ID_SHAPED_FIRST_SEGMENT = /^[a-z0-9]{26}(\/|$)/;
+
 function isValidIcon(iconName: unknown): iconName is IconGlyphTypes {
     return typeof iconName === 'string' && compassIconForName(iconName as IconGlyphTypes) !== null;
 }
@@ -91,7 +94,7 @@ function resolveItem(reg: ChannelSidebarSubItemsRegistration, item: unknown): Re
         return null;
     }
     const cleanSubpath = subpath.replace(/^\/+/, '');
-    if (!cleanSubpath) {
+    if (!cleanSubpath || POST_ID_SHAPED_FIRST_SEGMENT.test(cleanSubpath)) {
         return null;
     }
     const resolved: ResolvedChannelSidebarSubItem = {
