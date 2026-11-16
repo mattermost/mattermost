@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/mattermost/logr/v2"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -257,6 +259,32 @@ func TestGetLogsSkipSendNullLine(t *testing.T) {
 	assert.Equal(t, []string{"null"}, lines)
 }
 
+func TestGetLogsSkipSendLogsUnparsedLinesOnce(t *testing.T) {
+	// Plain-text lines, as the file holds after LogSettings.FileJson is turned off
+	content := logLine("2026-10-21 10:00:00.000 Z", "info", "one") + "\n" +
+		"2026-10-21T10:00:01.000Z info two\n" +
+		"2026-10-21T10:00:02.000Z info three\n" +
+		"2026-10-21T10:00:03.000Z info four\n"
+	ps := newGetLogsTestService(t, []byte(content))
+
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	var buffer mlog.Buffer
+	require.NoError(t, mlog.AddWriterTarget(logger, &buffer, true, mlog.StdAll...))
+	t.Cleanup(func() { require.NoError(t, logger.Shutdown()) })
+
+	lines, appErr := ps.GetLogsSkipSend(request.EmptyContext(logger), 0, 100, &model.LogFilter{})
+	require.Nil(t, appErr)
+	require.Len(t, lines, 4)
+	require.NoError(t, logger.Flush())
+
+	// One message for the scan, so a client polling the logs at debug level can't make the
+	// file grow with every query
+	logged := buffer.String()
+	assert.Equal(t, 1, strings.Count(logged, "Read log lines that aren't JSON"), logged)
+	assert.Contains(t, logged, `"lines":3`)
+}
+
 // TestGetLogsSkipSendLargeFile covers lines that straddle read blocks or are longer than one.
 func TestGetLogsSkipSendLargeFile(t *testing.T) {
 	var sb strings.Builder
@@ -375,10 +403,11 @@ func dateToTestLogFile(start time.Time, count int) []string {
 // referenceFilteredLogs returns the page GetLogsSkipSend returns when it reads every line.
 func referenceFilteredLogs(rctx request.CTX, all []string, perPage int, filter *model.LogFilter) []string {
 	search := newLogSearch(filter)
+	fields := newLogFields(filter)
 
 	var lines []string
 	for i := len(all) - 1; i >= 0 && len(lines) < perPage; i-- {
-		filtered := isLogFilteredBySearch(search, []byte(all[i]))
+		filtered := isLogFilteredByContent(search, fields, []byte(all[i]))
 		var entry *model.LogEntry
 		if err := json.Unmarshal([]byte(all[i]), &entry); err == nil && entry != nil {
 			filtered = filtered || isLogFilteredByLevel(filter, entry) || isLogFilteredByDate(rctx, filter, entry)
@@ -547,6 +576,201 @@ func TestReverseLineReader(t *testing.T) {
 		reader := newReverseLineReader(strings.NewReader("abc"), 10, logReadBlockSize)
 		_, err := reader.Next()
 		assert.Equal(t, io.ErrUnexpectedEOF, err)
+	})
+}
+
+func TestReverseLineReaderLimit(t *testing.T) {
+	content := "aa\nbb\ncc\ndd"
+	reader := newReverseLineReader(strings.NewReader(content), int64(len(content)), 3)
+
+	var reads []int64
+	stop := errors.New("stop")
+	reader.limit = func(read int64) (int64, error) {
+		reads = append(reads, read)
+		if read >= 6 {
+			return 0, stop
+		}
+		return 100, nil
+	}
+
+	line, err := reader.Next()
+	require.NoError(t, err)
+	assert.Equal(t, "\ndd", string(line))
+	line, err = reader.Next()
+	require.NoError(t, err)
+	assert.Equal(t, "\ncc", string(line))
+
+	_, err = reader.Next()
+	assert.Equal(t, stop, err)
+	// the line returned before the limit stays valid
+	assert.Equal(t, "\ncc", string(line))
+	assert.Equal(t, []int64{0, 3, 6}, reads)
+}
+
+func TestReverseLineReaderLimitCutsBlocks(t *testing.T) {
+	// The long line makes blocks grow past the block size
+	content := "ab\n" + strings.Repeat("x", 200) + "\ncd"
+	const budget = 50
+	counter := &countingReaderAt{r: strings.NewReader(content)}
+	reader := newReverseLineReader(counter, int64(len(content)), 4)
+
+	stop := errors.New("stop")
+	reader.limit = func(read int64) (int64, error) {
+		if read >= budget {
+			return 0, stop
+		}
+		return budget - read, nil
+	}
+
+	line, err := reader.Next()
+	require.NoError(t, err)
+	assert.Equal(t, "\ncd", string(line))
+
+	_, err = reader.Next()
+	assert.Equal(t, stop, err)
+	assert.Equal(t, int64(budget), counter.read)
+
+	t.Run("lines within the cut block are still returned", func(t *testing.T) {
+		content := strings.Repeat("x", 100) + "\nab\ncd"
+		reader := newReverseLineReader(strings.NewReader(content), int64(len(content)), 64)
+		reader.limit = func(read int64) (int64, error) {
+			if read >= 6 {
+				return 0, stop
+			}
+			return 6 - read, nil
+		}
+
+		var lines []string
+		for {
+			line, err := reader.Next()
+			if err != nil {
+				assert.Equal(t, stop, err)
+				break
+			}
+			lines = append(lines, string(line))
+		}
+		assert.Equal(t, []string{"\ncd", "\nab"}, lines)
+	})
+}
+
+// scanLimitMarker returns the fields of lines' last line if it is a scan limit marker, or nil.
+func scanLimitMarker(t *testing.T, lines []string) map[string]any {
+	t.Helper()
+	if len(lines) == 0 {
+		return nil
+	}
+
+	var fields map[string]any
+	if json.Unmarshal([]byte(lines[len(lines)-1]), &fields) != nil || fields["scan_limited"] != true {
+		return nil
+	}
+	assert.Equal(t, "warn", fields["level"])
+	assert.Equal(t, "Log scan stopped at its limit", fields["msg"])
+	_, err := time.Parse(logr.DefTimestampFormat, fields["timestamp"].(string))
+	assert.NoError(t, err)
+
+	return fields
+}
+
+func TestGetLogsSkipSendScanBudget(t *testing.T) {
+	timestamp := func(i int) string {
+		return time.Date(2026, 10, 21, 10, 0, 0, 0, time.UTC).Add(time.Duration(i) * time.Second).Format(logr.DefTimestampFormat)
+	}
+
+	var all []string
+	for i := range 2000 {
+		msg := "routine work " + strings.Repeat("x", (i*37)%200)
+		if i == 0 || i == 1999 {
+			msg = "rare event"
+		}
+		all = append(all, logLine(timestamp(i), "info", msg))
+	}
+	content := strings.Join(all, "\n")
+	require.Greater(t, len(content), 4*logReadBlockSize)
+	lines := referenceLogLines(content)
+
+	ps := newGetLogsTestService(t, []byte(content))
+	rare := &model.LogFilter{Search: "rare event"}
+
+	// oldestRead returns the timestamp of the oldest line a scan of the last n bytes returns
+	oldestRead := func(n int) string {
+		tail := content[len(content)-n:]
+		i := strings.IndexByte(tail, '\n')
+		require.GreaterOrEqual(t, i, 0)
+		line, _, _ := strings.Cut(tail[i+1:], "\n")
+		return logLineTimestamp([]byte(line))
+	}
+
+	t.Run("within budget", func(t *testing.T) {
+		got, appErr := ps.GetLogsSkipSend(request.TestContext(t), 0, 10, rare)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{lines[0], lines[1999]}, got)
+	})
+
+	t.Run("byte budget returns partial lines and the marker", func(t *testing.T) {
+		budget := logScanBudget{duration: time.Minute, bytes: 2 * logReadBlockSize}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 10, rare, budget)
+		require.Nil(t, appErr)
+		require.Len(t, got, 2)
+		assert.Equal(t, lines[1999], got[0])
+
+		marker := scanLimitMarker(t, got)
+		require.NotNil(t, marker)
+		assert.Equal(t, oldestRead(2*logReadBlockSize), marker["scanned_back_to"])
+	})
+
+	t.Run("no marker when the page fills within budget", func(t *testing.T) {
+		budget := logScanBudget{duration: time.Minute, bytes: 2 * logReadBlockSize}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 5, &model.LogFilter{}, budget)
+		require.Nil(t, appErr)
+		assert.Equal(t, referenceLogPage(lines, 0, 5), got)
+	})
+
+	t.Run("skipped lines count toward the budget", func(t *testing.T) {
+		budget := logScanBudget{duration: time.Minute, bytes: 2 * logReadBlockSize}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 1, 1500, &model.LogFilter{}, budget)
+		require.Nil(t, appErr)
+		require.NotNil(t, scanLimitMarker(t, got))
+	})
+
+	t.Run("deadline", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), -time.Second)
+		defer cancel()
+		rctx := request.TestContext(t).WithContext(ctx)
+
+		got, appErr := ps.GetLogsSkipSend(rctx, 0, 10, rare)
+		require.Nil(t, appErr)
+		require.Len(t, got, 1)
+
+		marker := scanLimitMarker(t, got)
+		require.NotNil(t, marker)
+		// nothing was read, so there is no oldest timestamp
+		assert.NotContains(t, marker, "scanned_back_to")
+	})
+
+	t.Run("time budget", func(t *testing.T) {
+		// A budget that has already run out cancels the scan's context as it is created
+		budget := logScanBudget{duration: 0, bytes: defaultLogScanBudget.bytes}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 10, rare, budget)
+		require.Nil(t, appErr)
+		require.Len(t, got, 1)
+		require.NotNil(t, scanLimitMarker(t, got))
+	})
+
+	t.Run("a long line at the budget keeps the oldest timestamp", func(t *testing.T) {
+		// The last line fills the first block's tail. The line before it spans more blocks than the
+		// budget allows, so reading it reuses the buffer that held the last line before stopping.
+		newest := logLine(timestamp(1), "info", "routine work")
+		long := logLine(timestamp(0), "info", strings.Repeat("x", 3*logReadBlockSize))
+		ps := newGetLogsTestService(t, []byte(long+"\n"+newest))
+
+		budget := logScanBudget{duration: time.Minute, bytes: 2 * logReadBlockSize}
+		got, appErr := ps.getLogsSkipSend(request.TestContext(t), 0, 10, rare, budget)
+		require.Nil(t, appErr)
+
+		marker := scanLimitMarker(t, got)
+		require.NotNil(t, marker)
+		assert.Equal(t, timestamp(1), marker["scanned_back_to"])
 	})
 }
 

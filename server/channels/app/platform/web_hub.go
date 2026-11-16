@@ -33,6 +33,7 @@ type SuiteIFace interface {
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError)
 	MFARequired(rctx request.CTX, method string) *model.AppError
 	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
 	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
@@ -1138,8 +1139,9 @@ func (s *connSet) all() iter.Seq[*WebConn] {
 	small := s.small
 	return func(yield func(*WebConn) bool) {
 		// slices.Backward would be a second closure on every channel event, 36 allocations more per event.
-		for i := len(small) - 1; i >= 0; i-- { //nolint:modernize
-			if wc := small[i]; wc != nil && !yield(wc) {
+		// The loop is written as i > 0 over small[i-1] so that go fix's slicesbackward does not rewrite it.
+		for i := len(small); i > 0; i-- {
+			if wc := small[i-1]; wc != nil && !yield(wc) {
 				return
 			}
 		}

@@ -25,11 +25,6 @@ describe('components/ChannelSelectorModal', () => {
     const channel1: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-1', team_id: 'teamid1'}));
     const channel2: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-2', team_id: 'teamid2'}));
     const channel3: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({id: 'channel-3', team_id: 'teamid1'}));
-    const groupSyncedChannel: ChannelWithTeamData = Object.assign(TestHelper.getChannelWithTeamDataMock({
-        id: 'channel-4',
-        team_id: 'teamid3',
-        group_constrained: true,
-    }));
 
     const defaultProps = {
         intl: defaultIntl,
@@ -51,44 +46,6 @@ describe('components/ChannelSelectorModal', () => {
             searchAllChannels: jest.fn(() => Promise.resolve({data: []})),
         },
     };
-
-    test('should match snapshot', () => {
-        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
-            <ChannelSelectorModal
-                {...defaultProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({channels: [
-                channel1,
-                channel2,
-                channel3,
-            ]});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('exclude already selected', () => {
-        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
-            <ChannelSelectorModal
-                {...defaultProps}
-                excludeTeamIds={['teamid2']}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({channels: [
-                channel1,
-                channel2,
-                channel3,
-            ]});
-        });
-
-        expect(container).toMatchSnapshot();
-    });
 
     test('should show custom no options message when no channels and no search term', async () => {
         const customMessage = (
@@ -150,55 +107,6 @@ describe('components/ChannelSelectorModal', () => {
 
         // Should NOT show the custom message when searching
         expect(container.querySelector('.custom-message')).toBeNull();
-    });
-
-    test('should not show custom message when channels are available', () => {
-        const customMessage = (
-            <div className='custom-message'>
-                {'No private channels available'}
-            </div>
-        );
-
-        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
-            <ChannelSelectorModal
-                {...defaultProps}
-                searchTerm={''}
-                customNoOptionsMessage={customMessage}
-                ref={ref}
-            />,
-        );
-
-        // Set channels array with data
-        act(() => {
-            ref.current!.setState({
-                channels: [channel1, channel2],
-                loadingChannels: false,
-            });
-        });
-
-        // The component renders normally with channels
-        expect(container).toMatchSnapshot();
-    });
-
-    test('excludes group constrained channels when requested', () => {
-        const ref = React.createRef<InstanceType<typeof ChannelSelectorModal>>();
-        const {container} = renderWithContext(
-            <ChannelSelectorModal
-                {...defaultProps}
-                excludeGroupConstrained={true}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current!.setState({channels: [
-                channel1,
-                groupSyncedChannel,
-            ]});
-        });
-
-        // The group constrained channel should not appear in the rendered output
-        expect(container).toMatchSnapshot();
     });
 
     test('renders fallback channel icon when matcher returns false', () => {

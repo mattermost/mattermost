@@ -355,6 +355,15 @@ describe('hierarchical value menu adapters', () => {
             expect(onNamesChange).toHaveBeenCalledWith(['Air Program']);
         });
 
+        test('opts out of the input restyle: --policy root and AttributeChip chips', () => {
+            const {container} = renderPolicy({names: ['Air Program']});
+
+            expect(container.querySelector('.hierarchical-value-menu')).toHaveClass('hierarchical-value-menu--policy');
+            expect(trigger().querySelector('.AttributeChip')).toBeInTheDocument();
+            expect(trigger().querySelector('[data-chip]')).toBeNull();
+            expect(trigger().querySelector('.hierarchical-value-menu__caret')).toBeNull();
+        });
+
         test('forwards the host chrome props', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderPolicy();

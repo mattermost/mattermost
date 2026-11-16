@@ -32,18 +32,24 @@ The Site health dashboard is different from the [Mattermost Health Check](/admin
 
 The dashboard runs built-in checks against your configuration and the live state of your deployment. Checks are grouped into the following categories:
 
+{/* Editors and automated tools: this table gives examples, not a full list of checks.
+Don't add items when a new check ships. Only change it when a category is added,
+removed, or renamed. */}
+
 | Category | Examples of what is checked |
 | --- | --- |
-| Platform | Site URL is set and uses HTTPS, file storage is reachable, plugin health checks and plugins that fail to run, whether file logging is enabled, rate limiting memory store size, file descriptor usage, and the host operating system. |
-| Database | Connection pool sizing and saturation, read and search replicas, query timeout, SQL tracing, and the PostgreSQL version. |
-| Search | Search availability, Elasticsearch or OpenSearch version and plugins, connection security, indexing batch size, and whether your post volume calls for Elasticsearch. |
-| Cluster | High availability nodes that can't reach each other, a cluster running with a single node, mixed Mattermost versions across nodes, unencrypted cluster traffic, and the cache backend at scale. |
-| Authentication | LDAP and SAML connectivity and security settings, LDAP sync configuration, session length settings, and whether single sign-on is set up at scale. |
-| Notifications | Push notification server address and security, push notification contents, SMTP connectivity, and channel-wide mentions in large channels. |
-| Compliance | Audit logging, the compliance export directory, and data retention and Global Relay export settings. |
+| Platform | Site URL uses HTTPS, file storage is reachable, and plugins that fail to run. |
+| Database | Connection pool saturation, read replicas, and the PostgreSQL version. |
+| Search | Search availability, Elasticsearch or OpenSearch version, and connection security. |
+| Cluster | High availability nodes that can't reach each other, mixed Mattermost versions across nodes, and unencrypted cluster traffic. |
+| Authentication | LDAP and SAML connectivity, LDAP sync configuration, and session length settings. |
+| Notifications | Push notification server security, SMTP connectivity, and channel-wide mentions in large channels. |
+| Compliance | Audit logging, data retention, and Global Relay export settings. |
 | Jobs | Background jobs that failed, are stuck in progress, or have made no progress. |
-| Licensing | Whether your license has expired or expires soon, and whether licensed seats are nearly full, reached, or exceeded. |
-| Version | Whether your Mattermost version is past end of life, an Extended Support Release is nearing end of life, or newer releases are available. |
+| Licensing | License expiry and licensed seat usage. |
+| Version | Mattermost versions past end of life and newer releases that are available. |
+
+The dashboard adds new checks over time; it shows every check that applies to your deployment.
 
 ## Understanding findings
 
@@ -67,11 +73,12 @@ Each finding row shows its severity, title, category area, and how long the cond
 
 ### How checks run
 
-Checks run automatically about once an hour. In a high availability cluster, one node runs the checks on behalf of the whole cluster.
+Checks run automatically about once an hour. In a high availability cluster, every node reports its own status, so a finding can point to the node that has the problem. For example, it can name a node that can't reach LDAP, SAML, SMTP, Elasticsearch or OpenSearch, or file storage while the other nodes can, or a node whose database connection pool is nearly full.
 
 - After the feature is enabled, the first check runs within an hour. Until then, the dashboard has no findings to show.
 - After you fix the cause of a finding, it moves to **Recently resolved** after the next check run, which can take up to an hour.
 - A finding becomes **Unknown** when the information needed to evaluate it isn't available, for example because a service the check depends on can't be reached, or because the check hasn't reported for longer than expected.
+- If a node doesn't report back in time, the dashboard shows **A cluster node is not responding**. That node's other findings keep their last known state until it responds again. A busy or slow node can cause this warning to appear briefly.
 
 ### Filter by tab
 

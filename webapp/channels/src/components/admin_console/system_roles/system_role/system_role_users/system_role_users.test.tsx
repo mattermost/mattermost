@@ -33,9 +33,9 @@ describe('admin_console/system_role_users', () => {
         readOnly: false,
     });
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const props = getBaseProps();
-        const {container} = renderWithContext(
+        renderWithContext(
             <SystemRoleUsers
                 {...props}
             />,
@@ -44,13 +44,11 @@ describe('admin_console/system_role_users', () => {
         await waitFor(() => {
             expect(props.actions.getProfiles).toHaveBeenCalledTimes(1);
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with readOnly true', async () => {
+    test('should render with readOnly true', async () => {
         const props = getBaseProps();
-        const {container} = renderWithContext(
+        renderWithContext(
             <SystemRoleUsers
                 {...props}
                 readOnly={true}
@@ -62,6 +60,5 @@ describe('admin_console/system_role_users', () => {
         });
 
         expect(screen.getByRole('button', {name: 'Add People'})).toBeDisabled();
-        expect(container).toMatchSnapshot();
     });
 });

@@ -49,6 +49,7 @@ import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapte
 
 import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
+import {canViewPluginLogs, pluginLogsPath} from './server_logs/url_filters';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
@@ -353,7 +354,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (
                 <AdminHeader>
                     <div className='admin-console__header-left'>
-                        {name}
+                        <span>{name}</span>
                         {pluginStateBadge}
                         {betaBadge}
                     </div>
@@ -417,6 +418,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 homepageUrl={this.props.plugin.homepage_url}
                                 saveNeeded={this.state.saveNeeded}
                                 value={this.props.plugin.active}
+                                logsPath={canViewPluginLogs(this.props.config, this.props.consoleAccess) ? pluginLogsPath(this.props.plugin.id) : undefined}
                             />
                         )}
                     </div>
@@ -1130,6 +1132,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             };
             const errorCallback = (error: any) => {
+                this.setState({[`${setting.key}Error`]: error.message});
                 if (callback && typeof callback === 'function') {
                     callback(error.message);
                 }
@@ -1150,7 +1153,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 disabled={this.isDisabled(setting)}
                 fileType={setting.fileType}
                 onSubmit={uploadFile}
-                error={this.state.idpCertificateFileError}
+                error={this.state[`${setting.key}Error`]}
             />
         );
     };
