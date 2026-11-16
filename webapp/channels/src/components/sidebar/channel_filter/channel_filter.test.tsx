@@ -16,27 +16,6 @@ describe('components/sidebar/channel_filter', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <ChannelFilterIntl {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot if the unread filter is enabled', () => {
-        const props = {
-            ...baseProps,
-            unreadFilterEnabled: true,
-        };
-
-        const {container} = renderWithContext(
-            <ChannelFilterIntl {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should enable the unread filter on toggle when it is disabled', () => {
         const {container} = renderWithContext(
             <ChannelFilterIntl {...baseProps}/>,

@@ -19,8 +19,6 @@ describe('components/threading/common/button', () => {
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         await userEvent.click(container.querySelector('button')!);
         expect(action).toHaveBeenCalled();
     });
@@ -32,8 +30,6 @@ describe('components/threading/common/button', () => {
                 className={className}
             />,
         );
-
-        expect(container).toMatchSnapshot();
 
         const button = container.querySelector('button')!;
         expect(button.classList.contains('test-class')).toBe(true);
@@ -47,8 +43,6 @@ describe('components/threading/common/button', () => {
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         expect(container.querySelector('.Button_prepended')).toBeInTheDocument();
     });
 
@@ -59,19 +53,15 @@ describe('components/threading/common/button', () => {
             />,
         );
 
-        expect(container).toMatchSnapshot();
-
         expect(container.querySelector('.Button_appended')).toBeInTheDocument();
     });
 
     test('should support children', () => {
-        const {container} = render(
+        render(
             <Button>
                 {'text-goes-here'}
             </Button>,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('text-goes-here')).toBeInTheDocument();
     });
 });

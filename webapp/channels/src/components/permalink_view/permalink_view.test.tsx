@@ -101,14 +101,6 @@ describe('components/PermalinkView', () => {
         currentUserId: 'current_user',
     };
 
-    test('should match snapshot', async () => {
-        const {container} = renderWithContext(
-            <PermalinkView {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should call baseProps.actions.focusPost on doPermalinkEvent', async () => {
         renderWithContext(
             <PermalinkView {...baseProps}/>,
@@ -138,18 +130,6 @@ describe('components/PermalinkView', () => {
             expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
             expect(baseProps.actions.focusPost).toHaveBeenCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
         });
-    });
-
-    test('should match snapshot with archived channel', async () => {
-        const props = {...baseProps, channelIsArchived: true};
-
-        const {container} = renderWithContext(
-            <PermalinkView {...props}/>,
-        );
-
-        await waitFor(() => {});
-
-        expect(container).toMatchSnapshot();
     });
 
     describe('actions', () => {

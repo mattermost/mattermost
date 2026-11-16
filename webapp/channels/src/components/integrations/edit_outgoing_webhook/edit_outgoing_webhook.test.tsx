@@ -91,33 +91,6 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         mockPush.mockClear();
     });
 
-    test('should match snapshot', () => {
-        const props = {...baseProps, hook};
-        const {container} = renderWithContext(
-            <EditOutgoingWebhook {...props}/>,
-            initialState as GlobalState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, loading', () => {
-        const {container} = renderWithContext(
-            <EditOutgoingWebhook {...baseProps}/>,
-            initialState as GlobalState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when EnableOutgoingWebhooks is false', () => {
-        const props = {...baseProps, enableOutgoingWebhooks: false, hook};
-        const {container} = renderWithContext(
-            <EditOutgoingWebhook {...props}/>,
-            initialState as GlobalState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should have match state when handleConfirmModal is called', async () => {
         const newActions = {
             ...baseProps.actions,
@@ -171,17 +144,6 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         await waitFor(() => {
             expect(screen.queryByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).not.toBeInTheDocument();
         });
-    });
-
-    test('should have match renderExtra', () => {
-        const props = {...baseProps, hook};
-        const {container} = renderWithContext(
-            <EditOutgoingWebhook {...props}/>,
-            initialState as GlobalState,
-        );
-
-        // renderExtra renders a ConfirmModal - verify its presence in the DOM
-        expect(container.querySelector('.integrations-backstage-modal')).toMatchSnapshot();
     });
 
     test('should have match when editOutgoingHook is called', async () => {

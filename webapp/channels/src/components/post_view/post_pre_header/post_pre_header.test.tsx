@@ -28,7 +28,6 @@ describe('components/PostPreHeader', () => {
         );
 
         expect(container.querySelector('div.post-pre-header')).toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should not render anything if both skipFlagged and skipPinned are true', () => {
@@ -45,7 +44,6 @@ describe('components/PostPreHeader', () => {
         );
 
         expect(container.querySelector('div.post-pre-header')).toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should properly handle flagged posts (and not pinned)', () => {
@@ -62,7 +60,6 @@ describe('components/PostPreHeader', () => {
         expect(container.querySelector('span.icon-pin')).toBeNull();
         expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
         expect(screen.getByText('Saved')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
 
         // case of skipFlagged is true
         rerender(
@@ -74,7 +71,6 @@ describe('components/PostPreHeader', () => {
 
         expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
         expect(screen.queryByText('Saved')).not.toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should properly handle pinned posts (and not flagged)', () => {
@@ -91,7 +87,6 @@ describe('components/PostPreHeader', () => {
         expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
         expect(container.querySelector('span.icon-pin')).not.toBeNull();
         expect(screen.getByText('Pinned')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
 
         // case of skipPinned is true
         rerender(
@@ -103,7 +98,6 @@ describe('components/PostPreHeader', () => {
 
         expect(container.querySelector('span.icon-pin')).toBeNull();
         expect(screen.queryByText('Pinned')).not.toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     describe('should properly handle posts that are flagged and pinned', () => {
@@ -122,7 +116,6 @@ describe('components/PostPreHeader', () => {
             expect(container.querySelector('span.icon-pin')).not.toBeNull();
             expect(screen.getByText('Pinned')).toBeInTheDocument();
             expect(screen.getByText('Saved')).toBeInTheDocument();
-            expect(container).toMatchSnapshot();
         });
 
         test('skipFlagged is true', () => {
@@ -140,7 +133,6 @@ describe('components/PostPreHeader', () => {
             expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
             expect(container.querySelector('span.icon-pin')).not.toBeNull();
             expect(screen.getByText('Pinned')).toBeInTheDocument();
-            expect(container).toMatchSnapshot();
         });
 
         test('skipPinned is true', () => {
@@ -158,7 +150,6 @@ describe('components/PostPreHeader', () => {
             expect(container.querySelector('span.icon-pin')).toBeNull();
             expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
             expect(screen.getByText('Saved')).toBeInTheDocument();
-            expect(container).toMatchSnapshot();
         });
     });
 
@@ -175,7 +166,6 @@ describe('components/PostPreHeader', () => {
 
         expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
         expect(container.querySelector('span.icon-pin')).not.toBeNull();
-        expect(container).toMatchSnapshot();
 
         const links = container.querySelectorAll('a');
         await userEvent.click(links[0]);

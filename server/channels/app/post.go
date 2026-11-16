@@ -3339,6 +3339,11 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	rctx = rctx.WithLogFields(mlog.String("component", "post_reminders"))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
+		// A fresh server has no system admin yet, so there is no one to own the system bot.
+		if appErr.Id == "app.bot.get_system_bot.empty_admin_list.app_error" {
+			rctx.Logger().Debug("Skipping post reminders because there is no system admin to own the system bot")
+			return
+		}
 		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}

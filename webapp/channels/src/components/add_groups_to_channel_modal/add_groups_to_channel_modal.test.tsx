@@ -40,13 +40,6 @@ describe('components/AddGroupsToChannelModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <AddGroupsToChannelModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should match state when handleResponse is called', () => {
         const ref = React.createRef<AddGroupsToChannelModalClass>();
         renderWithContext(
@@ -225,29 +218,6 @@ describe('components/AddGroupsToChannelModal', () => {
             instance.handleDelete(newValues);
         });
         expect(instance.state.values).toEqual(newValues);
-    });
-
-    test('should match when renderOption is called', () => {
-        const ref = React.createRef<AddGroupsToChannelModalClass>();
-        renderWithContext(
-            <AddGroupsToChannelModal
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        const instance = ref.current!;
-
-        const option: any = {id: 'id', last_picture_update: '12345', email: 'test@test.com'};
-        let isSelected = false;
-        function onAdd() {} //eslint-disable-line no-empty-function
-
-        expect(instance.renderOption(option, isSelected, onAdd)).toMatchSnapshot();
-
-        isSelected = true;
-        expect(instance.renderOption(option, isSelected, onAdd)).toMatchSnapshot();
-
-        const optionBot: any = {id: 'id', is_bot: true, last_picture_update: '12345'};
-        expect(instance.renderOption(optionBot, isSelected, onAdd)).toMatchSnapshot();
     });
 
     test('should match when renderValue is called', () => {

@@ -21,11 +21,9 @@ import {getFileType} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {ArchiveFileError, ArchiveTooLargeError, archiveFilename, buildFileArchive} from './file_archive';
-import {packRows} from './pack_rows';
 import ImageTile from './tiles/image_tile';
 import VideoTile from './tiles/video_tile';
 import type {ClassifiedFile, TileKind} from './types';
-import {useContainerDimensions} from './use_container_dimensions';
 
 import './media_gallery.scss';
 
@@ -37,20 +35,6 @@ type Props = {
     onItemClick: (index: number) => void;
     onToggleCollapse?: (postId: string) => void;
 };
-
-const ROW_HEIGHT = 216;
-const COMPACT_ROW_HEIGHT = 144;
-const MIN_TILE_WIDTH = 50;
-const MAX_TILE_WIDTH = 500;
-const GAP = 8;
-const FALLBACK_WIDTH = 700;
-
-const NARROW_ENTER_WIDTH = 480;
-const NARROW_EXIT_WIDTH = 512;
-
-export function nextNarrowState(isNarrow: boolean, width: number): boolean {
-    return isNarrow ? width < NARROW_EXIT_WIDTH : width < NARROW_ENTER_WIDTH;
-}
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
@@ -75,16 +59,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
 
     useEffect(() => () => downloadAbortRef.current?.abort(), []);
 
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const {width: containerWidth} = useContainerDimensions(containerRef);
-
-    const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
-    const [isNarrow, setIsNarrow] = useState(false);
-
-    useEffect(() => {
-        setIsNarrow((prev) => nextNarrowState(prev, effectiveWidth));
-    }, [effectiveWidth]);
-
     const tiles: ClassifiedFile[] = useMemo(() => {
         const out: ClassifiedFile[] = [];
         for (const file of fileInfos) {
@@ -95,16 +69,6 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
         }
         return out;
     }, [fileInfos]);
-
-    const rows = useMemo(() => {
-        return packRows(tiles, {
-            containerWidth: effectiveWidth,
-            rowHeight: (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
-            minTileWidth: MIN_TILE_WIDTH,
-            maxTileWidth: MAX_TILE_WIDTH,
-            gap: GAP,
-        });
-    }, [tiles, effectiveWidth, isNarrow, compactDisplay]);
 
     const handleClick = useCallback((index: number) => {
         const file = tiles[index]?.file;
@@ -193,11 +157,8 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     // Collapsed single videos need a header, otherwise the tile disappears with no toggle.
     const showHeader = Boolean(onToggleCollapse) && (!isSingle || !isEmbedVisible);
 
-    let tileIdx = 0;
-
     return (
         <div
-            ref={containerRef}
             className={classNames('MediaGallery', {
                 'MediaGallery--compact': compactDisplay,
                 'MediaGallery--single': isSingle,
@@ -269,42 +230,19 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                 aria-hidden={!isEmbedVisible}
             >
                 <div className='MediaGallery__rows_inner'>
-                    {rows.map((row, rIdx) => (
-                        <div
-                            key={`row-${rIdx}`}
-                            className='MediaGallery__row'
-                            style={{height: `${row.height}px`}}
-                        >
-                            {row.tiles.map((packed) => {
-                                const current = tileIdx;
-                                tileIdx += 1;
-                                const tile = packed.tile;
-                                return tile.kind === 'image' ? (
-                                    <ImageTile
-                                        key={tile.file.id}
-                                        fileInfo={tile.file}
-                                        index={current}
-                                        total={tiles.length}
-                                        width={packed.width}
-                                        height={row.height}
-                                        enablePublicLink={enablePublicLink}
-                                        onClick={handleClick}
-                                    />
-                                ) : (
-                                    <VideoTile
-                                        key={tile.file.id}
-                                        fileInfo={tile.file}
-                                        index={current}
-                                        total={tiles.length}
-                                        width={packed.width}
-                                        height={row.height}
-                                        enablePublicLink={enablePublicLink}
-                                        onClick={handleClick}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ))}
+                    {tiles.map((tile, idx) => {
+                        const Tile = tile.kind === 'image' ? ImageTile : VideoTile;
+                        return (
+                            <Tile
+                                key={tile.file.id}
+                                fileInfo={tile.file}
+                                index={idx}
+                                total={tiles.length}
+                                enablePublicLink={enablePublicLink}
+                                onClick={handleClick}
+                            />
+                        );
+                    })}
                 </div>
             </div>
         </div>
