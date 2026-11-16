@@ -197,6 +197,8 @@ describe('selectors/getChannelSidebarSubItems', () => {
             {id: 5, label: 'L', subpath: 'views/x'},
             {id: 'num-label', label: 5, subpath: 'views/x'},
             {id: 'num-subpath', label: 'L', subpath: 5},
+            {id: 'post-id-shaped', label: 'L', subpath: 'abcdefghijklmnopqrstuvwxyz'},
+            {id: 'post-id-shaped-prefix', label: 'L', subpath: '/abcdefghijklmnopqrstuvwxy1/more'},
         ] as unknown as ChannelSidebarSubItem[];
         const state = makeState([makeRegistration([...invalid, makeItem({id: 'ok'})])]);
 

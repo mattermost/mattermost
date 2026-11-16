@@ -149,6 +149,15 @@ describe('Actions', () => {
             expect(joinChannel).toHaveBeenCalledWith('current_user_id', 'team_id1', 'channel_id3', '');
             expect(history.replace).toHaveBeenCalledWith('/team1/channels/achannel3');
         });
+
+        test('keeps the subpath when redirecting to the channel name', async () => {
+            const testStore = await mockStore(initialState);
+            const history = {replace: jest.fn()};
+
+            await testStore.dispatch((goToChannelByChannelId({params: {team: 'team1', identifier: 'channel_id3', subpath: 'views/a', path: '/'}, url: ''} as Match, history as any)));
+
+            expect(history.replace).toHaveBeenCalledWith('/team1/channels/achannel3/views/a');
+        });
     });
 
     describe('goToChannelByChannelName', () => {

@@ -166,12 +166,13 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
         let center: React.ReactNode;
         if (channelViewPluginComponent) {
+            const subpath = this.getHandledSubpath();
             center = (
                 <ChannelViewPluginComponent
                     registration={channelViewPluginComponent}
                     channelId={this.props.channelId}
-                    focusedPostId={focusedPostId}
-                    subpath={this.getHandledSubpath()}
+                    focusedPostId={subpath ? undefined : focusedPostId}
+                    subpath={subpath}
                 />
             );
         }

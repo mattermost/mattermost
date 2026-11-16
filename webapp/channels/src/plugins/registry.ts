@@ -1762,8 +1762,9 @@ export default class PluginRegistry {
      *
      * `getItems` runs on every store update, so plugins should memoize it (e.g. with
      * `createSelector`). Items from multiple registrations are concatenated in registration order
-     * (alphabetical pluginId, then insertion order). Items with an empty label or subpath, or a
-     * non-string id, label or subpath, are dropped. An unknown `iconName` is ignored and the item is
+     * (alphabetical pluginId, then insertion order). Items with an empty label or subpath, a
+     * non-string id, label or subpath, or a subpath starting with a 26-character id segment (the
+     * channel route reads it as a permalink) are dropped. An unknown `iconName` is ignored and the item is
      * rendered without an icon.
      *
      * Nesting: set `parentId` to the `id` of another item from the same registration to nest an

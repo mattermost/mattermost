@@ -558,9 +558,9 @@ describe('PluginRegistry — registerChannelSidebarSubItems', () => {
         const registry = new PluginRegistry(PLUGIN_ID);
         registry.registerChannelSidebarSubItems({
             getItems: () => [],
-            getItemActions: 'nope',
-            canDrop: true,
-            onItemDrop: {},
+            getItemActions: 'nope' as unknown as (() => never),
+            canDrop: true as unknown as (() => boolean),
+            onItemDrop: {} as unknown as (() => void),
         });
 
         const [entry] = getRegs();
