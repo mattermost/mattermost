@@ -4,6 +4,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -1354,11 +1354,11 @@ type userLookupStore struct {
 	err    error
 }
 
-func (s *userLookupStore) Get(rctx request.CTX, id string) (*model.User, error) {
+func (s *userLookupStore) Get(ctx context.Context, id string) (*model.User, error) {
 	if id == s.userID {
 		return nil, s.err
 	}
-	return s.UserStore.Get(rctx, id)
+	return s.UserStore.Get(ctx, id)
 }
 
 // userLookupOuterStore swaps User() for userLookupStore. Other stores pass through.
