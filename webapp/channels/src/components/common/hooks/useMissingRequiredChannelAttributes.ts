@@ -138,6 +138,10 @@ export default function useMissingRequiredChannelAttributes(
     const enabled = !skip && attributesEnabled && requiredEnforced;
     const requiredFields = useMemo(() => fields.filter(isPropertyFieldRequired), [fields]);
 
+    // Keyed on the ids, not the count: one required field swapped for another
+    // must refetch too.
+    const requiredFieldsKey = requiredFields.map((field) => field.id).join(',');
+
     const [request, setRequest] = useState<RequestState>(IDLE);
 
     const getValuesForTarget = useMemo(() => makeGetPropertyValuesForTarget(), []);
@@ -212,7 +216,7 @@ export default function useMissingRequiredChannelAttributes(
         };
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabled, channelId, requiredFields.length, preferStore]);
+    }, [enabled, channelId, requiredFieldsKey, preferStore]);
 
     const storeMissing = useMemo(() => (
         preferStore && active && loadedInStore ? missingRequiredFields(requiredFields, storeValues) : EMPTY_MISSING

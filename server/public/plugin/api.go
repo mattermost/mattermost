@@ -1411,6 +1411,7 @@ type API interface {
 	// GetSharedChannelCursor returns the sync cursor for the specified channel and RemoteID (passed by
 	// the plugin when registering). The remote must belong to the calling plugin. This can be used to
 	// track the progress of a re-sync started by rewinding the cursor with UpdateSharedChannelCursor.
+	// Returns an error if the remote is not invited to the channel or its invite is not yet confirmed.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 12.2

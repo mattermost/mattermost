@@ -585,7 +585,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
 		// Don't spam the logs when in CI or local testing mode
 		if !(os.Getenv("IS_CI") == "true" || os.Getenv("IS_LOCAL_TESTING") == "true") {
-			mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
+			mlog.Warn("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 		}
 	}
 
@@ -1964,6 +1964,10 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 		return nil
 	}
 	return s.platform.Metrics()
+}
+
+func (s *Server) GetCluster() einterfaces.ClusterInterface {
+	return s.platform.Cluster()
 }
 
 // setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.

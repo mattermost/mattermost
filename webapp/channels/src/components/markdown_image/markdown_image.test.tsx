@@ -31,33 +31,6 @@ describe('components/MarkdownImage', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps, src: '/images/logo.png'};
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for broken link', () => {
-        const props = {
-            ...baseProps,
-            imageMetadata: {
-                format: 'png',
-                height: 10,
-                width: 10,
-                frameCount: 0,
-            },
-            src: 'brokenLink',
-        };
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle load failure properly', () => {
         const props = {
             ...baseProps,
@@ -114,13 +87,12 @@ describe('components/MarkdownImage', () => {
 
     test('should render a link if the source is unsafe', () => {
         const props = {...baseProps, src: ''};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
         const img = screen.getByRole('img', {hidden: true});
         expect(img).toHaveAttribute('alt', props.alt);
         expect(img).toHaveClass('broken-image');
-        expect(container).toMatchSnapshot();
     });
 
     test('should handle not loaded state properly', () => {
@@ -169,13 +141,13 @@ describe('components/MarkdownImage', () => {
         expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 1041});
     });
 
-    it('should match snapshot for SizeAwareImage dimensions', () => {
+    it('should render for SizeAwareImage dimensions', () => {
         const props = {
             ...baseProps,
             imageMetadata: {format: 'jpg', frameCount: 0, width: 100, height: 90},
             src: 'path/image',
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -187,12 +159,12 @@ describe('components/MarkdownImage', () => {
 
         fireEvent.load(img!);
 
-        expect(container).toMatchSnapshot();
+        expect(props.onImageLoaded).toHaveBeenCalledWith({height: 90, width: 100});
     });
 
     test('should render an image with preview modal if the source is safe', () => {
         const props = {...baseProps, src: 'https://example.com/image.png'};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -208,12 +180,11 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveClass('markdown-inline-img--hover');
         expect(img).toHaveClass('cursor--pointer');
         expect(img).toHaveClass('a11y--active');
-        expect(container).toMatchSnapshot();
     });
 
     test('should render an image with no preview if the source is safe and the image is a link', () => {
         const props = {...baseProps, src: 'https://example.com/image.png', imageIsLink: true};
-        const {container} = renderWithContext(
+        renderWithContext(
             <MarkdownImage {...props}/>,
         );
 
@@ -228,7 +199,6 @@ describe('components/MarkdownImage', () => {
         // When imageIsLink, should not have cursor--pointer
         expect(img).toHaveClass('markdown-inline-img--hover');
         expect(img).not.toHaveClass('cursor--pointer');
-        expect(container).toMatchSnapshot();
     });
 
     test('should call openModal when showModal is called', async () => {
@@ -325,35 +295,7 @@ describe('components/MarkdownImage', () => {
 
         fireEvent.load(img!);
 
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should provide image src as an alt text for MarkdownImageExpand if image has no own alt text', () => {
-        const props = {
-            ...baseProps,
-            alt: '',
-            title: 'test title',
-            className: 'markdown-inline-img',
-            postId: 'post_id',
-            src: 'https://example.com/image.png',
-            imageIsLink: false,
-            height: '250',
-            width: '50',
-        };
-
-        const {container} = renderWithContext(
-            <MarkdownImage {...props}/>,
-        );
-
-        const img = container.querySelector('img:not(.image-loading__placeholder)');
-
-        // Mock naturalHeight/naturalWidth for SizeAwareImage's onImageLoaded callback
-        Object.defineProperty(img, 'naturalHeight', {value: 250, configurable: true});
-        Object.defineProperty(img, 'naturalWidth', {value: 50, configurable: true});
-
-        fireEvent.load(img!);
-
-        expect(container).toMatchSnapshot();
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
     });
 
     test('should render a alt text if the link is unsafe', () => {

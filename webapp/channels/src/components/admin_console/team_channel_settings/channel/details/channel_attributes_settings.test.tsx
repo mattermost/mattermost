@@ -71,6 +71,17 @@ function makeResolved(field: PropertyField, rawValue?: unknown): ResolvedChannel
     } as ResolvedChannelAttribute;
 }
 
+// The page is the System Console, so the viewer is a system admin and the
+// channel is in the store: whether a value can be set is decided from both.
+const baseEntities = {
+    channels: {channels: {channel1: {id: 'channel1', team_id: 'team1', type: 'O'}}},
+    users: {currentUserId: 'admin1', profiles: {admin1: {id: 'admin1', roles: 'system_admin system_user'}}},
+};
+
+function renderSettings(ui: React.ReactElement, general: Record<string, unknown> = {}) {
+    return renderWithContext(ui, {entities: {...baseEntities, general}} as any);
+}
+
 describe('ChannelAttributesSettings', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -80,7 +91,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseChannelAttributes.mockReturnValue({enabled: false, loading: false, failed: false, fields: []});
         mockUseResolvedChannelAttributes.mockReturnValue([]);
 
-        const {container} = renderWithContext(
+        const {container} = renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={jest.fn()}
@@ -96,7 +107,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
         const onChange = jest.fn();
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={onChange}
@@ -139,7 +150,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, ['opt1'])]);
 
         const onChange = jest.fn();
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={onChange}
@@ -168,7 +179,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
 
         const onChange = jest.fn();
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={onChange}
@@ -186,7 +197,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
 
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={jest.fn()}
@@ -199,13 +210,9 @@ describe('ChannelAttributesSettings', () => {
 
     describe('required attributes', () => {
         const requiredState = {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagChannelAttributes: 'true',
-                        FeatureFlagChannelAttributesRequired: 'true',
-                    },
-                },
+            config: {
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequired: 'true',
             },
         };
 
@@ -217,7 +224,7 @@ describe('ChannelAttributesSettings', () => {
             mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
             const onMissingRequiredChange = jest.fn();
-            renderWithContext(
+            renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
                     onChange={jest.fn()}
@@ -235,7 +242,7 @@ describe('ChannelAttributesSettings', () => {
             mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
 
             const onMissingRequiredChange = jest.fn();
-            renderWithContext(
+            renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
                     onChange={jest.fn()}
@@ -257,7 +264,7 @@ describe('ChannelAttributesSettings', () => {
             mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
             const onMissingRequiredChange = jest.fn();
-            renderWithContext(
+            renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
                     onChange={jest.fn()}
@@ -274,7 +281,7 @@ describe('ChannelAttributesSettings', () => {
             mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
             mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
-            renderWithContext(
+            renderSettings(
                 <ChannelAttributesSettings
                     channelId='channel1'
                     onChange={jest.fn()}
@@ -287,12 +294,63 @@ describe('ChannelAttributesSettings', () => {
         });
     });
 
+    test('an edit that lands back on the saved value is not sent', async () => {
+        const field = makeField();
+        mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+        mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field, 'opt1')]);
+
+        const onChange = jest.fn();
+        renderSettings(
+            <ChannelAttributesSettings
+                channelId='channel1'
+                onChange={onChange}
+            />,
+        );
+
+        fireEvent.keyDown(await screen.findByRole('button', {name: 'Remove AURORA'}), {key: 'Enter'});
+        expect(onChange).toHaveBeenLastCalledWith({[field.id]: null});
+
+        await userEvent.click(screen.getByTestId('channelAttributesSettings-program'));
+        await userEvent.click(await screen.findByText('AURORA'));
+
+        await waitFor(() => expect(onChange).toHaveBeenLastCalledWith({}));
+
+        const warnCalls = (console.warn as jest.Mock).mock.calls;
+        for (let i = warnCalls.length - 1; i >= 0; i--) {
+            if (typeof warnCalls[i][0] === 'string' && warnCalls[i][0].includes('anchorEl')) {
+                warnCalls.splice(i, 1);
+            }
+        }
+    });
+
+    test('a source-managed field is read-only and never blocks Save', async () => {
+        const field = makeField({attrs: {display_name: 'Program', required: true, protected: true, options: [{id: 'opt1', name: 'AURORA'}]}});
+        const notes = makeField({id: 'field2', name: 'notes', type: 'text', attrs: {display_name: 'Notes'}});
+        mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field, notes]});
+        mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field), makeResolved(notes)]);
+
+        const onMissingRequiredChange = jest.fn();
+        renderSettings(
+            <ChannelAttributesSettings
+                channelId='channel1'
+                onChange={jest.fn()}
+                onMissingRequiredChange={onMissingRequiredChange}
+            />,
+            {config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}},
+        );
+
+        // Values have loaded once the writable field is enabled.
+        await waitFor(() => expect(screen.getByTestId('channelAttributesSettings-notes')).toBeEnabled());
+        expect(screen.getByTestId('channelAttributesSettings-program')).toBeDisabled();
+        expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
+    });
+
     test('a field locked by permission_values="none" is disabled', async () => {
         const field = makeField({permission_values: 'none'});
         mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={jest.fn()}
@@ -308,7 +366,7 @@ describe('ChannelAttributesSettings', () => {
         mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
 
         const onChange = jest.fn();
-        renderWithContext(
+        renderSettings(
             <ChannelAttributesSettings
                 channelId='channel1'
                 onChange={onChange}
@@ -324,6 +382,7 @@ describe('ChannelAttributesSettings', () => {
     describe('required fields', () => {
         const requiredState = {
             entities: {
+                ...baseEntities,
                 general: {
                     config: {
                         FeatureFlagChannelAttributes: 'true',
@@ -430,7 +489,7 @@ describe('ChannelAttributesSettings', () => {
             const {onMissing} = setup(requiredField(), undefined, {
                 entities: {
                     ...requiredState.entities,
-                    channels: {channels: {channel1: channel}},
+                    channels: {channels: {channel1: {...channel, team_id: 'team1'}}},
                 },
             });
 

@@ -1413,7 +1413,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-6-is-now-availab
   - Upgraded Go to 1.25.8.
   - Mattermost v11.5.4 contains no database or functional changes.
 - **11.5.3, released 2026-04-16**
-  - Added a new API endpoint ``PUT /api/v4/channels/&#123;channel_id&#125;/members`` that sets the complete membership of a channel in a single call. The endpoint accepts a JSON object with ``members`` (desired user IDs) and an optional ``channel_admins`` (user IDs to designate as channel admins). The server computes the diff against current membership, adds or removes users as needed, and reconciles admin roles. Results are streamed back as NDJSON for progress tracking. Requires system admin permissions.
+  - Added a new API endpoint ``PUT /api/v4/channels/{channel_id}/members`` that sets the complete membership of a channel in a single call. The endpoint accepts a JSON object with ``members`` (desired user IDs) and an optional ``channel_admins`` (user IDs to designate as channel admins). The server computes the diff against current membership, adds or removes users as needed, and reconciles admin roles. Results are streamed back as NDJSON for progress tracking. Requires system admin permissions.
   - Mattermost v11.5.3 contains no database or functional changes.
 - **11.5.2, released 2026-04-15**
   - Mattermost v11.5.2 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
@@ -1635,7 +1635,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-4-is-now-availab
 ### API Changes
  - Updated the POST `/api/v4/teams` team creation API to omit the `invite_id` value in the response when the requesting user does not have permission to invite members to the new team.
  - ``ImportSettings.Directory`` can no longer be modified through the REST API. Infrastructure operators can still modify this setting via configuration file, environment variables, or mmctl in local mode.
- - ``/api/v4/access_control_policies/&#123;policy_id&#125;/activate`` has been deprecated.
+ - ``/api/v4/access_control_policies/{policy_id}/activate`` has been deprecated.
 
 ### Audit Log Event Changes
  - Added a new audit event ``AuditEventGenerateSupportPacket``.
@@ -1677,7 +1677,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-4-is-now-availab
   - Fixed an issue with permalink embeds arriving from websocket messages.
   - Fixed a memory allocation issue by updating ``mscfb`` and ``msoleps`` dependencies.
   - Fixed an issue with memory use during integration actions.
-  - ``/api/v4/access_control_policies/&#123;policy_id&#125;/activate`` has been deprecated.
+  - ``/api/v4/access_control_policies/{policy_id}/activate`` has been deprecated.
   - Updated the POST `/api/v4/teams` team creation API to omit the `invite_id` value in the response when the requesting user does not have permission to invite members to the new team.
   - ``ImportSettings.Directory`` can no longer be modified through the REST API. Infrastructure operators can still modify this setting via configuration file, environment variables, or mmctl in local mode.
   - Fixed a permission validation issue when attaching files to posts.
@@ -1800,7 +1800,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-3-is-now-availab
   - Fixed an issue where users removed from a private team could still enumerate public channels in that team via the channel search API.
   - Fixed an issue with permalink embeds arriving from websocket messages.
   - Fixed a memory allocation issue by updating ``mscfb`` and ``msoleps`` dependencies.
-  - ``/api/v4/access_control_policies/&#123;policy_id&#125;/activate`` has been deprecated.
+  - ``/api/v4/access_control_policies/{policy_id}/activate`` has been deprecated.
   - Fixed an issue with memory use during integration actions.
   - Updated the POST `/api/v4/teams` team creation API to omit the `invite_id` value in the response when the requesting user does not have permission to invite members to the new team.
   - ``ImportSettings.Directory`` can no longer be modified through the REST API. Infrastructure operators can still modify this setting via configuration file, environment variables, or mmctl in local mode.

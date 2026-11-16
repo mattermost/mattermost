@@ -7829,6 +7829,14 @@ func testChannelStoreGetAllChannelsMissingPropertyValue(t *testing.T, rctx reque
 	require.NoError(t, nErr)
 	assert.EqualValues(t, len(list), count, "GetAllChannelsCount must agree with len(GetAllChannels) for the same opts")
 
+	t.Run("create mode counts only channels in a team, like the field mode", func(t *testing.T) {
+		createModeCount, nErr := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{MissingPropertyValueGroupID: groupID})
+		require.NoError(t, nErr)
+		inTeams, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{})
+		require.NoError(t, nErr)
+		assert.EqualValues(t, len(inTeams), createModeCount, "%s has no team and must not be counted", noTeam.Id)
+	})
+
 	t.Run("pagination returns disjoint, complete pages", func(t *testing.T) {
 		page0, nErr := ss.Channel().GetAllChannels(0, 3, opts)
 		require.NoError(t, nErr)

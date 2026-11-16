@@ -3,11 +3,13 @@
 
 import type {PublishedComponents} from './components';
 import type {PublishedEditorUtils} from './editor';
+import type {PublishedIsolatedFrameUtils} from './isolated_frames';
 import type {PublishedModalUtils} from './modals';
 
 export * from './components';
 export * from './modals';
 export * from './editor';
+export * from './isolated_frames';
 export * from './suggestions';
 
 // Lets plugins type the window global without reaching into channels internals.
@@ -17,5 +19,6 @@ export type WindowShared = {
         modals: PublishedModalUtils;
         editor: PublishedEditorUtils;
         components: PublishedComponents;
+        isolatedFrames: PublishedIsolatedFrameUtils;
     };
 };

@@ -126,7 +126,7 @@ jobs:
           # so a clean lane isn't marked incomplete.
           report-wait-seconds: "60"
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
-          description: ${{ inputs.description || 'E2E results unavailable or incomplete; re-run the failed jobs' }}
+          description: ${{ inputs.description || 'E2E results unavailable or incomplete; triage is checking why' }}
           target-url: ${{ inputs.report_url }}
           triage-status-context: ${{ steps.lanes.outputs.aggregate }}
           triage-lanes: ${{ steps.lanes.outputs.lanes }}
@@ -172,19 +172,24 @@ jobs:
           support-paths: ${{ inputs.support_paths }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Enforce by default: a lane whose every failure is cleared turns green. Infrastructure/report
-          # failures remain red (report-only); triage still supplies diagnostics. E2E_TRIAGE_MODE=report-only
-          # turns enforcement off without a code change.
-          # A re-run of failed jobs keeps prepare-run's identity, so the lane reads the first attempt's TSIO
-          # group. A retried worker that finds no work records a no-work exit, which TSIO counts toward the
-          # group, so the group can read complete with a report still missing. That attempt is report-only:
-          # it passes only on the raw result, which TSIO's summary takes from every unit's outcome.
-          mode: ${{ inputs.execution_success && steps.result.outputs.reports-complete == 'true' && fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
+          # Enforce by default, on every red lane: a lane whose every failure is cleared turns green, and a
+          # lane red outside its tests (a dead worker, missing reports, no results) gets a verdict of its own:
+          # green only when TSIO's orchestration shows every dispatched spec ran and passed (a no-work exit
+          # cannot stand in for a spec there), otherwise red with whose fault it is and what to do.
+          # E2E_TRIAGE_MODE=report-only turns enforcement off without a code change.
+          # A manual re-run of failed jobs keeps prepare-run's identity, so the lane reads the first attempt's TSIO
+          # run. A retried worker that finds no work records a no-work exit, so that run can read complete with a
+          # report still missing. That attempt is report-only: triage still writes its verdict on the red check,
+          # but the lane passes only on the raw result. A re-run triage asks for starts from prepare-run, so it
+          # has an identity of its own and enforces.
+          mode: ${{ fromJSON(inputs.composite_identity_json).gh_run_attempt == github.run_attempt && (vars.E2E_TRIAGE_MODE || 'enforce') || 'report-only' }}
           use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           answers-cache: e2e-triage-answers.json
-          # A lane red only on infrastructure (a dead worker, missing reports) asks for one automatic
-          # re-run of its failed jobs; e2e-tests-rerun.yml carries it out once the run finishes.
+          # A lane red only on a machine failure asks for one automatic re-run; e2e-tests-rerun.yml carries
+          # it out once the run finishes. A lane whose TSIO run began is re-run from prepare-run, so it gets
+          # a new TSIO run: re-running only its failed jobs would find the old one closed.
           rerun-attempts: "1"
+          lane-start-job: prepare-run
       - name: Save triage answers
         if: always() && steps.result.outputs.state != 'success' && hashFiles('e2e-triage-answers.json') != ''
         continue-on-error: true
@@ -218,12 +223,18 @@ jobs:
           TRIAGE_OUTCOME: ${{ steps.triage.outcome }}
           TRIAGE_PUBLISHED: ${{ steps.triage.outputs.published }}
           TRIAGE_MODE: ${{ steps.triage.outputs.effective-mode }}
+          TRIAGE_BASIS: ${{ steps.triage.outputs.basis }}
         run: |
-          # Orchestration can pass before uploads fail. Neither its summary nor
-          # AI can clear missing reports or failed upstream execution.
-          [ "$EXECUTION_SUCCESS" = "true" ] && [ "$REPORTS_COMPLETE" = "true" ] || exit 1
-          if [ "$RAW_STATE" = "success" ]; then
-            exit 0
+          triage_green() {
+            [ "$TRIAGE_OUTCOME" = "success" ] && [ "$TRIAGE_PUBLISHED" = "true" ] &&
+              [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]
+          }
+          if [ "$EXECUTION_SUCCESS" = "true" ] && [ "$REPORTS_COMPLETE" = "true" ]; then
+            [ "$RAW_STATE" = "success" ] && exit 0
+            triage_green
+            exit
           fi
-          [ "$TRIAGE_OUTCOME" = "success" ] && [ "$TRIAGE_PUBLISHED" = "true" ] &&
-            [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]
+          # A job outside the tests failed, or a report never arrived. Only TSIO's orchestration can
+          # vouch for the lane then: triage turns it green only when every dispatched spec ran and passed
+          # there (basis "orchestration"). The model never clears missing results.
+          triage_green && [ "$TRIAGE_BASIS" = "orchestration" ]

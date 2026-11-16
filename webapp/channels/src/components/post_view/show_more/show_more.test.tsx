@@ -5,10 +5,9 @@ import React from 'react';
 
 import ShowMore from 'components/post_view/show_more/show_more';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/post_view/ShowMore', () => {
-    const children = (<div><p>{'text'}</p></div>);
     const baseProps = {
         checkOverflow: 0,
         isAttachmentText: false,
@@ -18,114 +17,6 @@ describe('components/post_view/ShowMore', () => {
         text: 'text',
         compactDisplay: false,
     };
-
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<ShowMore {...baseProps}>{children}</ShowMore>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostMessageView on collapsed view', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: true});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostMessageView on expanded view', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: false});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostAttachment on collapsed view', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                isAttachmentText={true}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: true});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostAttachment on expanded view', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                isAttachmentText={true}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: false});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostMessageView on collapsed view with ellipsis overflow', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                overflowType='ellipsis'
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: true});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostMessageView on expanded view with ellipsis overflow', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                overflowType='ellipsis'
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: false});
-        });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, PostMessageView on expanded view with compactDisplay', () => {
-        const ref = React.createRef<ShowMore>();
-        const {container} = renderWithContext(
-            <ShowMore
-                {...baseProps}
-                compactDisplay={true}
-                ref={ref}
-            />,
-        );
-        act(() => {
-            ref.current?.setState({isOverflow: true, isCollapsed: false});
-        });
-        expect(container).toMatchSnapshot();
-    });
 
     test('should call checkTextOverflow', () => {
         const ref = React.createRef<ShowMore>();

@@ -328,8 +328,8 @@ describe('component/ConvertGmToChannelModal', () => {
         };
 
         const pickOption = async () => {
-            await userEvent.click(screen.getByText('Select a value'));
-            await userEvent.click(await screen.findByText('Option One'));
+            await userEvent.click(screen.getByRole('combobox', {name: 'program'}));
+            await userEvent.click(await screen.findByRole('option', {name: 'Option One'}));
         };
 
         test('asks for the selected team and shows only required fields', async () => {

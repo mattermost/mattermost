@@ -474,16 +474,24 @@ func TestChannelAttributeNotifyChannelList(t *testing.T) {
 		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
 			{teamName: "team-a", channelName: "town-square", displayName: "Town Square"},
 			{teamName: "team-b", channelName: "off-topic", displayName: "Off-Topic"},
-		}, T)
+		}, "", T)
 
 		assert.Equal(t, "\n- [Town Square](/team-a/channels/town-square)\n- [Off-Topic](/team-b/channels/off-topic)", list)
+	})
+
+	t.Run("prefixes the site URL, including its subpath", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "town-square", displayName: "Town Square"},
+		}, "https://example.com/mattermost", T)
+
+		assert.Equal(t, "\n- [Town Square](https://example.com/mattermost/team-a/channels/town-square)", list)
 	})
 
 	t.Run("escapes backslashes and brackets in the display name so it cannot redirect the link", func(t *testing.T) {
 		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
 			{teamName: "team-a", channelName: "sneaky", displayName: "Safe](https://evil.example)[x"},
 			{teamName: "team-a", channelName: "slashes", displayName: `trailing\`},
-		}, T)
+		}, "", T)
 
 		assert.Equal(t,
 			"\n- [Safe\\](https://evil.example)\\[x](/team-a/channels/sneaky)"+

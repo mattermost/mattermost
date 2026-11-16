@@ -46,11 +46,17 @@ func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, gro
 		return nil
 	}
 
-	if next.ObjectType != model.PropertyFieldObjectTypeChannel {
+	// The store never updates ObjectType, so an existing field keeps its own
+	// whatever the patch claims.
+	objectType := next.ObjectType
+	if prev != nil {
+		objectType = prev.ObjectType
+	}
+	if objectType != model.PropertyFieldObjectTypeChannel || next.TargetType != string(model.PropertyFieldTargetLevelSystem) {
 		return nil
 	}
 
-	if model.IsPropertyFieldRequired(prev) || !model.IsPropertyFieldRequired(next) {
+	if !model.IsPropertyFieldRequired(next) {
 		return nil
 	}
 
@@ -60,6 +66,23 @@ func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, gro
 	}
 	if accessControlGroup.ID != groupID {
 		return nil
+	}
+
+	// Required on a team-scoped field was never enforced, so moving such a
+	// field to system scope is a false->true transition too.
+	enforced := func(f *model.PropertyField) bool {
+		return f != nil && f.TargetType == string(model.PropertyFieldTargetLevelSystem) && model.IsPropertyFieldRequired(f)
+	}
+	if enforced(prev) {
+		// prev may come from a lagging replica: Required turned off and
+		// straight back on would otherwise read as already required.
+		current, err := a.Srv().propertyService.GetPropertyField(RequestContextWithMaster(rctx), groupID, prev.ID)
+		if err != nil {
+			return model.NewAppError(callerName, "app.property_field.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if enforced(current) {
+			return nil
+		}
 	}
 
 	exists, storeErr := a.Srv().Store().Channel().ExistsChannelMissingPropertyValue(groupID, next.ID)

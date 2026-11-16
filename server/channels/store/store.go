@@ -1139,6 +1139,7 @@ type SharedChannelStore interface {
 	GetRemoteByIdsFromMaster(channelID string, remoteID string) (*model.SharedChannelRemote, error)
 	GetRemotes(offset, limit int, opts model.SharedChannelRemoteFilterOpts) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
+	UpdateRemoteCursorIfUnchanged(id string, expectedUpdateAt int64, next model.GetPostsSinceForSyncCursor) (bool, error)
 	UpdateRemoteMembershipCursor(id string, syncTime int64) error
 	DeleteRemote(remoteID string) (bool, error)
 	GetRemotesStatus(channelID string) ([]*model.SharedChannelRemoteStatus, error)
@@ -1503,8 +1504,9 @@ type ChannelSearchOpts struct {
 	ParentAccessControlPolicyId        string
 
 	// MissingPropertyValueGroupID/FieldID restrict results to channels with no set
-	// value for the given field. Both must be set together. A row that exists but
-	// holds null/""/[] counts as missing, matching model.IsEmptyPropertyValue.
+	// value for the given field. A row that exists but holds null/""/[] counts as
+	// missing, matching model.IsEmptyPropertyValue. GroupID alone is create mode:
+	// no value can exist yet, so every channel in a team matches.
 	MissingPropertyValueGroupID string
 	MissingPropertyValueFieldID string
 }

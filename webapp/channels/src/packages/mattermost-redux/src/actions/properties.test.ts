@@ -291,7 +291,7 @@ describe('Actions.fetchPropertyValues', () => {
         const store = configureStore();
         const value = {id: 'v1', target_id: TARGET, field_id: 'field-1', value: 'a', update_at: 1, delete_at: 0};
 
-        nock(Client4.getBaseRoute()).get(ROUTE).reply(200, [value]);
+        nock(Client4.getBaseRoute()).get(ROUTE).query({per_page: 200}).reply(200, [value]);
 
         await store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET));
 
@@ -303,7 +303,7 @@ describe('Actions.fetchPropertyValues', () => {
     it('marks the target loaded for an empty list', async () => {
         const store = configureStore();
 
-        nock(Client4.getBaseRoute()).get(ROUTE).reply(200, []);
+        nock(Client4.getBaseRoute()).get(ROUTE).query({per_page: 200}).reply(200, []);
 
         await store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET));
 
@@ -315,7 +315,7 @@ describe('Actions.fetchPropertyValues', () => {
     it('does not mark the target loaded when the fetch fails', async () => {
         const store = configureStore();
 
-        nock(Client4.getBaseRoute()).get(ROUTE).reply(500, {message: 'boom'});
+        nock(Client4.getBaseRoute()).get(ROUTE).query({per_page: 200}).reply(500, {message: 'boom'});
 
         await expect(store.dispatch(fetchPropertyValues(GROUP, OBJECT_TYPE, TARGET))).rejects.toBeDefined();
 

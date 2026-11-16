@@ -71,8 +71,11 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
     // one for the rest would be untrue.
     const flagged = cannotSet.some(hasEditor);
 
+    // Confirm is ignored until the lookup finishes, or Enter on the autofocused
+    // button would restore before the missing values are known. The button stays
+    // enabled meanwhile: a disabled button can't take autofocus.
     const handleUnarchive = async () => {
-        if (channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
+        if ((toAsk.enabled && toAsk.loading) || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return;
         }
 
@@ -116,7 +119,7 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
             handleCancel={handleHide}
             handleConfirm={handleUnarchive}
             autoCloseOnConfirmButton={false}
-            isConfirmDisabled={submitting || (toAsk.enabled && (toAsk.loading || !filled))}
+            isConfirmDisabled={submitting || (toAsk.enabled && !filled)}
             destructive={true}
             autoFocusConfirmButton={!asking}
             confirmButtonText={asking ? (

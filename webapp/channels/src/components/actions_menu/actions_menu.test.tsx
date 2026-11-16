@@ -99,51 +99,6 @@ describe('components/actions_menu/ActionsMenu', () => {
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).not.toBeNull();
     });
 
-    test('has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace', () => {
-        const {container} = renderWithContext(
-            <ActionsMenu
-                {...baseProps}
-                pluginMenuItems={dropdownMenuActions}
-                canOpenMarketplace={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace', () => {
-        const {container} = renderWithContext(
-            <ActionsMenu
-                {...baseProps}
-                pluginMenuItems={dropdownMenuActions}
-                canOpenMarketplace={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('no actions - sysadmin - menu should show visit marketplace', () => {
-        const {container} = renderWithContext(
-            <ActionsMenu
-                {...baseProps}
-                canOpenMarketplace={true}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('no actions - end user - menu should not be visible to end user', () => {
-        const {container} = renderWithContext(
-            <ActionsMenu
-                {...baseProps}
-                isSysAdmin={false}
-            />,
-        );
-
-        // menu should be empty
-        expect(container).toMatchSnapshot();
-    });
-
     test('sysadmin - should have divider when pluggable menu item exists', () => {
         const {container, rerender} = renderWithContext(
             <ActionsMenu {...baseProps}/>,

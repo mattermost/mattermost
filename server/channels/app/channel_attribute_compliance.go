@@ -92,16 +92,12 @@ func (a *App) GetChannelsMissingAttributeValue(rctx request.CTX, groupID string,
 // sysadmin's own locale -- it is a preview of the DM, not the DM itself, which
 // is rendered per-recipient in each channel admin's own locale.
 func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID string, field *model.PropertyField, viewerLocale string) (*model.ChannelAttributeComplianceSummary, *model.AppError) {
-	localOpts := store.ChannelSearchOpts{ExcludeRemote: true}
-	allOpts := store.ChannelSearchOpts{}
 	fieldID := ""
 	if field != nil {
 		fieldID = field.ID
-		localOpts.MissingPropertyValueGroupID = groupID
-		localOpts.MissingPropertyValueFieldID = fieldID
-		allOpts.MissingPropertyValueGroupID = groupID
-		allOpts.MissingPropertyValueFieldID = fieldID
 	}
+	localOpts := store.ChannelSearchOpts{ExcludeRemote: true, MissingPropertyValueGroupID: groupID, MissingPropertyValueFieldID: fieldID}
+	allOpts := store.ChannelSearchOpts{MissingPropertyValueGroupID: groupID, MissingPropertyValueFieldID: fieldID}
 
 	missingLocal, err := a.Srv().Store().Channel().GetAllChannelsCount(localOpts)
 	if err != nil {

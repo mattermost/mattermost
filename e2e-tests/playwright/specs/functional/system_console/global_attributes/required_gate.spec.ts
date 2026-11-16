@@ -244,9 +244,10 @@ test.describe(
                 await expect(row).toBeVisible();
                 await expect(row).toContainText(`${user.first_name} ${user.last_name}`);
                 await expect(row).toContainText(team.display_name);
+                // * The link carries the site URL, so it keeps a subpath when there is one
                 await expect(row.getByRole('link', {name: channel.display_name})).toHaveAttribute(
                     'href',
-                    `/admin_console/user_management/channels/${channel.id}`,
+                    new RegExp(`/admin_console/user_management/channels/${channel.id}$`),
                 );
                 await modal.close();
 

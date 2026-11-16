@@ -116,6 +116,39 @@ describe('components/unarchive_channel_modal', () => {
         expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
     });
 
+    test('Enter does nothing until the required attribute lookup has finished', async () => {
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        renderWithContext(
+            <UnarchiveChannelModal
+                {...baseProps}
+                actions={{unarchiveChannel}}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).not.toHaveBeenCalled();
+    });
+
+    test('keeps focus on the confirm button once the lookup finishes, so Enter restores the channel', async () => {
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, actions: {unarchiveChannel}};
+        const {rerender} = renderWithContext(<UnarchiveChannelModal {...props}/>);
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
+
+        mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: false});
+        rerender(<UnarchiveChannelModal {...props}/>);
+
+        expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+    });
+
     test('should have called props.onExited on Cancel', async () => {
         const onExited = jest.fn();
         renderWithContext(
@@ -186,11 +219,19 @@ describe('components/unarchive_channel_modal', () => {
             await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
         });
 
-        test('fields state is disabled while the fields are still loading', () => {
+        test('confirm does nothing while the fields are still loading', async () => {
             mockUseRequiredChannelAttributesToAsk.mockReturnValue({...NOTHING_TO_ASK, enabled: true, loading: true});
-            renderWithContext(<UnarchiveChannelModal {...baseProps}/>);
+            const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+            renderWithContext(
+                <UnarchiveChannelModal
+                    {...baseProps}
+                    actions={{unarchiveChannel}}
+                />,
+            );
 
-            expect(screen.getByRole('button', {name: 'Unarchive'})).toBeDisabled();
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive'}));
+
+            expect(unarchiveChannel).not.toHaveBeenCalled();
         });
 
         test('error state: keeps the fields and the picked values, shows the server message, retries', async () => {
