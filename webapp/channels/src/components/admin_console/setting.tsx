@@ -9,11 +9,12 @@ export type Props = {
     inputId?: string;
     label: React.ReactNode;
     children?: React.ReactNode;
+    subControl?: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
 };
 
-const Settings = ({children, setByEnv, helpText, inputId, label}: Props) => {
+const Settings = ({children, subControl, setByEnv, helpText, inputId, label}: Props) => {
     return (
         <div
             data-testid={inputId}
@@ -29,6 +30,7 @@ const Settings = ({children, setByEnv, helpText, inputId, label}: Props) => {
                 className='col-sm-8'
             >
                 {children}
+                {subControl}
                 <div
                     data-testid={inputId + 'help-text'}
                     className='help-text'

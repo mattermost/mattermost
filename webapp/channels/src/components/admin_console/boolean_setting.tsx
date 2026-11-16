@@ -35,6 +35,7 @@ type Props = {
     disabled?: boolean;
     setByEnv: boolean;
     disabledText?: React.ReactNode;
+    subControl?: React.ReactNode;
     helpText: React.ReactNode;
 };
 
@@ -58,6 +59,7 @@ const BooleanSetting = ({
     disabled = false,
     setByEnv,
     disabledText,
+    subControl,
     helpText,
 }: Props) => {
     const helptext = useMemo(() => {
@@ -82,6 +84,7 @@ const BooleanSetting = ({
 
     return (
         <SettingSet
+            subControl={subControl}
             helpText={helptext}
             inputId={id}
             label={label}

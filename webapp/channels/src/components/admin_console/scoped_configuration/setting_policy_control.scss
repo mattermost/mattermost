@@ -1,0 +1,12 @@
+.SettingPolicyControl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: var(--spacing-s);
+    gap: var(--spacing-s);
+
+    &__policy-name {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: var(--font-size-75);
+    }
+}

@@ -68,7 +68,8 @@ type Props = {
     mergedAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     abacActions: TableEditorProps['actions'];
-    onTestClick: () => void;
+    onTestClick?: () => void;
+    hideTestButton?: boolean;
 
     // Why the simulator can't run yet; disables the test button.
     simulateBlockedBy?: SimulateBlockedReason;
@@ -89,6 +90,7 @@ function RuleEditorCard({
     enableUserManagedAttributes,
     abacActions,
     onTestClick,
+    hideTestButton = false,
     simulateBlockedBy,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -135,7 +137,7 @@ function RuleEditorCard({
     // Always override the editors' own test: it matches the bare expression
     // against every user, ignoring the policy's role, so it would list e.g.
     // guests under a Members policy or non-bot users under a Bot accounts policy.
-    const testButtonProps = {
+    const testButtonProps = hideTestButton ? {hideTestButton: true} : {
         onTestClick,
         testButtonDisabled: Boolean(simulateBlockedBy),
         testButtonTooltip: simulateBlockedBy && formatMessage(SIMULATE_BLOCKED_TOOLTIP[simulateBlockedBy]),

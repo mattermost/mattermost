@@ -118,6 +118,8 @@ import PermissionTeamSchemeSettings from './permission_schemes_settings/permissi
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
 import RevokeNonCompliantTokensButton from './revoke_non_compliant_tokens_button';
+import ScopedConfigurationList from './scoped_configuration';
+import ScopedConfigurationDetails from './scoped_configuration/policy_details';
 import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
@@ -1003,6 +1005,82 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'custom',
                                     component: PermissionPolicyList,
                                     key: 'PermissionPolicyListPanel',
+                                },
+                            ],
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            scoped_configuration_details_prefill: {
+                url: 'system_attributes/scoped_configuration/edit_policy/setting/:setting_key([A-Za-z0-9_]+)',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                ),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                ),
+                schema: {
+                    id: 'ScopedConfigurationPolicy',
+                    component: ScopedConfigurationDetails,
+                },
+            },
+            scoped_configuration_details_edit: {
+                url: `system_attributes/scoped_configuration/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                ),
+                isDisabled: it.any(
+                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                ),
+                schema: {
+                    id: 'ScopedConfigurationPolicy',
+                    component: ScopedConfigurationDetails,
+                },
+            },
+            scoped_configuration_details: {
+                url: 'system_attributes/scoped_configuration/edit_policy',
+                isHidden: it.any(
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'ScopedConfigurationPolicy',
+                    component: ScopedConfigurationDetails,
+                },
+            },
+            scoped_configuration: {
+                url: 'system_attributes/scoped_configuration',
+                title: defineMessage({id: 'admin.sidebar.scopedConfiguration', defaultMessage: 'Scoped Configuration'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SystemSettingPolicies'),
+                    it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'ScopedConfiguration',
+                    name: defineMessage({id: 'admin.scoped_configuration.page_title', defaultMessage: 'Scoped Configuration'}),
+                    sections: [
+                        {
+                            key: 'admin.scopedconfiguration.policies',
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    component: ScopedConfigurationList,
+                                    key: 'ScopedConfigurationListPanel',
                                 },
                             ],
                         },
@@ -2472,6 +2550,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'bool',
                                     key: 'NativeAppSettings.MobileEnableBiometrics',
+                                    policy_setting_key: 'MobileEnableBiometrics',
                                     label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
                                     help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
                                 },

@@ -1,0 +1,353 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState, useEffect, useMemo, type JSX} from 'react';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import {DotsVerticalIcon, PencilOutlineIcon, PlusIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import * as Menu from 'components/menu';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
+import {getHistory} from 'utils/browser_history';
+
+import {SCOPED_CONFIGURATION_EDIT_ROUTE, formatSystemSettingRuleSummary} from './settings';
+
+import {AVAILABLE_ROLES} from '../permission_policies/roles';
+
+import '../access_control/policies.scss';
+
+const panelMessages = defineMessages({
+    title: {
+        id: 'admin.scoped_configuration.title',
+        defaultMessage: 'Scoped Configuration',
+    },
+    description: {
+        id: 'admin.scoped_configuration.description',
+        defaultMessage: 'Create policies to override client configuration settings for matching users and sessions.',
+    },
+    addPolicy: {
+        id: 'admin.scoped_configuration.add_policy',
+        defaultMessage: 'Add policy',
+    },
+});
+
+type Props = {
+    actions: {
+        searchPolicies: (term: string, after: string, limit: number) => Promise<ActionResult>;
+        deletePolicy: (id: string) => Promise<ActionResult>;
+    };
+};
+
+const PAGE_SIZE = 10;
+
+const PolicyMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
+
+function getConfigurationSummary(policy: AccessControlPolicy, formatMessage: IntlShape['formatMessage']): string {
+    const summaries: string[] = [];
+    const seen = new Set<string>();
+    for (const rule of policy.rules || []) {
+        for (const key of rule.actions || []) {
+            if (seen.has(key)) {
+                continue;
+            }
+            seen.add(key);
+            summaries.push(formatSystemSettingRuleSummary(key, rule.value, formatMessage));
+        }
+    }
+    return summaries.join(', ') || 'None';
+}
+
+function getRoleLabel(policy: AccessControlPolicy, formatMessage: IntlShape['formatMessage']): string {
+    const roleValue = policy.roles?.[0];
+    if (!roleValue) {
+        return 'None';
+    }
+    const role = AVAILABLE_ROLES.find((r) => r.value === roleValue);
+    return role ? formatMessage(role.label) : roleValue;
+}
+
+export default function ScopedConfigurationList(props: Props): JSX.Element {
+    const [policies, setPolicies] = useState<AccessControlPolicy[]>([]);
+    const [page, setPage] = useState(0);
+    const [after, setAfter] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState('');
+    const [searchErrored, setSearchErrored] = useState(false);
+    const [cursorHistory, setCursorHistory] = useState<string[]>([]);
+    const [total, setTotal] = useState(0);
+    const intl = useIntl();
+
+    const history = useMemo(() => getHistory(), []);
+
+    useEffect(() => {
+        fetchPolicies();
+    }, []);
+
+    const fetchPolicies = async (term = '', afterParam = '', resetPage = false) => {
+        setLoading(true);
+
+        try {
+            const action = await props.actions.searchPolicies(term, afterParam, PAGE_SIZE + 1);
+            if (!action?.data) {
+                setLoading(false);
+                setSearchErrored(true);
+                return;
+            }
+            const data = action.data.policies || [];
+            const newTotal = action.data.total || 0;
+
+            const hasNextPage = data.length > PAGE_SIZE;
+            const newPolicies = hasNextPage ? data.slice(0, PAGE_SIZE) : data;
+            const lastPolicyId = newPolicies.length > 0 ? newPolicies[newPolicies.length - 1].id : '';
+
+            setPolicies(newPolicies);
+            setLoading(false);
+            setAfter(lastPolicyId);
+            setTotal(newTotal);
+            if (resetPage) {
+                setPage(0);
+                setCursorHistory([]);
+            }
+        } catch {
+            setLoading(false);
+            setSearchErrored(true);
+        }
+    };
+
+    const onSearch = async (term: string) => {
+        if (term.length === 0) {
+            setPage(0);
+            setAfter('');
+            setCursorHistory([]);
+            setLoading(false);
+            setSearchErrored(false);
+            setSearch('');
+            fetchPolicies();
+            return;
+        }
+
+        setLoading(true);
+        setSearch(term);
+        await fetchPolicies(term, '', true);
+    };
+
+    const nextPage = async () => {
+        const newCursorHistory = [...cursorHistory, after];
+
+        setLoading(true);
+        setPage(page + 1);
+        setCursorHistory(newCursorHistory);
+
+        await fetchPolicies(search, after);
+    };
+
+    const previousPage = async () => {
+        if (cursorHistory.length === 0) {
+            return;
+        }
+
+        const newCursorHistory = [...cursorHistory];
+        newCursorHistory.pop();
+
+        const previousCursor = newCursorHistory.length > 0 ? newCursorHistory[newCursorHistory.length - 1] : '';
+
+        setLoading(true);
+        setPage(page - 1);
+        setCursorHistory(newCursorHistory);
+
+        await fetchPolicies(search, previousCursor);
+    };
+
+    const handleDelete = async (policyId: string) => {
+        await props.actions.deletePolicy(policyId);
+        setPage(0);
+        setCursorHistory([]);
+        fetchPolicies(search, '', true);
+    };
+
+    const getRows = (): Row[] => {
+        const policyMenuLabel = intl.formatMessage({
+            id: 'admin.scoped_configuration.menu.aria_label',
+            defaultMessage: 'Policy actions menu',
+        });
+
+        return policies.map((policy: AccessControlPolicy) => ({
+            cells: {
+                name: (
+                    <div className='policy-name'>
+                        {policy.name}
+                    </div>
+                ),
+                role: (
+                    <div className='policy-resources'>
+                        {getRoleLabel(policy, intl.formatMessage)}
+                    </div>
+                ),
+                configuration: (
+                    <div className='policy-resources'>
+                        {getConfigurationSummary(policy, intl.formatMessage)}
+                    </div>
+                ),
+                actions: (
+                    <div className='policy-actions'>
+                        <Menu.Container
+                            menuButton={{
+                                id: `scoped-policy-menu-${policy.id}`,
+                                as: PolicyMenuTrigger,
+                                'aria-label': policyMenuLabel,
+                                children: <Icon glyph={<DotsVerticalIcon/>}/>,
+                            }}
+                            menuButtonTooltip={{
+                                text: policyMenuLabel,
+                            }}
+                            menu={{
+                                id: `scoped-policy-menu-dropdown-${policy.id}`,
+                                'aria-label': policyMenuLabel,
+                            }}
+                        >
+                            <Menu.Item
+                                id={`scoped-policy-menu-edit-${policy.id}`}
+                                onClick={() => {
+                                    history.push(`${SCOPED_CONFIGURATION_EDIT_ROUTE}/${policy.id}`);
+                                }}
+                                leadingElement={<PencilOutlineIcon size={18}/>}
+                                labels={
+                                    <FormattedMessage
+                                        id='admin.scoped_configuration.edit'
+                                        defaultMessage='Edit'
+                                    />
+                                }
+                            />
+                            <Menu.Item
+                                id={`scoped-policy-menu-delete-${policy.id}`}
+                                onClick={() => handleDelete(policy.id)}
+                                leadingElement={<TrashCanOutlineIcon size={18}/>}
+                                labels={
+                                    <FormattedMessage
+                                        id='admin.scoped_configuration.delete'
+                                        defaultMessage='Delete'
+                                    />
+                                }
+                                isDestructive={true}
+                            />
+                        </Menu.Container>
+                    </div>
+                ),
+            },
+            onClick: () => {
+                history.push(`${SCOPED_CONFIGURATION_EDIT_ROUTE}/${policy.id}`);
+            },
+        }));
+    };
+
+    const getColumns = (): Column[] => [
+        {
+            name: (
+                <FormattedMessage
+                    id='admin.scoped_configuration.name'
+                    defaultMessage='Name'
+                />
+            ),
+            field: 'name',
+            width: 4,
+        },
+        {
+            name: (
+                <FormattedMessage
+                    id='admin.scoped_configuration.role'
+                    defaultMessage='Role'
+                />
+            ),
+            field: 'role',
+            width: 2,
+        },
+        {
+            name: (
+                <FormattedMessage
+                    id='admin.scoped_configuration.configuration_column'
+                    defaultMessage='Configuration'
+                />
+            ),
+            field: 'configuration',
+            width: 3,
+        },
+        {
+            name: <span/>,
+            field: 'actions',
+            className: 'actions-column',
+            width: 1,
+        },
+    ];
+
+    const startCount = (page * PAGE_SIZE) + 1;
+    const endCount = (startCount + policies.length) - 1;
+
+    const rows: Row[] = getRows();
+    const columns: Column[] = getColumns();
+
+    let placeholderEmpty: JSX.Element = (
+        <FormattedMessage
+            id='admin.scoped_configuration.no_policies_found'
+            defaultMessage='No scoped configuration policies found'
+        />
+    );
+
+    if (searchErrored) {
+        placeholderEmpty = (
+            <FormattedMessage
+                id='admin.scoped_configuration.search_errored'
+                defaultMessage='Something went wrong. Try again'
+            />
+        );
+    }
+
+    const rowsContainerStyles = {
+        minHeight: `${rows.length * 40}px`,
+    };
+
+    return (
+        <AdminPanel
+            id='scoped_configuration'
+            className='PolicyTable'
+            title={panelMessages.title}
+            subtitle={panelMessages.description}
+            button={
+                <Button
+                    emphasis='primary'
+                    onClick={() => {
+                        history.push(SCOPED_CONFIGURATION_EDIT_ROUTE);
+                    }}
+                    leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+                >
+                    <span>
+                        <FormattedMessage {...panelMessages.addPolicy}/>
+                    </span>
+                </Button>
+            }
+        >
+            <DataGrid
+                columns={columns}
+                rows={rows}
+                loading={loading}
+                startCount={startCount}
+                endCount={endCount}
+                total={total}
+                onSearch={onSearch}
+                term={search}
+                placeholderEmpty={placeholderEmpty}
+                rowsContainerStyles={rowsContainerStyles}
+                nextPage={nextPage}
+                previousPage={previousPage}
+            />
+        </AdminPanel>
+    );
+}

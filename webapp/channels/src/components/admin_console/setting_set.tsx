@@ -8,6 +8,7 @@ import type {Props} from './setting';
 
 export default function SettingSet({
     children,
+    subControl,
     helpText,
     inputId,
     label,
@@ -24,6 +25,7 @@ export default function SettingSet({
             </legend>
             <div className='col-sm-8'>
                 {children}
+                {subControl}
                 {helpText ? (
                     <div
                         data-testid={inputId + 'help-text'}
