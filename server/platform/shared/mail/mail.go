@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"net/textproto"
 	"slices"
 	"time"
 
@@ -180,6 +181,10 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 			ServerName:         config.ServerName,
 		}
 		if err := c.StartTLS(tlsconfig); err != nil {
+			var replyErr *textproto.Error
+			if errors.As(err, &replyErr) && (replyErr.Code == 500 || replyErr.Code == 502) {
+				return nil, errors.Wrap(err, "SMTP server does not support STARTTLS")
+			}
 			return nil, errors.Wrap(err, "unable to start TLS")
 		}
 	}

@@ -1053,9 +1053,13 @@ func TestNewSMTPClientAdvancedDeadlineDuringGreeting(t *testing.T) {
 }
 
 func TestStartTLSError(t *testing.T) {
-	for name, reply := range map[string]string{
-		"STARTTLS refused":       "454 TLS not available",
-		"STARTTLS not supported": "502 not implemented",
+	for name, tc := range map[string]struct {
+		reply string
+		want  string
+	}{
+		"STARTTLS refused":       {reply: "454 TLS not available", want: "unable to start TLS"},
+		"STARTTLS not supported": {reply: "502 not implemented", want: "SMTP server does not support STARTTLS"},
+		"STARTTLS unrecognized":  {reply: "500 unrecognized command", want: "SMTP server does not support STARTTLS"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			cfg := fakeSMTPServer(t, func(conn net.Conn) {
@@ -1071,7 +1075,7 @@ func TestStartTLSError(t *testing.T) {
 						_ = r.PrintfLine("250-localhost")
 						_ = r.PrintfLine("250 STARTTLS")
 					case strings.HasPrefix(line, "STARTTLS"):
-						_ = r.PrintfLine("%s", reply)
+						_ = r.PrintfLine("%s", tc.reply)
 					case strings.HasPrefix(line, "MAIL FROM"):
 						t.Errorf("mail transaction started: %s", line)
 						_ = r.PrintfLine("250 OK")
@@ -1087,10 +1091,10 @@ func TestStartTLSError(t *testing.T) {
 			cfg.FeedbackEmail = "sender@example.com"
 
 			err := TestConnection(context.Background(), cfg)
-			require.ErrorContains(t, err, "unable to start TLS")
+			require.ErrorContains(t, err, tc.want)
 
 			err = SendMailUsingConfig("recipient@example.com", "subject", "body", cfg, false, "", "", "", "", "")
-			require.ErrorContains(t, err, "unable to start TLS")
+			require.ErrorContains(t, err, tc.want)
 		})
 	}
 }
