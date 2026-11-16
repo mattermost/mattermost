@@ -30,6 +30,10 @@ func (a *App) saveAcknowledgementForPostWithPost(rctx request.CTX, post *model.P
 		}
 	}
 
+	if !a.postAllowedByAccessControlResource(rctx, userID, post) {
+		return nil, accessControlResourceDeniedError("SaveAcknowledgementForPost")
+	}
+
 	channel, err := a.GetChannel(rctx, post.ChannelId)
 	if err != nil {
 		return nil, err

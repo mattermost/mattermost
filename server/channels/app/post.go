@@ -242,6 +242,14 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	silentRequested := flags.SilentNotification
 
+	// access_control_resource is plugin-only. Capture it before SanitizeProps
+	// strips it; the plugin API sets AllowAccessControlResource only after
+	// verifying the value names the calling plugin.
+	var accessControlResource string
+	if flags.AllowAccessControlResource {
+		accessControlResource = post.GetAccessControlResource()
+	}
+
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult[*model.PostList]
@@ -275,6 +283,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	if flags.FromPlugin {
 		post.AddProp(model.PostPropsFromPlugin, "true")
+	}
+
+	if accessControlResource != "" {
+		post.AddProp(model.PostPropsAccessControlResource, accessControlResource)
 	}
 
 	if flags.ForceNotification {
@@ -381,6 +393,18 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 		if rootPost.Type == model.PostTypeBurnOnRead {
 			return nil, false, model.NewAppError("createPost", "api.post.create_post.burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		// A reply inherits the root's access_control_resource so the whole
+		// thread is governed by one policy, and a poster the policy denies
+		// cannot reply. Plugins are trusted to post into their own threads
+		// (bot activity replies, migrations), so only non-plugin callers are
+		// evaluated.
+		if rootResource := rootPost.GetAccessControlResource(); rootResource != "" {
+			if !flags.FromPlugin && !a.AccessControlResourceAllowed(rctx, post.UserId, rootResource) {
+				return nil, false, accessControlResourceDeniedError("createPost")
+			}
+			post.AddProp(model.PostPropsAccessControlResource, rootResource)
 		}
 	}
 
@@ -942,6 +966,13 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		receivedUpdatedPost.RemoteId = nil
 	}
 
+	// access_control_resource may only be written by the owning plugin; the
+	// plugin API sets AllowAccessControlResourceUpdate after verifying that.
+	var receivedAccessControlResource string
+	if updatePostOptions.AllowAccessControlResourceUpdate {
+		receivedAccessControlResource = receivedUpdatedPost.GetAccessControlResource()
+	}
+
 	receivedUpdatedPost.SanitizeProps()
 
 	// Read the row we are about to mutate from master. The post may have been written
@@ -1032,6 +1063,16 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		isFederatedSync := updatePostOptions.AllowIdentityPropsUpdate && receivedUpdatedPost.IsRemote()
 		if !isFederatedSync {
 			newPost.PreserveIdentityPropsFrom(oldPost)
+		}
+
+		// access_control_resource is local policy state, not identity, so it
+		// survives every edit (federated included) unless the owning plugin
+		// replaces it.
+		if oldResource := oldPost.GetAccessControlResource(); oldResource != "" {
+			newPost.AddProp(model.PostPropsAccessControlResource, oldResource)
+		}
+		if receivedAccessControlResource != "" {
+			newPost.AddProp(model.PostPropsAccessControlResource, receivedAccessControlResource)
 		}
 
 		// When the caller opted in via AllowIdentityPropsUpdate (federation
@@ -1292,6 +1333,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
+	a.setupBroadcastHookForAccessControlResource(post, message)
 
 	a.Publish(message)
 	return nil
@@ -1557,6 +1599,7 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -1590,6 +1633,7 @@ func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -1621,6 +1665,7 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, rctx.Session().UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -1713,6 +1758,7 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	var appErr *model.AppError
 	postList, appErr = a.revealBurnOnReadPostsForUser(rctx, postList, options.UserId)
@@ -1864,6 +1910,13 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		return nil, appErr
 	}
 
+	// A thread whose requested post the caller may not read is refused
+	// outright rather than returned empty.
+	if requested, ok := posts.Posts[postID]; ok && userID != "" && !a.postAllowedByAccessControlResource(rctx, userID, requested) {
+		return nil, accessControlResourceDeniedError("GetPostThread")
+	}
+	a.filterPostsByAccessControlResource(rctx, userID, posts)
+
 	if appErr = a.filterSuppressedMembershipPosts(rctx, posts); appErr != nil {
 		return nil, appErr
 	}
@@ -1889,6 +1942,7 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, userID, postList)
 
 	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
@@ -1915,6 +1969,7 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, userID, postList)
 
 	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
@@ -1941,6 +1996,7 @@ func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID stri
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, userID, postList)
 
 	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
@@ -1993,6 +2049,9 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 	if appErr := a.filterInaccessiblePosts(list, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
+	if !a.postAllowedByAccessControlResource(rctx, userID, post) {
+		return nil, accessControlResourceDeniedError("GetPermalinkPost")
+	}
 
 	a.applyPostsWillBeConsumedHook(rctx, list.Posts)
 
@@ -2034,6 +2093,7 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -2075,6 +2135,7 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -2124,6 +2185,7 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, options.UserId, postList)
 
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
@@ -2636,6 +2698,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, false, appErr
 	}
+	a.filterPostsByAccessControlResource(rctx, userID, postSearchResults.PostList)
 
 	allPostHaveMembership, appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
 	if appErr != nil {
@@ -3107,6 +3170,10 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		} else {
 			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent}), false
 		}
+	}
+
+	if !a.postAllowedByAccessControlResource(rctx, session.UserId, post) {
+		return nil, accessControlResourceDeniedError("GetPostIfAuthorized"), false
 	}
 
 	return post, nil, isMember
@@ -3670,6 +3737,13 @@ func (a *App) MoveThread(rctx request.CTX, postID string, sourceChannelID, chann
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 
+	// A thread governed by a plugin policy belongs to that plugin's resource;
+	// moving it would detach the thread from the resource that scopes its
+	// readers.
+	if rootPost, ok := postListResponse.Posts[postID]; ok && rootPost.GetAccessControlResource() != "" {
+		return model.NewAppError("MoveThread", "api.post.move_thread.access_control_resource.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	originalChannel, appErr := a.GetChannel(rctx, sourceChannelID)
 	if appErr != nil {
 		return appErr
@@ -3868,6 +3942,7 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 			return appErr
 		}
 	}
+	a.setupBroadcastHookForAccessControlResource(post, userMessage)
 	a.Publish(userMessage)
 
 	// Burn-on-read uses the same cleared payload. The hook above restores the author copy.
@@ -3885,6 +3960,7 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 			return appErr
 		}
 	}
+	a.setupBroadcastHookForAccessControlResource(post, adminMessage)
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {

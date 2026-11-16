@@ -236,7 +236,22 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
 	}
 
-	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
+	hasPermission, isMember := a.SessionHasPermissionToReadChannel(rctx, session, channel)
+	if !hasPermission {
+		return false, isMember
+	}
+
+	// Posts marked with access_control_resource are also gated by the
+	// plugin-owned policy behind the marker.
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, true)
+	if err != nil {
+		return false, isMember
+	}
+	if !a.postAllowedByAccessControlResource(rctx, session.UserId, post) {
+		return false, isMember
+	}
+
+	return true, isMember
 }
 
 func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Session, userID, teamID, categoryId string) bool {

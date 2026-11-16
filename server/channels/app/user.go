@@ -3153,6 +3153,8 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 		result.Total = result.TotalUnreadThreads
 	}
 
+	result.Threads = a.filterThreadsByAccessControlResource(rctx, userID, result.Threads)
+
 	list := &model.PostList{
 		Posts: make(map[string]*model.Post, len(result.Threads)),
 	}
@@ -3192,6 +3194,10 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 		default:
 			return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	if !a.postAllowedByAccessControlResource(rctx, threadMembership.UserId, thread.Post) {
+		return nil, accessControlResourceDeniedError("GetThreadForUser")
 	}
 
 	a.sanitizeProfiles(thread.Participants, false)

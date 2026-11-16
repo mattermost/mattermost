@@ -468,6 +468,9 @@ func (a *App) sanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 			if previewedChannel != nil {
 				var hasPermission bool
 				hasPermission, isMemberForPreviews = a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+				if hasPermission && !a.postAllowedByAccessControlResource(rctx, userID, previewPost.Post) {
+					hasPermission = false
+				}
 				if !hasPermission {
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
@@ -1123,6 +1126,10 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 
 	if referencedPost.Type == model.PostTypeBurnOnRead {
 		return nil, model.NewAppError("getLinkMetadataForPermalink", "api.post.get_link_metadata_for_permalink.burn_on_read.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if !a.postAllowedByAccessControlResource(rctx, rctx.Session().UserId, referencedPost) {
+		return nil, accessControlResourceDeniedError("getLinkMetadataForPermalink")
 	}
 
 	referencedChannel, appErr := a.GetChannel(rctx, referencedPost.ChannelId)

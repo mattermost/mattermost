@@ -23,6 +23,10 @@ func (a *App) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*
 		return nil, err
 	}
 
+	if !a.postAllowedByAccessControlResource(rctx, reaction.UserId, post) {
+		return nil, accessControlResourceDeniedError("SaveReactionForPost")
+	}
+
 	if post.Type == model.PostTypeBurnOnRead && post.UserId != reaction.UserId {
 		receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, reaction.UserId)
 		if err != nil && !store.IsErrNotFound(err) {
@@ -185,6 +189,7 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 	if post.Type == model.PostTypeBurnOnRead {
 		useBurnOnReadReactionHook(message, post.UserId, post.Id)
 	}
+	a.setupBroadcastHookForAccessControlResource(post, message)
 
 	a.Publish(message)
 }

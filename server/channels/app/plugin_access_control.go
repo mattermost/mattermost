@@ -391,6 +391,7 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 	if appErr != nil {
 		return nil, appErr
 	}
+	a.invalidateAccessControlRecipients(policy.ID)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(saved)
@@ -553,6 +554,7 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	} else if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}
+	a.invalidateAccessControlRecipients(id)
 
 	auditRec.Success()
 

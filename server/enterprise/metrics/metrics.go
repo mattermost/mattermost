@@ -247,6 +247,8 @@ type MetricsInterfaceImpl struct {
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
+	AccessControlRecipientFillDuration     *prometheus.HistogramVec
+	AccessControlRecipientSetSize          prometheus.Histogram
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -555,6 +557,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForAccessControlPolicyEtag,
 		model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch,
 		model.ClusterEventInvalidateCacheForUserAttributes,
+		model.ClusterEventInvalidateCacheForAccessControlResourceRecipients,
 		model.ClusterEventClearSessionCacheForAllUsers,
 		model.ClusterEventInstallPlugin,
 		model.ClusterEventRemovePlugin,
@@ -1685,6 +1688,27 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	m.AccessControlRecipientFillDuration = prometheus.NewHistogramVec(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "recipient_fill_duration_seconds",
+			Help:      "Duration of filling the recipient set of an access_control_resource post from the policy store (seconds)",
+		}),
+		[]string{"status"},
+	)
+	m.Registry.MustRegister(m.AccessControlRecipientFillDuration)
+
+	m.AccessControlRecipientSetSize = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemAccessControl,
+			Name:      "recipient_set_size",
+			Help:      "Number of users allowed by an access_control_resource post, per successful recipient-set fill",
+			Buckets:   []float64{1, 5, 10, 50, 100, 500, 1000, 5000, 10000, 50000},
+		}))
+	m.Registry.MustRegister(m.AccessControlRecipientSetSize)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2402,6 +2426,13 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 	mi.AccessControlCacheInvalidation.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAccessControlRecipientFill(status string, elapsed float64, setSize int) {
+	mi.AccessControlRecipientFillDuration.With(prometheus.Labels{"status": status}).Observe(elapsed)
+	if status == "ok" {
+		mi.AccessControlRecipientSetSize.Observe(float64(setSize))
+	}
 }
 
 func (mi *MetricsInterfaceImpl) ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64) {

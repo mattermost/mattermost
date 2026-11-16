@@ -32,6 +32,7 @@ type SuiteIFace interface {
 	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
+	HasAccessToAccessControlResource(rctx request.CTX, userID string, resource string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	MFARequired(rctx request.CTX, method string) *model.AppError
 	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
