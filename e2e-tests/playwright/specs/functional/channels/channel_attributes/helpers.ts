@@ -159,7 +159,7 @@ export async function createAttribute(
 
     const createdOptions = (created.attrs?.options ?? []) as Array<{id: string}>;
     let backfillValue: unknown = 'e2e backfill';
-    if (created.type === 'select') {
+    if (created.type === 'select' || created.type === 'rank') {
         backfillValue = createdOptions[0].id;
     } else if (created.type === 'multiselect') {
         backfillValue = [createdOptions[0].id];

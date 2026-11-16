@@ -620,10 +620,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await modal.fillDisplayName(`Attr Banner Multi ${suffix}`);
 
             // The menu closes on each pick, so the second value needs it reopened.
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByTestId('dropdownMenu').getByText('NOFORN', {exact: true}).click();
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByTestId('dropdownMenu').getByText('ORCON', {exact: true}).click();
+            await modal.selectAttributeOption(caveats.name, 'NOFORN');
+            await modal.selectAttributeOption(caveats.name, 'ORCON');
 
             await modal.create();
             await expect(modal.container).not.toBeVisible();
