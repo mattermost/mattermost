@@ -1949,5 +1949,4 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
         });
     });
-
 });

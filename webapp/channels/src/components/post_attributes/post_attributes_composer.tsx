@@ -74,7 +74,7 @@ export default function PostAttributesComposer({values, added, fields, canEdit, 
         <div
             className='PostAttributesChips PostAttributesComposer'
             role='group'
-            aria-label={formatMessage({id: 'post_attributes.composer.group', defaultMessage: 'Attached post attributes'})}
+            aria-label={formatMessage({id: 'post_attributes.composer.group', defaultMessage: 'Attached post attributes', description: 'Accessible label of the row of attribute chips above the message box in the composer.'})}
             data-testid='post-attributes-composer'
         >
             {attributes.map(({field, value}) => (
@@ -130,7 +130,7 @@ function PostAttributesComposerChip({field, value, removable, autoOpen, onChange
     // value.
     const optionLabels = isOptionType && value ? resolveOptionChips(field, value.value).map((chip) => chip.label) : [];
     const ariaLabel = optionLabels.length > 0 ? formatMessage(
-        {id: 'post_attributes.composer.chip', defaultMessage: '{field}: {value}'},
+        {id: 'post_attributes.composer.chip', defaultMessage: '{field}: {value}', description: 'Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute\'s name; {value} is the selected option or options.'},
         {field: label, value: formatList(optionLabels)},
     ) : undefined;
 
@@ -172,7 +172,7 @@ function PostAttributesComposerChip({field, value, removable, autoOpen, onChange
                     // Named after the attribute, so a row of chips does not
                     // hand a screen reader several buttons called "Remove".
                     aria-label={formatMessage(
-                        {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}'},
+                        {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
                         {attribute: label},
                     )}
                     onClick={handleRemove}

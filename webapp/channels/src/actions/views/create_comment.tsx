@@ -66,6 +66,7 @@ export function submitPost(
             type: postType,
             metadata: {
                 ...(draft.metadata?.priority && {priority: draft.metadata.priority}),
+
                 // Safety net. The composer disables scheduling while attributes are staged, so this
                 // should never have to fire.
                 ...(!schedulingInfo && options?.propertyValues?.length && {property_values: options.propertyValues}),

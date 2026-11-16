@@ -761,6 +761,7 @@ const AdvancedTextEditor = ({
     const schedulingBlockedReason = stagedAttributes.values.length > 0 ? formatMessage({
         id: 'post_attributes.composer.cannot_schedule',
         defaultMessage: 'Messages with attributes can’t be scheduled',
+        description: 'Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written.',
     }) : undefined;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
