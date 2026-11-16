@@ -166,7 +166,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -328,7 +328,7 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -350,7 +350,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	return nil
 }
 
-func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError {
+func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) error {
 	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
