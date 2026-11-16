@@ -5,6 +5,7 @@ package main
 
 import (
 	"github.com/mattermost/mattermost/tools/mattermost-govet/apiAuditLogs"
+	"github.com/mattermost/mattermost/tools/mattermost-govet/appErrorReturn"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/concurrentIndex"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/configtelemetry"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/emptyInterface"
@@ -57,5 +58,6 @@ func main() {
 		requestCtxNaming.Analyzer,
 		concurrentIndex.Analyzer,
 		sortSlices.Analyzer,
+		appErrorReturn.Analyzer,
 	)
 }
