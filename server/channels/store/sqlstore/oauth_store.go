@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -198,7 +197,7 @@ func (as SqlOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	query := as.oAuthAccessDataQuery.Where(sq.Eq{"Token": token})
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get OAuthAccessData with token=%s", token)
+		return nil, errors.Wrap(err, "failed to get OAuthAccessData by token")
 	}
 	return &accessData, nil
 }
@@ -220,7 +219,7 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) (*model.Access
 	query := as.oAuthAccessDataQuery.Where(sq.Eq{"RefreshToken": token})
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find OAuthAccessData with refreshToken=%s", token)
+		return nil, errors.Wrap(err, "failed to find OAuthAccessData by refresh token")
 	}
 	return &accessData, nil
 }
@@ -254,7 +253,7 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 
 func (as SqlOAuthStore) RemoveAccessData(token string) error {
 	if _, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE Token = ?", token); err != nil {
-		return errors.Wrapf(err, "failed to delete OAuthAccessData with token=%s", token)
+		return errors.Wrap(err, "failed to delete OAuthAccessData by token")
 	}
 	return nil
 }
@@ -288,13 +287,13 @@ func (as SqlOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 
 	if err := as.GetReplica().GetBuilder(&authData, query); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code))
+			return nil, store.NewErrNotFound("AuthData", "code=<redacted>")
 		}
-		return nil, errors.Wrapf(err, "failed to get AuthData with code=%s", code)
+		return nil, errors.Wrap(err, "failed to get AuthData by code")
 	}
 
 	if authData.Code == "" {
-		return nil, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code))
+		return nil, store.NewErrNotFound("AuthData", "code=<redacted>")
 	}
 
 	return &authData, nil
@@ -303,7 +302,7 @@ func (as SqlOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 func (as SqlOAuthStore) RemoveAuthData(code string) error {
 	_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE Code = ?", code)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete AuthData with code=%s", code)
+		return errors.Wrap(err, "failed to delete AuthData by code")
 	}
 	return nil
 }
