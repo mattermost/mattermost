@@ -44,6 +44,7 @@ import {
     DropOverlayIdEditPost, FileUploadOverlay,
 } from 'components/file_upload_overlay/file_upload_overlay';
 import PostAttributesComposer from 'components/post_attributes/post_attributes_composer';
+import {useComposerAttributes} from 'components/post_attributes/use_composer_attributes';
 import {useStagedPostAttributes} from 'components/post_attributes/use_staged_post_attributes';
 import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
@@ -270,6 +271,10 @@ const AdvancedTextEditor = ({
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
     const stagedAttributes = useStagedPostAttributes();
     const clearStagedAttributes = stagedAttributes.clear;
+
+    // Worked out once: the chips, the `+` in the action row and the add control
+    // after the chips all read the same fields and the same permission answer.
+    const composerAttributes = useComposerAttributes(channelId, stagedAttributes.values, stagedAttributes.added);
 
     const readOnlyChannel = !canPost || !writeAllowedByPolicy;
     const hasDraftMessage = Boolean(draft.message);
@@ -971,9 +976,11 @@ const AdvancedTextEditor = ({
                         )}
                         {postAttributesEnabled && !isInEditMode && (
                             <PostAttributesComposer
-                                channelId={channelId}
                                 values={stagedAttributes.values}
                                 added={stagedAttributes.added}
+                                fields={composerAttributes.fields}
+                                canEdit={composerAttributes.canEdit}
+                                addable={composerAttributes.addable}
                                 justAdded={stagedAttributes.justAdded}
                                 onAdd={stagedAttributes.add}
                                 onChange={stagedAttributes.change}
@@ -1043,7 +1050,12 @@ const AdvancedTextEditor = ({
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
+                                {postAttributesEnabled && !isInEditMode && (
+                                    <PostAttributesButton
+                                        fields={composerAttributes.addable}
+                                        onSelect={stagedAttributes.add}
+                                    />
+                                )}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}

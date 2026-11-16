@@ -75,6 +75,82 @@ async function openPicker() {
 }
 
 describe('PostAttributesFieldPicker', () => {
+    test('uses the modal\'s id and test id unless given its own', () => {
+        const {unmount} = renderPicker([makeField()]);
+
+        expect(screen.getByTestId('post-attributes-add')).toHaveAttribute('id', 'postAttributesAdd');
+
+        unmount();
+
+        renderWithContext(
+            <PostAttributesFieldPicker
+                id='composerAdd'
+                dataTestId='composer-add'
+                fields={[makeField()]}
+                onSelect={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        expect(screen.getByTestId('composer-add')).toHaveAttribute('id', 'composerAdd');
+    });
+
+    test('two pickers with their own ids do not share an id, a test id or a menu id', async () => {
+        renderWithContext(
+            <>
+                <PostAttributesFieldPicker
+                    id='firstAdd'
+                    dataTestId='first-add'
+                    fields={[makeField()]}
+                    onSelect={jest.fn()}
+                />
+                <PostAttributesFieldPicker
+                    id='secondAdd'
+                    dataTestId='second-add'
+                    fields={[makeField()]}
+                    onSelect={jest.fn()}
+                />
+            </>,
+        );
+
+        const first = screen.getByTestId('first-add');
+        const second = screen.getByTestId('second-add');
+
+        expect(first.id).not.toBe(second.id);
+        expect(first.getAttribute('aria-controls')).not.toBe(second.getAttribute('aria-controls'));
+
+        await userEvent.click(second);
+
+        expect(screen.getByRole('menu', {name: 'Add an attribute'})).toHaveAttribute('id', 'secondAddMenu');
+    });
+
+    test('draws an icon button labelled by the caller in place of the labelled button', async () => {
+        const onSelect = jest.fn();
+
+        renderWithContext(
+            <PostAttributesFieldPicker
+                dataTestId='icon-add'
+                fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                onSelect={onSelect}
+                trigger={{
+                    label: 'Add attributes',
+                    icon: <span data-testid='custom-icon'/>,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText('Add attribute')).not.toBeInTheDocument();
+
+        const button = screen.getByRole('button', {name: 'Add attributes'});
+        expect(button).toHaveAttribute('data-testid', 'icon-add');
+        expect(button).toContainElement(screen.getByTestId('custom-icon'));
+
+        await userEvent.click(button);
+        await userEvent.click(screen.getByTestId('post-attribute-add-alpha'));
+
+        await waitFor(() => expect(onSelect).toHaveBeenCalledWith('f_a'));
+    });
+
     test('offers one item per field, in the order it was given them', async () => {
         const fields = [
             makeField({id: 'f_c', name: 'caveats'}),

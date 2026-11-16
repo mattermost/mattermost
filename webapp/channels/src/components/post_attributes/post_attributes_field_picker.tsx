@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType} from 'react';
+import type {ComponentType, ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -24,7 +24,24 @@ import * as Menu from 'components/menu';
 type Props = {
     fields: PropertyField[];
     onSelect: (fieldId: string) => void;
+
+    // The trigger's DOM id and test id. The defaults are the modal's, which
+    // only ever has one picker on screen; every other caller can have several
+    // (the composer's two controls, and a composer per centre channel and
+    // thread sidebar), so it passes its own.
+    id?: string;
+    dataTestId?: string;
+
+    // Replaces the labelled `+ Add attribute` button with an icon button, such
+    // as the composer's `+`. The label is the button's accessible name and its
+    // tooltip, and the menu opens upward from it.
+    trigger?: {
+        icon: ReactNode;
+        label: string;
+    };
 };
+
+const IconTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 /**
  * The `+ Add attribute` control and the menu behind it: the fields the channel
@@ -35,28 +52,43 @@ type Props = {
  * in the same order, which is the channel's field order, so a field found in one
  * is where the other left it.
  */
-export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
+export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', dataTestId = 'post-attributes-add', trigger}: Props) {
     const {formatMessage} = useIntl();
+
+    const menuButton = trigger ? {
+        id,
+        dataTestId,
+        as: IconTrigger,
+        class: 'control',
+        'aria-label': trigger.label,
+        children: trigger.icon,
+    } : {
+        id,
+        dataTestId,
+        class: 'PostAttributesModal__add',
+        children: (
+            <>
+                <PlusIcon size={16}/>
+                <FormattedMessage
+                    id='post_attributes.modal.add'
+                    defaultMessage='Add attribute'
+                    description='Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb.'
+                />
+            </>
+        ),
+    };
 
     return (
         <Menu.Container
-            menuButton={{
-                id: 'postAttributesAdd',
-                dataTestId: 'post-attributes-add',
-                class: 'PostAttributesModal__add',
-                children: (
-                    <>
-                        <PlusIcon size={16}/>
-                        <FormattedMessage
-                            id='post_attributes.modal.add'
-                            defaultMessage='Add attribute'
-                            description='Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb.'
-                        />
-                    </>
-                ),
-            }}
+            menuButton={menuButton}
+            menuButtonTooltip={trigger ? {text: trigger.label} : undefined}
+
+            // An icon trigger sits in the composer's bottom action row,
+            // so the menu opens upward, as the other menus in that row do.
+            anchorOrigin={trigger ? {vertical: 'top', horizontal: 'left'} : undefined}
+            transformOrigin={trigger ? {vertical: 'bottom', horizontal: 'left'} : undefined}
             menu={{
-                id: 'postAttributesAddMenu',
+                id: `${id}Menu`,
                 'aria-label': formatMessage({
                     id: 'post_attributes.modal.picker.label',
                     defaultMessage: 'Add an attribute',

@@ -1,40 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, type JSX} from 'react';
+import React, {memo, useId, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
-import {IconButton} from '@mattermost/compass-ui/components/icon-button';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {PropertyField} from '@mattermost/types/properties';
 
-// Placeholder until messages can be created with attributes, which comes in a
-// follow-up. Until then the button does nothing and is rendered as disabled.
-//
-// asChild + disabled makes IconButton set aria-disabled and its disabled styling
-// on the child instead of the native disabled attribute, so the tooltip still
-// shows on hover and the button keeps its tab stop.
-const PostAttributesButton = (): JSX.Element => {
+import PostAttributesFieldPicker from 'components/post_attributes/post_attributes_field_picker';
+
+type Props = {
+
+    // The fields the picker offers. The editor works this out once and shares
+    // it with the composer's inline add control.
+    fields: PropertyField[];
+    onSelect: (fieldId: string) => void;
+};
+
+/**
+ * The `+` in the composer's action row: opens the same field picker as the
+ * inline `+ Add attribute` after the chips, so an attribute can be staged
+ * before any chip is on screen.
+ *
+ * Omitted rather than disabled when there is nothing left to offer.
+ */
+const PostAttributesButton = ({fields, onSelect}: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb.'});
 
+    // The centre channel and the thread sidebar each have an action row.
+    const instanceId = useId();
+
+    if (fields.length === 0) {
+        return null;
+    }
+
     return (
-        <WithTooltip title={label}>
-            <IconButton
-                asChild={true}
-                size='small'
-                icon={<Icon glyph={<PlusIcon/>}/>}
-                aria-label={label}
-                disabled={true}
-            >
-                <button
-                    type='button'
-                    id='postAttributesButton'
-                    data-testid='post-attributes-composer-add'
-                />
-            </IconButton>
-        </WithTooltip>
+        <PostAttributesFieldPicker
+            id={`postAttributesButton-${instanceId}`}
+            dataTestId='post-attributes-composer-add'
+            fields={fields}
+            onSelect={onSelect}
+            trigger={{
+                label,
+                icon: <Icon glyph={<PlusIcon/>}/>,
+            }}
+        />
     );
 };
 

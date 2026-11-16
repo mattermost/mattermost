@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
@@ -120,6 +120,11 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
     const options = getPropertyFieldOptions(field);
     const entries = storedEntries(value);
 
+    // The centre channel and the thread sidebar each mount their own composer,
+    // and both draw a chip for the same field, so the field id alone would put
+    // the same DOM id on two controls.
+    const instanceId = useId();
+
     // Controlled only so `autoOpen` can open the menu on mount; like a native
     // `autoFocus`, it is read once. `onToggle` follows every other open and
     // close, so without `autoOpen` this behaves as the uncontrolled menu did.
@@ -173,7 +178,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
     return (
         <Menu.Container
             menuButton={{
-                id: `postAttributeValueTrigger-${field.id}`,
+                id: `postAttributeValueTrigger-${field.id}-${instanceId}`,
                 dataTestId: `post-attribute-trigger-${field.name}`,
                 class: 'PostAttributesModalRow__trigger',
                 disabled,
@@ -181,7 +186,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
                 children: displayValue,
             }}
             menu={{
-                id: `postAttributeValueMenu-${field.id}`,
+                id: `postAttributeValueMenu-${field.id}-${instanceId}`,
                 'aria-label': label,
                 isMenuOpen: isOpen,
                 onToggle: setIsOpen,
@@ -229,6 +234,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
  * under the pointer.
  */
 function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
+    const instanceId = useId();
     const stored = storedText(value);
     const [draft, setDraft] = useState(stored);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -257,7 +263,7 @@ function TextInput({field, value, disabled, onChange, autoOpen}: Props) {
 
     return (
         <input
-            id={`postAttributeValueInput-${field.id}`}
+            id={`postAttributeValueInput-${field.id}-${instanceId}`}
             name={`postAttributeValueInput-${field.name}`}
             data-testid={`post-attribute-input-${field.name}`}
             type='text'

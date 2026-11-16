@@ -12,6 +12,7 @@ import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import type {GlobalState} from 'types/store';
 
 import PostAttributesComposer from './post_attributes_composer';
+import {useComposerAttributes} from './use_composer_attributes';
 import type {ComposerPropertyValue} from './use_staged_post_attributes';
 import {useStagedPostAttributes} from './use_staged_post_attributes';
 
@@ -129,6 +130,7 @@ function spareField(): PropertyField {
  */
 function Host({initialValues = []}: {initialValues?: ComposerPropertyValue[]}) {
     const staged = useStagedPostAttributes();
+    const {fields, canEdit, addable} = useComposerAttributes(CHANNEL_ID, staged.values, staged.added);
 
     // Seeds the hook through its own `change`, the only way a value gets in.
     useEffect(() => {
@@ -140,9 +142,11 @@ function Host({initialValues = []}: {initialValues?: ComposerPropertyValue[]}) {
     return (
         <>
             <PostAttributesComposer
-                channelId={CHANNEL_ID}
                 values={staged.values}
                 added={staged.added}
+                fields={fields}
+                canEdit={canEdit}
+                addable={addable}
                 justAdded={staged.justAdded}
                 onAdd={staged.add}
                 onChange={staged.change}

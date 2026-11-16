@@ -8,6 +8,7 @@ import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
@@ -1322,15 +1323,67 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     });
 
     describe('post attributes button', () => {
-        const flagOn = mergeObjects(initialState, {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagPostAttributes: 'true',
+        const attributesGroupId = 'post_attributes_group';
+        const attributeOptions = [{id: 'opt_secret', name: 'SECRET', color: 'red'}];
+
+        function makeAttributeField(overrides: Partial<PropertyField>): PropertyField {
+            return {
+                id: 'field_id',
+                group_id: attributesGroupId,
+                name: 'field',
+                type: 'select',
+                object_type: 'post',
+                target_type: 'system',
+                target_id: '',
+                attrs: {options: attributeOptions},
+                permission_values: 'member',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: 'current_user_id',
+                updated_by: 'current_user_id',
+                ...overrides,
+            };
+        }
+
+        // `priority` only gets a chip once it is picked; `classification` has
+        // one from the start, so both composers draw it as soon as they mount.
+        const priorityField = makeAttributeField({id: 'f_priority', name: 'priority', attrs: {options: attributeOptions, display_name: 'Priority', visibility: 'when_set'}});
+        const classificationField = makeAttributeField({id: 'f_classification', name: 'classification', attrs: {options: attributeOptions, display_name: 'Classification', visibility: 'always'}});
+
+        const spareField = makeAttributeField({id: 'f_spare', name: 'spare', attrs: {options: attributeOptions, display_name: 'Spare', visibility: 'when_set'}});
+
+        // A text field draws an input rather than a menu button, and builds its
+        // DOM id separately, so it needs its own case where ids could collide.
+        const referenceField = makeAttributeField({id: 'f_reference', name: 'reference', type: 'text', attrs: {display_name: 'Reference', visibility: 'always'}});
+
+        function withFields(fields: PropertyField[], flag = 'true') {
+            const byId = Object.fromEntries(fields.map((field) => [field.id, field]));
+
+            return mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPostAttributes: flag,
+                        },
+                    },
+                    properties: {
+                        fields: {
+                            byId,
+                            byObjectType: {post: {[attributesGroupId]: byId}},
+                        },
+                        values: {byTargetId: {}, byFieldId: {}},
+                        groups: {
+                            byId: {[attributesGroupId]: {id: attributesGroupId, name: 'post_attributes'}},
+                            byName: {post_attributes: {id: attributesGroupId, name: 'post_attributes'}},
+                        },
                     },
                 },
-            },
-        });
+            });
+        }
+
+        // One field the user can still add, which is what puts the `+` on screen.
+        const flagOn = withFields([priorityField]);
 
         it('is absent with the feature flag off', () => {
             renderWithContext(
@@ -1341,6 +1394,29 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        // The editor never loads fields itself: `loadPostAttributeFields`, called by
+        // the channel view and the thread sidebar, does, and its flag gate is tested
+        // in `actions/post_attributes.test.ts`. This pins the editor's side: with
+        // the flag off it draws nothing even when fields are already in the store,
+        // and doesn't start a request of its own.
+        it('renders nothing with the flag off even when fields are in the store, and makes no field request of its own', () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField], 'false'),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(getPropertyFields).not.toHaveBeenCalled();
+
+            getPropertyFields.mockRestore();
         });
 
         it('is present in the centre channel composer with the flag on', () => {
@@ -1391,6 +1467,152 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const formatting = screen.getByLabelText('formatting');
 
             expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        it('opens the field picker, and picking a field stages its chip', async () => {
+            // A second field, so there is still something to add afterwards
+            // and the button is still on screen to be inspected.
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField]),
+            );
+
+            const add = screen.getByTestId('post-attributes-composer-add');
+            expect(add).not.toHaveAttribute('aria-disabled');
+            expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
+
+            await userEvent.click(add);
+
+            expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
+            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+
+            // The picked field's chip arrives with its own menu already open.
+            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument());
+            expect(await screen.findByRole('menuitemradio', {name: /^SECRET/})).toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-composer-add')).not.toHaveAttribute('aria-disabled');
+        });
+
+        it('offers the fields the inline add control offers', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField, classificationField]),
+            );
+
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            const fromButton = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('post-attributes-add'));
+            const fromInline = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+
+            expect(fromButton).toEqual(['post-attribute-add-priority', 'post-attribute-add-spare']);
+            expect(fromInline).toEqual(fromButton);
+        });
+
+        it('is not rendered when the channel declares no attribute the user can add', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('stops rendering both add controls once the last field is picked', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            // `classification` already has a chip, so the inline control is there.
+            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument());
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        });
+
+        it('gives the two add controls their own ids and test ids', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            const inline = screen.getByTestId('post-attributes-add');
+            const button = screen.getByTestId('post-attributes-composer-add');
+
+            expect(new Set([inline.id, button.id]).size).toBe(2);
+            expect(inline.id).not.toBe('');
+            expect(button.id).not.toBe('');
+            expect(inline.getAttribute('aria-controls')).not.toBe(button.getAttribute('aria-controls'));
+        });
+
+        it('keeps DOM ids unique with the centre channel and the thread composers side by side', () => {
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        location={Locations.RHS_COMMENT}
+                        rootId='root-post-id'
+                    />
+                </>,
+                withFields([priorityField, classificationField]),
+            );
+
+            // Both composers show the `always` chip and both have their add controls.
+            expect(screen.getAllByTestId('post-attributes-composer-add')).toHaveLength(2);
+            expect(screen.getAllByTestId('post-attribute-trigger-classification')).toHaveLength(2);
+
+            const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
+
+            expect(ids.length).toBeGreaterThanOrEqual(6);
+            expect(new Set(ids).size).toBe(ids.length);
+        });
+
+        it('keeps a text field\'s input ids unique with the centre channel and the thread composers side by side', () => {
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        location={Locations.RHS_COMMENT}
+                        rootId='root-post-id'
+                    />
+                </>,
+                withFields([priorityField, referenceField]),
+            );
+
+            // Both composers draw the `always` text field as an input.
+            const inputs = screen.getAllByTestId('post-attribute-input-reference');
+            expect(inputs).toHaveLength(2);
+
+            const [centreId, threadId] = inputs.map((input) => input.id);
+            expect(centreId).toMatch(/^postAttributeValueInput-f_reference/);
+            expect(threadId).toMatch(/^postAttributeValueInput-f_reference/);
+            expect(centreId).not.toBe(threadId);
+
+            const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
+            expect(new Set(ids).size).toBe(ids.length);
         });
     });
 
