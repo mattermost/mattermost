@@ -15368,7 +15368,7 @@
   },
   {
     "id": "health.rule.metrics_off.remediation",
-    "translation": "Turn on Performance Monitoring in the System Console. This also enables the Metrics plugin, which keeps 15 days of metrics on the server, with no Prometheus needed. If you run Prometheus, point it at the metrics listener (port 8067 by default).",
+    "translation": "Turn on Performance Monitoring in the System Console, and check that the Metrics plugin is enabled under Plugins > Plugin Management. The plugin keeps 15 days of metrics on the server, with no Prometheus needed. If you run Prometheus, point it at the metrics listener (port 8067 by default).",
     "description": "Health dashboard fix-it step for disabled performance monitoring; 'Performance Monitoring' is the System Console setting name, 'Metrics plugin' is a Mattermost plugin and 'Prometheus' is a product name; do not translate them."
   },
   {
