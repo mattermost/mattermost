@@ -738,15 +738,15 @@ func rejectedServerFilenameCases() []struct {
 		name     string
 		filename string
 	}{
-		{name: "shell startup dotfile", filename: ".zshenv"},
-		{name: "npm config dotfile", filename: ".npmrc"},
-		{name: "shell script", filename: "x.sh"},
+		{name: "dotfile", filename: ".config"},
+		{name: "dotfile with extension", filename: ".data.txt"},
+		{name: "non-zip extension", filename: "packet.txt"},
 		{name: "hidden zip", filename: ".hidden.zip"},
 		{name: "leading dash", filename: "-dash.zip"},
 		{name: "contains space", filename: "my packet.zip"},
 		{name: "uppercase extension", filename: "foo.ZIP"},
 		{name: "no extension", filename: "packet"},
-		{name: "zip followed by another extension", filename: "packet.zip.sh"},
+		{name: "zip followed by another extension", filename: "packet.zip.txt"},
 		{name: "percent-encoded traversal", filename: "%2e%2e%2fpacket.zip"},
 		{name: "longer than 255 characters", filename: strings.Repeat("a", 252) + ".zip"},
 	}
