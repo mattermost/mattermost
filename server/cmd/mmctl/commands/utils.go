@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
@@ -18,6 +19,20 @@ const (
 	DefaultPageSize = 200
 	MaxPageSize     = 200
 )
+
+const maxServerFilenameLength = 255
+
+var safeServerFilenameRegex = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*\.zip$`)
+
+// safeServerFilename returns name if it is safe to use as a local file name,
+// otherwise fallback. name comes from an untrusted server header, so it must
+// be a plain .zip base name of at most 255 characters with no path elements.
+func safeServerFilename(name, fallback string) string {
+	if len(name) > maxServerFilenameLength || !safeServerFilenameRegex.MatchString(name) {
+		return fallback
+	}
+	return name
+}
 
 func checkInteractiveTerminal() error {
 	fileInfo, err := os.Stdout.Stat()
