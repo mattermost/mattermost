@@ -560,11 +560,11 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 		c.SetInvalidURLParam("config_id")
 		return
 	}
-	// An invalid value is rejected rather than read as false, which would save the configuration.
+	// An invalid or empty value is rejected rather than read as false, which would save the configuration.
 	var dryRun bool
-	if value := r.URL.Query().Get("dry_run"); value != "" {
+	if query := r.URL.Query(); query.Has("dry_run") {
 		var err error
-		if dryRun, err = strconv.ParseBool(value); err != nil {
+		if dryRun, err = strconv.ParseBool(query.Get("dry_run")); err != nil {
 			c.SetInvalidURLParam("dry_run")
 			return
 		}
