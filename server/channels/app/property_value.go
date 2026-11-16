@@ -68,7 +68,7 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
 		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
-		a.queueClientConfigOverridesPush(rctx, targetID, "", false)
+		a.pushClientConfigOverrides(rctx, targetID, "", false)
 	}
 }
 
@@ -86,7 +86,7 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 	}
 	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
 	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
-	a.queueClientConfigOverridesPush(request.EmptyContext(a.Log()), targetID, "", false)
+	a.pushClientConfigOverrides(request.EmptyContext(a.Log()), targetID, "", false)
 }
 
 // invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
@@ -100,7 +100,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
 	a.Srv().Store().Attributes().ClearUserAttributesCache()
-	a.queueClientConfigOverridesPushForEveryone(request.EmptyContext(a.Log()))
+	a.pushClientConfigOverridesForEveryone(request.EmptyContext(a.Log()))
 }
 
 // CreatePropertyValue creates a new property value.

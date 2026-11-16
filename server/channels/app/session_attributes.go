@@ -210,7 +210,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		} else {
 			a.broadcastSessionAttributes(rctx, sessionID, attrsToMerge, refreshAt)
 			if epoch, err := a.Srv().Store().SessionAttribute().GetEpoch(sessionID); prevEpochErr == nil && err == nil && epoch != prevEpoch {
-				a.queueClientConfigOverridesPush(rctx, rctx.Session().UserId, sessionID, false)
+				a.pushClientConfigOverrides(rctx, rctx.Session().UserId, sessionID, false)
 			}
 		}
 	}

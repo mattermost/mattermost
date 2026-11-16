@@ -60,8 +60,7 @@ type Channels struct {
 	// See scheduleGuardCacheReloadRetry.
 	guardCacheRetryInFlight atomic.Bool
 
-	systemSettingPoliciesCache   *systemSettingPolicyCache
-	systemSettingOverridesPusher *systemSettingOverridesPusher
+	systemSettingPoliciesCache *systemSettingPolicyCache
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -121,9 +120,6 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	ch.guardCache.Store(&sync.Map{})
 	ch.systemSettingPoliciesCache = newSystemSettingPolicyCache()
-	ch.systemSettingOverridesPusher = newSystemSettingOverridesPusher(func(batch systemSettingOverridesPushBatch) {
-		New(ServerConnector(ch)).flushClientConfigOverridesPush(batch)
-	})
 	if s.Platform().Cluster() != nil {
 		s.Platform().Cluster().RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSystemSettingPolicies, ch.handleClusterInvalidateSystemSettingPolicies)
 	}
@@ -336,7 +332,6 @@ func (ch *Channels) Stop() error {
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
 	ch.healthCheckTask.stop()
-	ch.systemSettingOverridesPusher.stop()
 
 	close(ch.interruptQuitChan)
 

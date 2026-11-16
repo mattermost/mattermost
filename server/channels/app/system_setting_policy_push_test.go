@@ -4,7 +4,6 @@
 package app
 
 import (
-	"sync"
 	"testing"
 	"time"
 
@@ -17,116 +16,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-func TestSystemSettingOverridesPusher(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	newPusher := func(quiet, maxDelay time.Duration) (*systemSettingOverridesPusher, chan systemSettingOverridesPushBatch) {
-		batches := make(chan systemSettingOverridesPushBatch, 10)
-		p := newSystemSettingOverridesPusher(func(batch systemSettingOverridesPushBatch) {
-			batches <- batch
-		})
-		p.quietPeriod = quiet
-		p.maxDelay = maxDelay
-		t.Cleanup(p.stop)
-		return p, batches
-	}
-
-	receive := func(t *testing.T, batches chan systemSettingOverridesPushBatch) systemSettingOverridesPushBatch {
-		t.Helper()
-		select {
-		case batch := <-batches:
-			return batch
-		case <-time.After(5 * time.Second):
-			require.FailNow(t, "timed out waiting for flush")
-			return systemSettingOverridesPushBatch{}
-		}
-	}
-
-	t.Run("coalesces changes queued within the quiet period into one batch", func(t *testing.T) {
-		p, batches := newPusher(50*time.Millisecond, time.Minute)
-		userA, userB := model.NewId(), model.NewId()
-		sessionA1, sessionA2 := model.NewId(), model.NewId()
-
-		p.queueUser(userA, sessionA1, false)
-		p.queueUser(userA, sessionA2, false)
-		p.queueUser(userB, "", false)
-		p.queueUser(userB, model.NewId(), true)
-
-		batch := receive(t, batches)
-		assert.False(t, batch.everyone)
-		require.Len(t, batch.users, 2)
-
-		assert.False(t, batch.users[userA].allSessions)
-		assert.False(t, batch.users[userA].force)
-		assert.Equal(t, map[string]struct{}{sessionA1: {}, sessionA2: {}}, batch.users[userA].sessionIDs)
-
-		assert.True(t, batch.users[userB].allSessions, "an all-sessions request must absorb later per-session requests")
-		assert.True(t, batch.users[userB].force)
-		assert.Nil(t, batch.users[userB].sessionIDs)
-
-		select {
-		case extra := <-batches:
-			assert.Fail(t, "unexpected second flush", "%+v", extra)
-		case <-time.After(150 * time.Millisecond):
-		}
-	})
-
-	t.Run("flushes at the max delay while changes keep arriving", func(t *testing.T) {
-		p, batches := newPusher(100*time.Millisecond, 300*time.Millisecond)
-
-		stop := make(chan struct{})
-		var wg sync.WaitGroup
-		wg.Go(func() {
-			ticker := time.NewTicker(20 * time.Millisecond)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-stop:
-					return
-				case <-ticker.C:
-					p.queueUser(model.NewId(), "", false)
-				}
-			}
-		})
-
-		start := time.Now()
-		batch := receive(t, batches)
-		close(stop)
-		wg.Wait()
-
-		assert.Less(t, time.Since(start), 2*time.Second)
-		assert.NotEmpty(t, batch.users)
-	})
-
-	t.Run("queueEveryone marks the batch", func(t *testing.T) {
-		p, batches := newPusher(10*time.Millisecond, time.Second)
-		p.queueEveryone()
-		assert.True(t, receive(t, batches).everyone)
-	})
-
-	t.Run("drops pending changes once stopped", func(t *testing.T) {
-		p, batches := newPusher(20*time.Millisecond, time.Second)
-		p.queueUser(model.NewId(), "", false)
-		p.stop()
-		p.queueUser(model.NewId(), "", false)
-
-		select {
-		case batch := <-batches:
-			assert.Fail(t, "unexpected flush after stop", "%+v", batch)
-		case <-time.After(150 * time.Millisecond):
-		}
-	})
-}
-
 func TestClientConfigOverridesPush(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigStore.SetReadOnlyFF(false)
-
-	pusher := th.App.Srv().Channels().systemSettingOverridesPusher
-	pusher.mut.Lock()
-	pusher.quietPeriod = 20 * time.Millisecond
-	pusher.maxDelay = 200 * time.Millisecond
-	pusher.mut.Unlock()
 
 	enable := func(t *testing.T, policyRole string) *mocks.AccessControlServiceInterface {
 		t.Helper()
@@ -273,7 +165,7 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		expectOverrides(t, unmatched, map[string]any{})
 	})
 
-	t.Run("queues nothing when no system_setting policy exists", func(t *testing.T) {
+	t.Run("pushes nothing when no system_setting policy exists", func(t *testing.T) {
 		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.SystemSettingPolicies = true
@@ -283,10 +175,9 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 		th.App.invalidateSystemSettingPolicyCache()
 
-		th.App.queueClientConfigOverridesPush(th.Context, th.BasicUser.Id, "", true)
-
-		pusher.mut.Lock()
-		defer pusher.mut.Unlock()
-		assert.Empty(t, pusher.pending.users)
+		messages, _ := connect(t, th.BasicUser.Id)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
+		require.Nil(t, appErr)
+		expectNothing(t, messages)
 	})
 }
