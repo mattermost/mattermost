@@ -16,6 +16,38 @@ type SuiteIFace struct {
 	mock.Mock
 }
 
+// EvaluateClientConfigOverrides provides a mock function with given fields: rctx
+func (_m *SuiteIFace) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string, *model.AppError) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateClientConfigOverrides")
+	}
+
+	var r0 map[string]string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) (map[string]string, *model.AppError)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) map[string]string); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
+		r1 = rf(rctx)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetSession provides a mock function with given fields: token
 func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError) {
 	ret := _m.Called(token)

@@ -27,6 +27,7 @@ const (
 	broadcastAbacFiles          = "abac_files"
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
+	broadcastSystemSetting      = "system_setting_policy"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -41,6 +42,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
+		broadcastSystemSetting:      &systemSettingPolicyBroadcastHook{},
 	}
 }
 
@@ -731,4 +733,35 @@ func getTypedArg[T any](args map[string]any, key string) (T, error) {
 
 	err = json.Unmarshal(buf, &value)
 	return value, err
+}
+
+type systemSettingPolicyBroadcastHook struct{}
+
+func useSystemSettingPolicyHook(message *model.WebSocketEvent) {
+	message.GetBroadcast().AddHook(broadcastSystemSetting, map[string]any{})
+}
+
+func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, _ map[string]any) error {
+	session := webConn.GetSession()
+	if session == nil || session.UserId == "" {
+		msg.Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	overrides, appErr := webConn.Suite.EvaluateClientConfigOverrides(rctx)
+	if appErr != nil {
+		mlog.Warn("systemSettingPolicyBroadcastHook: failed to evaluate overrides; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(appErr),
+		)
+		msg.Reject()
+		return nil
+	}
+	if overrides == nil {
+		overrides = map[string]string{}
+	}
+
+	msg.Add("overrides", overrides)
+	return nil
 }

@@ -81,6 +81,12 @@ func (he *HookedWebSocketEvent) copyIfNecessary() {
 	}
 }
 
+func (he *HookedWebSocketEvent) Reject() {
+	he.copyIfNecessary()
+
+	he.copy.Reject()
+}
+
 func (he *HookedWebSocketEvent) Event() *model.WebSocketEvent {
 	if he.copy == nil {
 		return he.original
