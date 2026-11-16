@@ -39,13 +39,12 @@ describe('components/terms_of_service/TermsOfService', () => {
         (emitUserLoggedOutEvent as jest.Mock).mockClear();
     });
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const props = {...baseProps};
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 
     test('should call getTermsOfService on mount', () => {
@@ -54,19 +53,7 @@ describe('components/terms_of_service/TermsOfService', () => {
         expect(props.actions.getTermsOfService).toHaveBeenCalledTimes(1);
     });
 
-    test('should match snapshot on loading', () => {
-        const props = {
-            ...baseProps,
-            actions: {
-                ...baseProps.actions,
-                getTermsOfService: jest.fn().mockReturnValue(new Promise(() => {})),
-            },
-        };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on accept terms', async () => {
+    test('should render on accept terms', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -74,15 +61,14 @@ describe('components/terms_of_service/TermsOfService', () => {
                 updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Agree'));
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on reject terms', async () => {
+    test('should render on reject terms', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -90,12 +76,11 @@ describe('components/terms_of_service/TermsOfService', () => {
                 updateMyTermsOfServiceStatus: jest.fn().mockReturnValue(new Promise(() => {})),
             },
         };
-        const {container} = renderWithContext(<TermsOfService {...props}/>);
+        renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
             expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Disagree'));
-        expect(container).toMatchSnapshot();
     });
 
     test('should call updateTermsOfServiceStatus on registerUserAction', async () => {

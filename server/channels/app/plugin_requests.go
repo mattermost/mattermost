@@ -74,6 +74,15 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 	}
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(targetPluginID)
+	if err != nil && pluginsEnvironment.IsStarting(targetPluginID) {
+		a.Log().Debug("Internal plugin request to a plugin that is still starting",
+			mlog.String("source_plugin_id", sourcePluginID),
+			mlog.String("target_plugin_id", targetPluginID),
+			mlog.String("url", r.URL.Path),
+		)
+		http.Error(w, "plugin is starting", http.StatusServiceUnavailable)
+		return
+	}
 	if err != nil {
 		// Log the path only; the query string can carry an access_token.
 		a.Log().Error("Access to route for non-existent plugin in internal plugin request",

@@ -75,7 +75,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
         },
     };
 
-    test('should match snapshot, return empty ("") on Center', () => {
+    test('should return empty ("") on Center', () => {
         const baseProps = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             isLicensed: false,

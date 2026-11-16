@@ -5647,9 +5647,9 @@
     "defaultMessage": "Filter by",
     "description": "Heading of the admin console filter popover, above the filter option groups."
   },
-  "admin.general.localization.availableLocalesDescription": {
-    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names, and <link> wraps the Mattermost Translation Server link text."
+  "admin.general.localization.availableLocalesHelpText": {
+    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.",
+    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names."
   },
   "admin.general.localization.availableLocalesNoResults": {
     "defaultMessage": "No results found",
@@ -10238,6 +10238,10 @@
   "admin.mfa.bannerDesc": {
     "defaultMessage": "<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.",
     "description": "Info banner at the top of the Authentication > MFA admin page; <link> wraps the words Multi-factor authentication and points to documentation."
+  },
+  "admin.mfa.fipsBannerDesc": {
+    "defaultMessage": "TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>",
+    "description": "Warning banner on the Authentication > MFA admin page, shown only when the server runs in FIPS mode; notes that TOTP code generation is not strictly FIPS compliant. <link> wraps the words Learn more and points to the FIPS documentation."
   },
   "admin.mobile_security_feature_discovery.copy": {
     "defaultMessage": "Enable advanced security features like biometric authentication, screen capture prevention, and jailbreak/root detection for your mobile users.",
@@ -17555,10 +17559,6 @@
     "defaultMessage": "Something went wrong. Try again",
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
-  "admin.user.selectOptions": {
-    "defaultMessage": "Select options",
-    "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
-  },
   "admin.userDetail.saveChangesModal.authDataChange": {
     "defaultMessage": "Auth Data: {oldAuthData} → {newAuthData}",
     "description": "List item in the save-confirmation modal on the admin user configuration page showing an Auth Data change; {oldAuthData} and {newAuthData} are the before/after values, → is an arrow between them."
@@ -17742,10 +17742,6 @@
   "admin.userManagement.userDetail.saml": {
     "defaultMessage": "SAML: {propertyName}",
     "description": "Chip label showing a custom profile attribute is synced from SAML; {propertyName} is the linked SAML attribute name. Shown on the admin user configuration page."
-  },
-  "admin.userManagement.userDetail.selectOption": {
-    "defaultMessage": "Select an option",
-    "description": "Placeholder for the empty choice in a single-select custom profile attribute dropdown on the admin user configuration page."
   },
   "admin.userManagement.userDetail.separator": {
     "defaultMessage": ", ",
@@ -19566,10 +19562,6 @@
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
-  },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -29235,6 +29227,14 @@
     "defaultMessage": "Loading…",
     "description": "Shown in an attribute dropdown while options load."
   },
+  "property_fields.attribute_combobox.rank": {
+    "defaultMessage": "Rank {rank}",
+    "description": "Accessible description of a rank attribute field, giving the selected option's rank number."
+  },
+  "property_fields.attribute_combobox.ranked_option": {
+    "defaultMessage": "{name}, Rank {rank}",
+    "description": "Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number."
+  },
   "property_fields.attribute_combobox.selections": {
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
@@ -29294,6 +29294,14 @@
   "property_fields.hierarchical_value_menu.withheld": {
     "defaultMessage": "The values for this attribute are not available to you here.",
     "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
+  },
+  "property_fields.select_option": {
+    "defaultMessage": "Select an option",
+    "description": "Placeholder for an empty single-value attribute input (select or rank), shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
+  },
+  "property_fields.select_options": {
+    "defaultMessage": "Select options",
+    "description": "Placeholder for an empty multi-value attribute input, shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
   },
   "property_fields.user_attribute_fields.remove": {
     "defaultMessage": "Remove {name}",
@@ -34274,10 +34282,6 @@
   "user.settings.languages.promote1": {
     "defaultMessage": "Select which language Mattermost displays in the user interface.",
     "description": "Help text under the language dropdown explaining what the setting does."
-  },
-  "user.settings.languages.promote2": {
-    "defaultMessage": "Would you like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Note under the language setting inviting users to contribute translations; <link> wraps a link to the Mattermost translation server."
   },
   "user.settings.mfa.add": {
     "defaultMessage": "Add MFA to Account",

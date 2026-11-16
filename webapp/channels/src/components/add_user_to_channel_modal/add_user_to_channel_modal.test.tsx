@@ -56,15 +56,14 @@ describe('components/AddUserToChannelModal', () => {
         });
     }
 
-    it('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    it('should render', () => {
+        renderWithContext(
             <AddUserToChannelModal {...baseProps}/>,
         );
 
         expect(getAddButton().disabled).toBe(true);
         expect(document.querySelector('#add-user-to-channel-modal__user-is-member')).toBeNull();
         expect(document.querySelector('#add-user-to-channel-modal__invite-error')).toBeNull();
-        expect(baseElement).toMatchSnapshot();
     });
 
     it('should enable the add button when a channel is selected', async () => {

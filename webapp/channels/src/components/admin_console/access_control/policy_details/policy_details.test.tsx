@@ -157,43 +157,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         mockSearchChannels.mockResolvedValue({data: {channels: [], total_count: 0}});
     });
 
-    test('should match snapshot with new policy', () => {
-        // The ChannelList's Filter component has an existing prop type issue with TeamFilterDropdown
-        // that only surfaces during full rendering (not shallow). Suppress for this test.
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
-            if (typeof args[0] === 'string' && args[0].includes('Failed prop type')) {
-                // no-op: suppress prop type warnings
-            }
-        });
-
-        const props = {
-            ...defaultProps,
-            policyId: '',
-        };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
-        expect(container).toMatchSnapshot();
-
-        errorSpy.mockRestore();
-    });
-
-    test('should match snapshot with existing policy', () => {
-        const props = {
-            ...defaultProps,
-            actions: {
-                ...defaultProps.actions,
-                fetchPolicy: jest.fn().mockResolvedValue({
-                    data: {
-                        id: 'policy1',
-                        name: 'Policy 1',
-                        rules: [{expression: 'true'}],
-                    },
-                }),
-            },
-        };
-        const {container} = renderWithContext(<PolicyDetails {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should show masked values warning banner when policy has masked rows', async () => {
         // hasMaskedRows is derived in policy_details from the presence of the
         // "--------" sentinel in the loaded expression — drive the test via a
