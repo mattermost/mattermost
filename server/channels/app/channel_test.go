@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 
@@ -577,6 +578,109 @@ func TestCreateChannelWithUserIgnoresRequiredAttributesWithNoValues(t *testing.T
 	}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 	require.NotNil(t, channel)
+}
+
+// markerRecordingHook records the write marker and values seen by each
+// PreUpsertPropertyValues call.
+type markerRecordingHook struct {
+	properties.BasePropertyHook
+	mu    sync.Mutex
+	calls []recordedUpsert
+}
+
+type recordedUpsert struct {
+	marker  properties.WriteMarker
+	fields  []string
+	targets []string
+}
+
+func (h *markerRecordingHook) PreUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	rec := recordedUpsert{marker: properties.WriteMarkerFromContext(rctx)}
+	for _, v := range values {
+		rec.fields = append(rec.fields, v.FieldID)
+		rec.targets = append(rec.targets, v.TargetID)
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.calls = append(h.calls, rec)
+	return values, nil
+}
+
+func (h *markerRecordingHook) recorded() []recordedUpsert {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return slices.Clone(h.calls)
+}
+
+func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	hook := &markerRecordingHook{}
+	th.App.Srv().PropertyService().AddHook(hook)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              "f_" + model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+	})
+
+	newValues := func(text string) []*model.PropertyValue {
+		return []*model.PropertyValue{{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   json.RawMessage(fmt.Sprintf("%q", text)),
+		}}
+	}
+
+	rctx := th.Context
+	channel, appErr := th.App.CreateChannelWithUserAndPropertyValues(rctx, &model.Channel{
+		DisplayName: "Marked Create",
+		Name:        "marked-create-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, th.BasicUser.Id, newValues("first"))
+	require.Nil(t, appErr)
+
+	var fieldCalls []recordedUpsert
+	for _, c := range hook.recorded() {
+		if slices.Contains(c.fields, field.ID) {
+			fieldCalls = append(fieldCalls, c)
+		}
+	}
+	require.Len(t, fieldCalls, 1)
+	assert.Equal(t, properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id}, fieldCalls[0].marker)
+	for _, target := range fieldCalls[0].targets {
+		assert.Equal(t, channel.Id, target)
+	}
+
+	// The caller's context must not have been marked.
+	second := newValues("second")
+	second[0].TargetID = channel.Id
+	second[0].TargetType = model.PropertyValueTargetTypeChannel
+	_, appErr = th.App.UpsertPropertyValues(rctx, second, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	require.Nil(t, appErr)
+
+	calls := hook.recorded()
+	require.Greater(t, len(calls), 1)
+	assert.Equal(t, properties.WriteMarker{}, calls[len(calls)-1].marker)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
