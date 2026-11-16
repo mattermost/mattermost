@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -420,20 +421,23 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
-	wc.readPump()
-	close(wc.endWritePump)
-	close(wc.pluginPosted)
-	wg.Wait()
-	wc.Platform.HubUnregister(wc)
-	close(wc.pumpFinished)
+	defer func() {
+		close(wc.endWritePump)
+		close(wc.pluginPosted)
+		wg.Wait()
+		wc.Platform.HubUnregister(wc)
+		close(wc.pumpFinished)
 
-	userID := wc.UserId
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
-			return true
-		}, plugin.OnWebSocketDisconnectID)
-	})
+		userID := wc.UserId
+		wc.Platform.Go(func() {
+			wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}()
+
+	wc.readPump()
 }
 
 func (wc *WebConn) readPump() {
@@ -479,16 +483,13 @@ func (wc *WebConn) readPump() {
 			return
 		}
 
-		var decoder interface {
-			Decode(v any) error
-		}
-		if msgType == websocket.TextMessage {
-			decoder = json.NewDecoder(rd)
-		} else {
-			decoder = msgpack.NewDecoder(rd)
-		}
 		var req model.WebSocketRequest
-		if err = decoder.Decode(&req); err != nil {
+		if msgType == websocket.TextMessage {
+			err = json.NewDecoder(rd).Decode(&req)
+		} else {
+			err = decodeBinaryRequest(rd, &req)
+		}
+		if err != nil {
 			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
@@ -517,6 +518,40 @@ func (wc *WebConn) readPump() {
 
 		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
+}
+
+var errBinaryFrameTooLarge = errors.New("websocket frame exceeds max size")
+
+// binaryFramePool holds buffers one byte larger than the max frame size, so a
+// completely filled buffer means the frame is too large.
+var binaryFramePool = sync.Pool{
+	New: func() any {
+		b := make([]byte, model.SocketMaxMessageSizeKb+1)
+		return &b
+	},
+}
+
+// decodeBinaryRequest reads a binary frame into memory and walks its structure
+// before decoding it, so that the lengths its headers declare are matched
+// against the bytes the frame carries.
+func decodeBinaryRequest(rd io.Reader, req *model.WebSocketRequest) error {
+	bp := binaryFramePool.Get().(*[]byte)
+	defer binaryFramePool.Put(bp)
+
+	n, err := io.ReadFull(rd, *bp)
+	switch {
+	case err == nil:
+		return errBinaryFrameTooLarge
+	case err != io.EOF && err != io.ErrUnexpectedEOF:
+		return err
+	}
+	frame := (*bp)[:n]
+
+	if err := msgpack.NewDecoder(bytes.NewReader(frame)).Skip(); err != nil {
+		return err
+	}
+
+	return msgpack.NewDecoder(bytes.NewReader(frame)).Decode(req)
 }
 
 func (wc *WebConn) writePump() {
@@ -787,6 +822,17 @@ func (wc *WebConn) InvalidateCache() {
 	wc.SetSessionExpiresAt(0)
 }
 
+func (wc *WebConn) sessionLogFields(err error) []mlog.Field {
+	fields := []mlog.Field{
+		mlog.String("user_id", wc.UserId),
+		mlog.String("connection_id", wc.GetConnectionID()),
+	}
+	if session := wc.GetSession(); session != nil {
+		fields = append(fields, mlog.String("session_id", session.Id))
+	}
+	return append(fields, mlog.Err(err))
+}
+
 // IsBasicAuthenticated returns whether the given WebConn has a valid session.
 func (wc *WebConn) IsBasicAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
@@ -800,7 +846,7 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 
 			wc.SetSessionToken("")
@@ -1182,7 +1228,7 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", wc.sessionLogFields(err)...)
 			}
 			return false
 		}
